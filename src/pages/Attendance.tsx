@@ -38,8 +38,11 @@ export default function Attendance() {
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
-      if (parsedUser.user_id) {
-        fetchStatus(parsedUser.user_id);
+      const userId = parsedUser.user_id || parsedUser.id;
+      if (userId) {
+        fetchStatus(userId);
+      } else {
+        setInitialFetch(false);
       }
     } else {
       setInitialFetch(false);
@@ -87,17 +90,18 @@ export default function Attendance() {
 
   // 4. Auto-refresh status every 30 seconds
   useEffect(() => {
-    if (user?.user_id) {
+    const userId = user?.user_id || user?.id;
+    if (userId) {
       const interval = setInterval(() => {
-        fetchStatus(user.user_id);
+        fetchStatus(userId);
       }, 30000);
       return () => clearInterval(interval);
     }
-  }, [user?.user_id, fetchStatus]);
+  }, [user?.user_id, user?.id, fetchStatus]);
 
   // 5. THE CORE ACTION: Clock In / Clock Out
   const handleAttendanceAction = async () => {
-    const employeeId = user?.user_id;
+    const employeeId = user?.user_id || user?.id;
 
     if (!employeeId) {
       toast({
