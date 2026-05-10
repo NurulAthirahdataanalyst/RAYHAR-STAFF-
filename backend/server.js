@@ -1082,14 +1082,43 @@ app.get("/api/reports/analytics", async (req, res) => {
 // ===============================
 app.get("/api/branches", async (req, res) => {
   try {
-    const connection = await pool.getConnection();
-    const [branches] = await connection.query("SELECT id, name, code FROM branches");
-    connection.release();
+    const branches = [
+      { code: "HQ", name: "Rayhar HQ" },
+      { code: "KMM", name: "Kemaman" },
+      { code: "CNH", name: "Cheneh" },
+      { code: "KBG", name: "Kuala Berang" },
+      { code: "TGG", name: "Kuala Terengganu" },
+      { code: "DGN", name: "Dungun" },
+      { code: "JTH", name: "Jertih" },
+      { code: "KBR", name: "Kota Bharu" },
+      { code: "RMP", name: "Rompin" },
+      { code: "MZM", name: "Muadzam Shah" },
+      { code: "SHA", name: "Shah Alam" },
+      { code: "BBB", name: "Bandar Baru Bangi" },
+      { code: "KUL", name: "Kuala Lumpur" },
+      { code: "IPH", name: "Ipoh" },
+      { code: "MJG", name: "Manjung" },
+      { code: "KKS", name: "Kuala Kangsar" },
+      { code: "MLK", name: "Melaka" },
+      { code: "AOR", name: "Alor Setar" },
+      { code: "BTM", name: "Bertam" },
+      { code: "SNS", name: "Seremban" },
+      { code: "BTP", name: "Batu Pahat" },
+      { code: "JB", name: "Johor Bharu" },
+      { code: "TWU", name: "Tawau" }
+    ];
 
-    res.json({ success: true, branches });
+    res.json({
+      success: true,
+      branches
+    });
+
   } catch (err) {
-    console.error("Error fetching branches:", err.message);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    console.error("Error fetching branches:", err);
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
   }
 });
 
