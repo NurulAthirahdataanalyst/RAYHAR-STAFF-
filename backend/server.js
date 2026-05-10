@@ -1,5 +1,4 @@
-require("dotenv").config();
-
+const dotenv = require("dotenv");
 const express = require("express");
 const mysql = require("mysql2/promise");
 const cors = require("cors");
@@ -7,6 +6,9 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { sendNotificationEmail } = require("./mailer");
+
+dotenv.config({ path: path.resolve(__dirname, ".env") });
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 const app = express();
 app.use(cors());
@@ -35,25 +37,35 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // ===============================
 // MYSQL DATABASE CONNECTION
 // ===============================
-const pool = mysql.createPool({
-  host: process.env.MYSQLHOST,
-  user: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQLDATABASE,
-  port: process.env.MYSQLPORT,
+const dbConfig = {
+  host: process.env.DB_HOST || process.env.MYSQLHOST || "127.0.0.1",
+  user: process.env.DB_USER || process.env.MYSQLUSER || "root",
+  password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || "",
+  database: process.env.DB_NAME || process.env.MYSQLDATABASE || "",
+  port: parseInt(process.env.DB_PORT || process.env.MYSQLPORT || "3306", 10),
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
+};
+
+console.log("MySQL config:", {
+  host: dbConfig.host,
+  user: dbConfig.user,
+  database: dbConfig.database,
+  port: dbConfig.port,
 });
+
+const pool = mysql.createPool(dbConfig);
 
 // Test Database Connection
 (async () => {
   try {
     const connection = await pool.getConnection();
-    console.log("Successfully connected to MySQL");
+    console.log("Connected to MySQL successfully.");
     connection.release();
-  } catch (err) {
-    console.error("Error connecting to MySQL:", err.message);
+  } catch (error) {
+    console.error("Error connecting to MySQL:", error.message);
+    console.error("Stack Trace:", error.stack);
   }
 })();
 
@@ -96,7 +108,6 @@ app.get("/api/health", async (req, res) => {
     });
   }
 });
-
 
 // SIGN-UP API
 app.post("/api/signup", async (req, res) => {
@@ -1082,10 +1093,7 @@ app.get("/", (req, res) => {
 });
 
 // ===============================
-// START SERVER
+// START SERVER (UPDATED)
 // ===============================
 const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
