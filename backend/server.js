@@ -1,6 +1,6 @@
-require("dotenv").config();
-
 const dotenv = require("dotenv");
+dotenv.config();
+
 const express = require("express");
 const mysql = require("mysql2/promise");
 const cors = require("cors");
@@ -8,6 +8,11 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { sendNotificationEmail } = require("./mailer");
+
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+  console.warn("WARNING: JWT_SECRET is not defined. Set JWT_SECRET in your backend environment variables.");
+}
 
 const app = express();
 app.use(cors());
@@ -600,12 +605,20 @@ app.post("/api/login", async (req, res) => {
     const role = roleRows[0]?.role || "employee";
 
     // create token
+    if (!jwtSecret) {
+      return res.status(500).json({
+        success: false,
+        error: "Missing JWT_SECRET backend environment variable",
+        message: "Missing JWT_SECRET backend environment variable",
+      });
+    }
+
     const token = jwt.sign(
       {
         id: user.user_id,
         role: role
       },
-      process.env.JWT_SECRET,
+      jwtSecret,
       { expiresIn: "1d" }
     );
 
