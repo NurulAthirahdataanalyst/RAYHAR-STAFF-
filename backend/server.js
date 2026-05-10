@@ -119,7 +119,6 @@ app.post("/api/signup", async (req, res) => {
     return res.status(400).json({ success: false, error: "All fields are required" });
   }
 
-  // If branch is HQ, department is required
   if (branch === "HQ" && !department) {
     return res.status(400).json({ success: false, error: "Department is required for Rayhar HQ" });
   }
@@ -137,47 +136,35 @@ app.post("/api/signup", async (req, res) => {
       return res.status(409).json({ success: false, error: "Email already registered" });
     }
 
-    // Save department only for HQ branch, NULL for other branches
     const dept = branch === "HQ" ? (department || null) : null;
 
-    await connection.query(
-      `
-      INSERT INTO profiles (full_name, email, password, branch, department, status)
-      VALUES (?, ?, ?, ?, ?, ?)
-      `,
+    const [result] = await connection.query(
+      `INSERT INTO profiles (full_name, email, password, branch, department, status)
+       VALUES (?, ?, ?, ?, ?, ?)`,
       [full_name, email, password, branch, dept, status || "Active"]
     );
 
-    const [rows] = await connection.query(
-      `
-      SELECT user_id, full_name, email, branch, department
-      FROM profiles
-      WHERE email = ?
-      LIMIT 1
-      `,
-      [email]
+    const userId = result.insertId;
+
+    await connection.query(
+      "INSERT INTO user_role (user_id, role, department) VALUES (?, ?, ?)",
+      [userId, 'employee', dept]
     );
 
-    if (rows.length > 0) {
-      const newUser = rows[0];
-      // Default new users to 'employee' role
-      await connection.query(
-        "INSERT INTO user_role (user_id, role, department) VALUES (?, ?, ?)",
-        [newUser.user_id, 'employee', dept]
-      );
-    }
-
     connection.release();
-
-    if (rows.length === 0) {
-      return res.status(500).json({ success: false, error: "Account created but could not load user profile" });
-    }
 
     return res.status(201).json({
       success: true,
       message: "User signed up successfully",
-      user: rows[0],
+      user: {
+        user_id: userId,
+        full_name,
+        email,
+        branch,
+        department: dept
+      }
     });
+
   } catch (err) {
     console.error("Error during sign-up:", err.message);
     return res.status(500).json({ success: false, error: err.message });
