@@ -1075,6 +1075,13 @@ app.get("/api/departments", async (req, res) => {
 });
 
 // ===============================
+// ROUTES
+// ===============================
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
+});
+
+// ===============================
 // START SERVER
 // ===============================
 const PORT = process.env.PORT || 5000;
