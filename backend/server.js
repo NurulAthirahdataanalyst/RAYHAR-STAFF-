@@ -36,11 +36,11 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // MYSQL DATABASE CONNECTION
 // ===============================
 const pool = mysql.createPool({
-  host: "LocalHost",
-  user: "root",
-  password: "625231", // put your MySQL root password here
-  database: "employee_portal", // change to your database name
-  port: 3307, // IMPORTANT: based on your MySQL port
+  host: process.env.MYSQLHOST,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDATABASE,
+  port: process.env.MYSQLPORT,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
