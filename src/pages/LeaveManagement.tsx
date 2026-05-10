@@ -149,7 +149,7 @@ export default function LeaveManagement() {
         payload.append("cuti_tanpa_gaji_signature", formData.cutiTanpaGajiSignature ? "true" : "false");
       }
 
-      const response = await fetch("http://localhost:5000/api/leave-requests", {
+      const response = await fetch("https://rayhar-staff-portal.onrender.com/api/leave-requests", {
         method: "POST",
         body: payload,
       });

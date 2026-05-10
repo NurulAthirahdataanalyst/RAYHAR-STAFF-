@@ -23,7 +23,7 @@ export default function Employees() {
         branch: userBranch || "",
       });
 
-      const response = await fetch(`http://localhost:5000/api/employees?${params}`);
+      const response = await fetch(`https://rayhar-staff-portal.onrender.com/api/employees?${params}`);
       const data = await response.json();
 
       if (!response.ok || !data.success) {

@@ -9,9 +9,6 @@ const path = require("path");
 const fs = require("fs");
 const { sendNotificationEmail } = require("./mailer");
 
-dotenv.config({ path: path.resolve(__dirname, ".env") });
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
-
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -37,18 +34,29 @@ const upload = multer({ storage: storage });
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ===============================
-// MYSQL DATABASE CONNECTION
+// MYSQL DATABASE CONNECTION (PRODUCTION SAFE)
 // ===============================
+
 const dbConfig = {
-  host: process.env.DB_HOST || process.env.MYSQLHOST || "127.0.0.1",
-  user: process.env.DB_USER || process.env.MYSQLUSER || "root",
-  password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || "",
-  database: process.env.DB_NAME || process.env.MYSQLDATABASE || "",
-  port: parseInt(process.env.DB_PORT || process.env.MYSQLPORT || "3306", 10),
+  host: process.env.DB_HOST || process.env.MYSQLHOST,
+  user: process.env.DB_USER || process.env.MYSQLUSER,
+  password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD,
+  database: process.env.DB_NAME || process.env.MYSQLDATABASE,
+  port: Number(process.env.DB_PORT || process.env.MYSQLPORT || 3306),
+
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
+
+  ssl: {
+    rejectUnauthorized: false
+  }
 };
+
+// ❌ IMPORTANT: DO NOT allow fallback to localhost
+if (!dbConfig.host || !dbConfig.user || !dbConfig.database) {
+  throw new Error("Missing DB environment variables in Render");
+}
 
 console.log("MySQL config:", {
   host: dbConfig.host,
@@ -59,15 +67,14 @@ console.log("MySQL config:", {
 
 const pool = mysql.createPool(dbConfig);
 
-// Test Database Connection
+// Test connection
 (async () => {
   try {
     const connection = await pool.getConnection();
-    console.log("Connected to MySQL successfully.");
+    console.log("✅ Connected to MySQL successfully.");
     connection.release();
   } catch (error) {
-    console.error("Error connecting to MySQL:", error.message);
-    console.error("Stack Trace:", error.stack);
+    console.error("❌ Error connecting to MySQL:", error.message);
   }
 })();
 
@@ -551,24 +558,61 @@ app.get("/api/employees", async (req, res) => {
 // ===============================
 // LOGIN
 // ===============================
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
     const [rows] = await pool.query(
-      `SELECT user_id, full_name, email, branch, department 
-       FROM profiles 
-       WHERE email = ? AND password = ?`,
-      [email, password]
+      "SELECT * FROM profiles WHERE email = ?",
+      [email]
     );
 
-    if (rows.length > 0) {
-      res.json({ success: true, user: rows[0] });
-    } else {
-      res.status(401).json({ error: "Invalid credentials" });
+    if (rows.length === 0) {
+      return res.status(401).json({ success: false, message: "User not found" });
     }
+
+    const user = rows[0];
+
+    // compare password properly
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: "Wrong password" });
+    }
+
+    // get role
+    const [roleRows] = await pool.query(
+      "SELECT role FROM user_role WHERE user_id = ?",
+      [user.user_id]
+    );
+
+    const role = roleRows[0]?.role || "employee";
+
+    // create token
+    const token = jwt.sign(
+      {
+        id: user.user_id,
+        role: role
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user.user_id,
+        name: user.full_name,
+        role: role
+      }
+    });
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
