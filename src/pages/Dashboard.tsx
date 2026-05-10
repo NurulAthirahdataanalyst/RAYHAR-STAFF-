@@ -53,7 +53,14 @@ export default function Dashboard() {
   const [activities, setActivities] = useState<any[]>([]);
 
   const rawName = userName || user?.full_name || "User";
-  const firstName = rawName.split(" ")[0];
+  
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Good morning";
+    if (hour >= 12 && hour < 17) return "Good afternoon";
+    if (hour >= 17 && hour < 21) return "Good evening";
+    return "Good night";
+  };
 
   const applyAttendanceUpdate = useCallback(
     (update: any) => {
@@ -232,7 +239,7 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black tracking-tight text-slate-900">
-            Good morning, {firstName}!
+            {getGreeting()}, {rawName}!
           </h1>
           <p className="text-slate-500 font-medium mt-1 flex items-center gap-2">
             {new Date().toLocaleDateString("en-US", {
