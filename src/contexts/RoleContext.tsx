@@ -30,34 +30,31 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     // 1. IMMEDIATE UPDATE: Set the name from the Auth session right away
-    // This stops the dashboard from showing "User" while the API is fetching
     if (user.full_name) {
       setUserName(user.full_name);
+    } else if (user.name) {
+      setUserName(user.name);
     } else if (user.email) {
       setUserName(user.email);
     }
 
     const fetchUserData = async () => {
       try {
-        // Fetch fresh profile and role from your LOCAL API
-        const response = await fetch(`http://localhost:5000/api/user-details/${resolvedUserId || user.email}`);
+        const response = await fetch(`https://rayhar-staff-portal.onrender.com/api/user-details/${resolvedUserId || user.email}`);
         const data = await response.json();
 
         if (response.ok && data.success) {
-          // 2. SYNC UPDATE: Update with the most fresh data from the database
           setUserName(data.profile.full_name);
           setUserBranch(data.profile.branch || "HQ");
           setRole(data.role || "employee");
         } else {
-          // Fallback logic if API is unreachable
-          setUserName(user.full_name || user.email || "User");
+          setUserName(user.full_name || user.name || user.email || "User");
           setUserBranch("HQ");
           setRole("employee");
         }
       } catch (error) {
-        console.error("Role fetch error (API might be offline):", error);
-        // Ensure we still have the name from the user object if the server is down
-        setUserName(user.full_name || user.email || "User");
+        console.error("Role fetch error:", error);
+        setUserName(user.full_name || user.name || user.email || "User");
       } finally {
         setLoading(false);
       }
