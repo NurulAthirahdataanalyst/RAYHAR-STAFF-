@@ -46,10 +46,11 @@ export default function Login() {
 
       if (response.ok && data.success) {
         loginLocal(data.user); // data.user will now have 'E0001' style user_id
-        toast({ title: "Welcome back!", description: `Logged in as ${data.user.full_name}` });
-        navigate("/"); 
+        const displayName = data.user?.full_name || data.user?.name || loginEmail;
+        toast({ title: "Welcome back!", description: `Logged in as ${displayName}` });
+        navigate("/");
       } else {
-        toast({ title: "Login failed", description: data.error || "Invalid credentials", variant: "destructive" });
+        toast({ title: "Login failed", description: data.error || data.message || "Invalid credentials", variant: "destructive" });
       }
     } catch (err) {
       toast({ title: "Server Error", description: "Is your backend running on port 5000?", variant: "destructive" });

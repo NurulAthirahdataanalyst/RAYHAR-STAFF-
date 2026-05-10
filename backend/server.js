@@ -145,10 +145,13 @@ app.post("/api/signup", async (req, res) => {
 
     const dept = branch === "HQ" ? (department || null) : null;
 
+    // Hash password before storing it in the database
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const [result] = await connection.query(
       `INSERT INTO profiles (full_name, email, password, branch, department, status)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [full_name, email, password, branch, dept, status || "Active"]
+      [full_name, email, hashedPassword, branch, dept, status || "Active"]
     );
 
     const userId = result.insertId;
@@ -571,16 +574,21 @@ app.post("/api/login", async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.status(401).json({ success: false, message: "User not found" });
+      return res.status(401).json({ success: false, error: "User not found", message: "User not found" });
     }
 
     const user = rows[0];
 
-    // compare password properly
-    const isMatch = await bcrypt.compare(password, user.password);
+    let isMatch = false;
+    if (typeof user.password === 'string' && (user.password.startsWith('$2a$') || user.password.startsWith('$2b$') || user.password.startsWith('$2y$'))) {
+      isMatch = await bcrypt.compare(password, user.password);
+    } else {
+      // Fallback for legacy plain-text passwords while new signups are hashed
+      isMatch = password === user.password;
+    }
 
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: "Wrong password" });
+      return res.status(401).json({ success: false, error: "Wrong password", message: "Wrong password" });
     }
 
     // get role
