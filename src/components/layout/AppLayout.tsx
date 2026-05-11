@@ -71,7 +71,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
 
   return (
-    <div className="flex min-h-screen bg-[#F4F7FE]">
+    <div className="flex min-h-screen bg-background transition-colors duration-300">
       <AppSidebar />
       
       <main 

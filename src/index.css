@@ -7,8 +7,11 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-size: 80%;
+  }
+
   :root {
-    zoom: 0.8;
     --background: 210 20% 98%;
     --foreground: 220 25% 10%;
 

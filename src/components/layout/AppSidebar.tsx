@@ -60,7 +60,7 @@ const AppSidebar = () => {
   );
 
   return (
-    <aside className={`sticky top-0 z-50 flex h-screen flex-col border-r border-border bg-card transition-all duration-300 ease-in-out ${
+    <aside className={`sticky top-0 z-50 flex min-h-screen flex-col border-r border-border bg-card transition-all duration-300 ease-in-out ${
       isCollapsed ? "w-20" : "w-72"
     }`}>
       

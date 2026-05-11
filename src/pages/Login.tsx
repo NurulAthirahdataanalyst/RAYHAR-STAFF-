@@ -53,7 +53,7 @@ export default function Login() {
         toast({ title: "Login failed", description: data.error || data.message || "Invalid credentials", variant: "destructive" });
       }
     } catch (err) {
-      toast({ title: "Server Error", description: "Is your backend running on port 5000?", variant: "destructive" });
+      toast({ title: "Connection Error", description: "Could not connect to Rayhar Server. Please check your internet.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -105,6 +105,8 @@ export default function Login() {
         backgroundImage: `url(${watercolorBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        backgroundRepeat: 'no-repeat',
       }}
     >
       <div className="w-full max-w-md animate-in fade-in zoom-in duration-500">
@@ -112,7 +114,7 @@ export default function Login() {
           <img src={rayharLogo} alt="Rayhar Logo" className="w-14 h-14 rounded-2xl shadow-xl" />
           <div className="text-center">
             <h1 className="font-heading font-black text-slate-900 text-2xl tracking-tight">AttendEase</h1>
-            <p className="text-xs font-extrabold text-[#601b8a] uppercase tracking-widest">Local Database Mode</p>
+            <p className="text-xs font-extrabold text-[#601b8a] uppercase tracking-widest">Employee Portal</p>
           </div>
         </div>
 
@@ -140,7 +142,7 @@ export default function Login() {
                 <CardFooter>
                   <Button type="submit" className="w-full bg-[#601b8a] hover:bg-[#4a148c] text-white rounded-xl h-11 transition-all" disabled={loading}>
                     {loading && <Loader2 className="animate-spin mr-2" />}
-                    Sign In to Local DB
+                    Sign In to Portal
                   </Button>
                 </CardFooter>
               </form>
@@ -218,7 +220,7 @@ export default function Login() {
                 <CardFooter>
                   <Button type="submit" className="w-full bg-[#601b8a] hover:bg-[#4a148c] text-white rounded-xl h-11 transition-all" disabled={loading}>
                     {loading && <Loader2 className="animate-spin mr-2" />}
-                    {loading ? "Saving to Database..." : "Register Locally"}
+                    {loading ? "Registering..." : "Create Account"}
                   </Button>
                 </CardFooter>
               </form>
