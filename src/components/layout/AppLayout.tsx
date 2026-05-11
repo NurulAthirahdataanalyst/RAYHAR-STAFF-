@@ -1,7 +1,7 @@
 import AppSidebar from "./AppSidebar";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 // Pastikan nama fail tepat: watercolor-bg.png
 import watercolorBg from "@/assets/watercolor-bg.png";
 import { 
@@ -17,6 +17,7 @@ import { User, LogOut, ChevronRight, Settings } from "lucide-react";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [pendingApprovals, setPendingApprovals] = useState(0);
   const [resolvedRole, setResolvedRole] = useState("employee");
 
@@ -26,7 +27,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     const fetchRole = async () => {
       try {
-        const response = await fetch(`https://rayhar-staff-portal.onrender.com/api/user-details/${dashboardUserId}`);
+        const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/user-details/${dashboardUserId}`);
         const data = await response.json();
 
         if (response.ok && data.success && data.role) {
@@ -107,10 +108,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/50">
                     <span className="hover:text-primary cursor-pointer transition-colors" onClick={() => navigate("/")}>Home</span>
                     <ChevronRight className="w-2.5 h-2.5" />
-                    <span className="text-[#601b8a] dark:text-purple-400">Dashboard</span>
+                    <span className="text-[#601b8a] dark:text-purple-400 capitalize">
+                      {location.pathname === "/" ? "Dashboard" : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ")}
+                    </span>
                   </div>
                   <h2 className="text-lg font-black text-foreground tracking-tight">
-                    Main Workspace
+                    {location.pathname === "/" ? "Main Workspace" : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ").toUpperCase()}
                   </h2>
                 </div>
                 
