@@ -10,6 +10,7 @@ const fs = require("fs");
 const { sendNotificationEmail } = require("./mailer");
 
 const jwtSecret = process.env.JWT_SECRET;
+console.log('🔐 JWT_SECRET loaded?', !!jwtSecret);
 if (!jwtSecret) {
   console.warn("WARNING: JWT_SECRET is not defined. Set JWT_SECRET in your backend environment variables.");
 }
