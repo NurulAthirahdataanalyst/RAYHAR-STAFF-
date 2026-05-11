@@ -60,12 +60,12 @@ const AppSidebar = () => {
   );
 
   return (
-    <aside className={`sticky top-0 z-50 flex min-h-screen flex-col border-r border-border bg-card transition-all duration-300 ease-in-out ${
+    <aside className={`sticky top-0 z-50 flex min-h-screen flex-col border-r border-border bg-[#1A1C1E] transition-all duration-300 ease-in-out ${
       isCollapsed ? "w-20" : "w-72"
     }`}>
       
       {/* HEADER */}
-      <div className={`relative flex items-center justify-center bg-gradient-to-r from-[#601b8a] to-[#7a1fa2] overflow-hidden transition-all ${
+      <div className={`relative flex items-center justify-center bg-[#601b8a] overflow-hidden transition-all ${
         isCollapsed ? "h-20" : "h-24 px-4"
       }`}>
         {!isCollapsed && (
@@ -73,22 +73,29 @@ const AppSidebar = () => {
             <img 
               src={rayharLogo} 
               alt="Rayhar Group" 
-              className="h-[80%] w-auto object-contain" 
+              className="h-[80%] w-auto object-contain filter brightness-110" 
             />
           </Link>
         )}
         
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className={`absolute -right-3 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-all hover:bg-purple-50 hover:text-[#601b8a] z-50`}
+          className={`absolute -right-3 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-[#1A1C1E] text-slate-400 shadow-sm transition-all hover:bg-purple-900/20 hover:text-white z-50`}
         >
           {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>
       </div>
 
       {/* MENU */}
-      <div className="flex-1 overflow-y-auto pt-6">
-        <nav className="space-y-2 px-4">
+      <div className="flex-1 overflow-y-auto pt-8">
+        {!isCollapsed && (
+          <div className="px-7 mb-4">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500/80">
+              Menu Navigation
+            </span>
+          </div>
+        )}
+        <nav className="space-y-1.5 px-4">
           {filteredItems.map((item) => {
             const isActive =
               item.path === "/"
@@ -103,25 +110,25 @@ const AppSidebar = () => {
                 <Link
                   to={item.path}
                   title={isCollapsed ? item.title : ""}
-                  className={`group relative flex items-center gap-4 rounded-[16px] px-5 py-3.5 transition-all duration-300 ${
+                  className={`group relative flex items-center gap-4 rounded-[14px] px-5 py-3 transition-all duration-300 ${
                     isActive
-                      ? "bg-[#601b8a] text-white shadow-md"
-                      : "text-muted-foreground hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-[#601b8a] dark:hover:text-purple-400"
+                      ? "bg-purple-600/10 text-purple-400"
+                      : "text-slate-400 hover:bg-white/5 hover:text-white"
                   } ${isCollapsed ? "justify-center px-0 w-12 mx-auto" : ""}`}
                 >
                   <item.icon
                     className={`h-5 w-5 shrink-0 transition-colors ${
-                      isActive ? "text-[#fdf001]" : "text-muted-foreground/60 group-hover:text-[#601b8a] dark:group-hover:text-purple-400"
+                      isActive ? "text-purple-400" : "text-slate-500 group-hover:text-white"
                     }`}
                   />
                   {!isCollapsed && (
-                    <span className={`text-[14px] whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300 ${isActive ? "font-bold" : "font-semibold"}`}>
+                    <span className={`text-[13.5px] whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300 ${isActive ? "font-bold" : "font-medium"}`}>
                       {item.title}
                     </span>
                   )}
 
                   {isActive && !isCollapsed && (
-                    <div className="absolute right-4 h-1.5 w-1.5 rounded-full bg-[#fdf001]" />
+                    <div className="absolute left-0 w-1 h-6 bg-purple-500 rounded-r-full" />
                   )}
                 </Link>
 
@@ -154,12 +161,12 @@ const AppSidebar = () => {
       </div>
 
       {/* FOOTER */}
-      <div className="shrink-0 border-t border-slate-50 dark:border-slate-800 p-6 space-y-2">
+      <div className="shrink-0 border-t border-white/5 p-6 space-y-2">
         <Button
           variant="ghost"
           onClick={toggleTheme}
           title={isCollapsed ? `Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode` : ""}
-          className={`group flex w-full justify-start gap-4 rounded-[16px] px-5 py-6 text-slate-400 transition-all hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-[#601b8a] dark:hover:text-purple-400 ${
+          className={`group flex w-full justify-start gap-4 rounded-[16px] px-5 py-6 text-slate-400 transition-all hover:bg-white/5 hover:text-white ${
             isCollapsed ? "justify-center px-0 w-12 mx-auto" : ""
           }`}
         >
@@ -179,7 +186,7 @@ const AppSidebar = () => {
           variant="ghost"
           onClick={() => signOut()}
           title={isCollapsed ? "Log Out" : ""}
-          className={`group flex w-full justify-start gap-4 rounded-[16px] px-5 py-6 text-slate-400 transition-all hover:bg-red-50 hover:text-red-600 ${
+          className={`group flex w-full justify-start gap-4 rounded-[16px] px-5 py-6 text-slate-500 transition-all hover:bg-red-500/10 hover:text-red-500 ${
             isCollapsed ? "justify-center px-0 w-12 mx-auto" : ""
           }`}
         >

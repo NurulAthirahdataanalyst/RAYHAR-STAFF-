@@ -84,13 +84,40 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           backgroundAttachment: 'fixed'
         }}
       >
-        <div className="absolute inset-0 bg-background/40 dark:bg-background/80 pointer-events-none" />
-        <div className="relative p-6 lg:p-10 max-w-[1400px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="absolute inset-0 bg-background/60 dark:bg-background/90 pointer-events-none" />
+        <div className="relative p-6 lg:p-8 max-w-[1400px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
           
           <div className="flex flex-col lg:grid lg:grid-cols-10 gap-8">
             
             {/* Ruang Kerja Utama (70%) */}
-            <div className="lg:col-span-7 space-y-8">
+            <div className="lg:col-span-7 space-y-6">
+              {/* Breadcrumb & Header Pantas */}
+              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-[24px] p-4 flex items-center justify-between shadow-sm overflow-hidden relative">
+                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#601b8a]" />
+                <div className="pl-4 space-y-1">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/50">
+                    <span className="hover:text-primary cursor-pointer transition-colors" onClick={() => navigate("/")}>Home</span>
+                    <ChevronRight className="w-2.5 h-2.5" />
+                    <span className="text-[#601b8a] dark:text-purple-400">Dashboard</span>
+                  </div>
+                  <h2 className="text-lg font-black text-foreground tracking-tight">
+                    Main Workspace
+                  </h2>
+                </div>
+                
+                <div className="flex items-center gap-4 pr-2">
+                  <div className="text-right hidden sm:block">
+                    <p className="text-sm font-black text-foreground">{user?.full_name || user?.name || "Employee"}</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">
+                      {resolvedRole.replace('_', ' ')}
+                    </p>
+                  </div>
+                  <div className="h-10 w-10 rounded-xl bg-[#601b8a] text-white flex items-center justify-center font-black text-xs shadow-lg shadow-purple-900/20">
+                    {(user?.full_name || user?.name || "E")[0].toUpperCase()}
+                  </div>
+                </div>
+              </div>
+
               {children}
             </div>
 
