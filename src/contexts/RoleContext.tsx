@@ -40,7 +40,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/user-details/${resolvedUserId || user.email}`);
+        const response = await fetch(`https://rayhar-staff-portal.onrender.com/api/user-details/${resolvedUserId || user.email}`);
         const data = await response.json();
 
         if (response.ok && data.success) {

@@ -66,7 +66,7 @@ export default function LeaveAdmin() {
         branch: userBranch || "",
       });
 
-      const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/leave-requests?${params}`);
+      const response = await fetch(`https://rayhar-staff-portal.onrender.com/api/leave-requests?${params}`);
       const data = await response.json();
 
       if (!response.ok || !data.success) {
@@ -117,7 +117,7 @@ export default function LeaveAdmin() {
     }
 
     try {
-      const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/leave-requests/${id}/status`, {
+      const response = await fetch(`https://rayhar-staff-portal.onrender.com/api/leave-requests/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -382,7 +382,7 @@ export default function LeaveAdmin() {
                 {selectedRequest.type === "Cuti Sakit" && selectedRequest.mcFileUrl && (
                   <div className="text-sm p-4 bg-purple-50/50 border border-purple-100 rounded-xl">
                     <p className="text-[10px] uppercase font-bold text-purple-600 mb-2">Lampiran MC</p>
-                    <a href={`https://rayhar-staff-production.up.railway.app${selectedRequest.mcFileUrl}`} target="_blank" rel="noopener noreferrer" className="text-purple-700 underline font-semibold flex items-center gap-2">
+                    <a href={`https://rayhar-staff-portal.onrender.com${selectedRequest.mcFileUrl}`} target="_blank" rel="noopener noreferrer" className="text-purple-700 underline font-semibold flex items-center gap-2">
                       <FileText className="w-4 h-4" />
                       View MC Attachment
                     </a>

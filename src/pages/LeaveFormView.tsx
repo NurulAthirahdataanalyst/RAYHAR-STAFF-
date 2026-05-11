@@ -78,7 +78,7 @@ export default function LeaveFormView() {
     setLoading(true);
     try {
       const response = await fetch(
-        `https://rayhar-staff-production.up.railway.app/api/leave-requests?userId=${encodeURIComponent(userId)}`
+        `https://rayhar-staff-portal.onrender.com/api/leave-requests?userId=${encodeURIComponent(userId)}`
       );
       const data = await response.json();
 
@@ -395,7 +395,7 @@ export default function LeaveFormView() {
                 {selectedForm.type === "Cuti Sakit" && selectedForm.mcFileUrl && (
                   <div className="text-sm p-4 bg-purple-50/50 border border-purple-100 rounded-xl">
                     <p className="text-[10px] uppercase font-bold text-purple-600 mb-2">Lampiran MC</p>
-                    <a href={`https://rayhar-staff-production.up.railway.app${selectedForm.mcFileUrl}`} target="_blank" rel="noopener noreferrer" className="text-purple-700 underline font-semibold flex items-center gap-2">
+                    <a href={`https://rayhar-staff-portal.onrender.com${selectedForm.mcFileUrl}`} target="_blank" rel="noopener noreferrer" className="text-purple-700 underline font-semibold flex items-center gap-2">
                       <FileText className="w-4 h-4" />
                       View MC Attachment
                     </a>
