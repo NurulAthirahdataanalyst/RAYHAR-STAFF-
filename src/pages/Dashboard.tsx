@@ -102,7 +102,7 @@ export default function Dashboard() {
 
       try {
         const response = await fetch(
-          `https://rayhar-staff-portal.onrender.com/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}`
+          `https://rayhar-staff-production.up.railway.app/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}`
         );
 
         if (!response.ok) throw new Error("Sync failed");

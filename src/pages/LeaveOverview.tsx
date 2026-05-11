@@ -63,7 +63,7 @@ export default function LeaveOverview() {
       }
 
       try {
-        const response = await fetch(`https://rayhar-staff-portal.onrender.com/api/leave-requests?userId=${encodeURIComponent(userId)}`);
+        const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/leave-requests?userId=${encodeURIComponent(userId)}`);
         const data = await response.json();
 
         if (!response.ok || !data.success) {

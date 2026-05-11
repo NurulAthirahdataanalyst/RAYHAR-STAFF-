@@ -53,7 +53,7 @@ export default function Attendance() {
   const fetchStatus = useCallback(async (id: string) => {
     try {
       const response = await fetch(
-        `https://rayhar-staff-portal.onrender.com/api/attendance-status?empId=${id}`
+        `https://rayhar-staff-production.up.railway.app/api/attendance-status?empId=${id}`
       );
       const data = await response.json();
 
@@ -117,7 +117,7 @@ export default function Attendance() {
       const isClockOut = !!activeSession;
       const endpoint = isClockOut ? "/api/clock-out" : "/api/attendance";
 
-      const response = await fetch(`https://rayhar-staff-portal.onrender.com${endpoint}`, {
+      const response = await fetch(`https://rayhar-staff-production.up.railway.app${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
