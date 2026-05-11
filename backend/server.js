@@ -25,7 +25,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
-app.options('(.*)', cors()); // Handle all preflight OPTIONS requests for Express 5
 app.use(express.json());
 
 // Ensure uploads folder exists
