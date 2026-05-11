@@ -113,8 +113,8 @@ export default function Login() {
         <div className="flex flex-col items-center justify-center gap-3 mb-8">
           <img src={rayharLogo} alt="Rayhar Logo" className="w-14 h-14 rounded-2xl shadow-xl" />
           <div className="text-center">
-            <h1 className="font-heading font-black text-slate-900 text-2xl tracking-tight">AttendEase</h1>
-            <p className="text-xs font-extrabold text-[#601b8a] uppercase tracking-widest">Employee Portal</p>
+            <h1 className="font-heading font-black text-slate-900 text-2xl tracking-tight">Rayhar Group</h1>
+            <p className="text-xs font-extrabold text-[#601b8a] uppercase tracking-widest">Staff Admin Panel</p>
           </div>
         </div>
 
