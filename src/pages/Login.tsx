@@ -54,7 +54,7 @@ export default function Login() {
         toast({ title: "Login failed", description: data.error || data.message || "Invalid credentials", variant: "destructive" });
       }
     } catch (err) {
-      toast({ title: "Connection Error", description: "Could not connect to Rayhar Server. Please check your internet.", variant: "destructive" });
+      console.error("Login connection error:", err);
     } finally {
       setLoading(false);
     }
@@ -93,7 +93,7 @@ export default function Login() {
         toast({ title: "Signup failed", description: data.error || "Could not create account", variant: "destructive" });
       }
     } catch (err) {
-      toast({ title: "Connection Error", description: "Check your Node.js terminal.", variant: "destructive" });
+      console.error("Signup connection error:", err);
     } finally {
       setLoading(false);
     }
