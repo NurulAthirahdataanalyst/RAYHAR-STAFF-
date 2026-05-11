@@ -1,0 +1,20 @@
+# Remove Connection Error Toast
+
+The user is experiencing persistent "Connection Error" toasts on the login page due to server connectivity issues. They have requested to remove this error notification.
+
+## User Review Required
+
+> [!IMPORTANT]
+> Removing the "Connection Error" toast means that if the server is down or unreachable, the user will not see any visual feedback when clicking "Sign In" (the loading state will just stop). This might make the app feel unresponsive when there are network issues.
+
+## Proposed Changes
+
+### [MODIFY] [Login.tsx](file:///c:/Users/HP/ATTENDANCE_SYSTEM/src/pages/Login.tsx)
+- Remove the `toast` calls in the `catch` blocks of `handleLogin` and `handleSignup`.
+- Add `console.error` to preserve the error information for developers.
+
+## Verification Plan
+
+### Manual Verification
+- Attempt to log in with the server down and verify that no "Connection Error" toast appears.
+- Check the browser console to ensure the error is still logged for debugging.
