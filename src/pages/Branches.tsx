@@ -67,7 +67,7 @@ export default function Branches() {
   useEffect(() => {
     const fetchBranches = async () => {
       try {
-        const response = await fetch("https://rayhar-staff-production.up.railway.app/api/branches");
+        const response = await fetch("https://rayhar-staff-portal.onrender.com/api/branches");
         const data = await response.json();
         if (data.success) {
           setAllBranches(data.branches);
@@ -84,7 +84,7 @@ export default function Branches() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch("https://rayhar-staff-production.up.railway.app/api/branches-stats");
+        const response = await fetch("https://rayhar-staff-portal.onrender.com/api/branches-stats");
         const data = await response.json();
         if (data.success) {
           setBranchStats(data.stats);
@@ -107,7 +107,7 @@ export default function Branches() {
 
       setLoadingLeaves(true);
       try {
-        const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/leave-requests?userId=${selectedEmployeeId}`);
+        const response = await fetch(`https://rayhar-staff-portal.onrender.com/api/leave-requests?userId=${selectedEmployeeId}`);
         const data = await response.json();
         console.log("DEBUG: Fetched leaves for", selectedEmployeeId, ":", data);
         if (data.success) {
@@ -131,7 +131,7 @@ export default function Branches() {
     const fetchBranchEmployees = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/branch-employees?branch=${selectedBranch.code}`);
+        const response = await fetch(`https://rayhar-staff-portal.onrender.com/api/branch-employees?branch=${selectedBranch.code}`);
         const data = await response.json();
 
         if (!response.ok || !data.success) {

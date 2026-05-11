@@ -59,7 +59,7 @@ export default function Reports() {
   const fetchAnalytics = async () => {
     setLoadingAnalytics(true);
     try {
-      const response = await fetch("https://rayhar-staff-production.up.railway.app/api/reports/analytics");
+      const response = await fetch("https://rayhar-staff-portal.onrender.com/api/reports/analytics");
       const data = await response.json();
       if (data.success) {
         setMonthlyData(data.monthlyData.length > 0 ? data.monthlyData : fallbackMonthlyData);
@@ -75,7 +75,7 @@ export default function Reports() {
   const fetchDailyAttendance = async () => {
     setLoadingDaily(true);
     try {
-      const response = await fetch("https://rayhar-staff-production.up.railway.app/api/reports/daily-attendance");
+      const response = await fetch("https://rayhar-staff-portal.onrender.com/api/reports/daily-attendance");
       const data = await response.json();
       if (data.success) {
         setDailyAttendance(data.report);
@@ -92,7 +92,7 @@ export default function Reports() {
 
   const fetchTotalLeaveRequests = async () => {
     try {
-      const response = await fetch("https://rayhar-staff-production.up.railway.app/api/reports/total-leave-requests");
+      const response = await fetch("https://rayhar-staff-portal.onrender.com/api/reports/total-leave-requests");
       const data = await response.json();
       if (data.success) {
         setTotalLeaveRequests(data.totalLeaveRequests);
