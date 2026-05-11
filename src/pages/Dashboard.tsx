@@ -26,7 +26,7 @@ const getStoredUser = () => {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { role, userName, userId } = useRole();
+  const { role, userName, userId, userBranch } = useRole();
   const storedUser = getStoredUser();
 
   const dashboardUserId = user?.user_id || userId || user?.id || storedUser?.user_id;
@@ -238,10 +238,10 @@ export default function Dashboard() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">
+          <h1 className="text-3xl font-black tracking-tight text-foreground">
             {getGreeting()}, {rawName}!
           </h1>
-          <p className="text-slate-500 font-medium mt-1 flex items-center gap-2">
+          <p className="text-muted-foreground font-medium mt-1 flex items-center gap-2">
             {new Date().toLocaleDateString("en-US", {
               weekday: "long",
               month: "long",
@@ -249,7 +249,7 @@ export default function Dashboard() {
               year: "numeric",
             })}
             {isRefreshing && (
-              <Loader2 className="w-3 h-3 animate-spin text-[#800000]" />
+              <Loader2 className="w-3 h-3 animate-spin text-primary" />
             )}
           </p>
         </div>
@@ -258,7 +258,7 @@ export default function Dashboard() {
           size="sm"
           onClick={() => fetchDashboardData()}
           disabled={isRefreshing}
-          className="rounded-xl border-slate-200 hover:bg-slate-50 text-slate-600 gap-2 font-bold"
+          className="rounded-xl border-border hover:bg-accent text-foreground gap-2 font-bold"
         >
           <RefreshCcw
             className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
@@ -343,21 +343,21 @@ export default function Dashboard() {
         )}
       </div>
 
-      <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] rounded-[32px] overflow-hidden bg-white">
-        <CardHeader className="border-b border-slate-50 pb-4">
+      <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] rounded-[32px] overflow-hidden bg-card">
+        <CardHeader className="border-b border-border/50 pb-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-black text-slate-800 uppercase tracking-wider">
+            <CardTitle className="text-lg font-black text-foreground uppercase tracking-wider">
               Recent Activity
             </CardTitle>
             <div className="flex items-center gap-4">
               {lastUpdated && (
-                <span className="text-[11px] font-bold text-slate-400">
+                <span className="text-[11px] font-bold text-muted-foreground">
                   {lastUpdated}
                 </span>
               )}
               <Badge
                 variant="outline"
-                className="rounded-lg font-bold border-slate-200 text-slate-500"
+                className="rounded-lg font-bold border-border text-muted-foreground"
               >
                 Last 5 Events
               </Badge>
@@ -370,16 +370,16 @@ export default function Dashboard() {
               activities.map((item, i) => (
                 <div
                   key={i}
-                  className="group flex items-center gap-4 py-4 px-2 rounded-2xl hover:bg-slate-50 transition-colors duration-200"
+                  className="group flex items-center gap-4 py-4 px-2 rounded-2xl hover:bg-accent/50 transition-colors duration-200"
                 >
-                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
-                    <Clock className="w-5 h-5 text-slate-400" />
+                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center group-hover:bg-card group-hover:shadow-sm transition-all">
+                    <Clock className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="text-sm font-black text-slate-800">
+                    <p className="text-sm font-black text-foreground">
                       Today, {item.time}
                     </p>
-                    <p className="text-xs font-bold text-slate-500">
+                    <p className="text-xs font-bold text-muted-foreground">
                       {item.status}
                     </p>
                   </div>

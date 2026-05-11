@@ -56,37 +56,37 @@
     --sidebar-border: 220 20% 20%;
     --sidebar-ring: 174 62% 50%;
 
-    --font-heading: 'Plus Jakarta Sans', system-ui, sans-serif;
-    --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-heading: 'Outfit', system-ui, sans-serif;
+    --font-body: 'Outfit', system-ui, sans-serif;
   }
 
   .dark {
-    --background: 220 25% 7%;
-    --foreground: 210 15% 92%;
-    --card: 220 25% 10%;
-    --card-foreground: 210 15% 92%;
-    --popover: 220 25% 10%;
-    --popover-foreground: 210 15% 92%;
+    --background: 220 30% 6%;
+    --foreground: 210 20% 98%;
+    --card: 220 25% 9%;
+    --card-foreground: 210 20% 98%;
+    --popover: 220 25% 9%;
+    --popover-foreground: 210 20% 98%;
     --primary: 174 62% 45%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 20% 16%;
-    --secondary-foreground: 210 15% 85%;
-    --muted: 220 18% 14%;
-    --muted-foreground: 215 14% 55%;
-    --accent: 174 40% 15%;
-    --accent-foreground: 174 62% 60%;
-    --destructive: 0 62% 40%;
+    --secondary: 220 20% 12%;
+    --secondary-foreground: 210 20% 90%;
+    --muted: 220 20% 12%;
+    --muted-foreground: 215 15% 65%;
+    --accent: 174 40% 12%;
+    --accent-foreground: 174 62% 70%;
+    --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 18% 18%;
-    --input: 220 18% 18%;
+    --border: 220 20% 15%;
+    --input: 220 20% 15%;
     --ring: 174 62% 45%;
-    --sidebar-background: 220 30% 8%;
-    --sidebar-foreground: 210 15% 80%;
+    --sidebar-background: 220 35% 8%;
+    --sidebar-foreground: 210 20% 85%;
     --sidebar-primary: 174 62% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 25% 14%;
-    --sidebar-accent-foreground: 210 15% 90%;
-    --sidebar-border: 220 20% 14%;
+    --sidebar-accent: 220 25% 12%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 220 20% 12%;
     --sidebar-ring: 174 62% 50%;
   }
 }
@@ -94,15 +94,18 @@
 @layer base {
   * {
     @apply border-border;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
   }
 
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
+    letter-spacing: -0.02em;
   }
 }
 

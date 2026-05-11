@@ -81,10 +81,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed' // Menjadikan latar belakang nampak 'deep' & statik
+          backgroundAttachment: 'fixed'
         }}
       >
-        <div className="p-8 lg:p-12 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="absolute inset-0 bg-background/40 dark:bg-background/80 pointer-events-none" />
+        <div className="relative p-6 lg:p-10 max-w-[1400px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
           
           <div className="flex flex-col lg:grid lg:grid-cols-10 gap-8">
             
@@ -99,12 +100,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               {/* Kad Pengurusan Pantas */}
               <div className="bg-[#601b8a] p-8 rounded-[25px] shadow-2xl text-white relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
-                <h3 className="text-sm font-black text-white/90 uppercase tracking-widest mb-4">
+                <h3 className="text-sm font-black text-white/90 dark:text-purple-100 uppercase tracking-widest mb-4">
                   Quick Management
                 </h3>
                 <div className="space-y-3">
                   <div
-                    className="p-4 rounded-[18px] bg-white/10 border border-white/10 flex items-center justify-between hover:bg-white/20 transition-all cursor-pointer"
+                    className="p-4 rounded-[18px] bg-white/10 dark:bg-black/20 border border-white/10 dark:border-white/5 flex items-center justify-between hover:bg-white/20 dark:hover:bg-black/30 transition-all cursor-pointer"
                     onClick={() => navigate("/leave/admin")}
                     role="button"
                     tabIndex={0}
@@ -115,7 +116,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       }
                     }}
                   >
-                    <span className="text-sm font-bold text-white/90">Pending Approvals</span>
+                    <span className="text-sm font-bold text-white/90 dark:text-purple-50">Pending Approvals</span>
                     <span className="bg-[#00897B] text-white text-[10px] px-2.5 py-1 rounded-full font-black">
                       {pendingApprovals}
                     </span>
@@ -124,19 +125,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
 
               {/* Kad Cuti - Efek Kaca (Glassmorphism) sangat sesuai dengan PNG watercolor */}
-              <div className="bg-white/80 backdrop-blur-md p-6 rounded-[25px] shadow-xl border border-white/40">
+              <div className="bg-card/80 dark:bg-card/40 backdrop-blur-md p-6 rounded-[25px] shadow-xl border border-white/40 dark:border-white/10">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">
+                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground">
                     Calendar
                   </h3>
-                  <span className="text-xs font-black text-[#601b8a]">
+                  <span className="text-xs font-black text-[#601b8a] dark:text-purple-400">
                     {monthName} {calendarYear}
                   </span>
                 </div>
-                <div className="mb-5 rounded-[20px] bg-white/45 p-3 border border-white/30">
+                <div className="mb-5 rounded-[20px] bg-white/45 dark:bg-black/20 p-3 border border-white/30 dark:border-white/5">
                   <div className="grid grid-cols-7 gap-1 mb-2">
                     {weekdays.map((day, index) => (
-                      <span key={`${day}-${index}`} className="text-center text-[10px] font-black text-slate-400">
+                      <span key={`${day}-${index}`} className="text-center text-[10px] font-black text-muted-foreground/60">
                         {day}
                       </span>
                     ))}
@@ -156,7 +157,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                                 ? "bg-[#601b8a] text-white shadow-lg shadow-purple-900/20"
                                 : isHoliday
                                   ? "bg-[#C2185B] text-white"
-                                  : "text-slate-600 hover:bg-white/60"
+                                  : "text-foreground/80 hover:bg-white/60 dark:hover:bg-white/10"
                           }`}
                         >
                           {day || "."}
@@ -165,18 +166,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     })}
                   </div>
                 </div>
-                <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">
+                <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">
                   Upcoming Holidays
                 </h3>
                 <div className="space-y-4">
-                  <div className="flex items-center gap-4 p-3 bg-white/40 rounded-[20px] border border-white/20">
+                  <div className="flex items-center gap-4 p-3 bg-white/40 dark:bg-white/5 rounded-[20px] border border-white/20 dark:border-white/5">
                     <div className="bg-[#C2185B] text-white p-2 rounded-xl font-bold text-center min-w-[50px] shadow-lg">
                       <span className="block text-[10px] uppercase opacity-80">Apr</span>
                       <span className="text-lg leading-none font-black">22</span>
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-700">Hari Raya Aidilfitri</p>
-                      <p className="text-[10px] text-slate-400 font-medium italic">Public Holiday</p>
+                      <p className="text-sm font-bold text-foreground">Hari Raya Aidilfitri</p>
+                      <p className="text-[10px] text-muted-foreground font-medium italic">Public Holiday</p>
                     </div>
                   </div>
                 </div>

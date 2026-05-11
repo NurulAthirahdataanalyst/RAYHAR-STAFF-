@@ -72,11 +72,18 @@ console.log("MySQL config:", {
 
 const pool = mysql.createPool(dbConfig);
 
+// Set timezone to Malaysia (UTC+8) for every new connection
+// mysql2/promise wraps the underlying pool — access it via pool.pool
+pool.pool.on('connection', (connection) => {
+  connection.query("SET time_zone = '+08:00'");
+});
+
 // Test connection
 (async () => {
   try {
     const connection = await pool.getConnection();
-    console.log("✅ Connected to MySQL successfully.");
+    await connection.query("SET time_zone = '+08:00'");
+    console.log("✅ Connected to MySQL successfully (timezone: UTC+8 Malaysia).");
     connection.release();
   } catch (error) {
     console.error("❌ Error connecting to MySQL:", error.message);
@@ -806,7 +813,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const [presentRows] = await pool.query(
-        `SELECT COUNT(DISTINCT employee_id) AS present_today FROM attendances WHERE DATE(clock_in) = CURDATE() AND clock_out IS NULL ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT employee_id) AS present_today FROM attendances WHERE DATE(clock_in) = CURDATE() ${attendanceFilter}`,
         branchQueryParam
       );
 

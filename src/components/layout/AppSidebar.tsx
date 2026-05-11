@@ -12,17 +12,21 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Menu
+  Menu,
+  Moon,
+  Sun
 } from "lucide-react";
 import { useState } from "react";
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import rayharLogo from "@/assets/rayhar-logo.png";
 
 const AppSidebar = () => {
   const { role } = useRole();
   const { signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -56,7 +60,7 @@ const AppSidebar = () => {
   );
 
   return (
-    <aside className={`sticky top-0 z-50 flex h-screen flex-col border-r border-slate-100 bg-white transition-all duration-300 ease-in-out ${
+    <aside className={`sticky top-0 z-50 flex h-screen flex-col border-r border-border bg-card transition-all duration-300 ease-in-out ${
       isCollapsed ? "w-20" : "w-72"
     }`}>
       
@@ -102,12 +106,12 @@ const AppSidebar = () => {
                   className={`group relative flex items-center gap-4 rounded-[16px] px-5 py-3.5 transition-all duration-300 ${
                     isActive
                       ? "bg-[#601b8a] text-white shadow-md"
-                      : "text-slate-500 hover:bg-purple-50 hover:text-[#601b8a]"
+                      : "text-muted-foreground hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-[#601b8a] dark:hover:text-purple-400"
                   } ${isCollapsed ? "justify-center px-0 w-12 mx-auto" : ""}`}
                 >
                   <item.icon
                     className={`h-5 w-5 shrink-0 transition-colors ${
-                      isActive ? "text-[#fdf001]" : "text-slate-400 group-hover:text-[#601b8a]"
+                      isActive ? "text-[#fdf001]" : "text-muted-foreground/60 group-hover:text-[#601b8a] dark:group-hover:text-purple-400"
                     }`}
                   />
                   {!isCollapsed && (
@@ -130,13 +134,13 @@ const AppSidebar = () => {
                       to={child.path}
                       className={`group ml-7 flex items-center gap-3 rounded-[14px] px-4 py-2.5 text-[13px] transition-all duration-300 ${
                         isChildActive
-                          ? "bg-purple-50 font-bold text-[#601b8a]"
-                          : "text-slate-400 hover:bg-purple-50 hover:text-[#601b8a]"
+                          ? "bg-purple-50 dark:bg-purple-900/20 font-bold text-[#601b8a] dark:text-purple-400"
+                          : "text-muted-foreground/60 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-[#601b8a] dark:hover:text-purple-400"
                       }`}
                     >
                       <child.icon
                         className={`h-4 w-4 ${
-                          isChildActive ? "text-[#601b8a]" : "text-slate-300 group-hover:text-[#601b8a]"
+                          isChildActive ? "text-[#601b8a] dark:text-purple-400" : "text-muted-foreground/40 group-hover:text-[#601b8a] dark:group-hover:text-purple-400"
                         }`}
                       />
                       <span>{child.title}</span>
@@ -150,7 +154,27 @@ const AppSidebar = () => {
       </div>
 
       {/* FOOTER */}
-      <div className="shrink-0 border-t border-slate-50 p-6">
+      <div className="shrink-0 border-t border-slate-50 dark:border-slate-800 p-6 space-y-2">
+        <Button
+          variant="ghost"
+          onClick={toggleTheme}
+          title={isCollapsed ? `Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode` : ""}
+          className={`group flex w-full justify-start gap-4 rounded-[16px] px-5 py-6 text-slate-400 transition-all hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-[#601b8a] dark:hover:text-purple-400 ${
+            isCollapsed ? "justify-center px-0 w-12 mx-auto" : ""
+          }`}
+        >
+          {theme === "light" ? (
+            <Moon className="h-5 w-5 shrink-0" />
+          ) : (
+            <Sun className="h-5 w-5 shrink-0" />
+          )}
+          {!isCollapsed && (
+            <span className="text-sm font-bold whitespace-nowrap animate-in fade-in duration-300">
+              {theme === "light" ? "Dark Mode" : "Light Mode"}
+            </span>
+          )}
+        </Button>
+
         <Button
           variant="ghost"
           onClick={() => signOut()}
