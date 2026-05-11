@@ -46,10 +46,15 @@ export default function Login() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        loginLocal(data.user); // data.user will now have 'E0001' style user_id
+        console.log("Login success, user data:", data.user);
+        loginLocal(data.user); 
         const displayName = data.user?.full_name || data.user?.name || loginEmail;
         toast({ title: "Welcome back!", description: `Logged in as ${displayName}` });
-        navigate("/");
+        
+        // Use a small timeout to ensure state is saved before navigation
+        setTimeout(() => {
+          navigate("/");
+        }, 100);
       } else {
         toast({ title: "Login failed", description: data.error || data.message || "Invalid credentials", variant: "destructive" });
       }

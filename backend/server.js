@@ -15,7 +15,17 @@ if (!jwtSecret) {
 }
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://rayharstaffportal.vercel.app',
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+app.options('*', cors()); // Handle all preflight OPTIONS requests
 app.use(express.json());
 
 // Ensure uploads folder exists
@@ -629,12 +639,25 @@ app.post("/api/login", async (req, res) => {
       { expiresIn: "1d" }
     );
 
+    // Fetch additional profile fields needed by the frontend
+    const [profileRows] = await pool.query(
+      "SELECT full_name, email, branch, department, status FROM profiles WHERE user_id = ? LIMIT 1",
+      [user.user_id]
+    );
+    const profile = profileRows[0] || {};
+
     res.json({
       success: true,
       token,
       user: {
+        user_id: user.user_id,
         id: user.user_id,
-        name: user.full_name,
+        full_name: profile.full_name || user.full_name,
+        name: profile.full_name || user.full_name,
+        email: profile.email || user.email,
+        branch: profile.branch,
+        department: profile.department,
+        status: profile.status,
         role: role
       }
     });
