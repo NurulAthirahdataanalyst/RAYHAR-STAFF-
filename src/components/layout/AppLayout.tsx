@@ -4,9 +4,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 // Pastikan nama fail tepat: watercolor-bg.png
 import watercolorBg from "@/assets/watercolor-bg.png";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { User, LogOut, ChevronRight, Settings } from "lucide-react";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [pendingApprovals, setPendingApprovals] = useState(0);
   const [resolvedRole, setResolvedRole] = useState("employee");
@@ -17,7 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     const fetchRole = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/user-details/${dashboardUserId}`);
+        const response = await fetch(`https://rayhar-staff-portal.onrender.com/api/user-details/${dashboardUserId}`);
         const data = await response.json();
 
         if (response.ok && data.success && data.role) {
@@ -105,17 +114,43 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </h2>
                 </div>
                 
-                <div className="flex items-center gap-4 pr-2">
-                  <div className="text-right hidden sm:block">
-                    <p className="text-sm font-black text-foreground">{user?.full_name || user?.name || "Employee"}</p>
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">
-                      {resolvedRole.replace('_', ' ')}
-                    </p>
-                  </div>
-                  <div className="h-10 w-10 rounded-xl bg-[#601b8a] text-white flex items-center justify-center font-black text-xs shadow-lg shadow-purple-900/20">
-                    {(user?.full_name || user?.name || "E")[0].toUpperCase()}
-                  </div>
-                </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="outline-none">
+                      <div className="flex items-center gap-4 pr-2 group cursor-pointer">
+                        <div className="text-right hidden sm:block">
+                          <p className="text-sm font-black text-foreground group-hover:text-[#601b8a] transition-colors">{user?.full_name || user?.name || "Employee"}</p>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">
+                            {resolvedRole.replace('_', ' ')}
+                          </p>
+                        </div>
+                        <div className="h-10 w-10 rounded-xl bg-[#601b8a] text-white flex items-center justify-center font-black text-xs shadow-lg shadow-purple-900/20 group-hover:scale-105 transition-transform">
+                          {(user?.full_name || user?.name || "E")[0].toUpperCase()}
+                        </div>
+                      </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl p-2 border-white/20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl">
+                      <DropdownMenuLabel className="px-3 py-2">
+                        <div className="flex flex-col space-y-0.5">
+                          <p className="text-sm font-black">{user?.full_name || user?.name}</p>
+                          <p className="text-[10px] text-muted-foreground font-bold truncate">{user?.email}</p>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator className="bg-border/40" />
+                      <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-purple-500/10 focus:text-purple-600 dark:focus:text-purple-400 cursor-pointer">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>My Profile</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-purple-500/10 focus:text-purple-600 dark:focus:text-purple-400 cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Account Settings</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-border/40" />
+                      <DropdownMenuItem onClick={() => signOut()} className="rounded-xl px-3 py-2.5 focus:bg-red-500/10 focus:text-red-600 cursor-pointer text-red-500">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Sign Out</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
               </div>
 
               {children}
