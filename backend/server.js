@@ -1214,9 +1214,8 @@ app.get("/api/departments", async (req, res) => {
 // ===============================
 // ROUTES
 // ===============================
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "Rayhar API running 🚀"
-  });
+const PORT = process.env.PORT || 8080;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
 });
