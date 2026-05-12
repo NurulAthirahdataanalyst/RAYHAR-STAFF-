@@ -109,11 +109,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <span className="hover:text-primary cursor-pointer transition-colors" onClick={() => navigate("/")}>Home</span>
                     <ChevronRight className="w-2.5 h-2.5" />
                     <span className="text-[#601b8a] dark:text-purple-400 capitalize">
-                      {location.pathname === "/" ? "Dashboard" : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ")}
+                      {location.pathname === "/" ? "Dashboard" : location.pathname.includes("employees") ? "Staff" : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ")}
                     </span>
                   </div>
                   <h2 className="text-lg font-black text-foreground tracking-tight">
-                    {location.pathname === "/" ? "Main Workspace" : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ").toUpperCase()}
+                    {location.pathname === "/" ? "Main Workspace" : location.pathname.includes("employees") ? "STAFF" : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ").toUpperCase()}
                   </h2>
                 </div>
                 

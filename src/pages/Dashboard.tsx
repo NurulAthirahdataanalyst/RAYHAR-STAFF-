@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const getStoredUser = () => {
   try {
@@ -28,6 +29,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { role, userName, userId, userBranch } = useRole();
   const storedUser = getStoredUser();
+  const navigate = useNavigate();
 
   const dashboardUserId = user?.user_id || userId || user?.id || storedUser?.user_id;
 
@@ -311,13 +313,15 @@ export default function Dashboard() {
                 variant={isPresent ? "success" : isClockedOut ? "default" : "maroon"}
               />
             )}
-            <StatCard
-              icon={Users}
-              title="Total Employees"
-              value={String(stats.totalEmployees ?? 0)}
-              subtitle="Active Personnel"
-              variant="success"
-            />
+            <div onClick={() => navigate("/employees")} className="cursor-pointer">
+              <StatCard
+                icon={Users}
+                title="Total Employees"
+                value={String(stats.totalEmployees ?? 0)}
+                subtitle="Active Personnel"
+                variant="success"
+              />
+            </div>
             <StatCard
               icon={CheckCircle2}
               title="Present Today"
