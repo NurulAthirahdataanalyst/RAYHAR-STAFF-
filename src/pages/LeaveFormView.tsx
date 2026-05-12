@@ -101,7 +101,7 @@ export default function LeaveFormView() {
           reason: request.reason || "-",
           status: request.status || "Pending HOD",
           appliedAt,
-          formFileName: getLeaveFormFileName(appliedAt, type),
+          formFileName: getLeaveFormFileName(appliedAt, type, request.full_name || userName),
           warisNama: request.waris_nama || "N/A",
           warisPhone: request.waris_phone || "N/A",
           warisAlamat: request.waris_alamat || "N/A",

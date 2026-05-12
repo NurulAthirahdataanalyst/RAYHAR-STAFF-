@@ -52,7 +52,7 @@ const formatDate = (value: string) => value ? value.slice(0, 10) : "";
 
 export default function LeaveOverview() {
   const navigate = useNavigate();
-  const { userId } = useRole();
+  const { userId, userName } = useRole();
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
 
   useEffect(() => {
@@ -83,7 +83,7 @@ export default function LeaveOverview() {
             status: request.status || "Pending HOD",
             reason: request.reason || "",
             appliedAt,
-            formFileName: getLeaveFormFileName(appliedAt, type),
+            formFileName: getLeaveFormFileName(appliedAt, type, request.full_name || userName),
           };
         });
 
@@ -204,7 +204,7 @@ export default function LeaveOverview() {
         <CardContent className="space-y-4">
           {leaveRequests.length > 0 ? (
             leaveRequests.map((req) => {
-              const fileName = req.formFileName || getLeaveFormFileName(req.appliedAt, req.type);
+              const fileName = req.formFileName || getLeaveFormFileName(req.appliedAt, req.type, userName);
 
               return (
                 <div

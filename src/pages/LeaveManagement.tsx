@@ -170,7 +170,7 @@ export default function LeaveManagement() {
         status: "Pending HOD",
         reason: formData.tujuanCuti,
         appliedAt,
-        formFileName: getLeaveFormFileName(appliedAt, leaveType),
+        formFileName: getLeaveFormFileName(appliedAt, leaveType, formData.namaPenuh),
         attachmentName: formData.lampiranMc?.name,
         waris_nama: formData.warisNama,
         waris_phone: formData.warisPhone,

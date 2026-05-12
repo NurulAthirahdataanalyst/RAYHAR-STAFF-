@@ -85,7 +85,7 @@ export default function Employees() {
                   <tr className="border-b border-border">
                     <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Staff</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Position</th>
-                    {role === "hr_admin" && <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Branch</th>}
+                    <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Branch</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
                   </tr>
                 </thead>
@@ -105,7 +105,7 @@ export default function Employees() {
                           </div>
                         </td>
                         <td className="py-3 px-4 text-muted-foreground capitalize">{emp.position}</td>
-                        {role === "hr_admin" && <td className="py-3 px-4 text-muted-foreground">{emp.branch}</td>}
+                        <td className="py-3 px-4 text-muted-foreground">{emp.branch}</td>
                         <td className="py-3 px-4">
                           <Badge variant={emp.status === "Active" ? "default" : "secondary"} className="text-[10px]">
                             {emp.status}

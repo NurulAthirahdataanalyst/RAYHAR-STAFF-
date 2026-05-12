@@ -62,9 +62,14 @@ export const getUsedLeaveDays = (
     .reduce((total, request) => total + request.days, 0);
 };
 
-export const getLeaveFormFileName = (appliedAt: string, type: LeaveType) => {
+export const getLeaveFormFileName = (appliedAt: string, type: LeaveType, employeeName?: string) => {
   const submitDate = appliedAt.slice(0, 10);
   const leaveTypeName = type.toLowerCase().replace(/\s+/g, "-");
+  
+  if (employeeName) {
+    const safeName = employeeName.toUpperCase().replace(/[^A-Z0-9]/g, "_");
+    return `${safeName}-${submitDate}-${leaveTypeName}-form.pdf`;
+  }
 
   return `${submitDate}-${leaveTypeName}-form.pdf`;
 };
