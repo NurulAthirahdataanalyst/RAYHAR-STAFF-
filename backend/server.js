@@ -180,16 +180,21 @@ app.post("/api/signup", async (req, res) => {
 
     const dept = branch === "HQ" ? (department || null) : null;
 
+    // Generate New E00x ID
+    const [maxRows] = await connection.query(
+      "SELECT MAX(CAST(SUBSTRING(user_id, 2) AS UNSIGNED)) as max_id FROM profiles WHERE user_id LIKE 'E%'"
+    );
+    const nextIdNum = (maxRows[0].max_id || 0) + 1;
+    const userId = "E" + String(nextIdNum).padStart(3, "0");
+
     // Hash password before storing it in the database
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const [result] = await connection.query(
-      `INSERT INTO profiles (full_name, email, password, branch, department, status)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [full_name, email, hashedPassword, branch, dept, status || "Active"]
+    await connection.query(
+      `INSERT INTO profiles (user_id, full_name, email, password, branch, department, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [userId, full_name, email, hashedPassword, branch, dept, status || "Active"]
     );
-
-    const userId = result.insertId;
 
     await connection.query(
       "INSERT INTO user_role (user_id, role, department) VALUES (?, ?, ?)",
@@ -1215,6 +1220,8 @@ app.get("/api/departments", async (req, res) => {
 // ROUTES
 // ===============================
 const PORT = process.env.PORT || 8080;
+
+console.log("PORT FROM ENV:", process.env.PORT);
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
