@@ -10,7 +10,7 @@ DB_PORT=your_database_port
 DB_USER=your_database_username
 DB_PASSWORD=your_database_password
 DB_NAME=your_database_name
-JWT_SECRET=your_super_secret_key
+JWT_SECRET=r9K$7yZ!b3pQx2sD8vL0nW%hJ4mG6uT1
 PORT=5000
 ```
 
