@@ -32,38 +32,78 @@ export default function Reports() {
   const { role } = useRole();
   const [dailyAttendance, setDailyAttendance] = useState<AttendanceRecord[]>([]);
   const [loadingDaily, setLoadingDaily] = useState(false);
-  const [monthlyData, setMonthlyData] = useState<any[]>(fallbackMonthlyData);
-  const [branchComparison, setBranchComparison] = useState<any[]>(fallbackBranchComparison);
+  const [monthlyData, setMonthlyData] = useState<any[]>([]);
+  const [branchComparison, setBranchComparison] = useState<any[]>([]);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [totalLeaveRequests, setTotalLeaveRequests] = useState(0);
-
-  // 1. Add a state for limit (Default to 10)
   const [limit, setLimit] = useState("10");
 
+  const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+
+  const months = [
+    { value: "1", label: "January" },
+    { value: "2", label: "February" },
+    { value: "3", label: "March" },
+    { value: "4", label: "April" },
+    { value: "5", label: "May" },
+    { value: "6", label: "June" },
+    { value: "7", label: "July" },
+    { value: "8", label: "August" },
+    { value: "9", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
+  ];
+
+  const years = [
+    { value: "2026", label: "2026" },
+    { value: "2025", label: "2025" },
+    { value: "2024", label: "2024" },
+  ];
+
   useEffect(() => {
+    fetchInitialData();
+    const interval = setInterval(() => {
+      refreshData();
+    }, 15000); // Poll every 15 seconds for "real-time"
+    return () => clearInterval(interval);
+  }, [role, selectedMonth, selectedYear]);
+
+  const fetchInitialData = async () => {
     if (role === "hr_admin" || role === "managing_director") {
       fetchDailyAttendance();
     }
     fetchAnalytics();
+    fetchTotalLeaveRequests();
+  };
 
-    const interval = setInterval(() => {
-      if (role === "hr_admin" || role === "managing_director") {
-        fetchDailyAttendance();
-      }
-      fetchAnalytics();
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [role]);
+  const refreshData = async () => {
+    if (role === "hr_admin" || role === "managing_director") {
+      // Background refresh
+      const response = await fetch("https://rayhar-staff-production.up.railway.app/api/reports/daily-attendance");
+      const data = await response.json();
+      if (data.success) setDailyAttendance(data.report);
+    }
+    
+    const params = new URLSearchParams({ month: selectedMonth, year: selectedYear });
+    const analyticsResponse = await fetch(`https://rayhar-staff-production.up.railway.app/api/reports/analytics?${params}`);
+    const analyticsData = await analyticsResponse.json();
+    if (analyticsData.success) {
+      setMonthlyData(analyticsData.monthlyData);
+      setBranchComparison(analyticsData.branchComparison);
+    }
+  };
 
   const fetchAnalytics = async () => {
     setLoadingAnalytics(true);
     try {
-      const response = await fetch("https://rayhar-staff-production.up.railway.app/api/reports/analytics");
+      const params = new URLSearchParams({ month: selectedMonth, year: selectedYear });
+      const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/reports/analytics?${params}`);
       const data = await response.json();
       if (data.success) {
-        setMonthlyData(data.monthlyData.length > 0 ? data.monthlyData : fallbackMonthlyData);
-        setBranchComparison(data.branchComparison.length > 0 ? data.branchComparison : fallbackBranchComparison);
+        setMonthlyData(data.monthlyData);
+        setBranchComparison(data.branchComparison);
       }
     } catch (error) {
       console.error("Error fetching analytics:", error);
@@ -96,18 +136,48 @@ export default function Reports() {
       const data = await response.json();
       if (data.success) {
         setTotalLeaveRequests(data.totalLeaveRequests);
-      } else {
-        toast.error("Failed to load total leave requests");
       }
     } catch (error) {
       console.error("Error fetching total leave requests:", error);
-      toast.error("Error connecting to server");
     }
   };
 
-  useEffect(() => {
-    fetchTotalLeaveRequests();
-  }, []);
+  const handleExport = () => {
+    if (dailyAttendance.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
+
+    // Create CSV content
+    const headers = ["Employee Name", "Branch", "Time In", "Time Out", "Status"];
+    const rows = dailyAttendance.map(r => [
+      r.full_name,
+      r.branch,
+      r.time_in,
+      r.time_out || "--:--",
+      r.time_out ? "Clocked Out" : "Active"
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+
+    // Download file
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    const dateStr = new Date().toISOString().split('T')[0];
+    
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Rayhar_Attendance_Report_${dateStr}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("Excel/CSV Report exported successfully!");
+  };
 
   return (
     <div className="space-y-6">
@@ -116,24 +186,23 @@ export default function Reports() {
           <h1 className="text-2xl font-bold font-heading text-foreground">Reports & Statistics</h1>
           <p className="text-sm text-muted-foreground mt-1">Analytics about employee attendance and leaves</p>
         </div>
-        <Button variant="outline" onClick={() => toast.success("Report downloaded!")}>
-          <Download className="w-4 h-4 mr-2" /> Export Report
+        <Button variant="outline" onClick={handleExport} className="border-primary text-primary hover:bg-primary/10">
+          <Download className="w-4 h-4 mr-2" /> Export Report (Excel)
         </Button>
       </div>
 
       {(role === "hr_admin" || role === "managing_director") && (
-        <Card className="border-none shadow-md mb-6">
-          <CardHeader>
+        <Card className="border-none shadow-md mb-6 overflow-hidden">
+          <div className="bg-primary/5 px-6 py-4 border-b">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Users className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-bold flex items-center gap-2 text-primary">
+                  <Users className="w-5 h-5" />
                   Today's Attendance Overview
-                </CardTitle>
-                <CardDescription>Live data of employees who are coming to work today</CardDescription>
+                </h3>
+                <p className="text-xs text-muted-foreground">Live real-time data of staff currently at work</p>
               </div>
               <div className="flex items-center gap-4">
-                {/* 3. Add a dropdown (Select) for user choice */}
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground font-medium">Show</span>
                   <Select value={limit} onValueChange={setLimit}>
@@ -147,51 +216,51 @@ export default function Reports() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Badge variant="secondary" className="font-mono text-sm px-3 py-1">
-                  {dailyAttendance.length} Present
+                <Badge className="bg-green-600 text-white font-mono text-sm px-3 py-1 animate-pulse">
+                  {dailyAttendance.length} Live
                 </Badge>
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="relative overflow-x-auto rounded-lg border">
+          </div>
+          <CardContent className="p-0">
+            <div className="relative overflow-x-auto">
               {loadingDaily ? (
-                <div className="flex items-center justify-center p-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <div className="flex items-center justify-center p-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
               ) : (
                 <table className="w-full text-sm text-left">
-                  <thead className="bg-muted/50 text-muted-foreground uppercase text-[11px] font-bold">
+                  <thead className="bg-muted/30 text-muted-foreground uppercase text-[11px] font-bold">
                     <tr>
-                      <th className="px-4 py-3">Employee Name</th>
-                      <th className="px-4 py-3">Branch</th>
-                      <th className="px-4 py-3">Time In</th>
-                      <th className="px-4 py-3">Time Out</th>
-                      <th className="px-4 py-3">Status</th>
+                      <th className="px-6 py-4">Employee Name</th>
+                      <th className="px-6 py-4">Branch</th>
+                      <th className="px-6 py-4">Time In</th>
+                      <th className="px-6 py-4">Time Out</th>
+                      <th className="px-6 py-4">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
                     {dailyAttendance.length > 0 ? (
-                      // 2. Slice the data before rendering
                       dailyAttendance.slice(0, parseInt(limit)).map((record) => (
-                        <tr key={record.user_id} className="hover:bg-muted/10 transition-colors">
-                          <td className="px-4 py-3 font-semibold text-foreground">{record.full_name}</td>
-                          <td className="px-4 py-3 text-muted-foreground">{record.branch}</td>
-                          <td className="px-4 py-3 font-mono text-xs">{record.time_in}</td>
-                          <td className="px-4 py-3 font-mono text-xs">{record.time_out || "--:--"}</td>
-                          <td className="px-4 py-3">
+                        <tr key={record.user_id} className="hover:bg-primary/5 transition-colors group">
+                          <td className="px-6 py-4 font-bold text-foreground group-hover:text-primary">{record.full_name}</td>
+                          <td className="px-6 py-4 text-muted-foreground font-medium">{record.branch}</td>
+                          <td className="px-6 py-4 font-mono text-xs">{record.time_in}</td>
+                          <td className="px-6 py-4 font-mono text-xs text-muted-foreground">{record.time_out || "--:--"}</td>
+                          <td className="px-6 py-4">
                             <Badge
-                              variant={record.time_out ? "secondary" : "default"}
-                              className={!record.time_out ? "bg-green-100 text-green-700 hover:bg-green-200 border-none" : ""}
+                              variant="outline"
+                              className={!record.time_out ? "bg-green-50 text-green-700 border-green-200" : "bg-slate-50 text-slate-500"}
                             >
-                              {record.time_out ? "Clocked Out" : "Active"}
+                              {!record.time_out && <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse" />}
+                              {record.time_out ? "Clocked Out" : "Present"}
                             </Badge>
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                        <td colSpan={5} className="px-6 py-12 text-center text-sm text-muted-foreground italic">
                           No employees have clocked in today.
                         </td>
                       </tr>
@@ -204,80 +273,96 @@ export default function Reports() {
         </Card>
       )}
 
-      <div className="flex gap-3 mt-8">
-        <Select defaultValue="april">
-          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+      <div className="flex items-center gap-3 bg-muted/20 p-3 rounded-xl border w-fit">
+        <span className="text-xs font-bold text-muted-foreground uppercase px-2">Filter View:</span>
+        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+          <SelectTrigger className="w-40 h-9"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="january">January</SelectItem>
-            <SelectItem value="february">February</SelectItem>
-            <SelectItem value="march">March</SelectItem>
-            <SelectItem value="april">April</SelectItem>
+            {months.map(m => (
+              <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
-        <Select defaultValue="2026">
-          <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+        <Select value={selectedYear} onValueChange={setSelectedYear}>
+          <SelectTrigger className="w-28 h-9"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="2026">2026</SelectItem>
-            <SelectItem value="2025">2025</SelectItem>
+            {years.map(y => (
+              <SelectItem key={y.value} value={y.value}>{y.label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="border-none shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-heading">Attendance Trend</CardTitle>
+            <CardTitle className="text-base font-bold flex items-center gap-2">
+              <FileBarChart className="w-4 h-4 text-primary" />
+              Monthly Attendance Trend ({selectedYear})
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} domain={[0, 100]} />
-                <Tooltip />
-                <Line type="monotone" dataKey="attendance" stroke="hsl(174, 62%, 32%)" strokeWidth={2} dot={{ r: 4 }} name="Attendance %" />
-              </LineChart>
-            </ResponsiveContainer>
+            {loadingAnalytics ? (
+               <div className="h-[280px] flex items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>
+            ) : (
+              <ResponsiveContainer width="100%" height={280}>
+                <LineChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 95%)" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 12 }} domain={[0, 100]} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                  <Line type="monotone" dataKey="attendance" stroke="hsl(263, 70%, 50%)" strokeWidth={3} dot={{ r: 6, fill: 'hsl(263, 70%, 50%)', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 8 }} name="Attendance %" />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 
         {role === "hr_admin" && (
-          <Card>
+          <Card className="border-none shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base font-heading">Branch Comparison</CardTitle>
+              <CardTitle className="text-base font-bold">Branch Efficiency ({months.find(m => m.value === selectedMonth)?.label})</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={branchComparison}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
-                  <XAxis dataKey="branch" tick={{ fontSize: 12, fontWeight: 'bold' }} />
-                  <YAxis yAxisId="left" tick={{ fontSize: 10 }} domain={[0, 100]} />
-                  <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} />
-                  <Tooltip />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                  <Bar yAxisId="left" dataKey="activeRate" fill="hsla(120, 70%, 29%, 1.00)" radius={[4, 4, 0, 0]} name="Present Attendance" />
-                  <Bar yAxisId="right" dataKey="totalEmployees" fill="hsl(252, 59%, 48%)" radius={[4, 4, 0, 0]} name="Total Staff" />
-                </BarChart>
-              </ResponsiveContainer>
+              {loadingAnalytics ? (
+                <div className="h-[280px] flex items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>
+              ) : (
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={branchComparison}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 95%)" vertical={false} />
+                    <XAxis dataKey="branch" tick={{ fontSize: 12, fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+                    <YAxis yAxisId="left" tick={{ fontSize: 10 }} domain={[0, 100]} axisLine={false} tickLine={false} />
+                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                    <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                    <Bar yAxisId="left" dataKey="rate" fill="hsl(142, 71%, 45%)" radius={[6, 6, 0, 0]} name="Avg Attendance %" barSize={30} />
+                    <Bar yAxisId="right" dataKey="totalEmployees" fill="hsl(263, 70%, 50%)" radius={[6, 6, 0, 0]} name="Total Staff" barSize={30} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
         )}
 
-        <Card>
+        <Card className="border-none shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-heading">Leave Requests</CardTitle>
-            <CardDescription>Total Submitted Leave Forms: {totalLeaveRequests}</CardDescription>
+            <CardTitle className="text-base font-bold">Approved Leaves Trend</CardTitle>
+            <CardDescription className="text-xs">Total Requests: {totalLeaveRequests}</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} />
-                <Tooltip />
-                <Bar yAxisId="right" dataKey="leave_request" fill="hsl(38, 92%, 50%)" radius={[6, 6, 0, 0]} name="Total Leave Requests" />
-              </BarChart>
-            </ResponsiveContainer>
+            {loadingAnalytics ? (
+               <div className="h-[280px] flex items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>
+            ) : (
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 95%)" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                  <Bar yAxisId="right" dataKey="leave_request" fill="hsl(38, 92%, 50%)" radius={[6, 6, 0, 0]} name="Approved Leaves" barSize={40} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
       </div>
