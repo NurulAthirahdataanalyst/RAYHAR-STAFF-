@@ -582,16 +582,66 @@ app.get("/api/employees", async (req, res) => {
         p.branch,
         p.department,
         p.status,
-        COALESCE(ur.role, 'employee') AS role
+        COALESCE(ur.role, 'employee') AS role,
+        COALESCE(lr.pending_leaves, 0) AS pending_leaves,
+        COALESCE(lr.approved_leaves, 0) AS approved_leaves,
+        COALESCE(lr.rejected_leaves, 0) AS rejected_leaves,
+        COALESCE(lr.total_leave_requests, 0) AS total_leave_requests,
+        COALESCE(lr.mc_leaves, 0) AS mc_leaves,
+        GREATEST(14 - COALESCE(lr.annual_days_used, 0), 0) AS annual_leave_balance,
+        COALESCE(att.days_present, 0) AS days_present,
+        ROUND((COALESCE(att.days_present, 0) / DAY(CURDATE())) * 100) AS attendance_rate,
+        today.clock_in AS today_clock_in,
+        today.clock_out AS today_clock_out
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
+      LEFT JOIN (
+        SELECT
+          employee_id,
+          SUM(CASE WHEN leave_type = 'Cuti Tahunan' AND status <> 'Rejected' THEN days ELSE 0 END) AS annual_days_used,
+          SUM(CASE WHEN status LIKE 'Pending%' THEN 1 ELSE 0 END) AS pending_leaves,
+          SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) AS approved_leaves,
+          SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) AS rejected_leaves,
+          SUM(CASE WHEN leave_type = 'Cuti Sakit' THEN 1 ELSE 0 END) AS mc_leaves,
+          COUNT(*) AS total_leave_requests
+        FROM leave_requests
+        GROUP BY employee_id
+      ) lr ON lr.employee_id = p.user_id
+      LEFT JOIN (
+        SELECT
+          employee_id,
+          COUNT(DISTINCT DATE(clock_in)) AS days_present
+        FROM attendances
+        WHERE YEAR(clock_in) = YEAR(CURDATE())
+        AND MONTH(clock_in) = MONTH(CURDATE())
+        GROUP BY employee_id
+      ) att ON att.employee_id = p.user_id
+      LEFT JOIN (
+        SELECT a.employee_id, a.clock_in, a.clock_out
+        FROM attendances a
+        INNER JOIN (
+          SELECT employee_id, MAX(attendance_id) AS latest_attendance_id
+          FROM attendances
+          WHERE DATE(clock_in) = CURDATE()
+          GROUP BY employee_id
+        ) latest ON latest.latest_attendance_id = a.attendance_id
+      ) today ON today.employee_id = p.user_id
       ${branchFilter}
       ORDER BY p.full_name ASC
       `,
       params
     );
 
-    res.json({ success: true, employees: rows });
+    const employees = rows.map((employee) => ({
+      ...employee,
+      today_status: employee.today_clock_in
+        ? employee.today_clock_out
+          ? "Clocked Out"
+          : "Present"
+        : "Absent",
+    }));
+
+    res.json({ success: true, employees });
   } catch (err) {
     console.error("Employees Error:", err);
     res.status(500).json({ success: false, error: err.message });
@@ -986,8 +1036,8 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         DATE_FORMAT(a.clock_out, '%h:%i %p') AS time_out
       FROM profiles p
       JOIN attendances a ON p.user_id = a.employee_id
-      WHERE a.id IN (
-        SELECT MAX(id) 
+      WHERE a.attendance_id IN (
+        SELECT MAX(attendance_id) 
         FROM attendances 
         WHERE DATE(clock_in) = CURDATE() 
         GROUP BY employee_id
