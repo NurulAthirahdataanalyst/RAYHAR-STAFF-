@@ -986,7 +986,12 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         DATE_FORMAT(a.clock_out, '%h:%i %p') AS time_out
       FROM profiles p
       JOIN attendances a ON p.user_id = a.employee_id
-      WHERE DATE(a.clock_in) = CURDATE()
+      WHERE a.id IN (
+        SELECT MAX(id) 
+        FROM attendances 
+        WHERE DATE(clock_in) = CURDATE() 
+        GROUP BY employee_id
+      )
       ORDER BY a.clock_in DESC
       `
     );
