@@ -16,17 +16,29 @@ if (!jwtSecret) {
 }
 
 const app = express();
+const allowedOrigins = [
+  "https://rayharstaffportal.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000"
+];
+
 app.use(cors({
-  origin: [
-    'https://rayharstaffportal.vercel.app',
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://rayharstaffportal.netlify.app'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+
+    const isAllowed =
+      allowedOrigins.includes(origin) ||
+      origin === "https://rayharstaffportal.vercel.app";
+
+    if (isAllowed) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("CORS blocked: Not allowed origin"));
+  },
   credentials: true
 }));
+
 app.use(express.json());
 
 // Ensure uploads folder exists
@@ -1019,10 +1031,10 @@ app.get("/api/reports/analytics", async (req, res) => {
     );
 
     const branchComparison = branchRows.map(row => {
-      const daysSoFar = Math.max(1, currentDay); 
+      const daysSoFar = Math.max(1, currentDay);
       const possibleAttendances = row.total_employees * daysSoFar;
-      let rate = possibleAttendances > 0 
-        ? Math.round((row.total_present / possibleAttendances) * 100) 
+      let rate = possibleAttendances > 0
+        ? Math.round((row.total_present / possibleAttendances) * 100)
         : 0;
 
       return {
@@ -1077,12 +1089,12 @@ app.get("/api/reports/analytics", async (req, res) => {
       const attData = attendanceRows.find(r => r.month_num === i);
       const levData = leaveRows.find(r => r.month_num === i);
 
-      const possibleAttendances = totalActiveEmployees * 20; 
+      const possibleAttendances = totalActiveEmployees * 20;
       const presentCount = attData ? attData.total_present : 0;
       let attendanceRate = possibleAttendances > 0 ? Math.round((presentCount / possibleAttendances) * 100) : 0;
-      
+
       if (attendanceRate > 0 && attendanceRate < 85) attendanceRate = attendanceRate + 70;
-      
+
       let finalAttendance = Math.min(100, attendanceRate);
       let finalLeaves = levData ? levData.total_leaves : 0;
 
@@ -1203,13 +1215,8 @@ app.get("/api/departments", async (req, res) => {
 // ROUTES
 // ===============================
 app.get("/", (req, res) => {
-  res.send("Backend is running 🚀");
-});
-
-// ===============================
-// START SERVER (UPDATED)
-// ===============================
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on port ${PORT}`);
+  res.json({
+    success: true,
+    message: "Rayhar API running 🚀"
+  });
 });
