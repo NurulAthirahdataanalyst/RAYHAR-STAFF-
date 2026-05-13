@@ -223,7 +223,18 @@ export default function Branches() {
                               <td className="py-3 px-4 font-bold text-foreground">{employee.annual_leave_balance} days</td>
                               <td className="py-3 px-4 text-muted-foreground">{employee.attendance_rate || 0}%</td>
                               <td className="py-3 px-4">
-                                <Badge variant={employee.today_status === "Present" ? "default" : "secondary"} className="text-[10px]">
+                                <Badge 
+                                  variant={
+                                    employee.today_status === "Present" ? "default" : 
+                                    employee.today_status === "On Leave" ? "secondary" : "outline"
+                                  } 
+                                  className={`text-[10px] ${
+                                    employee.today_status === "Present" ? "bg-emerald-500 text-white" :
+                                    employee.today_status === "On Leave" ? "bg-amber-100 text-amber-700 border-amber-200" :
+                                    employee.today_status === "Clocked Out" ? "bg-slate-100 text-slate-500 border-slate-200" :
+                                    "bg-rose-50 text-rose-600 border-rose-100"
+                                  }`}
+                                >
                                   {employee.today_status}
                                 </Badge>
                               </td>

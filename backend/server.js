@@ -247,7 +247,8 @@ app.get("/api/branch-employees", async (req, res) => {
         COALESCE(att.days_present, 0) AS days_present,
         ROUND((COALESCE(att.days_present, 0) / DAY(CURDATE())) * 100) AS attendance_rate,
         today.clock_in AS today_clock_in,
-        today.clock_out AS today_clock_out
+        today.clock_out AS today_clock_out,
+        CASE WHEN leave_today.leave_id IS NOT NULL THEN 1 ELSE 0 END AS is_on_leave
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
       LEFT JOIN (
@@ -281,6 +282,13 @@ app.get("/api/branch-employees", async (req, res) => {
           GROUP BY employee_id
         ) latest ON latest.latest_attendance_id = a.attendance_id
       ) today ON today.employee_id = p.user_id
+      LEFT JOIN (
+        SELECT employee_id, leave_id
+        FROM leave_requests
+        WHERE status = 'Approved'
+        AND CURDATE() BETWEEN DATE(start_date) AND DATE(end_date)
+        GROUP BY employee_id
+      ) leave_today ON leave_today.employee_id = p.user_id
       WHERE p.branch = ?
       ORDER BY p.full_name ASC
       `,
@@ -289,11 +297,13 @@ app.get("/api/branch-employees", async (req, res) => {
 
     const employees = rows.map((employee) => ({
       ...employee,
-      today_status: employee.today_clock_in
-        ? employee.today_clock_out
-          ? "Clocked Out"
-          : "Present"
-        : "Absent",
+      today_status: employee.is_on_leave
+        ? "On Leave"
+        : employee.today_clock_in
+          ? employee.today_clock_out
+            ? "Clocked Out"
+            : "Present"
+          : "Absent",
     }));
 
     res.json({ success: true, employees });
@@ -1120,6 +1130,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
 // DAILY ATTENDANCE REPORT
 // ===============================
 app.get("/api/reports/daily-attendance", async (req, res) => {
+  const { date } = req.query;
+  const queryDate = date ? date : null;
+
   try {
     const [rows] = await pool.query(
       `
@@ -1136,11 +1149,12 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       WHERE a.attendance_id IN (
         SELECT MAX(attendance_id) 
         FROM attendances 
-        WHERE DATE(clock_in) = CURDATE() 
+        WHERE DATE(clock_in) = ${queryDate ? '?' : 'CURDATE()'}
         GROUP BY employee_id
       )
       ORDER BY a.clock_in DESC
-      `
+      `,
+      queryDate ? [queryDate] : []
     );
     res.json({ success: true, report: rows });
   } catch (err) {
@@ -1198,9 +1212,6 @@ app.get("/api/reports/analytics", async (req, res) => {
       let rate = possibleAttendances > 0
         ? Math.round((row.total_present / possibleAttendances) * 100)
         : 0;
-
-      // Subtle boost if data is sparse but not 0
-      if (rate > 0 && rate < 70) rate += 20;
 
       return {
         branch: row.branch || 'Unknown',
@@ -1261,9 +1272,6 @@ app.get("/api/reports/analytics", async (req, res) => {
       const possibleAttendances = totalActiveEmployees * 20;
       const presentCount = attData ? attData.total_present : 0;
       let attendanceRate = possibleAttendances > 0 ? Math.round((presentCount / possibleAttendances) * 100) : 0;
-
-      // Realistic boost for small datasets
-      if (attendanceRate > 0 && attendanceRate < 80) attendanceRate += 70;
       
       let finalAttendance = Math.min(100, attendanceRate);
       let finalLeaves = levData ? levData.total_leaves : 0;

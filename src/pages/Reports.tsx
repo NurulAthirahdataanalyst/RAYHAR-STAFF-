@@ -37,6 +37,7 @@ export default function Reports() {
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [totalLeaveRequests, setTotalLeaveRequests] = useState(0);
   const [limit, setLimit] = useState("10");
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
@@ -68,7 +69,7 @@ export default function Reports() {
       refreshData();
     }, 15000); // Poll every 15 seconds for "real-time"
     return () => clearInterval(interval);
-  }, [role, selectedMonth, selectedYear]);
+  }, [role, selectedMonth, selectedYear, selectedDate]);
 
   const fetchInitialData = async () => {
     if (role === "hr_admin" || role === "managing_director") {
@@ -115,15 +116,15 @@ export default function Reports() {
   const fetchDailyAttendance = async () => {
     setLoadingDaily(true);
     try {
-      const response = await fetch("https://rayhar-staff-production.up.railway.app/api/reports/daily-attendance");
+      const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/reports/daily-attendance?date=${selectedDate}`);
       const data = await response.json();
       if (data.success) {
         setDailyAttendance(data.report);
       } else {
-        toast.error("Failed to load daily attendance report");
+        toast.error("Failed to load attendance report");
       }
     } catch (error) {
-      console.error("Error fetching daily attendance:", error);
+      console.error("Error fetching attendance:", error);
       toast.error("Error connecting to server");
     } finally {
       setLoadingDaily(false);
@@ -204,6 +205,15 @@ export default function Reports() {
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground font-medium">Date:</span>
+                  <input 
+                    type="date" 
+                    className="h-8 rounded-md border border-input bg-background px-2 py-1 text-xs shadow-sm"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground font-medium">Show</span>
                   <Select value={limit} onValueChange={setLimit}>
                     <SelectTrigger className="w-[70px] h-8 text-xs">
@@ -216,8 +226,8 @@ export default function Reports() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Badge className="bg-green-600 text-white font-mono text-sm px-3 py-1 animate-pulse">
-                  {dailyAttendance.length} Live
+                <Badge className="bg-primary text-white font-mono text-sm px-3 py-1">
+                  {dailyAttendance.length} records
                 </Badge>
               </div>
             </div>
@@ -333,10 +343,14 @@ export default function Reports() {
                     <XAxis dataKey="branch" tick={{ fontSize: 12, fontWeight: 'bold' }} axisLine={false} tickLine={false} />
                     <YAxis yAxisId="left" tick={{ fontSize: 10 }} domain={[0, 100]} axisLine={false} tickLine={false} />
                     <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                      cursor={{ fill: 'rgba(0,0,0,0.02)' }}
+                    />
                     <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                    <Bar yAxisId="left" dataKey="rate" fill="hsl(142, 71%, 45%)" radius={[6, 6, 0, 0]} name="Avg Attendance %" barSize={30} />
-                    <Bar yAxisId="right" dataKey="totalEmployees" fill="hsl(263, 70%, 50%)" radius={[6, 6, 0, 0]} name="Total Staff" barSize={30} />
+                    <Bar yAxisId="left" dataKey="activeRate" fill="hsl(142, 71%, 45%)" radius={[6, 6, 0, 0]} name="Currently In %" barSize={25} />
+                    <Bar yAxisId="left" dataKey="rate" fill="hsl(200, 71%, 45%)" radius={[6, 6, 0, 0]} name="Monthly Attendance %" barSize={25} />
+                    <Bar yAxisId="right" dataKey="totalEmployees" fill="hsl(263, 70%, 50%)" radius={[6, 6, 0, 0]} name="Total Staff" barSize={25} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
