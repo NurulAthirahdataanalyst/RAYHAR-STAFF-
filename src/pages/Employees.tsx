@@ -14,7 +14,11 @@ import {
   PhoneCall
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Employees() {
   const { role, userBranch } = useRole();
@@ -23,9 +27,19 @@ export default function Employees() {
   const [loading, setLoading] = useState(true);
   const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [viewLeaveStatus, setViewLeaveStatus] = useState<"Approved" | "Pending" | "Rejected" | null>(null);
   const [employeeLeaves, setEmployeeLeaves] = useState<any[]>([]);
   const [loadingLeaves, setLoadingLeaves] = useState(false);
+  const { toast } = useToast();
+
+  // Add User State
+  const [signupName, setSignupName] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupBranch, setSignupBranch] = useState("HQ");
+  const [signupDepartment, setSignupDepartment] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchEmployees();
@@ -101,6 +115,51 @@ export default function Employees() {
     setIsModalOpen(true);
   };
 
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (signupPassword.length < 6) {
+      toast({ title: "Password too short", description: "Password must be at least 6 characters.", variant: "destructive" });
+      return;
+    }
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('https://rayhar-staff-production.up.railway.app/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          full_name: signupName, 
+          email: signupEmail, 
+          password: signupPassword,
+          branch: signupBranch,
+          department: signupBranch === "HQ" ? signupDepartment : null,
+          status: 'Active'
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast({ title: "User Created!", description: `Successfully created user ${data.user.full_name}` });
+        setIsAddModalOpen(false);
+        // Reset form
+        setSignupName("");
+        setSignupEmail("");
+        setSignupPassword("");
+        setSignupBranch("HQ");
+        setSignupDepartment("");
+        fetchEmployees(); // Refresh list
+      } else {
+        toast({ title: "Signup failed", description: data.error || "Could not create user", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error("Signup connection error:", err);
+      toast({ title: "Connection Error", description: "Could not connect to the server.", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -110,14 +169,32 @@ export default function Employees() {
         </p>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Search employees..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search employees..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <Badge variant="outline" className="px-3 py-1.5 text-sm font-semibold whitespace-nowrap bg-muted/50">
+            Total <span className="ml-1.5 inline-flex items-center justify-center bg-[#1dc8cc] text-white rounded-full px-2 py-0.5 text-xs">{filtered.length}</span>
+          </Badge>
+          
+          {role === "hr_admin" && (
+            <Button 
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-[#1dc8cc] hover:bg-[#15a3a6] text-white font-bold gap-2 whitespace-nowrap"
+            >
+              <Users className="w-4 h-4" />
+              Add
+            </Button>
+          )}
+        </div>
       </div>
 
       <Card>
@@ -449,6 +526,93 @@ export default function Employees() {
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Add User Modal */}
+      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Staff</DialogTitle>
+            <DialogDescription>
+              Create a new user account for an employee. They will be assigned to the selected branch.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSignup} className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="signup-name">Full Name</Label>
+              <Input id="signup-name" type="text" placeholder="e.g. Ahmad Albab" value={signupName} onChange={(e) => setSignupName(e.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="signup-email">Email</Label>
+              <Input id="signup-email" type="email" placeholder="ahmad@rayhar.com" value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="signup-branch">Branch</Label>
+              <Select value={signupBranch} onValueChange={setSignupBranch}>
+                <SelectTrigger className="rounded-md">
+                  <SelectValue placeholder="Select Branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="HQ">Rayhar HQ</SelectItem>
+                  <SelectItem value="KMM">Kemaman</SelectItem>
+                  <SelectItem value="TGG">Kuala Terengganu</SelectItem>
+                  <SelectItem value="CNH">Cheneh</SelectItem>
+                  <SelectItem value="KBG">Kuala Berang</SelectItem>
+                  <SelectItem value="DGN">Dungun</SelectItem>
+                  <SelectItem value="JTH">Jertih</SelectItem>
+                  <SelectItem value="KBR">Kota Baru</SelectItem>
+                  <SelectItem value="RMP">Rompin</SelectItem>
+                  <SelectItem value="MZM">Muadzam Shah</SelectItem>
+                  <SelectItem value="SHA">Shah Alam</SelectItem>
+                  <SelectItem value="BBB">Bandar Baru Bangi</SelectItem>
+                  <SelectItem value="KUL">Kuala Lumpur</SelectItem>
+                  <SelectItem value="IPH">Ipoh</SelectItem>
+                  <SelectItem value="MJG">Manjung</SelectItem>
+                  <SelectItem value="MLK">Melaka</SelectItem>
+                  <SelectItem value="KKS">Kuala Kangsar</SelectItem>
+                  <SelectItem value="TWU">Tawau</SelectItem>
+                  <SelectItem value="SNS">Seremban</SelectItem>
+                  <SelectItem value="AOR">Alor Setar</SelectItem>
+                  <SelectItem value="BTM">Bertam</SelectItem>
+                  <SelectItem value="BTP">Batu Pahat</SelectItem>
+                  <SelectItem value="JB">Johor Bharu</SelectItem>                        
+                </SelectContent>
+              </Select>
+            </div>
+
+            {signupBranch === "HQ" && (
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                <Label htmlFor="signup-department">Department</Label>
+                <Select value={signupDepartment} onValueChange={setSignupDepartment} required>
+                  <SelectTrigger className="rounded-md">
+                    <SelectValue placeholder="Select Department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="IT">IT</SelectItem>
+                    <SelectItem value="HAJI/UMRAH (BHU)">HAJI/UMRAH (BHU)</SelectItem>
+                    <SelectItem value="MARKETING & MEDIA">MARKETING & MEDIA</SelectItem>
+                    <SelectItem value="OTB & DESIGN">OTB & DESIGN</SelectItem>
+                    <SelectItem value="RESERVATION & VISA">RESERVATION & VISA</SelectItem>
+                    <SelectItem value="ACCOUNT DEPARTMENT">ACCOUNT DEPARTMENT</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="signup-password">Password</Label>
+              <Input id="signup-password" type="password" placeholder="Min. 6 characters" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} required />
+            </div>
+            
+            <DialogFooter className="pt-4">
+              <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
+              <Button type="submit" className="bg-[#1dc8cc] hover:bg-[#15a3a6] text-white" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
+                {isSubmitting ? "Creating..." : "Create User"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
