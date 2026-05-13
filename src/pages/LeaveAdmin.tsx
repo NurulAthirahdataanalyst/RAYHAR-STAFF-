@@ -10,7 +10,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall } from "lucide-react";
+import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 
 type LeaveRequest = {
@@ -34,6 +34,15 @@ type LeaveRequest = {
   cutiTanpaGajiPhone?: string;
   cutiTanpaGajiSignature?: boolean;
   mcFileUrl?: string;
+  approvalHistory?: {
+    id: number;
+    approver_id: string;
+    approver_role: string;
+    approver_name: string;
+    status: string;
+    remarks: string;
+    created_at: string;
+  }[];
 };
 
 const formatDate = (value: string) => (value ? value.slice(0, 10) : "");
@@ -53,6 +62,12 @@ export default function LeaveAdmin() {
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
+  
+  // Remarks Modal State
+  const [remarksDialogOpen, setRemarksDialogOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{id: number, action: "approve" | "reject", status: string} | null>(null);
+  const [remarks, setRemarks] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     void fetchRequests();
@@ -95,6 +110,7 @@ export default function LeaveAdmin() {
         cutiTanpaGajiPhone: request.cuti_tanpa_gaji_phone,
         cutiTanpaGajiSignature: request.cuti_tanpa_gaji_signature,
         mcFileUrl: request.mc_file_url,
+        approvalHistory: request.approval_history || [],
       }));
 
       setRequests(formatted);
@@ -109,20 +125,25 @@ export default function LeaveAdmin() {
   };
 
   const handleAction = async (id: number, action: "approve" | "reject", currentStatus: string) => {
-    let nextStatus = "Rejected";
-    if (action === "approve") {
-      if (role === "head_of_department") nextStatus = "Pending Finance";
-      else if (role === "finance_manager") nextStatus = "Pending MD";
-      else if (role === "managing_director") nextStatus = "Approved";
-    }
+    setPendingAction({ id, action, status: currentStatus });
+    setRemarks("");
+    setRemarksDialogOpen(true);
+  };
+
+  const submitAction = async () => {
+    if (!pendingAction) return;
+    const { id, action } = pendingAction;
+    setIsSubmitting(true);
 
     try {
       const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/leave-requests/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          status: nextStatus,
+          action: action === "approve" ? "Approve" : "Reject",
           approver_id: userId,
+          role: role,
+          remarks: remarks,
         }),
       });
 
@@ -133,19 +154,27 @@ export default function LeaveAdmin() {
       }
 
       setRequests((prev) =>
-        prev.map((req) => (req.id === id ? { ...req, status: nextStatus } : req))
+        prev.map((req) => (req.id === id ? { ...req, status: data.nextStatus } : req))
       );
 
+      setRemarksDialogOpen(false);
+      setPendingAction(null);
+      
       if (action === "approve") {
-        toast.success("Application Approved", { description: "Employee leave request has been updated." });
+        toast.success("Application Processed", { description: `Status is now: ${data.nextStatus}` });
       } else {
         toast.error("Application Rejected", { description: "Status updated accordingly." });
       }
+      
+      // Refresh to get updated history
+      fetchRequests();
     } catch (error) {
       console.error("Leave approval update error:", error);
       toast.error("Unable to update application", {
         description: error instanceof Error ? error.message : "Please try again.",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -426,6 +455,44 @@ export default function LeaveAdmin() {
                   </div>
                 )}
 
+                {/* Approval History Timeline */}
+                {selectedRequest.approvalHistory && selectedRequest.approvalHistory.length > 0 && (
+                  <div className="space-y-4 pt-4 border-t print:hidden">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-[#601b8a]" />
+                      <h3 className="text-sm font-black uppercase tracking-tight">Approval History</h3>
+                    </div>
+                    <div className="relative space-y-6 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
+                      {selectedRequest.approvalHistory.map((history, idx) => (
+                        <div key={idx} className="relative flex items-start gap-4 group">
+                          <div className={`absolute left-5 -translate-x-1/2 flex h-3 w-3 items-center justify-center rounded-full border-2 bg-white ${history.status === 'Approved' ? 'border-emerald-500' : 'border-rose-500'} z-10`} />
+                          <div className="ml-8 flex-1 bg-slate-50/50 rounded-2xl p-4 border border-slate-100 hover:border-[#601b8a]/20 transition-all">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                              <div className="flex items-center gap-2">
+                                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${history.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                                  {history.status}
+                                </span>
+                                <span className="text-xs font-bold text-slate-700">by {history.approver_name || history.approver_id}</span>
+                                <Badge variant="outline" className="text-[9px] uppercase font-bold text-slate-400 border-slate-200">
+                                  {formatRole(history.approver_role)}
+                                </Badge>
+                              </div>
+                              <span className="text-[10px] font-bold text-slate-400">
+                                {new Date(history.created_at).toLocaleString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            {history.remarks && (
+                              <p className="text-xs italic text-slate-600 bg-white/80 p-2 rounded-lg border border-slate-100/50">
+                                "{history.remarks}"
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="hidden print:grid grid-cols-2 gap-16 pt-12 pb-4">
                   <div className="border-t border-slate-900 pt-2 text-center">
                     <p className="text-[10px] font-bold uppercase">Tandatangan Kakitangan</p>
@@ -449,6 +516,46 @@ export default function LeaveAdmin() {
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Remarks Dialog */}
+      <Dialog open={remarksDialogOpen} onOpenChange={setRemarksDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {pendingAction?.action === 'approve' ? <Check className="w-5 h-5 text-emerald-500" /> : <X className="w-5 h-5 text-rose-500" />}
+              {pendingAction?.action === 'approve' ? 'Confirm Approval' : 'Confirm Rejection'}
+            </DialogTitle>
+            <DialogDescription>
+              {pendingAction?.action === 'approve' 
+                ? 'Are you sure you want to approve this request? It will be routed to the next stage.' 
+                : 'Please provide a reason for rejecting this leave request.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="remarks" className="text-xs font-bold uppercase text-slate-400">Remarks / Comments (Optional)</label>
+              <textarea
+                id="remarks"
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                placeholder="Type your remarks here..."
+                className="w-full min-h-[100px] rounded-xl border-slate-200 focus:border-[#601b8a] focus:ring-[#601b8a] text-sm p-3"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setRemarksDialogOpen(false)}>Cancel</Button>
+            <Button 
+              className={pendingAction?.action === 'approve' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-rose-600 hover:bg-rose-700'}
+              onClick={submitAction}
+              disabled={isSubmitting}
+            >
+              {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {pendingAction?.action === 'approve' ? 'Approve Request' : 'Reject Request'}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -11,7 +11,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { FileText, Printer, Loader2, ArrowLeft, PhoneCall, Eye, Calendar, MapPin } from "lucide-react";
+import { FileText, Printer, Loader2, ArrowLeft, PhoneCall, Eye, Calendar, MapPin, Clock } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import {
   getLeaveFormFileName,
@@ -42,6 +42,15 @@ type LeaveForm = {
   cutiTanpaGajiPhone?: string;
   cutiTanpaGajiSignature?: boolean;
   mcFileUrl?: string;
+  approvalHistory?: {
+    id: number;
+    approver_id: string;
+    approver_role: string;
+    approver_name: string;
+    status: string;
+    remarks: string;
+    created_at: string;
+  }[];
 };
 
 const formatDate = (value: string) => (value ? value.slice(0, 10) : "");
@@ -113,6 +122,7 @@ export default function LeaveFormView() {
           cutiTanpaGajiPhone: request.cuti_tanpa_gaji_phone,
           cutiTanpaGajiSignature: request.cuti_tanpa_gaji_signature,
           mcFileUrl: request.mc_file_url,
+          approvalHistory: request.approval_history || [],
         };
       });
 
@@ -446,6 +456,44 @@ export default function LeaveFormView() {
                     </div>
                   </div>
                 </div>
+
+                {/* Approval History Timeline */}
+                {selectedForm.approvalHistory && selectedForm.approvalHistory.length > 0 && (
+                  <div className="space-y-4 pt-4 border-t print:hidden">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-[#601b8a]" />
+                      <h3 className="text-sm font-black uppercase tracking-tight">Approval History</h3>
+                    </div>
+                    <div className="relative space-y-6 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
+                      {selectedForm.approvalHistory.map((history, idx) => (
+                        <div key={idx} className="relative flex items-start gap-4 group">
+                          <div className={`absolute left-5 -translate-x-1/2 flex h-3 w-3 items-center justify-center rounded-full border-2 bg-white ${history.status === 'Approved' ? 'border-emerald-500' : 'border-rose-500'} z-10`} />
+                          <div className="ml-8 flex-1 bg-slate-50/50 rounded-2xl p-4 border border-slate-100 hover:border-[#601b8a]/20 transition-all">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                              <div className="flex items-center gap-2">
+                                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${history.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                                  {history.status}
+                                </span>
+                                <span className="text-xs font-bold text-slate-700">by {history.approver_name || history.approver_id}</span>
+                                <Badge variant="outline" className="text-[9px] uppercase font-bold text-slate-400 border-slate-200">
+                                  {formatRole(history.approver_role)}
+                                </Badge>
+                              </div>
+                              <span className="text-[10px] font-bold text-slate-400">
+                                {new Date(history.created_at).toLocaleString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            {history.remarks && (
+                              <p className="text-xs italic text-slate-600 bg-white/80 p-2 rounded-lg border border-slate-100/50">
+                                "{history.remarks}"
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Signature section (visible on print only) */}
                 <div className="hidden print:grid grid-cols-2 gap-16 pt-12 pb-4">

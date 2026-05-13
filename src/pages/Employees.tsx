@@ -39,6 +39,7 @@ export default function Employees() {
   const [signupBranch, setSignupBranch] = useState("HQ");
   const [signupDepartment, setSignupDepartment] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
+  const [signupRole, setSignupRole] = useState("employee");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -133,6 +134,7 @@ export default function Employees() {
           password: signupPassword,
           branch: signupBranch,
           department: signupBranch === "HQ" ? signupDepartment : null,
+          role: signupRole,
           status: 'Active'
         }),
       });
@@ -148,6 +150,7 @@ export default function Employees() {
         setSignupPassword("");
         setSignupBranch("HQ");
         setSignupDepartment("");
+        setSignupRole("employee");
         fetchEmployees(); // Refresh list
       } else {
         toast({ title: "Signup failed", description: data.error || "Could not create user", variant: "destructive" });
@@ -599,6 +602,23 @@ export default function Employees() {
                 </Select>
               </div>
             )}
+
+            <div className="space-y-2">
+              <Label htmlFor="signup-role">Role</Label>
+              <Select value={signupRole} onValueChange={setSignupRole}>
+                <SelectTrigger className="rounded-md">
+                  <SelectValue placeholder="Select Role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="employee">Staff (Employee)</SelectItem>
+                  <SelectItem value="branch_leader">Branch Leader</SelectItem>
+                  <SelectItem value="head_of_department">Head of Department (HOD)</SelectItem>
+                  <SelectItem value="finance_manager">Finance Manager</SelectItem>
+                  <SelectItem value="managing_director">Managing Director (MD)</SelectItem>
+                  <SelectItem value="hr_admin">HR Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="signup-password">Password</Label>
