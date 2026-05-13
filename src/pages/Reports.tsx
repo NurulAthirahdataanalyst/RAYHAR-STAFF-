@@ -2,7 +2,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, FileBarChart, Loader2, Users } from "lucide-react";
+import { Download, FileBarChart, Loader2, Users, TrendingUp } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from "recharts";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
