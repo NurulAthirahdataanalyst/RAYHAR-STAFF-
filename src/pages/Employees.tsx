@@ -21,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 
 export default function Employees() {
-  const { role, userBranch } = useRole();
+  const { role, userBranch, userDepartment } = useRole();
   const [search, setSearch] = useState("");
   const [dbEmployees, setDbEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +44,7 @@ export default function Employees() {
 
   useEffect(() => {
     fetchEmployees();
-  }, [role, userBranch]);
+  }, [role, userBranch, userDepartment]);
 
   const fetchEmployees = async () => {
     setLoading(true);
@@ -52,6 +52,7 @@ export default function Employees() {
       const params = new URLSearchParams({
         role,
         branch: userBranch || "",
+        department: userDepartment || "",
       });
 
       const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/employees?${params}`);

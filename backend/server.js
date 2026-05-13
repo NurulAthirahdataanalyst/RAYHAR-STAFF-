@@ -316,9 +316,17 @@ app.get("/api/leave-requests", async (req, res) => {
     if (userId) {
       filters.push("lr.employee_id = ?");
       params.push(userId);
-    } else if (!["hr_admin", "managing_director", "finance_manager", "head_of_department"].includes(role) && branch) {
-      filters.push("p.branch = ?");
-      params.push(branch);
+    } else {
+      if (role === "branch_leader" && branch) {
+        filters.push("p.branch = ?");
+        params.push(branch);
+      } else if (role === "head_of_department" && branch && req.query.department) {
+        filters.push("p.branch = ? AND p.department = ?");
+        params.push(branch, req.query.department);
+      } else if (!["hr_admin", "managing_director", "finance_manager"].includes(role) && branch) {
+        filters.push("p.branch = ?");
+        params.push(branch);
+      }
     }
 
     const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
@@ -607,7 +615,13 @@ app.get("/api/employees", async (req, res) => {
     const params = [];
     let branchFilter = "";
 
-    if (!["hr_admin", "managing_director", "finance_manager", "head_of_department"].includes(role) && branch) {
+    if (role === "branch_leader" && branch) {
+      branchFilter = "WHERE p.branch = ?";
+      params.push(branch);
+    } else if (role === "head_of_department" && branch && req.query.department) {
+      branchFilter = "WHERE p.branch = ? AND p.department = ?";
+      params.push(branch, req.query.department);
+    } else if (!["hr_admin", "managing_director", "finance_manager"].includes(role) && branch) {
       branchFilter = "WHERE p.branch = ?";
       params.push(branch);
     }
@@ -933,33 +947,46 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     if (["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role)) {
       const isBranchLeader = role === "branch_leader";
-      const branchQueryParam = (isBranchLeader && branch) ? [branch] : [];
-      const profileFilter = (isBranchLeader && branch) ? "AND branch = ?" : "";
-      const attendanceFilter = (isBranchLeader && branch) ? "AND employee_id IN (SELECT user_id FROM profiles WHERE branch = ?)" : "";
+      const isHOD = role === "head_of_department";
+      const department = req.query.department;
+
+      const queryParams = [];
+      let profileFilter = "";
+      let attendanceFilter = "";
+
+      if (isBranchLeader && branch) {
+        profileFilter = "AND branch = ?";
+        attendanceFilter = "AND employee_id IN (SELECT user_id FROM profiles WHERE branch = ?)";
+        queryParams.push(branch);
+      } else if (isHOD && branch && department) {
+        profileFilter = "AND branch = ? AND department = ?";
+        attendanceFilter = "AND employee_id IN (SELECT user_id FROM profiles WHERE branch = ? AND department = ?)";
+        queryParams.push(branch, department);
+      }
 
       const [employeeRows] = await pool.query(
         `SELECT COUNT(*) AS total_employees FROM profiles WHERE status = 'Active' ${profileFilter}`,
-        branchQueryParam
+        queryParams
       );
 
       const [presentRows] = await pool.query(
         `SELECT COUNT(DISTINCT employee_id) AS present_today FROM attendances WHERE DATE(clock_in) = CURDATE() ${attendanceFilter}`,
-        branchQueryParam
+        queryParams
       );
 
       const [onLeaveRows] = await pool.query(
         `SELECT COUNT(DISTINCT employee_id) AS on_leave FROM leave_requests WHERE status = 'Approved' AND CURDATE() BETWEEN start_date AND end_date ${attendanceFilter}`,
-        branchQueryParam
+        queryParams
       );
 
       const [lateRows] = await pool.query(
         `SELECT COUNT(DISTINCT employee_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = CURDATE() AND TIME(clock_in) > '09:00:00' ${attendanceFilter}`,
-        branchQueryParam
+        queryParams
       );
 
       const [pendingRows] = await pool.query(
         `SELECT COUNT(*) AS pending_approvals FROM leave_requests WHERE status LIKE 'Pending%' ${attendanceFilter}`,
-        branchQueryParam
+        queryParams
       );
 
       const [recentRows] = await pool.query(
@@ -967,10 +994,10 @@ app.get("/api/dashboard-stats", async (req, res) => {
         SELECT p.full_name AS name, 'Leave' AS action, CONCAT('Leave ', lr.status) AS status, DATE_FORMAT(lr.created_at, '%h:%i %p') AS time
         FROM leave_requests lr
         JOIN profiles p ON p.user_id = lr.employee_id
-        ${isBranchLeader && branch ? "WHERE p.branch = ?" : ""}
+        ${profileFilter ? "WHERE 1=1 " + profileFilter : ""}
         ORDER BY lr.created_at DESC LIMIT 5
         `,
-        branchQueryParam
+        queryParams
       );
 
       adminStats = {

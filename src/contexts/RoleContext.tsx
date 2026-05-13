@@ -8,6 +8,7 @@ interface RoleContextType {
   setRole: (role: UserRole) => void;
   userName: string;
   userBranch: string;
+  userDepartment: string;
   userId: string | undefined;
   loading: boolean;
 }
@@ -20,6 +21,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [role, setRole] = useState<UserRole>("employee");
   const [userName, setUserName] = useState("");
   const [userBranch, setUserBranch] = useState("");
+  const [userDepartment, setUserDepartment] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,10 +48,12 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (response.ok && data.success) {
           setUserName(data.profile.full_name);
           setUserBranch(data.profile.branch || "HQ");
+          setUserDepartment(data.profile.department || "");
           setRole(data.role || "employee");
         } else {
           setUserName(user.full_name || user.name || user.email || "User");
           setUserBranch("HQ");
+          setUserDepartment("");
           setRole("employee");
         }
       } catch (error) {
@@ -64,7 +68,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user, resolvedUserId]);
 
   return (
-    <RoleContext.Provider value={{ role, setRole, userName, userBranch, userId: resolvedUserId, loading }}>
+    <RoleContext.Provider value={{ role, setRole, userName, userBranch, userDepartment, userId: resolvedUserId, loading }}>
       {children}
     </RoleContext.Provider>
   );

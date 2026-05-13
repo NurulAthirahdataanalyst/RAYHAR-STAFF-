@@ -27,7 +27,7 @@ const getStoredUser = () => {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { role, userName, userId, userBranch } = useRole();
+  const { role, userName, userId, userBranch, userDepartment } = useRole();
   const storedUser = getStoredUser();
   const navigate = useNavigate();
 
@@ -104,7 +104,7 @@ export default function Dashboard() {
 
       try {
         const response = await fetch(
-          `https://rayhar-staff-production.up.railway.app/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}`
+          `https://rayhar-staff-production.up.railway.app/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`
         );
 
         if (!response.ok) throw new Error("Sync failed");

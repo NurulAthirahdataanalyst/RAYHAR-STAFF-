@@ -57,7 +57,7 @@ const APPROVER_ROLES = ["managing_director", "finance_manager", "head_of_departm
 const ADMIN_VIEW_ROLES = ["hr_admin", "branch_leader", ...APPROVER_ROLES];
 
 export default function LeaveAdmin() {
-  const { role, userBranch, userId } = useRole();
+  const { role, userBranch, userDepartment, userId } = useRole();
   const canApprove = APPROVER_ROLES.includes(role);
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,7 +71,7 @@ export default function LeaveAdmin() {
 
   useEffect(() => {
     void fetchRequests();
-  }, [role, userBranch]);
+  }, [role, userBranch, userDepartment]);
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -79,6 +79,7 @@ export default function LeaveAdmin() {
       const params = new URLSearchParams({
         role,
         branch: userBranch || "",
+        department: userDepartment || "",
       });
 
       const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/leave-requests?${params}`);
