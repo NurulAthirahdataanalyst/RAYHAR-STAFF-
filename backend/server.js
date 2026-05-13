@@ -323,6 +323,9 @@ app.get("/api/leave-requests", async (req, res) => {
       } else if (role === "head_of_department" && branch && req.query.department) {
         filters.push("p.branch = ? AND p.department = ?");
         params.push(branch, req.query.department);
+      } else if (role === "head_of_department") {
+        // Safety: HOD must have a department to see anything
+        filters.push("1 = 0");
       } else if (!["hr_admin", "managing_director", "finance_manager"].includes(role) && branch) {
         filters.push("p.branch = ?");
         params.push(branch);
@@ -527,6 +530,34 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
     if (leaveRows.length === 0) return res.status(404).json({ success: false, error: "Leave not found" });
     
     const currentStatus = leaveRows[0].status;
+    const employee_id = leaveRows[0].employee_id;
+
+    // --- SECURITY CHECK: HOD/Branch Leader must match Department/Branch ---
+    if (approver_id && (role === "head_of_department" || role === "branch_leader")) {
+      const [approverRows] = await pool.query(
+        "SELECT branch, department FROM profiles WHERE user_id = ?",
+        [approver_id]
+      );
+      const [employeeRows] = await pool.query(
+        "SELECT branch, department FROM profiles WHERE user_id = ?",
+        [employee_id]
+      );
+
+      if (approverRows.length > 0 && employeeRows.length > 0) {
+        const approverData = approverRows[0];
+        const employeeData = employeeRows[0];
+
+        if (role === "head_of_department") {
+          if (approverData.branch !== employeeData.branch || approverData.department !== employeeData.department) {
+            return res.status(403).json({ success: false, error: "Unauthorized: You can only approve requests from your own department." });
+          }
+        } else if (role === "branch_leader") {
+          if (approverData.branch !== employeeData.branch) {
+            return res.status(403).json({ success: false, error: "Unauthorized: You can only approve requests from your own branch." });
+          }
+        }
+      }
+    }
     let nextStatus = status; // Default to what frontend sent
 
     if (action === 'Reject') {

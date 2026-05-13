@@ -1,20 +1,23 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { User, Mail, Building2, ShieldCheck, Calendar, Phone, MapPin } from "lucide-react";
 
 const Profile = () => {
   const { user } = useAuth();
+  const { role: resolvedRole, userName, userBranch, userDepartment, userId } = useRole();
+  const email = user?.email || ""; 
 
   if (!user) return null;
 
   const profileItems = [
-    { label: "Full Name", value: user.full_name || user.name || "N/A", icon: User },
-    { label: "Email Address", value: user.email, icon: Mail },
-    { label: "User ID", value: user.user_id || "N/A", icon: ShieldCheck },
-    { label: "Branch", value: user.branch || "Rayhar HQ", icon: Building2 },
-    { label: "Department", value: user.department || "N/A", icon: MapPin },
-    { label: "Status", value: user.status || "Active", icon: Calendar },
+    { label: "Full Name", value: userName || "N/A", icon: User },
+    { label: "Email Address", value: email || "N/A", icon: Mail },
+    { label: "User ID", value: userId || "N/A", icon: ShieldCheck },
+    { label: "Branch", value: userBranch || "Rayhar HQ", icon: Building2 },
+    { label: "Department", value: userDepartment || "N/A", icon: MapPin },
+    { label: "Status", value: "Active", icon: Calendar },
   ];
 
   return (
@@ -34,14 +37,14 @@ const Profile = () => {
         <Card className="w-full lg:w-1/3 border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
           <CardHeader className="text-center pt-10 pb-6">
             <div className="mx-auto w-28 h-28 rounded-[32px] bg-gradient-to-br from-[#601b8a] to-[#a855f7] flex items-center justify-center text-white text-5xl font-black shadow-2xl mb-6 border-4 border-white/50 dark:border-slate-800/50">
-              {(user.full_name || user.name || "U")[0].toUpperCase()}
+              {(userName || "U")[0].toUpperCase()}
             </div>
             <CardTitle className="text-2xl font-black text-foreground tracking-tight">
-              {user.full_name || user.name || "User"}
+              {userName || "User"}
             </CardTitle>
             <div className="flex items-center justify-center gap-2 mt-2">
               <Badge variant="secondary" className="text-[10px] uppercase font-black px-3 py-1 bg-[#601b8a]/10 text-[#601b8a] border-none">
-                {user.role?.replace('_', ' ') || "Employee"}
+                {resolvedRole?.replace('_', ' ') || "Employee"}
               </Badge>
             </div>
           </CardHeader>
@@ -50,11 +53,11 @@ const Profile = () => {
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div className="p-4 rounded-2xl bg-muted/30">
                   <p className="text-[10px] font-black uppercase text-muted-foreground opacity-50 mb-1">Branch</p>
-                  <p className="text-sm font-black text-foreground">{user.branch || "HQ"}</p>
+                  <p className="text-sm font-black text-foreground">{userBranch || "HQ"}</p>
                 </div>
                 <div className="p-4 rounded-2xl bg-muted/30">
                   <p className="text-[10px] font-black uppercase text-muted-foreground opacity-50 mb-1">Status</p>
-                  <Badge className="bg-emerald-500 text-white font-black text-[9px] h-5">{user.status || "Active"}</Badge>
+                  <Badge className="bg-emerald-500 text-white font-black text-[9px] h-5">Active</Badge>
                 </div>
               </div>
             </div>
