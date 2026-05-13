@@ -106,7 +106,7 @@ export default function Login() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4"
+      className="min-h-screen flex items-center justify-center p-4 force-light"
       style={{
         backgroundImage: `url(${watercolorBg})`,
         backgroundSize: 'cover',
