@@ -329,33 +329,67 @@ export default function Reports() {
         </Card>
 
         {role === "hr_admin" && (
-          <Card className="border-none shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-bold">Branch Efficiency ({months.find(m => m.value === selectedMonth)?.label})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loadingAnalytics ? (
-                <div className="h-[280px] flex items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>
-              ) : (
-                <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={branchComparison}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 95%)" vertical={false} />
-                    <XAxis dataKey="branch" tick={{ fontSize: 12, fontWeight: 'bold' }} axisLine={false} tickLine={false} />
-                    <YAxis yAxisId="left" tick={{ fontSize: 10 }} domain={[0, 100]} axisLine={false} tickLine={false} />
-                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <Tooltip 
-                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      cursor={{ fill: 'rgba(0,0,0,0.02)' }}
-                    />
-                    <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                    <Bar yAxisId="left" dataKey="activeRate" fill="hsl(142, 71%, 45%)" radius={[6, 6, 0, 0]} name="Currently In %" barSize={25} />
-                    <Bar yAxisId="left" dataKey="rate" fill="hsl(200, 71%, 45%)" radius={[6, 6, 0, 0]} name="Monthly Attendance %" barSize={25} />
-                    <Bar yAxisId="right" dataKey="totalEmployees" fill="hsl(263, 70%, 50%)" radius={[6, 6, 0, 0]} name="Total Staff" barSize={25} />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
+          <>
+            <Card className="border-none shadow-sm lg:col-span-2">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <Users className="w-4 h-4 text-emerald-500" />
+                  Real-Time Branch Presence ({months.find(m => m.value === selectedMonth)?.label})
+                </CardTitle>
+                <CardDescription className="text-[10px]">Comparing currently clocked-in staff vs total headcount</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingAnalytics ? (
+                  <div className="h-[280px] flex items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={branchComparison} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 95%)" vertical={false} />
+                      <XAxis dataKey="branch" tick={{ fontSize: 11, fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+                      <YAxis yAxisId="left" tick={{ fontSize: 10 }} domain={[0, 100]} axisLine={false} tickLine={false} />
+                      <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <Tooltip 
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                        cursor={{ fill: 'rgba(0,0,0,0.02)' }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                      <Bar yAxisId="left" dataKey="activeRate" fill="hsl(142, 71%, 45%)" radius={[6, 6, 0, 0]} name="Currently In %" barSize={25} />
+                      <Bar yAxisId="right" dataKey="totalEmployees" fill="hsl(263, 70%, 50%)" radius={[6, 6, 0, 0]} name="Total Staff" barSize={25} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-sm lg:col-span-2">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-blue-500" />
+                  Branch Performance Trend ({months.find(m => m.value === selectedMonth)?.label})
+                </CardTitle>
+                <CardDescription className="text-[10px]">Average monthly attendance rate per branch</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingAnalytics ? (
+                  <div className="h-[280px] flex items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={branchComparison} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 95%)" vertical={false} />
+                      <XAxis dataKey="branch" tick={{ fontSize: 11, fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10 }} domain={[0, 100]} axisLine={false} tickLine={false} />
+                      <Tooltip 
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                        cursor={{ fill: 'rgba(0,0,0,0.02)' }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                      <Bar dataKey="rate" fill="hsl(200, 71%, 45%)" radius={[6, 6, 0, 0]} name="Monthly Attendance %" barSize={40} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+          </>
         )}
 
         <Card className="border-none shadow-sm">
