@@ -248,7 +248,7 @@ app.get("/api/branch-employees", async (req, res) => {
         ROUND((COALESCE(att.days_present, 0) / DAY(CURDATE())) * 100) AS attendance_rate,
         today.clock_in AS today_clock_in,
         today.clock_out AS today_clock_out,
-        CASE WHEN leave_today.leave_id IS NOT NULL THEN 1 ELSE 0 END AS is_on_leave
+        CASE WHEN COALESCE(leave_today.leave_count, 0) > 0 THEN 1 ELSE 0 END AS is_on_leave
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
       LEFT JOIN (
@@ -283,7 +283,7 @@ app.get("/api/branch-employees", async (req, res) => {
         ) latest ON latest.latest_attendance_id = a.attendance_id
       ) today ON today.employee_id = p.user_id
       LEFT JOIN (
-        SELECT employee_id, leave_id
+        SELECT employee_id, COUNT(*) as leave_count
         FROM leave_requests
         WHERE status = 'Approved'
         AND CURDATE() BETWEEN DATE(start_date) AND DATE(end_date)
