@@ -69,7 +69,7 @@ export default function Employees() {
         email: employee.email || "Account Active",
         position: employee.role === "hr_admin" ? "HR Admin" : employee.role ? employee.role.split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : "Employee",
         branch: employee.branch || "HQ",
-        department: "General",
+        department: employee.department || "General",
         status: employee.status || "Active",
       }));
 
@@ -260,91 +260,89 @@ export default function Employees() {
 
       {/* Employee Details Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-md w-full overflow-y-auto">
-          <DialogHeader className="pb-6 border-b">
-            <DialogTitle className="text-xl font-black text-slate-800">Staff Statistics</DialogTitle>
+        <DialogContent className="max-w-2xl w-full overflow-y-auto max-h-[90vh]">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="text-xl font-black text-slate-800">Staff Profile</DialogTitle>
           </DialogHeader>
           
           <div className="py-6 space-y-6">
             {selectedEmployee ? (
               <>
-                <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-2xl bg-[#601b8a] flex items-center justify-center text-white text-2xl font-black">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Left Column: Bio */}
+                  <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col items-center text-center">
+                    <div className="w-24 h-24 rounded-2xl bg-[#601b8a] flex items-center justify-center text-white text-4xl font-black shadow-xl mb-4">
                       {selectedEmployee.name.charAt(0)}
                     </div>
-                    <div>
-                      <h2 className="text-xl font-black text-slate-800 leading-tight">{selectedEmployee.name}</h2>
-                      <p className="text-sm font-bold text-slate-400 mt-1 uppercase tracking-widest">{selectedEmployee.user_id}</p>
-                      <Badge variant="secondary" className="mt-2 text-[10px] uppercase font-black">{selectedEmployee.position}</Badge>
+                    <h2 className="text-xl font-black text-slate-800 leading-tight">{selectedEmployee.name}</h2>
+                    <p className="text-sm font-bold text-[#601b8a] mt-1">{selectedEmployee.email}</p>
+                    <Badge variant="secondary" className="mt-4 text-[10px] uppercase font-black px-3 py-1">{selectedEmployee.position}</Badge>
+                    
+                    <div className="mt-6 pt-6 border-t border-slate-200 w-full space-y-3">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-bold text-slate-400 uppercase tracking-widest">User ID</span>
+                        <span className="font-black text-slate-700">{selectedEmployee.user_id}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-bold text-slate-400 uppercase tracking-widest">Branch</span>
+                        <span className="font-black text-slate-700">{selectedEmployee.branch}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-bold text-slate-400 uppercase tracking-widest">Department</span>
+                        <span className="font-black text-slate-700">{selectedEmployee.department}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-bold text-slate-400 uppercase tracking-widest">Status</span>
+                        <Badge className="bg-emerald-500 text-white font-black text-[9px] h-5">{selectedEmployee.status}</Badge>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-2xl border border-slate-100 p-4 bg-white hover:border-[#601b8a]/30 transition-colors">
-                    <CalendarCheck className="mb-2 h-4 w-4 text-[#601b8a]" />
-                    <p className="text-2xl font-black text-slate-800">{selectedEmployee.annual_leave_balance}</p>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Days Left</p>
-                  </div>
-                  <div className="rounded-2xl border border-slate-100 p-4 bg-white hover:border-emerald-500/30 transition-colors">
-                    <TrendingUp className="mb-2 h-4 w-4 text-emerald-500" />
-                    <p className="text-2xl font-black text-slate-800">{selectedEmployee.attendance_rate || 0}%</p>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Attendance</p>
-                  </div>
-                  <div className="rounded-2xl border border-slate-100 p-4 bg-white hover:border-amber-500/30 transition-colors">
-                    <Clock className="mb-2 h-4 w-4 text-amber-500" />
-                    <p className="text-2xl font-black text-slate-800">{selectedEmployee.pending_leaves}</p>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Pending</p>
-                  </div>
-                  <div className="rounded-2xl border border-slate-100 p-4 bg-white hover:border-purple-500/30 transition-colors">
-                    <FileText className="mb-2 h-4 w-4 text-purple-500" />
-                    <p className="text-2xl font-black text-slate-800">{selectedEmployee.mc_leaves || 0}</p>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total MC</p>
-                  </div>
-                </div>
+                  {/* Right Column: Stats */}
+                  <div className="space-y-4">
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Performance & Leave</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-2xl border border-slate-100 p-4 bg-white hover:border-[#601b8a]/30 transition-colors">
+                        <CalendarCheck className="mb-2 h-4 w-4 text-[#601b8a]" />
+                        <p className="text-2xl font-black text-slate-800">{selectedEmployee.annual_leave_balance}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Annual Left</p>
+                      </div>
+                      <div className="rounded-2xl border border-slate-100 p-4 bg-white hover:border-emerald-500/30 transition-colors">
+                        <TrendingUp className="mb-2 h-4 w-4 text-emerald-500" />
+                        <p className="text-2xl font-black text-slate-800">{selectedEmployee.attendance_rate || 0}%</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Attendance</p>
+                      </div>
+                      <div className="rounded-2xl border border-slate-100 p-4 bg-white hover:border-amber-500/30 transition-colors">
+                        <Clock className="mb-2 h-4 w-4 text-amber-500" />
+                        <p className="text-2xl font-black text-slate-800">{selectedEmployee.pending_leaves}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Pending</p>
+                      </div>
+                      <div className="rounded-2xl border border-slate-100 p-4 bg-white hover:border-purple-500/30 transition-colors">
+                        <FileText className="mb-2 h-4 w-4 text-purple-500" />
+                        <p className="text-2xl font-black text-slate-800">{selectedEmployee.mc_leaves || 0}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total MC</p>
+                      </div>
+                    </div>
 
-                <div className="space-y-3">
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Leave Forms Detail</p>
-                  <div className="grid grid-cols-1 gap-2">
-                    <button 
-                      className="flex items-center justify-between w-full rounded-2xl bg-emerald-50 p-4 hover:bg-emerald-100 transition-all border border-emerald-100" 
-                      onClick={() => setViewLeaveStatus("Approved")}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white">
-                          <FileText className="w-4 h-4" />
-                        </div>
-                        <span className="font-bold text-emerald-700">Approved Leaves</span>
+                    <div className="space-y-2 mt-4">
+                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Quick Links</p>
+                      <div className="grid grid-cols-1 gap-2">
+                        <button 
+                          className="flex items-center justify-between w-full rounded-xl bg-emerald-50 px-4 py-3 hover:bg-emerald-100 transition-all border border-emerald-100" 
+                          onClick={() => setViewLeaveStatus("Approved")}
+                        >
+                          <span className="text-xs font-bold text-emerald-700">Approved Leaves</span>
+                          <Badge className="bg-emerald-500 text-white font-black h-5 text-[10px]">{selectedEmployee.approved_leaves}</Badge>
+                        </button>
+                        <button 
+                          className="flex items-center justify-between w-full rounded-xl bg-amber-50 px-4 py-3 hover:bg-amber-100 transition-all border border-amber-100" 
+                          onClick={() => setViewLeaveStatus("Pending")}
+                        >
+                          <span className="text-xs font-bold text-amber-700">Pending Approvals</span>
+                          <Badge className="bg-amber-500 text-white font-black h-5 text-[10px]">{selectedEmployee.pending_leaves}</Badge>
+                        </button>
                       </div>
-                      <Badge className="bg-emerald-500 text-white font-black">{selectedEmployee.approved_leaves}</Badge>
-                    </button>
-                    
-                    <button 
-                      className="flex items-center justify-between w-full rounded-2xl bg-amber-50 p-4 hover:bg-amber-100 transition-all border border-amber-100" 
-                      onClick={() => setViewLeaveStatus("Pending")}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white">
-                          <Clock className="w-4 h-4" />
-                        </div>
-                        <span className="font-bold text-amber-700">Pending Approvals</span>
-                      </div>
-                      <Badge className="bg-amber-500 text-white font-black">{selectedEmployee.pending_leaves}</Badge>
-                    </button>
-
-                    <button 
-                      className="flex items-center justify-between w-full rounded-2xl bg-rose-50 p-4 hover:bg-rose-100 transition-all border border-rose-100" 
-                      onClick={() => setViewLeaveStatus("Rejected")}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-rose-500 flex items-center justify-center text-white">
-                          <X className="w-4 h-4" />
-                        </div>
-                        <span className="font-bold text-rose-700">Rejected Leaves</span>
-                      </div>
-                      <Badge className="bg-rose-500 text-white font-black">{selectedEmployee.rejected_leaves}</Badge>
-                    </button>
+                    </div>
                   </div>
                 </div>
               </>
