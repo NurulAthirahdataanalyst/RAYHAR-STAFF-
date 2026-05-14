@@ -162,7 +162,7 @@ export default function LeaveManagement() {
 
       saveLeaveRequest({
         id: String(data.leaveRequest?.leave_id || crypto.randomUUID()),
-        employeeId: userId,
+        userId: userId,
         type: leaveType,
         from: formData.tarikhMula,
         to: formData.tarikhAkhir,

@@ -2,7 +2,7 @@ export type LeaveType = "Cuti Tahunan" | "Cuti Ganti" | "Cuti Tanpa Gaji" | "Cut
 
 export type LeaveRequest = {
   id: string;
-  employeeId?: string;
+  userId?: string;
   type: LeaveType;
   from: string;
   to: string;
@@ -47,14 +47,14 @@ export const saveLeaveRequest = (request: LeaveRequest) => {
 export const getUsedLeaveDays = (
   requests: LeaveRequest[],
   type: LeaveType,
-  employeeId?: string
+  userId?: string
 ) => {
   return requests
     .filter((request) => {
       const isSameType = request.type === type;
       const isNotRejected = request.status !== "Rejected";
-      const isSameEmployee = employeeId
-        ? request.employeeId === employeeId
+      const isSameEmployee = userId
+        ? request.userId === userId
         : true;
 
       return isSameType && isNotRejected && isSameEmployee;

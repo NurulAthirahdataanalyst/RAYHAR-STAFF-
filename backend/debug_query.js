@@ -42,7 +42,7 @@ async function debugQuery() {
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
       LEFT JOIN (
         SELECT
-          employee_id,
+          user_id,
           SUM(CASE WHEN leave_type = 'Cuti Tahunan' AND status <> 'Rejected' THEN days ELSE 0 END) AS annual_days_used,
           SUM(CASE WHEN status LIKE 'Pending%' THEN 1 ELSE 0 END) AS pending_leaves,
           SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) AS approved_leaves,
@@ -50,34 +50,34 @@ async function debugQuery() {
           SUM(CASE WHEN leave_type = 'Cuti Sakit' THEN 1 ELSE 0 END) AS mc_leaves,
           COUNT(*) AS total_leave_requests
         FROM leave_requests
-        GROUP BY employee_id
-      ) lr ON lr.employee_id = p.user_id
+        GROUP BY user_id
+      ) lr ON lr.user_id = p.user_id
       LEFT JOIN (
         SELECT
-          employee_id,
+          user_id,
           COUNT(DISTINCT DATE(clock_in)) AS days_present
         FROM attendances
         WHERE YEAR(clock_in) = YEAR(CURDATE())
         AND MONTH(clock_in) = MONTH(CURDATE())
-        GROUP BY employee_id
-      ) att ON att.employee_id = p.user_id
+        GROUP BY user_id
+      ) att ON att.user_id = p.user_id
       LEFT JOIN (
-        SELECT a.employee_id, a.clock_in, a.clock_out
+        SELECT a.user_id, a.clock_in, a.clock_out
         FROM attendances a
         INNER JOIN (
-          SELECT employee_id, MAX(attendance_id) AS latest_attendance_id
+          SELECT user_id, MAX(attendance_id) AS latest_attendance_id
           FROM attendances
           WHERE DATE(clock_in) = CURDATE()
-          GROUP BY employee_id
+          GROUP BY user_id
         ) latest ON latest.latest_attendance_id = a.attendance_id
-      ) today ON today.employee_id = p.user_id
+      ) today ON today.user_id = p.user_id
       LEFT JOIN (
-        SELECT employee_id, leave_id
+        SELECT user_id, leave_id
         FROM leave_requests
         WHERE status = 'Approved'
         AND CURDATE() BETWEEN DATE(start_date) AND DATE(end_date)
-        GROUP BY employee_id
-      ) leave_today ON leave_today.employee_id = p.user_id
+        GROUP BY user_id
+      ) leave_today ON leave_today.user_id = p.user_id
       WHERE p.branch = ?
       ORDER BY p.full_name ASC
       `,

@@ -22,11 +22,11 @@ const pool = mysql.createPool({
     console.log('4 done');
     await pool.query("UPDATE user_role SET user_id = CONCAT('E', LPAD(user_id, 3, '0')) WHERE user_id REGEXP '^[0-9]+$';");
     console.log('5 done');
-    await pool.query("UPDATE leave_requests SET employee_id = CONCAT('E', LPAD(employee_id, 3, '0')) WHERE employee_id REGEXP '^[0-9]+$';");
+    await pool.query("UPDATE leave_requests SET user_id = CONCAT('E', LPAD(user_id, 3, '0')) WHERE user_id REGEXP '^[0-9]+$';");
     console.log('6 done');
     await pool.query("UPDATE leave_requests SET approver_id = CONCAT('E', LPAD(approver_id, 3, '0')) WHERE approver_id REGEXP '^[0-9]+$';");
     console.log('7 done');
-    await pool.query("UPDATE attendances SET employee_id = CONCAT('E', LPAD(employee_id, 3, '0')) WHERE employee_id REGEXP '^[0-9]+$';");
+    await pool.query("UPDATE attendances SET user_id = CONCAT('E', LPAD(user_id, 3, '0')) WHERE user_id REGEXP '^[0-9]+$';");
     console.log('8 done');
     console.log("MIGRATION COMPLETE!");
   } catch (e) {

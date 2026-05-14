@@ -91,7 +91,7 @@ export default function LeaveAdmin() {
 
       const formatted = data.leaveRequests.map((request: any) => ({
         id: request.leave_id,
-        employee: request.full_name || request.employee_id,
+        employee: request.full_name || request.user_id,
         branch: request.branch || "HQ",
         type: request.leave_type,
         from: formatDate(request.start_date),
