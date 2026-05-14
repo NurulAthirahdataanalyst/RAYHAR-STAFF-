@@ -13,33 +13,14 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { User, LogOut, ChevronRight, Settings } from "lucide-react";
+import { useRole } from "@/contexts/RoleContext";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { role: resolvedRole, userBranch, userDepartment } = useRole();
   const [pendingApprovals, setPendingApprovals] = useState(0);
-  const [resolvedRole, setResolvedRole] = useState("employee");
-
-  useEffect(() => {
-    const dashboardUserId = user?.user_id || user?.id;
-    if (!dashboardUserId) return;
-
-    const fetchRole = async () => {
-      try {
-        const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/user-details/${dashboardUserId}`);
-        const data = await response.json();
-
-        if (response.ok && data.success && data.role) {
-          setResolvedRole(String(data.role));
-        }
-      } catch (error) {
-        console.error("Role resolve error:", error);
-      }
-    };
-
-    void fetchRole();
-  }, [user?.id, user?.user_id]);
 
   useEffect(() => {
     const dashboardUserId = user?.user_id || user?.id;
@@ -47,8 +28,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     const fetchPendingApprovals = async () => {
       try {
+        const params = new URLSearchParams({
+          userId: dashboardUserId,
+          role: resolvedRole,
+          branch: userBranch || "",
+          department: userDepartment || "",
+        });
+
         const response = await fetch(
-          `http://localhost:5000/api/dashboard-stats?userId=${dashboardUserId}&role=${resolvedRole}`
+          `https://rayhar-staff-production.up.railway.app/api/dashboard-stats?${params}`
         );
         const data = await response.json();
 
@@ -66,7 +54,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const interval = setInterval(fetchPendingApprovals, 10000);
 
     return () => clearInterval(interval);
-  }, [resolvedRole, user?.id, user?.user_id]);
+  }, [resolvedRole, user?.id, user?.user_id, userBranch, userDepartment]);
 
   const today = new Date();
   const calendarYear = today.getFullYear();

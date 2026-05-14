@@ -435,10 +435,14 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
   const signature_val = cuti_tanpa_gaji_signature === "true";
   
   try {
-    const [empRows] = await pool.query("SELECT branch FROM profiles WHERE user_id = ?", [user_id]);
+    const [empRows] = await pool.query("SELECT branch, department FROM profiles WHERE user_id = ?", [user_id]);
     const employeeBranch = empRows[0]?.branch || "HQ";
+    const employeeDept = empRows[0]?.department || "";
+    
     const initialStatus = leave_type === 'Cuti Sakit' ? 'Approved' : 
-                          (employeeBranch === 'HQ' ? 'Pending HOD' : 'Pending Branch Leader');
+                          (employeeBranch === 'HQ' 
+                            ? (employeeDept ? `Pending HOD (${employeeDept})` : 'Pending HOD') 
+                            : 'Pending Branch Leader');
 
     const [result] = await pool.query(
       `
@@ -573,7 +577,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
     if (action === 'Reject') {
       nextStatus = 'Rejected';
     } else if (action === 'Approve') {
-      if (currentStatus === 'Pending HOD' || currentStatus === 'Pending Branch Leader') {
+      if (currentStatus.startsWith('Pending HOD') || currentStatus === 'Pending Branch Leader') {
         nextStatus = 'Pending Finance';
       } else if (currentStatus === 'Pending Finance') {
         nextStatus = 'Pending MD';
@@ -1025,9 +1029,20 @@ app.get("/api/dashboard-stats", async (req, res) => {
         queryParams
       );
 
+      let statusToCount = "Pending%";
+      if (role === "head_of_department") {
+        statusToCount = department ? `Pending HOD (${department})` : "Pending HOD%";
+      } else if (role === "branch_leader") {
+        statusToCount = "Pending Branch Leader";
+      } else if (role === "finance_manager") {
+        statusToCount = "Pending Finance";
+      } else if (role === "managing_director") {
+        statusToCount = "Pending MD";
+      }
+
       const [pendingRows] = await pool.query(
-        `SELECT COUNT(*) AS pending_approvals FROM leave_requests WHERE status LIKE 'Pending%' ${attendanceFilter}`,
-        queryParams
+        `SELECT COUNT(*) AS pending_approvals FROM leave_requests WHERE status LIKE ? ${attendanceFilter}`,
+        [statusToCount, ...queryParams]
       );
 
       const [recentRows] = await pool.query(

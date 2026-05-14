@@ -264,7 +264,7 @@ export default function LeaveAdmin() {
                         </td>
                         {canApprove && (
                           <td className="px-4 py-4 text-right">
-                            {((req.status === "Pending HOD" && role === "head_of_department") ||
+                            {((req.status.startsWith("Pending HOD") && role === "head_of_department") ||
                               (req.status === "Pending Branch Leader" && role === "branch_leader") ||
                               (req.status === "Pending Finance" && role === "finance_manager") ||
                               (req.status === "Pending MD" && role === "managing_director")) ? (
