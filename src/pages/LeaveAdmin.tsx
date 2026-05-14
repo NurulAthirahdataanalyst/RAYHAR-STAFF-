@@ -52,7 +52,7 @@ const formatRole = (role: string) => {
 };
 
 // Roles that can approve/reject leave requests
-const APPROVER_ROLES = ["managing_director", "finance_manager", "head_of_department"];
+const APPROVER_ROLES = ["managing_director", "finance_manager", "head_of_department", "branch_leader"];
 // Roles that can see the leave admin panel (view + approve or view only)
 const ADMIN_VIEW_ROLES = ["hr_admin", "branch_leader", ...APPROVER_ROLES];
 
@@ -265,6 +265,7 @@ export default function LeaveAdmin() {
                         {canApprove && (
                           <td className="px-4 py-4 text-right">
                             {((req.status === "Pending HOD" && role === "head_of_department") ||
+                              (req.status === "Pending Branch Leader" && role === "branch_leader") ||
                               (req.status === "Pending Finance" && role === "finance_manager") ||
                               (req.status === "Pending MD" && role === "managing_director")) ? (
                               <div className="flex justify-end gap-2">
