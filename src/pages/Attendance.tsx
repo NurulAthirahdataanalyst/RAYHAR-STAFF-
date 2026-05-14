@@ -3,6 +3,25 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Clock, Calendar, Fingerprint, Hand, Timer } from "lucide-react";
 
+const formatAttendanceTime = (value: unknown) => {
+  if (!value) return "--:--";
+
+  const parsed =
+    value instanceof Date
+      ? value
+      : typeof value === "string" && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(value)
+        ? new Date(value.replace(" ", "T"))
+        : new Date(value as string | number);
+
+  if (Number.isNaN(parsed.getTime())) return "--:--";
+
+  return parsed.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
 export default function Attendance() {
   const [loading, setLoading] = useState(false);
   const [initialFetch, setInitialFetch] = useState(true);
@@ -20,7 +39,13 @@ export default function Attendance() {
       setCurrentTime(now);
 
       if (activeSession && activeSession.clock_in) {
-        const start = new Date(activeSession.clock_in).getTime();
+        const start = new Date(
+          activeSession.clock_in instanceof Date
+            ? activeSession.clock_in
+            : typeof activeSession.clock_in === "string" && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(activeSession.clock_in)
+              ? activeSession.clock_in.replace(" ", "T")
+              : activeSession.clock_in
+        ).getTime();
         const diffMs = now.getTime() - start;
         const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
         const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
@@ -60,11 +85,7 @@ export default function Attendance() {
       if (data.active && data.record) {
         setActiveSession(data.record);
         const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-        const clockInTime = new Date(data.record.clock_in).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        });
+        const clockInTime = formatAttendanceTime(data.record.clock_in);
 
         localStorage.setItem(
           "latestAttendanceUpdate",
@@ -121,23 +142,16 @@ export default function Attendance() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          employee_id: String(employeeId).trim()
+          user_id: String(employeeId).trim()
         }),
       });
 
       const result = await response.json();
 
       if (result.success) {
-        const eventDate = new Date(
-          isClockOut
-            ? result.record?.clock_out || Date.now()
-            : result.record?.clock_in || Date.now()
+        const eventTime = formatAttendanceTime(
+          isClockOut ? result.record?.clock_out : result.record?.clock_in
         );
-        const eventTime = eventDate.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        });
         const dashboardUpdate = {
           userId: String(employeeId).trim(),
           name: user?.full_name || "User",
@@ -288,7 +302,7 @@ export default function Attendance() {
                   </div>
                   <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Clock In</span>
                   <span className="text-xs font-bold text-slate-800">
-                    {activeSession ? new Date(activeSession.clock_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "--:--"}
+                    {activeSession ? formatAttendanceTime(activeSession.clock_in) : "--:--"}
                   </span>
                 </div>
 

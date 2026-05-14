@@ -253,7 +253,7 @@ app.get("/api/branch-employees", async (req, res) => {
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
       LEFT JOIN (
         SELECT
-          employee_id,
+          user_id,
           SUM(CASE WHEN leave_type = 'Cuti Tahunan' AND status <> 'Rejected' THEN days ELSE 0 END) AS annual_days_used,
           SUM(CASE WHEN status LIKE 'Pending%' THEN 1 ELSE 0 END) AS pending_leaves,
           SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) AS approved_leaves,
@@ -261,34 +261,34 @@ app.get("/api/branch-employees", async (req, res) => {
           SUM(CASE WHEN leave_type = 'Cuti Sakit' THEN 1 ELSE 0 END) AS mc_leaves,
           COUNT(*) AS total_leave_requests
         FROM leave_requests
-        GROUP BY employee_id
-      ) lr ON lr.employee_id = p.user_id
+        GROUP BY user_id
+      ) lr ON lr.user_id = p.user_id
       LEFT JOIN (
         SELECT
-          employee_id,
+          user_id,
           COUNT(DISTINCT DATE(clock_in)) AS days_present
         FROM attendances
         WHERE YEAR(clock_in) = YEAR(CURDATE())
         AND MONTH(clock_in) = MONTH(CURDATE())
-        GROUP BY employee_id
-      ) att ON att.employee_id = p.user_id
+        GROUP BY user_id
+      ) att ON att.user_id = p.user_id
       LEFT JOIN (
-        SELECT a.employee_id, a.clock_in, a.clock_out
+        SELECT a.user_id, a.clock_in, a.clock_out
         FROM attendances a
         INNER JOIN (
-          SELECT employee_id, MAX(attendance_id) AS latest_attendance_id
+          SELECT user_id, MAX(attendance_id) AS latest_attendance_id
           FROM attendances
           WHERE DATE(clock_in) = CURDATE()
-          GROUP BY employee_id
+          GROUP BY user_id
         ) latest ON latest.latest_attendance_id = a.attendance_id
-      ) today ON today.employee_id = p.user_id
+      ) today ON today.user_id = p.user_id
       LEFT JOIN (
-        SELECT employee_id, COUNT(*) as leave_count
+        SELECT user_id, COUNT(*) as leave_count
         FROM leave_requests
         WHERE status = 'Approved'
         AND CURDATE() BETWEEN DATE(start_date) AND DATE(end_date)
-        GROUP BY employee_id
-      ) leave_today ON leave_today.employee_id = p.user_id
+        GROUP BY user_id
+      ) leave_today ON leave_today.user_id = p.user_id
       WHERE p.branch = ?
       ORDER BY p.full_name ASC
       `,
@@ -324,7 +324,7 @@ app.get("/api/leave-requests", async (req, res) => {
     const filters = [];
 
     if (userId) {
-      filters.push("lr.employee_id = ?");
+      filters.push("lr.user_id = ?");
       params.push(userId);
     } else {
       if (role === "branch_leader" && branch) {
@@ -348,7 +348,7 @@ app.get("/api/leave-requests", async (req, res) => {
       `
       SELECT
         lr.leave_id,
-        lr.employee_id,
+        lr.user_id,
         lr.leave_type,
         lr.start_date,
         lr.end_date,
@@ -390,7 +390,7 @@ app.get("/api/leave-requests", async (req, res) => {
           ORDER BY la.created_at ASC
         ) as approval_history
       FROM leave_requests lr
-      JOIN profiles p ON p.user_id = lr.employee_id
+      JOIN profiles p ON p.user_id = lr.user_id
       LEFT JOIN user_role ur_approver ON ur_approver.user_id = lr.approver_id
       ${whereClause}
       ORDER BY lr.created_at DESC, lr.leave_id DESC
@@ -407,7 +407,7 @@ app.get("/api/leave-requests", async (req, res) => {
 
 app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) => {
   const {
-    employee_id,
+    user_id,
     leave_type,
     start_date,
     end_date,
@@ -424,7 +424,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
     cuti_tanpa_gaji_signature
   } = req.body;
 
-  if (!employee_id || !leave_type || !start_date || !end_date || !days) {
+  if (!user_id || !leave_type || !start_date || !end_date || !days) {
     return res.status(400).json({
       success: false,
       error: "Missing required leave request fields",
@@ -435,7 +435,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
   const signature_val = cuti_tanpa_gaji_signature === "true";
   
   try {
-    const [empRows] = await pool.query("SELECT branch FROM profiles WHERE user_id = ?", [employee_id]);
+    const [empRows] = await pool.query("SELECT branch FROM profiles WHERE user_id = ?", [user_id]);
     const employeeBranch = empRows[0]?.branch || "HQ";
     const initialStatus = leave_type === 'Cuti Sakit' ? 'Approved' : 
                           (employeeBranch === 'HQ' ? 'Pending HOD' : 'Pending Branch Leader');
@@ -443,11 +443,11 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
     const [result] = await pool.query(
       `
       INSERT INTO leave_requests
-        (employee_id, leave_type, start_date, end_date, days, reason, status, waris_nama, waris_phone, waris_alamat, waris_hubungan, cuti_ganti_tarikh, cuti_ganti_hari, cuti_ganti_jam, cuti_tanpa_gaji_phone, cuti_tanpa_gaji_signature, mc_file_url)
+        (user_id, leave_type, start_date, end_date, days, reason, status, waris_nama, waris_phone, waris_alamat, waris_hubungan, cuti_ganti_tarikh, cuti_ganti_hari, cuti_ganti_jam, cuti_tanpa_gaji_phone, cuti_tanpa_gaji_signature, mc_file_url)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
-        employee_id,
+        user_id,
         leave_type,
         start_date,
         end_date,
@@ -474,7 +474,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
         p.full_name,
         p.branch
       FROM leave_requests lr
-      JOIN profiles p ON p.user_id = lr.employee_id
+      JOIN profiles p ON p.user_id = lr.user_id
       WHERE lr.leave_id = ?
       `,
       [result.insertId]
@@ -536,11 +536,11 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
 
 
   try {
-    const [leaveRows] = await pool.query("SELECT status, employee_id FROM leave_requests WHERE leave_id = ?", [leaveId]);
+    const [leaveRows] = await pool.query("SELECT status, user_id FROM leave_requests WHERE leave_id = ?", [leaveId]);
     if (leaveRows.length === 0) return res.status(404).json({ success: false, error: "Leave not found" });
     
     const currentStatus = leaveRows[0].status;
-    const employee_id = leaveRows[0].employee_id;
+    const user_id = leaveRows[0].user_id;
 
     // --- SECURITY CHECK: HOD/Branch Leader must match Department/Branch ---
     if (approver_id && (role === "head_of_department" || role === "branch_leader")) {
@@ -550,7 +550,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
       );
       const [employeeRows] = await pool.query(
         "SELECT branch, department FROM profiles WHERE user_id = ?",
-        [employee_id]
+        [user_id]
       );
 
       if (approverRows.length > 0 && employeeRows.length > 0) {
@@ -600,7 +600,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
       const [fullLeaveRows] = await pool.query(
         `SELECT lr.*, p.full_name as employee_name, p.email as employee_email, p.branch 
          FROM leave_requests lr 
-         JOIN profiles p ON p.user_id = lr.employee_id 
+         JOIN profiles p ON p.user_id = lr.user_id 
          WHERE lr.leave_id = ?`,
         [leaveId]
       );
@@ -691,7 +691,7 @@ app.get("/api/employees", async (req, res) => {
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
       LEFT JOIN (
         SELECT
-          employee_id,
+          user_id,
           SUM(CASE WHEN leave_type = 'Cuti Tahunan' AND status <> 'Rejected' THEN days ELSE 0 END) AS annual_days_used,
           SUM(CASE WHEN status LIKE 'Pending%' THEN 1 ELSE 0 END) AS pending_leaves,
           SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) AS approved_leaves,
@@ -699,27 +699,27 @@ app.get("/api/employees", async (req, res) => {
           SUM(CASE WHEN leave_type = 'Cuti Sakit' THEN 1 ELSE 0 END) AS mc_leaves,
           COUNT(*) AS total_leave_requests
         FROM leave_requests
-        GROUP BY employee_id
-      ) lr ON lr.employee_id = p.user_id
+        GROUP BY user_id
+      ) lr ON lr.user_id = p.user_id
       LEFT JOIN (
         SELECT
-          employee_id,
+          user_id,
           COUNT(DISTINCT DATE(clock_in)) AS days_present
         FROM attendances
         WHERE YEAR(clock_in) = YEAR(CURDATE())
         AND MONTH(clock_in) = MONTH(CURDATE())
-        GROUP BY employee_id
-      ) att ON att.employee_id = p.user_id
+        GROUP BY user_id
+      ) att ON att.user_id = p.user_id
       LEFT JOIN (
-        SELECT a.employee_id, a.clock_in, a.clock_out
+        SELECT a.user_id, a.clock_in, a.clock_out
         FROM attendances a
         INNER JOIN (
-          SELECT employee_id, MAX(attendance_id) AS latest_attendance_id
+          SELECT user_id, MAX(attendance_id) AS latest_attendance_id
           FROM attendances
           WHERE DATE(clock_in) = CURDATE()
-          GROUP BY employee_id
+          GROUP BY user_id
         ) latest ON latest.latest_attendance_id = a.attendance_id
-      ) today ON today.employee_id = p.user_id
+      ) today ON today.user_id = p.user_id
       ${branchFilter}
       ORDER BY p.full_name ASC
       `,
@@ -888,7 +888,7 @@ app.get("/api/attendance-status", async (req, res) => {
     const [rows] = await pool.query(
       `
       SELECT * FROM attendances
-      WHERE employee_id = ?
+      WHERE user_id = ?
       AND DATE(clock_in) = CURDATE()
       AND clock_out IS NULL
       LIMIT 1
@@ -910,18 +910,18 @@ app.get("/api/attendance-status", async (req, res) => {
 // CLOCK IN
 // ===============================
 app.post("/api/attendance", async (req, res) => {
-  const { employee_id } = req.body;
+  const { user_id } = req.body;
 
-  if (!employee_id) {
+  if (!user_id) {
     return res
       .status(400)
-      .json({ success: false, error: "Missing employee_id" });
+      .json({ success: false, error: "Missing user_id" });
   }
 
   try {
     const [result] = await pool.query(
-      `INSERT INTO attendances (employee_id, clock_in) VALUES (?, NOW())`,
-      [employee_id]
+      `INSERT INTO attendances (user_id, clock_in) VALUES (?, NOW())`,
+      [user_id]
     );
 
     const insertedId = result.insertId;
@@ -941,29 +941,29 @@ app.post("/api/attendance", async (req, res) => {
 // CLOCK OUT
 // ===============================
 app.post("/api/clock-out", async (req, res) => {
-  const { employee_id } = req.body;
+  const { user_id } = req.body;
 
   try {
     await pool.query(
       `
       UPDATE attendances
       SET clock_out = NOW()
-      WHERE employee_id = ?
+      WHERE user_id = ?
       AND DATE(clock_in) = CURDATE()
       AND clock_out IS NULL
       `,
-      [employee_id]
+      [user_id]
     );
 
     const [rows] = await pool.query(
       `
       SELECT * FROM attendances
-      WHERE employee_id = ?
+      WHERE user_id = ?
       AND DATE(clock_in) = CURDATE()
       ORDER BY clock_in DESC
       LIMIT 1
       `,
-      [employee_id]
+      [user_id]
     );
 
     res.json({ success: true, record: rows[0] });
@@ -997,11 +997,11 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       if (isBranchLeader && branch) {
         profileFilter = "AND branch = ?";
-        attendanceFilter = "AND employee_id IN (SELECT user_id FROM profiles WHERE branch = ?)";
+        attendanceFilter = "AND user_id IN (SELECT user_id FROM profiles WHERE branch = ?)";
         queryParams.push(branch);
       } else if (isHOD && branch && department) {
         profileFilter = "AND branch = ? AND department = ?";
-        attendanceFilter = "AND employee_id IN (SELECT user_id FROM profiles WHERE branch = ? AND department = ?)";
+        attendanceFilter = "AND user_id IN (SELECT user_id FROM profiles WHERE branch = ? AND department = ?)";
         queryParams.push(branch, department);
       }
 
@@ -1011,17 +1011,17 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const [presentRows] = await pool.query(
-        `SELECT COUNT(DISTINCT employee_id) AS present_today FROM attendances WHERE DATE(clock_in) = CURDATE() ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS present_today FROM attendances WHERE DATE(clock_in) = CURDATE() ${attendanceFilter}`,
         queryParams
       );
 
       const [onLeaveRows] = await pool.query(
-        `SELECT COUNT(DISTINCT employee_id) AS on_leave FROM leave_requests WHERE status = 'Approved' AND CURDATE() BETWEEN start_date AND end_date ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS on_leave FROM leave_requests WHERE status = 'Approved' AND CURDATE() BETWEEN start_date AND end_date ${attendanceFilter}`,
         queryParams
       );
 
       const [lateRows] = await pool.query(
-        `SELECT COUNT(DISTINCT employee_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = CURDATE() AND TIME(clock_in) > '09:00:00' ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = CURDATE() AND TIME(clock_in) > '09:00:00' ${attendanceFilter}`,
         queryParams
       );
 
@@ -1034,7 +1034,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         `
         SELECT p.full_name AS name, 'Leave' AS action, CONCAT('Leave ', lr.status) AS status, DATE_FORMAT(lr.created_at, '%h:%i %p') AS time
         FROM leave_requests lr
-        JOIN profiles p ON p.user_id = lr.employee_id
+        JOIN profiles p ON p.user_id = lr.user_id
         ${profileFilter ? "WHERE 1=1 " + profileFilter : ""}
         ORDER BY lr.created_at DESC LIMIT 5
         `,
@@ -1055,7 +1055,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const [todayRows] = await pool.query(
       `
       SELECT clock_in, clock_out, DATE_FORMAT(clock_in, '%h:%i %p') AS clock_in_time, DATE_FORMAT(clock_out, '%h:%i %p') AS clock_out_time
-      FROM attendances WHERE employee_id = ? AND DATE(clock_in) = CURDATE() ORDER BY clock_in DESC LIMIT 1
+      FROM attendances WHERE user_id = ? AND DATE(clock_in) = CURDATE() ORDER BY clock_in DESC LIMIT 1
       `,
       [userId]
     );
@@ -1080,7 +1080,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     // 2. MONTHLY ATTENDANCE RATE
     const [monthlyRows] = await pool.query(
-      `SELECT COUNT(DISTINCT DATE(clock_in)) AS days_present FROM attendances WHERE employee_id = ? AND YEAR(clock_in) = YEAR(CURDATE()) AND MONTH(clock_in) = MONTH(CURDATE())`,
+      `SELECT COUNT(DISTINCT DATE(clock_in)) AS days_present FROM attendances WHERE user_id = ? AND YEAR(clock_in) = YEAR(CURDATE()) AND MONTH(clock_in) = MONTH(CURDATE())`,
       [userId]
     );
 
@@ -1091,7 +1091,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     // 3. PENDING LEAVES
     const [pendingRows] = await pool.query(
-      `SELECT COUNT(*) AS pending FROM leave_requests WHERE employee_id = ? AND status LIKE 'Pending%'`,
+      `SELECT COUNT(*) AS pending FROM leave_requests WHERE user_id = ? AND status LIKE 'Pending%'`,
       [userId]
     );
     const pendingLeaves = parseInt(pendingRows[0].pending || 0);
@@ -1101,7 +1101,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       `
       SELECT p.full_name AS name, 'Attendance' AS action, CASE WHEN a.clock_out IS NULL THEN 'Clocked In' ELSE 'Clocked Out' END AS status,
         CASE WHEN a.clock_out IS NULL THEN DATE_FORMAT(a.clock_in, '%h:%i %p') ELSE DATE_FORMAT(a.clock_out, '%h:%i %p') END AS time
-      FROM attendances a JOIN profiles p ON p.user_id = a.employee_id WHERE a.employee_id = ? ORDER BY COALESCE(a.clock_out, a.clock_in) DESC LIMIT 5
+      FROM attendances a JOIN profiles p ON p.user_id = a.user_id WHERE a.user_id = ? ORDER BY COALESCE(a.clock_out, a.clock_in) DESC LIMIT 5
       `,
       [userId]
     );
@@ -1145,12 +1145,12 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         DATE_FORMAT(a.clock_in, '%h:%i %p') AS time_in,
         DATE_FORMAT(a.clock_out, '%h:%i %p') AS time_out
       FROM profiles p
-      JOIN attendances a ON p.user_id = a.employee_id
+      JOIN attendances a ON p.user_id = a.user_id
       WHERE a.attendance_id IN (
         SELECT MAX(attendance_id) 
         FROM attendances 
         WHERE DATE(clock_in) = ${queryDate ? '?' : 'CURDATE()'}
-        GROUP BY employee_id
+        GROUP BY user_id
       )
       ORDER BY a.clock_in DESC
       `,
@@ -1193,11 +1193,11 @@ app.get("/api/reports/analytics", async (req, res) => {
       `
       SELECT
         p.branch,
-        COUNT(DISTINCT a.employee_id, DATE(a.clock_in)) as total_present,
+        COUNT(DISTINCT a.user_id, DATE(a.clock_in)) as total_present,
         COUNT(DISTINCT p.user_id) as total_employees,
-        COUNT(DISTINCT CASE WHEN a.clock_out IS NULL AND DATE(a.clock_in) = CURDATE() THEN a.employee_id END) as active_now
+        COUNT(DISTINCT CASE WHEN a.clock_out IS NULL AND DATE(a.clock_in) = CURDATE() THEN a.user_id END) as active_now
       FROM profiles p
-      LEFT JOIN attendances a ON p.user_id = a.employee_id 
+      LEFT JOIN attendances a ON p.user_id = a.user_id 
         AND MONTH(a.clock_in) = ? 
         AND YEAR(a.clock_in) = ?
       WHERE p.status = 'Active'
@@ -1226,7 +1226,7 @@ app.get("/api/reports/analytics", async (req, res) => {
       `
       SELECT 
         MONTH(clock_in) as month_num,
-        COUNT(DISTINCT employee_id, DATE(clock_in)) as total_present
+        COUNT(DISTINCT user_id, DATE(clock_in)) as total_present
       FROM attendances
       WHERE YEAR(clock_in) = ?
       GROUP BY MONTH(clock_in)
@@ -1352,14 +1352,14 @@ app.get("/api/branches-stats", async (req, res) => {
       SELECT 
         p.branch,
         COUNT(DISTINCT p.user_id) AS total_employees,
-        COUNT(DISTINCT att.employee_id) AS present_today,
+        COUNT(DISTINCT att.user_id) AS present_today,
         COUNT(DISTINCT lr.leave_id) AS on_leave
       FROM profiles p
       LEFT JOIN attendances att 
-        ON att.employee_id = p.user_id 
+        ON att.user_id = p.user_id 
         AND DATE(att.clock_in) = CURDATE()
       LEFT JOIN leave_requests lr
-        ON lr.employee_id = p.user_id
+        ON lr.user_id = p.user_id
         AND lr.status = 'Approved'
         AND CURDATE() BETWEEN lr.start_date AND lr.end_date
       GROUP BY p.branch

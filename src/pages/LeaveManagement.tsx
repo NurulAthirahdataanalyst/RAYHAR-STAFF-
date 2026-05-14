@@ -125,7 +125,7 @@ export default function LeaveManagement() {
       const leaveType = formData.jenisCuti as LeaveType;
 
       const payload = new FormData();
-      payload.append("employee_id", userId);
+      payload.append("user_id", userId);
       payload.append("leave_type", leaveType);
       payload.append("start_date", formData.tarikhMula);
       payload.append("end_date", formData.tarikhAkhir);
