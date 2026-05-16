@@ -183,36 +183,44 @@ export default function Reports() {
     toast.success("Excel/CSV Report exported successfully!");
   };
 
-  const liveBranchRanking = [
-    { branch: "HQ", rate: 96, region: "East Coast / East Malaysia" },
-    { branch: "KMM", rate: 92, region: "East Coast / East Malaysia" },
-    { branch: "TGG", rate: 89, region: "East Coast / East Malaysia" },
-    { branch: "CNH", rate: 88, region: "East Coast / East Malaysia" },
-    { branch: "KBG", rate: 85, region: "East Coast / East Malaysia" },
-    { branch: "DGN", rate: 84, region: "East Coast / East Malaysia" },
-    { branch: "JTH", rate: 80, region: "East Coast / East Malaysia" },
-    { branch: "KBR", rate: 78, region: "East Coast / East Malaysia" },
-    { branch: "RMP", rate: 76, region: "East Coast / East Malaysia" },
-    { branch: "MZM", rate: 75, region: "East Coast / East Malaysia" },
-    { branch: "TWU", rate: 70, region: "East Coast / East Malaysia" },
-    { branch: "AOR", rate: 85, region: "North Malaysia" },
-    { branch: "BTM", rate: 82, region: "North Malaysia" },
-    { branch: "KKS", rate: 79, region: "North Malaysia" },
-    { branch: "SHA", rate: 90, region: "Central / West Coast" },
-    { branch: "BBB", rate: 88, region: "Central / West Coast" },
-    { branch: "KUL", rate: 85, region: "Central / West Coast" },
-    { branch: "IPH", rate: 82, region: "Central / West Coast" },
-    { branch: "MJG", rate: 80, region: "Central / West Coast" },
-    { branch: "MLK", rate: 86, region: "South Malaysia" },
-    { branch: "SNS", rate: 83, region: "South Malaysia" },
-    { branch: "JB", rate: 79, region: "South Malaysia" },
-    { branch: "BTP", rate: 75, region: "South Malaysia" },
-  ].filter(b => liveRegion === "all" || b.region.toLowerCase().includes(liveRegion.toLowerCase()))
-   .sort((a, b) => b.rate - a.rate)
-   .map(d => ({
-      ...d,
-      fill: d.rate >= 85 ? '#10b981' : d.rate >= 70 ? '#eab308' : '#ef4444'
-   }));
+  const branchRegions: Record<string, string> = {
+    "HQ": "East Coast / East Malaysia",
+    "KMM": "East Coast / East Malaysia",
+    "TGG": "East Coast / East Malaysia",
+    "CNH": "East Coast / East Malaysia",
+    "KBG": "East Coast / East Malaysia",
+    "DGN": "East Coast / East Malaysia",
+    "JTH": "East Coast / East Malaysia",
+    "KBR": "East Coast / East Malaysia",
+    "RMP": "East Coast / East Malaysia",
+    "MZM": "East Coast / East Malaysia",
+    "TWU": "East Coast / East Malaysia",
+    "AOR": "North Malaysia",
+    "BTM": "North Malaysia",
+    "KKS": "North Malaysia",
+    "SHA": "Central / West Coast",
+    "BBB": "Central / West Coast",
+    "KUL": "Central / West Coast",
+    "IPH": "Central / West Coast",
+    "MJG": "Central / West Coast",
+    "MLK": "South Malaysia",
+    "SNS": "South Malaysia",
+    "JB": "South Malaysia",
+    "BTP": "South Malaysia",
+  };
+
+  const liveBranchRanking = branchComparison
+    .map(b => ({
+      branch: b.branch,
+      rate: b.activeRate || 0,
+      region: branchRegions[b.branch] || "Unknown",
+    }))
+    .filter(b => liveRegion === "all" || b.region.toLowerCase().includes(liveRegion.toLowerCase()))
+    .sort((a, b) => b.rate - a.rate)
+    .map(d => ({
+       ...d,
+       fill: d.rate >= 85 ? '#10b981' : d.rate >= 70 ? '#eab308' : '#ef4444'
+    }));
 
   const heatmapDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const heatmapData = liveBranchRanking.map(b => ({
