@@ -184,13 +184,30 @@ export default function Reports() {
   };
 
   const liveBranchRanking = [
-    { branch: "HQ", rate: 96, region: "North" },
-    { branch: "CNH", rate: 88, region: "South" },
-    { branch: "KUL", rate: 82, region: "Central" },
-    { branch: "PEN", rate: 74, region: "North" },
-    { branch: "JHB", rate: 65, region: "South" },
-    { branch: "BKI", rate: 45, region: "East" },
-  ].filter(b => liveRegion === "all" || b.region.toLowerCase() === liveRegion.toLowerCase())
+    { branch: "HQ", rate: 96, region: "East Coast / East Malaysia" },
+    { branch: "KMM", rate: 92, region: "East Coast / East Malaysia" },
+    { branch: "TGG", rate: 89, region: "East Coast / East Malaysia" },
+    { branch: "CNH", rate: 88, region: "East Coast / East Malaysia" },
+    { branch: "KBG", rate: 85, region: "East Coast / East Malaysia" },
+    { branch: "DGN", rate: 84, region: "East Coast / East Malaysia" },
+    { branch: "JTH", rate: 80, region: "East Coast / East Malaysia" },
+    { branch: "KBR", rate: 78, region: "East Coast / East Malaysia" },
+    { branch: "RMP", rate: 76, region: "East Coast / East Malaysia" },
+    { branch: "MZM", rate: 75, region: "East Coast / East Malaysia" },
+    { branch: "TWU", rate: 70, region: "East Coast / East Malaysia" },
+    { branch: "AOR", rate: 85, region: "North Malaysia" },
+    { branch: "BTM", rate: 82, region: "North Malaysia" },
+    { branch: "KKS", rate: 79, region: "North Malaysia" },
+    { branch: "SHA", rate: 90, region: "Central / West Coast" },
+    { branch: "BBB", rate: 88, region: "Central / West Coast" },
+    { branch: "KUL", rate: 85, region: "Central / West Coast" },
+    { branch: "IPH", rate: 82, region: "Central / West Coast" },
+    { branch: "MJG", rate: 80, region: "Central / West Coast" },
+    { branch: "MLK", rate: 86, region: "South Malaysia" },
+    { branch: "SNS", rate: 83, region: "South Malaysia" },
+    { branch: "JB", rate: 79, region: "South Malaysia" },
+    { branch: "BTP", rate: 75, region: "South Malaysia" },
+  ].filter(b => liveRegion === "all" || b.region.toLowerCase().includes(liveRegion.toLowerCase()))
    .sort((a, b) => b.rate - a.rate)
    .map(d => ({
       ...d,
@@ -678,23 +695,23 @@ export default function Reports() {
                     <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500"></span><span className="text-[9px] font-black uppercase text-muted-foreground">Low</span></div>
                   </div>
                 </div>
-                <div className="flex-1 min-h-[300px]">
+                <div className="flex-1 min-h-[500px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={liveBranchRanking} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" horizontal={true} vertical={false} />
                       <XAxis type="number" domain={[0, 100]} hide />
-                      <YAxis dataKey="branch" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 900, fill: 'hsl(var(--foreground))' }} width={50} />
+                      <YAxis dataKey="branch" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: 'hsl(var(--foreground))' }} width={40} />
                       <Tooltip
                         cursor={{ fill: 'rgba(123,0,153,0.03)' }}
                         contentStyle={{ borderRadius: '16px', border: '1px solid rgba(123,0,153,0.1)', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', padding: '12px', backgroundColor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)' }}
                         formatter={(value: number) => [`${value}%`, 'Active Rate']}
                         labelStyle={{ color: '#7B0099', fontWeight: 900, marginBottom: '4px' }}
                       />
-                      <Bar dataKey="rate" radius={[0, 12, 12, 0]} barSize={28} animationDuration={1500}>
+                      <Bar dataKey="rate" radius={[0, 8, 8, 0]} barSize={12} animationDuration={1500}>
                         {liveBranchRanking.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.fill} />
                         ))}
-                        <LabelList dataKey="rate" position="right" formatter={(val: number) => `${val}%`} style={{ fontSize: '11px', fontWeight: 900, fill: 'hsl(var(--muted-foreground))' }} />
+                        <LabelList dataKey="rate" position="right" formatter={(val: number) => `${val}%`} style={{ fontSize: '10px', fontWeight: 900, fill: 'hsl(var(--muted-foreground))' }} />
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
@@ -707,21 +724,21 @@ export default function Reports() {
                   <span className="w-2 h-2 rounded-full bg-blue-500" />
                   7-Day Intensity Pattern
                 </h4>
-                <div className="flex-1 overflow-x-auto pb-2">
-                  <div className="min-w-[280px]">
-                    <div className="grid grid-cols-8 gap-2 mb-3">
+                <div className="flex-1 overflow-hidden pb-2">
+                  <div className="w-full">
+                    <div className="grid grid-cols-8 gap-1 mb-2">
                       <div className="col-span-1"></div>
                       {heatmapDays.map(day => (
-                        <div key={day} className="text-[9px] font-black text-muted-foreground text-center uppercase tracking-tighter">{day}</div>
+                        <div key={day} className="text-[8px] font-black text-muted-foreground text-center uppercase tracking-tighter">{day}</div>
                       ))}
-                      <div className="text-[9px] font-black text-muted-foreground text-center uppercase tracking-tighter">Avg</div>
+                      <div className="text-[8px] font-black text-muted-foreground text-center uppercase tracking-tighter">Avg</div>
                     </div>
-                    <div className="space-y-2.5">
+                    <div className="space-y-1.5">
                       {heatmapData.map((row) => {
                         const rowAvg = Math.round(row.days.reduce((sum, d) => sum + d.rate, 0) / row.days.length);
                         return (
-                          <div key={row.branch} className="grid grid-cols-8 gap-2 items-center group">
-                            <div className="text-[10px] font-black text-foreground">{row.branch}</div>
+                          <div key={row.branch} className="grid grid-cols-8 gap-1 items-center group">
+                            <div className="text-[9px] font-black text-foreground truncate">{row.branch}</div>
                             {row.days.map((d, i) => {
                               let bg = 'bg-emerald-500';
                               if (d.rate < 70) bg = 'bg-red-500';
@@ -732,17 +749,17 @@ export default function Reports() {
                               return (
                                 <div 
                                   key={i} 
-                                  className={`${bg} h-7 rounded-md transition-all duration-300 group-hover:scale-[1.02] cursor-help relative hover:z-10 hover:ring-2 hover:ring-white dark:hover:ring-black shadow-sm`}
+                                  className={`${bg} h-5 rounded-[4px] transition-all duration-300 group-hover:scale-[1.05] cursor-help relative hover:z-10 hover:ring-1 hover:ring-white dark:hover:ring-black shadow-sm`}
                                   style={{ opacity }}
                                 >
-                                  <div className="absolute opacity-0 hover:opacity-100 bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 bg-foreground text-background text-[10px] font-black px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap pointer-events-none transition-opacity">
+                                  <div className="absolute opacity-0 hover:opacity-100 bottom-full left-1/2 -translate-x-1/2 mb-1 z-50 bg-foreground text-background text-[9px] font-black px-2 py-1 rounded-md shadow-xl whitespace-nowrap pointer-events-none transition-opacity">
                                     {d.day}: {d.rate}%
-                                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45" />
+                                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-foreground rotate-45" />
                                   </div>
                                 </div>
                               );
                             })}
-                            <div className="text-[10px] font-black text-[#7B0099] text-center bg-[#7B0099]/10 rounded-md py-1">{rowAvg}%</div>
+                            <div className="text-[9px] font-black text-[#7B0099] text-center bg-[#7B0099]/10 rounded-md py-0.5">{rowAvg}%</div>
                           </div>
                         );
                       })}
