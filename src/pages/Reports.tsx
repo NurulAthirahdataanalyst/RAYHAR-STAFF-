@@ -86,7 +86,7 @@ export default function Reports() {
       const data = await response.json();
       if (data.success) setDailyAttendance(data.report);
     }
-    
+
     const params = new URLSearchParams({ month: selectedMonth, year: selectedYear });
     const analyticsResponse = await fetch(`https://rayhar-staff-production.up.railway.app/api/reports/analytics?${params}`);
     const analyticsData = await analyticsResponse.json();
@@ -169,14 +169,14 @@ export default function Reports() {
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     const dateStr = new Date().toISOString().split('T')[0];
-    
+
     link.setAttribute("href", url);
     link.setAttribute("download", `Rayhar_Attendance_Report_${dateStr}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     toast.success("Excel/CSV Report exported successfully!");
   };
 
@@ -192,12 +192,12 @@ export default function Reports() {
             <p className="text-responsive-sm text-muted-foreground font-medium italic">Employee attendance and leave metrics</p>
           </div>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={handleExport} 
+        <Button
+          variant="outline"
+          onClick={handleExport}
           className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6 py-5 shadow-lg shadow-[#7B0099]/5 transition-all active:scale-95 self-start sm:self-auto"
         >
-          <Download className="w-4 h-4" /> 
+          <Download className="w-4 h-4" />
           Export Dataset
         </Button>
       </div>
@@ -217,8 +217,8 @@ export default function Reports() {
               </div>
               <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                 <div className="flex items-center gap-2 bg-white/50 dark:bg-black/20 p-1 rounded-xl border border-border/50">
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     className="h-9 rounded-lg border-none bg-transparent px-3 text-[10px] font-black uppercase tracking-widest focus:ring-0 cursor-pointer"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
@@ -275,11 +275,10 @@ export default function Reports() {
                             <td className="px-6 py-4 font-black text-muted-foreground/50 text-xs">{record.time_out || "--:--"}</td>
                             <td className="px-6 py-4 text-center">
                               <Badge
-                                className={`text-[9px] font-black px-2.5 h-5 shadow-sm border-none ${
-                                  !record.time_out 
-                                    ? "bg-emerald-500 text-white" 
+                                className={`text-[9px] font-black px-2.5 h-5 shadow-sm border-none ${!record.time_out
+                                    ? "bg-emerald-500 text-white"
                                     : "bg-muted text-muted-foreground opacity-50"
-                                }`}
+                                  }`}
                               >
                                 {!record.time_out && <span className="w-1 h-1 rounded-full bg-white mr-1.5 animate-ping" />}
                                 {record.time_out ? "CLOCKED OUT" : "PRESENT"}
@@ -309,9 +308,8 @@ export default function Reports() {
                             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">{record.branch}</p>
                           </div>
                           <Badge
-                            className={`text-[8px] font-black h-5 ${
-                              !record.time_out ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
-                            }`}
+                            className={`text-[8px] font-black h-5 ${!record.time_out ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
+                              }`}
                           >
                             {!record.time_out ? "IN" : "OUT"}
                           </Badge>
@@ -382,50 +380,50 @@ export default function Reports() {
               <div className="p-2 bg-[#7B0099]/10 rounded-xl">
                 <FileBarChart className="w-4 h-4 text-[#7B0099]" />
               </div>
-              Attendance Velocity ({selectedYear})
+              Monthly Attendance Growth ({selectedYear})
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
             {loadingAnalytics ? (
-               <div className="h-[280px] flex items-center justify-center">
-                 <Loader2 className="animate-spin text-[#7B0099] opacity-40" />
-               </div>
+              <div className="h-[280px] flex items-center justify-center">
+                <Loader2 className="animate-spin text-[#7B0099] opacity-40" />
+              </div>
             ) : (
               <ResponsiveContainer width="100%" height={280}>
                 <LineChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" vertical={false} />
-                  <XAxis 
-                    dataKey="month" 
-                    tick={{ fontSize: 10, fontWeight: 900, fill: 'hsl(var(--muted-foreground))' }} 
-                    axisLine={false} 
-                    tickLine={false} 
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fontSize: 10, fontWeight: 900, fill: 'hsl(var(--muted-foreground))' }}
+                    axisLine={false}
+                    tickLine={false}
                   />
-                  <YAxis 
-                    tick={{ fontSize: 10, fontWeight: 900, fill: 'hsl(var(--muted-foreground))' }} 
-                    domain={[0, 100]} 
-                    axisLine={false} 
-                    tickLine={false} 
+                  <YAxis
+                    tick={{ fontSize: 10, fontWeight: 900, fill: 'hsl(var(--muted-foreground))' }}
+                    domain={[0, 100]}
+                    axisLine={false}
+                    tickLine={false}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
-                      borderRadius: '20px', 
-                      border: 'none', 
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: '20px',
+                      border: 'none',
                       boxShadow: '0 10px 30px rgba(123,0,153,0.1)',
                       backgroundColor: 'rgba(255,255,255,0.95)',
                       backdropFilter: 'blur(10px)',
                       padding: '12px'
-                    }} 
+                    }}
                     labelStyle={{ fontWeight: 900, fontSize: '10px', textTransform: 'uppercase', marginBottom: '4px' }}
                     itemStyle={{ fontWeight: 900, fontSize: '12px', color: '#7B0099' }}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="attendance" 
-                    stroke="#7B0099" 
-                    strokeWidth={4} 
-                    dot={{ r: 5, fill: '#7B0099', strokeWidth: 3, stroke: '#fff' }} 
-                    activeDot={{ r: 8, strokeWidth: 0 }} 
-                    name="Attendance Rate (%)" 
+                  <Line
+                    type="monotone"
+                    dataKey="attendance"
+                    stroke="#7B0099"
+                    strokeWidth={4}
+                    dot={{ r: 5, fill: '#7B0099', strokeWidth: 3, stroke: '#fff' }}
+                    activeDot={{ r: 8, strokeWidth: 0 }}
+                    name="Attendance Rate (%)"
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -441,9 +439,9 @@ export default function Reports() {
                   <div className="p-2 bg-emerald-500/10 rounded-xl">
                     <Users className="w-4 h-4 text-emerald-500" />
                   </div>
-                  Branch Saturation Tracker ({months.find(m => m.value === selectedMonth)?.label})
+                  Branch Attendance Overview ({months.find(m => m.value === selectedMonth)?.label})
                 </CardTitle>
-                <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">Currently present vs total payroll</CardDescription>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">Live Attendance Avg vs Total Workforce</CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
                 {loadingAnalytics ? (
@@ -454,30 +452,30 @@ export default function Reports() {
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={branchComparison} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" vertical={false} />
-                      <XAxis 
-                        dataKey="branch" 
-                        tick={{ fontSize: 10, fontWeight: 900, fill: 'hsl(var(--muted-foreground))' }} 
-                        axisLine={false} 
-                        tickLine={false} 
+                      <XAxis
+                        dataKey="branch"
+                        tick={{ fontSize: 10, fontWeight: 900, fill: 'hsl(var(--muted-foreground))' }}
+                        axisLine={false}
+                        tickLine={false}
                       />
-                      <YAxis 
-                        yAxisId="left" 
-                        tick={{ fontSize: 9, fontWeight: 900 }} 
-                        domain={[0, 100]} 
-                        axisLine={false} 
-                        tickLine={false} 
+                      <YAxis
+                        yAxisId="left"
+                        tick={{ fontSize: 9, fontWeight: 900 }}
+                        domain={[0, 100]}
+                        axisLine={false}
+                        tickLine={false}
                       />
-                      <YAxis 
-                        yAxisId="right" 
-                        orientation="right" 
-                        tick={{ fontSize: 9, fontWeight: 900 }} 
-                        axisLine={false} 
-                        tickLine={false} 
+                      <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        tick={{ fontSize: 9, fontWeight: 900 }}
+                        axisLine={false}
+                        tickLine={false}
                       />
-                      <Tooltip 
-                        contentStyle={{ 
-                          borderRadius: '20px', 
-                          border: 'none', 
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: '20px',
+                          border: 'none',
                           boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
                           padding: '12px'
                         }}
@@ -498,9 +496,9 @@ export default function Reports() {
                   <div className="p-2 bg-blue-500/10 rounded-xl">
                     <TrendingUp className="w-4 h-4 text-blue-500" />
                   </div>
-                  Regional Compliance Benchmark ({months.find(m => m.value === selectedMonth)?.label})
+                  Branch Attendance Stats ({months.find(m => m.value === selectedMonth)?.label})
                 </CardTitle>
-                <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">Average monthly attendance per location</CardDescription>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacityAve-60 ml-11 italic">Monthly Average Attendance by Branch</CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
                 {loadingAnalytics ? (
@@ -511,22 +509,22 @@ export default function Reports() {
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={branchComparison} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" vertical={false} />
-                      <XAxis 
-                        dataKey="branch" 
-                        tick={{ fontSize: 10, fontWeight: 900, fill: 'hsl(var(--muted-foreground))' }} 
-                        axisLine={false} 
-                        tickLine={false} 
+                      <XAxis
+                        dataKey="branch"
+                        tick={{ fontSize: 10, fontWeight: 900, fill: 'hsl(var(--muted-foreground))' }}
+                        axisLine={false}
+                        tickLine={false}
                       />
-                      <YAxis 
-                        tick={{ fontSize: 9, fontWeight: 900 }} 
-                        domain={[0, 100]} 
-                        axisLine={false} 
-                        tickLine={false} 
+                      <YAxis
+                        tick={{ fontSize: 9, fontWeight: 900 }}
+                        domain={[0, 100]}
+                        axisLine={false}
+                        tickLine={false}
                       />
-                      <Tooltip 
-                        contentStyle={{ 
-                          borderRadius: '20px', 
-                          border: 'none', 
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: '20px',
+                          border: 'none',
                           boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
                           padding: '12px'
                         }}
@@ -550,37 +548,37 @@ export default function Reports() {
               </div>
               Absence Distribution
             </CardTitle>
-            <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11">Volume: {totalLeaveRequests} Approved Requests</CardDescription>
+            <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11">Volume: {totalLeaveRequests} Approved Leave Requests</CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             {loadingAnalytics ? (
-               <div className="h-[280px] flex items-center justify-center">
-                 <Loader2 className="animate-spin text-[#7B0099] opacity-40" />
-               </div>
+              <div className="h-[280px] flex items-center justify-center">
+                <Loader2 className="animate-spin text-[#7B0099] opacity-40" />
+              </div>
             ) : (
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" vertical={false} />
-                  <XAxis 
-                    dataKey="month" 
-                    tick={{ fontSize: 10, fontWeight: 900, fill: 'hsl(var(--muted-foreground))' }} 
-                    axisLine={false} 
-                    tickLine={false} 
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fontSize: 10, fontWeight: 900, fill: 'hsl(var(--muted-foreground))' }}
+                    axisLine={false}
+                    tickLine={false}
                   />
-                  <YAxis 
-                    yAxisId="right" 
-                    orientation="right" 
-                    tick={{ fontSize: 10, fontWeight: 900 }} 
-                    axisLine={false} 
-                    tickLine={false} 
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    tick={{ fontSize: 10, fontWeight: 900 }}
+                    axisLine={false}
+                    tickLine={false}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
-                      borderRadius: '20px', 
-                      border: 'none', 
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: '20px',
+                      border: 'none',
                       boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
                       padding: '12px'
-                    }} 
+                    }}
                   />
                   <Bar yAxisId="right" dataKey="leave_request" fill="#f59e0b" radius={[12, 12, 0, 0]} name="Approved Leaves" barSize={40} />
                 </BarChart>
