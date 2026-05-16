@@ -380,7 +380,7 @@ export default function Reports() {
               <div className="p-2 bg-[#7B0099]/10 rounded-xl">
                 <FileBarChart className="w-4 h-4 text-[#7B0099]" />
               </div>
-              Monthly Attendance Growth({selectedYear})
+              Monthly Attendance Growth({selectedMonth})
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
@@ -482,8 +482,8 @@ export default function Reports() {
                         cursor={{ fill: 'rgba(123,0,153,0.02)' }}
                       />
                       <Legend wrapperStyle={{ fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', paddingTop: '20px' }} iconType="circle" />
-                      <Bar yAxisId="left" dataKey="activeRate" fill="#10b981" radius={[8, 8, 0, 0]} name="Saturation %" barSize={30} />
-                      <Bar yAxisId="right" dataKey="totalEmployees" fill="#7B0099" radius={[8, 8, 0, 0]} name="Total Headcount" barSize={30} />
+                      <Bar yAxisId="left" dataKey="activeRate" fill="#10b981" radius={[8, 8, 0, 0]} name="Live Attendance Avg" barSize={30} />
+                      <Bar yAxisId="right" dataKey="totalEmployees" fill="#7B0099" radius={[8, 8, 0, 0]} name="Total Staff" barSize={30} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
