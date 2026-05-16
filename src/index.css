@@ -227,25 +227,91 @@
   }
 }
 
-/* Print Styles for Dark Mode visibility */
+/* Print Styles for Professional Documents */
 @media print {
+  /* 1. Reset body and background */
   body {
     color: black !important;
     background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
-  * {
-    color: black !important;
-    border-color: #ddd !important;
-    text-shadow: none !important;
-    background: transparent !important;
+
+  /* 2. Hide everything that isn't the form */
+  #root, 
+  header, 
+  nav, 
+  aside, 
+  footer, 
+  button,
+  .print\:hidden,
+  [role="dialog"] > button, /* Hide dialog close button */
+  .sonner-toast,
+  .toaster {
+    display: none !important;
+  }
+
+  /* 3. Ensure the portal containing the dialog is visible */
+  body > [data-radix-portal],
+  [role="dialog"] {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
     box-shadow: none !important;
   }
-  .bg-card { background: white !important; }
-  .text-foreground { color: black !important; }
-  .text-muted-foreground { color: #333 !important; }
-  /* Make sure our purple stays somewhat visible or is black */
-  .text-\[\#7B0099\] { color: black !important; }
-  .bg-\[\#7B0099\] { background-color: #eee !important; color: black !important; border: 1px solid black !important; }
-  /* Hide print buttons */
-  .print\:hidden { display: none !important; }
+
+  /* Hide Dialog Overlay (Backdrop) */
+  [data-radix-portal] > div:first-child {
+    display: none !important;
+  }
+
+  /* 4. Format the printable form */
+  #leave-form-print {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: white !important;
+  }
+
+  #leave-form-print .rounded-\[24px\],
+  #leave-form-print .rounded-\[20px\] {
+    border-radius: 0 !important;
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+    background: white !important;
+  }
+
+  /* 5. Typography and detail fixes for print */
+  * {
+    color: black !important;
+    border-color: #333 !important;
+    text-shadow: none !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .text-\[\#7B0099\] {
+    color: #000 !important;
+  }
+
+  .bg-\[\#7B0099\]\/10,
+  .bg-muted\/30 {
+    background-color: #f3f4f6 !important;
+    border: 1px solid #ddd !important;
+  }
+
+  .italic {
+    font-style: italic !important;
+  }
+
+  .font-black {
+    font-weight: 800 !important;
+  }
 }
