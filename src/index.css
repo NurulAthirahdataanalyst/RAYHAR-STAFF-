@@ -226,3 +226,26 @@
     padding-top: env(safe-area-inset-top, 0px);
   }
 }
+
+/* Print Styles for Dark Mode visibility */
+@media print {
+  body {
+    color: black !important;
+    background: white !important;
+  }
+  * {
+    color: black !important;
+    border-color: #ddd !important;
+    text-shadow: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  .bg-card { background: white !important; }
+  .text-foreground { color: black !important; }
+  .text-muted-foreground { color: #333 !important; }
+  /* Make sure our purple stays somewhat visible or is black */
+  .text-\[\#7B0099\] { color: black !important; }
+  .bg-\[\#7B0099\] { background-color: #eee !important; color: black !important; border: 1px solid black !important; }
+  /* Hide print buttons */
+  .print\:hidden { display: none !important; }
+}
