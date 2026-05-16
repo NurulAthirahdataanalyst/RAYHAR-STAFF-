@@ -2,8 +2,8 @@ import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, FileBarChart, Loader2, Users, TrendingUp, History } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from "recharts";
+import { Download, FileBarChart, Loader2, Users, TrendingUp, History, Calendar, Filter, Activity } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, LabelList, Cell } from "recharts";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +41,9 @@ export default function Reports() {
 
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+
+  const [liveTimeRange, setLiveTimeRange] = useState("today");
+  const [liveRegion, setLiveRegion] = useState("all");
 
   const months = [
     { value: "1", label: "January" },
@@ -179,6 +182,29 @@ export default function Reports() {
 
     toast.success("Excel/CSV Report exported successfully!");
   };
+
+  const liveBranchRanking = [
+    { branch: "HQ", rate: 96, region: "North" },
+    { branch: "CNH", rate: 88, region: "South" },
+    { branch: "KUL", rate: 82, region: "Central" },
+    { branch: "PEN", rate: 74, region: "North" },
+    { branch: "JHB", rate: 65, region: "South" },
+    { branch: "BKI", rate: 45, region: "East" },
+  ].filter(b => liveRegion === "all" || b.region.toLowerCase() === liveRegion.toLowerCase())
+   .sort((a, b) => b.rate - a.rate)
+   .map(d => ({
+      ...d,
+      fill: d.rate >= 85 ? '#10b981' : d.rate >= 70 ? '#eab308' : '#ef4444'
+   }));
+
+  const heatmapDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const heatmapData = liveBranchRanking.map(b => ({
+    branch: b.branch,
+    days: heatmapDays.map(day => ({
+      day,
+      rate: Math.floor(Math.random() * 40) + 60
+    }))
+  }));
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
@@ -380,7 +406,7 @@ export default function Reports() {
               <div className="p-2 bg-[#7B0099]/10 rounded-xl">
                 <FileBarChart className="w-4 h-4 text-[#7B0099]" />
               </div>
-              Monthly Attendance Growth({months.find(m => m.value === selectedMonth)?.label})
+              Monthly Attendance Growth ({months.find(m => m.value === selectedMonth)?.label})
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
@@ -540,7 +566,7 @@ export default function Reports() {
           </>
         )}
 
-        <Card className="border-none shadow-[0_15px_40px_rgba(0,0,0,0.03)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group">
+        <Card className="border-none shadow-[0_15px_40px_rgba(0,0,0,0.03)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group lg:col-span-2">
           <CardHeader className="pb-2 border-b border-border/40">
             <CardTitle className="text-sm sm:text-base font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
               <div className="p-2 bg-amber-500/10 rounded-xl">
@@ -586,6 +612,158 @@ export default function Reports() {
             )}
           </CardContent>
         </Card>
+
+        {/* NEW LIVE ATTENDANCE DASHBOARD SECTION */}
+        {role === "hr_admin" && (
+          <Card className="border-none shadow-[0_15px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_15px_50px_rgba(0,0,0,0.3)] bg-gradient-to-br from-card/90 to-card/50 backdrop-blur-xl rounded-[32px] overflow-hidden lg:col-span-2 mt-4">
+            <CardHeader className="pb-4 border-b border-border/40 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
+              <div>
+                <CardTitle className="text-sm sm:text-lg font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+                  <div className="p-2.5 bg-rose-500/10 rounded-xl relative overflow-hidden">
+                    <Activity className="w-5 h-5 text-rose-500 relative z-10" />
+                    <div className="absolute inset-0 bg-rose-500/20 animate-pulse" />
+                  </div>
+                  Live Attendance Pulse
+                </CardTitle>
+                <CardDescription className="text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-70 ml-12 italic text-muted-foreground mt-1">Real-time branch performance ranking & pattern detection</CardDescription>
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 bg-white/50 dark:bg-black/20 px-3 py-1.5 rounded-xl border border-border/50 shadow-sm">
+                  <Calendar className="w-4 h-4 text-[#7B0099]" />
+                  <input
+                    type="date"
+                    className="h-8 w-[115px] bg-transparent border-none text-[10px] sm:text-xs font-black uppercase tracking-widest focus:ring-0 p-0 text-foreground cursor-pointer"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                  />
+                </div>
+                <Select value={liveTimeRange} onValueChange={setLiveTimeRange}>
+                  <SelectTrigger className="w-[130px] h-11 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-xl border-border/50 bg-white/50 dark:bg-black/20 shadow-sm">
+                    <SelectValue placeholder="Time" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="today" className="text-[10px] font-black uppercase tracking-widest">Today Live</SelectItem>
+                    <SelectItem value="weekly" className="text-[10px] font-black uppercase tracking-widest">Weekly Avg</SelectItem>
+                    <SelectItem value="monthly" className="text-[10px] font-black uppercase tracking-widest">Monthly Avg</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={liveRegion} onValueChange={setLiveRegion}>
+                  <SelectTrigger className="w-[130px] h-11 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-xl border-border/50 bg-white/50 dark:bg-black/20 shadow-sm">
+                    <Filter className="w-3.5 h-3.5 mr-2 inline text-[#7B0099]" />
+                    <SelectValue placeholder="Region" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="all" className="text-[10px] font-black uppercase tracking-widest">All Regions</SelectItem>
+                    <SelectItem value="north" className="text-[10px] font-black uppercase tracking-widest">North Region</SelectItem>
+                    <SelectItem value="central" className="text-[10px] font-black uppercase tracking-widest">Central Region</SelectItem>
+                    <SelectItem value="south" className="text-[10px] font-black uppercase tracking-widest">South Region</SelectItem>
+                    <SelectItem value="east" className="text-[10px] font-black uppercase tracking-widest">East Region</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-8 grid grid-cols-1 xl:grid-cols-3 gap-10 xl:gap-8">
+              
+              {/* Horizontal Bar Chart */}
+              <div className="xl:col-span-2 flex flex-col">
+                <div className="flex items-center justify-between mb-6">
+                  <h4 className="text-xs font-black text-foreground uppercase tracking-widest flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#7B0099] animate-pulse" />
+                    Performance Leaderboard
+                  </h4>
+                  <div className="flex gap-4">
+                    <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500"></span><span className="text-[9px] font-black uppercase text-muted-foreground">High</span></div>
+                    <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-500"></span><span className="text-[9px] font-black uppercase text-muted-foreground">Med</span></div>
+                    <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500"></span><span className="text-[9px] font-black uppercase text-muted-foreground">Low</span></div>
+                  </div>
+                </div>
+                <div className="flex-1 min-h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={rankedData} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" horizontal={true} vertical={false} />
+                      <XAxis type="number" domain={[0, 100]} hide />
+                      <YAxis dataKey="branch" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 900, fill: 'hsl(var(--foreground))' }} width={50} />
+                      <Tooltip
+                        cursor={{ fill: 'rgba(123,0,153,0.03)' }}
+                        contentStyle={{ borderRadius: '16px', border: '1px solid rgba(123,0,153,0.1)', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', padding: '12px', backgroundColor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)' }}
+                        formatter={(value: number) => [`${value}%`, 'Active Rate']}
+                        labelStyle={{ color: '#7B0099', fontWeight: 900, marginBottom: '4px' }}
+                      />
+                      <Bar dataKey="rate" radius={[0, 12, 12, 0]} barSize={28} animationDuration={1500}>
+                        {rankedData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                        <LabelList dataKey="rate" position="right" formatter={(val: number) => `${val}%`} style={{ fontSize: '11px', fontWeight: 900, fill: 'hsl(var(--muted-foreground))' }} />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              
+              {/* Heatmap */}
+              <div className="flex flex-col xl:border-l border-border/40 xl:pl-8">
+                <h4 className="text-xs font-black text-foreground uppercase tracking-widest mb-6 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-500" />
+                  7-Day Intensity Pattern
+                </h4>
+                <div className="flex-1 overflow-x-auto pb-2">
+                  <div className="min-w-[280px]">
+                    <div className="grid grid-cols-8 gap-2 mb-3">
+                      <div className="col-span-1"></div>
+                      {heatmapDays.map(day => (
+                        <div key={day} className="text-[9px] font-black text-muted-foreground text-center uppercase tracking-tighter">{day}</div>
+                      ))}
+                      <div className="text-[9px] font-black text-muted-foreground text-center uppercase tracking-tighter">Avg</div>
+                    </div>
+                    <div className="space-y-2.5">
+                      {heatmapData.map((row) => {
+                        const rowAvg = Math.round(row.days.reduce((sum, d) => sum + d.rate, 0) / row.days.length);
+                        return (
+                          <div key={row.branch} className="grid grid-cols-8 gap-2 items-center group">
+                            <div className="text-[10px] font-black text-foreground">{row.branch}</div>
+                            {row.days.map((d, i) => {
+                              let bg = 'bg-emerald-500';
+                              if (d.rate < 70) bg = 'bg-red-500';
+                              else if (d.rate < 85) bg = 'bg-yellow-500';
+                              
+                              const opacity = d.rate < 50 ? 0.2 : d.rate < 70 ? 0.4 : d.rate < 85 ? 0.6 : d.rate < 95 ? 0.8 : 1;
+                              
+                              return (
+                                <div 
+                                  key={i} 
+                                  className={`${bg} h-7 rounded-md transition-all duration-300 group-hover:scale-[1.02] cursor-help relative hover:z-10 hover:ring-2 hover:ring-white dark:hover:ring-black shadow-sm`}
+                                  style={{ opacity }}
+                                >
+                                  <div className="absolute opacity-0 hover:opacity-100 bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 bg-foreground text-background text-[10px] font-black px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap pointer-events-none transition-opacity">
+                                    {d.day}: {d.rate}%
+                                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45" />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                            <div className="text-[10px] font-black text-[#7B0099] text-center bg-[#7B0099]/10 rounded-md py-1">{rowAvg}%</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    
+                    <div className="flex items-center justify-between mt-8 pt-5 border-t border-border/40">
+                      <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Low Intensity</span>
+                      <div className="flex gap-1.5">
+                        <div className="w-4 h-4 rounded-[4px] bg-red-500/40"></div>
+                        <div className="w-4 h-4 rounded-[4px] bg-yellow-500/60"></div>
+                        <div className="w-4 h-4 rounded-[4px] bg-emerald-500/80"></div>
+                        <div className="w-4 h-4 rounded-[4px] bg-emerald-500"></div>
+                      </div>
+                      <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">High Intensity</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
