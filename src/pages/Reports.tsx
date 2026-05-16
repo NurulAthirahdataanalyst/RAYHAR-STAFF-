@@ -380,7 +380,7 @@ export default function Reports() {
               <div className="p-2 bg-[#7B0099]/10 rounded-xl">
                 <FileBarChart className="w-4 h-4 text-[#7B0099]" />
               </div>
-              Monthly Attendance Growth({selectedMonth})
+              Monthly Attendance Growth({months.find(m => m.value === selectedMonth)?.label})
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
