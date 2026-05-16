@@ -695,7 +695,7 @@ export default function Reports() {
                     <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500"></span><span className="text-[9px] font-black uppercase text-muted-foreground">Low</span></div>
                   </div>
                 </div>
-                <div className="flex-1 min-h-[500px]">
+                <div className="w-full transition-all duration-500" style={{ height: `${Math.max(250, liveBranchRanking.length * 35)}px` }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={liveBranchRanking} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" horizontal={true} vertical={false} />
