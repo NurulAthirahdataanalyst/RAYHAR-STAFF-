@@ -348,7 +348,7 @@ export default function Reports() {
       )}
 
       <div className="flex flex-wrap items-center gap-3 bg-card shadow-sm p-3 rounded-2xl border border-border/50 w-fit">
-        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-2">Time Horizon:</span>
+        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-2">Filter View:</span>
         <div className="flex items-center gap-2">
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
             <SelectTrigger className="w-32 h-9 text-[10px] font-black uppercase tracking-widest rounded-xl border-none bg-muted/50">
@@ -380,7 +380,7 @@ export default function Reports() {
               <div className="p-2 bg-[#7B0099]/10 rounded-xl">
                 <FileBarChart className="w-4 h-4 text-[#7B0099]" />
               </div>
-              Monthly Attendance Growth ({selectedYear})
+              Monthly Attendance Growth({selectedYear})
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
@@ -439,7 +439,7 @@ export default function Reports() {
                   <div className="p-2 bg-emerald-500/10 rounded-xl">
                     <Users className="w-4 h-4 text-emerald-500" />
                   </div>
-                  Branch Attendance Overview ({months.find(m => m.value === selectedMonth)?.label})
+                  Branch Attendance Overview({months.find(m => m.value === selectedMonth)?.label})
                 </CardTitle>
                 <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">Live Attendance Avg vs Total Workforce</CardDescription>
               </CardHeader>
