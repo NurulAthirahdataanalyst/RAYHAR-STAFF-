@@ -193,51 +193,51 @@ export default function Attendance() {
 
   if (initialFetch) {
     return (
-      <div className="flex h-[80vh] items-center justify-center">
+      <div className="flex h-[60vh] sm:h-[80vh] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="animate-spin text-[#800000] w-10 h-10" />
-          <p className="text-slate-400 font-medium animate-pulse">Initializing Attendance System...</p>
+          <Loader2 className="animate-spin text-[#7B0099] w-10 h-10" />
+          <p className="text-muted-foreground font-medium animate-pulse text-sm">Initializing Attendance System...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-6rem)] rounded-[40px] overflow-hidden bg-slate-50 flex flex-col mx-2 sm:mx-6 my-6 shadow-sm border border-slate-100">
+    <div className="relative min-h-[calc(100vh-8rem)] sm:min-h-[calc(100vh-6rem)] rounded-[24px] sm:rounded-[40px] overflow-hidden bg-card dark:bg-card flex flex-col mx-0 sm:mx-2 md:mx-6 my-2 sm:my-6 shadow-sm border border-border/50">
       {/* Dynamic Background Top Half */}
-      <div className="absolute top-0 left-0 right-0 h-[45%] bg-gradient-to-br from-[#5e0080] via-[#8f00bd] to-[#8b16e4ff] rounded-b-[60px] z-0 shadow-2xl" />
+      <div className="absolute top-0 left-0 right-0 h-[40%] sm:h-[45%] bg-gradient-to-br from-[#5e0080] via-[#7B0099] to-[#a855f7] rounded-b-[40px] sm:rounded-b-[60px] z-0 shadow-2xl" />
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 sm:p-8 animate-in fade-in zoom-in-95 duration-700">
 
         {/* Main Card */}
-        <div className="bg-white w-full max-w-sm sm:max-w-md rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)  ] p-8 sm:p-10 flex flex-col items-center relative overflow-hidden">
+        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-6 sm:p-8 md:p-10 flex flex-col items-center relative overflow-hidden border border-border/30">
 
           {user ? (
             <>
               {/* Header section inside card */}
-              <div className="flex flex-col items-center gap-1 mb-10">
-                <div className="text-4xl sm:text-5xl font-black text-slate-800 tracking-tight font-mono drop-shadow-sm">
+              <div className="flex flex-col items-center gap-1 mb-6 sm:mb-10">
+                <div className="text-3xl sm:text-4xl md:text-5xl font-black text-foreground tracking-tight font-mono drop-shadow-sm">
                   {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
                 </div>
-                <div className="text-slate-400 font-semibold text-sm sm:text-base tracking-wide">
+                <div className="text-muted-foreground font-semibold text-xs sm:text-sm md:text-base tracking-wide">
                   {currentTime.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
                 </div>
               </div>
 
-              {/* Central Circular Button */}
-              <div className="relative w-56 h-56 sm:w-64 sm:h-64 flex items-center justify-center mb-10 group">
+              {/* Central Circular Button - larger on mobile for easy touch */}
+              <div className="relative w-44 h-44 sm:w-56 sm:h-56 md:w-64 md:h-64 flex items-center justify-center mb-6 sm:mb-10 group">
                 {/* Outer pulsing rings for active session */}
                 {activeSession && (
                   <>
-                    <div className="absolute inset-0 rounded-full border-[6px] border-emerald-50 opacity-50" />
+                    <div className="absolute inset-0 rounded-full border-[4px] sm:border-[6px] border-emerald-100 dark:border-emerald-900/30 opacity-50" />
                     {/* Fake Progress Ring */}
                     <svg className="absolute inset-0 w-full h-full transform -rotate-90 pointer-events-none">
-                      <circle cx="50%" cy="50%" r="48%" fill="none" stroke="#f1f5f9" strokeWidth="8" />
+                      <circle cx="50%" cy="50%" r="48%" fill="none" stroke="currentColor" strokeWidth="6" className="text-muted/30 dark:text-muted" />
                       <circle
                         cx="50%" cy="50%" r="48%"
                         fill="none"
-                        stroke="#9c0f85ff"
-                        strokeWidth="8"
+                        stroke="#7B0099"
+                        strokeWidth="6"
                         strokeDasharray="400 800"
                         strokeLinecap="round"
                         className="animate-pulse"
@@ -250,78 +250,79 @@ export default function Attendance() {
                 {/* Outer pulsing rings for inactive session */}
                 {!activeSession && (
                   <>
-                    <div className="absolute inset-0 rounded-full bg-rose-50/50 animate-pulse pointer-events-none" style={{ transform: 'scale(1.15)' }} />
-                    <div className="absolute inset-2 rounded-full bg-rose-100/30 animate-ping pointer-events-none" style={{ animationDuration: '3s' }} />
+                    <div className="absolute inset-0 rounded-full bg-purple-50/50 dark:bg-purple-900/20 animate-pulse pointer-events-none" style={{ transform: 'scale(1.15)' }} />
+                    <div className="absolute inset-2 rounded-full bg-purple-100/30 dark:bg-purple-800/10 animate-ping pointer-events-none" style={{ animationDuration: '3s' }} />
                   </>
                 )}
 
                 <button
                   onClick={handleAttendanceAction}
                   disabled={loading}
-                  className={`relative w-48 h-48 sm:w-52 sm:h-52 rounded-full flex flex-col items-center justify-center gap-3 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-2xl focus:outline-none focus:ring-4 focus:ring-offset-4 ${activeSession
-                    ? "bg-white border-4 border-emerald-500 focus:ring-emerald-200 text-emerald-600 shadow-emerald-500/20"
-                    : "bg-gradient-to-tr from-[#800000] via-[#a00000] to-rose-500 focus:ring-rose-200 text-white shadow-rose-500/40"
+                  className={`relative w-36 h-36 sm:w-48 sm:h-48 md:w-52 md:h-52 rounded-full flex flex-col items-center justify-center gap-2 sm:gap-3 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.96] shadow-2xl focus:outline-none focus:ring-4 focus:ring-offset-4 dark:focus:ring-offset-card touch-target ${activeSession
+                    ? "bg-card dark:bg-card border-4 border-emerald-500 focus:ring-emerald-200 dark:focus:ring-emerald-800 text-emerald-600 dark:text-emerald-400 shadow-emerald-500/20"
+                    : "bg-gradient-to-tr from-[#5e0080] via-[#7B0099] to-purple-500 focus:ring-purple-200 dark:focus:ring-purple-800 text-white shadow-purple-500/40"
                     }`}
+                  aria-label={activeSession ? "Clock out - End shift" : "Clock in - Start shift"}
                 >
                   {loading ? (
-                    <Loader2 className={`animate-spin w-10 h-10 ${activeSession ? "text-emerald-500" : "text-white"}`} />
+                    <Loader2 className={`animate-spin w-8 h-8 sm:w-10 sm:h-10 ${activeSession ? "text-emerald-500" : "text-white"}`} />
                   ) : activeSession ? (
                     <>
-                      <Clock className="w-10 h-10 text-emerald-500 mb-1" />
-                      <span className="font-black tracking-widest text-lg">END SHIFT</span>
+                      <Clock className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-500 dark:text-emerald-400 mb-1" />
+                      <span className="font-black tracking-widest text-base sm:text-lg">END SHIFT</span>
                     </>
                   ) : (
                     <>
-                      <Hand className="w-10 h-10 text-white/90 drop-shadow-md mb-1 animate-bounce" style={{ animationDuration: '2s' }} />
-                      <span className="font-black tracking-widest text-xl drop-shadow-md">CLOCK IN</span>
+                      <Hand className="w-8 h-8 sm:w-10 sm:h-10 text-white/90 drop-shadow-md mb-1 animate-bounce" style={{ animationDuration: '2s' }} />
+                      <span className="font-black tracking-widest text-lg sm:text-xl drop-shadow-md">CLOCK IN</span>
                     </>
                   )}
                 </button>
               </div>
 
               {/* Status Message */}
-              <div className="flex items-center justify-center gap-2 text-sm font-bold mb-8 bg-slate-50 py-2 px-6 rounded-full w-full border border-slate-100">
+              <div className="flex items-center justify-center gap-2 text-xs sm:text-sm font-bold mb-6 sm:mb-8 bg-muted/30 dark:bg-muted/50 py-2 px-4 sm:px-6 rounded-full w-full border border-border/50">
                 {activeSession ? (
                   <>
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-emerald-700">Location: You are in Office-reach</span>
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                    <span className="text-emerald-700 dark:text-emerald-400 truncate">Location: You are in Office-reach</span>
                   </>
                 ) : (
                   <>
-                    <div className="w-2 h-2 rounded-full bg-slate-300" />
-                    <span className="text-slate-500">Location: Checking position...</span>
+                    <div className="w-2 h-2 rounded-full bg-muted-foreground/30 shrink-0" />
+                    <span className="text-muted-foreground truncate">Location: Checking position...</span>
                   </>
                 )}
               </div>
 
               {/* Bottom Details Row */}
-              <div className="w-full grid grid-cols-3 gap-2 border-t border-slate-100 pt-6">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="w-10 h-10 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center shadow-inner">
-                    <Clock className="w-4 h-4" />
+              <div className="w-full grid grid-cols-3 gap-2 border-t border-border/50 pt-4 sm:pt-6">
+                <div className="flex flex-col items-center gap-1.5 sm:gap-2">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 dark:bg-purple-950/30 text-[#7B0099] dark:text-purple-400 flex items-center justify-center shadow-inner">
+                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Clock In</span>
-                  <span className="text-xs font-bold text-slate-800">
+                  <span className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Clock In</span>
+                  <span className="text-[11px] sm:text-xs font-bold text-foreground">
                     {activeSession ? formatAttendanceTime(activeSession.clock_in) : "--:--"}
                   </span>
                 </div>
 
-                <div className="flex flex-col items-center gap-2">
-                  <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center shadow-inner">
-                    <Clock className="w-4 h-4" />
+                <div className="flex flex-col items-center gap-1.5 sm:gap-2">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-rose-50 dark:bg-rose-950/30 text-rose-500 dark:text-rose-400 flex items-center justify-center shadow-inner">
+                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Clock Out</span>
-                  <span className="text-xs font-bold text-slate-800">
+                  <span className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Clock Out</span>
+                  <span className="text-[11px] sm:text-xs font-bold text-foreground">
                     --:--
                   </span>
                 </div>
 
-                <div className="flex flex-col items-center gap-2">
-                  <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shadow-inner">
-                    <Timer className="w-4 h-4" />
+                <div className="flex flex-col items-center gap-1.5 sm:gap-2">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-500 dark:text-emerald-400 flex items-center justify-center shadow-inner">
+                    <Timer className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Working Hrs</span>
-                  <span className="text-xs font-bold text-slate-800 font-mono">
+                  <span className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Working Hrs</span>
+                  <span className="text-[11px] sm:text-xs font-bold text-foreground font-mono">
                     {workingHrs}
                   </span>
                 </div>
@@ -329,12 +330,12 @@ export default function Attendance() {
 
             </>
           ) : (
-            <div className="py-20 space-y-4 text-center">
-              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Fingerprint className="w-10 h-10 text-slate-300" />
+            <div className="py-12 sm:py-20 space-y-4 text-center">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                <Fingerprint className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground" />
               </div>
-              <p className="text-xl text-slate-500 font-bold">Authentication Required</p>
-              <p className="text-slate-400">Please log in to your account to record attendance.</p>
+              <p className="text-lg sm:text-xl text-muted-foreground font-bold">Authentication Required</p>
+              <p className="text-muted-foreground text-sm">Please log in to your account to record attendance.</p>
             </div>
           )}
         </div>

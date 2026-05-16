@@ -165,96 +165,134 @@ export default function Employees() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold font-heading text-foreground">Staff</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {role === "hr_admin" ? "Manage employees across all branches" : `View employees in ${userBranch}`}
-        </p>
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-responsive-xl font-bold font-heading text-foreground">Staff Directory</h1>
+          <p className="text-responsive-sm text-muted-foreground mt-1">
+            {role === "hr_admin" ? "Manage employees across all branches" : `View employees in ${userBranch}`}
+          </p>
+        </div>
+        
+        {role === "hr_admin" && (
+          <Button 
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-[#7B0099] hover:bg-[#5e0080] text-white font-bold gap-2 whitespace-nowrap touch-target self-start sm:self-auto"
+          >
+            <Users className="w-4 h-4" />
+            Add Staff
+          </Button>
+        )}
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-card/50 backdrop-blur-sm p-3 rounded-2xl border border-border/50">
         <div className="relative w-full sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search employees..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#7B0099]/20"
           />
         </div>
         
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <Badge variant="outline" className="px-3 py-1.5 text-sm font-semibold whitespace-nowrap bg-muted/50">
-            Total <span className="ml-1.5 inline-flex items-center justify-center bg-[#1dc8cc] text-white rounded-full px-2 py-0.5 text-xs">{filtered.length}</span>
-          </Badge>
-          
-          {role === "hr_admin" && (
-            <Button 
-              onClick={() => setIsAddModalOpen(true)}
-              className="bg-[#1dc8cc] hover:bg-[#15a3a6] text-white font-bold gap-2 whitespace-nowrap"
-            >
-              <Users className="w-4 h-4" />
-              Add
-            </Button>
-          )}
-        </div>
+        <Badge variant="outline" className="px-3 py-1.5 text-xs font-bold whitespace-nowrap bg-muted/30 border-border/60 h-10 sm:h-auto justify-center">
+          Total <span className="ml-2 inline-flex items-center justify-center bg-[#7B0099] text-white rounded-full px-2 py-0.5 text-[10px] min-w-[20px]">{filtered.length}</span>
+        </Badge>
       </div>
 
-      <Card>
+      <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md">
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            {loading ? (
-              <div className="flex items-center justify-center p-8">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          {loading ? (
+            <div className="flex flex-col items-center justify-center p-12 gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
+              <p className="text-xs font-bold text-muted-foreground animate-pulse uppercase tracking-widest">Loading Personnel...</p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-muted/30 text-muted-foreground border-b border-border">
+                      <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Staff Member</th>
+                      <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Position</th>
+                      <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Branch</th>
+                      <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {filtered.length > 0 ? (
+                      filtered.map((emp) => (
+                        <tr 
+                          key={emp.id} 
+                          className="hover:bg-[#7B0099]/5 transition-colors cursor-pointer group"
+                          onClick={() => handleEmployeeClick(emp)}
+                        >
+                          <td className="py-4 px-6">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-xs font-black text-[#7B0099] group-hover:scale-110 transition-transform">
+                                {emp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-foreground group-hover:text-[#7B0099] transition-colors">{emp.name}</p>
+                                <p className="text-[10px] text-muted-foreground truncate font-medium">{emp.email}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-4 px-6">
+                            <span className="text-xs font-bold text-muted-foreground capitalize">{emp.position.replace('_', ' ')}</span>
+                          </td>
+                          <td className="py-4 px-6 text-xs font-bold text-muted-foreground">{emp.branch}</td>
+                          <td className="py-4 px-6">
+                            <Badge variant={emp.status === "Active" ? "default" : "secondary"} className={`text-[10px] font-black px-3 ${emp.status === 'Active' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}>
+                              {emp.status}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="py-12 text-center text-muted-foreground italic font-medium">No employees found matching your search.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
-            ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Staff</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Position</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Branch</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.length > 0 ? (
-                    filtered.map((emp) => (
-                      <tr 
-                        key={emp.id} 
-                        className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer"
-                        onClick={() => handleEmployeeClick(emp)}
-                      >
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
-                              {emp.name.split(" ").map((n: string) => n[0]).join("")}
-                            </div>
-                            <div>
-                              <p className="font-medium text-foreground">{emp.name}</p>
-                              <p className="text-xs text-muted-foreground">{emp.email}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-muted-foreground capitalize">{emp.position}</td>
-                        <td className="py-3 px-4 text-muted-foreground">{emp.branch}</td>
-                        <td className="py-3 px-4">
-                          <Badge variant={emp.status === "Active" ? "default" : "secondary"} className="text-[10px]">
+
+              {/* Mobile Card View */}
+              <div className="md:hidden divide-y divide-border/50">
+                {filtered.length > 0 ? (
+                  filtered.map((emp) => (
+                    <div 
+                      key={emp.id} 
+                      className="p-4 active:bg-[#7B0099]/5 transition-colors flex items-center gap-4 cursor-pointer"
+                      onClick={() => handleEmployeeClick(emp)}
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-[#7B0099]/10 flex items-center justify-center text-sm font-black text-[#7B0099] shrink-0">
+                        {emp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <p className="font-black text-sm text-foreground truncate">{emp.name}</p>
+                          <Badge className={`text-[9px] font-black h-5 shrink-0 ${emp.status === 'Active' ? 'bg-emerald-500' : 'bg-muted text-muted-foreground'}`}>
                             {emp.status}
                           </Badge>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={5} className="py-8 text-center text-muted-foreground">No employees found.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            )}
-          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                          <span className="truncate max-w-[100px]">{emp.position.replace('_', ' ')}</span>
+                          <span className="opacity-30">•</span>
+                          <span>{emp.branch}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-12 text-center text-muted-foreground italic font-medium p-6">No employees found.</div>
+                )}
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -271,11 +309,11 @@ export default function Employees() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Left Column: Bio */}
                   <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col items-center text-center">
-                    <div className="w-24 h-24 rounded-2xl bg-[#601b8a] flex items-center justify-center text-white text-4xl font-black shadow-xl mb-4">
+                    <div className="w-24 h-24 rounded-2xl bg-[#7B0099] flex items-center justify-center text-white text-4xl font-black shadow-xl mb-4">
                       {selectedEmployee.name.charAt(0)}
                     </div>
                     <h2 className="text-xl font-black text-slate-800 leading-tight">{selectedEmployee.name}</h2>
-                    <p className="text-sm font-bold text-[#601b8a] mt-1">{selectedEmployee.email}</p>
+                    <p className="text-sm font-bold text-[#7B0099] mt-1">{selectedEmployee.email}</p>
                     <Badge variant="secondary" className="mt-4 text-[10px] uppercase font-black px-3 py-1">{selectedEmployee.position}</Badge>
                     
                     <div className="mt-6 pt-6 border-t border-slate-200 w-full space-y-3">
@@ -302,8 +340,8 @@ export default function Employees() {
                   <div className="space-y-4">
                     <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Performance & Leave</p>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-2xl border border-slate-100 p-4 bg-white hover:border-[#601b8a]/30 transition-colors">
-                        <CalendarCheck className="mb-2 h-4 w-4 text-[#601b8a]" />
+                      <div className="rounded-2xl border border-slate-100 p-4 bg-white hover:border-[#7B0099]/30 transition-colors">
+                        <CalendarCheck className="mb-2 h-4 w-4 text-[#7B0099]" />
                         <p className="text-2xl font-black text-slate-800">{selectedEmployee.annual_leave_balance}</p>
                         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Annual Left</p>
                       </div>

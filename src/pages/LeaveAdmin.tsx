@@ -22,7 +22,7 @@ type LeaveRequest = {
   to: string;
   days: number;
   reason: string;
-  status: "Pending HOD" | "Pending Finance" | "Pending MD" | "Approved" | "Rejected";
+  status: "Pending HOD" | "Pending Branch Leader" | "Pending Finance" | "Pending MD" | "Approved" | "Rejected";
   warisNama: string;
   warisPhone: string;
   warisAlamat: string;
@@ -180,340 +180,410 @@ export default function LeaveAdmin() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-primary/10 rounded-lg">
-          <Users className="w-6 h-6 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold font-heading text-foreground">Leave Approval Panel</h1>
-          <p className="text-sm text-muted-foreground">
-            {canApprove ? "Manage and review employee leave requests" : "View employee leave requests (View Only)"}
-          </p>
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-[#7B0099]/10 dark:bg-[#7B0099]/20 rounded-xl text-[#7B0099] dark:text-purple-400">
+            <Users className="w-5 h-5 sm:w-6 sm:h-6" />
+          </div>
+          <div>
+            <h1 className="text-responsive-xl font-black text-foreground tracking-tight uppercase">Leave Approvals</h1>
+            <p className="text-responsive-sm text-muted-foreground font-medium italic">
+              {canApprove ? "Manage and process staff leave applications" : "View leave application registry (Read-Only)"}
+            </p>
+          </div>
         </div>
       </div>
 
-      <Card className="border-none shadow-md">
-        <CardHeader>
+      <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
+        <CardHeader className="border-b border-border/50 pb-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Recent Applications</CardTitle>
-            <Badge variant="outline" className="font-mono">
-              {requests.filter((r) => r.status.startsWith("Pending")).length} Pending
+            <div className="space-y-1">
+              <CardTitle className="text-base sm:text-lg font-black text-foreground">Recent Applications</CardTitle>
+              <CardDescription className="text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-60">Pending your review</CardDescription>
+            </div>
+            <Badge variant="outline" className="font-black text-[10px] px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none">
+              {requests.filter((r) => r.status.startsWith("Pending")).length} PENDING
             </Badge>
           </div>
-          <CardDescription>Review details before making a decision.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="relative overflow-x-auto rounded-lg border">
-            {loading ? (
-              <div className="flex items-center justify-center p-8">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              </div>
-            ) : (
-              <table className="w-full text-sm text-left">
-                <thead className="bg-muted/50 text-muted-foreground uppercase text-[11px] font-bold">
-                  <tr>
-                    <th className="px-4 py-4">Employee & Branch</th>
-                    <th className="px-4 py-4">Leave Type</th>
-                    <th className="px-4 py-4">Duration</th>
-                    <th className="px-4 py-4">Reason</th>
-                    <th className="px-4 py-4">Status</th>
-                    {canApprove && <th className="px-4 py-4 text-right">Actions</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {requests.length > 0 ? (
-                    requests.map((req) => (
-                      <tr key={req.id} className="hover:bg-muted/10 transition-colors">
-                        <td className="px-4 py-4">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedRequest(req)}
-                            className="font-semibold text-foreground hover:text-primary hover:underline text-left"
-                          >
-                            {req.employee}
-                          </button>
-                          <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-1">
-                            <MapPin className="w-3 h-3" /> {req.branch}
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 font-medium text-primary">{req.type}</td>
-                        <td className="px-4 py-4 text-xs font-mono">
-                          {req.from} <br /> {req.to} <br />
-                          <span className="text-foreground font-bold italic">({req.days} Days)</span>
-                        </td>
-                        <td className="px-4 py-4 max-w-[200px]">
-                          <div className="flex items-start gap-2 text-muted-foreground italic text-xs">
-                            <Info className="w-3 h-3 mt-0.5 shrink-0" />
-                            "{req.reason}"
-                          </div>
-                        </td>
-                        <td className="px-4 py-4">
-                          <Badge
-                            variant={
-                              req.status === "Approved"
-                                ? "default"
-                                : req.status === "Rejected"
-                                ? "destructive"
-                                : "secondary"
-                            }
-                            className="text-[10px]"
-                          >
-                            {req.status}
-                          </Badge>
-                        </td>
-                        {canApprove && (
-                          <td className="px-4 py-4 text-right">
-                            {((req.status.startsWith("Pending HOD") && role === "head_of_department") ||
-                              (req.status === "Pending Branch Leader" && role === "branch_leader") ||
-                              (req.status === "Pending Finance" && role === "finance_manager") ||
-                              (req.status === "Pending MD" && role === "managing_director")) ? (
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 border-green-200"
-                                  onClick={() => handleAction(req.id, "approve", req.status)}
-                                >
-                                  <Check className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 border-red-200"
-                                  onClick={() => handleAction(req.id, "reject", req.status)}
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <span className="text-[11px] text-muted-foreground italic">
-                                {req.status === "Approved" || req.status === "Rejected" ? "Processed" : "Waiting for other approver"}
-                              </span>
-                            )}
-                          </td>
-                        )}
-                      </tr>
-                    ))
-                  ) : (
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center p-12 gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Fetching Applications...</p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-muted/30 text-muted-foreground uppercase text-[10px] font-black tracking-widest">
                     <tr>
-                      <td colSpan={canApprove ? 6 : 5} className="px-4 py-10 text-center text-sm font-medium text-muted-foreground">
-                        No leave applications found.
-                      </td>
+                      <th className="px-6 py-4">Employee</th>
+                      <th className="px-6 py-4">Leave Type</th>
+                      <th className="px-6 py-4">Duration</th>
+                      <th className="px-6 py-4">Reason</th>
+                      <th className="px-6 py-4">Status</th>
+                      {canApprove && <th className="px-6 py-4 text-right">Actions</th>}
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            )}
-          </div>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {requests.length > 0 ? (
+                      requests.map((req) => (
+                        <tr key={req.id} className="hover:bg-[#7B0099]/5 transition-colors group">
+                          <td className="px-6 py-4">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedRequest(req)}
+                              className="font-black text-foreground hover:text-[#7B0099] transition-colors text-left truncate max-w-[150px]"
+                            >
+                              {req.employee}
+                            </button>
+                            <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-tighter">
+                              <MapPin className="w-3 h-3 opacity-50" /> {req.branch}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-xs font-black text-[#7B0099]/80 dark:text-purple-400/80">{req.type}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-[11px] font-bold text-muted-foreground">
+                              {req.from} → {req.to}
+                              <div className="text-[#7B0099] font-black mt-0.5">{req.days} DAYS</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <p className="text-[11px] text-muted-foreground italic line-clamp-2 max-w-[200px]">"{req.reason}"</p>
+                          </td>
+                          <td className="px-6 py-4">
+                            <Badge
+                              className={`text-[9px] font-black px-2.5 h-5 ${
+                                req.status === "Approved" ? "bg-emerald-500" :
+                                req.status === "Rejected" ? "bg-rose-500" :
+                                "bg-amber-500 text-white border-none"
+                              }`}
+                            >
+                              {req.status.toUpperCase()}
+                            </Badge>
+                          </td>
+                          {canApprove && (
+                            <td className="px-6 py-4 text-right">
+                              {((req.status.startsWith("Pending HOD") && role === "head_of_department") ||
+                                (req.status === "Pending Branch Leader" && role === "branch_leader") ||
+                                (req.status === "Pending Finance" && role === "finance_manager") ||
+                                (req.status === "Pending MD" && role === "managing_director")) ? (
+                                <div className="flex justify-end gap-2">
+                                  <Button
+                                    size="sm"
+                                    className="h-8 w-8 rounded-lg p-0 bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm"
+                                    onClick={() => handleAction(req.id, "approve", req.status)}
+                                  >
+                                    <Check className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    className="h-8 w-8 rounded-lg p-0 bg-rose-500 hover:bg-rose-600 text-white shadow-sm"
+                                    onClick={() => handleAction(req.id, "reject", req.status)}
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest">
+                                  {req.status === "Approved" || req.status === "Rejected" ? "PROCESSED" : "WAITING..."}
+                                </span>
+                              )}
+                            </td>
+                          )}
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={canApprove ? 6 : 5} className="px-6 py-12 text-center text-xs font-black text-muted-foreground uppercase tracking-widest italic opacity-30">
+                          No applications found in registry
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="lg:hidden divide-y divide-border/50">
+                {requests.length > 0 ? (
+                  requests.map((req) => (
+                    <div key={req.id} className="p-4 active:bg-[#7B0099]/5 transition-colors space-y-3" onClick={() => setSelectedRequest(req)}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-black text-sm text-foreground truncate">{req.employee}</p>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">{req.branch}</p>
+                        </div>
+                        <Badge className={`text-[9px] font-black h-5 shrink-0 ${
+                          req.status === "Approved" ? "bg-emerald-500" :
+                          req.status === "Rejected" ? "bg-rose-500" :
+                          "bg-amber-500"
+                        }`}>
+                          {req.status.replace('Pending ', '').toUpperCase()}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 bg-muted/20 p-2 rounded-xl">
+                        <div>
+                          <p className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Type</p>
+                          <p className="text-[10px] font-bold text-[#7B0099] truncate">{req.type}</p>
+                        </div>
+                        <div>
+                          <p className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Duration</p>
+                          <p className="text-[10px] font-bold text-foreground">{req.days} DAYS</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-3 pt-1">
+                        <div className="text-[9px] font-bold text-muted-foreground italic truncate max-w-[150px]">
+                          "{req.reason}"
+                        </div>
+                        {canApprove && ((req.status.startsWith("Pending HOD") && role === "head_of_department") ||
+                          (req.status === "Pending Branch Leader" && role === "branch_leader") ||
+                          (req.status === "Pending Finance" && role === "finance_manager") ||
+                          (req.status === "Pending MD" && role === "managing_director")) && (
+                          <div className="flex gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                            <Button
+                              size="sm"
+                              className="h-9 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm font-black text-[10px] uppercase"
+                              onClick={() => handleAction(req.id, "approve", req.status)}
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="h-9 px-3 rounded-xl bg-rose-500 hover:bg-rose-600 text-white shadow-sm font-black text-[10px] uppercase"
+                              onClick={() => handleAction(req.id, "reject", req.status)}
+                            >
+                              Reject
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-12 text-center text-xs font-black text-muted-foreground uppercase tracking-widest italic opacity-30 p-6">
+                    No applications found.
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
       <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && setSelectedRequest(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 overflow-hidden safe-area-bottom">
           {selectedRequest && (
             <>
-              <DialogHeader className="print:hidden">
-                <DialogTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-primary" />
-                  Leave Application Form
-                </DialogTitle>
-                <DialogDescription>Submitted application details for HR review.</DialogDescription>
-              </DialogHeader>
+              <div className="p-6 bg-gradient-to-br from-[#7B0099] to-[#a855f7] text-white print:hidden">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-3 text-white text-xl font-black tracking-tight">
+                    <FileText className="h-6 w-6" />
+                    Leave Application Detail
+                  </DialogTitle>
+                  <DialogDescription className="text-white/80 font-bold uppercase text-[10px] tracking-widest">
+                    HR Approval Registry • ID: {selectedRequest.id}
+                  </DialogDescription>
+                </DialogHeader>
+              </div>
 
-              <div className="rounded-lg border p-6 space-y-6 bg-white shadow-sm">
-                <div className="text-center border-b-2 border-slate-900 pb-4">
-                  <h2 className="text-2xl font-black tracking-tight text-slate-900">RAYHAR GROUP</h2>
-                  <p className="text-sm font-bold tracking-widest uppercase">Permohonan Cuti Kakitangan</p>
-                </div>
+              <div className="p-4 sm:p-8 space-y-6">
+                <div className="rounded-[24px] border border-border/50 p-6 sm:p-8 space-y-6 bg-card shadow-sm">
+                  <div className="text-center border-b-2 border-slate-900 pb-4">
+                    <h2 className="text-2xl font-black tracking-tighter text-slate-900">RAYHAR GROUP</h2>
+                    <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60">Permohonan Cuti Kakitangan</p>
+                  </div>
 
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground">Nama Penuh</span>
-                    <p className="font-semibold border-b pb-1 border-slate-100">{selectedRequest.employee}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground">Cawangan</span>
-                    <p className="font-semibold border-b pb-1 border-slate-100">{selectedRequest.branch}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground">Jenis Cuti</span>
-                    <p className="font-semibold border-b pb-1 border-slate-100">{selectedRequest.type}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground">Status</span>
-                    <p className={`font-bold border-b pb-1 border-slate-100 uppercase ${selectedRequest.status === "Rejected" ? "text-red-600" : "text-primary"}`}>
-                      {selectedRequest.status}
-                      {selectedRequest.status === "Rejected" && selectedRequest.approverRole && (
-                        <span className="block text-[10px] text-red-500 mt-0.5">
-                          (by: {formatRole(selectedRequest.approverRole)})
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 text-sm border rounded-xl p-4 bg-muted/20">
-                  <div>
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Tarikh Mula</p>
-                    <p className="font-bold text-base">{selectedRequest.from}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Tarikh Akhir</p>
-                    <p className="font-bold text-base">{selectedRequest.to}</p>
-                  </div>
-                  <div className="text-center bg-white rounded-lg border flex flex-col justify-center py-1">
-                    <p className="text-[10px] uppercase font-bold text-primary">Bilangan Hari</p>
-                    <p className="font-black text-lg text-primary">{selectedRequest.days} Hari</p>
-                  </div>
-                </div>
-
-                <div className="text-sm">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Tujuan / Sebab Cuti</p>
-                  <p className="rounded-lg border p-3 italic text-slate-700 bg-slate-50/50">
-                    "{selectedRequest.reason || "-"}"
-                  </p>
-                </div>
-
-                {/* Conditional Fields: Cuti Ganti */}
-                {selectedRequest.type === "Cuti Ganti" && (
-                  <div className="grid grid-cols-3 gap-4 text-sm border rounded-xl p-4 bg-blue-50/50 border-blue-100">
-                    <div>
-                      <p className="text-[10px] uppercase font-bold text-blue-600">Tarikh Cuti</p>
-                      <p className="font-bold text-base text-slate-900">{selectedRequest.cutiGantiTarikh || "-"}</p>
+                  <div className="grid grid-cols-2 gap-4 text-xs font-bold">
+                    <div className="space-y-1">
+                      <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Nama Penuh</span>
+                      <p className="border-b pb-1 border-border/40 truncate">{selectedRequest.employee}</p>
                     </div>
-                    <div>
-                      <p className="text-[10px] uppercase font-bold text-blue-600">Tarikh/Hari Cuti Ganti</p>
-                      <p className="font-bold text-base text-slate-900">{selectedRequest.cutiGantiHari || "-"}</p>
+                    <div className="space-y-1">
+                      <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Cawangan</span>
+                      <p className="border-b pb-1 border-border/40">{selectedRequest.branch}</p>
                     </div>
-                    <div>
-                      <p className="text-[10px] uppercase font-bold text-blue-600">Jam Ganti</p>
-                      <p className="font-bold text-base text-slate-900">{selectedRequest.cutiGantiJam || 0} Jam</p>
+                    <div className="space-y-1">
+                      <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Jenis Cuti</span>
+                      <p className="border-b pb-1 border-border/40">{selectedRequest.type}</p>
                     </div>
-                  </div>
-                )}
-
-                {/* Conditional Fields: Cuti Tanpa Gaji */}
-                {selectedRequest.type === "Cuti Tanpa Gaji" && (
-                  <div className="grid grid-cols-2 gap-4 text-sm border rounded-xl p-4 bg-rose-50/50 border-rose-100">
-                    <div>
-                      <p className="text-[10px] uppercase font-bold text-rose-600">No. Tel H/P</p>
-                      <p className="font-bold text-base text-slate-900">{selectedRequest.cutiTanpaGajiPhone || "-"}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase font-bold text-rose-600">Tandatangan Pengesahan</p>
-                      <p className="font-bold text-base text-slate-900">
-                        {selectedRequest.cutiTanpaGajiSignature ? "✓ Disahkan" : "Tiada Pengesahan"}
+                    <div className="space-y-1">
+                      <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Status</span>
+                      <p className={`font-black uppercase ${selectedRequest.status === "Rejected" ? "text-rose-600" : "text-[#7B0099]"}`}>
+                        {selectedRequest.status}
+                        {selectedRequest.status === "Rejected" && selectedRequest.approverRole && (
+                          <span className="block text-[8px] text-rose-500 mt-0.5 opacity-60">
+                            (by: {formatRole(selectedRequest.approverRole)})
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
-                )}
 
-                {/* Conditional Fields: Cuti Sakit (MC) */}
-                {selectedRequest.type === "Cuti Sakit" && selectedRequest.mcFileUrl && (
-                  <div className="text-sm p-4 bg-purple-50/50 border border-purple-100 rounded-xl">
-                    <p className="text-[10px] uppercase font-bold text-purple-600 mb-2">Lampiran MC</p>
-                    <a href={`https://rayhar-staff-production.up.railway.app${selectedRequest.mcFileUrl}`} target="_blank" rel="noopener noreferrer" className="text-purple-700 underline font-semibold flex items-center gap-2">
-                      <FileText className="w-4 h-4" />
-                      View MC Attachment
-                    </a>
-                  </div>
-                )}
-
-                {/* Maklumat Waris Section */}
-                {ADMIN_VIEW_ROLES.includes(role) && (
-                  <div className="space-y-3 pt-2">
-                    <div className="flex items-center gap-2 border-b pb-2">
-                      <PhoneCall className="w-4 h-4 text-red-600" />
-                      <h3 className="text-sm font-black uppercase tracking-tight">Maklumat Waris (Kecemasan)</h3>
+                  <div className="grid grid-cols-3 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
+                    <div className="text-center">
+                      <p className="text-[9px] uppercase font-black text-muted-foreground opacity-50 mb-1">Dari</p>
+                      <p className="font-black text-xs sm:text-sm">{selectedRequest.from}</p>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase">Nama Waris</label>
-                        <p className="text-sm font-semibold text-slate-900 border-b border-dotted pb-1">
-                          {selectedRequest.warisNama}
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase">Hubungan</label>
-                        <p className="text-sm font-semibold text-slate-900 border-b border-dotted pb-1">
-                          {selectedRequest.warisHubungan}
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase">No. Telefon</label>
-                        <p className="text-sm font-bold text-primary border-b border-dotted pb-1">
-                          {selectedRequest.warisPhone}
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase">Alamat Waris</label>
-                        <p className="text-xs leading-relaxed text-slate-700 border-b border-dotted pb-1">
-                          {selectedRequest.warisAlamat}
-                        </p>
-                      </div>
+                    <div className="text-center">
+                      <p className="text-[9px] uppercase font-black text-muted-foreground opacity-50 mb-1">Hingga</p>
+                      <p className="font-black text-xs sm:text-sm">{selectedRequest.to}</p>
+                    </div>
+                    <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
+                      <p className="text-[9px] uppercase font-black text-[#7B0099]">Hari</p>
+                      <p className="font-black text-lg text-[#7B0099] leading-none mt-0.5">{selectedRequest.days}</p>
                     </div>
                   </div>
-                )}
 
-                {/* Approval History Timeline */}
-                {selectedRequest.approvalHistory && selectedRequest.approvalHistory.length > 0 && (
-                  <div className="space-y-4 pt-4 border-t print:hidden">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-[#601b8a]" />
-                      <h3 className="text-sm font-black uppercase tracking-tight">Approval History</h3>
+                  <div className="space-y-2">
+                    <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50 tracking-widest">Sebab / Tujuan</p>
+                    <p className="rounded-[16px] border border-border/40 p-4 italic text-foreground/80 bg-muted/10 text-xs leading-relaxed">
+                      "{selectedRequest.reason || "-"}"
+                    </p>
+                  </div>
+
+                  {/* Conditional Fields: Cuti Ganti */}
+                  {selectedRequest.type === "Cuti Ganti" && (
+                    <div className="grid grid-cols-3 gap-4 text-[10px] border rounded-[20px] p-4 bg-blue-500/5 border-blue-500/20">
+                      <div>
+                        <p className="uppercase font-black text-blue-600 opacity-60">Tarikh Cuti</p>
+                        <p className="font-black mt-0.5">{selectedRequest.cutiGantiTarikh || "-"}</p>
+                      </div>
+                      <div>
+                        <p className="uppercase font-black text-blue-600 opacity-60">Hari Ganti</p>
+                        <p className="font-black mt-0.5">{selectedRequest.cutiGantiHari || "-"}</p>
+                      </div>
+                      <div>
+                        <p className="uppercase font-black text-blue-600 opacity-60">Jam Ganti</p>
+                        <p className="font-black mt-0.5">{selectedRequest.cutiGantiJam || 0} Jam</p>
+                      </div>
                     </div>
-                    <div className="relative space-y-6 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
-                      {selectedRequest.approvalHistory.map((history, idx) => (
-                        <div key={idx} className="relative flex items-start gap-4 group">
-                          <div className={`absolute left-5 -translate-x-1/2 flex h-3 w-3 items-center justify-center rounded-full border-2 bg-white ${history.status === 'Approved' ? 'border-emerald-500' : 'border-rose-500'} z-10`} />
-                          <div className="ml-8 flex-1 bg-slate-50/50 rounded-2xl p-4 border border-slate-100 hover:border-[#601b8a]/20 transition-all">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                              <div className="flex items-center gap-2">
-                                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${history.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                                  {history.status}
-                                </span>
-                                <span className="text-xs font-bold text-slate-700">by {history.approver_name || history.approver_id}</span>
-                                <Badge variant="outline" className="text-[9px] uppercase font-bold text-slate-400 border-slate-200">
-                                  {formatRole(history.approver_role)}
-                                </Badge>
-                              </div>
-                              <span className="text-[10px] font-bold text-slate-400">
-                                {new Date(history.created_at).toLocaleString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-                            {history.remarks && (
-                              <p className="text-xs italic text-slate-600 bg-white/80 p-2 rounded-lg border border-slate-100/50">
-                                "{history.remarks}"
-                              </p>
-                            )}
-                          </div>
+                  )}
+
+                  {/* Conditional Fields: Cuti Tanpa Gaji */}
+                  {selectedRequest.type === "Cuti Tanpa Gaji" && (
+                    <div className="grid grid-cols-2 gap-4 text-[10px] border rounded-[20px] p-4 bg-rose-500/5 border-rose-500/20">
+                      <div>
+                        <p className="uppercase font-black text-rose-600 opacity-60">No. Tel H/P</p>
+                        <p className="font-black mt-0.5">{selectedRequest.cutiTanpaGajiPhone || "-"}</p>
+                      </div>
+                      <div>
+                        <p className="uppercase font-black text-rose-600 opacity-60">Tandatangan</p>
+                        <p className="font-black mt-0.5 text-rose-700">
+                          {selectedRequest.cutiTanpaGajiSignature ? "✓ DISAHKAN" : "TIADA PENGESAHAN"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Conditional Fields: Cuti Sakit (MC) */}
+                  {selectedRequest.type === "Cuti Sakit" && selectedRequest.mcFileUrl && (
+                    <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
+                      <div className="flex items-center gap-3">
+                        <FileText className="w-5 h-5 text-[#7B0099]" />
+                        <span className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest">MC Attachment</span>
+                      </div>
+                      <a 
+                        href={`https://rayhar-staff-production.up.railway.app${selectedRequest.mcFileUrl}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-[9px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
+                      >
+                        View File
+                      </a>
+                    </div>
+                  )}
+
+                  {/* Maklumat Waris Section */}
+                  {ADMIN_VIEW_ROLES.includes(role) && (
+                    <div className="pt-4 border-t border-border/50 space-y-4">
+                      <div className="flex items-center gap-2">
+                        <PhoneCall className="w-4 h-4 text-rose-500" />
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 bg-muted/20 p-4 rounded-[20px]">
+                        <div className="space-y-1">
+                          <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Nama</span>
+                          <p className="text-[11px] font-bold truncate">{selectedRequest.warisNama}</p>
                         </div>
-                      ))}
+                        <div className="space-y-1">
+                          <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Hubungan</span>
+                          <p className="text-[11px] font-bold truncate">{selectedRequest.warisHubungan}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">No. Telefon</span>
+                          <p className="text-[11px] font-black text-[#7B0099]">{selectedRequest.warisPhone}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Alamat</span>
+                          <p className="text-[10px] font-bold text-muted-foreground line-clamp-1">{selectedRequest.warisAlamat}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Approval History Timeline */}
+                  {selectedRequest.approvalHistory && selectedRequest.approvalHistory.length > 0 && (
+                    <div className="space-y-4 pt-4 border-t border-border/50 print:hidden">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-[#7B0099]" />
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Approval History</h3>
+                      </div>
+                      <div className="relative space-y-4 before:absolute before:inset-0 before:ml-4 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border/50 before:to-transparent">
+                        {selectedRequest.approvalHistory.map((history, idx) => (
+                          <div key={idx} className="relative flex items-start gap-4">
+                            <div className={`absolute left-4 -translate-x-1/2 flex h-2 w-2 items-center justify-center rounded-full border border-white dark:border-slate-900 ${history.status === 'Approved' ? 'bg-emerald-500' : 'bg-rose-500'} z-10`} />
+                            <div className="ml-6 flex-1 bg-muted/30 rounded-[16px] p-3 border border-border/40">
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
+                                    {history.status}
+                                  </span>
+                                  <span className="text-[10px] font-black text-foreground/70">by {history.approver_name || history.approver_id}</span>
+                                </div>
+                                <span className="text-[8px] font-black text-muted-foreground/50">
+                                  {new Date(history.created_at).toLocaleDateString('ms-MY')}
+                                </span>
+                              </div>
+                              {history.remarks && (
+                                <p className="text-[10px] italic text-muted-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
+                                  "{history.remarks}"
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="hidden print:grid grid-cols-2 gap-16 pt-12 pb-4">
+                    <div className="border-t border-slate-900 pt-2 text-center">
+                      <p className="text-[10px] font-bold uppercase">Tandatangan Kakitangan</p>
+                    </div>
+                    <div className="border-t border-slate-900 pt-2 text-center">
+                      <p className="text-[10px] font-bold uppercase">Kelulusan Pengurus / HR</p>
                     </div>
                   </div>
-                )}
 
-                <div className="hidden print:grid grid-cols-2 gap-16 pt-12 pb-4">
-                  <div className="border-t border-slate-900 pt-2 text-center">
-                    <p className="text-[10px] font-bold uppercase">Tandatangan Kakitangan</p>
+                  <div className="pt-4 flex justify-end gap-3 print:hidden">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
+                      onClick={() => window.print()}
+                    >
+                      <Printer className="h-4 w-4" />
+                      Print Form
+                    </Button>
                   </div>
-                  <div className="border-t border-slate-900 pt-2 text-center">
-                    <p className="text-[10px] font-bold uppercase">Kelulusan Pengurus / HR</p>
-                  </div>
-                </div>
-
-                <div className="pt-4 flex justify-end gap-3 print:hidden">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="gap-2 border-primary text-primary hover:bg-primary/5"
-                    onClick={() => window.print()}
-                  >
-                    <Printer className="h-4 w-4" />
-                    Print Form
-                  </Button>
                 </div>
               </div>
             </>
@@ -523,40 +593,40 @@ export default function LeaveAdmin() {
 
       {/* Remarks Dialog */}
       <Dialog open={remarksDialogOpen} onOpenChange={setRemarksDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {pendingAction?.action === 'approve' ? <Check className="w-5 h-5 text-emerald-500" /> : <X className="w-5 h-5 text-rose-500" />}
-              {pendingAction?.action === 'approve' ? 'Confirm Approval' : 'Confirm Rejection'}
-            </DialogTitle>
-            <DialogDescription>
-              {pendingAction?.action === 'approve' 
-                ? 'Are you sure you want to approve this request? It will be routed to the next stage.' 
-                : 'Please provide a reason for rejecting this leave request.'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
+        <DialogContent className="sm:max-w-[425px] border-none shadow-2xl rounded-[32px] p-0 overflow-hidden">
+          <div className={`p-6 text-white ${pendingAction?.action === 'approve' ? 'bg-emerald-500' : 'bg-rose-500'}`}>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3 text-white text-lg font-black tracking-tight">
+                {pendingAction?.action === 'approve' ? <Check className="w-6 h-6" /> : <X className="w-6 h-6" />}
+                {pendingAction?.action === 'approve' ? 'Confirm Approval' : 'Confirm Rejection'}
+              </DialogTitle>
+              <DialogDescription className="text-white/80 font-bold uppercase text-[9px] tracking-widest">
+                Action Required • Staff Registry
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="p-6 space-y-6">
             <div className="space-y-2">
-              <label htmlFor="remarks" className="text-xs font-bold uppercase text-slate-400">Remarks / Comments (Optional)</label>
+              <label htmlFor="remarks" className="text-[10px] font-black uppercase text-muted-foreground tracking-widest px-1">Remarks / Comments (Optional)</label>
               <textarea
                 id="remarks"
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
-                placeholder="Type your remarks here..."
-                className="w-full min-h-[100px] rounded-xl border-slate-200 focus:border-[#601b8a] focus:ring-[#601b8a] text-sm p-3"
+                placeholder="Type your feedback here..."
+                className="w-full min-h-[120px] rounded-[20px] border-border/50 bg-muted/30 focus:border-[#7B0099] focus:ring-[#7B0099] text-sm p-4 transition-all"
               />
             </div>
-          </div>
-          <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => setRemarksDialogOpen(false)}>Cancel</Button>
-            <Button 
-              className={pendingAction?.action === 'approve' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-rose-600 hover:bg-rose-700'}
-              onClick={submitAction}
-              disabled={isSubmitting}
-            >
-              {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {pendingAction?.action === 'approve' ? 'Approve Request' : 'Reject Request'}
-            </Button>
+            <div className="flex flex-col sm:flex-row justify-end gap-3">
+              <Button variant="ghost" className="rounded-xl font-black text-[10px] uppercase tracking-widest order-2 sm:order-1" onClick={() => setRemarksDialogOpen(false)}>Cancel</Button>
+              <Button 
+                className={`rounded-xl font-black text-[10px] uppercase tracking-widest px-8 shadow-lg order-1 sm:order-2 ${pendingAction?.action === 'approve' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-rose-500 hover:bg-rose-600'}`}
+                onClick={submitAction}
+                disabled={isSubmitting}
+              >
+                {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {pendingAction?.action === 'approve' ? 'Approve Now' : 'Reject Now'}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

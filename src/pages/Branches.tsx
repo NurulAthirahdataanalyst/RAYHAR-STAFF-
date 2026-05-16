@@ -3,36 +3,34 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ArrowLeft, Building2, CalendarCheck, Clock, Loader2, MapPin, TrendingUp, Users, FileText, Info, PhoneCall, X } from "lucide-react";
+import { ArrowLeft, Building2, CalendarCheck, Clock, Loader2, MapPin, TrendingUp, Users, FileText, PhoneCall, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 const branches = [
-  { code: "HQ", name: "Rayhar HQ", location: "Kemaman,Terengganu", employees: 68, attendance: 95, leader: "Maria Santos" },
-  { code: "KMM", name: "Kemaman", location: "Kemaman,Terengganu", employees: 68, attendance: 95, leader: "Maria Santos" },
-  { code: "CNH", name: "Cheneh", location: "Kemaman,Terengganu", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "KBG", name: "Kuala Berang", location: "Hulu Terengganu,Terengganu", employees: 48, attendance: 92, leader: "David Chen" },
-  { code: "TGG", name: "Kuala Terengganu", location: "Kuala Terengganu,Terengganu", employees: 48, attendance: 92, leader: "David Chen" },
-  { code: "DGN", name: "Dungun", location: "Dungun,Terengganu", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "JTH", name: "Jertih", location: "Besut,Terengganu", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "KBR", name: "Kota Bharu", location: "Kota Bharu,Kelantan", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "RMP", name: "Rompin", location: "Rompin,Pahang", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "MZM", name: "Muadzam Shah", location: "Muadzam Shah,Pahang", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "SHA", name: "Shah Alam", location: "Shah Alam,Selangor", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "BBB", name: "Bandar Baru Bangi", location: "Bandar Baru Bangi,Selangor", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "KUL", name: "Kuala Lumpur", location: "Kuala Lumpur,Wilayah Persekutuan", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "IPH", name: "Ipoh", location: "Ipoh,Perak", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "MJG", name: "Manjung", location: "Manjung,Perak", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "KKS", name: "Kuala Kangsar", location: "Kuala Kangsar,Perak", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "MLK", name: "Melaka", location: "Melaka,Melaka", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "AOR", name: "Alor Setar", location: "Alor Setar,Kedah", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "BTM", name: "Bertam", location: "Bertam,Pulau Pinang", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "SNS", name: "Seremban", location: "Seremban,Negeri Sembilan", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "BTP", name: "Batu Pahat", location: "Batu Pahat,Johor", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "JB", name: "Johor Bharu", location: "Johor Bharu,Johor", employees: 40, attendance: 94, leader: "Roberto Lim" },
-  { code: "TWU", name: "Tawau", location: "Tawau,Sabah", employees: 40, attendance: 94, leader: "Roberto Lim" },
+  { code: "HQ", name: "Rayhar HQ", location: "Kemaman,Terengganu", leader: "Maria Santos" },
+  { code: "KMM", name: "Kemaman", location: "Kemaman,Terengganu", leader: "Maria Santos" },
+  { code: "CNH", name: "Cheneh", location: "Kemaman,Terengganu", leader: "Roberto Lim" },
+  { code: "KBG", name: "Kuala Berang", location: "Hulu Terengganu,Terengganu", leader: "David Chen" },
+  { code: "TGG", name: "Kuala Terengganu", location: "Kuala Terengganu,Terengganu", leader: "David Chen" },
+  { code: "DGN", name: "Dungun", location: "Dungun,Terengganu", leader: "Roberto Lim" },
+  { code: "JTH", name: "Jertih", location: "Besut,Terengganu", leader: "Roberto Lim" },
+  { code: "KBR", name: "Kota Bharu", location: "Kota Bharu,Kelantan", leader: "Roberto Lim" },
+  { code: "RMP", name: "Rompin", location: "Rompin,Pahang", leader: "Roberto Lim" },
+  { code: "MZM", name: "Muadzam Shah", location: "Muadzam Shah,Pahang", leader: "Roberto Lim" },
+  { code: "SHA", name: "Shah Alam", location: "Shah Alam,Selangor", leader: "Roberto Lim" },
+  { code: "BBB", name: "Bandar Baru Bangi", location: "Bandar Baru Bangi,Selangor", leader: "Roberto Lim" },
+  { code: "KUL", name: "Kuala Lumpur", location: "Kuala Lumpur,Wilayah Persekutuan", leader: "Roberto Lim" },
+  { code: "IPH", name: "Ipoh", location: "Ipoh,Perak", leader: "Roberto Lim" },
+  { code: "MJG", name: "Manjung", location: "Manjung,Perak", leader: "Roberto Lim" },
+  { code: "KKS", name: "Kuala Kangsar", location: "Kuala Kangsar,Perak", leader: "Roberto Lim" },
+  { code: "MLK", name: "Melaka", location: "Melaka,Melaka", leader: "Roberto Lim" },
+  { code: "AOR", name: "Alor Setar", location: "Alor Setar,Kedah", leader: "Roberto Lim" },
+  { code: "BTM", name: "Bertam", location: "Bertam,Pulau Pinang", leader: "Roberto Lim" },
+  { code: "SNS", name: "Seremban", location: "Seremban,Negeri Sembilan", leader: "Roberto Lim" },
+  { code: "BTP", name: "Batu Pahat", location: "Batu Pahat,Johor", leader: "Roberto Lim" },
+  { code: "JB", name: "Johor Bharu", location: "Johor Bharu,Johor", leader: "Roberto Lim" },
+  { code: "TWU", name: "Tawau", location: "Tawau,Sabah", leader: "Roberto Lim" },
 ];
-
-type Branch = (typeof branches)[number];
 
 type BranchEmployee = {
   user_id: string;
@@ -94,7 +92,7 @@ export default function Branches() {
       }
     };
     fetchStats();
-    const interval = setInterval(fetchStats, 10000); // Poll every 10 seconds
+    const interval = setInterval(fetchStats, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -104,19 +102,17 @@ export default function Branches() {
         setEmployeeLeaves([]);
         return;
       }
-
       setLoadingLeaves(true);
       try {
         const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/leave-requests?userId=${selectedEmployeeId}`);
         const data = await response.json();
-        console.log("DEBUG: Fetched leaves for", selectedEmployeeId, ":", data);
         if (data.success) {
           setEmployeeLeaves(data.leaveRequests || []);
         } else {
           setEmployeeLeaves([]);
         }
       } catch (err) {
-        console.error("DEBUG: Error fetching leaves", err);
+        console.error("Error fetching leaves", err);
         setEmployeeLeaves([]);
       } finally {
         setLoadingLeaves(false);
@@ -127,242 +123,252 @@ export default function Branches() {
 
   useEffect(() => {
     if (!selectedBranch) return;
-
     const fetchBranchEmployees = async () => {
       setLoading(true);
       try {
         const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/branch-employees?branch=${selectedBranch.code}`);
         const data = await response.json();
-
-        if (!response.ok || !data.success) {
-          throw new Error(data.error || "Failed to fetch branch employees");
-        }
-
-        setEmployees(data.employees);
-        // Always select the first employee of the new branch
-        if (data.employees.length > 0) {
-          setSelectedEmployeeId(data.employees[0].user_id);
-        } else {
-          setSelectedEmployeeId("");
+        if (data.success) {
+          setEmployees(data.employees);
+          if (data.employees.length > 0) {
+            setSelectedEmployeeId(data.employees[0].user_id);
+          } else {
+            setSelectedEmployeeId("");
+          }
         }
       } catch (error) {
         console.error("Branch employee fetch error:", error);
         setEmployees([]);
-        setSelectedEmployeeId("");
       } finally {
         setLoading(false);
       }
     };
-
     void fetchBranchEmployees();
   }, [selectedBranch]);
 
   const selectedEmployee = useMemo(
-    () => employees.find((employee) => employee.user_id === selectedEmployeeId) || employees[0],
+    () => employees.find((e) => e.user_id === selectedEmployeeId),
     [employees, selectedEmployeeId]
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
       {selectedBranch ? (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
+        <div className="space-y-4 sm:space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="min-w-0">
               <Button
                 type="button"
                 variant="ghost"
-                className="mb-2 gap-2 px-0 text-muted-foreground hover:bg-transparent"
+                className="mb-1 gap-2 px-0 text-muted-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target"
                 onClick={() => setSelectedBranch(null)}
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back to branches
+                <span className="text-[10px] font-black uppercase tracking-widest">Back to branches</span>
               </Button>
-              <h1 className="text-2xl font-bold font-heading text-foreground">{selectedBranch.name}</h1>
-              <p className="text-sm text-muted-foreground mt-1">Staff details, leave balance, and monthly statistics</p>
+              <h1 className="text-responsive-xl font-black text-foreground tracking-tight truncate">{selectedBranch.name}</h1>
+              <p className="text-responsive-sm text-muted-foreground font-medium mt-1">Branch staff overview and analytics</p>
             </div>
-            <Badge variant="outline" className="w-fit font-mono">{selectedBranch.code}</Badge>
+            <Badge variant="outline" className="w-fit font-mono text-[10px] sm:text-xs bg-muted/30 border-border/60 px-3 py-1">
+              {selectedBranch.code}
+            </Badge>
           </div>
 
           {loading ? (
-            <Card>
-              <CardContent className="flex items-center justify-center p-10">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <div className="flex flex-col items-center justify-center p-20 gap-4 bg-card/60 backdrop-blur-md rounded-[32px] border border-border/50">
+              <Loader2 className="h-10 w-10 animate-spin text-[#7B0099]" />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Syncing Branch Data...</p>
+            </div>
+          ) : (
+            <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md rounded-[24px]">
+              <CardContent className="p-0">
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-muted/30 text-muted-foreground border-b border-border">
+                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Personnel</th>
+                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Leave Bal.</th>
+                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Attendance</th>
+                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Today</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/50">
+                      {employees.length > 0 ? (
+                        employees.map((employee) => (
+                          <tr
+                            key={employee.user_id}
+                            className={`cursor-pointer transition-colors group hover:bg-[#7B0099]/5 ${
+                              selectedEmployee?.user_id === employee.user_id ? "bg-[#7B0099]/10" : ""
+                            }`}
+                            onClick={() => {
+                              setSelectedEmployeeId(employee.user_id);
+                              setIsStatsOpen(true);
+                            }}
+                          >
+                            <td className="py-4 px-6">
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-[11px] font-black text-[#7B0099] group-hover:scale-110 transition-transform">
+                                  {employee.full_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-bold text-foreground group-hover:text-[#7B0099] transition-colors">{employee.full_name}</p>
+                                  <p className="text-[10px] text-muted-foreground truncate font-medium uppercase tracking-widest">{employee.user_id}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-6 font-bold text-foreground text-xs">{employee.annual_leave_balance}d</td>
+                            <td className="py-4 px-6 font-bold text-muted-foreground text-xs">{employee.attendance_rate || 0}%</td>
+                            <td className="py-4 px-6">
+                              <Badge className={`text-[9px] font-black px-2.5 h-5 ${
+                                employee.today_status === "Present" ? "bg-emerald-500 text-white" :
+                                employee.today_status === "On Leave" ? "bg-amber-500 text-white" :
+                                "bg-rose-500 text-white"
+                              }`}>
+                                {employee.today_status}
+                              </Badge>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={4} className="py-12 text-center text-muted-foreground italic font-medium">No personnel found in this branch.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="md:hidden divide-y divide-border/50">
+                  {employees.length > 0 ? (
+                    employees.map((employee) => (
+                      <div
+                        key={employee.user_id}
+                        className="p-4 active:bg-[#7B0099]/5 transition-colors flex items-center gap-4 cursor-pointer"
+                        onClick={() => {
+                          setSelectedEmployeeId(employee.user_id);
+                          setIsStatsOpen(true);
+                        }}
+                      >
+                        <div className="w-12 h-12 rounded-2xl bg-[#7B0099]/10 flex items-center justify-center text-sm font-black text-[#7B0099] shrink-0">
+                          {employee.full_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <p className="font-black text-sm text-foreground truncate">{employee.full_name}</p>
+                            <Badge className={`text-[9px] font-black h-5 shrink-0 ${
+                              employee.today_status === "Present" ? "bg-emerald-500" :
+                              employee.today_status === "On Leave" ? "bg-amber-500" :
+                              "bg-rose-500"
+                            }`}>
+                              {employee.today_status}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            <span>ID: {employee.user_id}</span>
+                            <span className="opacity-30">•</span>
+                            <span>Rate: {employee.attendance_rate || 0}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="py-12 text-center text-muted-foreground italic font-medium p-6">No personnel found.</div>
+                  )}
+                </div>
               </CardContent>
             </Card>
-          ) : (
-            <div className="grid grid-cols-1 gap-5">
-              <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-sm">
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-border bg-muted/40">
-                          <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Staff</th>
-                          <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Leave Balance</th>
-                          <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Attendance</th>
-                          <th className="text-left py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {employees.length > 0 ? (
-                          employees.map((employee) => (
-                            <tr
-                              key={employee.user_id}
-                              className={`cursor-pointer border-b border-slate-100 last:border-0 transition-colors hover:bg-white/80 ${
-                                selectedEmployee?.user_id === employee.user_id ? "bg-white/90 shadow-sm" : ""
-                              }`}
-                              onClick={() => {
-                                setSelectedEmployeeId(employee.user_id);
-                                setIsStatsOpen(true);
-                              }}
-                            >
-                              <td className="py-3 px-4">
-                                <div className="font-medium text-foreground">{employee.full_name}</div>
-                                <div className="text-xs text-muted-foreground">{employee.email}</div>
-                              </td>
-                              <td className="py-3 px-4 font-bold text-foreground">{employee.annual_leave_balance} days</td>
-                              <td className="py-3 px-4 text-muted-foreground">{employee.attendance_rate || 0}%</td>
-                              <td className="py-3 px-4">
-                                <Badge 
-                                  variant={
-                                    employee.today_status === "Present" ? "default" : 
-                                    employee.today_status === "On Leave" ? "secondary" : "outline"
-                                  } 
-                                  className={`text-[10px] ${
-                                    employee.today_status === "Present" ? "bg-emerald-500 text-white" :
-                                    employee.today_status === "On Leave" ? "bg-amber-100 text-amber-700 border-amber-200" :
-                                    employee.today_status === "Clocked Out" ? "bg-slate-100 text-slate-500 border-slate-200" :
-                                    "bg-rose-50 text-rose-600 border-rose-100"
-                                  }`}
-                                >
-                                  {employee.today_status}
-                                </Badge>
-                              </td>
-                            </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td colSpan={4} className="py-10 text-center text-muted-foreground">No staff found in this branch.</td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Sheet open={isStatsOpen} onOpenChange={setIsStatsOpen}>
-                <SheetContent className="sm:max-w-md w-full overflow-y-auto">
-                  <SheetHeader className="pb-6 border-b">
-                    <SheetTitle className="text-xl font-black text-slate-800">Staff Statistics</SheetTitle>
-                  </SheetHeader>
-                  
-                  <div className="py-6 space-y-6">
-                    {selectedEmployee ? (
-                      <>
-                        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                          <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 rounded-2xl bg-[#601b8a] flex items-center justify-center text-white text-2xl font-black">
-                              {selectedEmployee.full_name.charAt(0)}
-                            </div>
-                            <div>
-                              <h2 className="text-xl font-black text-slate-800 leading-tight">{selectedEmployee.full_name}</h2>
-                              <p className="text-sm font-bold text-slate-400 mt-1 uppercase tracking-widest">{selectedEmployee.user_id}</p>
-                              <Badge variant="secondary" className="mt-2 text-[10px] uppercase font-black">{selectedEmployee.role.replace(/_/g, ' ')}</Badge>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="rounded-2xl border border-slate-100 p-4 bg-white hover:border-[#601b8a]/30 transition-colors">
-                            <CalendarCheck className="mb-2 h-4 w-4 text-[#601b8a]" />
-                            <p className="text-2xl font-black text-slate-800">{selectedEmployee.annual_leave_balance}</p>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Days Left</p>
-                          </div>
-                          <div className="rounded-2xl border border-slate-100 p-4 bg-white hover:border-emerald-500/30 transition-colors">
-                            <TrendingUp className="mb-2 h-4 w-4 text-emerald-500" />
-                            <p className="text-2xl font-black text-slate-800">{selectedEmployee.attendance_rate || 0}%</p>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Attendance</p>
-                          </div>
-                          <div className="rounded-2xl border border-slate-100 p-4 bg-white hover:border-amber-500/30 transition-colors">
-                            <Clock className="mb-2 h-4 w-4 text-amber-500" />
-                            <p className="text-2xl font-black text-slate-800">{selectedEmployee.pending_leaves}</p>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Pending</p>
-                          </div>
-                          <div className="rounded-2xl border border-slate-100 p-4 bg-white hover:border-purple-500/30 transition-colors">
-                            <FileText className="mb-2 h-4 w-4 text-purple-500" />
-                            <p className="text-2xl font-black text-slate-800">{selectedEmployee.mc_leaves || 0}</p>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total MC</p>
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Leave Forms Detail</p>
-                          <div className="grid grid-cols-1 gap-2">
-                            <button 
-                              className="flex items-center justify-between w-full rounded-2xl bg-emerald-50 p-4 hover:bg-emerald-100 transition-all border border-emerald-100" 
-                              onClick={() => setViewLeaveStatus("Approved")}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white">
-                                  <FileText className="w-4 h-4" />
-                                </div>
-                                <span className="font-bold text-emerald-700">Approved Leaves</span>
-                              </div>
-                              <Badge className="bg-emerald-500 text-white font-black">{selectedEmployee.approved_leaves}</Badge>
-                            </button>
-                            
-                            <button 
-                              className="flex items-center justify-between w-full rounded-2xl bg-amber-50 p-4 hover:bg-amber-100 transition-all border border-amber-100" 
-                              onClick={() => setViewLeaveStatus("Pending")}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white">
-                                  <Clock className="w-4 h-4" />
-                                </div>
-                                <span className="font-bold text-amber-700">Pending Approvals</span>
-                              </div>
-                              <Badge className="bg-amber-500 text-white font-black">{selectedEmployee.pending_leaves}</Badge>
-                            </button>
-
-                            <button 
-                              className="flex items-center justify-between w-full rounded-2xl bg-rose-50 p-4 hover:bg-rose-100 transition-all border border-rose-100" 
-                              onClick={() => setViewLeaveStatus("Rejected")}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-rose-500 flex items-center justify-center text-white">
-                                  <X className="w-4 h-4" />
-                                </div>
-                                <span className="font-bold text-rose-700">Rejected Leaves</span>
-                              </div>
-                              <Badge className="bg-rose-500 text-white font-black">{selectedEmployee.rejected_leaves}</Badge>
-                            </button>
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                        <Users className="w-12 h-12 opacity-20 mb-4" />
-                        <p className="text-sm font-bold">Select a staff member to view statistics.</p>
-                      </div>
-                    )}
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
           )}
+
+          <Sheet open={isStatsOpen} onOpenChange={setIsStatsOpen}>
+            <SheetContent className="sm:max-w-md w-full overflow-y-auto border-none shadow-2xl safe-area-bottom">
+              <SheetHeader className="pb-6 border-b border-border/50 pt-4">
+                <SheetTitle className="text-xl font-black text-foreground tracking-tight">Staff Analytics</SheetTitle>
+              </SheetHeader>
+              <div className="py-6 space-y-6">
+                {selectedEmployee ? (
+                  <>
+                    <div className="bg-muted/30 p-6 rounded-[24px] border border-border/50">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-[20px] bg-gradient-to-br from-[#7B0099] to-[#a855f7] flex items-center justify-center text-white text-2xl font-black shadow-lg">
+                          {selectedEmployee.full_name.charAt(0)}
+                        </div>
+                        <div className="min-w-0">
+                          <h2 className="text-xl font-black text-foreground leading-tight truncate">{selectedEmployee.full_name}</h2>
+                          <p className="text-[10px] font-black text-muted-foreground mt-1 uppercase tracking-widest">{selectedEmployee.user_id}</p>
+                          <Badge variant="secondary" className="mt-2 text-[10px] uppercase font-black bg-[#7B0099]/10 text-[#7B0099] border-none px-2">{selectedEmployee.role.replace(/_/g, ' ')}</Badge>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-[20px] border border-border/50 p-4 bg-card/50 hover:border-[#7B0099]/30 transition-colors group">
+                        <CalendarCheck className="mb-2 h-4 w-4 text-[#7B0099] group-hover:scale-110 transition-transform" />
+                        <p className="text-2xl font-black text-foreground">{selectedEmployee.annual_leave_balance}</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">Days Left</p>
+                      </div>
+                      <div className="rounded-[20px] border border-border/50 p-4 bg-card/50 hover:border-emerald-500/30 transition-colors group">
+                        <TrendingUp className="mb-2 h-4 w-4 text-emerald-500 group-hover:scale-110 transition-transform" />
+                        <p className="text-2xl font-black text-foreground">{selectedEmployee.attendance_rate || 0}%</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">Attendance</p>
+                      </div>
+                      <div className="rounded-[20px] border border-border/50 p-4 bg-card/50 hover:border-amber-500/30 transition-colors group">
+                        <Clock className="mb-2 h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
+                        <p className="text-2xl font-black text-foreground">{selectedEmployee.pending_leaves}</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">Pending</p>
+                      </div>
+                      <div className="rounded-[20px] border border-border/50 p-4 bg-card/50 hover:border-purple-500/30 transition-colors group">
+                        <FileText className="mb-2 h-4 w-4 text-purple-500 group-hover:scale-110 transition-transform" />
+                        <p className="text-2xl font-black text-foreground">{selectedEmployee.mc_leaves || 0}</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">Total MC</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-1">Review Leave Records</p>
+                      <div className="grid grid-cols-1 gap-2">
+                        <button className="flex items-center justify-between w-full rounded-[16px] bg-emerald-500/10 p-4 hover:bg-emerald-500/20 transition-all border border-emerald-500/20 group touch-target" onClick={() => setViewLeaveStatus("Approved")}>
+                          <div className="flex items-center gap-3">
+                            <FileText className="w-5 h-5 text-emerald-600 group-hover:scale-110 transition-transform" />
+                            <span className="font-black text-emerald-700 text-sm">Approved Leaves</span>
+                          </div>
+                          <Badge className="bg-emerald-500 text-white font-black">{selectedEmployee.approved_leaves}</Badge>
+                        </button>
+                        <button className="flex items-center justify-between w-full rounded-[16px] bg-amber-500/10 p-4 hover:bg-amber-500/20 transition-all border border-amber-500/20 group touch-target" onClick={() => setViewLeaveStatus("Pending")}>
+                          <div className="flex items-center gap-3">
+                            <Clock className="w-5 h-5 text-amber-600 group-hover:scale-110 transition-transform" />
+                            <span className="font-black text-amber-700 text-sm">Pending Approvals</span>
+                          </div>
+                          <Badge className="bg-amber-500 text-white font-black">{selectedEmployee.pending_leaves}</Badge>
+                        </button>
+                        <button className="flex items-center justify-between w-full rounded-[16px] bg-rose-500/10 p-4 hover:bg-rose-500/20 transition-all border border-rose-500/20 group touch-target" onClick={() => setViewLeaveStatus("Rejected")}>
+                          <div className="flex items-center gap-3">
+                            <X className="w-5 h-5 text-rose-600 group-hover:scale-110 transition-transform" />
+                            <span className="font-black text-rose-700 text-sm">Rejected Leaves</span>
+                          </div>
+                          <Badge className="bg-rose-500 text-white font-black">{selectedEmployee.rejected_leaves}</Badge>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground opacity-40">
+                    <Users className="w-16 h-16 mb-4" />
+                    <p className="text-xs font-black uppercase tracking-widest">Select staff to view</p>
+                  </div>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <div>
-            <h1 className="text-2xl font-bold font-heading text-foreground">Branches</h1>
-            <p className="text-sm text-muted-foreground mt-1">Overview of all company branches</p>
+            <h1 className="text-responsive-2xl font-black text-foreground tracking-tight">Branches Overview</h1>
+            <p className="text-responsive-sm text-muted-foreground font-medium mt-1">Real-time status across all locations</p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {loadingBranches ? (
-              <div className="col-span-full flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <div className="col-span-full flex flex-col items-center justify-center py-20 gap-3">
+                <Loader2 className="h-10 w-10 animate-spin text-[#7B0099]" />
+                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground animate-pulse">Scanning Network...</p>
               </div>
             ) : (
               allBranches.map((branch) => {
@@ -371,70 +377,59 @@ export default function Branches() {
                 const presentToday = stat ? stat.present_today : 0;
                 const onLeave = stat ? stat.on_leave : 0;
                 const absent = Math.max(0, totalEmployees - presentToday - onLeave);
-                
-                const attendanceRate = totalEmployees > 0 
-                  ? Math.round((presentToday / totalEmployees) * 100) 
-                  : 0;
-
-                // Find matching hardcoded data for location/leader if available
+                const attendanceRate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
                 const staticInfo = branches.find(b => b.code === branch.code);
                 const location = staticInfo?.location || "Rayhar Branch";
                 const leader = staticInfo?.leader || "Branch Manager";
 
                 return (
-                  <Card
-                    key={branch.code}
-                    className="cursor-pointer hover:shadow-lg transition-all border-none shadow-sm bg-white overflow-hidden group"
-                    onClick={() => setSelectedBranch({...branch, location, leader, employees: totalEmployees, attendance: attendanceRate})}
-                  >
+                  <Card key={branch.code} className="cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all border-none shadow-sm bg-card/80 backdrop-blur-md overflow-hidden group rounded-[24px]" onClick={() => setSelectedBranch({...branch, location, leader, employees: totalEmployees, attendance: attendanceRate})}>
                     <CardContent className="p-0">
                       <div className="p-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors">
-                              <Building2 className="w-6 h-6 text-slate-400 group-hover:text-primary" />
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-4 min-w-0">
+                            <div className="w-12 h-12 rounded-[18px] bg-muted/50 flex items-center justify-center shrink-0 group-hover:bg-[#7B0099]/10 transition-colors">
+                              <Building2 className="w-6 h-6 text-muted-foreground group-hover:text-[#7B0099] transition-colors" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-heading font-black text-slate-800 text-lg leading-tight">{branch.name}</h3>
-                              <div className="flex items-center gap-1 text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">
-                                <MapPin className="w-3 h-3" />
+                            <div className="min-w-0">
+                              <h3 className="font-black text-foreground text-lg leading-tight truncate group-hover:text-[#7B0099] transition-colors">{branch.name}</h3>
+                              <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-widest truncate opacity-60">
+                                <MapPin className="w-3 h-3 shrink-0" />
                                 {location}
                               </div>
                             </div>
                           </div>
-                          <Badge variant="outline" className="font-mono text-[10px] h-5 px-1.5">{branch.code}</Badge>
+                          <Badge variant="outline" className="font-mono text-[9px] h-5 px-1.5 shrink-0 bg-muted/20 border-border/50">{branch.code}</Badge>
                         </div>
-
                         <div className="grid grid-cols-3 gap-2 mt-6">
-                          <div className="bg-emerald-50/50 rounded-xl p-3 border border-emerald-100/50">
-                            <p className="text-xl font-black text-emerald-600 leading-none">{presentToday}</p>
-                            <p className="text-[9px] font-bold text-emerald-600/70 uppercase mt-1 tracking-tighter">Present</p>
+                          <div className="bg-emerald-500/10 rounded-[16px] p-3 border border-emerald-500/20 text-center">
+                            <p className="text-xl font-black text-emerald-600 dark:text-emerald-400 leading-none">{presentToday}</p>
+                            <p className="text-[9px] font-black text-emerald-600/70 dark:text-emerald-400/70 uppercase mt-1">Present</p>
                           </div>
-                          <div className="bg-amber-50/50 rounded-xl p-3 border border-amber-100/50">
-                            <p className="text-xl font-black text-amber-600 leading-none">{onLeave}</p>
-                            <p className="text-[9px] font-bold text-amber-600/70 uppercase mt-1 tracking-tighter">On Leave</p>
+                          <div className="bg-amber-500/10 rounded-[16px] p-3 border border-amber-500/20 text-center">
+                            <p className="text-xl font-black text-amber-600 dark:text-amber-400 leading-none">{onLeave}</p>
+                            <p className="text-[9px] font-black text-amber-600/70 dark:text-amber-400/70 uppercase mt-1">Leave</p>
                           </div>
-                          <div className="bg-rose-50/50 rounded-xl p-3 border border-rose-100/50">
-                            <p className="text-xl font-black text-rose-600 leading-none">{absent}</p>
-                            <p className="text-[9px] font-bold text-rose-600/70 uppercase mt-1 tracking-tighter">Absent</p>
+                          <div className="bg-rose-500/10 rounded-[16px] p-3 border border-rose-500/20 text-center">
+                            <p className="text-xl font-black text-rose-600 dark:text-rose-400 leading-none">{absent}</p>
+                            <p className="text-[9px] font-black text-rose-600/70 dark:text-rose-400/70 uppercase mt-1">Absent</p>
                           </div>
                         </div>
                       </div>
-
-                      <div className="px-6 py-4 bg-slate-50 flex items-center justify-between border-t border-slate-100">
+                      <div className="px-6 py-4 bg-muted/30 flex items-center justify-between border-t border-border/50">
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-1.5">
-                            <Users className="w-3.5 h-3.5 text-slate-400" />
-                            <span className="text-xs font-bold text-slate-600">{totalEmployees} Total Staff</span>
+                            <Users className="w-3.5 h-3.5 text-muted-foreground opacity-50" />
+                            <span className="text-[11px] font-black text-foreground/70">{totalEmployees}</span>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <TrendingUp className={`w-3.5 h-3.5 ${attendanceRate > 80 ? 'text-emerald-500' : 'text-amber-500'}`} />
-                            <span className="text-xs font-bold text-slate-600">{attendanceRate}% Rate</span>
+                            <span className="text-[11px] font-black text-foreground/70">{attendanceRate}%</span>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-[9px] font-bold text-slate-400 uppercase leading-none">Leader</p>
-                          <p className="text-[11px] font-black text-slate-700 mt-0.5">{leader}</p>
+                        <div className="text-right min-w-0 ml-4">
+                          <p className="text-[9px] font-black text-muted-foreground uppercase leading-none opacity-40">Leader</p>
+                          <p className="text-[10px] font-black text-foreground/80 mt-0.5 truncate">{leader}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -446,178 +441,135 @@ export default function Branches() {
         </div>
       )}
 
-      {/* LEAVE FORMS DIALOG - Now always accessible */}
+      {/* LEAVE DETAILS DIALOG */}
       <Dialog open={!!viewLeaveStatus} onOpenChange={(open) => !open && setViewLeaveStatus(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              {viewLeaveStatus} Leaves - {selectedEmployee?.full_name}
-            </DialogTitle>
-            <DialogDescription>
-              Review the submitted leave forms with this status.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 overflow-hidden safe-area-bottom">
+          <div className="p-6 bg-gradient-to-br from-[#7B0099] to-[#a855f7] text-white">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3 text-white text-xl font-black tracking-tight">
+                <FileText className="h-6 w-6" />
+                {viewLeaveStatus} Records
+              </DialogTitle>
+              <DialogDescription className="text-white/80 font-bold">
+                Reviewing leave history for {selectedEmployee?.full_name}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
 
-          {loadingLeaves ? (
-            <div className="flex justify-center p-8">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
-            </div>
-          ) : (
-            <div className="space-y-4 mt-2">
-              {employeeLeaves.filter(req => {
-                const status = (req.status || "").toLowerCase().trim();
-                const viewStatus = (viewLeaveStatus || "").toLowerCase().trim();
-                if (viewStatus === "pending") return status.includes("pending");
-                return status === viewStatus;
-              }).length === 0 ? (
-                <p className="text-sm text-center text-muted-foreground p-4 italic">No {viewLeaveStatus?.toLowerCase()} leave records found for this staff member.</p>
-              ) : (
-                employeeLeaves
-                  .filter(req => {
-                    const status = (req.status || "").toLowerCase().trim();
-                    const viewStatus = (viewLeaveStatus || "").toLowerCase().trim();
-                    if (viewStatus === "pending") return status.includes("pending");
-                    return status === viewStatus;
-                  })
-                  .map(req => {
-                    const fromStr = new Date(req.start_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    const toStr = new Date(req.end_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    return (
-                      <div key={req.leave_id} className="rounded-lg border p-6 space-y-6 bg-white shadow-sm mb-6">
-                        <div className="text-center border-b-2 border-slate-900 pb-4">
-                          <h2 className="text-2xl font-black tracking-tight text-slate-900">RAYHAR GROUP</h2>
-                          <p className="text-sm font-bold tracking-widest uppercase">Permohonan Cuti Kakitangan</p>
-                        </div>
+          <div className="p-4 sm:p-6 space-y-6">
+            {loadingLeaves ? (
+              <div className="flex flex-col items-center justify-center p-12 gap-3">
+                <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Fetching Forms...</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {employeeLeaves.filter(req => {
+                  const status = (req.status || "").toLowerCase().trim();
+                  const viewStatus = (viewLeaveStatus || "").toLowerCase().trim();
+                  if (viewStatus === "pending") return status.includes("pending");
+                  return status === viewStatus;
+                }).length === 0 ? (
+                  <div className="py-20 text-center flex flex-col items-center gap-3 opacity-30">
+                    <FileText className="w-12 h-12" />
+                    <p className="text-sm font-black uppercase tracking-widest">No matching records found</p>
+                  </div>
+                ) : (
+                  employeeLeaves
+                    .filter(req => {
+                      const status = (req.status || "").toLowerCase().trim();
+                      const viewStatus = (viewLeaveStatus || "").toLowerCase().trim();
+                      if (viewStatus === "pending") return status.includes("pending");
+                      return status === viewStatus;
+                    })
+                    .map(req => {
+                      const fromStr = new Date(req.start_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                      const toStr = new Date(req.end_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                      return (
+                        <div key={req.leave_id} className="rounded-[24px] border border-border/50 p-5 sm:p-6 space-y-6 bg-card shadow-sm hover:shadow-md transition-all">
+                          <div className="text-center border-b-2 border-[#1A1C1E] pb-4">
+                            <h2 className="text-xl font-black tracking-tighter text-[#1A1C1E]">RAYHAR GROUP</h2>
+                            <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60">Staff Leave Application</p>
+                          </div>
 
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div className="space-y-1">
-                            <span className="text-[10px] uppercase font-bold text-muted-foreground">Nama Penuh</span>
-                            <p className="font-semibold border-b pb-1 border-slate-100">{selectedEmployee?.full_name}</p>
+                          <div className="grid grid-cols-2 gap-4 text-xs font-bold">
+                            <div className="space-y-1">
+                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Staff Name</span>
+                              <p className="border-b pb-1 border-border/40 truncate">{selectedEmployee?.full_name}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Branch</span>
+                              <p className="border-b pb-1 border-border/40">{selectedBranch?.code || "HQ"}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Type</span>
+                              <p className="border-b pb-1 border-border/40">{req.leave_type}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Status</span>
+                              <p className={`font-black uppercase ${req.status === "Rejected" ? "text-rose-600" : "text-[#7B0099]"}`}>
+                                {req.status}
+                              </p>
+                            </div>
                           </div>
-                          <div className="space-y-1">
-                            <span className="text-[10px] uppercase font-bold text-muted-foreground">Cawangan</span>
-                            <p className="font-semibold border-b pb-1 border-slate-100">{selectedBranch?.code || "HQ"}</p>
+
+                          <div className="grid grid-cols-3 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
+                            <div className="text-center">
+                              <p className="text-[9px] uppercase font-black text-muted-foreground opacity-50 mb-1">From</p>
+                              <p className="font-black text-sm">{fromStr}</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-[9px] uppercase font-black text-muted-foreground opacity-50 mb-1">To</p>
+                              <p className="font-black text-sm">{toStr}</p>
+                            </div>
+                            <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
+                              <p className="text-[9px] uppercase font-black text-[#7B0099]">Days</p>
+                              <p className="font-black text-lg text-[#7B0099] leading-none mt-0.5">{req.days}</p>
+                            </div>
                           </div>
-                          <div className="space-y-1">
-                            <span className="text-[10px] uppercase font-bold text-muted-foreground">Jenis Cuti</span>
-                            <p className="font-semibold border-b pb-1 border-slate-100">{req.leave_type}</p>
-                          </div>
-                          <div className="space-y-1">
-                            <span className="text-[10px] uppercase font-bold text-muted-foreground">Status</span>
-                            <p className={`font-bold border-b pb-1 border-slate-100 uppercase ${req.status === "Rejected" ? "text-red-600" : "text-primary"}`}>
-                              {req.status}
+
+                          <div className="space-y-2">
+                            <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50 tracking-widest">Reason / Purpose</p>
+                            <p className="rounded-[16px] border border-border/40 p-4 italic text-foreground/80 bg-muted/20 text-xs leading-relaxed">
+                              "{req.reason || "-"}"
                             </p>
                           </div>
-                        </div>
 
-                        <div className="grid grid-cols-3 gap-4 text-sm border rounded-xl p-4 bg-muted/20">
-                          <div>
-                            <p className="text-[10px] uppercase font-bold text-muted-foreground">Tarikh Mula</p>
-                            <p className="font-bold text-base">{fromStr}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] uppercase font-bold text-muted-foreground">Tarikh Akhir</p>
-                            <p className="font-bold text-base">{toStr}</p>
-                          </div>
-                          <div className="text-center bg-white rounded-lg border flex flex-col justify-center py-1">
-                            <p className="text-[10px] uppercase font-bold text-primary">Bilangan Hari</p>
-                            <p className="font-black text-lg text-primary">{req.days} Hari</p>
-                          </div>
-                        </div>
+                          {req.leave_type === "Cuti Sakit" && req.mc_file_url && (
+                            <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
+                              <div className="flex items-center gap-3">
+                                <FileText className="w-5 h-5 text-[#7B0099]" />
+                                <span className="text-xs font-black text-[#7B0099]">MC Attachment</span>
+                              </div>
+                              <a href={`https://rayhar-staff-production.up.railway.app${req.mc_file_url}`} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-3 py-2 rounded-lg hover:bg-[#5e0080] transition-colors">
+                                View File
+                              </a>
+                            </div>
+                          )}
 
-                        <div className="text-sm">
-                          <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Tujuan / Sebab Cuti</p>
-                          <p className="rounded-lg border p-3 italic text-slate-700 bg-slate-50/50">
-                            "{req.reason || "-"}"
-                          </p>
-                        </div>
-
-                        {/* Conditional Fields: Cuti Ganti */}
-                        {req.leave_type === "Cuti Ganti" && (
-                          <div className="grid grid-cols-3 gap-4 text-sm border rounded-xl p-4 bg-blue-50/50 border-blue-100">
-                            <div>
-                              <p className="text-[10px] uppercase font-bold text-blue-600">Tarikh Cuti</p>
-                              <p className="font-bold text-base text-slate-900">{req.cuti_ganti_tarikh ? new Date(req.cuti_ganti_tarikh).toLocaleDateString() : "-"}</p>
+                          <div className="pt-4 border-t border-border/50 space-y-4">
+                            <div className="flex items-center gap-2">
+                              <PhoneCall className="w-4 h-4 text-rose-500" />
+                              <h3 className="text-[10px] font-black uppercase tracking-widest">Emergency Contact (Waris)</h3>
                             </div>
-                            <div>
-                              <p className="text-[10px] uppercase font-bold text-blue-600">Tarikh/Hari Cuti Ganti</p>
-                              <p className="font-bold text-base text-slate-900">{req.cuti_ganti_hari || "-"}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase font-bold text-blue-600">Jam Ganti</p>
-                              <p className="font-bold text-base text-slate-900">{req.cuti_ganti_jam || 0} Jam</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Conditional Fields: Cuti Tanpa Gaji */}
-                        {req.leave_type === "Cuti Tanpa Gaji" && (
-                          <div className="grid grid-cols-2 gap-4 text-sm border rounded-xl p-4 bg-rose-50/50 border-rose-100">
-                            <div>
-                              <p className="text-[10px] uppercase font-bold text-rose-600">No. Tel H/P</p>
-                              <p className="font-bold text-base text-slate-900">{req.cuti_tanpa_gaji_phone || "-"}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase font-bold text-rose-600">Tandatangan Pengesahan</p>
-                              <p className="font-bold text-base text-slate-900">
-                                {req.cuti_tanpa_gaji_signature ? "✓ Disahkan" : "Tiada Pengesahan"}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Conditional Fields: Cuti Sakit (MC) */}
-                        {req.leave_type === "Cuti Sakit" && req.mc_file_url && (
-                          <div className="text-sm p-4 bg-purple-50/50 border border-purple-100 rounded-xl">
-                            <p className="text-[10px] uppercase font-bold text-purple-600 mb-2">Lampiran MC</p>
-                            <a href={`https://rayhar-staff-production.up.railway.app${req.mc_file_url}`} target="_blank" rel="noopener noreferrer" className="text-purple-700 underline font-semibold flex items-center gap-2">
-                              <FileText className="w-4 h-4" />
-                              View MC Attachment
-                            </a>
-                          </div>
-                        )}
-
-                        {/* Maklumat Waris Section */}
-                        <div className="space-y-3 pt-2 border-t">
-                          <div className="flex items-center gap-2 border-b pb-2 pt-2">
-                            <PhoneCall className="w-4 h-4 text-red-600" />
-                            <h3 className="text-sm font-black uppercase tracking-tight">Maklumat Waris (Kecemasan)</h3>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                              <label className="text-[10px] font-bold text-muted-foreground uppercase">Nama Waris</label>
-                              <p className="text-sm font-semibold text-slate-900 border-b border-dotted pb-1">
-                                {req.waris_nama || "-"}
-                              </p>
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-[10px] font-bold text-muted-foreground uppercase">Hubungan</label>
-                              <p className="text-sm font-semibold text-slate-900 border-b border-dotted pb-1">
-                                {req.waris_hubungan || "-"}
-                              </p>
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-[10px] font-bold text-muted-foreground uppercase">No. Telefon</label>
-                              <p className="text-sm font-bold text-primary border-b border-dotted pb-1">
-                                {req.waris_phone || "-"}
-                              </p>
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-[10px] font-bold text-muted-foreground uppercase">Alamat Waris</label>
-                              <p className="text-xs leading-relaxed text-slate-700 border-b border-dotted pb-1">
-                                {req.waris_alamat || "-"}
-                              </p>
+                            <div className="grid grid-cols-2 gap-4 bg-muted/20 p-4 rounded-[20px]">
+                              <div className="space-y-1">
+                                <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Name</span>
+                                <p className="text-[11px] font-bold truncate">{req.waris_nama || "-"}</p>
+                              </div>
+                              <div className="space-y-1">
+                                <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Phone</span>
+                                <p className="text-[11px] font-black text-[#7B0099]">{req.waris_phone || "-"}</p>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })
-              )}
-            </div>
-          )}
+                      );
+                    })
+                )}
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

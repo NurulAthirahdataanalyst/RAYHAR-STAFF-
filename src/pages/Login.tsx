@@ -106,7 +106,7 @@ export default function Login() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 force-light"
+      className="min-h-screen flex items-center justify-center p-4 force-light safe-area-top safe-area-bottom"
       style={{
         backgroundImage: `url(${watercolorBg})`,
         backgroundSize: 'cover',
@@ -115,21 +115,21 @@ export default function Login() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      <div className="w-full max-w-md animate-in fade-in zoom-in duration-500">
-        <div className="flex flex-col items-center justify-center gap-3 mb-8">
-          <img src={rayharLogo} alt="Rayhar Logo" className="w-14 h-14 rounded-2xl shadow-xl" />
+      <div className="w-full max-w-sm sm:max-w-md animate-in fade-in zoom-in duration-500">
+        <div className="flex flex-col items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
+          <img src={rayharLogo} alt="Rayhar Logo" className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl shadow-xl" />
           <div className="text-center">
-            <h1 className="font-heading font-black text-slate-900 text-2xl tracking-tight">Rayhar Group</h1>
-            <p className="text-xs font-extrabold text-[#601b8a] uppercase tracking-widest">Staff Admin Panel</p>
+            <h1 className="font-heading font-black text-slate-900 text-xl sm:text-2xl tracking-tight">Rayhar Group</h1>
+            <p className="text-[10px] sm:text-xs font-extrabold text-[#7B0099] uppercase tracking-widest">Staff Admin Panel</p>
           </div>
         </div>
 
-        <Card className="border-white/40 shadow-2xl bg-white/80 backdrop-blur-xl rounded-[30px] overflow-hidden">
+        <Card className="border-white/40 shadow-2xl bg-white/80 backdrop-blur-xl rounded-[20px] sm:rounded-[30px] overflow-hidden">
           <Tabs defaultValue="login">
             <CardHeader className="pb-4 bg-white/50">
               <TabsList className="grid w-full grid-cols-2 bg-slate-100/50">
-                <TabsTrigger value="login" className="rounded-xl data-[state=active]:bg-[#601b8a] data-[state=active]:text-white">Sign In</TabsTrigger>
-                <TabsTrigger value="signup" className="rounded-xl data-[state=active]:bg-[#601b8a] data-[state=active]:text-white">Sign Up</TabsTrigger>
+                <TabsTrigger value="login" className="rounded-xl data-[state=active]:bg-[#7B0099] data-[state=active]:text-white touch-target">Sign In</TabsTrigger>
+                <TabsTrigger value="signup" className="rounded-xl data-[state=active]:bg-[#7B0099] data-[state=active]:text-white touch-target">Sign Up</TabsTrigger>
               </TabsList>
             </CardHeader>
 
@@ -146,7 +146,7 @@ export default function Login() {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button type="submit" className="w-full bg-[#601b8a] hover:bg-[#4a148c] text-white rounded-xl h-11 transition-all" disabled={loading}>
+                  <Button type="submit" className="w-full bg-[#7B0099] hover:bg-[#5e0080] text-white rounded-xl h-12 sm:h-11 transition-all touch-target text-sm sm:text-base" disabled={loading}>
                     {loading && <Loader2 className="animate-spin mr-2" />}
                     Sign In to Portal
                   </Button>
@@ -224,7 +224,7 @@ export default function Login() {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button type="submit" className="w-full bg-[#601b8a] hover:bg-[#4a148c] text-white rounded-xl h-11 transition-all" disabled={loading}>
+                  <Button type="submit" className="w-full bg-[#7B0099] hover:bg-[#5e0080] text-white rounded-xl h-12 sm:h-11 transition-all touch-target text-sm sm:text-base" disabled={loading}>
                     {loading && <Loader2 className="animate-spin mr-2" />}
                     {loading ? "Registering..." : "Create Account"}
                   </Button>

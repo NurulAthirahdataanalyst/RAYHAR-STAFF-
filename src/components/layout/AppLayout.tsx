@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, ChevronRight, Settings } from "lucide-react";
+import { User, LogOut, ChevronRight, Settings, Menu } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -21,6 +21,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const { role: resolvedRole, userBranch, userDepartment } = useRole();
   const [pendingApprovals, setPendingApprovals] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const dashboardUserId = user?.user_id || user?.id;
@@ -68,12 +69,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   ];
   const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
 
+  const getPageTitle = () => {
+    if (location.pathname === "/") return "Dashboard";
+    if (location.pathname.includes("employees")) return "Staff";
+    return location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ").toUpperCase() || "Page";
+  };
+
   return (
     <div className="flex min-h-screen bg-background transition-colors duration-300">
-      <AppSidebar />
+      <AppSidebar mobileOpen={mobileMenuOpen} onMobileClose={() => setMobileMenuOpen(false)} />
       
       <main 
-        className="flex-1 overflow-x-hidden relative"
+        className="flex-1 overflow-x-hidden relative min-w-0"
         style={{
           backgroundImage: `url(${watercolorBg})`,
           backgroundSize: 'cover',
@@ -83,20 +90,67 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         }}
       >
         <div className="absolute inset-0 bg-background/60 dark:bg-background/90 pointer-events-none" />
-        <div className="relative p-6 lg:p-8 max-w-[1400px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+        
+        {/* ═══════ MOBILE TOP BAR ═══════ */}
+        <div className="lg:hidden sticky top-0 z-30 bg-card/80 dark:bg-card/90 backdrop-blur-xl border-b border-border/50 safe-area-top">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setMobileMenuOpen(true)}
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#7B0099]/10 dark:bg-[#7B0099]/20 text-[#7B0099] dark:text-purple-400 hover:bg-[#7B0099]/20 active:bg-[#7B0099]/30 transition-colors touch-target"
+                aria-label="Open navigation menu"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+              <div>
+                <h2 className="text-sm font-black text-foreground tracking-tight leading-tight">{getPageTitle()}</h2>
+                <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Rayhar Portal</p>
+              </div>
+            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger className="outline-none">
+                <div className="h-9 w-9 rounded-xl bg-[#7B0099] text-white flex items-center justify-center font-black text-xs shadow-lg shadow-purple-900/20 hover:scale-105 active:scale-95 transition-transform">
+                  {(user?.full_name || user?.name || "E")[0].toUpperCase()}
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl p-2 border-white/20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl">
+                <DropdownMenuLabel className="px-3 py-2">
+                  <div className="flex flex-col space-y-0.5">
+                    <p className="text-sm font-black">{user?.full_name || user?.name}</p>
+                    <p className="text-[10px] text-muted-foreground font-bold truncate">{user?.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-border/40" />
+                <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-purple-500/10 focus:text-purple-600 dark:focus:text-purple-400 cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>My Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-border/40" />
+                <DropdownMenuItem onClick={() => signOut()} className="rounded-xl px-3 py-2.5 focus:bg-red-500/10 focus:text-red-600 cursor-pointer text-red-500">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sign Out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* ═══════ MAIN CONTENT ═══════ */}
+        <div className="relative p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
           
-          <div className="flex flex-col lg:grid lg:grid-cols-10 gap-8">
+          <div className="flex flex-col lg:grid lg:grid-cols-10 gap-6 lg:gap-8">
             
             {/* Ruang Kerja Utama (70%) */}
-            <div className="lg:col-span-7 space-y-6">
-              {/* Breadcrumb & Header Pantas */}
-              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-[24px] p-4 flex items-center justify-between shadow-sm overflow-hidden relative">
-                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#601b8a]" />
+            <div className="lg:col-span-7 space-y-4 sm:space-y-6 min-w-0">
+              {/* Breadcrumb & Header Pantas - hidden on mobile (we have the top-bar instead) */}
+              <div className="hidden lg:flex bg-card/50 backdrop-blur-sm border border-border rounded-[24px] p-4 items-center justify-between shadow-sm overflow-hidden relative">
+                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#7B0099]" />
                 <div className="pl-4 space-y-1">
                   <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/50">
                     <span className="hover:text-primary cursor-pointer transition-colors" onClick={() => navigate("/")}>Home</span>
                     <ChevronRight className="w-2.5 h-2.5" />
-                    <span className="text-[#601b8a] dark:text-purple-400 capitalize">
+                    <span className="text-[#7B0099] dark:text-purple-400 capitalize">
                       {location.pathname === "/" ? "Dashboard" : location.pathname.includes("employees") ? "Staff" : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ")}
                     </span>
                   </div>
@@ -109,12 +163,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <DropdownMenuTrigger className="outline-none">
                       <div className="flex items-center gap-4 pr-2 group cursor-pointer">
                         <div className="text-right hidden sm:block">
-                          <p className="text-sm font-black text-foreground group-hover:text-[#601b8a] transition-colors">{user?.full_name || user?.name || "Employee"}</p>
+                          <p className="text-sm font-black text-foreground group-hover:text-[#7B0099] transition-colors">{user?.full_name || user?.name || "Employee"}</p>
                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">
                             {resolvedRole.replace('_', ' ')}
                           </p>
                         </div>
-                        <div className="h-10 w-10 rounded-xl bg-[#601b8a] text-white flex items-center justify-center font-black text-xs shadow-lg shadow-purple-900/20 group-hover:scale-105 transition-transform">
+                        <div className="h-10 w-10 rounded-xl bg-[#7B0099] text-white flex items-center justify-center font-black text-xs shadow-lg shadow-purple-900/20 group-hover:scale-105 transition-transform">
                           {(user?.full_name || user?.name || "E")[0].toUpperCase()}
                         </div>
                       </div>
@@ -151,7 +205,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <aside className="hidden lg:block lg:col-span-3 space-y-6">
               
               {/* Kad Pengurusan Pantas */}
-              <div className="bg-[#601b8a] p-8 rounded-[25px] shadow-2xl text-white relative overflow-hidden group">
+              <div className="bg-[#7B0099] p-8 rounded-[25px] shadow-2xl text-white relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
                 <h3 className="text-sm font-black text-white/90 dark:text-purple-100 uppercase tracking-widest mb-4">
                   Quick Management
@@ -183,7 +237,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground">
                     Calendar
                   </h3>
-                  <span className="text-xs font-black text-[#601b8a] dark:text-purple-400">
+                  <span className="text-xs font-black text-[#7B0099] dark:text-purple-400">
                     {monthName} {calendarYear}
                   </span>
                 </div>
@@ -207,7 +261,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                             !day
                               ? "text-transparent"
                               : isToday
-                                ? "bg-[#601b8a] text-white shadow-lg shadow-purple-900/20"
+                                ? "bg-[#7B0099] text-white shadow-lg shadow-purple-900/20"
                                 : isHoliday
                                   ? "bg-[#C2185B] text-white"
                                   : "text-foreground/80 hover:bg-white/60 dark:hover:bg-white/10"

@@ -215,19 +215,14 @@ export default function Dashboard() {
   if (loading && !dashboardUserId) {
     return (
       <div className="flex flex-col h-[80vh] items-center justify-center space-y-4">
-        <Loader2 className="animate-spin text-[#800000] w-12 h-12" />
-        <p className="text-slate-500 animate-pulse font-medium">
+        <Loader2 className="animate-spin text-[#7B0099] w-12 h-12" />
+        <p className="text-muted-foreground animate-pulse font-medium">
           Loading your workspace...
         </p>
       </div>
     );
   }
 
-  /**
-   * UPDATED: Strict Status Check
-   * We now rely directly on what the server says. 
-   * If server says "Present", it means user is currently clocked in.
-   */
   const isPresent = stats.todayStatus === "Present";
   const isClockedOut = stats.todayStatus === "Clocked Out";
   const todayStatusSubtitle = isPresent
@@ -237,13 +232,14 @@ export default function Dashboard() {
       : "Not clocked in today";
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-foreground">
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
+      {/* Header - responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-responsive-2xl font-black tracking-tight text-foreground truncate">
             {getGreeting()}, {rawName}!
           </h1>
-          <p className="text-muted-foreground font-medium mt-1 flex items-center gap-2">
+          <p className="text-muted-foreground font-medium mt-1 flex items-center gap-2 text-responsive-sm">
             {new Date().toLocaleDateString("en-US", {
               weekday: "long",
               month: "long",
@@ -260,16 +256,17 @@ export default function Dashboard() {
           size="sm"
           onClick={() => fetchDashboardData()}
           disabled={isRefreshing}
-          className="rounded-xl border-border hover:bg-accent text-foreground gap-2 font-bold"
+          className="rounded-xl border-border hover:bg-accent text-foreground gap-2 font-bold self-start sm:self-auto touch-target"
         >
           <RefreshCcw
             className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
           />
-          Refresh
+          <span className="hidden sm:inline">Refresh</span>
         </Button>
       </div>
 
-      <div className={`grid grid-cols-1 md:grid-cols-2 ${["managing_director", "head_of_department", "finance_manager", "hr_admin"].includes(role) ? "lg:grid-cols-5" : "lg:grid-cols-4"} gap-4`}>
+      {/* Stat Cards - responsive grid */}
+      <div className={`grid grid-cols-2 ${["managing_director", "head_of_department", "finance_manager", "hr_admin"].includes(role) ? "md:grid-cols-3 lg:grid-cols-5" : "md:grid-cols-2 lg:grid-cols-4"} gap-3 sm:gap-4`}>
         {role === "employee" || role === "branch_officer" ? (
           <>
             <StatCard
@@ -347,54 +344,55 @@ export default function Dashboard() {
         )}
       </div>
 
-      <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] rounded-[32px] overflow-hidden bg-card">
-        <CardHeader className="border-b border-border/50 pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-black text-foreground uppercase tracking-wider">
+      {/* Recent Activity - responsive */}
+      <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-[24px] sm:rounded-[32px] overflow-hidden bg-card">
+        <CardHeader className="border-b border-border/50 pb-4 px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <CardTitle className="text-base sm:text-lg font-black text-foreground uppercase tracking-wider">
               Recent Activity
             </CardTitle>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               {lastUpdated && (
-                <span className="text-[11px] font-bold text-muted-foreground">
+                <span className="text-[10px] sm:text-[11px] font-bold text-muted-foreground">
                   {lastUpdated}
                 </span>
               )}
               <Badge
                 variant="outline"
-                className="rounded-lg font-bold border-border text-muted-foreground"
+                className="rounded-lg font-bold border-border text-muted-foreground text-[10px]"
               >
                 Last 5 Events
               </Badge>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent className="pt-4 sm:pt-6 px-4 sm:px-6">
           <div className="space-y-1">
             {activities && activities.length > 0 ? (
               activities.map((item, i) => (
                 <div
                   key={i}
-                  className="group flex items-center gap-4 py-4 px-2 rounded-2xl hover:bg-accent/50 transition-colors duration-200"
+                  className="group flex items-center gap-3 sm:gap-4 py-3 sm:py-4 px-2 rounded-2xl hover:bg-accent/50 transition-colors duration-200"
                 >
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center group-hover:bg-card group-hover:shadow-sm transition-all">
-                    <Clock className="w-5 h-5 text-muted-foreground" />
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-muted flex items-center justify-center group-hover:bg-card group-hover:shadow-sm transition-all shrink-0">
+                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                   </div>
-                  <div>
-                    <p className="text-sm font-black text-foreground">
+                  <div className="min-w-0">
+                    <p className="text-sm font-black text-foreground truncate">
                       Today, {item.time}
                     </p>
-                    <p className="text-xs font-bold text-muted-foreground">
+                    <p className="text-xs font-bold text-muted-foreground truncate">
                       {item.status}
                     </p>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="py-12 text-center">
-                <div className="bg-slate-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Clock className="w-6 h-6 text-slate-300" />
+              <div className="py-8 sm:py-12 text-center">
+                <div className="bg-muted w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Clock className="w-6 h-6 text-muted-foreground" />
                 </div>
-                <p className="text-sm text-slate-400 font-bold tracking-tight">
+                <p className="text-sm text-muted-foreground font-bold tracking-tight">
                   No activity recorded for this period.
                 </p>
               </div>

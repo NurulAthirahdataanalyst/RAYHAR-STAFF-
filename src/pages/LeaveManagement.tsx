@@ -195,51 +195,50 @@ export default function LeaveManagement() {
   const steps = ["PROFIL KAKITANGAN", "MAKLUMAT CUTI", "MAKLUMAT WARIS"];
 
   return (
-    <div className="max-w-3xl rounded-full mx-auto space-y-6 pb-20 animate-in fade-in duration-500">
+    <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6 pb-20 animate-in fade-in duration-500">
       {/* Header Rayhar Style */}
-      <header className="text-center space-y-2 mb-10 pt-6">
-        <h1 className="text-5xl font-black text-[#601b8a] tracking-tighter italic italic decoration-4 decoration-primary/20">
+      <header className="text-center space-y-2 mb-6 sm:mb-10 pt-4 sm:pt-6">
+        <h1 className="text-4xl sm:text-5xl font-black text-[#7B0099] tracking-tighter italic decoration-4 decoration-primary/20">
           RAYHAR GROUP
         </h1>
-        <div className="h-1.5 w-24 bg-[#7c1b8a] mx-auto rounded-full mb-4"></div>
-        <h2 className="text-2xl font-bold text-[#601b8a] tracking-wide uppercase">
+        <div className="h-1 sm:h-1.5 w-16 sm:w-24 bg-[#7c1b8a] mx-auto rounded-full mb-3 sm:mb-4"></div>
+        <h2 className="text-lg sm:text-2xl font-black text-[#7B0099] tracking-wide uppercase px-4">
           Portal Permohonan Cuti
         </h2>
       </header>
 
       {/* STEP 0: ARAHAN (FRONT PAGE) */}
       {currentStep === 0 && (
-        <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-sm">
-          <CardContent className="p-10 text-center space-y-8">
-            <div className="bg-purple-50 w-24 h-24 rounded-3xl flex items-center justify-center mx-auto rotate-12 transition-transform hover:rotate-0 duration-300">
-              <PlaneTakeoff className="w-12 h-12 text-[#601b8a]" />
+        <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
+          <CardContent className="p-6 sm:p-10 text-center space-y-6 sm:space-y-8">
+            <div className="bg-[#7B0099]/10 w-20 h-20 sm:w-24 sm:h-24 rounded-[32px] flex items-center justify-center mx-auto rotate-12 transition-transform hover:rotate-0 duration-300">
+              <PlaneTakeoff className="w-10 h-10 sm:w-12 sm:h-12 text-[#7B0099]" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-2xl font-bold text-slate-800">Sila Baca Arahan</h3>
-              <p className="text-sm text-muted-foreground">Pastikan anda mematuhi polisi syarikat sebelum memohon.</p>
+              <h3 className="text-xl sm:text-2xl font-black text-foreground uppercase tracking-tight">Sila Baca Arahan</h3>
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground italic">Pastikan anda mematuhi polisi syarikat sebelum memohon.</p>
             </div>
 
-            <div className="text-left bg-slate-50 p-6 rounded-2xl border border-slate-100 max-w-sm mx-auto">
-              <ul className="space-y-4 text-sm font-medium text-slate-600">
+            <div className="text-left bg-muted/30 p-5 sm:p-6 rounded-[24px] border border-border/50 max-w-sm mx-auto">
+              <ul className="space-y-4 text-[11px] sm:text-xs font-bold text-foreground/70 uppercase tracking-widest">
                 <li className="flex items-start gap-3">
-                  <span className="bg-[#601b8a] text-white text-[10px] rounded-full px-1.5 py-0.5 mt-1">1</span>
-                  <span>Mohon sekurang-kurangnya <strong>7 hari</strong> awal.</span>
+                  <span className="bg-[#7B0099] text-white text-[9px] rounded-full w-5 h-5 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">1</span>
+                  <span>Mohon sekurang-kurangnya <strong className="text-[#7B0099]">7 HARI</strong> awal.</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="bg-[#601b8a] text-white text-[10px] rounded-full px-1.5 py-0.5 mt-1">2</span>
-                  <span>Pastikan baki cuti mencukupi sebelum memohon.</span>
+                  <span className="bg-[#7B0099] text-white text-[9px] rounded-full w-5 h-5 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">2</span>
+                  <span>Pastikan <strong className="text-[#7B0099]">BAKI CUTI</strong> mencukupi sebelum memohon.</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="bg-[#601b8a] text-white text-[10px] rounded-full px-1.5 py-0.5 mt-1">3</span>
-                  <span>Lampiran hanya diperlukan untuk <strong>Cuti Sakit (MC)</strong>.</span>
+                  <span className="bg-[#7B0099] text-white text-[9px] rounded-full w-5 h-5 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">3</span>
+                  <span>Lampiran hanya diperlukan untuk <strong className="text-[#7B0099]">CUTI SAKIT (MC)</strong>.</span>
                 </li>
               </ul>
             </div>
 
             <Button
               onClick={() => setCurrentStep(1)}
-              size="lg"
-              className="w-full md:w-auto px-16 py-7 bg-[#601b8a] text-lg rounded-2xl shadow-xl shadow-purple-900/20 hover:bg-[#4b1470] hover:scale-[1.02] active:scale-95 transition-all"
+              className="w-full sm:w-auto px-12 py-7 bg-[#7B0099] text-white text-xs sm:text-sm font-black uppercase tracking-[0.2em] rounded-[20px] shadow-xl shadow-[#7B0099]/20 hover:bg-[#5e0080] hover:scale-[1.02] active:scale-95 transition-all"
             >
               Mula Permohonan <Plus className="ml-2 w-5 h-5" />
             </Button>
@@ -249,61 +248,71 @@ export default function LeaveManagement() {
 
       {/* STEPS 1-3 */}
       {currentStep > 0 && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Step Progress Bar */}
-          <div className="flex justify-between items-center px-4 mb-4">
+          <div className="flex justify-between items-center px-2 sm:px-4 mb-4">
             {steps.map((label, idx) => (
               <div key={idx} className="flex flex-col items-center flex-1">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${currentStep >= idx + 1 ? 'bg-[#601b8a] text-white scale-110 shadow-lg shadow-primary/30' : 'bg-slate-200 text-slate-500'}`}>
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-black transition-all duration-500 ${currentStep >= idx + 1 ? 'bg-[#7B0099] text-white scale-110 shadow-lg shadow-[#7B0099]/30' : 'bg-muted text-muted-foreground'}`}>
                   {idx + 1}
                 </div>
-                <span className={`text-[10px] mt-2 font-bold text-center uppercase tracking-tighter ${currentStep >= idx + 1 ? 'text-[#601b8a]' : 'text-slate-400'}`}>
+                <span className={`text-[8px] sm:text-[9px] mt-2 font-black text-center uppercase tracking-widest ${currentStep >= idx + 1 ? 'text-[#7B0099]' : 'text-muted-foreground opacity-50'}`}>
                   {label.split(' ')[0]}
                 </span>
               </div>
             ))}
           </div>
 
-          <Card className="border-none shadow-2xl overflow-hidden rounded-3xl">
-            <CardHeader className="bg-[#601b8a] text-white p-6">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <span className="bg-white/15 p-2 rounded-lg text-white">
+          <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-[#7B0099] to-[#a855f7] text-white p-6 sm:p-8">
+              <CardTitle className="flex items-center gap-3 text-base sm:text-lg font-black uppercase tracking-widest">
+                <div className="bg-white/20 p-2 rounded-xl">
                   <History className="w-5 h-5" />
-                </span>
+                </div>
                 {steps[currentStep - 1]}
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-8 space-y-6 bg-white">
+            <CardContent className="p-6 sm:p-8 space-y-6">
 
               {/* SECTION 1: PROFIL KAKITANGAN */}
               {currentStep === 1 && (
                 <div className="space-y-5 animate-in slide-in-from-right duration-500">
                   <div className="space-y-2">
-                    <Label className="text-slate-700">Nama Penuh *</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Nama Penuh *</Label>
                     <Input
                       placeholder="NAMA SEPERTI DALAM IC"
-                      className="h-12 border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
+                      className="h-12 sm:h-14 border-border/50 bg-muted/30 focus:border-[#7B0099] focus:ring-[#7B0099] rounded-2xl font-bold transition-all"
                       value={formData.namaPenuh}
                       onChange={e => setFormData({ ...formData, namaPenuh: e.target.value.toUpperCase() })}
                     />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-slate-700">No Kad Pengenalan *</Label>
-                      <Input placeholder="Contoh: 900101115566" value={formData.noKadPengenalan} onChange={e => setFormData({ ...formData, noKadPengenalan: e.target.value })} />
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">No Kad Pengenalan *</Label>
+                      <Input 
+                        placeholder="CONTOH: 900101115566" 
+                        value={formData.noKadPengenalan} 
+                        className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
+                        onChange={e => setFormData({ ...formData, noKadPengenalan: e.target.value })} 
+                      />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-slate-700">Tarikh Permohonan</Label>
-                      <Input type="date" value={formData.tarikhPermohonan} readOnly className="bg-slate-50" />
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Tarikh Permohonan</Label>
+                      <Input 
+                        type="date" 
+                        value={formData.tarikhPermohonan} 
+                        readOnly 
+                        className="h-12 sm:h-14 border-border/50 bg-muted/20 rounded-2xl font-bold opacity-60" 
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-slate-700">Cawangan *</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Cawangan *</Label>
                     <Select value={formData.cawangan} onValueChange={(val) => setFormData({ ...formData, cawangan: val })}>
-                      <SelectTrigger className="h-12">
+                      <SelectTrigger className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold">
                         <SelectValue placeholder="-- Pilih Cawangan --" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="rounded-2xl">
                         <SelectItem value="HQ">Rayhar Travels HQ (Terengganu)</SelectItem>
                         <SelectItem value="KMM">Kemaman</SelectItem>
                         <SelectItem value="TGG">Kuala Terengganu</SelectItem>
@@ -336,24 +345,24 @@ export default function LeaveManagement() {
               {/* SECTION 2: BUTIRAN CUTI */}
               {currentStep === 2 && (
                 <div className="space-y-6 animate-in slide-in-from-right duration-500">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-slate-700">Tarikh Mula *</Label>
-                      <Input type="date" value={formData.tarikhMula} onChange={e => setFormData({ ...formData, tarikhMula: e.target.value })} className="h-12" />
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Tarikh Mula *</Label>
+                      <Input type="date" value={formData.tarikhMula} onChange={e => setFormData({ ...formData, tarikhMula: e.target.value })} className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-slate-700">Tarikh Akhir *</Label>
-                      <Input type="date" value={formData.tarikhAkhir} onChange={e => setFormData({ ...formData, tarikhAkhir: e.target.value })} className="h-12" />
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Tarikh Akhir *</Label>
+                      <Input type="date" value={formData.tarikhAkhir} onChange={e => setFormData({ ...formData, tarikhAkhir: e.target.value })} className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold" />
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-purple-50 rounded-2xl border-2 border-purple-100">
-                    <span className="font-bold text-slate-700">Bilangan Hari:</span>
-                    <span className="text-3xl font-black text-[#601b8a] tracking-tighter">{formData.bilanganHari} HARI</span>
+                  <div className="flex items-center justify-between p-5 bg-[#7B0099]/5 rounded-3xl border-2 border-[#7B0099]/10">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#7B0099]">Bilangan Hari</span>
+                    <span className="text-3xl sm:text-4xl font-black text-[#7B0099] tracking-tighter">{formData.bilanganHari} <span className="text-sm">HARI</span></span>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-700">Jenis Cuti *</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Jenis Cuti *</Label>
                     <Select
                       onValueChange={(val) => {
                         const jenisCuti = val as LeaveType;
@@ -373,10 +382,10 @@ export default function LeaveManagement() {
                         });
                       }}
                     >
-                      <SelectTrigger className="h-12">
+                      <SelectTrigger className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold">
                         <SelectValue placeholder="-- Pilih Jenis Cuti --" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="rounded-2xl">
                         <SelectItem value="Cuti Tahunan">Cuti Tahunan</SelectItem>
                         <SelectItem value="Cuti Ganti">Cuti Ganti</SelectItem>
                         <SelectItem value="Cuti Tanpa Gaji">Cuti Tanpa Gaji</SelectItem>
@@ -385,43 +394,41 @@ export default function LeaveManagement() {
                     </Select>
                   </div>
 
-                  {/* Pengiraan Cuti Tahunan (Dinamik) */}
+                  {/* Pengiraan Cuti Tahunan */}
                   {formData.jenisCuti === "Cuti Tahunan" && (
-                    <div className="p-4 rounded-2xl bg-amber-50 border border-amber-100 space-y-4 animate-in fade-in zoom-in-95">
-                      <h4 className="flex items-center gap-2 text-amber-700 font-bold text-sm">
+                    <div className="p-5 rounded-[24px] bg-amber-500/10 border border-amber-500/20 space-y-4 animate-in fade-in zoom-in-95">
+                      <h4 className="flex items-center gap-2 text-amber-700 font-black text-[10px] uppercase tracking-widest">
                         <Calculator className="w-4 h-4" /> Pengiraan Cuti Tahunan
                       </h4>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <div className="space-y-1">
-                          <Label className="text-[10px] uppercase font-bold text-amber-600">Baki Layak</Label>
-                          <Input readOnly value={formData.bakiTerdahulu} className="bg-white h-9 text-center font-bold" />
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="space-y-1 text-center">
+                          <p className="text-[8px] uppercase font-black text-amber-600 opacity-70">Baki Layak</p>
+                          <div className="bg-white/80 h-10 flex items-center justify-center rounded-xl font-black text-sm">{formData.bakiTerdahulu}</div>
                         </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px] uppercase font-bold text-amber-600">Mohon</Label>
-                          <Input readOnly value={formData.mohon} className="bg-white h-9 text-center font-bold" />
+                        <div className="space-y-1 text-center">
+                          <p className="text-[8px] uppercase font-black text-amber-600 opacity-70">Mohon</p>
+                          <div className="bg-white/80 h-10 flex items-center justify-center rounded-xl font-black text-sm">{formData.mohon}</div>
                         </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px] uppercase font-bold text-amber-600">Baki Akhir</Label>
-                          <Input
-                            readOnly
-                            value={formData.bakiAkhir}
-                            className={`h-9 text-center font-bold text-white ${formData.bakiAkhir < 0 ? 'bg-red-500' : 'bg-[#601b8a]'}`}
-                          />
+                        <div className="space-y-1 text-center">
+                          <p className="text-[8px] uppercase font-black text-amber-600 opacity-70">Baki Akhir</p>
+                          <div className={`h-10 flex items-center justify-center rounded-xl font-black text-sm text-white ${formData.bakiAkhir < 0 ? 'bg-rose-500' : 'bg-[#7B0099]'}`}>
+                            {formData.bakiAkhir}
+                          </div>
                         </div>
                       </div>
                     </div>
                   )}
 
                   {formData.jenisCuti === "Cuti Sakit" && (
-                    <div className="space-y-2 rounded-2xl border border-purple-100 bg-purple-50 p-4 animate-in fade-in zoom-in-95">
-                      <Label className="flex items-center gap-2 text-slate-700">
-                        <Paperclip className="h-4 w-4 text-[#601b8a]" />
+                    <div className="space-y-3 rounded-[24px] border border-[#7B0099]/20 bg-[#7B0099]/5 p-5 animate-in fade-in zoom-in-95">
+                      <Label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#7B0099]">
+                        <Paperclip className="h-4 w-4" />
                         Lampiran MC *
                       </Label>
                       <Input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        className="h-12 bg-white file:mr-4 file:rounded-lg file:border-0 file:bg-[#601b8a] file:px-4 file:py-2 file:text-sm file:font-bold file:text-white"
+                        className="h-14 bg-card border-dashed border-2 border-[#7B0099]/30 rounded-2xl file:mr-4 file:rounded-xl file:border-0 file:bg-[#7B0099] file:px-4 file:py-2 file:text-[10px] file:font-black file:uppercase file:text-white cursor-pointer"
                         onChange={(event) =>
                           setFormData({
                             ...formData,
@@ -429,62 +436,39 @@ export default function LeaveManagement() {
                           })
                         }
                       />
-                      <p className="text-xs font-medium text-slate-500">
-                        Terima fail PDF, JPG, JPEG atau PNG sahaja.
+                      <p className="text-[10px] font-bold text-muted-foreground italic px-1">
+                        Format diterima: PDF, JPG, PNG sahaja.
                       </p>
                     </div>
                   )}
 
                   {formData.jenisCuti === "Cuti Ganti" && (
-                    <div className="space-y-4 rounded-2xl border border-blue-100 bg-blue-50 p-4 animate-in fade-in zoom-in-95">
-                      <h4 className="flex items-center gap-2 text-blue-700 font-bold text-sm">
-                        Butiran Cuti Ganti
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-4 rounded-[24px] border border-blue-500/20 bg-blue-500/5 p-5 animate-in fade-in zoom-in-95">
+                      <h4 className="text-blue-700 font-black text-[10px] uppercase tracking-widest">Butiran Cuti Ganti</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="space-y-2">
-                          <Label className="text-[10px] uppercase font-bold text-blue-600">Tarikh Cuti *</Label>
-                          <Input type="date" value={formData.cutiGantiTarikh} onChange={e => setFormData({ ...formData, cutiGantiTarikh: e.target.value })} className="h-12 bg-white" />
+                          <Label className="text-[9px] font-black uppercase text-blue-600/70">Tarikh Cuti *</Label>
+                          <Input type="date" value={formData.cutiGantiTarikh} onChange={e => setFormData({ ...formData, cutiGantiTarikh: e.target.value })} className="h-12 bg-card rounded-xl font-bold" />
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-[10px] uppercase font-bold text-blue-600">Tarikh/Hari Cuti Ganti *</Label>
-                          <Input placeholder="Cuti Minggu/Peristiwa" value={formData.cutiGantiHari} onChange={e => setFormData({ ...formData, cutiGantiHari: e.target.value })} className="h-12 bg-white" />
+                          <Label className="text-[9px] font-black uppercase text-blue-600/70">Jenis/Hari Ganti *</Label>
+                          <Input placeholder="Cuti Minggu" value={formData.cutiGantiHari} onChange={e => setFormData({ ...formData, cutiGantiHari: e.target.value })} className="h-12 bg-card rounded-xl font-bold" />
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-[10px] uppercase font-bold text-blue-600">Jam Ganti *</Label>
-                          <Input type="number" placeholder="0" value={formData.cutiGantiJam} onChange={e => setFormData({ ...formData, cutiGantiJam: parseInt(e.target.value) || 0 })} className="h-12 bg-white" />
+                          <Label className="text-[9px] font-black uppercase text-blue-600/70">Jam Ganti *</Label>
+                          <Input type="number" value={formData.cutiGantiJam} onChange={e => setFormData({ ...formData, cutiGantiJam: parseInt(e.target.value) || 0 })} className="h-12 bg-card rounded-xl font-bold" />
                         </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {formData.jenisCuti === "Cuti Tanpa Gaji" && (
-                    <div className="space-y-4 rounded-2xl border border-rose-100 bg-rose-50 p-4 animate-in fade-in zoom-in-95">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase font-bold text-rose-600">No. Tel H/P *</Label>
-                        <Input placeholder="Contoh: 012-3456789" value={formData.cutiTanpaGajiPhone} onChange={e => setFormData({ ...formData, cutiTanpaGajiPhone: e.target.value })} className="h-12 bg-white" />
-                      </div>
-                      <div className="flex items-center gap-3 pt-2">
-                        <input
-                          type="checkbox"
-                          id="signature"
-                          className="w-5 h-5 rounded border-rose-300 text-rose-600 focus:ring-rose-500"
-                          checked={formData.cutiTanpaGajiSignature}
-                          onChange={e => setFormData({ ...formData, cutiTanpaGajiSignature: e.target.checked })}
-                        />
-                        <Label htmlFor="signature" className="text-sm font-semibold text-rose-800 cursor-pointer">
-                          Tandatangan Kakitangan (Pengesahan Elektronik) *
-                        </Label>
                       </div>
                     </div>
                   )}
 
                   <div className="space-y-2">
-                    <Label className="text-slate-700">Tujuan / Sebab *</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Sebab / Tujuan *</Label>
                     <Textarea
-                      placeholder="Contoh: Urusan keluarga di kampung"
-                      className="min-h-[100px] border-slate-200"
+                      placeholder="CONTOH: URUSAN KELUARGA / KECEMASAN..."
+                      className="min-h-[120px] border-border/50 bg-muted/30 rounded-[20px] p-4 text-sm font-bold transition-all"
                       value={formData.tujuanCuti}
-                      onChange={e => setFormData({ ...formData, tujuanCuti: e.target.value })}
+                      onChange={e => setFormData({ ...formData, tujuanCuti: e.target.value.toUpperCase() })}
                     />
                   </div>
                 </div>
@@ -494,50 +478,69 @@ export default function LeaveManagement() {
               {currentStep === 3 && (
                 <div className="space-y-5 animate-in slide-in-from-right duration-500">
                   <div className="space-y-2">
-                    <Label className="text-slate-700">Nama Waris / Kecemasan *</Label>
-                    <Input value={formData.warisNama} onChange={e => setFormData({ ...formData, warisNama: e.target.value })} className="h-12" />
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Nama Waris / Kecemasan *</Label>
+                    <Input 
+                      value={formData.warisNama} 
+                      className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
+                      onChange={e => setFormData({ ...formData, warisNama: e.target.value.toUpperCase() })} 
+                    />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-slate-700">No Telefon Waris *</Label>
-                      <Input value={formData.warisPhone} onChange={e => setFormData({ ...formData, warisPhone: e.target.value })} className="h-12" />
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">No Telefon Waris *</Label>
+                      <Input 
+                        value={formData.warisPhone} 
+                        className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
+                        onChange={e => setFormData({ ...formData, warisPhone: e.target.value })} 
+                      />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-slate-700">Hubungan *</Label>
-                      <Input placeholder="Contoh: Isteri / Ayah" value={formData.warisHubungan} onChange={e => setFormData({ ...formData, warisHubungan: e.target.value })} className="h-12" />
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Hubungan *</Label>
+                      <Input 
+                        placeholder="CONTOH: ISTERI / AYAH" 
+                        value={formData.warisHubungan} 
+                        className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
+                        onChange={e => setFormData({ ...formData, warisHubungan: e.target.value.toUpperCase() })} 
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-slate-700">Alamat Waris *</Label>
-                    <Textarea value={formData.warisAlamat} onChange={e => setFormData({ ...formData, warisAlamat: e.target.value })} className="min-h-[80px]" />
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Alamat Waris *</Label>
+                    <Textarea 
+                      value={formData.warisAlamat} 
+                      className="min-h-[100px] border-border/50 bg-muted/30 rounded-2xl p-4 font-bold"
+                      onChange={e => setFormData({ ...formData, warisAlamat: e.target.value.toUpperCase() })} 
+                    />
                   </div>
-                  <div className="p-4 bg-slate-50 rounded-xl flex gap-3 text-xs text-slate-500 items-start">
-                    <Info className="w-5 h-5 text-[#601b8a] shrink-0" />
-                    <p>Dengan menekan butang <strong>Hantar</strong>, saya mengesahkan bahawa maklumat yang diberikan adalah benar dan saya bertanggungjawab sepenuhnya ke atas permohonan ini.</p>
+                  <div className="p-4 bg-rose-500/5 border border-rose-500/10 rounded-2xl flex gap-3 items-start">
+                    <Info className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
+                    <p className="text-[10px] font-bold text-rose-800 leading-relaxed uppercase tracking-tight">
+                      DENGAN MENEKAN BUTANG <strong>HANTAR</strong>, SAYA MENGESAHKAN BAHAWA MAKLUMAT YANG DIBERIKAN ADALAH BENAR.
+                    </p>
                   </div>
                 </div>
               )}
 
               {/* Navigasi Butang */}
-              <div className="flex gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-border/50">
                 <Button
                   type="button"
-                  variant="outline"
-                  className="flex-1 h-12 rounded-xl"
+                  variant="ghost"
+                  className="flex-1 h-12 sm:h-14 rounded-2xl font-black text-[10px] uppercase tracking-widest"
                   onClick={() => setCurrentStep(currentStep - 1)}
                 >
                   Kembali
                 </Button>
                 <Button
                   type="button"
-                  className="flex-[2] h-12 rounded-xl gap-2 bg-[#601b8a] font-bold text-white shadow-lg shadow-purple-900/20 hover:bg-[#4b1470]"
+                  className="flex-[2] h-12 sm:h-14 rounded-2xl gap-2 bg-[#7B0099] font-black text-[10px] uppercase tracking-widest text-white shadow-lg shadow-[#7B0099]/20 hover:bg-[#5e0080] active:scale-95 transition-all"
                   onClick={handleNext}
                   disabled={loading}
                 >
                   {currentStep === 3 ? (
-                    loading ? "MENGHANTAR..." : <><Send className="w-4 h-4" /> HANTAR PERMOHONAN</>
+                    loading ? "MENGHANTAR..." : <><Send className="w-4 h-4" /> Hantar Permohonan</>
                   ) : (
-                    "SETERUSNYA"
+                    "Seterusnya"
                   )}
                 </Button>
               </div>

@@ -138,121 +138,116 @@ export default function LeaveFormView() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <FileText className="w-6 h-6 text-primary" />
+          <div className="p-2 bg-[#7B0099]/10 dark:bg-[#7B0099]/20 rounded-xl text-[#7B0099] dark:text-purple-400">
+            <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold font-heading text-foreground">
-              Leave Form Application
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              View and print your submitted leave application forms
+            <h1 className="text-responsive-xl font-black text-foreground tracking-tight uppercase">My Leave Registry</h1>
+            <p className="text-responsive-sm text-muted-foreground font-medium italic">
+              Registry of your submitted leave application forms
             </p>
           </div>
         </div>
         <Button
-          variant="outline"
           onClick={() => navigate("/leave/apply")}
-          className="gap-2 bg-[#601b8a] text-white hover:bg-[#4b1470] hover:text-white"
+          className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-6 py-5 shadow-lg shadow-[#7B0099]/20 transition-all active:scale-95"
         >
           <FileText className="w-4 h-4" />
           New Application
         </Button>
       </div>
 
-      {/* Form Cards */}
-      <Card className="border-none shadow-md">
-        <CardHeader>
+      {/* Form List */}
+      <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
+        <CardHeader className="border-b border-border/50 pb-4 px-4 sm:px-6">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">My Submitted Forms</CardTitle>
-            <Badge variant="outline" className="font-mono">
-              {forms.length} Total
+            <div className="space-y-1">
+              <CardTitle className="text-base sm:text-lg font-black text-foreground">Submitted Forms</CardTitle>
+              <CardDescription className="text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-60">History of applications</CardDescription>
+            </div>
+            <Badge variant="outline" className="font-black text-[10px] px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none">
+              {forms.length} TOTAL
             </Badge>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6">
           {loading ? (
-            <div className="flex items-center justify-center p-8">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <div className="flex flex-col items-center justify-center p-12 gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Syncing History...</p>
             </div>
           ) : forms.length > 0 ? (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-3">
               {forms.map((form) => (
                 <div
                   key={form.id}
-                  className="group rounded-2xl border border-border/60 bg-white/80 p-5 shadow-sm hover:shadow-md hover:border-[#601b8a]/30 transition-all duration-300 cursor-pointer"
+                  className="group relative rounded-[20px] border border-border/50 bg-card/50 p-4 sm:p-5 hover:bg-[#7B0099]/5 hover:border-[#7B0099]/30 transition-all duration-300 cursor-pointer touch-target"
                   onClick={() => setSelectedForm(form)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setSelectedForm(form);
-                    }
-                  }}
                 >
-                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div className="flex items-start gap-4">
-                      <div className="rounded-xl bg-purple-50 p-3 text-[#601b8a] group-hover:bg-[#601b8a] group-hover:text-white transition-colors duration-300">
-                        <FileText className="h-5 w-5" />
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-start gap-4 min-w-0">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-[14px] sm:rounded-2xl bg-[#7B0099]/10 flex items-center justify-center text-[#7B0099] group-hover:scale-110 transition-transform duration-300">
+                        <FileText className="h-5 w-5 sm:h-6 sm:w-6" />
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-bold text-foreground group-hover:text-[#601b8a] transition-colors">
+                      <div className="min-w-0 space-y-1">
+                        <p className="text-sm font-black text-foreground truncate group-hover:text-[#7B0099] transition-colors">
                           {form.formFileName}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {leaveTypeLabels[form.type]} • Submitted on {form.appliedAt.slice(0, 10)}
-                        </p>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                        <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                          <span className="text-[#7B0099]/80">{leaveTypeLabels[form.type]}</span>
+                          <span className="opacity-30">•</span>
+                          <span>{form.appliedAt.slice(0, 10)}</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-[10px] font-bold text-muted-foreground mt-1 bg-muted/40 w-fit px-2 py-0.5 rounded-lg">
                           <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
+                            <Calendar className="w-3 h-3 opacity-50" />
                             {form.from} → {form.to}
                           </span>
-                          <span className="font-bold text-foreground">
-                            {form.days} {form.days === 1 ? "Day" : "Days"}
+                          <span className="text-foreground font-black">
+                            {form.days} DAYS
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col items-end gap-2 shrink-0">
                       <Badge
-                        variant={statusVariant(form.status)}
-                        className="text-[10px] font-semibold"
+                        className={`text-[9px] font-black px-2.5 h-5 shadow-sm ${
+                          form.status === "Approved" ? "bg-emerald-500" :
+                          form.status === "Rejected" ? "bg-rose-500" :
+                          "bg-amber-500 text-white"
+                        }`}
                       >
-                        {form.status}
+                        {form.status.replace('Pending ', '').toUpperCase()}
                       </Badge>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 w-8 p-0 text-[#601b8a] opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedForm(form);
-                        }}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
+                      <div className="p-1.5 rounded-full bg-[#7B0099]/5 text-[#7B0099] opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block">
+                        <Eye className="w-3.5 h-3.5" />
+                      </div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-border p-12 text-center">
-              <div className="bg-purple-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <FileText className="h-8 w-8 text-[#601b8a]/50" />
+            <div className="py-20 text-center flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-500">
+              <div className="w-20 h-20 rounded-[32px] bg-muted/30 flex items-center justify-center border-2 border-dashed border-border/50 group hover:border-[#7B0099]/30 transition-colors">
+                <FileText className="h-10 w-10 text-muted-foreground/30 group-hover:text-[#7B0099]/30 transition-colors" />
               </div>
-              <p className="text-sm font-bold text-muted-foreground">
-                No leave forms submitted yet.
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Click "New Application" to submit your first leave request.
-              </p>
+              <div className="space-y-1">
+                <p className="text-xs font-black text-foreground uppercase tracking-widest">No Leave Registry Found</p>
+                <p className="text-[10px] font-medium text-muted-foreground italic">You haven't submitted any leave applications yet</p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/leave/apply")}
+                className="mt-2 rounded-xl border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 font-black text-[10px] uppercase tracking-widest"
+              >
+                Start New Application
+              </Button>
             </div>
           )}
         </CardContent>
@@ -260,274 +255,209 @@ export default function LeaveFormView() {
 
       {/* Leave Form Dialog (Print/PDF View) */}
       <Dialog open={!!selectedForm} onOpenChange={(open) => !open && setSelectedForm(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 overflow-hidden safe-area-bottom">
           {selectedForm && (
             <>
-              <DialogHeader className="print:hidden">
-                <DialogTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-primary" />
-                  Leave Application Form
-                </DialogTitle>
-                <DialogDescription>
-                  Your submitted leave application. You can print or save as PDF.
-                </DialogDescription>
-              </DialogHeader>
+              <div className="p-6 bg-gradient-to-br from-[#7B0099] to-[#a855f7] text-white print:hidden">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-3 text-white text-xl font-black tracking-tight">
+                    <FileText className="h-6 w-6" />
+                    Leave Application Form
+                  </DialogTitle>
+                  <DialogDescription className="text-white/80 font-bold uppercase text-[10px] tracking-widest">
+                    Your Personal Registry • ID: {selectedForm.id}
+                  </DialogDescription>
+                </DialogHeader>
+              </div>
 
-              <div id="leave-form-print" className="rounded-lg border p-6 space-y-6 bg-white shadow-sm">
-                {/* Company Header */}
-                <div className="text-center border-b-2 border-slate-900 pb-4">
-                  <h2 className="text-2xl font-black tracking-tight text-slate-900">
-                    RAYHAR GROUP
-                  </h2>
-                  <p className="text-sm font-bold tracking-widest uppercase">
-                    Permohonan Cuti Kakitangan
-                  </p>
-                </div>
-
-                {/* Employee Info */}
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground">
-                      Nama Penuh
-                    </span>
-                    <p className="font-semibold border-b pb-1 border-slate-100">
-                      {selectedForm.employee}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground">
-                      Cawangan
-                    </span>
-                    <p className="font-semibold border-b pb-1 border-slate-100">
-                      {selectedForm.branch}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground">
-                      Jenis Cuti
-                    </span>
-                    <p className="font-semibold border-b pb-1 border-slate-100">
-                      {selectedForm.type}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground">
-                      Status Permohonan
-                    </span>
-                    <p className={`font-bold border-b pb-1 border-slate-100 uppercase ${selectedForm.status === "Rejected" ? "text-red-600" : "text-primary"}`}>
-                      {selectedForm.status}
-                      {selectedForm.status === "Rejected" && selectedForm.approverRole && (
-                        <span className="block text-[10px] text-red-500 mt-0.5">
-                          (by: {formatRole(selectedForm.approverRole)})
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground">
-                      Tarikh Permohonan
-                    </span>
-                    <p className="font-semibold border-b pb-1 border-slate-100">
-                      {selectedForm.appliedAt.slice(0, 10)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Date Duration */}
-                <div className="grid grid-cols-3 gap-4 text-sm border rounded-xl p-4 bg-muted/20">
-                  <div>
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground">
-                      Tarikh Mula
-                    </p>
-                    <p className="font-bold text-base">{selectedForm.from}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground">
-                      Tarikh Akhir
-                    </p>
-                    <p className="font-bold text-base">{selectedForm.to}</p>
-                  </div>
-                  <div className="text-center bg-white rounded-lg border flex flex-col justify-center py-1">
-                    <p className="text-[10px] uppercase font-bold text-primary">
-                      Bilangan Hari
-                    </p>
-                    <p className="font-black text-lg text-primary">
-                      {selectedForm.days} Hari
-                    </p>
-                  </div>
-                </div>
-
-                {/* Reason */}
-                <div className="text-sm">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">
-                    Tujuan / Sebab Cuti
-                  </p>
-                  <p className="rounded-lg border p-3 italic text-slate-700 bg-slate-50/50">
-                    "{selectedForm.reason || "-"}"
-                  </p>
-                </div>
-
-                {/* Conditional Fields: Cuti Ganti */}
-                {selectedForm.type === "Cuti Ganti" && (
-                  <div className="grid grid-cols-3 gap-4 text-sm border rounded-xl p-4 bg-blue-50/50 border-blue-100">
-                    <div>
-                      <p className="text-[10px] uppercase font-bold text-blue-600">Tarikh Cuti</p>
-                      <p className="font-bold text-base text-slate-900">{selectedForm.cutiGantiTarikh || "-"}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase font-bold text-blue-600">Tarikh/Hari Cuti Ganti</p>
-                      <p className="font-bold text-base text-slate-900">{selectedForm.cutiGantiHari || "-"}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase font-bold text-blue-600">Jam Ganti</p>
-                      <p className="font-bold text-base text-slate-900">{selectedForm.cutiGantiJam || 0} Jam</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Conditional Fields: Cuti Tanpa Gaji */}
-                {selectedForm.type === "Cuti Tanpa Gaji" && (
-                  <div className="grid grid-cols-2 gap-4 text-sm border rounded-xl p-4 bg-rose-50/50 border-rose-100">
-                    <div>
-                      <p className="text-[10px] uppercase font-bold text-rose-600">No. Tel H/P</p>
-                      <p className="font-bold text-base text-slate-900">{selectedForm.cutiTanpaGajiPhone || "-"}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase font-bold text-rose-600">Tandatangan Pengesahan</p>
-                      <p className="font-bold text-base text-slate-900">
-                        {selectedForm.cutiTanpaGajiSignature ? "✓ Disahkan" : "Tiada Pengesahan"}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Conditional Fields: Cuti Sakit (MC) */}
-                {selectedForm.type === "Cuti Sakit" && selectedForm.mcFileUrl && (
-                  <div className="text-sm p-4 bg-purple-50/50 border border-purple-100 rounded-xl">
-                    <p className="text-[10px] uppercase font-bold text-purple-600 mb-2">Lampiran MC</p>
-                    <a href={`https://rayhar-staff-production.up.railway.app${selectedForm.mcFileUrl}`} target="_blank" rel="noopener noreferrer" className="text-purple-700 underline font-semibold flex items-center gap-2">
-                      <FileText className="w-4 h-4" />
-                      View MC Attachment
-                    </a>
-                  </div>
-                )}
-
-                {/* Waris Section */}
-                <div className="space-y-3 pt-2">
-                  <div className="flex items-center gap-2 border-b pb-2">
-                    <PhoneCall className="w-4 h-4 text-red-600" />
-                    <h3 className="text-sm font-black uppercase tracking-tight">
-                      Maklumat Waris (Kecemasan)
-                    </h3>
+              <div id="leave-form-print" className="p-4 sm:p-8 space-y-6">
+                <div className="rounded-[24px] border border-border/50 p-6 sm:p-8 space-y-6 bg-card shadow-sm">
+                  <div className="text-center border-b-2 border-slate-900 pb-4">
+                    <h2 className="text-2xl font-black tracking-tighter text-slate-900">RAYHAR GROUP</h2>
+                    <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60">Permohonan Cuti Kakitangan</p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4 text-xs font-bold">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase">
-                        Nama Waris
-                      </label>
-                      <p className="text-sm font-semibold text-slate-900 border-b border-dotted pb-1">
-                        {selectedForm.warisNama}
-                      </p>
+                      <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Nama Penuh</span>
+                      <p className="border-b pb-1 border-border/40 truncate">{selectedForm.employee}</p>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase">
-                        Hubungan
-                      </label>
-                      <p className="text-sm font-semibold text-slate-900 border-b border-dotted pb-1">
-                        {selectedForm.warisHubungan}
-                      </p>
+                      <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Cawangan</span>
+                      <p className="border-b pb-1 border-border/40">{selectedForm.branch}</p>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase">
-                        No. Telefon
-                      </label>
-                      <p className="text-sm font-semibold text-slate-900 border-b border-dotted pb-1">
-                        {selectedForm.warisPhone}
-                      </p>
+                      <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Jenis Cuti</span>
+                      <p className="border-b pb-1 border-border/40">{selectedForm.type}</p>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase">
-                        Alamat Waris
-                      </label>
-                      <p className="text-sm font-semibold text-slate-900 border-b border-dotted pb-1">
-                        {selectedForm.warisAlamat}
+                      <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Status</span>
+                      <p className={`font-black uppercase ${selectedForm.status === "Rejected" ? "text-rose-600" : "text-[#7B0099]"}`}>
+                        {selectedForm.status}
+                        {selectedForm.status === "Rejected" && selectedForm.approverRole && (
+                          <span className="block text-[8px] text-rose-500 mt-0.5 opacity-60">
+                            (by: {formatRole(selectedForm.approverRole)})
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
-                </div>
 
-                {/* Approval History Timeline */}
-                {selectedForm.approvalHistory && selectedForm.approvalHistory.length > 0 && (
-                  <div className="space-y-4 pt-4 border-t print:hidden">
+                  <div className="grid grid-cols-3 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
+                    <div className="text-center">
+                      <p className="text-[9px] uppercase font-black text-muted-foreground opacity-50 mb-1">Dari</p>
+                      <p className="font-black text-xs sm:text-sm">{selectedForm.from}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-[9px] uppercase font-black text-muted-foreground opacity-50 mb-1">Hingga</p>
+                      <p className="font-black text-xs sm:text-sm">{selectedForm.to}</p>
+                    </div>
+                    <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
+                      <p className="text-[9px] uppercase font-black text-[#7B0099]">Hari</p>
+                      <p className="font-black text-lg text-[#7B0099] leading-none mt-0.5">{selectedForm.days}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50 tracking-widest">Sebab / Tujuan</p>
+                    <p className="rounded-[16px] border border-border/40 p-4 italic text-foreground/80 bg-muted/10 text-xs leading-relaxed">
+                      "{selectedForm.reason || "-"}"
+                    </p>
+                  </div>
+
+                  {/* Conditional Fields: Cuti Ganti */}
+                  {selectedForm.type === "Cuti Ganti" && (
+                    <div className="grid grid-cols-3 gap-4 text-[10px] border rounded-[20px] p-4 bg-blue-500/5 border-blue-500/20">
+                      <div>
+                        <p className="uppercase font-black text-blue-600 opacity-60">Tarikh Cuti</p>
+                        <p className="font-black mt-0.5">{selectedForm.cutiGantiTarikh || "-"}</p>
+                      </div>
+                      <div>
+                        <p className="uppercase font-black text-blue-600 opacity-60">Hari Ganti</p>
+                        <p className="font-black mt-0.5">{selectedForm.cutiGantiHari || "-"}</p>
+                      </div>
+                      <div>
+                        <p className="uppercase font-black text-blue-600 opacity-60">Jam Ganti</p>
+                        <p className="font-black mt-0.5">{selectedForm.cutiGantiJam || 0} Jam</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Conditional Fields: Cuti Tanpa Gaji */}
+                  {selectedForm.type === "Cuti Tanpa Gaji" && (
+                    <div className="grid grid-cols-2 gap-4 text-[10px] border rounded-[20px] p-4 bg-rose-500/5 border-rose-500/20">
+                      <div>
+                        <p className="uppercase font-black text-rose-600 opacity-60">No. Tel H/P</p>
+                        <p className="font-black mt-0.5">{selectedForm.cutiTanpaGajiPhone || "-"}</p>
+                      </div>
+                      <div>
+                        <p className="uppercase font-black text-rose-600 opacity-60">Tandatangan</p>
+                        <p className="font-black mt-0.5 text-rose-700">
+                          {selectedForm.cutiTanpaGajiSignature ? "✓ DISAHKAN" : "TIADA PENGESAHAN"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Conditional Fields: Cuti Sakit (MC) */}
+                  {selectedForm.type === "Cuti Sakit" && selectedForm.mcFileUrl && (
+                    <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
+                      <div className="flex items-center gap-3">
+                        <FileText className="w-5 h-5 text-[#7B0099]" />
+                        <span className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest">MC Attachment</span>
+                      </div>
+                      <a 
+                        href={`https://rayhar-staff-production.up.railway.app${selectedForm.mcFileUrl}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-[9px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
+                      >
+                        View File
+                      </a>
+                    </div>
+                  )}
+
+                  {/* Waris Section */}
+                  <div className="pt-4 border-t border-border/50 space-y-4">
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-[#601b8a]" />
-                      <h3 className="text-sm font-black uppercase tracking-tight">Approval History</h3>
+                      <PhoneCall className="w-4 h-4 text-rose-500" />
+                      <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
                     </div>
-                    <div className="relative space-y-6 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
-                      {selectedForm.approvalHistory.map((history, idx) => (
-                        <div key={idx} className="relative flex items-start gap-4 group">
-                          <div className={`absolute left-5 -translate-x-1/2 flex h-3 w-3 items-center justify-center rounded-full border-2 bg-white ${history.status === 'Approved' ? 'border-emerald-500' : 'border-rose-500'} z-10`} />
-                          <div className="ml-8 flex-1 bg-slate-50/50 rounded-2xl p-4 border border-slate-100 hover:border-[#601b8a]/20 transition-all">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                              <div className="flex items-center gap-2">
-                                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${history.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                                  {history.status}
+                    <div className="grid grid-cols-2 gap-4 bg-muted/20 p-4 rounded-[20px]">
+                      <div className="space-y-1">
+                        <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Nama</span>
+                        <p className="text-[11px] font-bold truncate">{selectedForm.warisNama}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Hubungan</span>
+                        <p className="text-[11px] font-bold truncate">{selectedForm.warisHubungan}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">No. Telefon</span>
+                        <p className="text-[11px] font-black text-[#7B0099]">{selectedForm.warisPhone}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Alamat</span>
+                        <p className="text-[10px] font-bold text-muted-foreground line-clamp-1">{selectedForm.warisAlamat}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Approval History Timeline */}
+                  {selectedForm.approvalHistory && selectedForm.approvalHistory.length > 0 && (
+                    <div className="space-y-4 pt-4 border-t border-border/50 print:hidden">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-[#7B0099]" />
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Approval History</h3>
+                      </div>
+                      <div className="relative space-y-4 before:absolute before:inset-0 before:ml-4 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border/50 before:to-transparent">
+                        {selectedForm.approvalHistory.map((history, idx) => (
+                          <div key={idx} className="relative flex items-start gap-4">
+                            <div className={`absolute left-4 -translate-x-1/2 flex h-2 w-2 items-center justify-center rounded-full border border-white dark:border-slate-900 ${history.status === 'Approved' ? 'bg-emerald-500' : 'bg-rose-500'} z-10`} />
+                            <div className="ml-6 flex-1 bg-muted/30 rounded-[16px] p-3 border border-border/40">
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
+                                    {history.status}
+                                  </span>
+                                  <span className="text-[10px] font-black text-foreground/70">by {history.approver_name || history.approver_id}</span>
+                                </div>
+                                <span className="text-[8px] font-black text-muted-foreground/50">
+                                  {new Date(history.created_at).toLocaleDateString('ms-MY')}
                                 </span>
-                                <span className="text-xs font-bold text-slate-700">by {history.approver_name || history.approver_id}</span>
-                                <Badge variant="outline" className="text-[9px] uppercase font-bold text-slate-400 border-slate-200">
-                                  {formatRole(history.approver_role)}
-                                </Badge>
                               </div>
-                              <span className="text-[10px] font-bold text-slate-400">
-                                {new Date(history.created_at).toLocaleString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                              </span>
+                              {history.remarks && (
+                                <p className="text-[10px] italic text-muted-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
+                                  "{history.remarks}"
+                                </p>
+                              )}
                             </div>
-                            {history.remarks && (
-                              <p className="text-xs italic text-slate-600 bg-white/80 p-2 rounded-lg border border-slate-100/50">
-                                "{history.remarks}"
-                              </p>
-                            )}
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="hidden print:grid grid-cols-2 gap-16 pt-12 pb-4">
+                    <div className="border-t border-slate-900 pt-2 text-center">
+                      <p className="text-[10px] font-bold uppercase">Tandatangan Kakitangan</p>
+                    </div>
+                    <div className="border-t border-slate-900 pt-2 text-center">
+                      <p className="text-[10px] font-bold uppercase">Kelulusan Pengurus / HR</p>
                     </div>
                   </div>
-                )}
 
-                {/* Signature section (visible on print only) */}
-                <div className="hidden print:grid grid-cols-2 gap-16 pt-12 pb-4">
-                  <div className="border-t border-slate-900 pt-2 text-center">
-                    <p className="text-[10px] font-bold uppercase">
-                      Tandatangan Kakitangan
-                    </p>
+                  <div className="pt-4 flex justify-end gap-3 print:hidden">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
+                      onClick={() => window.print()}
+                    >
+                      <Printer className="h-4 w-4" />
+                      Print / Save as PDF
+                    </Button>
                   </div>
-                  <div className="border-t border-slate-900 pt-2 text-center">
-                    <p className="text-[10px] font-bold uppercase">
-                      Kelulusan Pengurus / HR
-                    </p>
-                  </div>
-                </div>
-
-                {/* Action buttons (hidden on print) */}
-                <div className="pt-4 flex justify-end gap-3 print:hidden">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="gap-2 text-muted-foreground"
-                    onClick={() => setSelectedForm(null)}
-                  >
-                    Close
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="gap-2 border-primary text-primary hover:bg-primary/5"
-                    onClick={() => window.print()}
-                  >
-                    <Printer className="h-4 w-4" />
-                    Print / Save as PDF
-                  </Button>
                 </div>
               </div>
             </>
