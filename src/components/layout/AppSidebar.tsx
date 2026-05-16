@@ -90,9 +90,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       roles: ["hr_admin"],
       children: [
         { title: "Department", icon: Building2, path: "/master/department", roles: ["hr_admin"] },
-        { title: "Designation", icon: Users, path: "/master/designation", roles: ["hr_admin"] },
         { title: "User", icon: Users, path: "/employees", roles: ["hr_admin"] },
-        { title: "Role", icon: Users, path: "/master/role", roles: ["hr_admin"] },
       ],
     },
     { title: "Branches", icon: Building2, path: "/branches", roles: ["hr_admin", "managing_director", "finance_manager"] },
