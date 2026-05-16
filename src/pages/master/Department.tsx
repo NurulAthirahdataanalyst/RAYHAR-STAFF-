@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Users, Loader2 } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
+import { useNavigate } from "react-router-dom";
 
 const DEPARTMENTS = [
   "IT",
@@ -16,6 +17,7 @@ const DEPARTMENTS = [
 
 export default function Department() {
   const { role, userBranch } = useRole();
+  const navigate = useNavigate();
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -82,7 +84,11 @@ export default function Department() {
           {DEPARTMENTS.map((dept) => {
             const stats = getDepartmentStats(dept);
             return (
-              <Card key={dept} className="border-border/50 shadow-sm overflow-hidden bg-card/60 backdrop-blur-md hover:border-[#7B0099]/30 transition-colors group">
+              <Card 
+                key={dept} 
+                className="border-border/50 shadow-sm overflow-hidden bg-card/60 backdrop-blur-md hover:border-[#7B0099]/30 transition-colors group cursor-pointer"
+                onClick={() => navigate(`/master/department/${encodeURIComponent(dept)}`)}
+              >
                 <CardHeader className="pb-2 border-b border-border/50 bg-muted/20">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">

@@ -22,8 +22,8 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import RealTimeCalendar from "@/components/RealTimeCalendar";
 import MasterPlaceholder from "./pages/master/Placeholder";
-
 import Department from "./pages/master/Department";
+import DepartmentDetails from "./pages/master/DepartmentDetails";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +68,7 @@ function ProtectedRoutes() {
           
           {/* Master Section */}
           <Route path="/master/department" element={<Department />} />
+          <Route path="/master/department/:deptName" element={<DepartmentDetails />} />
           <Route path="/master/designation" element={<MasterPlaceholder title="Designation" />} />
           <Route path="/master/role" element={<MasterPlaceholder title="Role" />} />
 

@@ -747,6 +747,69 @@ app.get("/api/employees", async (req, res) => {
 });
 
 // ===============================
+// DEPARTMENT HOD TRANSFER
+// ===============================
+app.post("/api/departments/hod-transfer", async (req, res) => {
+  const { departmentName, newHodUserId, changedByUserId, branch } = req.body;
+
+  if (!departmentName || !newHodUserId || !changedByUserId) {
+    return res.status(400).json({ success: false, error: "Missing required fields" });
+  }
+
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // 1. Find the current HOD for this department and branch
+    const [currentHodRows] = await connection.query(
+      `SELECT ur.user_id 
+       FROM user_role ur 
+       JOIN profiles p ON p.user_id = ur.user_id 
+       WHERE ur.role = 'head_of_department' 
+       AND p.department = ? 
+       AND p.branch = ?`,
+      [departmentName, branch || 'HQ']
+    );
+
+    const previousHodId = currentHodRows.length > 0 ? currentHodRows[0].user_id : null;
+
+    // 2. If there's an existing HOD, demote them to 'employee'
+    if (previousHodId) {
+      await connection.query(
+        "UPDATE user_role SET role = 'employee' WHERE user_id = ?",
+        [previousHodId]
+      );
+    }
+
+    // 3. Promote the new user to 'head_of_department'
+    await connection.query(
+      "UPDATE user_role SET role = 'head_of_department', department = ? WHERE user_id = ?",
+      [departmentName, newHodUserId]
+    );
+    await connection.query(
+      "UPDATE profiles SET department = ? WHERE user_id = ?",
+      [departmentName, newHodUserId]
+    );
+
+    // 4. Log the transfer in hod_history
+    await connection.query(
+      `INSERT INTO hod_history (department, previous_hod_id, new_hod_id, changed_by_id) 
+       VALUES (?, ?, ?, ?)`,
+      [departmentName, previousHodId, newHodUserId, changedByUserId]
+    );
+
+    await connection.commit();
+    res.json({ success: true, message: "HOD transferred successfully" });
+  } catch (err) {
+    await connection.rollback();
+    console.error("HOD Transfer Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  } finally {
+    connection.release();
+  }
+});
+
+// ===============================
 // LOGIN
 // ===============================
 const jwt = require("jsonwebtoken");

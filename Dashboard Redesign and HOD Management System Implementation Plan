@@ -1,0 +1,46 @@
+# Dashboard Redesign and HOD Management System Implementation Plan
+
+This plan outlines the steps to implement the requested "Presence Feed" on the Dashboard and the detailed "Department Management" page with a secure HOD replacement system.
+
+## Proposed Changes
+
+### 1. Database Schema (Backend)
+- Create a new script `backend/migrate_hod.js` to create the `hod_history` table in the database if it doesn't exist.
+- The `hod_history` table will track `id`, `department`, `previous_hod_id`, `new_hod_id`, `changed_by_id`, and `changed_at`.
+
+### 2. Backend API Updates (`backend/server.js`)
+- Add a new endpoint: `POST /api/departments/hod-transfer`.
+  - Input: `departmentName`, `newHodUserId`, `changedByUserId`.
+  - Validation: Ensure the `newHodUserId` belongs to the correct department.
+  - Action: Find the current HOD, change their role to `employee`, set the new user's role to `head_of_department`, and log the action into `hod_history`.
+
+### 3. Frontend Dashboard Redesign (`src/components/layout/AppLayout.tsx` & `src/components/PresenceFeed.tsx`)
+- Create a new component `PresenceFeed.tsx` that fetches `/api/employees` and displays real-time attendance (Present, Late, Absent, On Leave, MC).
+- Update `AppLayout.tsx` to replace the existing hardcoded Calendar component with the new `PresenceFeed` component. This feed will be prominent on the dashboard.
+- Implement filtering and search inside `PresenceFeed`.
+
+### 4. Department Details & HOD Management (`src/pages/master/DepartmentDetails.tsx`)
+- Update `src/pages/master/Department.tsx` to make the department cards clickable, navigating to `/master/department/:deptName`.
+- Create a new page `DepartmentDetails.tsx` that will display:
+  - Department statistics (Total Staff, Active Staff).
+  - Current HOD.
+  - A modal to trigger the **HOD Transfer System**. The modal will show a confirmation stating the previous HOD will be demoted and replaced.
+  - Full employee list for the selected department.
+- Update `App.tsx` to include the route for `/master/department/:deptName`.
+
+## User Review Required
+
+> [!IMPORTANT]
+> The HOD transfer system will immediately change the previous HOD's access level to a standard `employee` and promote the new user to `head_of_department`. Is this the intended behavior, or should there be a separate "Acting HOD" role?
+
+> [!WARNING]
+> The Presence Feed will replace the Calendar on the right-hand side of the dashboard. Do you want this Presence Feed to be visible only to `hr_admin` and managers, or should it be visible to all staff? (The plan assumes it is primarily targeted for `hr_admin` and managers based on your request).
+
+## Verification Plan
+### Automated Verification
+- Run the migration script to create the `hod_history` table.
+- Verify `POST /api/departments/hod-transfer` executes the transaction and updates roles correctly.
+
+### Manual Verification
+- Check the dashboard as an `hr_admin` to see the new Presence Feed.
+- Click on a Department, verify the staff list, and attempt an HOD transfer. Confirm the UI updates and the previous HOD is replaced.

@@ -1,4 +1,5 @@
 import AppSidebar from "./AppSidebar";
+import PresenceFeed from "../PresenceFeed";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -232,63 +233,67 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
 
               {/* Kad Cuti - Efek Kaca (Glassmorphism) sangat sesuai dengan PNG watercolor */}
-              <div className="bg-card/80 dark:bg-card/40 backdrop-blur-md p-6 rounded-[25px] shadow-xl border border-white/40 dark:border-white/10">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-                    Calendar
-                  </h3>
-                  <span className="text-xs font-black text-[#7B0099] dark:text-purple-400">
-                    {monthName} {calendarYear}
-                  </span>
-                </div>
-                <div className="mb-5 rounded-[20px] bg-white/45 dark:bg-black/20 p-3 border border-white/30 dark:border-white/5">
-                  <div className="grid grid-cols-7 gap-1 mb-2">
-                    {weekdays.map((day, index) => (
-                      <span key={`${day}-${index}`} className="text-center text-[10px] font-black text-muted-foreground/60">
-                        {day}
-                      </span>
-                    ))}
+              {["hr_admin", "managing_director"].includes(resolvedRole) ? (
+                <PresenceFeed />
+              ) : (
+                <div className="bg-card/80 dark:bg-card/40 backdrop-blur-md p-6 rounded-[25px] shadow-xl border border-white/40 dark:border-white/10">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                      Calendar
+                    </h3>
+                    <span className="text-xs font-black text-[#7B0099] dark:text-purple-400">
+                      {monthName} {calendarYear}
+                    </span>
                   </div>
-                  <div className="grid grid-cols-7 gap-1">
-                    {calendarDays.map((day, index) => {
-                      const isToday = day === today.getDate();
-                      const isHoliday = calendarMonth === 3 && day === 22;
+                  <div className="mb-5 rounded-[20px] bg-white/45 dark:bg-black/20 p-3 border border-white/30 dark:border-white/5">
+                    <div className="grid grid-cols-7 gap-1 mb-2">
+                      {weekdays.map((day, index) => (
+                        <span key={`${day}-${index}`} className="text-center text-[10px] font-black text-muted-foreground/60">
+                          {day}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-7 gap-1">
+                      {calendarDays.map((day, index) => {
+                        const isToday = day === today.getDate();
+                        const isHoliday = calendarMonth === 3 && day === 22;
 
-                      return (
-                        <div
-                          key={index}
-                          className={`aspect-square rounded-lg flex items-center justify-center text-[11px] font-bold ${
-                            !day
-                              ? "text-transparent"
-                              : isToday
-                                ? "bg-[#7B0099] text-white shadow-lg shadow-purple-900/20"
-                                : isHoliday
-                                  ? "bg-[#C2185B] text-white"
-                                  : "text-foreground/80 hover:bg-white/60 dark:hover:bg-white/10"
-                          }`}
-                        >
-                          {day || "."}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-                <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">
-                  Upcoming Holidays
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4 p-3 bg-white/40 dark:bg-white/5 rounded-[20px] border border-white/20 dark:border-white/5">
-                    <div className="bg-[#C2185B] text-white p-2 rounded-xl font-bold text-center min-w-[50px] shadow-lg">
-                      <span className="block text-[10px] uppercase opacity-80">Apr</span>
-                      <span className="text-lg leading-none font-black">22</span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-foreground">Hari Raya Aidilfitri</p>
-                      <p className="text-[10px] text-muted-foreground font-medium italic">Public Holiday</p>
+                        return (
+                          <div
+                            key={index}
+                            className={`aspect-square rounded-lg flex items-center justify-center text-[11px] font-bold ${
+                              !day
+                                ? "text-transparent"
+                                : isToday
+                                  ? "bg-[#7B0099] text-white shadow-lg shadow-purple-900/20"
+                                  : isHoliday
+                                    ? "bg-[#C2185B] text-white"
+                                    : "text-foreground/80 hover:bg-white/60 dark:hover:bg-white/10"
+                            }`}
+                          >
+                            {day || "."}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">
+                    Upcoming Holidays
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4 p-3 bg-white/40 dark:bg-white/5 rounded-[20px] border border-white/20 dark:border-white/5">
+                      <div className="bg-[#C2185B] text-white p-2 rounded-xl font-bold text-center min-w-[50px] shadow-lg">
+                        <span className="block text-[10px] uppercase opacity-80">Apr</span>
+                        <span className="text-lg leading-none font-black">22</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-foreground">Hari Raya Aidilfitri</p>
+                        <p className="text-[10px] text-muted-foreground font-medium italic">Public Holiday</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
 
             </aside>
           </div>
