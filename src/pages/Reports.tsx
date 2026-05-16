@@ -524,7 +524,7 @@ export default function Reports() {
                   </div>
                   Branch Attendance Stats ({months.find(m => m.value === selectedMonth)?.label})
                 </CardTitle>
-                <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacityAve-60 ml-11 italic">Monthly Average Attendance by Branch</CardDescription>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">Monthly Average Attendance by Branch</CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
                 {loadingAnalytics ? (
@@ -680,7 +680,7 @@ export default function Reports() {
                 </div>
                 <div className="flex-1 min-h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={rankedData} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
+                    <BarChart data={liveBranchRanking} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" horizontal={true} vertical={false} />
                       <XAxis type="number" domain={[0, 100]} hide />
                       <YAxis dataKey="branch" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 900, fill: 'hsl(var(--foreground))' }} width={50} />
@@ -691,7 +691,7 @@ export default function Reports() {
                         labelStyle={{ color: '#7B0099', fontWeight: 900, marginBottom: '4px' }}
                       />
                       <Bar dataKey="rate" radius={[0, 12, 12, 0]} barSize={28} animationDuration={1500}>
-                        {rankedData.map((entry, index) => (
+                        {liveBranchRanking.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.fill} />
                         ))}
                         <LabelList dataKey="rate" position="right" formatter={(val: number) => `${val}%`} style={{ fontSize: '11px', fontWeight: 900, fill: 'hsl(var(--muted-foreground))' }} />
