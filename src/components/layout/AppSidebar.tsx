@@ -94,7 +94,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       ],
     },
     { title: "Branches", icon: Building2, path: "/branches", roles: ["hr_admin", "managing_director", "finance_manager"] },
-    { title: "Reports", icon: BarChart3, path: "/reports", roles: ADMIN_ROLES },
+    { title: "Analytical", icon: BarChart3, path: "/reports", roles: ADMIN_ROLES },
   ];
 
   const filteredItems = menuItems.filter((item) =>
