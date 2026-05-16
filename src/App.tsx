@@ -23,6 +23,8 @@ import NotFound from "./pages/NotFound";
 import RealTimeCalendar from "@/components/RealTimeCalendar";
 import MasterPlaceholder from "./pages/master/Placeholder";
 
+import Department from "./pages/master/Department";
+
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
@@ -64,8 +66,8 @@ function ProtectedRoutes() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/calendar" element={<RealTimeCalendar />} />
           
-          {/* Master Section Placeholders */}
-          <Route path="/master/department" element={<MasterPlaceholder title="Department" />} />
+          {/* Master Section */}
+          <Route path="/master/department" element={<Department />} />
           <Route path="/master/designation" element={<MasterPlaceholder title="Designation" />} />
           <Route path="/master/role" element={<MasterPlaceholder title="Role" />} />
 

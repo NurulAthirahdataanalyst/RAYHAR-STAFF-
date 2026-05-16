@@ -6,20 +6,27 @@ import { Loader2, Clock, Calendar, Fingerprint, Hand, Timer } from "lucide-react
 const formatAttendanceTime = (value: unknown) => {
   if (!value) return "--:--";
 
-  const parsed =
-    value instanceof Date
-      ? value
-      : typeof value === "string" && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(value)
-        ? new Date(value.replace(" ", "T"))
-        : new Date(value as string | number);
+  try {
+    let dateStr = typeof value === "string" ? value : String(value);
+    
+    // Backend sometimes returns the time as UTC (e.g. ends with Z) but the time is already 
+    // in Malaysia time. We remove the Z so JS parses it as local time instead of adding 8 hours.
+    if (typeof value === "string") {
+      dateStr = dateStr.replace(" ", "T").replace(/Z$/, "").replace(/\+00:?00$/, "");
+    }
 
-  if (Number.isNaN(parsed.getTime())) return "--:--";
+    const parsed = value instanceof Date ? value : new Date(dateStr);
 
-  return parsed.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
+    if (Number.isNaN(parsed.getTime())) return "--:--";
+
+    return parsed.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  } catch (e) {
+    return "--:--";
+  }
 };
 
 export default function Attendance() {
