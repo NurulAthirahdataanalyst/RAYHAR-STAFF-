@@ -225,7 +225,7 @@ export default function DepartmentDetails() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="text-xs text-muted-foreground uppercase bg-muted/30 font-black tracking-wider">
+              <thead className="text-xs text-foreground uppercase bg-muted/30 font-black tracking-wider">
                 <tr>
                   <th className="px-6 py-4">Employee</th>
                   <th className="px-6 py-4">Role</th>

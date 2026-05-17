@@ -274,9 +274,12 @@ export default function LeaveFormView() {
 
                     <div className="flex flex-col items-end gap-2 shrink-0">
                       <Badge
-                        className={`text-[9px] font-black px-2.5 h-5 shadow-sm ${
-                          form.status === "Approved" ? "bg-emerald-500" :
-                          form.status === "Rejected" ? "bg-rose-500" :
+                        className={`text-[10px] font-black px-2.5 py-1 h-auto shadow-sm whitespace-nowrap ${
+                          form.status === "Approved" ? "bg-emerald-500 text-white" :
+                          form.status === "Rejected" ? "bg-rose-600 text-white" :
+                          form.status === "Pending Finance" ? "bg-orange-500 text-white" :
+                          form.status === "Pending MD" ? "bg-blue-600 text-white" :
+                          form.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
                           "bg-amber-500 text-white"
                         }`}
                       >

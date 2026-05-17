@@ -304,7 +304,7 @@ export default function Reports() {
                 {/* Desktop Table */}
                 <div className="relative overflow-x-auto hidden md:block">
                   <table className="w-full text-sm text-left">
-                    <thead className="bg-muted/30 text-muted-foreground uppercase text-[10px] font-black tracking-widest">
+                    <thead className="bg-muted/30 text-foreground uppercase text-[10px] font-black tracking-widest">
                       <tr>
                         <th className="px-6 py-4">Employee</th>
                         <th className="px-6 py-4">Branch</th>

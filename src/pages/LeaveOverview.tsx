@@ -179,7 +179,7 @@ export default function LeaveOverview() {
           {/* Desktop Table */}
           <div className="overflow-x-auto hidden sm:block">
             <table className="w-full text-sm text-left">
-              <thead className="bg-muted/30 text-muted-foreground uppercase text-[10px] font-black tracking-widest">
+              <thead className="bg-muted/30 text-foreground uppercase text-[10px] font-black tracking-widest">
                 <tr>
                   <th className="px-6 py-4">Leave Type</th>
                   <th className="px-6 py-4">From</th>
@@ -198,10 +198,13 @@ export default function LeaveOverview() {
                       <td className="px-6 py-4 text-center font-black text-foreground">{req.days}</td>
                       <td className="px-6 py-4 text-center">
                         <Badge
-                          className={`text-[9px] font-black px-2.5 h-5 shadow-sm ${
-                            req.status === "Approved" ? "bg-emerald-500" :
-                            req.status === "Rejected" ? "bg-rose-500" :
-                            "bg-amber-500 text-white border-none"
+                          className={`text-[11px] font-black px-3 py-1 h-auto shadow-sm whitespace-nowrap ${
+                            req.status === "Approved" ? "bg-emerald-500 text-white" :
+                            req.status === "Rejected" ? "bg-rose-600 text-white" :
+                            req.status === "Pending Finance" ? "bg-orange-500 text-white" :
+                            req.status === "Pending MD" ? "bg-blue-600 text-white" :
+                            req.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
+                            "bg-amber-500 text-white"
                           }`}
                         >
                           {req.status.toUpperCase()}
@@ -228,10 +231,13 @@ export default function LeaveOverview() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-black text-foreground">{leaveTypeLabels[req.type]}</span>
                     <Badge
-                      className={`text-[9px] font-black h-5 ${
-                        req.status === "Approved" ? "bg-emerald-500" :
-                        req.status === "Rejected" ? "bg-rose-500" :
-                        "bg-amber-500 text-white border-none"
+                      className={`text-[10px] font-black h-auto py-1 px-2.5 whitespace-nowrap ${
+                        req.status === "Approved" ? "bg-emerald-500 text-white" :
+                        req.status === "Rejected" ? "bg-rose-600 text-white" :
+                        req.status === "Pending Finance" ? "bg-orange-500 text-white" :
+                        req.status === "Pending MD" ? "bg-blue-600 text-white" :
+                        req.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
+                        "bg-amber-500 text-white"
                       }`}
                     >
                       {req.status.replace('Pending ', '').toUpperCase()}

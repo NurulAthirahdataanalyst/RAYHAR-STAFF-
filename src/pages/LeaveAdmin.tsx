@@ -276,7 +276,7 @@ export default function LeaveAdmin() {
               {/* Desktop Table */}
               <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full text-sm text-left">
-                  <thead className="bg-muted/30 text-muted-foreground uppercase text-[10px] font-black tracking-widest">
+                  <thead className="bg-muted/30 text-foreground uppercase text-[10px] font-black tracking-widest">
                     <tr>
                       <th className="px-6 py-4">Employee</th>
                       <th className="px-6 py-4">Leave Type</th>
@@ -316,10 +316,13 @@ export default function LeaveAdmin() {
                           </td>
                           <td className="px-6 py-4">
                             <Badge
-                              className={`text-[9px] font-black px-2.5 h-5 ${
-                                req.status === "Approved" ? "bg-emerald-500" :
-                                req.status === "Rejected" ? "bg-rose-500" :
-                                "bg-amber-500 text-white border-none"
+                              className={`text-[11px] font-black px-3 py-1 h-auto whitespace-nowrap ${
+                                req.status === "Approved" ? "bg-emerald-500 text-white" :
+                                req.status === "Rejected" ? "bg-rose-600 text-white" :
+                                req.status === "Pending Finance" ? "bg-orange-500 text-white" :
+                                req.status === "Pending MD" ? "bg-blue-600 text-white" :
+                                req.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
+                                "bg-amber-500 text-white"
                               }`}
                             >
                               {req.status.toUpperCase()}
@@ -377,10 +380,13 @@ export default function LeaveAdmin() {
                           <p className="font-black text-sm text-foreground truncate">{req.employee}</p>
                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">{req.branch}</p>
                         </div>
-                        <Badge className={`text-[9px] font-black h-5 shrink-0 ${
-                          req.status === "Approved" ? "bg-emerald-500" :
-                          req.status === "Rejected" ? "bg-rose-500" :
-                          "bg-amber-500"
+                        <Badge className={`text-[10px] font-black h-auto py-1 px-2.5 shrink-0 whitespace-nowrap ${
+                          req.status === "Approved" ? "bg-emerald-500 text-white" :
+                          req.status === "Rejected" ? "bg-rose-600 text-white" :
+                          req.status === "Pending Finance" ? "bg-orange-500 text-white" :
+                          req.status === "Pending MD" ? "bg-blue-600 text-white" :
+                          req.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
+                          "bg-amber-500 text-white"
                         }`}>
                           {req.status.replace('Pending ', '').toUpperCase()}
                         </Badge>

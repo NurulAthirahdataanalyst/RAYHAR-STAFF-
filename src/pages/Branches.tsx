@@ -185,7 +185,7 @@ export default function Branches() {
                 <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-muted/30 text-muted-foreground border-b border-border">
+                      <tr className="bg-muted/30 text-foreground border-b border-border">
                         <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Personnel</th>
                         <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Leave Bal.</th>
                         <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Attendance</th>
