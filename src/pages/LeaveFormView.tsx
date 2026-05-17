@@ -67,12 +67,30 @@ const statusVariant = (status: string) => {
   }
 };
 
+type FormTabFilter = "pending" | "approved" | "history";
+
 export default function LeaveFormView() {
   const navigate = useNavigate();
   const { userId, userName, userBranch } = useRole();
   const [forms, setForms] = useState<LeaveForm[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedForm, setSelectedForm] = useState<LeaveForm | null>(null);
+  const [activeTab, setActiveTab] = useState<FormTabFilter>("pending");
+
+  // Filter forms based on active tab
+  const filteredForms = forms.filter((form) => {
+    switch (activeTab) {
+      case "pending":
+        return form.status.startsWith("Pending");
+      case "approved":
+        return form.status === "Approved";
+      case "history":
+        return true; // Show all
+    }
+  });
+
+  const pendingCount = forms.filter((f) => f.status.startsWith("Pending")).length;
+  const approvedCount = forms.filter((f) => f.status === "Approved").length;
 
   useEffect(() => {
     void fetchForms();
@@ -163,15 +181,51 @@ export default function LeaveFormView() {
 
       {/* Form List */}
       <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
-        <CardHeader className="border-b border-border/50 pb-4 px-4 sm:px-6">
-          <div className="flex items-center justify-between">
+        <CardHeader className="border-b border-border/50 pb-0 px-4 sm:px-6">
+          <div className="flex items-center justify-between mb-4">
             <div className="space-y-1">
               <CardTitle className="text-base sm:text-lg font-black text-foreground">Submitted Forms</CardTitle>
-              <CardDescription className="text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-60">History of applications</CardDescription>
+              <CardDescription className="text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-60">
+                Track your leave application status
+              </CardDescription>
             </div>
             <Badge variant="outline" className="font-black text-[10px] px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none">
-              {forms.length} TOTAL
+              {filteredForms.length} {activeTab === "pending" ? "PENDING" : activeTab === "approved" ? "APPROVED" : "TOTAL"}
             </Badge>
+          </div>
+          {/* Tab Navigation */}
+          <div className="flex gap-0 border-b-0">
+            {([
+              { key: "pending" as FormTabFilter, label: "Pending", count: pendingCount },
+              { key: "approved" as FormTabFilter, label: "Approved", count: approvedCount },
+              { key: "history" as FormTabFilter, label: "History", count: forms.length },
+            ]).map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveTab(tab.key)}
+                className={`relative px-4 sm:px-6 py-3 text-[11px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${
+                  activeTab === tab.key 
+                    ? "text-[#7B0099]" 
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {tab.label}
+                {tab.count > 0 && (
+                  <span className={`ml-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-full transition-colors duration-300 ${
+                    activeTab === tab.key 
+                      ? "bg-[#7B0099] text-white" 
+                      : "bg-muted text-muted-foreground"
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
+                {/* Animated underline */}
+                {activeTab === tab.key && (
+                  <span className="absolute bottom-0 left-2 right-2 h-[3px] bg-[#7B0099] rounded-full animate-in fade-in slide-in-from-bottom-1 duration-300" />
+                )}
+              </button>
+            ))}
           </div>
         </CardHeader>
         <CardContent className="p-4 sm:p-6">
@@ -180,9 +234,9 @@ export default function LeaveFormView() {
               <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Syncing History...</p>
             </div>
-          ) : forms.length > 0 ? (
+          ) : filteredForms.length > 0 ? (
             <div className="grid grid-cols-1 gap-3">
-              {forms.map((form) => (
+              {filteredForms.map((form) => (
                 <div
                   key={form.id}
                   className="group relative rounded-[20px] border border-border/50 bg-card/50 p-4 sm:p-5 hover:bg-[#7B0099]/5 hover:border-[#7B0099]/30 transition-all duration-300 cursor-pointer touch-target"
@@ -238,16 +292,22 @@ export default function LeaveFormView() {
                 <FileText className="h-10 w-10 text-muted-foreground/30 group-hover:text-[#7B0099]/30 transition-colors" />
               </div>
               <div className="space-y-1">
-                <p className="text-xs font-black text-foreground uppercase tracking-widest">No Leave Registry Found</p>
-                <p className="text-[10px] font-medium text-muted-foreground italic">You haven't submitted any leave applications yet</p>
+                <p className="text-xs font-black text-foreground uppercase tracking-widest">
+                  {activeTab === "pending" ? "No Pending Applications" : activeTab === "approved" ? "No Approved Applications" : "No Leave Registry Found"}
+                </p>
+                <p className="text-[10px] font-medium text-muted-foreground italic">
+                  {activeTab === "pending" ? "All your applications have been processed" : activeTab === "approved" ? "No applications approved yet" : "You haven't submitted any leave applications yet"}
+                </p>
               </div>
-              <Button
-                variant="outline"
-                onClick={() => navigate("/leave/apply")}
-                className="mt-2 rounded-xl border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 font-black text-[10px] uppercase tracking-widest"
-              >
-                Start New Application
-              </Button>
+              {activeTab === "history" && (
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/leave/apply")}
+                  className="mt-2 rounded-xl border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 font-black text-[10px] uppercase tracking-widest"
+                >
+                  Start New Application
+                </Button>
+              )}
             </div>
           )}
         </CardContent>

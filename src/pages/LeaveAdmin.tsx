@@ -56,18 +56,36 @@ const APPROVER_ROLES = ["managing_director", "finance_manager", "head_of_departm
 // Roles that can see the leave admin panel (view + approve or view only)
 const ADMIN_VIEW_ROLES = ["hr_admin", "branch_leader", ...APPROVER_ROLES];
 
+type TabFilter = "pending" | "approved" | "history";
+
 export default function LeaveAdmin() {
   const { role, userBranch, userDepartment, userId } = useRole();
   const canApprove = APPROVER_ROLES.includes(role);
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
+  const [activeTab, setActiveTab] = useState<TabFilter>("pending");
   
   // Remarks Modal State
   const [remarksDialogOpen, setRemarksDialogOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<{id: number, action: "approve" | "reject", status: string} | null>(null);
   const [remarks, setRemarks] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Filter requests based on active tab
+  const filteredRequests = requests.filter((req) => {
+    switch (activeTab) {
+      case "pending":
+        return req.status.startsWith("Pending");
+      case "approved":
+        return req.status === "Approved";
+      case "history":
+        return true; // Show all
+    }
+  });
+
+  const pendingCount = requests.filter((r) => r.status.startsWith("Pending")).length;
+  const approvedCount = requests.filter((r) => r.status === "Approved").length;
 
   useEffect(() => {
     void fetchRequests();
@@ -196,15 +214,51 @@ export default function LeaveAdmin() {
       </div>
 
       <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
-        <CardHeader className="border-b border-border/50 pb-4">
-          <div className="flex items-center justify-between">
+        <CardHeader className="border-b border-border/50 pb-0">
+          <div className="flex items-center justify-between mb-4">
             <div className="space-y-1">
-              <CardTitle className="text-base sm:text-lg font-black text-foreground">Recent Applications</CardTitle>
-              <CardDescription className="text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-60">Pending your review</CardDescription>
+              <CardTitle className="text-base sm:text-lg font-black text-foreground">Leave Applications</CardTitle>
+              <CardDescription className="text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-60">
+                Review and manage employee leave applications
+              </CardDescription>
             </div>
             <Badge variant="outline" className="font-black text-[10px] px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none">
-              {requests.filter((r) => r.status.startsWith("Pending")).length} PENDING
+              {filteredRequests.length} {activeTab === "pending" ? "PENDING" : activeTab === "approved" ? "APPROVED" : "TOTAL"}
             </Badge>
+          </div>
+          {/* Tab Navigation */}
+          <div className="flex gap-0 border-b-0">
+            {([
+              { key: "pending" as TabFilter, label: "Pending", count: pendingCount },
+              { key: "approved" as TabFilter, label: "Approved", count: approvedCount },
+              { key: "history" as TabFilter, label: "History", count: requests.length },
+            ]).map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveTab(tab.key)}
+                className={`relative px-4 sm:px-6 py-3 text-[11px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${
+                  activeTab === tab.key 
+                    ? "text-[#7B0099]" 
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {tab.label}
+                {tab.count > 0 && (
+                  <span className={`ml-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-full transition-colors duration-300 ${
+                    activeTab === tab.key 
+                      ? "bg-[#7B0099] text-white" 
+                      : "bg-muted text-muted-foreground"
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
+                {/* Animated underline */}
+                {activeTab === tab.key && (
+                  <span className="absolute bottom-0 left-2 right-2 h-[3px] bg-[#7B0099] rounded-full animate-in fade-in slide-in-from-bottom-1 duration-300" />
+                )}
+              </button>
+            ))}
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -229,8 +283,8 @@ export default function LeaveAdmin() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/50">
-                    {requests.length > 0 ? (
-                      requests.map((req) => (
+                    {filteredRequests.length > 0 ? (
+                      filteredRequests.map((req) => (
                         <tr key={req.id} className="hover:bg-[#7B0099]/5 transition-colors group">
                           <td className="px-6 py-4">
                             <button
@@ -301,7 +355,7 @@ export default function LeaveAdmin() {
                     ) : (
                       <tr>
                         <td colSpan={canApprove ? 6 : 5} className="px-6 py-12 text-center text-xs font-black text-muted-foreground uppercase tracking-widest italic opacity-30">
-                          No applications found in registry
+                          No {activeTab === "pending" ? "pending" : activeTab === "approved" ? "approved" : ""} applications found
                         </td>
                       </tr>
                     )}
@@ -311,8 +365,8 @@ export default function LeaveAdmin() {
 
               {/* Mobile Card View */}
               <div className="lg:hidden divide-y divide-border/50">
-                {requests.length > 0 ? (
-                  requests.map((req) => (
+                {filteredRequests.length > 0 ? (
+                  filteredRequests.map((req) => (
                     <div key={req.id} className="p-4 active:bg-[#7B0099]/5 transition-colors space-y-3" onClick={() => setSelectedRequest(req)}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -369,7 +423,7 @@ export default function LeaveAdmin() {
                   ))
                 ) : (
                   <div className="py-12 text-center text-xs font-black text-muted-foreground uppercase tracking-widest italic opacity-30 p-6">
-                    No applications found.
+                    No {activeTab === "pending" ? "pending" : activeTab === "approved" ? "approved" : ""} applications found.
                   </div>
                 )}
               </div>
