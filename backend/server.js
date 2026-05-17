@@ -1468,6 +1468,35 @@ app.get("/api/departments", async (req, res) => {
 });
 
 // ===============================
+// WHO'S OUT TODAY
+// ===============================
+app.get("/api/who-out-today", async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT
+        lr.leave_id,
+        lr.user_id,
+        lr.leave_type,
+        lr.start_date,
+        lr.end_date,
+        lr.days,
+        lr.reason,
+        p.full_name,
+        p.branch
+      FROM leave_requests lr
+      JOIN profiles p ON p.user_id = lr.user_id
+      WHERE lr.status = 'Approved'
+        AND CURDATE() BETWEEN lr.start_date AND lr.end_date
+      ORDER BY lr.end_date ASC
+    `);
+    res.json({ success: true, employees: rows });
+  } catch (err) {
+    console.error("Who Out Today Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ===============================
 // ROUTES
 // ===============================
 const PORT = process.env.PORT || 8080;

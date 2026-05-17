@@ -10,6 +10,8 @@ import {
   XCircle,
   Loader2,
   RefreshCcw,
+  CalendarOff,
+  ArrowRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +55,7 @@ export default function Dashboard() {
   });
 
   const [activities, setActivities] = useState<any[]>([]);
+  const [whoOutToday, setWhoOutToday] = useState<any[]>([]);
 
   const rawName = userName || user?.full_name || "User";
   
@@ -149,6 +152,18 @@ export default function Dashboard() {
     [applyAttendanceUpdate, dashboardUserId, role]
   );
 
+  const fetchWhoOutToday = useCallback(async () => {
+    try {
+      const response = await fetch("https://rayhar-staff-production.up.railway.app/api/who-out-today");
+      const data = await response.json();
+      if (data.success) {
+        setWhoOutToday(data.employees || []);
+      }
+    } catch (err) {
+      console.error("Who Out Today Error:", err);
+    }
+  }, []);
+
   // Initial fetch + refresh when focus + Custom Event Listener
   useEffect(() => {
     const latestUpdate = localStorage.getItem("latestAttendanceUpdate");
@@ -161,6 +176,9 @@ export default function Dashboard() {
     }
 
     fetchDashboardData();
+    if (["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role)) {
+      fetchWhoOutToday();
+    }
 
     const handleUpdate = (event: Event) => {
       const attendanceEvent = event as CustomEvent;
@@ -343,6 +361,102 @@ export default function Dashboard() {
           </>
         )}
       </div>
+
+      {/* Who's Out Today - admin roles only */}
+      {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role) && (
+        <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-[24px] sm:rounded-[32px] overflow-hidden bg-card">
+          <CardHeader className="border-b border-border/50 pb-4 px-4 sm:px-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-rose-500/10 rounded-xl">
+                  <CalendarOff className="w-5 h-5 text-rose-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-base sm:text-lg font-black text-foreground tracking-tight">
+                    Who's Out Today
+                  </CardTitle>
+                  <p className="text-[10px] sm:text-xs font-bold text-muted-foreground mt-0.5">
+                    {whoOutToday.length} employee{whoOutToday.length !== 1 ? "s" : ""} currently on leave
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/leave/admin")}
+                className="text-[10px] sm:text-xs font-black text-[#7B0099] hover:text-[#7B0099] hover:bg-[#7B0099]/5 gap-1.5 uppercase tracking-widest self-start sm:self-auto px-3"
+              >
+                View All History
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6">
+            {whoOutToday.length > 0 ? (
+              <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory scrollbar-thin">
+                {whoOutToday.map((emp) => {
+                  const endDate = new Date(emp.end_date);
+                  const today = new Date();
+                  today.setHours(0,0,0,0);
+                  endDate.setHours(0,0,0,0);
+                  const isSameDay = endDate.getTime() === today.getTime();
+                  const endLabel = isSameDay
+                    ? "Today Only"
+                    : `Until ${endDate.toLocaleDateString('en-MY', { month: 'short', day: '2-digit' })}`;
+
+                  const leaveTypeLabel: Record<string, { short: string; color: string }> = {
+                    "Cuti Tahunan": { short: "ANNUAL", color: "bg-blue-500" },
+                    "Cuti Sakit": { short: "MC", color: "bg-rose-500" },
+                    "Cuti Kecemasan": { short: "EMERGENCY", color: "bg-amber-500" },
+                    "Cuti Ganti": { short: "REPLACEMENT", color: "bg-violet-500" },
+                    "Cuti Tanpa Gaji": { short: "UNPAID", color: "bg-slate-500" },
+                    "Cuti Ehsan": { short: "COMPASSIONATE", color: "bg-teal-500" },
+                  };
+                  const typeInfo = leaveTypeLabel[emp.leave_type] || { short: emp.leave_type?.toUpperCase(), color: "bg-gray-500" };
+
+                  return (
+                    <div
+                      key={emp.leave_id}
+                      onClick={() => navigate("/leave/admin")}
+                      className="min-w-[200px] sm:min-w-[220px] max-w-[260px] flex-shrink-0 snap-start cursor-pointer group
+                        rounded-[20px] border border-border/60 bg-card hover:border-[#7B0099]/30 hover:shadow-lg
+                        transition-all duration-300 p-4 space-y-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-sm font-black text-[#7B0099] group-hover:scale-110 transition-transform shrink-0">
+                          {emp.full_name?.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-black text-foreground truncate group-hover:text-[#7B0099] transition-colors">{emp.full_name}</p>
+                          <p className="text-[10px] font-bold text-muted-foreground">
+                            {emp.leave_type} • {endLabel}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Badge className={`${typeInfo.color} text-white text-[9px] font-black px-2 py-0.5 h-auto border-none`}>
+                          {typeInfo.short}
+                        </Badge>
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+                          {emp.branch}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-8 sm:py-10 text-center">
+                <div className="bg-emerald-500/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                </div>
+                <p className="text-sm font-black text-foreground">All Hands on Deck!</p>
+                <p className="text-xs text-muted-foreground font-medium mt-1">No employees are on leave today.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recent Activity - responsive */}
       <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-[24px] sm:rounded-[32px] overflow-hidden bg-card">
