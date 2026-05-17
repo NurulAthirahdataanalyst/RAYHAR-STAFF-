@@ -393,7 +393,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
             {whoOutToday.length > 0 ? (
-              <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory scrollbar-thin">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                 {whoOutToday.map((emp) => {
                   const endDate = new Date(emp.end_date);
                   const today = new Date();
@@ -401,7 +401,7 @@ export default function Dashboard() {
                   endDate.setHours(0,0,0,0);
                   const isSameDay = endDate.getTime() === today.getTime();
                   const endLabel = isSameDay
-                    ? "Today Only"
+                    ? `${endDate.toLocaleDateString('en-MY', { month: 'short', day: '2-digit' })} Only`
                     : `Until ${endDate.toLocaleDateString('en-MY', { month: 'short', day: '2-digit' })}`;
 
                   const leaveTypeLabel: Record<string, { short: string; color: string }> = {
@@ -417,27 +417,30 @@ export default function Dashboard() {
                   return (
                     <div
                       key={emp.leave_id}
-                      onClick={() => navigate("/leave/admin")}
-                      className="min-w-[200px] sm:min-w-[220px] max-w-[260px] flex-shrink-0 snap-start cursor-pointer group
-                        rounded-[20px] border border-border/60 bg-card hover:border-[#7B0099]/30 hover:shadow-lg
-                        transition-all duration-300 p-4 space-y-3"
+                      onClick={() => navigate(`/leave/admin?leaveId=${emp.leave_id}`)}
+                      className="cursor-pointer group rounded-[20px] border border-border/60 bg-card
+                        hover:border-[#7B0099]/30 hover:shadow-lg transition-all duration-300 p-5"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-sm font-black text-[#7B0099] group-hover:scale-110 transition-transform shrink-0">
+                      {/* Top: Avatar + Info */}
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-[#7B0099]/10 flex items-center justify-center text-base font-black text-[#7B0099] group-hover:scale-110 transition-transform shrink-0">
                           {emp.full_name?.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-black text-foreground truncate group-hover:text-[#7B0099] transition-colors">{emp.full_name}</p>
-                          <p className="text-[10px] font-bold text-muted-foreground">
+                          <p className="text-sm font-black text-foreground uppercase tracking-tight truncate group-hover:text-[#7B0099] transition-colors">
+                            {emp.full_name}
+                          </p>
+                          <p className="text-xs font-medium text-muted-foreground mt-0.5">
                             {emp.leave_type} • {endLabel}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <Badge className={`${typeInfo.color} text-white text-[9px] font-black px-2 py-0.5 h-auto border-none`}>
+                      {/* Bottom: Badge + Branch */}
+                      <div className="flex items-center justify-between mt-4 pt-3 border-t border-border/40">
+                        <Badge className={`${typeInfo.color} text-white text-[10px] font-black px-2.5 py-0.5 h-auto border-none rounded-full`}>
                           {typeInfo.short}
                         </Badge>
-                        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                           {emp.branch}
                         </span>
                       </div>

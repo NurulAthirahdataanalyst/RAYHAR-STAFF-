@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -90,9 +91,25 @@ export default function LeaveAdmin() {
   const approvedCount = requests.filter((r) => r.status === "Approved").length;
   const rejectedCount = requests.filter((r) => r.status === "Rejected").length;
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
   useEffect(() => {
     void fetchRequests();
   }, [role, userBranch, userDepartment]);
+
+  // Auto-open a specific leave form when navigated with ?leaveId=xxx
+  useEffect(() => {
+    const leaveId = searchParams.get("leaveId");
+    if (leaveId && requests.length > 0 && !selectedRequest) {
+      const match = requests.find((r) => r.id === Number(leaveId));
+      if (match) {
+        setActiveTab("history");
+        setSelectedRequest(match);
+        // Clear the param so it doesn't re-trigger
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [searchParams, requests, selectedRequest]);
 
   const fetchRequests = async () => {
     setLoading(true);
