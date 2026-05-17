@@ -67,7 +67,7 @@ const statusVariant = (status: string) => {
   }
 };
 
-type FormTabFilter = "pending" | "approved" | "history";
+type FormTabFilter = "pending" | "approved" | "rejected" | "history";
 
 export default function LeaveFormView() {
   const navigate = useNavigate();
@@ -84,6 +84,8 @@ export default function LeaveFormView() {
         return form.status.startsWith("Pending");
       case "approved":
         return form.status === "Approved";
+      case "rejected":
+        return form.status === "Rejected";
       case "history":
         return true; // Show all
     }
@@ -91,6 +93,7 @@ export default function LeaveFormView() {
 
   const pendingCount = forms.filter((f) => f.status.startsWith("Pending")).length;
   const approvedCount = forms.filter((f) => f.status === "Approved").length;
+  const rejectedCount = forms.filter((f) => f.status === "Rejected").length;
 
   useEffect(() => {
     void fetchForms();
@@ -190,7 +193,7 @@ export default function LeaveFormView() {
               </CardDescription>
             </div>
             <Badge variant="outline" className="font-black text-[10px] px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none">
-              {filteredForms.length} {activeTab === "pending" ? "PENDING" : activeTab === "approved" ? "APPROVED" : "TOTAL"}
+              {filteredForms.length} {activeTab === "pending" ? "PENDING" : activeTab === "approved" ? "APPROVED" : activeTab === "rejected" ? "REJECTED" : "TOTAL"}
             </Badge>
           </div>
           {/* Tab Navigation */}
@@ -198,6 +201,7 @@ export default function LeaveFormView() {
             {([
               { key: "pending" as FormTabFilter, label: "Pending", count: pendingCount },
               { key: "approved" as FormTabFilter, label: "Approved", count: approvedCount },
+              { key: "rejected" as FormTabFilter, label: "Rejected", count: rejectedCount },
               { key: "history" as FormTabFilter, label: "History", count: forms.length },
             ]).map((tab) => (
               <button
@@ -293,10 +297,10 @@ export default function LeaveFormView() {
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-black text-foreground uppercase tracking-widest">
-                  {activeTab === "pending" ? "No Pending Applications" : activeTab === "approved" ? "No Approved Applications" : "No Leave Registry Found"}
+                  {activeTab === "pending" ? "No Pending Applications" : activeTab === "approved" ? "No Approved Applications" : activeTab === "rejected" ? "No Rejected Applications" : "No Leave Registry Found"}
                 </p>
                 <p className="text-[10px] font-medium text-muted-foreground italic">
-                  {activeTab === "pending" ? "All your applications have been processed" : activeTab === "approved" ? "No applications approved yet" : "You haven't submitted any leave applications yet"}
+                  {activeTab === "pending" ? "All your applications have been processed" : activeTab === "approved" ? "No applications approved yet" : activeTab === "rejected" ? "No applications rejected" : "You haven't submitted any leave applications yet"}
                 </p>
               </div>
               {activeTab === "history" && (

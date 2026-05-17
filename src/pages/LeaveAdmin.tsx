@@ -56,7 +56,7 @@ const APPROVER_ROLES = ["managing_director", "finance_manager", "head_of_departm
 // Roles that can see the leave admin panel (view + approve or view only)
 const ADMIN_VIEW_ROLES = ["hr_admin", "branch_leader", ...APPROVER_ROLES];
 
-type TabFilter = "pending" | "approved" | "history";
+type TabFilter = "pending" | "approved" | "rejected" | "history";
 
 export default function LeaveAdmin() {
   const { role, userBranch, userDepartment, userId } = useRole();
@@ -79,6 +79,8 @@ export default function LeaveAdmin() {
         return req.status.startsWith("Pending");
       case "approved":
         return req.status === "Approved";
+      case "rejected":
+        return req.status === "Rejected";
       case "history":
         return true; // Show all
     }
@@ -86,6 +88,7 @@ export default function LeaveAdmin() {
 
   const pendingCount = requests.filter((r) => r.status.startsWith("Pending")).length;
   const approvedCount = requests.filter((r) => r.status === "Approved").length;
+  const rejectedCount = requests.filter((r) => r.status === "Rejected").length;
 
   useEffect(() => {
     void fetchRequests();
@@ -223,7 +226,7 @@ export default function LeaveAdmin() {
               </CardDescription>
             </div>
             <Badge variant="outline" className="font-black text-[10px] px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none">
-              {filteredRequests.length} {activeTab === "pending" ? "PENDING" : activeTab === "approved" ? "APPROVED" : "TOTAL"}
+              {filteredRequests.length} {activeTab === "pending" ? "PENDING" : activeTab === "approved" ? "APPROVED" : activeTab === "rejected" ? "REJECTED" : "TOTAL"}
             </Badge>
           </div>
           {/* Tab Navigation */}
@@ -231,6 +234,7 @@ export default function LeaveAdmin() {
             {([
               { key: "pending" as TabFilter, label: "Pending", count: pendingCount },
               { key: "approved" as TabFilter, label: "Approved", count: approvedCount },
+              { key: "rejected" as TabFilter, label: "Rejected", count: rejectedCount },
               { key: "history" as TabFilter, label: "History", count: requests.length },
             ]).map((tab) => (
               <button
@@ -355,7 +359,7 @@ export default function LeaveAdmin() {
                     ) : (
                       <tr>
                         <td colSpan={canApprove ? 6 : 5} className="px-6 py-12 text-center text-xs font-black text-muted-foreground uppercase tracking-widest italic opacity-30">
-                          No {activeTab === "pending" ? "pending" : activeTab === "approved" ? "approved" : ""} applications found
+                          No {activeTab === "pending" ? "pending" : activeTab === "approved" ? "approved" : activeTab === "rejected" ? "rejected" : ""} applications found
                         </td>
                       </tr>
                     )}
@@ -423,7 +427,7 @@ export default function LeaveAdmin() {
                   ))
                 ) : (
                   <div className="py-12 text-center text-xs font-black text-muted-foreground uppercase tracking-widest italic opacity-30 p-6">
-                    No {activeTab === "pending" ? "pending" : activeTab === "approved" ? "approved" : ""} applications found.
+                    No {activeTab === "pending" ? "pending" : activeTab === "approved" ? "approved" : activeTab === "rejected" ? "rejected" : ""} applications found.
                   </div>
                 )}
               </div>
