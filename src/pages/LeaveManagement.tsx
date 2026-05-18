@@ -315,20 +315,20 @@ export default function LeaveManagement() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">No Kad Pengenalan *</Label>
-                      <Input 
-                        placeholder="CONTOH: 900101115566" 
-                        value={formData.noKadPengenalan} 
+                      <Input
+                        placeholder="CONTOH: 900101115566"
+                        value={formData.noKadPengenalan}
                         className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
-                        onChange={e => setFormData({ ...formData, noKadPengenalan: e.target.value })} 
+                        onChange={e => setFormData({ ...formData, noKadPengenalan: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Tarikh Permohonan</Label>
-                      <Input 
-                        type="date" 
-                        value={formData.tarikhPermohonan} 
-                        readOnly 
-                        className="h-12 sm:h-14 border-border/50 bg-muted/20 rounded-2xl font-bold opacity-60" 
+                      <Input
+                        type="date"
+                        value={formData.tarikhPermohonan}
+                        readOnly
+                        className="h-12 sm:h-14 border-border/50 bg-muted/20 rounded-2xl font-bold opacity-60"
                       />
                     </div>
                   </div>
@@ -469,24 +469,24 @@ export default function LeaveManagement() {
                   )}
 
                   {formData.jenisCuti === "Cuti Ganti" && (
-                    <div className="space-y-4 rounded-[24px] border border-blue-500/20 bg-blue-500/5 p-5 animate-in fade-in zoom-in-95">
+                    <div className="space-y-4 rounded-[24px] border border-[#7B0099]/20 bg-[#7B0099]/5 p-5 animate-in fade-in zoom-in-95">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-blue-700 font-black text-[10px] uppercase tracking-widest">Butiran Cuti Ganti</h4>
+                        <h4 className="text-purple-700 font-black text-[10px] uppercase tracking-widest">Butiran Cuti Ganti</h4>
                         <Button
                           type="button"
                           size="sm"
                           onClick={addCutiGantiRow}
-                          className="h-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white gap-1 text-[10px] font-black uppercase tracking-widest px-3 shadow-md transition-all active:scale-95"
+                          className="h-8 rounded-xl bg-[#7B0099] hover:bg-[#5e0080] text-white gap-1 text-[10px] font-black uppercase tracking-widest px-3 shadow-md shadow-[#7B0099]/20 transition-all active:scale-95"
                         >
                           <Plus className="w-3.5 h-3.5" /> Tambah Baris
                         </Button>
                       </div>
 
-                      <div className="space-y-4 divide-y divide-blue-500/10">
+                      <div className="space-y-4 divide-y divide-[#7B0099]/10">
                         {formData.cutiGantiRows.map((row, idx) => (
                           <div key={idx} className={`grid grid-cols-1 sm:grid-cols-3 gap-3 ${idx > 0 ? 'pt-4' : ''}`}>
                             <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-blue-600/70">Tarikh Cuti {idx + 1} *</Label>
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh Cuti {idx + 1} *</Label>
                               <Input
                                 type="date"
                                 value={row.tarikh}
@@ -499,7 +499,7 @@ export default function LeaveManagement() {
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-blue-600/70">Jenis/Hari Ganti {idx + 1} *</Label>
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Jenis/Hari Ganti {idx + 1} *</Label>
                               <Input
                                 placeholder="Cuti Minggu"
                                 value={row.hari}
@@ -512,7 +512,7 @@ export default function LeaveManagement() {
                               />
                             </div>
                             <div className="space-y-2 relative pr-10">
-                              <Label className="text-[9px] font-black uppercase text-blue-600/70">Jam Ganti {idx + 1} *</Label>
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Jam Ganti {idx + 1} *</Label>
                               <Input
                                 type="number"
                                 value={row.jam}
@@ -558,37 +558,37 @@ export default function LeaveManagement() {
                 <div className="space-y-5 animate-in slide-in-from-right duration-500">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Nama Waris / Kecemasan *</Label>
-                    <Input 
-                      value={formData.warisNama} 
+                    <Input
+                      value={formData.warisNama}
                       className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
-                      onChange={e => setFormData({ ...formData, warisNama: e.target.value.toUpperCase() })} 
+                      onChange={e => setFormData({ ...formData, warisNama: e.target.value.toUpperCase() })}
                     />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">No Telefon Waris *</Label>
-                      <Input 
-                        value={formData.warisPhone} 
+                      <Input
+                        value={formData.warisPhone}
                         className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
-                        onChange={e => setFormData({ ...formData, warisPhone: e.target.value })} 
+                        onChange={e => setFormData({ ...formData, warisPhone: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Hubungan *</Label>
-                      <Input 
-                        placeholder="CONTOH: ISTERI / AYAH" 
-                        value={formData.warisHubungan} 
+                      <Input
+                        placeholder="CONTOH: ISTERI / AYAH"
+                        value={formData.warisHubungan}
                         className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
-                        onChange={e => setFormData({ ...formData, warisHubungan: e.target.value.toUpperCase() })} 
+                        onChange={e => setFormData({ ...formData, warisHubungan: e.target.value.toUpperCase() })}
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Alamat Waris *</Label>
-                    <Textarea 
-                      value={formData.warisAlamat} 
+                    <Textarea
+                      value={formData.warisAlamat}
                       className="min-h-[100px] border-border/50 bg-muted/30 rounded-2xl p-4 font-bold"
-                      onChange={e => setFormData({ ...formData, warisAlamat: e.target.value.toUpperCase() })} 
+                      onChange={e => setFormData({ ...formData, warisAlamat: e.target.value.toUpperCase() })}
                     />
                   </div>
                   <div className="p-4 bg-rose-500/5 border border-rose-500/10 rounded-2xl flex gap-3 items-start">
