@@ -229,6 +229,11 @@
 
 /* Print Styles for Professional Documents */
 @media print {
+  @page {
+    size: A4;
+    margin: 12mm !important;
+  }
+
   /* 1. Reset body and background */
   body {
     color: black !important;
@@ -251,15 +256,16 @@
     display: none !important;
   }
 
-  /* 3. Ensure the portal containing the dialog is visible */
+  /* 3. Ensure the portal containing the dialog is visible and stretches full-width */
   body > [data-radix-portal],
+  body > [data-radix-portal] > div,
   [role="dialog"] {
     display: block !important;
     position: static !important;
     width: 100% !important;
+    max-width: 100% !important;
     height: auto !important;
     max-height: none !important;
-    max-width: none !important;
     transform: none !important;
     top: auto !important;
     left: auto !important;
@@ -269,6 +275,7 @@
     padding: 0 !important;
     margin: 0 !important;
     box-shadow: none !important;
+    box-sizing: border-box !important;
   }
 
   /* Hide Dialog Overlay (Backdrop) */
@@ -276,22 +283,37 @@
     display: none !important;
   }
 
-  /* 4. Format the printable form */
+  /* 4. Format the printable form to fit the page perfectly */
   #leave-form-print {
     display: block !important;
     width: 100% !important;
+    max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     border: none !important;
     background: white !important;
+    box-sizing: border-box !important;
   }
 
-  #leave-form-print .rounded-\[24px\],
-  #leave-form-print .rounded-\[20px\] {
+  #leave-form-print .rounded-\[24px\] {
     border-radius: 0 !important;
-    border: 1px solid #000 !important;
+    border: 2px solid #000 !important;
     box-shadow: none !important;
     background: white !important;
+    padding: 24px !important; /* Re-optimize padding to save horizontal page space */
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  #leave-form-print .rounded-\[20px\] {
+    border-radius: 0 !important;
+    border: 1.5px solid #000 !important;
+    box-shadow: none !important;
+    background: white !important;
+    padding: 12px !important; /* Re-optimize nested grid padding */
+    box-sizing: border-box !important;
   }
 
   /* 5. Typography and detail fixes for print */
