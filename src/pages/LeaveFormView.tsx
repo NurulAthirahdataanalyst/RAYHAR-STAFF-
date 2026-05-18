@@ -210,19 +210,17 @@ export default function LeaveFormView() {
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
-                className={`relative px-4 sm:px-6 py-3 text-[11px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${
-                  activeTab === tab.key 
-                    ? "text-[#7B0099]" 
+                className={`relative px-4 sm:px-6 py-3 text-[11px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${activeTab === tab.key
+                    ? "text-[#7B0099]"
                     : "text-muted-foreground hover:text-foreground"
-                }`}
+                  }`}
               >
                 {tab.label}
                 {tab.count > 0 && (
-                  <span className={`ml-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-full transition-colors duration-300 ${
-                    activeTab === tab.key 
-                      ? "bg-[#7B0099] text-white" 
+                  <span className={`ml-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-full transition-colors duration-300 ${activeTab === tab.key
+                      ? "bg-[#7B0099] text-white"
                       : "bg-muted text-muted-foreground"
-                  }`}>
+                    }`}>
                     {tab.count}
                   </span>
                 )}
@@ -276,14 +274,14 @@ export default function LeaveFormView() {
 
                     <div className="flex flex-col items-end gap-2 shrink-0">
                       <Badge
-                        className={`text-[10px] font-black px-2.5 py-1 h-auto shadow-sm whitespace-nowrap ${
-                          form.status === "Approved" ? "bg-emerald-500 text-white" :
-                          form.status === "Rejected" ? "bg-rose-600 text-white" :
-                          form.status === "Pending Finance" ? "bg-orange-500 text-white" :
-                          form.status === "Pending MD" ? "bg-blue-600 text-white" :
-                          form.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
-                          "bg-amber-500 text-white"
-                        }`}
+                        className={`text-[10px] font-black px-2.5 py-1 h-auto shadow-sm whitespace-nowrap ${form.status === "Approved" ? "bg-emerald-500 text-white" :
+                            form.status === "Rejected" ? "bg-rose-600 text-white" :
+                              form.status === "Pending Finance" ? "bg-orange-500 text-white" :
+                                form.status === "Pending MD" ? "bg-blue-600 text-white" :
+                                  form.status === "Pending HOD" ? "bg-violet-500 text-white" :
+                                    form.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
+                                      "bg-amber-500 text-white"
+                          }`}
                       >
                         {form.status.replace('Pending ', '').toUpperCase()}
                       </Badge>
@@ -342,8 +340,8 @@ export default function LeaveFormView() {
               <div id="leave-form-print" className="p-4 sm:p-8 space-y-6">
                 <div className="rounded-[24px] border border-border/50 p-6 sm:p-8 space-y-6 bg-card shadow-sm">
                   <div className="text-center border-b-2 border-slate-900 pb-4">
-                    <h2 className="text-2xl font-black tracking-tighter text-slate-900">RAYHAR GROUP</h2>
-                    <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60">Permohonan Cuti Kakitangan</p>
+                    <h2 className="text-3xl font-black tracking-tighter text-slate-900">RAYHAR GROUP</h2>
+                    <p className="text-[20px] font-black tracking-[0.3em] uppercase opacity-60">Permohonan Cuti Kakitangan</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 text-xs font-bold">
@@ -452,10 +450,10 @@ export default function LeaveFormView() {
                         <FileText className="w-5 h-5 text-[#7B0099]" />
                         <span className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest">MC Attachment</span>
                       </div>
-                      <a 
-                        href={`https://rayhar-staff-production.up.railway.app${selectedForm.mcFileUrl}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
+                      <a
+                        href={`https://rayhar-staff-production.up.railway.app${selectedForm.mcFileUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="text-[9px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
                       >
                         View File
