@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Users, UserCog, ArrowLeft, Building2, ShieldAlert, CheckCircle2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { API_BASE_URL } from "@/config/api";
 import {
   Dialog,
   DialogContent,
@@ -35,7 +36,7 @@ export default function DepartmentDetails() {
 
   const fetchEmployees = async () => {
     try {
-      const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/employees?branch=HQ`);
+      const response = await fetch(`${API_BASE_URL}/api/employees?branch=HQ`);
       const data = await response.json();
       if (data.success) {
         // Filter by the specific department
@@ -67,7 +68,7 @@ export default function DepartmentDetails() {
 
     setIsTransferring(true);
     try {
-      const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/departments/hod-transfer`, {
+      const response = await fetch(`${API_BASE_URL}/api/departments/hod-transfer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -475,7 +475,7 @@ export default function LeaveAdmin() {
                 </DialogHeader>
               </div>
 
-              <div className="p-4 sm:p-8 space-y-6">
+              <div id="leave-form-print" className="p-4 sm:p-8 space-y-6">
                 <div className="rounded-[24px] border border-border/50 p-6 sm:p-8 space-y-6 bg-card shadow-sm">
                   <div className="text-center border-b-2 border-slate-900 pb-4">
                     <h2 className="text-2xl font-black tracking-tighter text-slate-900">RAYHAR GROUP</h2>

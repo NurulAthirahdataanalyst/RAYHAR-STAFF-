@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Clock, Calendar, Fingerprint, Hand, Timer } from "lucide-react";
+import { Loader2, Clock, Fingerprint, Hand, Timer, MapPin, Home, SlidersHorizontal, Download, ChevronDown } from "lucide-react";
+import { API_BASE_URL } from "@/config/api";
 
 const formatAttendanceTime = (value: unknown) => {
   if (!value) return "--:--";
@@ -36,6 +37,16 @@ export default function Attendance() {
   const [activeSession, setActiveSession] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [workingHrs, setWorkingHrs] = useState("--:--");
+  const [historyLogs, setHistoryLogs] = useState<any[]>([]);
+  const [visibleLogsCount, setVisibleLogsCount] = useState(4);
+  const [fetchingHistory, setFetchingHistory] = useState(false);
+
+  // Advanced Interactive Filters & States
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "ON TIME" | "LATE" | "REMOTE">("ALL");
+  const [expandedLogId, setExpandedLogId] = useState<number | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   const { toast } = useToast();
 
@@ -73,6 +84,7 @@ export default function Attendance() {
       const userId = parsedUser.user_id || parsedUser.id;
       if (userId) {
         fetchStatus(userId);
+        fetchHistoryLogs(userId, selectedMonth, selectedYear);
       } else {
         setInitialFetch(false);
       }
@@ -85,7 +97,7 @@ export default function Attendance() {
   const fetchStatus = useCallback(async (id: string) => {
     try {
       const response = await fetch(
-        `https://rayhar-staff-production.up.railway.app/api/attendance-status?empId=${id}`
+        `${API_BASE_URL}/api/attendance-status?empId=${id}`
       );
       const data = await response.json();
 
@@ -116,16 +128,174 @@ export default function Attendance() {
     }
   }, []);
 
-  // 4. Auto-refresh status every 30 seconds
+  // 3b. Fetch attendance logs history (GET)
+  const fetchHistoryLogs = useCallback(async (id: string, monthVal: number, yearVal: number) => {
+    setFetchingHistory(true);
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/attendance/history?userId=${id}&month=${monthVal}&year=${yearVal}`
+      );
+      const data = await response.json();
+      if (data.success && data.history) {
+        setHistoryLogs(data.history);
+      }
+    } catch (err) {
+      console.error("Error fetching personal attendance logs:", err);
+    } finally {
+      setFetchingHistory(false);
+    }
+  }, []);
+
+  // 4. Auto-refresh status and history logs every 30 seconds
   useEffect(() => {
     const userId = user?.user_id || user?.id;
     if (userId) {
       const interval = setInterval(() => {
         fetchStatus(userId);
+        fetchHistoryLogs(userId, selectedMonth, selectedYear);
       }, 30000);
       return () => clearInterval(interval);
     }
-  }, [user?.user_id, user?.id, fetchStatus]);
+  }, [user?.user_id, user?.id, fetchStatus, fetchHistoryLogs, selectedMonth, selectedYear]);
+
+  // 4b. Re-fetch history logs when filter changes
+  useEffect(() => {
+    const userId = user?.user_id || user?.id;
+    if (userId) {
+      fetchHistoryLogs(userId, selectedMonth, selectedYear);
+    }
+  }, [selectedMonth, selectedYear, user?.user_id, user?.id, fetchHistoryLogs]);
+
+  // 4c. Establish SSE stream for real-time updates
+  useEffect(() => {
+    const userId = user?.user_id || user?.id;
+    if (!userId) return;
+
+    const streamUrl = `${API_BASE_URL}/api/presence/stream`;
+    console.log("🔌 Connecting Attendance to Presence Stream:", streamUrl);
+    const eventSource = new EventSource(streamUrl);
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("📡 Live attendance update received in dashboard:", data);
+        if (data.userId === String(userId).trim() || data.type === 'refresh') {
+          fetchStatus(userId);
+          fetchHistoryLogs(userId, selectedMonth, selectedYear);
+        }
+      } catch (err) {
+        console.error("Error parsing stream message in attendance:", err);
+        fetchStatus(userId);
+        fetchHistoryLogs(userId, selectedMonth, selectedYear);
+      }
+    };
+
+    eventSource.onerror = (err) => {
+      console.error("Attendance stream connection error:", err);
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, [user?.user_id, user?.id, fetchStatus, fetchHistoryLogs, selectedMonth, selectedYear]);
+
+  // Export PDF Handler
+  const handleExportPDF = () => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      toast({
+        title: "Export Failed",
+        description: "Could not open print window. Please allow popups.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const logsHtml = historyLogs.map(log => {
+      const d = new Date(log.clock_in);
+      const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+      return `
+        <tr>
+          <td>${dateStr}</td>
+          <td>${log.time_in || '--:--'}</td>
+          <td>${log.time_out || '--:--'}</td>
+          <td><span class="badge badge-${log.status.toLowerCase().replace(' ', '')}">${log.status}</span></td>
+          <td>${log.location_name || 'Main Office'}</td>
+          <td class="duration">${log.duration || '--'}</td>
+        </tr>
+      `;
+    }).join("");
+
+    const monthName = new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Rayhar Staff Attendance Report - ${user?.full_name || 'Employee'}</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; padding: 40px; }
+            h1 { color: #7B0099; margin-bottom: 5px; font-size: 24px; font-weight: 800; }
+            h2 { color: #64748b; font-size: 14px; margin-top: 0; font-weight: 600; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px; }
+            .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; padding: 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
+            .meta-item { font-size: 13px; }
+            .meta-item strong { color: #475569; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th { background: #7B0099; color: white; text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+            td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+            tr:nth-child(even) td { background: #f8fafc; }
+            .badge { padding: 4px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
+            .badge-ontime { background: #f3e8ff; color: #7b0099; }
+            .badge-late { background: #ffe4e6; color: #e11d48; }
+            .badge-remote { background: #dbeafe; color: #1d4ed8; }
+            .duration { font-family: monospace; font-weight: 600; }
+            @media print {
+              body { padding: 0; }
+              button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <h1 style="margin: 0; font-size: 28px; letter-spacing: -0.5px;">RAYHAR GROUP</h1>
+              <h2 style="margin: 2px 0 24px 0; font-size: 13px; font-weight: 700; color: #64748b;">Staff Attendance Report</h2>
+            </div>
+            <button onclick="window.print();" style="background: #7B0099; color: white; border: none; padding: 10px 20px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: 12px; transition: background 0.2s;">PRINT REPORT</button>
+          </div>
+          
+          <div class="meta-grid">
+            <div class="meta-item"><strong>Employee Name:</strong> ${user?.full_name || 'N/A'}</div>
+            <div class="meta-item"><strong>Employee ID:</strong> ${user?.user_id || 'N/A'}</div>
+            <div class="meta-item"><strong>Branch:</strong> ${user?.branch || 'N/A'}</div>
+            <div class="meta-item"><strong>Report Period:</strong> ${monthName}</div>
+          </div>
+
+          <table>
+            <thead>
+               <tr>
+                 <th>Date</th>
+                 <th>Clock In</th>
+                 <th>Clock Out</th>
+                 <th>Status</th>
+                 <th>Location</th>
+                 <th>Duration</th>
+               </tr>
+            </thead>
+            <tbody>
+              ${logsHtml || '<tr><td colspan="6" style="text-align: center;">No attendance logs found for this period.</td></tr>'}
+            </tbody>
+          </table>
+          
+          <script>
+            window.onload = function() {
+              setTimeout(function() { window.print(); }, 500);
+            }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
 
   // 5. THE CORE ACTION: Clock In / Clock Out
   const handleAttendanceAction = async () => {
@@ -145,7 +315,7 @@ export default function Attendance() {
       const isClockOut = !!activeSession;
       const endpoint = isClockOut ? "/api/clock-out" : "/api/attendance";
 
-      const response = await fetch(`https://rayhar-staff-production.up.railway.app${endpoint}`, {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -183,6 +353,7 @@ export default function Attendance() {
         });
 
         await fetchStatus(employeeId);
+        await fetchHistoryLogs(employeeId, selectedMonth, selectedYear);
       } else {
         throw new Error(result.error || "Action failed");
       }
@@ -214,10 +385,10 @@ export default function Attendance() {
       {/* Dynamic Background Top Half */}
       <div className="absolute top-0 left-0 right-0 h-[40%] sm:h-[45%] bg-gradient-to-br from-[#5e0080] via-[#7B0099] to-[#a855f7] rounded-b-[40px] sm:rounded-b-[60px] z-0 shadow-2xl" />
 
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 sm:p-8 animate-in fade-in zoom-in-95 duration-700">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-start gap-6 lg:gap-8 p-4 sm:p-8 md:p-10 animate-in fade-in zoom-in-95 duration-700 w-full max-w-2xl mx-auto">
 
-        {/* Main Card */}
-        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-6 sm:p-8 md:p-10 flex flex-col items-center relative overflow-hidden border border-border/30">
+        {/* Main Clocking Card */}
+        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-6 sm:p-8 md:p-10 flex flex-col items-center relative overflow-hidden border border-border/30 shrink-0">
 
           {user ? (
             <>
@@ -343,6 +514,193 @@ export default function Attendance() {
               </div>
               <p className="text-lg sm:text-xl text-muted-foreground font-bold">Authentication Required</p>
               <p className="text-muted-foreground text-sm">Please log in to your account to record attendance.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Daily Logs History Card */}
+        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md md:max-w-xl lg:max-w-2xl rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-6 sm:p-8 flex flex-col relative border border-border/30 overflow-hidden min-h-[500px]">
+          
+          {/* Top Actions Row */}
+          <div className="flex items-center justify-between gap-2 mb-6">
+            <div className="relative">
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                className="appearance-none flex items-center justify-center gap-1.5 px-4 py-2 bg-[#7B0099] text-white text-xs font-black rounded-full shadow-lg shadow-purple-900/10 hover:scale-105 active:scale-95 transition-all outline-none border-none pr-8 cursor-pointer"
+              >
+                {Array.from({ length: 12 }, (_, i) => {
+                  const d = new Date(2026, i, 1);
+                  return (
+                    <option key={i + 1} value={i + 1} className="text-foreground bg-background">
+                      {d.toLocaleString("default", { month: "long" })}
+                    </option>
+                  );
+                })}
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white w-3 h-3">
+                <ChevronDown className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setShowFilters(!showFilters)}
+                className={`flex items-center justify-center gap-1.5 px-3 py-2 border border-border hover:bg-muted text-xs font-black rounded-full transition-all ${
+                  showFilters ? "bg-muted text-foreground" : "bg-background text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <span>Filters</span>
+              </button>
+              
+              <button 
+                onClick={handleExportPDF}
+                className="flex items-center justify-center gap-1.5 px-3 py-2 border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground text-xs font-black rounded-full transition-all"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Export PDF</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Interactive Filters Panel */}
+          {showFilters && (
+            <div className="flex items-center gap-1.5 p-1.5 bg-muted/40 dark:bg-muted/20 border border-border/40 rounded-2xl mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              {(["ALL", "ON TIME", "LATE", "REMOTE"] as const).map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setStatusFilter(status)}
+                  className={`flex-1 py-1.5 text-[10px] font-black rounded-xl tracking-wider transition-all uppercase ${
+                    statusFilter === status
+                      ? "bg-[#7B0099] text-white shadow-md shadow-purple-950/10"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <h3 className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest mb-4">
+            Daily Logs
+          </h3>
+
+          {fetchingHistory && historyLogs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3 flex-1">
+              <Loader2 className="animate-spin text-[#7B0099] w-6 h-6" />
+              <p className="text-[11px] font-bold text-muted-foreground/75 uppercase tracking-wider animate-pulse">Loading Logs...</p>
+            </div>
+          ) : historyLogs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground border border-dashed border-border/60 rounded-[24px] flex-1">
+              <Clock className="w-8 h-8 opacity-40 mb-2" />
+              <p className="text-xs font-bold uppercase tracking-wider">No logs recorded yet</p>
+              <p className="text-[10px] opacity-80 mt-0.5">Your shift logs will appear here</p>
+            </div>
+          ) : (
+            <div className="space-y-4 flex-1 flex flex-col justify-between">
+              <div className="space-y-3.5">
+                {historyLogs
+                  .filter(log => statusFilter === "ALL" || log.status === statusFilter)
+                  .slice(0, visibleLogsCount)
+                  .map((log, index) => {
+                    const clockInDate = new Date(log.clock_in);
+                    const month = clockInDate.toLocaleString("en-US", { month: "short" }).toUpperCase();
+                    const day = clockInDate.getDate().toString().padStart(2, "0");
+                    const isExpanded = expandedLogId === log.attendance_id;
+                    
+                    let statusBadgeClass = "";
+                    if (log.status === "ON TIME") {
+                      statusBadgeClass = "bg-purple-100 dark:bg-purple-950/40 text-[#7B0099] dark:text-purple-300 border border-purple-200/50";
+                    } else if (log.status === "REMOTE") {
+                      statusBadgeClass = "bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200/50";
+                    } else if (log.status === "LATE") {
+                      statusBadgeClass = "bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/50";
+                    }
+
+                    return (
+                      <div 
+                        key={log.attendance_id || index}
+                        onClick={() => setExpandedLogId(isExpanded ? null : log.attendance_id)}
+                        className="flex flex-col p-3 bg-muted/20 hover:bg-muted/45 border border-border/40 rounded-2xl transition-all duration-300 cursor-pointer group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {/* Date Block Card */}
+                            <div className="flex flex-col items-center justify-center bg-purple-50 dark:bg-purple-950/20 border border-purple-100/50 dark:border-purple-900/30 rounded-xl px-2.5 py-1.5 shrink-0 select-none shadow-sm text-center min-w-[56px] h-[52px]">
+                              <span className="text-[9px] font-black text-[#7B0099] dark:text-purple-400 tracking-wider uppercase leading-none">{month}</span>
+                              <span className="text-sm font-black text-foreground mt-1 leading-none">{day}</span>
+                            </div>
+
+                            {/* Middle Details Block */}
+                            <div className="flex flex-col gap-0.5">
+                              <div className="text-[11px] sm:text-xs font-black text-foreground/90 tracking-tight">
+                                {log.time_in} — {log.time_out}
+                              </div>
+                              <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-muted-foreground/75 font-semibold">
+                                {log.location_type === "remote" ? (
+                                  <Home className="w-2.5 h-2.5 text-blue-500 shrink-0" />
+                                ) : (
+                                  <MapPin className="w-2.5 h-2.5 text-[#7B0099] shrink-0" />
+                                )}
+                                <span className="truncate max-w-[120px] sm:max-w-none">{log.location_name}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right Status & Duration Block */}
+                          <div className="flex items-center gap-3">
+                            <span className={`px-2 py-0.5 text-[8px] font-black tracking-widest rounded-full uppercase scale-90 origin-right ${statusBadgeClass}`}>
+                              {log.status}
+                            </span>
+                            <div className="text-right text-[11px] sm:text-xs font-black shrink-0 font-mono tracking-tight text-[#7B0099] dark:text-purple-300">
+                              {log.duration}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Expandable Details Block */}
+                        {isExpanded && (
+                          <div className="mt-3 pt-3 border-t border-border/40 text-[10px] sm:text-xs text-muted-foreground space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                            <div className="flex justify-between">
+                              <span>Raw Timestamp (In):</span>
+                              <span className="font-mono font-bold text-foreground">{log.clock_in}</span>
+                            </div>
+                            {log.clock_out && (
+                              <div className="flex justify-between">
+                                <span>Raw Timestamp (Out):</span>
+                                <span className="font-mono font-bold text-foreground">{log.clock_out}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between">
+                              <span>Computed Working Hours:</span>
+                              <span className="font-mono font-bold text-foreground">{log.duration}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Status Metric:</span>
+                              <span className="font-mono font-bold text-foreground">{log.status} {log.is_late ? "(LATE ARRIVAL)" : ""}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+
+              {/* Load More Button */}
+              {historyLogs.filter(log => statusFilter === "ALL" || log.status === statusFilter).length > visibleLogsCount && (
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setVisibleLogsCount(prev => prev + 4);
+                  }}
+                  className="w-full mt-4 py-2 flex items-center justify-center gap-1 text-[#7B0099] dark:text-purple-400 hover:text-purple-600 font-black text-[10px] sm:text-[11px] tracking-wider uppercase transition-colors"
+                >
+                  <span>Load More History</span>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           )}
         </div>

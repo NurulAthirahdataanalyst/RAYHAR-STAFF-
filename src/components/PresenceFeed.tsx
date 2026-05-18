@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, LogIn, LogOut, Loader2, AlertCircle, Clock, Timer } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useRole } from "@/contexts/RoleContext";
+import { API_BASE_URL } from "@/config/api";
 
 interface PresenceFeedProps {
   isCollapsed?: boolean;
@@ -23,7 +24,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
         branch: userBranch || "",
       });
 
-      const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/employees?${params}`);
+      const response = await fetch(`${API_BASE_URL}/api/employees?${params}`);
       const data = await response.json();
 
       if (data.success) {
@@ -38,8 +39,33 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
 
   useEffect(() => {
     fetchEmployees();
-    const interval = setInterval(fetchEmployees, 30000); // refresh every 30s
-    return () => clearInterval(interval);
+
+    // Establish real-time EventSource connection
+    const streamUrl = `${API_BASE_URL}/api/presence/stream`;
+    console.log("🔌 Connecting to Presence Stream:", streamUrl);
+    const eventSource = new EventSource(streamUrl);
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("📡 Live presence update received:", data);
+        fetchEmployees();
+      } catch (err) {
+        console.error("Error parsing stream message:", err);
+        fetchEmployees(); // Fallback refresh
+      }
+    };
+
+    eventSource.onerror = (err) => {
+      console.error("Presence stream connection error:", err);
+    };
+
+    const interval = setInterval(fetchEmployees, 30000); // refresh fallback every 30s
+
+    return () => {
+      eventSource.close();
+      clearInterval(interval);
+    };
   }, [role, userBranch]);
 
   const filtered = employees.filter((e) =>

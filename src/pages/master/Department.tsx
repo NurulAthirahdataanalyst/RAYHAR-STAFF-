@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Building2, Users, Loader2 } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "@/config/api";
 
 const DEPARTMENTS = [
   "IT",
@@ -33,7 +34,7 @@ export default function Department() {
         branch: userBranch || "",
       });
 
-      const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/employees?${params}`);
+      const response = await fetch(`${API_BASE_URL}/api/employees?${params}`);
       const data = await response.json();
 
       if (response.ok && data.success) {
