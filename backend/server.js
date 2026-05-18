@@ -1122,10 +1122,10 @@ app.get("/api/attendance/history", async (req, res) => {
         duration = `${diffHrs}h ${diffMins}m`;
       }
 
-      // 2. Late Check Detection (09:00:00 AM)
+      // 2. Late Check Detection (10:00:00 AM)
       const clockInHour = clockInDate.getHours();
       const clockInMinute = clockInDate.getMinutes();
-      const isLate = clockInHour > 9 || (clockInHour === 9 && clockInMinute > 0);
+      const isLate = clockInHour > 10 || (clockInHour === 10 && clockInMinute > 0);
 
       // 3. Location Mapping (simulated professionally based on ID)
       const isRemote = row.attendance_id % 3 === 1;
@@ -1214,7 +1214,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const [lateRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = CURDATE() AND TIME(clock_in) > '09:00:00' ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = CURDATE() AND TIME(clock_in) > '10:00:00' ${attendanceFilter}`,
         queryParams
       );
 
