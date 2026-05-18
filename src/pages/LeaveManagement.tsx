@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { PlaneTakeoff, Calculator, Plus, Send, Info, History, Paperclip } from "lucide-react";
+import { PlaneTakeoff, Calculator, Plus, Send, Info, History, Paperclip, Trash2 } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import {
   getLeaveRequests,
@@ -15,6 +15,7 @@ import {
   getUsedLeaveDays,
   saveLeaveRequest,
   type LeaveType,
+  type CutiGantiRow,
 } from "@/lib/leaveStorage";
 
 export default function LeaveManagement() {
@@ -48,9 +49,26 @@ export default function LeaveManagement() {
     cutiGantiTarikh: "",
     cutiGantiHari: "",
     cutiGantiJam: 0,
+    cutiGantiRows: [
+      { tarikh: "", hari: "Cuti Minggu", jam: 8 }
+    ] as CutiGantiRow[],
     cutiTanpaGajiPhone: "",
     cutiTanpaGajiSignature: false
   });
+
+  const addCutiGantiRow = () => {
+    setFormData(prev => ({
+      ...prev,
+      cutiGantiRows: [...prev.cutiGantiRows, { tarikh: "", hari: "Cuti Minggu", jam: 8 }]
+    }));
+  };
+
+  const removeCutiGantiRow = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      cutiGantiRows: prev.cutiGantiRows.filter((_, idx) => idx !== index)
+    }));
+  };
 
   useEffect(() => {
     setFormData(prev => ({
@@ -100,9 +118,12 @@ export default function LeaveManagement() {
       toast.error("Sila lampirkan fail MC untuk Cuti Sakit");
       return;
     }
-    if (currentStep === 2 && formData.jenisCuti === "Cuti Ganti" && (!formData.cutiGantiTarikh || !formData.cutiGantiHari || formData.cutiGantiJam <= 0)) {
-      toast.error("Sila lengkapkan butiran Cuti Ganti");
-      return;
+    if (currentStep === 2 && formData.jenisCuti === "Cuti Ganti") {
+      const invalidRow = formData.cutiGantiRows.some(row => !row.tarikh || !row.hari || row.jam <= 0);
+      if (invalidRow) {
+        toast.error("Sila lengkapkan semua butiran baris Cuti Ganti");
+        return;
+      }
     }
     if (currentStep === 2 && formData.jenisCuti === "Cuti Tanpa Gaji" && (!formData.cutiTanpaGajiPhone || !formData.cutiTanpaGajiSignature)) {
       toast.error("Sila lengkapkan butiran Cuti Tanpa Gaji dan tandatangan pengesahan");
@@ -124,13 +145,17 @@ export default function LeaveManagement() {
       const appliedAt = new Date().toISOString();
       const leaveType = formData.jenisCuti as LeaveType;
 
+      const serializedGanti = formData.jenisCuti === "Cuti Ganti"
+        ? `\n\n[CUTI_GANTI_DATA:${JSON.stringify(formData.cutiGantiRows)}]`
+        : "";
+
       const payload = new FormData();
       payload.append("user_id", userId);
       payload.append("leave_type", leaveType);
       payload.append("start_date", formData.tarikhMula);
       payload.append("end_date", formData.tarikhAkhir);
       payload.append("days", String(formData.bilanganHari));
-      payload.append("reason", formData.tujuanCuti);
+      payload.append("reason", formData.tujuanCuti + serializedGanti);
       payload.append("waris_nama", formData.warisNama);
       payload.append("waris_phone", formData.warisPhone);
       payload.append("waris_alamat", formData.warisAlamat);
@@ -140,9 +165,10 @@ export default function LeaveManagement() {
         payload.append("lampiranMc", formData.lampiranMc);
       }
       if (leaveType === "Cuti Ganti") {
-        payload.append("cuti_ganti_tarikh", formData.cutiGantiTarikh);
-        payload.append("cuti_ganti_hari", formData.cutiGantiHari);
-        payload.append("cuti_ganti_jam", String(formData.cutiGantiJam));
+        const firstRow = formData.cutiGantiRows[0] || { tarikh: "", hari: "", jam: 0 };
+        payload.append("cuti_ganti_tarikh", firstRow.tarikh);
+        payload.append("cuti_ganti_hari", firstRow.hari);
+        payload.append("cuti_ganti_jam", String(firstRow.jam));
       }
       if (leaveType === "Cuti Tanpa Gaji") {
         payload.append("cuti_tanpa_gaji_phone", formData.cutiTanpaGajiPhone);
@@ -168,7 +194,7 @@ export default function LeaveManagement() {
         to: formData.tarikhAkhir,
         days: formData.bilanganHari,
         status: "Pending HOD",
-        reason: formData.tujuanCuti,
+        reason: formData.tujuanCuti + serializedGanti,
         appliedAt,
         formFileName: getLeaveFormFileName(appliedAt, leaveType, formData.namaPenuh),
         attachmentName: formData.lampiranMc?.name,
@@ -444,20 +470,73 @@ export default function LeaveManagement() {
 
                   {formData.jenisCuti === "Cuti Ganti" && (
                     <div className="space-y-4 rounded-[24px] border border-blue-500/20 bg-blue-500/5 p-5 animate-in fade-in zoom-in-95">
-                      <h4 className="text-blue-700 font-black text-[10px] uppercase tracking-widest">Butiran Cuti Ganti</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div className="space-y-2">
-                          <Label className="text-[9px] font-black uppercase text-blue-600/70">Tarikh Cuti *</Label>
-                          <Input type="date" value={formData.cutiGantiTarikh} onChange={e => setFormData({ ...formData, cutiGantiTarikh: e.target.value })} className="h-12 bg-card rounded-xl font-bold" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-[9px] font-black uppercase text-blue-600/70">Jenis/Hari Ganti *</Label>
-                          <Input placeholder="Cuti Minggu" value={formData.cutiGantiHari} onChange={e => setFormData({ ...formData, cutiGantiHari: e.target.value })} className="h-12 bg-card rounded-xl font-bold" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-[9px] font-black uppercase text-blue-600/70">Jam Ganti *</Label>
-                          <Input type="number" value={formData.cutiGantiJam} onChange={e => setFormData({ ...formData, cutiGantiJam: parseInt(e.target.value) || 0 })} className="h-12 bg-card rounded-xl font-bold" />
-                        </div>
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-blue-700 font-black text-[10px] uppercase tracking-widest">Butiran Cuti Ganti</h4>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={addCutiGantiRow}
+                          className="h-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white gap-1 text-[10px] font-black uppercase tracking-widest px-3 shadow-md transition-all active:scale-95"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Tambah Baris
+                        </Button>
+                      </div>
+
+                      <div className="space-y-4 divide-y divide-blue-500/10">
+                        {formData.cutiGantiRows.map((row, idx) => (
+                          <div key={idx} className={`grid grid-cols-1 sm:grid-cols-3 gap-3 ${idx > 0 ? 'pt-4' : ''}`}>
+                            <div className="space-y-2">
+                              <Label className="text-[9px] font-black uppercase text-blue-600/70">Tarikh Cuti {idx + 1} *</Label>
+                              <Input
+                                type="date"
+                                value={row.tarikh}
+                                onChange={e => {
+                                  const newRows = [...formData.cutiGantiRows];
+                                  newRows[idx].tarikh = e.target.value;
+                                  setFormData({ ...formData, cutiGantiRows: newRows });
+                                }}
+                                className="h-12 bg-card rounded-xl font-bold"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[9px] font-black uppercase text-blue-600/70">Jenis/Hari Ganti {idx + 1} *</Label>
+                              <Input
+                                placeholder="Cuti Minggu"
+                                value={row.hari}
+                                onChange={e => {
+                                  const newRows = [...formData.cutiGantiRows];
+                                  newRows[idx].hari = e.target.value;
+                                  setFormData({ ...formData, cutiGantiRows: newRows });
+                                }}
+                                className="h-12 bg-card rounded-xl font-bold"
+                              />
+                            </div>
+                            <div className="space-y-2 relative pr-10">
+                              <Label className="text-[9px] font-black uppercase text-blue-600/70">Jam Ganti {idx + 1} *</Label>
+                              <Input
+                                type="number"
+                                value={row.jam}
+                                onChange={e => {
+                                  const newRows = [...formData.cutiGantiRows];
+                                  newRows[idx].jam = parseInt(e.target.value) || 0;
+                                  setFormData({ ...formData, cutiGantiRows: newRows });
+                                }}
+                                className="h-12 bg-card rounded-xl font-bold"
+                              />
+                              {formData.cutiGantiRows.length > 1 && (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => removeCutiGantiRow(idx)}
+                                  className="absolute right-0 bottom-0 h-12 w-8 rounded-xl p-0 flex items-center justify-center shadow-sm hover:bg-rose-600 transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4 text-white" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}

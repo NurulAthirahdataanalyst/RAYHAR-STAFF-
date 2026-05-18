@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 
 export default function Employees() {
   const { role, userBranch, userDepartment } = useRole();
@@ -477,27 +478,44 @@ export default function Employees() {
                         <div className="text-sm">
                           <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Tujuan / Sebab Cuti</p>
                           <p className="rounded-lg border p-3 italic text-slate-700 bg-slate-50/50">
-                            "{req.reason || "-"}"
+                            "{getCleanReason(req.reason) || "-"}"
                           </p>
                         </div>
 
                         {/* Conditional Fields: Cuti Ganti */}
-                        {req.leave_type === "Cuti Ganti" && (
-                          <div className="grid grid-cols-3 gap-4 text-sm border rounded-xl p-4 bg-blue-50/50 border-blue-100">
-                            <div>
-                              <p className="text-[10px] uppercase font-bold text-blue-600">Tarikh Cuti</p>
-                              <p className="font-bold text-base text-slate-900">{req.cuti_ganti_tarikh ? new Date(req.cuti_ganti_tarikh).toLocaleDateString() : "-"}</p>
+                        {req.leave_type === "Cuti Ganti" && (() => {
+                          const rows = parseCutiGantiRows(
+                            req.reason,
+                            req.cuti_ganti_tarikh,
+                            req.cuti_ganti_hari,
+                            req.cuti_ganti_jam
+                          );
+                          return (
+                            <div className="space-y-3">
+                              <p className="text-[10px] uppercase font-bold text-blue-600 tracking-wider">Butiran Cuti Ganti</p>
+                              <div className="border border-blue-100 rounded-xl overflow-hidden bg-blue-50/30">
+                                <table className="w-full text-left text-xs">
+                                  <thead>
+                                    <tr className="bg-blue-100/50 text-blue-700 font-bold uppercase border-b border-blue-100">
+                                      <th className="py-2.5 px-4 text-[10px]">Tarikh Cuti</th>
+                                      <th className="py-2.5 px-4 text-[10px]">Tarikh/Hari Cuti Ganti</th>
+                                      <th className="py-2.5 px-4 text-right text-[10px]">Jam Bekerja</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-blue-100 font-medium text-slate-800">
+                                    {rows.map((row, idx) => (
+                                      <tr key={idx}>
+                                        <td className="py-2 px-4">{row.tarikh || "-"}</td>
+                                        <td className="py-2 px-4">{row.hari || "-"}</td>
+                                        <td className="py-2 px-4 text-right">{row.jam || 0} Jam</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
                             </div>
-                            <div>
-                              <p className="text-[10px] uppercase font-bold text-blue-600">Tarikh/Hari Cuti Ganti</p>
-                              <p className="font-bold text-base text-slate-900">{req.cuti_ganti_hari || "-"}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase font-bold text-blue-600">Jam Ganti</p>
-                              <p className="font-bold text-base text-slate-900">{req.cuti_ganti_jam || 0} Jam</p>
-                            </div>
-                          </div>
-                        )}
+                          );
+                        })()}
 
                         {/* Conditional Fields: Cuti Tanpa Gaji */}
                         {req.leave_type === "Cuti Tanpa Gaji" && (

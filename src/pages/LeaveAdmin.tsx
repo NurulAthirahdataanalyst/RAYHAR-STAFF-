@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
+import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 
 type LeaveRequest = {
   id: number;
@@ -526,27 +527,44 @@ export default function LeaveAdmin() {
                   <div className="space-y-2">
                     <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50 tracking-widest">Sebab / Tujuan</p>
                     <p className="rounded-[16px] border border-border/40 p-4 italic text-foreground/80 bg-muted/10 text-xs leading-relaxed">
-                      "{selectedRequest.reason || "-"}"
+                      "{getCleanReason(selectedRequest.reason) || "-"}"
                     </p>
                   </div>
 
                   {/* Conditional Fields: Cuti Ganti */}
-                  {selectedRequest.type === "Cuti Ganti" && (
-                    <div className="grid grid-cols-3 gap-4 text-[10px] border rounded-[20px] p-4 bg-blue-500/5 border-blue-500/20">
-                      <div>
-                        <p className="uppercase font-black text-blue-600 opacity-60">Tarikh Cuti</p>
-                        <p className="font-black mt-0.5">{selectedRequest.cutiGantiTarikh || "-"}</p>
+                  {selectedRequest.type === "Cuti Ganti" && (() => {
+                    const rows = parseCutiGantiRows(
+                      selectedRequest.reason,
+                      selectedRequest.cutiGantiTarikh,
+                      selectedRequest.cutiGantiHari,
+                      selectedRequest.cutiGantiJam
+                    );
+                    return (
+                      <div className="space-y-3">
+                        <p className="text-[9px] font-black uppercase text-blue-600 opacity-80 tracking-widest px-1">Butiran Cuti Ganti</p>
+                        <div className="border border-blue-500/20 rounded-[20px] overflow-hidden bg-blue-500/5">
+                          <table className="w-full text-left text-[10px]">
+                            <thead>
+                              <tr className="bg-blue-500/10 text-blue-700 font-black uppercase border-b border-blue-500/20">
+                                <th className="py-2.5 px-4">Tarikh Cuti</th>
+                                <th className="py-2.5 px-4">Tarikh/Hari Cuti Ganti</th>
+                                <th className="py-2.5 px-4 text-right">Jam Bekerja</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-blue-500/10 font-bold text-foreground/80">
+                              {rows.map((row, idx) => (
+                                <tr key={idx}>
+                                  <td className="py-2 px-4">{row.tarikh || "-"}</td>
+                                  <td className="py-2 px-4">{row.hari || "-"}</td>
+                                  <td className="py-2 px-4 text-right">{row.jam || 0} Jam</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
-                      <div>
-                        <p className="uppercase font-black text-blue-600 opacity-60">Hari Ganti</p>
-                        <p className="font-black mt-0.5">{selectedRequest.cutiGantiHari || "-"}</p>
-                      </div>
-                      <div>
-                        <p className="uppercase font-black text-blue-600 opacity-60">Jam Ganti</p>
-                        <p className="font-black mt-0.5">{selectedRequest.cutiGantiJam || 0} Jam</p>
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Conditional Fields: Cuti Tanpa Gaji */}
                   {selectedRequest.type === "Cuti Tanpa Gaji" && (

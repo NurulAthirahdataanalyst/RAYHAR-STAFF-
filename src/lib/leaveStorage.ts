@@ -73,3 +73,52 @@ export const getLeaveFormFileName = (appliedAt: string, type: LeaveType, employe
 
   return `${submitDate}-${leaveTypeName}-form.pdf`;
 };
+
+// Types and helper functions for dynamic multiple Cuti Ganti rows
+export type CutiGantiRow = {
+  tarikh: string;
+  hari: string;
+  jam: number;
+};
+
+export const parseCutiGantiRows = (
+  reason: string,
+  fallbackTarikh?: string,
+  fallbackHari?: string,
+  fallbackJam?: number
+): CutiGantiRow[] => {
+  if (!reason) {
+    if (fallbackTarikh) {
+      return [{
+        tarikh: fallbackTarikh,
+        hari: fallbackHari || "",
+        jam: fallbackJam || 0
+      }];
+    }
+    return [];
+  }
+
+  const match = reason.match(/\[CUTI_GANTI_DATA:(.*?)\]/);
+  if (match) {
+    try {
+      return JSON.parse(match[1]) as CutiGantiRow[];
+    } catch (e) {
+      console.error("Failed to parse cuti ganti rows:", e);
+    }
+  }
+
+  if (fallbackTarikh) {
+    return [{
+      tarikh: fallbackTarikh,
+      hari: fallbackHari || "",
+      jam: fallbackJam || 0
+    }];
+  }
+
+  return [];
+};
+
+export const getCleanReason = (reason: string): string => {
+  if (!reason) return "";
+  return reason.replace(/\[CUTI_GANTI_DATA:.*?\]/g, "").trim();
+};
