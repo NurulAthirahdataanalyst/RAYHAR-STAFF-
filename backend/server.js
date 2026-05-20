@@ -62,8 +62,10 @@ const upload = multer({ storage: storage });
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ===============================
-// MYSQL DATABASE CONNECTION (PRODUCTION SAFE)
+// DATABASE CONNECTION (PRODUCTION SAFE)
 // ===============================
+
+const connectionString = process.env.DATABASE_URL;
 
 const dbConfig = {
   host: process.env.DB_HOST || process.env.MYSQLHOST,
@@ -71,31 +73,20 @@ const dbConfig = {
   password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD,
   database: process.env.DB_NAME || process.env.MYSQLDATABASE,
   port: Number(process.env.DB_PORT || process.env.MYSQLPORT || 3306),
-
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: { rejectUnauthorized: false }
 };
 
-// ❌ IMPORTANT: DO NOT allow fallback to localhost
-if (!dbConfig.host || !dbConfig.user || !dbConfig.database) {
-  throw new Error("Missing DB environment variables in Render");
+if (!connectionString && (!dbConfig.host || !dbConfig.user || !dbConfig.database)) {
+  throw new Error("Missing DB environment variables (DATABASE_URL or split vars)");
 }
 
-console.log("MySQL config:", {
-  host: dbConfig.host,
-  user: dbConfig.user,
-  database: dbConfig.database,
-  port: dbConfig.port,
-});
-
-
 // PostgreSQL wrapper pool to mimic mysql2/promise interface
-const pgPool = new Pool(dbConfig);
+const pgPool = connectionString ? new Pool({
+  connectionString,
+  ssl: { rejectUnauthorized: false },
+  max: 10
+}) : new Pool(dbConfig);
+
 const pool = {
   pool: pgPool, // for pool.pool.on
   getConnection: async () => {
