@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
+import { API_BASE_URL } from "../config/api";
 
 export type UserRole = "employee" | "branch_leader" | "hr_admin" | "managing_director" | "finance_manager" | "branch_officer" | "head_of_department";
 
@@ -42,7 +43,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/user-details/${resolvedUserId || user.email}`);
+        const response = await fetch(`${API_BASE_URL}/api/user-details/${resolvedUserId || user.email}`);
         const data = await response.json();
 
         if (response.ok && data.success) {

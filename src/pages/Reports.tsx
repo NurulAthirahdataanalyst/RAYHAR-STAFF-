@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
+import { API_BASE_URL } from "../config/api";
 
 const fallbackMonthlyData = [
   { month: "Jan", attendance: 94, leave_request: 18 },
@@ -85,13 +86,13 @@ export default function Reports() {
   const refreshData = async () => {
     if (role === "hr_admin" || role === "managing_director") {
       // Background refresh
-      const response = await fetch("https://rayhar-staff-production.up.railway.app/api/reports/daily-attendance");
+      const response = await fetch(`${API_BASE_URL}/api/reports/daily-attendance`);
       const data = await response.json();
       if (data.success) setDailyAttendance(data.report);
     }
 
     const params = new URLSearchParams({ month: selectedMonth, year: selectedYear });
-    const analyticsResponse = await fetch(`https://rayhar-staff-production.up.railway.app/api/reports/analytics?${params}`);
+    const analyticsResponse = await fetch(`${API_BASE_URL}/api/reports/analytics?${params}`);
     const analyticsData = await analyticsResponse.json();
     if (analyticsData.success) {
       setMonthlyData(analyticsData.monthlyData);
@@ -103,7 +104,7 @@ export default function Reports() {
     setLoadingAnalytics(true);
     try {
       const params = new URLSearchParams({ month: selectedMonth, year: selectedYear });
-      const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/reports/analytics?${params}`);
+      const response = await fetch(`${API_BASE_URL}/api/reports/analytics?${params}`);
       const data = await response.json();
       if (data.success) {
         setMonthlyData(data.monthlyData);
@@ -119,7 +120,7 @@ export default function Reports() {
   const fetchDailyAttendance = async () => {
     setLoadingDaily(true);
     try {
-      const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/reports/daily-attendance?date=${selectedDate}`);
+      const response = await fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${selectedDate}`);
       const data = await response.json();
       if (data.success) {
         setDailyAttendance(data.report);
@@ -136,7 +137,7 @@ export default function Reports() {
 
   const fetchTotalLeaveRequests = async () => {
     try {
-      const response = await fetch("https://rayhar-staff-production.up.railway.app/api/reports/total-leave-requests");
+      const response = await fetch(`${API_BASE_URL}/api/reports/total-leave-requests`);
       const data = await response.json();
       if (data.success) {
         setTotalLeaveRequests(data.totalLeaveRequests);

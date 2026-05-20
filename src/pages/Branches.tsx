@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ArrowLeft, Building2, CalendarCheck, Clock, Loader2, MapPin, TrendingUp, Users, FileText, PhoneCall, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { API_BASE_URL } from "../config/api";
 
 const branches = [
   { code: "HQ", name: "Rayhar HQ", location: "Kemaman,Terengganu", leader: "Maria Santos" },
@@ -65,7 +66,7 @@ export default function Branches() {
   useEffect(() => {
     const fetchBranches = async () => {
       try {
-        const response = await fetch("https://rayhar-staff-production.up.railway.app/api/branches");
+        const response = await fetch(`${API_BASE_URL}/api/branches`);
         const data = await response.json();
         if (data.success) {
           setAllBranches(data.branches);
@@ -82,7 +83,7 @@ export default function Branches() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch("https://rayhar-staff-production.up.railway.app/api/branches-stats");
+        const response = await fetch(`${API_BASE_URL}/api/branches-stats`);
         const data = await response.json();
         if (data.success) {
           setBranchStats(data.stats);
@@ -104,7 +105,7 @@ export default function Branches() {
       }
       setLoadingLeaves(true);
       try {
-        const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/leave-requests?userId=${selectedEmployeeId}`);
+        const response = await fetch(`${API_BASE_URL}/api/leave-requests?userId=${selectedEmployeeId}`);
         const data = await response.json();
         if (data.success) {
           setEmployeeLeaves(data.leaveRequests || []);
@@ -126,7 +127,7 @@ export default function Branches() {
     const fetchBranchEmployees = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/branch-employees?branch=${selectedBranch.code}`);
+        const response = await fetch(`${API_BASE_URL}/api/branch-employees?branch=${selectedBranch.code}`);
         const data = await response.json();
         if (data.success) {
           setEmployees(data.employees);
@@ -541,7 +542,7 @@ export default function Branches() {
                                 <FileText className="w-5 h-5 text-[#7B0099]" />
                                 <span className="text-xs font-black text-[#7B0099]">MC Attachment</span>
                               </div>
-                              <a href={`https://rayhar-staff-production.up.railway.app${req.mc_file_url}`} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-3 py-2 rounded-lg hover:bg-[#5e0080] transition-colors">
+                              <a href={`${API_BASE_URL}${req.mc_file_url}`} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-3 py-2 rounded-lg hover:bg-[#5e0080] transition-colors">
                                 View File
                               </a>
                             </div>

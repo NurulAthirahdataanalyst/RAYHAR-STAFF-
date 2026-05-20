@@ -2,7 +2,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const express = require("express");
-const mysql = require("mysql2/promise");
+const { Pool } = require("pg");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
@@ -93,12 +93,58 @@ console.log("MySQL config:", {
   port: dbConfig.port,
 });
 
-const pool = mysql.createPool(dbConfig);
+
+// PostgreSQL wrapper pool to mimic mysql2/promise interface
+const pgPool = new Pool(dbConfig);
+const pool = {
+  pool: pgPool, // for pool.pool.on
+  getConnection: async () => {
+    const client = await pgPool.connect();
+    return {
+      query: async (sql, params) => {
+        return pool.query(sql, params); // just proxy to pool to share replacement logic
+      },
+      release: () => client.release(),
+      beginTransaction: () => client.query('BEGIN'),
+      commit: () => client.query('COMMIT'),
+      rollback: () => client.query('ROLLBACK'),
+    };
+  },
+  query: async (sql, params) => {
+    if (params && params.length > 0) {
+      let i = 1;
+      sql = sql.replace(/\?/g, () => `${i++}`);
+    }
+    // Handle returning insert id automatically if it's an INSERT query without RETURNING
+    let isInsert = /^\s*INSERT\s+/i.test(sql);
+    if (isInsert && !/RETURNING/i.test(sql)) {
+      // Very naive: just append returning * for insert operations to mimic insertId 
+      // It is better to use RETURNING id or whatever the primary key is, but returning * is safer generically.
+      sql = sql + " RETURNING *";
+    }
+    try {
+      const res = await pgPool.query(sql, params);
+      let resultObj = res.rows || [];
+      if (isInsert && res.rows && res.rows.length > 0) {
+        // Find the id or something representing insertId
+        const firstRow = res.rows[0];
+        const maybeId = firstRow.id || firstRow.leave_id || Object.values(firstRow)[0];
+        resultObj = { insertId: maybeId };
+      } else if (!Array.isArray(resultObj)) {
+        resultObj = [];
+      }
+      return [resultObj, res.fields]; // returning [rows, fields] like mysql2
+    } catch(err) {
+      throw err;
+    }
+  }
+};
+
 
 // Set timezone to Malaysia (UTC+8) for every new connection
 // mysql2/promise wraps the underlying pool — access it via pool.pool
-pool.pool.on('connection', (connection) => {
-  connection.query("SET time_zone = '+08:00'");
+pgPool.on('connect', (connection) => {
+  connection.query("SET TIME ZONE '+08:00'");
 });
 
 // Test connection
@@ -272,7 +318,7 @@ app.get("/api/branch-employees", async (req, res) => {
         COALESCE(lr.mc_leaves, 0) AS mc_leaves,
         GREATEST(14 - COALESCE(lr.annual_days_used, 0), 0) AS annual_leave_balance,
         COALESCE(att.days_present, 0) AS days_present,
-        ROUND((COALESCE(att.days_present, 0) / DAY(CURDATE())) * 100) AS attendance_rate,
+        ROUND((COALESCE(att.days_present, 0) / EXTRACT(DAY FROM CURRENT_DATE)) * 100) AS attendance_rate,
         today.clock_in AS today_clock_in,
         today.clock_out AS today_clock_out,
         CASE WHEN COALESCE(leave_today.leave_count, 0) > 0 THEN 1 ELSE 0 END AS is_on_leave
@@ -295,8 +341,8 @@ app.get("/api/branch-employees", async (req, res) => {
           user_id,
           COUNT(DISTINCT DATE(clock_in)) AS days_present
         FROM attendances
-        WHERE YEAR(clock_in) = YEAR(CURDATE())
-        AND MONTH(clock_in) = MONTH(CURDATE())
+        WHERE YEAR(clock_in) = EXTRACT(YEAR FROM CURRENT_DATE)
+        AND MONTH(clock_in) = EXTRACT(MONTH FROM CURRENT_DATE)
         GROUP BY user_id
       ) att ON att.user_id = p.user_id
       LEFT JOIN (
@@ -305,7 +351,7 @@ app.get("/api/branch-employees", async (req, res) => {
         INNER JOIN (
           SELECT user_id, MAX(attendance_id) AS latest_attendance_id
           FROM attendances
-          WHERE DATE(clock_in) = CURDATE()
+          WHERE DATE(clock_in) = CURRENT_DATE
           GROUP BY user_id
         ) latest ON latest.latest_attendance_id = a.attendance_id
       ) today ON today.user_id = p.user_id
@@ -313,7 +359,7 @@ app.get("/api/branch-employees", async (req, res) => {
         SELECT user_id, COUNT(*) as leave_count
         FROM leave_requests
         WHERE status = 'Approved'
-        AND CURDATE() BETWEEN DATE(start_date) AND DATE(end_date)
+        AND CURRENT_DATE BETWEEN DATE(start_date) AND DATE(end_date)
         GROUP BY user_id
       ) leave_today ON leave_today.user_id = p.user_id
       WHERE p.branch = ?
@@ -400,8 +446,8 @@ app.get("/api/leave-requests", async (req, res) => {
         p.full_name,
         p.branch,
         (
-          SELECT JSON_ARRAYAGG(
-            JSON_OBJECT(
+          SELECT json_agg(
+            json_build_object(
               'id', la.id,
               'approver_id', la.approver_id,
               'approver_role', la.approver_role,
@@ -717,7 +763,7 @@ app.get("/api/employees", async (req, res) => {
         COALESCE(lr.mc_leaves, 0) AS mc_leaves,
         GREATEST(14 - COALESCE(lr.annual_days_used, 0), 0) AS annual_leave_balance,
         COALESCE(att.days_present, 0) AS days_present,
-        ROUND((COALESCE(att.days_present, 0) / DAY(CURDATE())) * 100) AS attendance_rate,
+        ROUND((COALESCE(att.days_present, 0) / EXTRACT(DAY FROM CURRENT_DATE)) * 100) AS attendance_rate,
         today.clock_in AS today_clock_in,
         today.clock_out AS today_clock_out
       FROM profiles p
@@ -739,8 +785,8 @@ app.get("/api/employees", async (req, res) => {
           user_id,
           COUNT(DISTINCT DATE(clock_in)) AS days_present
         FROM attendances
-        WHERE YEAR(clock_in) = YEAR(CURDATE())
-        AND MONTH(clock_in) = MONTH(CURDATE())
+        WHERE YEAR(clock_in) = EXTRACT(YEAR FROM CURRENT_DATE)
+        AND MONTH(clock_in) = EXTRACT(MONTH FROM CURRENT_DATE)
         GROUP BY user_id
       ) att ON att.user_id = p.user_id
       LEFT JOIN (
@@ -749,7 +795,7 @@ app.get("/api/employees", async (req, res) => {
         INNER JOIN (
           SELECT user_id, MAX(attendance_id) AS latest_attendance_id
           FROM attendances
-          WHERE DATE(clock_in) = CURDATE()
+          WHERE DATE(clock_in) = CURRENT_DATE
           GROUP BY user_id
         ) latest ON latest.latest_attendance_id = a.attendance_id
       ) today ON today.user_id = p.user_id
@@ -985,7 +1031,7 @@ app.get("/api/attendance-status", async (req, res) => {
       `
       SELECT * FROM attendances
       WHERE user_id = ?
-      AND DATE(clock_in) = CURDATE()
+      AND DATE(clock_in) = CURRENT_DATE
       AND clock_out IS NULL
       LIMIT 1
       `,
@@ -1046,7 +1092,7 @@ app.post("/api/clock-out", async (req, res) => {
       UPDATE attendances
       SET clock_out = NOW()
       WHERE user_id = ?
-      AND DATE(clock_in) = CURDATE()
+      AND DATE(clock_in) = CURRENT_DATE
       AND clock_out IS NULL
       `,
       [user_id]
@@ -1056,7 +1102,7 @@ app.post("/api/clock-out", async (req, res) => {
       `
       SELECT * FROM attendances
       WHERE user_id = ?
-      AND DATE(clock_in) = CURDATE()
+      AND DATE(clock_in) = CURRENT_DATE
       ORDER BY clock_in DESC
       LIMIT 1
       `,
@@ -1204,17 +1250,17 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const [presentRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS present_today FROM attendances WHERE DATE(clock_in) = CURDATE() ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS present_today FROM attendances WHERE DATE(clock_in) = CURRENT_DATE ${attendanceFilter}`,
         queryParams
       );
 
       const [onLeaveRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS on_leave FROM leave_requests WHERE status = 'Approved' AND CURDATE() BETWEEN start_date AND end_date ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS on_leave FROM leave_requests WHERE status = 'Approved' AND CURRENT_DATE BETWEEN start_date AND end_date ${attendanceFilter}`,
         queryParams
       );
 
       const [lateRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = CURDATE() AND TIME(clock_in) > '10:00:00' ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = CURRENT_DATE AND TIME(clock_in) > '10:00:00' ${attendanceFilter}`,
         queryParams
       );
 
@@ -1259,7 +1305,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const [todayRows] = await pool.query(
       `
       SELECT clock_in, clock_out, DATE_FORMAT(clock_in, '%h:%i %p') AS clock_in_time, DATE_FORMAT(clock_out, '%h:%i %p') AS clock_out_time
-      FROM attendances WHERE user_id = ? AND DATE(clock_in) = CURDATE() ORDER BY clock_in DESC LIMIT 1
+      FROM attendances WHERE user_id = ? AND DATE(clock_in) = CURRENT_DATE ORDER BY clock_in DESC LIMIT 1
       `,
       [userId]
     );
@@ -1284,12 +1330,12 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     // 2. MONTHLY ATTENDANCE RATE
     const [monthlyRows] = await pool.query(
-      `SELECT COUNT(DISTINCT DATE(clock_in)) AS days_present FROM attendances WHERE user_id = ? AND YEAR(clock_in) = YEAR(CURDATE()) AND MONTH(clock_in) = MONTH(CURDATE())`,
+      `SELECT COUNT(DISTINCT DATE(clock_in)) AS days_present FROM attendances WHERE user_id = ? AND YEAR(clock_in) = EXTRACT(YEAR FROM CURRENT_DATE) AND MONTH(clock_in) = EXTRACT(MONTH FROM CURRENT_DATE)`,
       [userId]
     );
 
     const daysPresent = parseInt(monthlyRows[0].days_present || 0);
-    const [todayDayRows] = await pool.query(`SELECT DAY(CURDATE()) AS today_day`);
+    const [todayDayRows] = await pool.query(`SELECT EXTRACT(DAY FROM CURRENT_DATE) AS today_day`);
     const totalDays = parseInt(todayDayRows[0].today_day || 1);
     const attendanceRate = totalDays > 0 ? Math.round((daysPresent / totalDays) * 100) : 0;
 
@@ -1353,7 +1399,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       WHERE a.attendance_id IN (
         SELECT MAX(attendance_id) 
         FROM attendances 
-        WHERE DATE(clock_in) = ${queryDate ? '?' : 'CURDATE()'}
+        WHERE DATE(clock_in) = ${queryDate ? '?' : 'CURRENT_DATE'}
         GROUP BY user_id
       )
       ORDER BY a.clock_in DESC
@@ -1399,7 +1445,7 @@ app.get("/api/reports/analytics", async (req, res) => {
         p.branch,
         COUNT(DISTINCT a.user_id, DATE(a.clock_in)) as total_present,
         COUNT(DISTINCT p.user_id) as total_employees,
-        COUNT(DISTINCT CASE WHEN a.clock_out IS NULL AND DATE(a.clock_in) = CURDATE() THEN a.user_id END) as active_now
+        COUNT(DISTINCT CASE WHEN a.clock_out IS NULL AND DATE(a.clock_in) = CURRENT_DATE THEN a.user_id END) as active_now
       FROM profiles p
       LEFT JOIN attendances a ON p.user_id = a.user_id 
         AND MONTH(a.clock_in) = ? 
@@ -1561,11 +1607,11 @@ app.get("/api/branches-stats", async (req, res) => {
       FROM profiles p
       LEFT JOIN attendances att 
         ON att.user_id = p.user_id 
-        AND DATE(att.clock_in) = CURDATE()
+        AND DATE(att.clock_in) = CURRENT_DATE
       LEFT JOIN leave_requests lr
         ON lr.user_id = p.user_id
         AND lr.status = 'Approved'
-        AND CURDATE() BETWEEN lr.start_date AND lr.end_date
+        AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date
       GROUP BY p.branch
     `);
     res.json({ success: true, stats: rows });
@@ -1612,7 +1658,7 @@ app.get("/api/who-out-today", async (req, res) => {
       FROM leave_requests lr
       JOIN profiles p ON p.user_id = lr.user_id
       WHERE lr.status = 'Approved'
-        AND CURDATE() BETWEEN lr.start_date AND lr.end_date
+        AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date
       ORDER BY lr.end_date ASC
     `);
     res.json({ success: true, employees: rows });

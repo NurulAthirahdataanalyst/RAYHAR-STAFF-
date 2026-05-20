@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { User, LogOut, ChevronRight, ChevronLeft, Settings, Menu, ClipboardCheck, Calendar, Sparkles } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
+import { API_BASE_URL } from "../../config/api";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
@@ -48,7 +49,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         });
 
         const response = await fetch(
-          `https://rayhar-staff-production.up.railway.app/api/dashboard-stats?${params}`
+          `${API_BASE_URL}/api/dashboard-stats?${params}`
         );
         const data = await response.json();
 

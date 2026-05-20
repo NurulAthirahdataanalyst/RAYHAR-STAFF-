@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config/api";
 
 const getStoredUser = () => {
   try {
@@ -107,7 +108,7 @@ export default function Dashboard() {
 
       try {
         const response = await fetch(
-          `https://rayhar-staff-production.up.railway.app/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`
+          `${API_BASE_URL}/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`
         );
 
         if (!response.ok) throw new Error("Sync failed");
@@ -154,7 +155,7 @@ export default function Dashboard() {
 
   const fetchWhoOutToday = useCallback(async () => {
     try {
-      const response = await fetch("https://rayhar-staff-production.up.railway.app/api/who-out-today");
+      const response = await fetch(`${API_BASE_URL}/api/who-out-today`);
       const data = await response.json();
       if (data.success) {
         setWhoOutToday(data.employees || []);

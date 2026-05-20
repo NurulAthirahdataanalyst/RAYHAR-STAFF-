@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { PlaneTakeoff, Calculator, Plus, Send, Info, History, Paperclip, Trash2 } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import {
+import { API_BASE_URL } from "../config/api";
   getLeaveRequests,
   getLeaveFormFileName,
   getUsedLeaveDays,
@@ -175,7 +176,7 @@ export default function LeaveManagement() {
         payload.append("cuti_tanpa_gaji_signature", formData.cutiTanpaGajiSignature ? "true" : "false");
       }
 
-      const response = await fetch("https://rayhar-staff-production.up.railway.app/api/leave-requests", {
+      const response = await fetch(`${API_BASE_URL}/api/leave-requests`, {
         method: "POST",
         body: payload,
       });

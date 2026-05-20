@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
+import { API_BASE_URL } from "../config/api";
 
 type LeaveRequest = {
   id: number;
@@ -121,7 +122,7 @@ export default function LeaveAdmin() {
         department: userDepartment || "",
       });
 
-      const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/leave-requests?${params}`);
+      const response = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`);
       const data = await response.json();
 
       if (!response.ok || !data.success) {
@@ -176,7 +177,7 @@ export default function LeaveAdmin() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/leave-requests/${id}/status`, {
+      const response = await fetch(`${API_BASE_URL}/api/leave-requests/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -586,7 +587,7 @@ export default function LeaveAdmin() {
                         <span className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest">MC Attachment</span>
                       </div>
                       <a
-                        href={`https://rayhar-staff-production.up.railway.app${selectedRequest.mcFileUrl}`}
+                        href={`${API_BASE_URL}${selectedRequest.mcFileUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[9px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"

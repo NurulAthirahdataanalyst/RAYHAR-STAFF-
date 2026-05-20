@@ -74,7 +74,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch('https://rayhar-staff-production.up.railway.app/api/signup', {
+      const response = await fetch(`${API_BASE_URL}/api/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

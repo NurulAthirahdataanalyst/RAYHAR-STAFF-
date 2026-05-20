@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { FileText, Printer, Loader2, ArrowLeft, PhoneCall, Eye, Calendar, MapPin, Clock } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import {
+import { API_BASE_URL } from "../config/api";
   getLeaveFormFileName,
   leaveTypeLabels,
   type LeaveType,
@@ -110,7 +111,7 @@ export default function LeaveFormView() {
     setLoading(true);
     try {
       const response = await fetch(
-        `https://rayhar-staff-production.up.railway.app/api/leave-requests?userId=${encodeURIComponent(userId)}`
+        `${API_BASE_URL}/api/leave-requests?userId=${encodeURIComponent(userId)}`
       );
       const data = await response.json();
 
@@ -451,7 +452,7 @@ export default function LeaveFormView() {
                         <span className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest">MC Attachment</span>
                       </div>
                       <a
-                        href={`https://rayhar-staff-production.up.railway.app${selectedForm.mcFileUrl}`}
+                        href={`${API_BASE_URL}${selectedForm.mcFileUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[9px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"

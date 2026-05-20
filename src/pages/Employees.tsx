@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
+import { API_BASE_URL } from "../config/api";
 
 export default function Employees() {
   const { role, userBranch, userDepartment } = useRole();
@@ -56,7 +57,7 @@ export default function Employees() {
         department: userDepartment || "",
       });
 
-      const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/employees?${params}`);
+      const response = await fetch(`${API_BASE_URL}/api/employees?${params}`);
       const data = await response.json();
 
       if (!response.ok || !data.success) {
@@ -91,7 +92,7 @@ export default function Employees() {
 
       setLoadingLeaves(true);
       try {
-        const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/leave-requests?userId=${selectedEmployee.user_id}`);
+        const response = await fetch(`${API_BASE_URL}/api/leave-requests?userId=${selectedEmployee.user_id}`);
         const data = await response.json();
         if (data.success) {
           setEmployeeLeaves(data.leaveRequests || []);
@@ -127,7 +128,7 @@ export default function Employees() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('https://rayhar-staff-production.up.railway.app/api/signup', {
+      const response = await fetch(`${API_BASE_URL}/api/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -537,7 +538,7 @@ export default function Employees() {
                         {(req.leave_type === "Sick Leave" || req.leave_type === "Cuti Sakit") && req.mc_file_url && (
                           <div className="text-sm p-4 bg-purple-50/50 border border-purple-100 rounded-xl">
                             <p className="text-[10px] uppercase font-bold text-purple-600 mb-2">Lampiran MC</p>
-                            <a href={`https://rayhar-staff-production.up.railway.app${req.mc_file_url}`} target="_blank" rel="noopener noreferrer" className="text-purple-700 underline font-semibold flex items-center gap-2">
+                            <a href={`${API_BASE_URL}${req.mc_file_url}`} target="_blank" rel="noopener noreferrer" className="text-purple-700 underline font-semibold flex items-center gap-2">
                               <FileText className="w-4 h-4" />
                               View MC Attachment
                             </a>

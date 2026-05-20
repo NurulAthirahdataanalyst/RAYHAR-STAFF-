@@ -10,8 +10,10 @@ const pool = mysql.createPool({
 
 (async () => {
   try {
-    const [rows] = await pool.query("DESCRIBE leave_requests;");
-    console.log(JSON.stringify(rows, null, 2));
+    const [lr] = await pool.query("DESCRIBE leave_requests;");
+    const [att] = await pool.query("DESCRIBE attendances;");
+    console.log("LEAVE_REQUESTS:\n", JSON.stringify(lr, null, 2));
+    console.log("ATTENDANCES:\n", JSON.stringify(att, null, 2));
     process.exit(0);
   } catch (err) {
     console.error(err);

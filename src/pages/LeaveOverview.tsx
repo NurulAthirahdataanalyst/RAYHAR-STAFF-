@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Clock3, FileText, Plus, XCircle, Calendar } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import {
+import { API_BASE_URL } from "../config/api";
   getLeaveFormFileName,
   getLeaveRequests,
   getUsedLeaveDays,
@@ -63,7 +64,7 @@ export default function LeaveOverview() {
       }
 
       try {
-        const response = await fetch(`https://rayhar-staff-production.up.railway.app/api/leave-requests?userId=${encodeURIComponent(userId)}`);
+        const response = await fetch(`${API_BASE_URL}/api/leave-requests?userId=${encodeURIComponent(userId)}`);
         const data = await response.json();
 
         if (!response.ok || !data.success) {
