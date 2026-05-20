@@ -535,7 +535,7 @@ export default function Branches() {
                             </p>
                           </div>
 
-                          {req.leave_type === "Cuti Sakit" && req.mc_file_url && (
+                          {(req.leave_type === "Sick Leave" || req.leave_type === "Cuti Sakit") && req.mc_file_url && (
                             <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
                               <div className="flex items-center gap-3">
                                 <FileText className="w-5 h-5 text-[#7B0099]" />

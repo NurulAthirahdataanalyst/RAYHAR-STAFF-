@@ -281,11 +281,11 @@ app.get("/api/branch-employees", async (req, res) => {
       LEFT JOIN (
         SELECT
           user_id,
-          SUM(CASE WHEN leave_type = 'Cuti Tahunan' AND status <> 'Rejected' THEN days ELSE 0 END) AS annual_days_used,
+          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Cuti Sakit', 'Sick Leave') AND status <> 'Rejected' THEN days ELSE 0 END) AS annual_days_used,
           SUM(CASE WHEN status LIKE 'Pending%' THEN 1 ELSE 0 END) AS pending_leaves,
           SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) AS approved_leaves,
           SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) AS rejected_leaves,
-          SUM(CASE WHEN leave_type = 'Cuti Sakit' THEN 1 ELSE 0 END) AS mc_leaves,
+          SUM(CASE WHEN leave_type IN ('Cuti Sakit', 'Sick Leave') THEN 1 ELSE 0 END) AS mc_leaves,
           COUNT(*) AS total_leave_requests
         FROM leave_requests
         GROUP BY user_id
@@ -466,7 +466,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
     const employeeBranch = empRows[0]?.branch || "HQ";
     const employeeDept = empRows[0]?.department || "";
     
-    const initialStatus = leave_type === 'Cuti Sakit' ? 'Approved' : 
+    const initialStatus = (leave_type === 'Cuti Sakit' || leave_type === 'Sick Leave') ? 'Approved' : 
                           (employeeBranch === 'HQ' 
                             ? (employeeDept ? `Pending HOD (${employeeDept})` : 'Pending HOD') 
                             : 'Pending Branch Leader');
@@ -725,11 +725,11 @@ app.get("/api/employees", async (req, res) => {
       LEFT JOIN (
         SELECT
           user_id,
-          SUM(CASE WHEN leave_type = 'Cuti Tahunan' AND status <> 'Rejected' THEN days ELSE 0 END) AS annual_days_used,
+          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Cuti Sakit', 'Sick Leave') AND status <> 'Rejected' THEN days ELSE 0 END) AS annual_days_used,
           SUM(CASE WHEN status LIKE 'Pending%' THEN 1 ELSE 0 END) AS pending_leaves,
           SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) AS approved_leaves,
           SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) AS rejected_leaves,
-          SUM(CASE WHEN leave_type = 'Cuti Sakit' THEN 1 ELSE 0 END) AS mc_leaves,
+          SUM(CASE WHEN leave_type IN ('Cuti Sakit', 'Sick Leave') THEN 1 ELSE 0 END) AS mc_leaves,
           COUNT(*) AS total_leave_requests
         FROM leave_requests
         GROUP BY user_id

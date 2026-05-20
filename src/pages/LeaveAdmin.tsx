@@ -67,10 +67,10 @@ export default function LeaveAdmin() {
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
   const [activeTab, setActiveTab] = useState<TabFilter>("pending");
-  
+
   // Remarks Modal State
   const [remarksDialogOpen, setRemarksDialogOpen] = useState(false);
-  const [pendingAction, setPendingAction] = useState<{id: number, action: "approve" | "reject", status: string} | null>(null);
+  const [pendingAction, setPendingAction] = useState<{ id: number, action: "approve" | "reject", status: string } | null>(null);
   const [remarks, setRemarks] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -199,13 +199,13 @@ export default function LeaveAdmin() {
 
       setRemarksDialogOpen(false);
       setPendingAction(null);
-      
+
       if (action === "approve") {
         toast.success("Application Processed", { description: `Status is now: ${data.nextStatus}` });
       } else {
         toast.error("Application Rejected", { description: "Status updated accordingly." });
       }
-      
+
       // Refresh to get updated history
       fetchRequests();
     } catch (error) {
@@ -259,19 +259,17 @@ export default function LeaveAdmin() {
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
-                className={`relative px-4 sm:px-6 py-3 text-[11px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${
-                  activeTab === tab.key 
-                    ? "text-[#7B0099]" 
+                className={`relative px-4 sm:px-6 py-3 text-[11px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${activeTab === tab.key
+                    ? "text-[#7B0099]"
                     : "text-muted-foreground hover:text-foreground"
-                }`}
+                  }`}
               >
                 {tab.label}
                 {tab.count > 0 && (
-                  <span className={`ml-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-full transition-colors duration-300 ${
-                    activeTab === tab.key 
-                      ? "bg-[#7B0099] text-white" 
+                  <span className={`ml-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-full transition-colors duration-300 ${activeTab === tab.key
+                      ? "bg-[#7B0099] text-white"
                       : "bg-muted text-muted-foreground"
-                  }`}>
+                    }`}>
                     {tab.count}
                   </span>
                 )}
@@ -334,14 +332,13 @@ export default function LeaveAdmin() {
                           </td>
                           <td className="px-6 py-4">
                             <Badge
-                              className={`text-[11px] font-black px-3 py-1 h-auto whitespace-nowrap ${
-                                req.status === "Approved" ? "bg-emerald-500 text-white" :
-                                req.status === "Rejected" ? "bg-rose-600 text-white" :
-                                req.status === "Pending Finance" ? "bg-orange-500 text-white" :
-                                req.status === "Pending MD" ? "bg-blue-600 text-white" :
-                                req.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
-                                "bg-amber-500 text-white"
-                              }`}
+                              className={`text-[11px] font-black px-3 py-1 h-auto whitespace-nowrap ${req.status === "Approved" ? "bg-emerald-500 text-white" :
+                                  req.status === "Rejected" ? "bg-rose-600 text-white" :
+                                    req.status === "Pending Finance" ? "bg-orange-500 text-white" :
+                                      req.status === "Pending MD" ? "bg-blue-600 text-white" :
+                                        req.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
+                                          "bg-amber-500 text-white"
+                                }`}
                             >
                               {req.status.toUpperCase()}
                             </Badge>
@@ -398,18 +395,17 @@ export default function LeaveAdmin() {
                           <p className="font-black text-sm text-foreground truncate">{req.employee}</p>
                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">{req.branch}</p>
                         </div>
-                        <Badge className={`text-[10px] font-black h-auto py-1 px-2.5 shrink-0 whitespace-nowrap ${
-                          req.status === "Approved" ? "bg-emerald-500 text-white" :
-                          req.status === "Rejected" ? "bg-rose-600 text-white" :
-                          req.status === "Pending Finance" ? "bg-orange-500 text-white" :
-                          req.status === "Pending MD" ? "bg-blue-600 text-white" :
-                          req.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
-                          "bg-amber-500 text-white"
-                        }`}>
+                        <Badge className={`text-[10px] font-black h-auto py-1 px-2.5 shrink-0 whitespace-nowrap ${req.status === "Approved" ? "bg-emerald-500 text-white" :
+                            req.status === "Rejected" ? "bg-rose-600 text-white" :
+                              req.status === "Pending Finance" ? "bg-orange-500 text-white" :
+                                req.status === "Pending MD" ? "bg-blue-600 text-white" :
+                                  req.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
+                                    "bg-amber-500 text-white"
+                          }`}>
                           {req.status.replace('Pending ', '').toUpperCase()}
                         </Badge>
                       </div>
-                      
+
                       <div className="grid grid-cols-2 gap-2 bg-muted/20 p-2 rounded-xl">
                         <div>
                           <p className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Type</p>
@@ -429,23 +425,23 @@ export default function LeaveAdmin() {
                           (req.status === "Pending Branch Leader" && role === "branch_leader") ||
                           (req.status === "Pending Finance" && role === "finance_manager") ||
                           (req.status === "Pending MD" && role === "managing_director")) && (
-                          <div className="flex gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                            <Button
-                              size="sm"
-                              className="h-9 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm font-black text-[10px] uppercase"
-                              onClick={() => handleAction(req.id, "approve", req.status)}
-                            >
-                              Approve
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="h-9 px-3 rounded-xl bg-rose-500 hover:bg-rose-600 text-white shadow-sm font-black text-[10px] uppercase"
-                              onClick={() => handleAction(req.id, "reject", req.status)}
-                            >
-                              Reject
-                            </Button>
-                          </div>
-                        )}
+                            <div className="flex gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                              <Button
+                                size="sm"
+                                className="h-9 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm font-black text-[10px] uppercase"
+                                onClick={() => handleAction(req.id, "approve", req.status)}
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="h-9 px-3 rounded-xl bg-rose-500 hover:bg-rose-600 text-white shadow-sm font-black text-[10px] uppercase"
+                                onClick={() => handleAction(req.id, "reject", req.status)}
+                              >
+                                Reject
+                              </Button>
+                            </div>
+                          )}
                       </div>
                     </div>
                   ))
@@ -531,8 +527,8 @@ export default function LeaveAdmin() {
                     </p>
                   </div>
 
-                  {/* Conditional Fields: Cuti Ganti */}
-                  {selectedRequest.type === "Cuti Ganti" && (() => {
+                   {/* Conditional Fields: Cuti Ganti */}
+                  {(selectedRequest.type === "Replacement Leave" || selectedRequest.type === "Cuti Ganti") && (() => {
                     const rows = parseCutiGantiRows(
                       selectedRequest.reason,
                       selectedRequest.cutiGantiTarikh,
@@ -567,7 +563,7 @@ export default function LeaveAdmin() {
                   })()}
 
                   {/* Conditional Fields: Cuti Tanpa Gaji */}
-                  {selectedRequest.type === "Cuti Tanpa Gaji" && (
+                  {(selectedRequest.type === "Unpaid Leave" || selectedRequest.type === "Cuti Tanpa Gaji") && (
                     <div className="grid grid-cols-2 gap-4 text-[10px] border rounded-[20px] p-4 bg-rose-500/5 border-rose-500/20">
                       <div>
                         <p className="uppercase font-black text-rose-600 opacity-60">No. Tel H/P</p>
@@ -583,16 +579,16 @@ export default function LeaveAdmin() {
                   )}
 
                   {/* Conditional Fields: Cuti Sakit (MC) */}
-                  {selectedRequest.type === "Cuti Sakit" && selectedRequest.mcFileUrl && (
+                  {(selectedRequest.type === "Sick Leave" || selectedRequest.type === "Cuti Sakit") && selectedRequest.mcFileUrl && (
                     <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
                       <div className="flex items-center gap-3">
                         <FileText className="w-5 h-5 text-[#7B0099]" />
                         <span className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest">MC Attachment</span>
                       </div>
-                      <a 
-                        href={`https://rayhar-staff-production.up.railway.app${selectedRequest.mcFileUrl}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
+                      <a
+                        href={`https://rayhar-staff-production.up.railway.app${selectedRequest.mcFileUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="text-[9px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
                       >
                         View File
@@ -717,7 +713,7 @@ export default function LeaveAdmin() {
             </div>
             <div className="flex flex-col sm:flex-row justify-end gap-3">
               <Button variant="ghost" className="rounded-xl font-black text-[10px] uppercase tracking-widest order-2 sm:order-1" onClick={() => setRemarksDialogOpen(false)}>Cancel</Button>
-              <Button 
+              <Button
                 className={`rounded-xl font-black text-[10px] uppercase tracking-widest px-8 shadow-lg order-1 sm:order-2 ${pendingAction?.action === 'approve' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-rose-500 hover:bg-rose-600'}`}
                 onClick={submitAction}
                 disabled={isSubmitting}

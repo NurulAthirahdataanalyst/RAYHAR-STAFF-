@@ -405,11 +405,15 @@ export default function Dashboard() {
                     : `Until ${endDate.toLocaleDateString('en-MY', { month: 'short', day: '2-digit' })}`;
 
                   const leaveTypeLabel: Record<string, { short: string; color: string }> = {
-                    "Cuti Tahunan": { short: "ANNUAL", color: "bg-blue-500" },
-                    "Cuti Sakit": { short: "MC", color: "bg-rose-500" },
+                    "Cuti Tahunan": { short: "ANNUAL/EMERGENCY", color: "bg-blue-500" },
+                    "Annual/Emergency Leave": { short: "ANNUAL/EMERGENCY", color: "bg-blue-500" },
+                    "Cuti Sakit": { short: "MC/SICK", color: "bg-rose-500" },
+                    "Sick Leave": { short: "MC/SICK", color: "bg-rose-500" },
                     "Cuti Kecemasan": { short: "EMERGENCY", color: "bg-amber-500" },
                     "Cuti Ganti": { short: "REPLACEMENT", color: "bg-violet-500" },
+                    "Replacement Leave": { short: "REPLACEMENT", color: "bg-violet-500" },
                     "Cuti Tanpa Gaji": { short: "UNPAID", color: "bg-slate-500" },
+                    "Unpaid Leave": { short: "UNPAID", color: "bg-slate-500" },
                     "Cuti Ehsan": { short: "COMPASSIONATE", color: "bg-teal-500" },
                   };
                   const typeInfo = leaveTypeLabel[emp.leave_type] || { short: emp.leave_type?.toUpperCase(), color: "bg-gray-500" };

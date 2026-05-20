@@ -392,8 +392,8 @@ export default function LeaveFormView() {
                     </p>
                   </div>
 
-                  {/* Conditional Fields: Cuti Ganti */}
-                  {selectedForm.type === "Cuti Ganti" && (() => {
+                   {/* Conditional Fields: Cuti Ganti */}
+                  {(selectedForm.type === "Replacement Leave" || selectedForm.type === "Cuti Ganti") && (() => {
                     const rows = parseCutiGantiRows(
                       selectedForm.reason,
                       selectedForm.cutiGantiTarikh,
@@ -428,7 +428,7 @@ export default function LeaveFormView() {
                   })()}
 
                   {/* Conditional Fields: Cuti Tanpa Gaji */}
-                  {selectedForm.type === "Cuti Tanpa Gaji" && (
+                  {(selectedForm.type === "Unpaid Leave" || selectedForm.type === "Cuti Tanpa Gaji") && (
                     <div className="grid grid-cols-2 gap-4 text-[10px] border rounded-[20px] p-4 bg-rose-500/5 border-rose-500/20">
                       <div>
                         <p className="uppercase font-black text-rose-600 opacity-60">No. Tel H/P</p>
@@ -444,7 +444,7 @@ export default function LeaveFormView() {
                   )}
 
                   {/* Conditional Fields: Cuti Sakit (MC) */}
-                  {selectedForm.type === "Cuti Sakit" && selectedForm.mcFileUrl && (
+                  {(selectedForm.type === "Sick Leave" || selectedForm.type === "Cuti Sakit") && selectedForm.mcFileUrl && (
                     <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
                       <div className="flex items-center gap-3">
                         <FileText className="w-5 h-5 text-[#7B0099]" />

@@ -15,10 +15,10 @@ import {
 } from "@/lib/leaveStorage";
 
 const leaveTypes: Array<{ type: LeaveType; total?: number }> = [
-  { type: "Cuti Tahunan", total: 14 },
-  { type: "Cuti Ganti" },
-  { type: "Cuti Tanpa Gaji" },
-  { type: "Cuti Sakit" },
+  { type: "Annual/Emergency Leave", total: 14 },
+  { type: "Replacement Leave" },
+  { type: "Unpaid Leave" },
+  { type: "Sick Leave" },
 ];
 
 const statusVariant = (status: string) => {

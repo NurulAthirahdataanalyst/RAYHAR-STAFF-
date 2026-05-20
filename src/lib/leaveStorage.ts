@@ -1,4 +1,12 @@
-export type LeaveType = "Cuti Tahunan" | "Cuti Ganti" | "Cuti Tanpa Gaji" | "Cuti Sakit";
+export type LeaveType = 
+  | "Annual/Emergency Leave" 
+  | "Replacement Leave" 
+  | "Unpaid Leave" 
+  | "Sick Leave"
+  | "Cuti Tahunan" 
+  | "Cuti Ganti" 
+  | "Cuti Tanpa Gaji" 
+  | "Cuti Sakit";
 
 export type LeaveRequest = {
   id: string;
@@ -21,10 +29,14 @@ export type LeaveRequest = {
 export const LEAVE_STORAGE_KEY = "rayhar_leave_requests";
 
 export const leaveTypeLabels: Record<LeaveType, string> = {
-  "Cuti Tahunan": "CUTI TAHUNAN",
-  "Cuti Ganti": "CUTI GANTI",
-  "Cuti Tanpa Gaji": "CUTI TANPA GAJI",
-  "Cuti Sakit": "CUTI SAKIT (MC)",
+  "Annual/Emergency Leave": "ANNUAL/EMERGENCY LEAVE",
+  "Replacement Leave": "REPLACEMENT LEAVE",
+  "Unpaid Leave": "UNPAID LEAVE",
+  "Sick Leave": "SICK LEAVE",
+  "Cuti Tahunan": "ANNUAL/EMERGENCY LEAVE",
+  "Cuti Ganti": "REPLACEMENT LEAVE",
+  "Cuti Tanpa Gaji": "UNPAID LEAVE",
+  "Cuti Sakit": "SICK LEAVE",
 };
 
 export const getLeaveRequests = (): LeaveRequest[] => {
@@ -51,7 +63,23 @@ export const getUsedLeaveDays = (
 ) => {
   return requests
     .filter((request) => {
-      const isSameType = request.type === type;
+      let isSameType = request.type === type;
+
+      // Special quota logic: Sick Leave auto-deducts from Annual/Emergency Leave quota!
+      if (type === "Annual/Emergency Leave" || type === "Cuti Tahunan") {
+        isSameType = 
+          request.type === "Annual/Emergency Leave" ||
+          request.type === "Cuti Tahunan" ||
+          request.type === "Sick Leave" ||
+          request.type === "Cuti Sakit";
+      } else if (type === "Sick Leave" || type === "Cuti Sakit") {
+        isSameType = request.type === "Sick Leave" || request.type === "Cuti Sakit";
+      } else if (type === "Replacement Leave" || type === "Cuti Ganti") {
+        isSameType = request.type === "Replacement Leave" || request.type === "Cuti Ganti";
+      } else if (type === "Unpaid Leave" || type === "Cuti Tanpa Gaji") {
+        isSameType = request.type === "Unpaid Leave" || request.type === "Cuti Tanpa Gaji";
+      }
+
       const isNotRejected = request.status !== "Rejected";
       const isSameEmployee = userId
         ? request.userId === userId

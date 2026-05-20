@@ -482,8 +482,8 @@ export default function Employees() {
                           </p>
                         </div>
 
-                        {/* Conditional Fields: Cuti Ganti */}
-                        {req.leave_type === "Cuti Ganti" && (() => {
+                         {/* Conditional Fields: Cuti Ganti */}
+                        {(req.leave_type === "Replacement Leave" || req.leave_type === "Cuti Ganti") && (() => {
                           const rows = parseCutiGantiRows(
                             req.reason,
                             req.cuti_ganti_tarikh,
@@ -518,7 +518,7 @@ export default function Employees() {
                         })()}
 
                         {/* Conditional Fields: Cuti Tanpa Gaji */}
-                        {req.leave_type === "Cuti Tanpa Gaji" && (
+                        {(req.leave_type === "Unpaid Leave" || req.leave_type === "Cuti Tanpa Gaji") && (
                           <div className="grid grid-cols-2 gap-4 text-sm border rounded-xl p-4 bg-rose-50/50 border-rose-100">
                             <div>
                               <p className="text-[10px] uppercase font-bold text-rose-600">No. Tel H/P</p>
@@ -534,7 +534,7 @@ export default function Employees() {
                         )}
 
                         {/* Conditional Fields: Cuti Sakit (MC) */}
-                        {req.leave_type === "Cuti Sakit" && req.mc_file_url && (
+                        {(req.leave_type === "Sick Leave" || req.leave_type === "Cuti Sakit") && req.mc_file_url && (
                           <div className="text-sm p-4 bg-purple-50/50 border border-purple-100 rounded-xl">
                             <p className="text-[10px] uppercase font-bold text-purple-600 mb-2">Lampiran MC</p>
                             <a href={`https://rayhar-staff-production.up.railway.app${req.mc_file_url}`} target="_blank" rel="noopener noreferrer" className="text-purple-700 underline font-semibold flex items-center gap-2">

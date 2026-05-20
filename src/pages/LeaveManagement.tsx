@@ -110,22 +110,22 @@ export default function LeaveManagement() {
       toast.error("Tarikh akhir mesti sama atau selepas tarikh mula");
       return;
     }
-    if (currentStep === 2 && formData.jenisCuti === "Cuti Tahunan" && formData.bakiAkhir < 0) {
-      toast.error("Baki Cuti Tahunan tidak mencukupi");
+    if (currentStep === 2 && (formData.jenisCuti === "Annual/Emergency Leave" || formData.jenisCuti === "Cuti Tahunan" || formData.jenisCuti === "Sick Leave" || formData.jenisCuti === "Cuti Sakit") && formData.bakiAkhir < 0) {
+      toast.error("Baki Cuti tidak mencukupi");
       return;
     }
-    if (currentStep === 2 && formData.jenisCuti === "Cuti Sakit" && !formData.lampiranMc) {
-      toast.error("Sila lampirkan fail MC untuk Cuti Sakit");
+    if (currentStep === 2 && (formData.jenisCuti === "Sick Leave" || formData.jenisCuti === "Cuti Sakit") && !formData.lampiranMc) {
+      toast.error("Sila lampirkan fail MC untuk Sick Leave");
       return;
     }
-    if (currentStep === 2 && formData.jenisCuti === "Cuti Ganti") {
+    if (currentStep === 2 && (formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti")) {
       const invalidRow = formData.cutiGantiRows.some(row => !row.tarikh || !row.hari || row.jam <= 0);
       if (invalidRow) {
         toast.error("Sila lengkapkan semua butiran baris Cuti Ganti");
         return;
       }
     }
-    if (currentStep === 2 && formData.jenisCuti === "Cuti Tanpa Gaji" && (!formData.cutiTanpaGajiPhone || !formData.cutiTanpaGajiSignature)) {
+    if (currentStep === 2 && (formData.jenisCuti === "Unpaid Leave" || formData.jenisCuti === "Cuti Tanpa Gaji") && (!formData.cutiTanpaGajiPhone || !formData.cutiTanpaGajiSignature)) {
       toast.error("Sila lengkapkan butiran Cuti Tanpa Gaji dan tandatangan pengesahan");
       return;
     }
@@ -145,7 +145,7 @@ export default function LeaveManagement() {
       const appliedAt = new Date().toISOString();
       const leaveType = formData.jenisCuti as LeaveType;
 
-      const serializedGanti = formData.jenisCuti === "Cuti Ganti"
+      const serializedGanti = (formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti")
         ? `\n\n[CUTI_GANTI_DATA:${JSON.stringify(formData.cutiGantiRows)}]`
         : "";
 
@@ -161,16 +161,16 @@ export default function LeaveManagement() {
       payload.append("waris_alamat", formData.warisAlamat);
       payload.append("waris_hubungan", formData.warisHubungan);
 
-      if (leaveType === "Cuti Sakit" && formData.lampiranMc) {
+      if ((leaveType === "Sick Leave" || leaveType === "Cuti Sakit") && formData.lampiranMc) {
         payload.append("lampiranMc", formData.lampiranMc);
       }
-      if (leaveType === "Cuti Ganti") {
+      if (leaveType === "Replacement Leave" || leaveType === "Cuti Ganti") {
         const firstRow = formData.cutiGantiRows[0] || { tarikh: "", hari: "", jam: 0 };
         payload.append("cuti_ganti_tarikh", firstRow.tarikh);
         payload.append("cuti_ganti_hari", firstRow.hari);
         payload.append("cuti_ganti_jam", String(firstRow.jam));
       }
-      if (leaveType === "Cuti Tanpa Gaji") {
+      if (leaveType === "Unpaid Leave" || leaveType === "Cuti Tanpa Gaji") {
         payload.append("cuti_tanpa_gaji_phone", formData.cutiTanpaGajiPhone);
         payload.append("cuti_tanpa_gaji_signature", formData.cutiTanpaGajiSignature ? "true" : "false");
       }
@@ -257,7 +257,7 @@ export default function LeaveManagement() {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="bg-[#7B0099] text-white text-[9px] rounded-full w-5 h-5 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">3</span>
-                  <span>Lampiran hanya diperlukan untuk <strong className="text-[#7B0099]">CUTI SAKIT (MC)</strong>.</span>
+                  <span>Lampiran hanya diperlukan untuk <strong className="text-[#7B0099]">SICK LEAVE</strong>.</span>
                 </li>
               </ul>
             </div>
@@ -394,37 +394,40 @@ export default function LeaveManagement() {
                         const jenisCuti = val as LeaveType;
                         const usedAnnualLeave = getUsedLeaveDays(
                           getLeaveRequests(),
-                          "Cuti Tahunan",
+                          "Annual/Emergency Leave",
                           userId || undefined
                         );
-                        const bakiTerdahulu = jenisCuti === "Cuti Tahunan" ? 14 - usedAnnualLeave : 14;
+                        
+                        // Quota applies to both Annual/Emergency Leave and Sick Leave
+                        const isAnnualOrSick = jenisCuti === "Annual/Emergency Leave" || jenisCuti === "Sick Leave";
+                        const bakiTerdahulu = isAnnualOrSick ? 14 - usedAnnualLeave : 14;
 
                         setFormData({
                           ...formData,
                           jenisCuti,
                           bakiTerdahulu,
                           bakiAkhir: bakiTerdahulu - formData.bilanganHari,
-                          lampiranMc: jenisCuti === "Cuti Sakit" ? formData.lampiranMc : null,
+                          lampiranMc: (jenisCuti === "Sick Leave" || jenisCuti === "Cuti Sakit") ? formData.lampiranMc : null,
                         });
                       }}
                     >
                       <SelectTrigger className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold">
-                        <SelectValue placeholder="-- Pilih Jenis Cuti --" />
+                        <SelectValue placeholder="-- Select Leave Type --" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl">
-                        <SelectItem value="Cuti Tahunan">Cuti Tahunan</SelectItem>
-                        <SelectItem value="Cuti Ganti">Cuti Ganti</SelectItem>
-                        <SelectItem value="Cuti Tanpa Gaji">Cuti Tanpa Gaji</SelectItem>
-                        <SelectItem value="Cuti Sakit">Cuti Sakit (MC)</SelectItem>
+                        <SelectItem value="Annual/Emergency Leave">Annual/Emergency Leave</SelectItem>
+                        <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
+                        <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
+                        <SelectItem value="Sick Leave">Sick Leave</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Pengiraan Cuti Tahunan */}
-                  {formData.jenisCuti === "Cuti Tahunan" && (
+                  {(formData.jenisCuti === "Annual/Emergency Leave" || formData.jenisCuti === "Cuti Tahunan" || formData.jenisCuti === "Sick Leave" || formData.jenisCuti === "Cuti Sakit") && (
                     <div className="p-5 rounded-[24px] bg-amber-500/10 border border-amber-500/20 space-y-4 animate-in fade-in zoom-in-95">
                       <h4 className="flex items-center gap-2 text-amber-700 font-black text-[10px] uppercase tracking-widest">
-                        <Calculator className="w-4 h-4" /> Pengiraan Cuti Tahunan
+                        <Calculator className="w-4 h-4" /> Annual/Emergency Leave Quota Calculator
                       </h4>
                       <div className="grid grid-cols-3 gap-3">
                         <div className="space-y-1 text-center">
@@ -445,7 +448,7 @@ export default function LeaveManagement() {
                     </div>
                   )}
 
-                  {formData.jenisCuti === "Cuti Sakit" && (
+                  {(formData.jenisCuti === "Sick Leave" || formData.jenisCuti === "Cuti Sakit") && (
                     <div className="space-y-3 rounded-[24px] border border-[#7B0099]/20 bg-[#7B0099]/5 p-5 animate-in fade-in zoom-in-95">
                       <Label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#7B0099]">
                         <Paperclip className="h-4 w-4" />
@@ -468,7 +471,7 @@ export default function LeaveManagement() {
                     </div>
                   )}
 
-                  {formData.jenisCuti === "Cuti Ganti" && (
+                  {(formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") && (
                     <div className="space-y-4 rounded-[24px] border border-[#7B0099]/20 bg-[#7B0099]/5 p-5 animate-in fade-in zoom-in-95">
                       <div className="flex items-center justify-between">
                         <h4 className="text-purple-700 font-black text-[10px] uppercase tracking-widest">Butiran Cuti Ganti</h4>
