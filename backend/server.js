@@ -142,11 +142,11 @@ pgPool.on('connect', (connection) => {
 (async () => {
   try {
     const connection = await pool.getConnection();
-    await connection.query("SET time_zone = '+08:00'");
-    console.log("✅ Connected to MySQL successfully (timezone: UTC+8 Malaysia).");
+    const [rows] = await connection.query('SELECT NOW() as now');
+    console.log('✅ Connected to PostgreSQL successfully. Server time:', rows[0].now);
     connection.release();
   } catch (error) {
-    console.error("❌ Error connecting to MySQL:", error.message);
+    console.error('❌ Error connecting to PostgreSQL:', error.message);
   }
 })();
 
@@ -1016,18 +1016,18 @@ app.get("/api/user-details/:identifier", async (req, res) => {
 // ===============================
 app.get("/api/attendance-status", async (req, res) => {
   const { empId } = req.query;
-
+  if (!empId) {
+    return res.status(400).json({ success: false, error: "Missing empId" });
+  }
+  const userId = String(empId);
   try {
-    const [rows] = await pool.query(
-      `
+    const [rows] = await pool.query(`
       SELECT * FROM attendances
       WHERE user_id = ?
       AND DATE(clock_in) = CURRENT_DATE
       AND clock_out IS NULL
       LIMIT 1
-      `,
-      [empId]
-    );
+      `, [userId]);
 
     res.json({
       success: true,
@@ -1050,11 +1050,11 @@ app.post("/api/attendance", async (req, res) => {
       .status(400)
       .json({ success: false, error: "Missing user_id" });
   }
-
+  const uid = String(user_id);
   try {
     const [result] = await pool.query(
       `INSERT INTO attendances (user_id, clock_in) VALUES (?, NOW())`,
-      [user_id]
+      [uid]
     );
 
     const insertedId = result.insertId;
