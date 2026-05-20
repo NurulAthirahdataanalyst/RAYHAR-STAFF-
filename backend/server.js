@@ -72,7 +72,7 @@ const dbConfig = {
   user: process.env.DB_USER || process.env.MYSQLUSER,
   password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD,
   database: process.env.DB_NAME || process.env.MYSQLDATABASE,
-  port: Number(process.env.DB_PORT || process.env.MYSQLPORT || 3306),
+  port: Number(process.env.DB_PORT || process.env.MYSQLPORT || 5432),
   ssl: { rejectUnauthorized: false }
 };
 
@@ -87,13 +87,52 @@ const pgPool = connectionString ? new Pool({
   max: 10
 }) : new Pool(dbConfig);
 
+// Helper: convert all params to strings so PostgreSQL never sees integer vs varchar mismatch
+function sanitizeParams(params) {
+  if (!params || params.length === 0) return params;
+  return params.map(p => {
+    if (p === null || p === undefined) return null;
+    if (typeof p === 'boolean') return p; // keep booleans as-is for boolean columns
+    return String(p);
+  });
+}
+
+// Helper: replace ? placeholders with $1, $2, ... for PostgreSQL
+function mysqlToPostgres(sql, params) {
+  if (params && params.length > 0) {
+    let i = 1;
+    sql = sql.replace(/\?/g, () => `$${i++}`);
+  }
+  return sql;
+}
+
 const pool = {
   pool: pgPool, // for pool.pool.on
   getConnection: async () => {
     const client = await pgPool.connect();
     return {
       query: async (sql, params) => {
-        return pool.query(sql, params); // just proxy to pool to share replacement logic
+        params = sanitizeParams(params);
+        sql = mysqlToPostgres(sql, params);
+        // Handle RETURNING for INSERT
+        let isInsert = /^\s*INSERT\s+/i.test(sql);
+        if (isInsert && !/RETURNING/i.test(sql)) {
+          sql = sql + " RETURNING *";
+        }
+        try {
+          const res = await client.query(sql, params);
+          let resultObj = res.rows || [];
+          if (isInsert && res.rows && res.rows.length > 0) {
+            const firstRow = res.rows[0];
+            const maybeId = firstRow.id || firstRow.leave_id || Object.values(firstRow)[0];
+            resultObj = { insertId: maybeId };
+          } else if (!Array.isArray(resultObj)) {
+            resultObj = [];
+          }
+          return [resultObj, res.fields];
+        } catch(err) {
+          throw err;
+        }
       },
       release: () => client.release(),
       beginTransaction: () => client.query('BEGIN'),
@@ -102,15 +141,11 @@ const pool = {
     };
   },
   query: async (sql, params) => {
-    if (params && params.length > 0) {
-      let i = 1;
-      sql = sql.replace(/\?/g, () => `${i++}`);
-    }
+    params = sanitizeParams(params);
+    sql = mysqlToPostgres(sql, params);
     // Handle returning insert id automatically if it's an INSERT query without RETURNING
     let isInsert = /^\s*INSERT\s+/i.test(sql);
     if (isInsert && !/RETURNING/i.test(sql)) {
-      // Very naive: just append returning * for insert operations to mimic insertId 
-      // It is better to use RETURNING id or whatever the primary key is, but returning * is safer generically.
       sql = sql + " RETURNING *";
     }
     try {
@@ -133,7 +168,6 @@ const pool = {
 
 
 // Set timezone to Malaysia (UTC+8) for every new connection
-// mysql2/promise wraps the underlying pool — access it via pool.pool
 pgPool.on('connect', (connection) => {
   connection.query("SET TIME ZONE '+08:00'");
 });
@@ -241,9 +275,9 @@ app.post("/api/signup", async (req, res) => {
       return res.status(409).json({ success: false, error: "Email already registered" });
     }
 
-    // Generate New E00x ID
+    // Generate New E00x ID — PostgreSQL version
     const [maxRows] = await connection.query(
-      "SELECT MAX(CAST(SUBSTRING(user_id, 2) AS UNSIGNED)) as max_id FROM profiles WHERE user_id LIKE 'E%'"
+      "SELECT MAX(CAST(SUBSTRING(user_id, 2) AS INTEGER)) as max_id FROM profiles WHERE user_id LIKE 'E%'"
     );
     const nextIdNum = (maxRows[0].max_id || 0) + 1;
     const userId = "E" + String(nextIdNum).padStart(3, "0");
@@ -309,7 +343,7 @@ app.get("/api/branch-employees", async (req, res) => {
         COALESCE(lr.mc_leaves, 0) AS mc_leaves,
         GREATEST(14 - COALESCE(lr.annual_days_used, 0), 0) AS annual_leave_balance,
         COALESCE(att.days_present, 0) AS days_present,
-        ROUND((COALESCE(att.days_present, 0) / EXTRACT(DAY FROM CURRENT_DATE)) * 100) AS attendance_rate,
+        ROUND((COALESCE(att.days_present, 0)::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100) AS attendance_rate,
         today.clock_in AS today_clock_in,
         today.clock_out AS today_clock_out,
         CASE WHEN COALESCE(leave_today.leave_count, 0) > 0 THEN 1 ELSE 0 END AS is_on_leave
@@ -332,8 +366,8 @@ app.get("/api/branch-employees", async (req, res) => {
           user_id,
           COUNT(DISTINCT DATE(clock_in)) AS days_present
         FROM attendances
-        WHERE YEAR(clock_in) = EXTRACT(YEAR FROM CURRENT_DATE)
-        AND MONTH(clock_in) = EXTRACT(MONTH FROM CURRENT_DATE)
+        WHERE EXTRACT(YEAR FROM clock_in) = EXTRACT(YEAR FROM CURRENT_DATE)
+        AND EXTRACT(MONTH FROM clock_in) = EXTRACT(MONTH FROM CURRENT_DATE)
         GROUP BY user_id
       ) att ON att.user_id = p.user_id
       LEFT JOIN (
@@ -421,11 +455,10 @@ app.get("/api/leave-requests", async (req, res) => {
         lr.status,
         lr.approver_id,
         lr.approver_note,
-        COALESCE(ur_approver.role, 'Admin') AS approver_role,
-        lr.waris_nama,  
-        lr.waris_phone,   
+        lr.waris_nama,
+        lr.waris_phone,
         lr.waris_alamat,
-        lr.waris_hubungan, 
+        lr.waris_hubungan,
         lr.cuti_ganti_tarikh,
         lr.cuti_ganti_hari,
         lr.cuti_ganti_jam,
@@ -436,6 +469,8 @@ app.get("/api/leave-requests", async (req, res) => {
         lr.updated_at,
         p.full_name,
         p.branch,
+        p.department,
+        COALESCE(ur_approver.role, '') AS approver_role,
         (
           SELECT json_agg(
             json_build_object(
@@ -548,12 +583,20 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
       [result.insertId]
     );
 
-    res.status(201).json({ success: true, leaveRequest: rows[0] });
+    const leaveData = rows[0];
+
+    res.status(201).json({ success: true, leaveRequest: leaveData });
     broadcastPresenceUpdate({ type: 'leave-status', leaveId: result.insertId, status: initialStatus, userId: user_id });
 
     // --- SEND EMAIL NOTIFICATION TO HOD (ONLY IF NOT AUTO-APPROVED) ---
-    if (initialStatus !== "Approved") {
+    if (initialStatus !== "Approved" && leaveData) {
       try {
+        // Find the HOD for this department
+        const [hodRows] = await pool.query(
+          `SELECT p.email FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND p.department = ? AND p.branch = ? LIMIT 1`,
+          [employeeDept, employeeBranch]
+        );
+
         if (hodRows.length > 0 || initialStatus === "Pending Branch Leader") {
           let approverEmail = "";
           let approverTitle = "HOD";
@@ -754,7 +797,7 @@ app.get("/api/employees", async (req, res) => {
         COALESCE(lr.mc_leaves, 0) AS mc_leaves,
         GREATEST(14 - COALESCE(lr.annual_days_used, 0), 0) AS annual_leave_balance,
         COALESCE(att.days_present, 0) AS days_present,
-        ROUND((COALESCE(att.days_present, 0) / EXTRACT(DAY FROM CURRENT_DATE)) * 100) AS attendance_rate,
+        ROUND((COALESCE(att.days_present, 0)::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100) AS attendance_rate,
         today.clock_in AS today_clock_in,
         today.clock_out AS today_clock_out
       FROM profiles p
@@ -776,8 +819,8 @@ app.get("/api/employees", async (req, res) => {
           user_id,
           COUNT(DISTINCT DATE(clock_in)) AS days_present
         FROM attendances
-        WHERE YEAR(clock_in) = EXTRACT(YEAR FROM CURRENT_DATE)
-        AND MONTH(clock_in) = EXTRACT(MONTH FROM CURRENT_DATE)
+        WHERE EXTRACT(YEAR FROM clock_in) = EXTRACT(YEAR FROM CURRENT_DATE)
+        AND EXTRACT(MONTH FROM clock_in) = EXTRACT(MONTH FROM CURRENT_DATE)
         GROUP BY user_id
       ) att ON att.user_id = p.user_id
       LEFT JOIN (
@@ -1019,7 +1062,6 @@ app.get("/api/attendance-status", async (req, res) => {
   if (!empId) {
     return res.status(400).json({ success: false, error: "Missing empId" });
   }
-  const userId = String(empId);
   try {
     const [rows] = await pool.query(`
       SELECT * FROM attendances
@@ -1027,7 +1069,7 @@ app.get("/api/attendance-status", async (req, res) => {
       AND DATE(clock_in) = CURRENT_DATE
       AND clock_out IS NULL
       LIMIT 1
-      `, [userId]);
+      `, [empId]);
 
     res.json({
       success: true,
@@ -1050,11 +1092,11 @@ app.post("/api/attendance", async (req, res) => {
       .status(400)
       .json({ success: false, error: "Missing user_id" });
   }
-  const uid = String(user_id);
+
   try {
     const [result] = await pool.query(
       `INSERT INTO attendances (user_id, clock_in) VALUES (?, NOW())`,
-      [uid]
+      [user_id]
     );
 
     const insertedId = result.insertId;
@@ -1076,10 +1118,12 @@ app.post("/api/attendance", async (req, res) => {
 // ===============================
 app.post("/api/clock-out", async (req, res) => {
   const { user_id } = req.body;
+  if (!user_id) {
+    return res.status(400).json({ success: false, error: "Missing user_id" });
+  }
 
   try {
-    await pool.query(
-      `
+    await pool.query(`
       UPDATE attendances
       SET clock_out = NOW()
       WHERE user_id = ?
@@ -1089,8 +1133,7 @@ app.post("/api/clock-out", async (req, res) => {
       [user_id]
     );
 
-    const [rows] = await pool.query(
-      `
+    const [rows] = await pool.query(`
       SELECT * FROM attendances
       WHERE user_id = ?
       AND DATE(clock_in) = CURRENT_DATE
@@ -1128,13 +1171,13 @@ app.get("/api/attendance/history", async (req, res) => {
         user_id,
         clock_in,
         clock_out,
-        DATE_FORMAT(clock_in, '%h:%i %p') AS time_in,
-        DATE_FORMAT(clock_out, '%h:%i %p') AS time_out,
+        TO_CHAR(clock_in, 'HH12:MI AM') AS time_in,
+        TO_CHAR(clock_out, 'HH12:MI AM') AS time_out,
         DATE(clock_in) AS date
       FROM attendances
       WHERE user_id = ?
-      AND MONTH(clock_in) = ?
-      AND YEAR(clock_in) = ?
+      AND EXTRACT(MONTH FROM clock_in) = ?
+      AND EXTRACT(YEAR FROM clock_in) = ?
       ORDER BY clock_in DESC
       `,
       [userId, requestedMonth, requestedYear]
@@ -1251,7 +1294,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const [lateRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = CURRENT_DATE AND TIME(clock_in) > '10:00:00' ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = CURRENT_DATE AND clock_in::time > '10:00:00' ${attendanceFilter}`,
         queryParams
       );
 
@@ -1273,7 +1316,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       const [recentRows] = await pool.query(
         `
-        SELECT p.full_name AS name, 'Leave' AS action, CONCAT('Leave ', lr.status) AS status, DATE_FORMAT(lr.created_at, '%h:%i %p') AS time
+        SELECT p.full_name AS name, 'Leave' AS action, CONCAT('Leave ', lr.status) AS status, TO_CHAR(lr.created_at, 'HH12:MI AM') AS time
         FROM leave_requests lr
         JOIN profiles p ON p.user_id = lr.user_id
         ${profileFilter ? "WHERE 1=1 " + profileFilter : ""}
@@ -1295,7 +1338,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     // 1. TODAY ATTENDANCE STATUS
     const [todayRows] = await pool.query(
       `
-      SELECT clock_in, clock_out, DATE_FORMAT(clock_in, '%h:%i %p') AS clock_in_time, DATE_FORMAT(clock_out, '%h:%i %p') AS clock_out_time
+      SELECT clock_in, clock_out, TO_CHAR(clock_in, 'HH12:MI AM') AS clock_in_time, TO_CHAR(clock_out, 'HH12:MI AM') AS clock_out_time
       FROM attendances WHERE user_id = ? AND DATE(clock_in) = CURRENT_DATE ORDER BY clock_in DESC LIMIT 1
       `,
       [userId]
@@ -1321,7 +1364,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     // 2. MONTHLY ATTENDANCE RATE
     const [monthlyRows] = await pool.query(
-      `SELECT COUNT(DISTINCT DATE(clock_in)) AS days_present FROM attendances WHERE user_id = ? AND YEAR(clock_in) = EXTRACT(YEAR FROM CURRENT_DATE) AND MONTH(clock_in) = EXTRACT(MONTH FROM CURRENT_DATE)`,
+      `SELECT COUNT(DISTINCT DATE(clock_in)) AS days_present FROM attendances WHERE user_id = ? AND EXTRACT(YEAR FROM clock_in) = EXTRACT(YEAR FROM CURRENT_DATE) AND EXTRACT(MONTH FROM clock_in) = EXTRACT(MONTH FROM CURRENT_DATE)`,
       [userId]
     );
 
@@ -1341,7 +1384,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const [personalRecentRows] = await pool.query(
       `
       SELECT p.full_name AS name, 'Attendance' AS action, CASE WHEN a.clock_out IS NULL THEN 'Clocked In' ELSE 'Clocked Out' END AS status,
-        CASE WHEN a.clock_out IS NULL THEN DATE_FORMAT(a.clock_in, '%h:%i %p') ELSE DATE_FORMAT(a.clock_out, '%h:%i %p') END AS time
+        CASE WHEN a.clock_out IS NULL THEN TO_CHAR(a.clock_in, 'HH12:MI AM') ELSE TO_CHAR(a.clock_out, 'HH12:MI AM') END AS time
       FROM attendances a JOIN profiles p ON p.user_id = a.user_id WHERE a.user_id = ? ORDER BY COALESCE(a.clock_out, a.clock_in) DESC LIMIT 5
       `,
       [userId]
@@ -1383,8 +1426,8 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         p.branch,
         a.clock_in,
         a.clock_out,
-        DATE_FORMAT(a.clock_in, '%h:%i %p') AS time_in,
-        DATE_FORMAT(a.clock_out, '%h:%i %p') AS time_out
+        TO_CHAR(a.clock_in, 'HH12:MI AM') AS time_in,
+        TO_CHAR(a.clock_out, 'HH12:MI AM') AS time_out
       FROM profiles p
       JOIN attendances a ON p.user_id = a.user_id
       WHERE a.attendance_id IN (
@@ -1434,13 +1477,13 @@ app.get("/api/reports/analytics", async (req, res) => {
       `
       SELECT
         p.branch,
-        COUNT(DISTINCT a.user_id, DATE(a.clock_in)) as total_present,
+        COUNT(DISTINCT (a.user_id, DATE(a.clock_in))) as total_present,
         COUNT(DISTINCT p.user_id) as total_employees,
         COUNT(DISTINCT CASE WHEN a.clock_out IS NULL AND DATE(a.clock_in) = CURRENT_DATE THEN a.user_id END) as active_now
       FROM profiles p
       LEFT JOIN attendances a ON p.user_id = a.user_id 
-        AND MONTH(a.clock_in) = ? 
-        AND YEAR(a.clock_in) = ?
+        AND EXTRACT(MONTH FROM a.clock_in) = ? 
+        AND EXTRACT(YEAR FROM a.clock_in) = ?
       WHERE p.status = 'Active'
       GROUP BY p.branch
       `,
@@ -1466,11 +1509,11 @@ app.get("/api/reports/analytics", async (req, res) => {
     const [attendanceRows] = await pool.query(
       `
       SELECT 
-        MONTH(clock_in) as month_num,
-        COUNT(DISTINCT user_id, DATE(clock_in)) as total_present
+        EXTRACT(MONTH FROM clock_in) as month_num,
+        COUNT(DISTINCT (user_id, DATE(clock_in))) as total_present
       FROM attendances
-      WHERE YEAR(clock_in) = ?
-      GROUP BY MONTH(clock_in)
+      WHERE EXTRACT(YEAR FROM clock_in) = ?
+      GROUP BY EXTRACT(MONTH FROM clock_in)
       `,
       [requestedYear]
     );
@@ -1478,11 +1521,11 @@ app.get("/api/reports/analytics", async (req, res) => {
     const [leaveRows] = await pool.query(
       `
       SELECT
-        MONTH(start_date) as month_num,
+        EXTRACT(MONTH FROM start_date) as month_num,
         COUNT(*) as total_leaves
       FROM leave_requests
-      WHERE YEAR(start_date) = ? AND status = 'Approved'
-      GROUP BY MONTH(start_date)
+      WHERE EXTRACT(YEAR FROM start_date) = ? AND status = 'Approved'
+      GROUP BY EXTRACT(MONTH FROM start_date)
       `,
       [requestedYear]
     );
@@ -1507,8 +1550,8 @@ app.get("/api/reports/analytics", async (req, res) => {
 
     for (let i = 1; i <= maxMonthToShow; i++) {
       const monthStr = months[i - 1];
-      const attData = attendanceRows.find(r => r.month_num === i);
-      const levData = leaveRows.find(r => r.month_num === i);
+      const attData = attendanceRows.find(r => parseInt(r.month_num) === i);
+      const levData = leaveRows.find(r => parseInt(r.month_num) === i);
 
       const possibleAttendances = totalActiveEmployees * 20;
       const presentCount = attData ? attData.total_present : 0;
