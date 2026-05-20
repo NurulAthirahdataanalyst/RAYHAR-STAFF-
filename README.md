@@ -5,13 +5,12 @@
 Your backend requires these environment variables in `backend/.env`:
 
 ```env
-DB_HOST=your_database_host
-DB_PORT=your_database_port
-DB_USER=your_database_username
-DB_PASSWORD=your_database_password
-DB_NAME=your_database_name
+DATABASE_URL=postgresql://postgres.lhgfzerdekwxppzjngyg:625231040236%40Nyn@aws-1-ap-southeast-2.pooler.supabase.com:6543/postgres
 JWT_SECRET=r9K$7yZ!b3pQx2sD8vL0nW%hJ4mG6uT1
 PORT=5000
+
+VITE_SUPABASE_URL=https://lhgfzerdekwxppzjngyg.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable_6qxV-af_juQNObGZoIH6ZA_pXVtVPkc
 ```
 
 > `JWT_SECRET` is required for the login JWT token. If it is missing, login will fail with a server error.
