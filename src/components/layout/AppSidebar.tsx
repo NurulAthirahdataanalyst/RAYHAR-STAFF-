@@ -96,7 +96,10 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       ],
     },
     { title: "Branches", icon: Building2, path: "/branches", roles: ["hr_admin", "managing_director", "finance_manager"] },
-    { title: "Analytical", icon: BarChart3, path: "/reports", roles: ADMIN_ROLES },
+    // hr_admin has their own dedicated Reports & Leave Analytics — shown separately
+    { title: "Analytical", icon: BarChart3, path: "/reports", roles: ["hr_admin"] },
+    // All other roles (employees, managers, HOD, etc.) get the Employee Performance Insights page
+    { title: "Analytical", icon: BarChart3, path: "/analytics", roles: ALL_ROLES.filter(r => r !== "hr_admin") },
   ];
 
   const filteredItems = menuItems.filter((item) =>

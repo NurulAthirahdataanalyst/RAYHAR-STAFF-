@@ -14,6 +14,7 @@ import LeaveOverview from "./pages/LeaveOverview";
 import LeaveManagement from "./pages/LeaveManagement"; // Ini adalah file borang Rayhar anda
 import LeaveAdmin from "./pages/LeaveAdmin";
 import LeaveAnalytics from "./pages/LeaveAnalytics";
+import EmployeeAnalytics from "./pages/EmployeeAnalytics";
 import LeaveFormView from "./pages/LeaveFormView";
 import Employees from "./pages/Employees";
 import Branches from "./pages/Branches";
@@ -67,6 +68,7 @@ function ProtectedRoutes() {
           <Route path="/employees" element={<Employees />} />
           <Route path="/branches" element={<Branches />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/analytics" element={<EmployeeAnalytics />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/calendar" element={<RealTimeCalendar />} />
           
