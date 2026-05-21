@@ -14,7 +14,8 @@ import {
   ChevronRight,
   X,
   Moon,
-  Sun
+  Sun,
+  PieChart
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRole } from "@/contexts/RoleContext";
@@ -80,6 +81,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "Apply for Leave", icon: FilePlus2, path: "/leave/apply", roles: ALL_ROLES },
         { title: "Leave Form Application", icon: FileSearch, path: "/leave/forms", roles: ALL_ROLES },
         { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", roles: [...ADMIN_ROLES] },
+        { title: "Leave Analytics", icon: PieChart, path: "/leave/analytics", roles: ["hr_admin", "managing_director"] },
       ],
     },
     { title: "Staff", icon: Users, path: "/employees", roles: ADMIN_ROLES },
