@@ -169,7 +169,7 @@ const pool = {
 
 // Set timezone to Malaysia (UTC+8) for every new connection
 pgPool.on('connect', (connection) => {
-  connection.query("SET TIME ZONE '+08:00'");
+  connection.query("SET TIME ZONE 'Asia/Kuala_Lumpur'");
 });
 
 // Test connection

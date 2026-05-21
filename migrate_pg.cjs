@@ -62,7 +62,7 @@ const pool = {
 // 2. Fix timezone specific stuff
 content = content.replace(
   `connection.query("SET time_zone = '+08:00'");`,
-  `connection.query("SET TIME ZONE '+08:00'");`
+  `connection.query("SET TIME ZONE 'Asia/Kuala_Lumpur'");`
 );
 content = content.replace(
   `pool.pool.on('connection', (connection) => {`,
