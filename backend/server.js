@@ -481,12 +481,11 @@ app.get("/api/leave-requests", async (req, res) => {
               'remarks', la.remarks,
               'created_at', la.created_at,
               'approver_name', p2.full_name
-            )
+            ) ORDER BY la.created_at ASC
           )
           FROM leave_approvals la
           LEFT JOIN profiles p2 ON p2.user_id = la.approver_id
           WHERE la.leave_id = lr.leave_id
-          ORDER BY la.created_at ASC
         ) as approval_history
       FROM leave_requests lr
       JOIN profiles p ON p.user_id = lr.user_id
