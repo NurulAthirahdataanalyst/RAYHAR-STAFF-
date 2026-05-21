@@ -385,25 +385,25 @@ export default function Attendance() {
       {/* Dynamic Background Top Half */}
       <div className="absolute top-0 left-0 right-0 h-[40%] sm:h-[45%] bg-gradient-to-br from-[#5e0080] via-[#7B0099] to-[#a855f7] rounded-b-[40px] sm:rounded-b-[60px] z-0 shadow-2xl" />
 
-      <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center lg:items-start justify-center gap-6 lg:gap-8 p-4 sm:p-8 md:p-10 animate-in fade-in zoom-in-95 duration-700 w-full max-w-2xl lg:max-w-6xl mx-auto">
+      <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-6 lg:gap-8 p-4 sm:p-8 md:p-10 animate-in fade-in zoom-in-95 duration-700 w-full max-w-2xl lg:max-w-5xl mx-auto">
 
         {/* Main Clocking Card */}
-        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md lg:w-[380px] lg:max-w-none rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-6 sm:p-8 md:p-10 flex flex-col items-center relative overflow-hidden border border-border/30 shrink-0">
+        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md lg:flex-1 lg:max-w-[450px] rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-5 sm:p-6 md:p-8 flex flex-col items-center relative overflow-hidden border border-border/30">
 
           {user ? (
-            <>
+            <div className="flex-1 flex flex-col items-center justify-between w-full h-full">
               {/* Header section inside card */}
-              <div className="flex flex-col items-center gap-1 mb-6 sm:mb-10">
-                <div className="text-3xl sm:text-4xl md:text-5xl font-black text-foreground tracking-tight font-mono drop-shadow-sm">
+              <div className="flex flex-col items-center gap-0.5 mb-4 sm:mb-6">
+                <div className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground tracking-tight font-mono drop-shadow-sm">
                   {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
                 </div>
-                <div className="text-muted-foreground font-semibold text-xs sm:text-sm md:text-base tracking-wide">
+                <div className="text-muted-foreground font-semibold text-[11px] sm:text-xs md:text-sm tracking-wide">
                   {currentTime.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
                 </div>
               </div>
 
-              {/* Central Circular Button - larger on mobile for easy touch */}
-              <div className="relative w-44 h-44 sm:w-56 sm:h-56 md:w-64 md:h-64 flex items-center justify-center mb-6 sm:mb-10 group">
+              {/* Central Circular Button - compact and clean */}
+              <div className="relative w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48 flex items-center justify-center mb-4 sm:mb-6 group">
                 {/* Outer pulsing rings for active session */}
                 {activeSession && (
                   <>
@@ -436,30 +436,30 @@ export default function Attendance() {
                 <button
                   onClick={handleAttendanceAction}
                   disabled={loading}
-                  className={`relative w-36 h-36 sm:w-48 sm:h-48 md:w-52 md:h-52 rounded-full flex flex-col items-center justify-center gap-2 sm:gap-3 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.96] shadow-2xl focus:outline-none focus:ring-4 focus:ring-offset-4 dark:focus:ring-offset-card touch-target ${activeSession
-                    ? "bg-card dark:bg-card border-4 border-emerald-500 focus:ring-emerald-200 dark:focus:ring-emerald-800 text-emerald-600 dark:text-emerald-400 shadow-emerald-500/20"
+                  className={`relative w-28 h-28 sm:w-36 sm:h-36 md:w-38 md:h-38 rounded-full flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.96] shadow-2xl focus:outline-none focus:ring-4 focus:ring-offset-4 dark:focus:ring-offset-card touch-target ${activeSession
+                    ? "bg-card dark:bg-card border-[3px] border-emerald-500 focus:ring-emerald-200 dark:focus:ring-emerald-800 text-emerald-600 dark:text-emerald-400 shadow-emerald-500/20"
                     : "bg-gradient-to-tr from-[#5e0080] via-[#7B0099] to-purple-500 focus:ring-purple-200 dark:focus:ring-purple-800 text-white shadow-purple-500/40"
                     }`}
                   aria-label={activeSession ? "Clock out - End shift" : "Clock in - Start shift"}
                 >
                   {loading ? (
-                    <Loader2 className={`animate-spin w-8 h-8 sm:w-10 sm:h-10 ${activeSession ? "text-emerald-500" : "text-white"}`} />
+                    <Loader2 className={`animate-spin w-6 h-6 sm:w-8 sm:h-8 ${activeSession ? "text-emerald-500" : "text-white"}`} />
                   ) : activeSession ? (
                     <>
-                      <Clock className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-500 dark:text-emerald-400 mb-1" />
-                      <span className="font-black tracking-widest text-base sm:text-lg">END SHIFT</span>
+                      <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-500 dark:text-emerald-400 mb-0.5" />
+                      <span className="font-black tracking-widest text-xs sm:text-sm md:text-base">END SHIFT</span>
                     </>
                   ) : (
                     <>
-                      <Hand className="w-8 h-8 sm:w-10 sm:h-10 text-white/90 drop-shadow-md mb-1 animate-bounce" style={{ animationDuration: '2s' }} />
-                      <span className="font-black tracking-widest text-lg sm:text-xl drop-shadow-md">CLOCK IN</span>
+                      <Hand className="w-6 h-6 sm:w-8 sm:h-8 text-white/90 drop-shadow-md mb-0.5 animate-bounce" style={{ animationDuration: '2s' }} />
+                      <span className="font-black tracking-widest text-sm sm:text-base md:text-lg drop-shadow-md">CLOCK IN</span>
                     </>
                   )}
                 </button>
               </div>
 
               {/* Status Message */}
-              <div className="flex items-center justify-center gap-2 text-xs sm:text-sm font-bold mb-6 sm:mb-8 bg-muted/30 dark:bg-muted/50 py-2 px-4 sm:px-6 rounded-full w-full border border-border/50">
+              <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-xs font-bold mb-4 sm:mb-6 bg-muted/30 dark:bg-muted/50 py-1.5 px-4 rounded-full w-full border border-border/50">
                 {activeSession ? (
                   <>
                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
@@ -506,7 +506,7 @@ export default function Attendance() {
                 </div>
               </div>
 
-            </>
+            </div>
           ) : (
             <div className="py-12 sm:py-20 space-y-4 text-center">
               <div className="w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
@@ -519,7 +519,7 @@ export default function Attendance() {
         </div>
 
         {/* Daily Logs History Card */}
-        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md md:max-w-xl lg:max-w-none lg:flex-1 rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-6 sm:p-8 md:p-10 flex flex-col relative border border-border/30 overflow-hidden min-h-[500px]">
+        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md md:max-w-xl lg:flex-1 lg:max-w-[450px] rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-5 sm:p-6 md:p-8 flex flex-col relative border border-border/30 overflow-hidden min-h-[480px]">
           
           {/* Top Actions Row */}
           <div className="flex items-center justify-between gap-2 mb-6">
