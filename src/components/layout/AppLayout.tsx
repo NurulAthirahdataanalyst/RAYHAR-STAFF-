@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 // Pastikan nama fail tepat: watercolor-bg.png
 import watercolorBg from "@/assets/watercolor-bg.png";
+import rayharLogo from "@/assets/rayhar-logo.png";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -104,42 +105,45 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="absolute inset-0 bg-background/60 dark:bg-background/90 pointer-events-none" />
         
         {/* ═══════ MOBILE TOP BAR ═══════ */}
-        <div className="lg:hidden sticky top-0 z-30 bg-card/80 dark:bg-card/90 backdrop-blur-xl border-b border-border/50 safe-area-top">
-          <div className="flex items-center justify-between px-4 py-3">
+        <div className="lg:hidden sticky top-0 z-30 bg-[#0B0E14] p-2 border-b border-white/5 safe-area-top">
+          <div className="bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] rounded-[16px] p-2.5 px-4 flex items-center justify-between shadow-lg">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#7B0099]/10 dark:bg-[#7B0099]/20 text-[#7B0099] dark:text-purple-400 hover:bg-[#7B0099]/20 active:bg-[#7B0099]/30 transition-colors touch-target"
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20 active:bg-white/30 transition-colors touch-target"
                 aria-label="Open navigation menu"
               >
-                <Menu className="h-5 w-5" />
+                <Menu className="h-4.5 w-4.5" />
               </button>
-              <div>
-                <h2 className="text-sm font-black text-foreground tracking-tight leading-tight">{getPageTitle()}</h2>
-                <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Rayhar Portal</p>
+              <div className="flex items-center gap-2">
+                <img src={rayharLogo} className="h-6 w-auto object-contain filter brightness-110" alt="Rayhar" />
+                <div className="h-4 w-[1px] bg-white/20" />
+                <div>
+                  <h2 className="text-[11px] font-black text-white tracking-wider leading-none uppercase">{getPageTitle()}</h2>
+                </div>
               </div>
             </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger className="outline-none">
-                <div className="h-9 w-9 rounded-xl bg-[#7B0099] text-white flex items-center justify-center font-black text-xs shadow-lg shadow-purple-900/20 hover:scale-105 active:scale-95 transition-transform">
+                <div className="h-8 w-8 rounded-lg bg-white text-[#7B0099] flex items-center justify-center font-black text-xs shadow-md hover:scale-105 active:scale-95 transition-transform border border-white/20">
                   {(user?.full_name || user?.name || "E")[0].toUpperCase()}
                 </div>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl p-2 border-white/20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl">
-                <DropdownMenuLabel className="px-3 py-2">
+              <DropdownMenuContent align="end" className="w-56 mt-3 rounded-2xl p-2 border border-white/10 bg-slate-950/95 backdrop-blur-xl shadow-2xl text-white">
+                <DropdownMenuLabel className="px-3 py-2 border-b border-white/5">
                   <div className="flex flex-col space-y-0.5">
-                    <p className="text-sm font-black">{user?.full_name || user?.name}</p>
-                    <p className="text-[10px] text-muted-foreground font-bold truncate">{user?.email}</p>
+                    <p className="text-sm font-black text-white">{user?.full_name || user?.name}</p>
+                    <p className="text-[10px] text-purple-300 font-bold truncate opacity-70">{user?.email}</p>
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-border/40" />
-                <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-purple-500/10 focus:text-purple-600 dark:focus:text-purple-400 cursor-pointer">
+                <DropdownMenuSeparator className="bg-white/5" />
+                <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-white/10 focus:text-white cursor-pointer text-white/90">
                   <User className="mr-2 h-4 w-4" />
                   <span>My Profile</span>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-border/40" />
-                <DropdownMenuItem onClick={() => signOut()} className="rounded-xl px-3 py-2.5 focus:bg-red-500/10 focus:text-red-600 cursor-pointer text-red-500">
+                <DropdownMenuSeparator className="bg-white/5" />
+                <DropdownMenuItem onClick={() => signOut()} className="rounded-xl px-3 py-2.5 focus:bg-red-500/20 focus:text-red-400 cursor-pointer text-red-400 font-bold">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sign Out</span>
                 </DropdownMenuItem>
@@ -156,58 +160,69 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {/* Ruang Kerja Utama (70% - 90%) */}
             <div className="flex-1 min-w-0 space-y-4 sm:space-y-6 transition-all duration-500 ease-in-out w-full">
               {/* Breadcrumb & Header Pantas - hidden on mobile (we have the top-bar instead) */}
-              <div className="hidden lg:flex bg-card/50 backdrop-blur-sm border border-border rounded-[24px] p-4 items-center justify-between shadow-sm overflow-hidden relative">
-                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#7B0099]" />
-                <div className="pl-4 space-y-1">
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/50">
-                    <span className="hover:text-primary cursor-pointer transition-colors" onClick={() => navigate("/")}>Home</span>
-                    <ChevronRight className="w-2.5 h-2.5" />
-                    <span className="text-[#7B0099] dark:text-purple-400 capitalize">
-                      {location.pathname === "/" ? "Dashboard" : location.pathname.includes("employees") ? "Staff" : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ")}
-                    </span>
+              <div className="hidden lg:flex bg-[#0B0E14] p-3 rounded-[28px] border border-white/5 shadow-2xl items-center justify-between overflow-hidden relative">
+                <div className="flex-1 flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] rounded-[20px] p-3.5 px-6 items-center justify-between shadow-inner relative overflow-hidden">
+                  <div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
+                  
+                  <div className="flex items-center gap-4 relative z-10">
+                    <img 
+                      src={rayharLogo} 
+                      className="h-8 w-auto object-contain filter brightness-110 hover:scale-105 active:scale-95 transition-all cursor-pointer" 
+                      alt="Rayhar" 
+                      onClick={() => navigate("/")}
+                    />
+                    <div className="h-6 w-[1px] bg-white/20 hidden sm:block" />
+                    <div className="hidden sm:flex flex-col text-left space-y-0.5">
+                      <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-purple-200/70">
+                        <span className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/")}>Home</span>
+                        <ChevronRight className="w-2.5 h-2.5 text-white/40" />
+                        <span className="text-white capitalize">
+                          {location.pathname === "/" ? "Dashboard" : location.pathname.includes("employees") ? "Staff" : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ")}
+                        </span>
+                      </div>
+                      <h2 className="text-sm font-black text-white uppercase tracking-wider leading-none">
+                        {location.pathname === "/" ? "Main Workspace" : location.pathname.includes("employees") ? "STAFF" : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ").toUpperCase()}
+                      </h2>
+                    </div>
                   </div>
-                  <h2 className="text-lg font-black text-foreground tracking-tight">
-                    {location.pathname === "/" ? "Main Workspace" : location.pathname.includes("employees") ? "STAFF" : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ").toUpperCase()}
-                  </h2>
-                </div>
-                
+                  
                   <DropdownMenu>
-                    <DropdownMenuTrigger className="outline-none">
-                      <div className="flex items-center gap-4 pr-2 group cursor-pointer">
-                        <div className="text-right hidden sm:block">
-                          <p className="text-sm font-black text-foreground group-hover:text-[#7B0099] transition-colors">{user?.full_name || user?.name || "Employee"}</p>
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">
+                    <DropdownMenuTrigger className="outline-none relative z-10">
+                      <div className="flex items-center gap-3.5 pr-1 group cursor-pointer">
+                        <div className="text-right hidden sm:block space-y-0.5">
+                          <p className="text-xs font-black text-white group-hover:text-purple-200 transition-colors">{user?.full_name || user?.name || "Employee"}</p>
+                          <p className="text-[9px] font-black text-purple-200/60 uppercase tracking-widest opacity-80 leading-none">
                             {resolvedRole.replace('_', ' ')}
                           </p>
                         </div>
-                        <div className="h-10 w-10 rounded-xl bg-[#7B0099] text-white flex items-center justify-center font-black text-xs shadow-lg shadow-purple-900/20 group-hover:scale-105 transition-transform">
+                        <div className="h-9 w-9 rounded-xl bg-white text-[#7B0099] flex items-center justify-center font-black text-xs shadow-lg shadow-purple-950/40 group-hover:scale-105 transition-transform border border-white/20">
                           {(user?.full_name || user?.name || "E")[0].toUpperCase()}
                         </div>
                       </div>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl p-2 border-white/20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl">
-                      <DropdownMenuLabel className="px-3 py-2">
+                    <DropdownMenuContent align="end" className="w-56 mt-3 rounded-2xl p-2 border border-white/10 bg-slate-950/95 backdrop-blur-xl shadow-2xl text-white">
+                      <DropdownMenuLabel className="px-3 py-2 border-b border-white/5">
                         <div className="flex flex-col space-y-0.5">
-                          <p className="text-sm font-black">{user?.full_name || user?.name}</p>
-                          <p className="text-[10px] text-muted-foreground font-bold truncate">{user?.email}</p>
+                          <p className="text-sm font-black text-white">{user?.full_name || user?.name}</p>
+                          <p className="text-[10px] text-purple-300 font-bold truncate opacity-70">{user?.email}</p>
                         </div>
                       </DropdownMenuLabel>
-                      <DropdownMenuSeparator className="bg-border/40" />
-                      <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-purple-500/10 focus:text-purple-600 dark:focus:text-purple-400 cursor-pointer">
+                      <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-white/10 focus:text-white cursor-pointer transition-colors text-white/90">
                         <User className="mr-2 h-4 w-4" />
                         <span>My Profile</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-purple-500/10 focus:text-purple-600 dark:focus:text-purple-400 cursor-pointer">
+                      <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-white/10 focus:text-white cursor-pointer transition-colors text-white/90">
                         <Settings className="mr-2 h-4 w-4" />
                         <span>Account Settings</span>
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator className="bg-border/40" />
-                      <DropdownMenuItem onClick={() => signOut()} className="rounded-xl px-3 py-2.5 focus:bg-red-500/10 focus:text-red-600 cursor-pointer text-red-500">
+                      <DropdownMenuSeparator className="bg-white/5" />
+                      <DropdownMenuItem onClick={() => signOut()} className="rounded-xl px-3 py-2.5 focus:bg-red-500/20 focus:text-red-400 cursor-pointer text-red-400 font-bold transition-colors">
                         <LogOut className="mr-2 h-4 w-4" />
                         <span>Sign Out</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+                </div>
               </div>
 
               {children}

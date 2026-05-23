@@ -499,51 +499,53 @@ export default function Reports() {
       </div>
 
       {/* CORE FLOATING SEGMENT TABS */}
-      <div className="flex bg-muted/30 border border-border/50 p-1.5 rounded-[22px] w-full max-w-3xl shadow-inner relative z-10 overflow-x-auto scrollbar-none">
-        <button
-          onClick={() => setActiveTab("attendance")}
-          className={`flex-1 flex items-center justify-center gap-2.5 py-3.5 px-4 text-xs font-black rounded-xl tracking-wider transition-all uppercase whitespace-nowrap ${
-            activeTab === "attendance"
-              ? "bg-[#7B0099] text-white shadow-lg shadow-[#7B0099]/20"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-          }`}
-        >
-          <Clock className="w-4 h-4" />
-          Attendance & Punctuality
-        </button>
-        <button
-          onClick={() => setActiveTab("leave")}
-          className={`flex-1 flex items-center justify-center gap-2.5 py-3.5 px-4 text-xs font-black rounded-xl tracking-wider transition-all uppercase whitespace-nowrap ${
-            activeTab === "leave"
-              ? "bg-[#7B0099] text-white shadow-lg shadow-[#7B0099]/20"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-          }`}
-        >
-          <PieChart className="w-4 h-4" />
-          Leave Utilization
-        </button>
-        <button
-          onClick={() => setActiveTab("generator")}
-          className={`flex-1 flex items-center justify-center gap-2.5 py-3.5 px-4 text-xs font-black rounded-xl tracking-wider transition-all uppercase whitespace-nowrap ${
-            activeTab === "generator"
-              ? "bg-[#7B0099] text-white shadow-lg shadow-[#7B0099]/20"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-          }`}
-        >
-          <TrendingUp className="w-4 h-4" />
-          Generate Report
-        </button>
-        <button
-          onClick={() => setActiveTab("settings")}
-          className={`flex-1 flex items-center justify-center gap-2.5 py-3.5 px-4 text-xs font-black rounded-xl tracking-wider transition-all uppercase whitespace-nowrap ${
-            activeTab === "settings"
-              ? "bg-[#7B0099] text-white shadow-lg shadow-[#7B0099]/20"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-          }`}
-        >
-          <Settings2 className="w-4 h-4" />
-          Settings
-        </button>
+      <div className="bg-[#0B0E14] p-2.5 rounded-[24px] border border-white/5 shadow-2xl w-full max-w-4xl">
+        <div className="flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] p-1.5 rounded-[18px] overflow-x-auto scrollbar-none border border-white/5">
+          <button
+            onClick={() => setActiveTab("attendance")}
+            className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
+              activeTab === "attendance"
+                ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
+                : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
+            }`}
+          >
+            <Clock className="w-4 h-4 shrink-0" />
+            Attendance & Punctuality
+          </button>
+          <button
+            onClick={() => setActiveTab("leave")}
+            className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
+              activeTab === "leave"
+                ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
+                : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
+            }`}
+          >
+            <PieChart className="w-4 h-4 shrink-0" />
+            Leave Utilization
+          </button>
+          <button
+            onClick={() => setActiveTab("generator")}
+            className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
+              activeTab === "generator"
+                ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
+                : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
+            }`}
+          >
+            <TrendingUp className="w-4 h-4 shrink-0" />
+            Generate Report
+          </button>
+          <button
+            onClick={() => setActiveTab("settings")}
+            className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
+              activeTab === "settings"
+                ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
+                : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
+            }`}
+          >
+            <Settings2 className="w-4 h-4 shrink-0" />
+            Settings
+          </button>
+        </div>
       </div>
 
       {/* ================================================================= */}
@@ -553,51 +555,75 @@ export default function Reports() {
         <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500">
           {/* KPI HIGHLIGHT CARDS */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[24px] relative overflow-hidden">
+            {/* Card 1: Average Attendance */}
+            <Card className="border-none shadow-sm bg-emerald-500/[0.03] dark:bg-emerald-500/[0.06] hover:bg-emerald-500/[0.06] dark:hover:bg-emerald-500/[0.1] border border-emerald-500/10 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
+              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500" />
+              <CardContent className="p-6 flex items-center justify-between gap-4">
+                <div className="space-y-1.5 min-w-0 flex-1">
+                  <span className="text-[10px] font-black text-emerald-600/80 dark:text-emerald-400/80 uppercase tracking-widest block truncate">Average Attendance</span>
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">{activeRateAvg}%</span>
+                    <span className="text-[9px] font-black text-emerald-500/90 bg-emerald-500/10 border border-emerald-500/15 rounded-full px-2 py-0.5 whitespace-nowrap">▲ Target Met</span>
+                  </div>
+                  <p className="text-[9px] text-muted-foreground/70 font-semibold uppercase tracking-wider">Across all regional branches</p>
+                </div>
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 group-hover:scale-110 transition-transform">
+                  <Activity className="w-5 h-5" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Card 2: Late Arrivals */}
+            <Card className="border-none shadow-sm bg-amber-500/[0.03] dark:bg-amber-500/[0.06] hover:bg-amber-500/[0.06] dark:hover:bg-amber-500/[0.1] border border-amber-500/10 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
+              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500" />
+              <CardContent className="p-6 flex items-center justify-between gap-4">
+                <div className="space-y-1.5 min-w-0 flex-1">
+                  <span className="text-[10px] font-black text-amber-600/80 dark:text-amber-400/80 uppercase tracking-widest block truncate">Late Arrivals</span>
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="text-3xl font-black text-amber-600 dark:text-amber-400">{lateRate}%</span>
+                    <span className="text-[9px] font-black text-amber-500/90 bg-amber-500/10 border border-amber-500/15 rounded-full px-2 py-0.5 whitespace-nowrap">● {lateArrivalsCount} Late</span>
+                  </div>
+                  <p className="text-[9px] text-muted-foreground/70 font-semibold uppercase tracking-wider">Post {workStartTime} Window</p>
+                </div>
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 group-hover:scale-110 transition-transform">
+                  <Clock className="w-5 h-5" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Card 3: Approved Leaves */}
+            <Card className="border-none shadow-sm bg-blue-500/[0.03] dark:bg-blue-500/[0.06] hover:bg-blue-500/[0.06] dark:hover:bg-blue-500/[0.1] border border-blue-500/10 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
+              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500" />
+              <CardContent className="p-6 flex items-center justify-between gap-4">
+                <div className="space-y-1.5 min-w-0 flex-1">
+                  <span className="text-[10px] font-black text-blue-600/80 dark:text-blue-400/80 uppercase tracking-widest block truncate">Active Approved Leaves</span>
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="text-3xl font-black text-blue-600 dark:text-blue-400">{totalLeaveRequests}</span>
+                    <span className="text-[9px] font-black text-blue-500/90 bg-blue-500/10 border border-blue-500/15 rounded-full px-2 py-0.5 whitespace-nowrap">Total Records</span>
+                  </div>
+                  <p className="text-[9px] text-muted-foreground/70 font-semibold uppercase tracking-wider">Leaves registered in system</p>
+                </div>
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-110 transition-transform">
+                  <Calendar className="w-5 h-5" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Card 4: Total Staff Count */}
+            <Card className="border-none shadow-sm bg-purple-500/[0.03] dark:bg-purple-500/[0.06] hover:bg-purple-500/[0.06] dark:hover:bg-purple-500/[0.1] border border-purple-500/10 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#7B0099]" />
-              <CardContent className="p-6">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Average Attendance</span>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span className="text-3xl font-black text-foreground">{activeRateAvg}%</span>
-                  <span className="text-[10px] font-black text-emerald-500">▲ Target Met</span>
+              <CardContent className="p-6 flex items-center justify-between gap-4">
+                <div className="space-y-1.5 min-w-0 flex-1">
+                  <span className="text-[10px] font-black text-purple-600/80 dark:text-purple-400/80 uppercase tracking-widest block truncate">Total Staff Count</span>
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="text-3xl font-black text-[#7B0099] dark:text-purple-400">{totalStaffCount || 10}</span>
+                    <span className="text-[9px] font-black text-purple-500/90 bg-purple-500/10 border border-[#7B0099]/15 rounded-full px-2 py-0.5 whitespace-nowrap">Active personnel</span>
+                  </div>
+                  <p className="text-[9px] text-muted-foreground/70 font-semibold uppercase tracking-wider">HQ & Regional Branches</p>
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1 font-semibold uppercase tracking-wider">Across all regional branches</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[24px] relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-red-500" />
-              <CardContent className="p-6">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Late Arrivals</span>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span className="text-3xl font-black text-foreground">{lateRate}%</span>
-                  <span className="text-[10px] font-black text-red-500">● {lateArrivalsCount} Checked-in Late</span>
+                <div className="w-12 h-12 rounded-2xl bg-[#7B0099]/10 flex items-center justify-center text-[#7B0099] dark:text-purple-400 shrink-0 group-hover:scale-110 transition-transform">
+                  <Users className="w-5 h-5" />
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1 font-semibold uppercase tracking-wider">Post {workStartTime} Window</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[24px] relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500" />
-              <CardContent className="p-6">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Active Approved Leaves</span>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span className="text-3xl font-black text-foreground">{totalLeaveRequests}</span>
-                  <span className="text-[10px] font-black text-[#7B0099]">Total Records</span>
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-1 font-semibold uppercase tracking-wider">Leaves registered in system</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[24px] relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#7B0099]" />
-              <CardContent className="p-6">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Total Staff Count</span>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span className="text-3xl font-black text-foreground">{totalStaffCount || 10}</span>
-                  <span className="text-[10px] font-black text-[#7B0099]">Active personnel</span>
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-1 font-semibold uppercase tracking-wider">HQ & Regional Branches</p>
               </CardContent>
             </Card>
           </div>
