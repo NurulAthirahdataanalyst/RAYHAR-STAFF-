@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Added for Branch
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +17,7 @@ import rayharLogo from "@/assets/favicon.png";
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("login"); // Controlled tab state
   const { toast } = useToast();
   const navigate = useNavigate();
   const { loginLocal } = useAuth();
@@ -125,7 +126,7 @@ export default function Login() {
         </div>
 
         <Card className="border-white/40 shadow-2xl bg-white/80 backdrop-blur-xl rounded-[20px] sm:rounded-[30px] overflow-hidden">
-          <Tabs defaultValue="login">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <CardHeader className="pb-4 bg-white/50">
               <TabsList className="grid w-full grid-cols-2 bg-slate-100/50">
                 <TabsTrigger value="login" className="rounded-xl data-[state=active]:bg-[#7B0099] data-[state=active]:text-white touch-target">Sign In</TabsTrigger>
@@ -145,11 +146,57 @@ export default function Login() {
                     <Input id="login-password" type="password" placeholder="••••••••" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required />
                   </div>
                 </CardContent>
-                <CardFooter>
-                  <Button type="submit" className="w-full bg-[#7B0099] hover:bg-[#5e0080] text-white rounded-xl h-12 sm:h-11 transition-all touch-target text-sm sm:text-base" disabled={loading}>
+                <CardFooter className="flex flex-col gap-4">
+                  <Button type="submit" className="w-full bg-[#7B0099] hover:bg-[#5e0080] text-white rounded-xl h-12 sm:h-11 transition-all touch-target text-sm sm:text-base font-black uppercase tracking-wider" disabled={loading}>
                     {loading && <Loader2 className="animate-spin mr-2" />}
                     Sign In to Portal
                   </Button>
+
+                  {/* Modern Bottom Utilities Section */}
+                  <div className="w-full space-y-4 pt-2">
+                    {/* Telegram Reset Box */}
+                    <div className="flex items-center justify-between p-3 rounded-[16px] bg-[#FBF0FF] border border-[#7B0099]/15 text-xs shadow-sm">
+                      <div className="flex items-center gap-2 text-slate-600 font-bold">
+                        <svg className="w-4 h-4 text-[#0088cc]" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-.99.53-1.41.52-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.36-.49.99-.74 3.88-1.69 6.47-2.8 7.77-3.32 3.7-1.47 4.47-1.73 4.97-1.74.11 0 .36.03.52.16.14.11.18.26.2.37.02.13.02.26.01.39z"/>
+                        </svg>
+                        <span>Lupa password?</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          toast({
+                            title: "🔒 Secure Telegram Password Reset",
+                            description: "Please message our official Telegram bot to reset your password. The HR team will not have access to your new password, preserving your privacy.",
+                          });
+                          setTimeout(() => {
+                            window.open("https://t.me/RayharStaffBot", "_blank");
+                          }, 1500);
+                        }}
+                        className="text-[#7B0099] font-black hover:underline cursor-pointer transition-colors"
+                      >
+                        Reset via Telegram
+                      </button>
+                    </div>
+
+                    {/* Register Link */}
+                    <div className="text-center text-xs text-slate-500 font-bold">
+                      Don't have account?{" "}
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab("signup")}
+                        className="text-[#7B0099] font-black hover:underline ml-1 uppercase"
+                      >
+                        REGISTER
+                      </button>
+                    </div>
+
+                    {/* Secure Footer */}
+                    <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-400 font-extrabold uppercase tracking-wider pt-2 border-t border-slate-100/50">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Secure Password Login</span>
+                    </div>
+                  </div>
                 </CardFooter>
               </form>
             </TabsContent>
@@ -223,11 +270,23 @@ export default function Login() {
                     <Input id="signup-password" type="password" placeholder="Min. 6 characters" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} required />
                   </div>
                 </CardContent>
-                <CardFooter>
-                  <Button type="submit" className="w-full bg-[#7B0099] hover:bg-[#5e0080] text-white rounded-xl h-12 sm:h-11 transition-all touch-target text-sm sm:text-base" disabled={loading}>
+                <CardFooter className="flex flex-col gap-4">
+                  <Button type="submit" className="w-full bg-[#7B0099] hover:bg-[#5e0080] text-white rounded-xl h-12 sm:h-11 transition-all touch-target text-sm sm:text-base font-black uppercase tracking-wider" disabled={loading}>
                     {loading && <Loader2 className="animate-spin mr-2" />}
                     {loading ? "Registering..." : "Create Account"}
                   </Button>
+
+                  {/* Centered Switch Link */}
+                  <div className="text-center text-xs text-slate-500 font-bold pt-2">
+                    Already have an account?{" "}
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("login")}
+                      className="text-[#7B0099] font-black hover:underline ml-1 uppercase"
+                    >
+                      SIGN IN
+                    </button>
+                  </div>
                 </CardFooter>
               </form>
             </TabsContent>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, LogIn, LogOut, Loader2, AlertCircle, Clock, Timer } from "lucide-react";
+import { Search, LogIn, LogOut, Loader2, AlertCircle, Clock, Timer, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useRole } from "@/contexts/RoleContext";
 import { API_BASE_URL } from "@/config/api";
@@ -21,23 +21,72 @@ interface PresenceFeedProps {
 export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps) {
   const { role, userBranch } = useRole();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  const fetchEmployees = async () => {
+  const fetchEmployeesAndLeaves = async () => {
     try {
       const params = new URLSearchParams({
         role: role || "employee",
         branch: userBranch || "",
       });
 
-      const response = await fetch(`${API_BASE_URL}/api/employees?${params}`);
-      const data = await response.json();
+      // 1. Fetch live attendance/employees
+      const empResponse = await fetch(`${API_BASE_URL}/api/employees?${params}`);
+      const empData = await empResponse.json();
 
-      if (data.success) {
-        setEmployees(data.employees);
+      let activeList: any[] = [];
+      if (empData.success) {
+        activeList = empData.employees.map((e: any) => ({
+          ...e,
+          id: `emp-${e.user_id}`,
+          is_leave_submission: false,
+          event_time: e.today_clock_out || e.today_clock_in,
+        }));
       }
+
+      // 2. Fetch leave requests if user has HR role
+      if (role === "hr_admin") {
+        try {
+          const leaveParams = new URLSearchParams({
+            role: role,
+            branch: userBranch || "",
+          });
+          const leaveResponse = await fetch(`${API_BASE_URL}/api/leave-requests?${leaveParams}`);
+          const leaveData = await leaveResponse.json();
+          
+          if (leaveData.success && leaveData.leaveRequests) {
+            const leaveList = leaveData.leaveRequests.map((lr: any) => ({
+              user_id: lr.user_id,
+              full_name: lr.full_name,
+              department: lr.department,
+              branch: lr.branch,
+              today_status: "Leave Submitted",
+              today_clock_in: lr.created_at,
+              today_clock_out: null,
+              id: `leave-${lr.leave_id}`,
+              is_leave_submission: true,
+              leave_type: lr.leave_type,
+              days: lr.days,
+              status: lr.status,
+              event_time: lr.created_at,
+            }));
+            activeList = [...activeList, ...leaveList];
+          }
+        } catch (err) {
+          console.error("Error fetching leave requests for Presence Feed:", err);
+        }
+      }
+
+      // 3. Sort by event_time descending (most recent first)
+      activeList.sort((a, b) => {
+        const timeA = a.event_time ? new Date(a.event_time).getTime() : 0;
+        const timeB = b.event_time ? new Date(b.event_time).getTime() : 0;
+        return timeB - timeA;
+      });
+
+      setActivities(activeList);
     } catch (error) {
       console.error("Error fetching presence feed:", error);
     } finally {
@@ -46,7 +95,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
   };
 
   useEffect(() => {
-    fetchEmployees();
+    fetchEmployeesAndLeaves();
 
     // Establish real-time EventSource connection
     const streamUrl = `${API_BASE_URL}/api/presence/stream`;
@@ -57,10 +106,10 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
       try {
         const data = JSON.parse(event.data);
         console.log("📡 Live presence update received:", data);
-        fetchEmployees();
+        fetchEmployeesAndLeaves();
       } catch (err) {
         console.error("Error parsing stream message:", err);
-        fetchEmployees(); // Fallback refresh
+        fetchEmployeesAndLeaves(); // Fallback refresh
       }
     };
 
@@ -68,7 +117,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
       console.error("Presence stream connection error:", err);
     };
 
-    const interval = setInterval(fetchEmployees, 30000); // refresh fallback every 30s
+    const interval = setInterval(fetchEmployeesAndLeaves, 30000); // refresh fallback every 30s
 
     return () => {
       eventSource.close();
@@ -76,12 +125,21 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
     };
   }, [role, userBranch]);
 
-  const filtered = employees.filter((e) =>
+  const filtered = activities.filter((e) =>
     e.full_name?.toLowerCase().includes(search.toLowerCase()) ||
     e.department?.toLowerCase().includes(search.toLowerCase())
   );
 
   const getStatusConfig = (status: string, clockIn: string | null) => {
+    if (status === "Leave Submitted") {
+      return { 
+        icon: FileText, 
+        color: "text-purple-500", 
+        bg: "bg-purple-50 dark:bg-purple-950/20 border-purple-100 dark:border-purple-900/20", 
+        dot: "bg-purple-500",
+        label: "Leave Submitted" 
+      };
+    }
     if (status === "On Leave") {
       return { 
         icon: AlertCircle, 
@@ -171,7 +229,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
         </div>
         
         <div className="flex-1 w-full flex flex-col items-center gap-4 max-h-[450px] overflow-y-auto scrollbar-none px-2">
-          {loading && employees.length === 0 ? (
+          {loading && activities.length === 0 ? (
             <Loader2 className="w-5 h-5 animate-spin text-[#7B0099]" />
           ) : filtered.length === 0 ? (
             <span className="text-[10px] text-muted-foreground">Empty</span>
@@ -182,18 +240,17 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
               
               if (isAbsent && search === "") return null;
 
-              const initials = emp.full_name?.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() || "EE";
               const activityTime = formatTime(emp.today_clock_out || emp.today_clock_in);
 
               return (
-                <div key={emp.user_id} className="relative group flex items-center justify-center">
+                <div key={emp.id} className="relative group flex items-center justify-center">
                   <div className={`w-10 h-10 rounded-full border flex items-center justify-center shrink-0 cursor-pointer shadow-sm hover:scale-105 active:scale-95 transition-all ${statusConf.bg} ${statusConf.color}`}>
                     <statusConf.icon className="w-4 h-4" />
                   </div>
                   
                   {/* Custom CSS Tooltip */}
-                  <div className="absolute left-full ml-3 px-3 py-2 bg-slate-900 dark:bg-slate-950 text-white text-xs rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 whitespace-nowrap z-50 transform translate-x-2 group-hover:translate-x-0 border border-slate-800 flex flex-col gap-0.5">
-                    <p className="font-bold">{emp.full_name}</p>
+                  <div className="absolute left-full ml-3 px-3 py-2 bg-slate-900 dark:bg-slate-950 text-white text-xs rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 whitespace-nowrap z-50 transform translate-x-2 group-hover:translate-x-0 border border-slate-800 flex flex-col gap-0.5 animate-in fade-in slide-in-from-left-2">
+                    <p className="font-bold text-slate-100">{emp.full_name}</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className={`w-1.5 h-1.5 rounded-full ${statusConf.dot}`}></span>
                       <span className="opacity-90">{statusConf.label}</span>
@@ -201,6 +258,11 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
                         <span className="opacity-70">at {activityTime}</span>
                       )}
                     </div>
+                    {emp.is_leave_submission && (
+                      <span className="text-[9px] text-purple-300 font-semibold italic">
+                        {emp.leave_type} • {emp.days} {emp.days === 1 ? "Day" : "Days"}
+                      </span>
+                    )}
                     <span className="text-[9px] font-black text-purple-400 mt-1 uppercase tracking-wider">
                       {getDeptShortCode(emp.department, emp.branch)}
                     </span>
@@ -239,7 +301,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
       </CardHeader>
       
       <CardContent className="flex-1 overflow-y-auto p-0 scrollbar-none relative">
-        {loading && employees.length === 0 ? (
+        {loading && activities.length === 0 ? (
           <div className="flex justify-center p-8">
             <Loader2 className="w-6 h-6 animate-spin text-[#7B0099]" />
           </div>
@@ -258,7 +320,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
               const activityTime = formatTime(emp.today_clock_out || emp.today_clock_in);
 
               return (
-                <div key={emp.user_id} className="relative p-4 flex gap-4 hover:bg-muted/10 transition-colors">
+                <div key={emp.id} className="relative p-4 flex gap-4 hover:bg-muted/10 transition-colors">
                   {idx !== filtered.length - 1 && (
                     <div className="absolute left-8 top-10 bottom-[-16px] w-[1px] bg-border/20 z-0"></div>
                   )}
@@ -274,9 +336,17 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
                       )}
                     </div>
                     
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <span className={`w-1.5 h-1.5 rounded-full ${statusConf.dot}`}></span>
-                      <span className="text-xs font-bold text-muted-foreground/80">{statusConf.label}</span>
+                    <div className="flex items-center justify-between mt-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`w-1.5 h-1.5 rounded-full ${statusConf.dot}`}></span>
+                        <span className="text-xs font-bold text-muted-foreground/80">{statusConf.label}</span>
+                      </div>
+                      
+                      {emp.is_leave_submission && (
+                        <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 bg-purple-500/10 rounded-full px-2.5 py-0.5 border border-purple-500/25">
+                          {emp.leave_type} ({emp.days} {emp.days === 1 ? "day" : "days"})
+                        </span>
+                      )}
                     </div>
 
                     <div className="mt-2.5 flex items-center">
@@ -299,4 +369,3 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
     </Card>
   );
 }
-

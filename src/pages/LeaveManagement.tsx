@@ -427,21 +427,21 @@ export default function LeaveManagement() {
                   {/* Pengiraan Cuti Tahunan */}
                   {(formData.jenisCuti === "Annual/Emergency Leave" || formData.jenisCuti === "Cuti Tahunan" || formData.jenisCuti === "Sick Leave" || formData.jenisCuti === "Cuti Sakit") && (
                     <div className="p-5 rounded-[24px] bg-amber-500/10 border border-amber-500/20 space-y-4 animate-in fade-in zoom-in-95">
-                      <h4 className="flex items-center gap-2 text-amber-700 font-black text-[10px] uppercase tracking-widest">
+                      <h4 className="flex items-center gap-2 text-amber-800 dark:text-amber-400 font-black text-[10px] uppercase tracking-widest">
                         <Calculator className="w-4 h-4" /> Annual/Emergency Leave Quota Calculator
                       </h4>
                       <div className="grid grid-cols-3 gap-3">
                         <div className="space-y-1 text-center">
-                          <p className="text-[8px] uppercase font-black text-amber-600 opacity-70">Baki Layak</p>
-                          <div className="bg-white/80 h-10 flex items-center justify-center rounded-xl font-black text-sm">{formData.bakiTerdahulu}</div>
+                          <p className="text-[8px] uppercase font-black text-amber-700 dark:text-amber-400 opacity-90">Baki Layak</p>
+                          <div className="bg-white dark:bg-slate-900 border border-amber-200/50 dark:border-amber-900/50 text-slate-900 dark:text-slate-100 h-10 flex items-center justify-center rounded-xl font-black text-sm shadow-sm">{formData.bakiTerdahulu}</div>
                         </div>
                         <div className="space-y-1 text-center">
-                          <p className="text-[8px] uppercase font-black text-amber-600 opacity-70">Mohon</p>
-                          <div className="bg-white/80 h-10 flex items-center justify-center rounded-xl font-black text-sm">{formData.mohon}</div>
+                          <p className="text-[8px] uppercase font-black text-amber-700 dark:text-amber-400 opacity-90">Mohon</p>
+                          <div className="bg-white dark:bg-slate-900 border border-amber-200/50 dark:border-amber-900/50 text-slate-900 dark:text-slate-100 h-10 flex items-center justify-center rounded-xl font-black text-sm shadow-sm">{formData.mohon}</div>
                         </div>
                         <div className="space-y-1 text-center">
-                          <p className="text-[8px] uppercase font-black text-amber-600 opacity-70">Baki Akhir</p>
-                          <div className={`h-10 flex items-center justify-center rounded-xl font-black text-sm text-white ${formData.bakiAkhir < 0 ? 'bg-rose-500' : 'bg-[#7B0099]'}`}>
+                          <p className="text-[8px] uppercase font-black text-amber-700 dark:text-amber-400 opacity-90">Baki Akhir</p>
+                          <div className={`h-10 flex items-center justify-center rounded-xl font-black text-sm text-white ${formData.bakiAkhir < 0 ? 'bg-rose-500 shadow-lg shadow-rose-500/20' : 'bg-[#7B0099] shadow-lg shadow-purple-900/20'}`}>
                             {formData.bakiAkhir}
                           </div>
                         </div>

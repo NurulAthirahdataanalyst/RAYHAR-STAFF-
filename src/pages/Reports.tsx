@@ -450,72 +450,72 @@ export default function Reports() {
           {/* KPI HIGHLIGHT CARDS */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {/* Card 1: Average Attendance */}
-            <Card className="border-none shadow-sm bg-emerald-500/[0.03] dark:bg-emerald-500/[0.06] hover:bg-emerald-500/[0.06] dark:hover:bg-emerald-500/[0.1] border border-emerald-500/10 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
+            <Card className="shadow-md bg-[#eefcf2] dark:bg-[#0d2a1a] hover:bg-[#e6f9ed] dark:hover:bg-[#0f331f] border border-[#c3f2d2] dark:border-[#0e4827]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-emerald-600/80 dark:text-emerald-400/80 uppercase tracking-widest block truncate">Average Attendance</span>
+                  <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest block truncate">Average Attendance</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">{activeRateAvg}%</span>
-                    <span className="text-[9px] font-black text-emerald-500/90 bg-emerald-500/10 border border-emerald-500/15 rounded-full px-2 py-0.5 whitespace-nowrap">▲ Target Met</span>
+                    <span className="text-[9px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">▲ Target Met</span>
                   </div>
-                  <p className="text-[9px] text-muted-foreground/70 font-semibold uppercase tracking-wider">Across all regional branches</p>
+                  <p className="text-[9px] text-emerald-800/60 dark:text-emerald-400/60 font-semibold uppercase tracking-wider">Across all regional branches</p>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 group-hover:scale-110 transition-transform">
                   <Activity className="w-5 h-5" />
                 </div>
               </CardContent>
             </Card>
 
             {/* Card 2: Late Arrivals */}
-            <Card className="border-none shadow-sm bg-amber-500/[0.03] dark:bg-amber-500/[0.06] hover:bg-amber-500/[0.06] dark:hover:bg-amber-500/[0.1] border border-amber-500/10 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
+            <Card className="shadow-md bg-[#fffbeb] dark:bg-[#2c1e0e] hover:bg-[#fff7d6] dark:hover:bg-[#342411] border border-[#fef3c7] dark:border-[#4d3214]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-amber-600/80 dark:text-amber-400/80 uppercase tracking-widest block truncate">Late Arrivals</span>
+                  <span className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest block truncate">Late Arrivals</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-amber-600 dark:text-amber-400">{lateRate}%</span>
-                    <span className="text-[9px] font-black text-amber-500/90 bg-amber-500/10 border border-amber-500/15 rounded-full px-2 py-0.5 whitespace-nowrap">● {lateArrivalsCount} Late</span>
+                    <span className="text-[9px] font-black text-amber-700 dark:text-amber-300 bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">● {lateArrivalsCount} Late</span>
                   </div>
-                  <p className="text-[9px] text-muted-foreground/70 font-semibold uppercase tracking-wider">Post {workStartTime} Window</p>
+                  <p className="text-[9px] text-amber-800/60 dark:text-amber-400/60 font-semibold uppercase tracking-wider">Post {workStartTime} Window</p>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 group-hover:scale-110 transition-transform">
                   <Clock className="w-5 h-5" />
                 </div>
               </CardContent>
             </Card>
 
             {/* Card 3: Approved Leaves */}
-            <Card className="border-none shadow-sm bg-blue-500/[0.03] dark:bg-blue-500/[0.06] hover:bg-blue-500/[0.06] dark:hover:bg-blue-500/[0.1] border border-blue-500/10 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
+            <Card className="shadow-md bg-[#eff6ff] dark:bg-[#0c1f3c] hover:bg-[#e0f0ff] dark:hover:bg-[#0e2547] border border-[#dbeafe] dark:border-[#163063]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-blue-600/80 dark:text-blue-400/80 uppercase tracking-widest block truncate">Active Approved Leaves</span>
+                  <span className="text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-widest block truncate">Active Approved Leaves</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-blue-600 dark:text-blue-400">{totalLeaveRequests}</span>
-                    <span className="text-[9px] font-black text-blue-500/90 bg-blue-500/10 border border-blue-500/15 rounded-full px-2 py-0.5 whitespace-nowrap">Total Records</span>
+                    <span className="text-[9px] font-black text-blue-700 dark:text-blue-300 bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">Total Records</span>
                   </div>
-                  <p className="text-[9px] text-muted-foreground/70 font-semibold uppercase tracking-wider">Leaves registered in system</p>
+                  <p className="text-[9px] text-blue-800/60 dark:text-blue-400/60 font-semibold uppercase tracking-wider">Leaves registered in system</p>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-110 transition-transform">
                   <Calendar className="w-5 h-5" />
                 </div>
               </CardContent>
             </Card>
 
             {/* Card 4: Total Staff Count */}
-            <Card className="border-none shadow-sm bg-purple-500/[0.03] dark:bg-purple-500/[0.06] hover:bg-purple-500/[0.06] dark:hover:bg-purple-500/[0.1] border border-purple-500/10 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
+            <Card className="shadow-md bg-[#faf5ff] dark:bg-[#200a2d] hover:bg-[#f3ebff] dark:hover:bg-[#260c35] border border-[#f3e8ff] dark:border-[#4c1266]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#7B0099]" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-purple-600/80 dark:text-purple-400/80 uppercase tracking-widest block truncate">Total Staff Count</span>
+                  <span className="text-[10px] font-black text-purple-700 dark:text-purple-400 uppercase tracking-widest block truncate">Total Staff Count</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-[#7B0099] dark:text-purple-400">{totalStaffCount || 10}</span>
-                    <span className="text-[9px] font-black text-purple-500/90 bg-purple-500/10 border border-[#7B0099]/15 rounded-full px-2 py-0.5 whitespace-nowrap">Active personnel</span>
+                    <span className="text-[9px] font-black text-purple-700 dark:text-purple-300 bg-purple-500/10 dark:bg-purple-500/20 border border-[#7B0099]/20 rounded-full px-2 py-0.5 whitespace-nowrap">Active personnel</span>
                   </div>
-                  <p className="text-[9px] text-muted-foreground/70 font-semibold uppercase tracking-wider">HQ & Regional Branches</p>
+                  <p className="text-[9px] text-purple-800/60 dark:text-purple-400/60 font-semibold uppercase tracking-wider">HQ & Regional Branches</p>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-[#7B0099]/10 flex items-center justify-center text-[#7B0099] dark:text-purple-400 shrink-0 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-[#7B0099]/10 dark:bg-[#7B0099]/20 flex items-center justify-center text-[#7B0099] dark:text-purple-400 shrink-0 group-hover:scale-110 transition-transform">
                   <Users className="w-5 h-5" />
                 </div>
               </CardContent>
