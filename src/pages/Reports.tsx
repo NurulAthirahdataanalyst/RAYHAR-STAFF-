@@ -420,7 +420,7 @@ export default function Reports() {
     .sort((a, b) => b.rate - a.rate)
     .map(d => ({
        ...d,
-       fill: '#7B0099' // mainBRAND purple color
+       fill: d.rate >= 90 ? '#22C55E' : d.rate >= 75 ? '#F59E0B' : '#EF4444'
     }));
 
   const heatmapDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -695,8 +695,8 @@ export default function Reports() {
                             <td className="px-6 py-4 font-black text-muted-foreground/50 text-xs">{record.time_out || "--:--"}</td>
                             <td className="px-6 py-4 text-center">
                               <Badge
-                                className={`text-[9px] font-black px-2.5 h-5.5 shadow-sm border-none ${!record.time_out
-                                    ? "bg-emerald-500 text-white"
+                                className={`text-[9px] font-black px-2.5 h-5.5 shadow-sm border-none text-white ${!record.time_out
+                                    ? "bg-[#22C55E]"
                                     : "bg-muted text-muted-foreground opacity-50"
                                   }`}
                               >
@@ -740,9 +740,9 @@ export default function Reports() {
                   const hours = parseInt(timeParts[0]);
                   return hours >= 10 && parts[1] === "AM"; // past 10 AM
                 }).slice(0, 4).map((record) => (
-                  <div key={record.user_id} className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border border-border/30 hover:border-red-500/30 transition-all">
+                  <div key={record.user_id} className="flex items-center justify-between p-4 bg-[#F59E0B]/5 hover:bg-[#F59E0B]/10 rounded-2xl border border-[#F59E0B]/10 hover:border-[#F59E0B]/30 transition-all">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500 shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-[#F59E0B]/10 flex items-center justify-center text-[#F59E0B] shrink-0">
                         <AlertCircle className="w-4 h-4" />
                       </div>
                       <div>
@@ -750,7 +750,7 @@ export default function Reports() {
                         <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{record.branch} • Late Arrival today at {record.time_in}</p>
                       </div>
                     </div>
-                    <Badge className="bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 font-black text-[9px] tracking-wider border-none px-3 py-1 uppercase rounded-lg">
+                    <Badge className="bg-[#F59E0B]/15 text-[#F59E0B] hover:bg-[#F59E0B]/20 font-black text-[9px] tracking-wider border-none px-3 py-1 uppercase rounded-lg">
                       Late Checked
                     </Badge>
                   </div>
