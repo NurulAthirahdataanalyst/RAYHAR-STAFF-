@@ -69,25 +69,8 @@ export default function Reports() {
   const [leaveUtilization, setLeaveUtilization] = useState<any>(null);
   const [loadingLeave, setLoadingLeave] = useState(false);
 
-  // Settings Forms State
-  const [submittingStaff, setSubmittingStaff] = useState(false);
-  const [staffName, setStaffName] = useState("");
-  const [staffEmail, setStaffEmail] = useState("");
-  const [staffPassword, setStaffPassword] = useState("");
-  const [staffBranch, setStaffBranch] = useState("");
-  const [staffDept, setStaffDept] = useState("");
-  const [staffRole, setStaffRole] = useState("employee");
-  const [staffStatus, setStaffStatus] = useState("Active");
-
-  const [submittingBranch, setSubmittingBranch] = useState(false);
-  const [branchCode, setBranchCode] = useState("");
-  const [branchNameInput, setBranchNameInput] = useState("");
-
-  // Settings config values (Local Storage backends)
-  const [isAlertsEnabled, setIsAlertsEnabled] = useState(true);
-  const [isSchedulingEnabled, setIsSchedulingEnabled] = useState(false);
-  const [primaryCurrency, setPrimaryCurrency] = useState("MYR");
-  const [workStartTime, setWorkStartTime] = useState("09:00 AM");
+  // Settings config values (Static fallback)
+  const workStartTime = "09:00 AM";
 
   // Report Generator State
   const [generatorType, setGeneratorType] = useState<"stability" | "trends" | "leave" | "financial">("trends");
@@ -305,83 +288,7 @@ export default function Reports() {
     }, 1500);
   };
 
-  // Add Branch Submit
-  const handleAddBranch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!branchCode || !branchNameInput) {
-      toast.error("Branch Code and Name are required");
-      return;
-    }
-    setSubmittingBranch(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/branches`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: branchCode.trim(),
-          name: branchNameInput.trim()
-        })
-      });
-      const data = await response.json();
-      if (response.ok && data.success) {
-        toast.success(`Branch ${branchNameInput} registered successfully!`);
-        setBranchCode("");
-        setBranchNameInput("");
-        fetchLists(); // Refresh lists
-      } else {
-        toast.error(data.error || "Failed to create branch");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Error connecting to server");
-    } finally {
-      setSubmittingBranch(false);
-    }
-  };
 
-  // Add Staff Submit
-  const handleAddStaff = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!staffName || !staffEmail || !staffPassword || !staffBranch) {
-      toast.error("Name, Email, Password, and Branch are required");
-      return;
-    }
-    setSubmittingStaff(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          full_name: staffName.trim(),
-          email: staffEmail.trim(),
-          password: staffPassword,
-          branch: staffBranch,
-          department: staffDept || null,
-          role: staffRole,
-          status: staffStatus
-        })
-      });
-      const data = await response.json();
-      if (response.ok && data.success) {
-        toast.success(`Staff member ${staffName} added successfully!`);
-        setStaffName("");
-        setStaffEmail("");
-        setStaffPassword("");
-        setStaffBranch("");
-        setStaffDept("");
-        setStaffRole("employee");
-        setStaffStatus("Active");
-        fetchLists();
-      } else {
-        toast.error(data.error || "Failed to add staff member");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Error connecting to server");
-    } finally {
-      setSubmittingStaff(false);
-    }
-  };
 
   // Region/Department helpers
   const branchRegions: Record<string, string> = {
@@ -499,53 +406,40 @@ export default function Reports() {
       </div>
 
       {/* CORE FLOATING SEGMENT TABS */}
-      <div className="bg-[#0B0E14] p-2.5 rounded-[24px] border border-white/5 shadow-2xl w-full max-w-4xl">
-        <div className="flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] p-1.5 rounded-[18px] overflow-x-auto scrollbar-none border border-white/5">
-          <button
-            onClick={() => setActiveTab("attendance")}
-            className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
-              activeTab === "attendance"
-                ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
-                : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
-            }`}
-          >
-            <Clock className="w-4 h-4 shrink-0" />
-            Attendance & Punctuality
-          </button>
-          <button
-            onClick={() => setActiveTab("leave")}
-            className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
-              activeTab === "leave"
-                ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
-                : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
-            }`}
-          >
-            <PieChart className="w-4 h-4 shrink-0" />
-            Leave Utilization
-          </button>
-          <button
-            onClick={() => setActiveTab("generator")}
-            className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
-              activeTab === "generator"
-                ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
-                : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
-            }`}
-          >
-            <TrendingUp className="w-4 h-4 shrink-0" />
-            Generate Report
-          </button>
-          <button
-            onClick={() => setActiveTab("settings")}
-            className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
-              activeTab === "settings"
-                ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
-                : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
-            }`}
-          >
-            <Settings2 className="w-4 h-4 shrink-0" />
-            Settings
-          </button>
-        </div>
+      <div className="flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] p-1.5 rounded-[18px] w-full max-w-4xl shadow-xl overflow-x-auto scrollbar-none border border-[#7B0099]/20 relative z-10">
+        <button
+          onClick={() => setActiveTab("attendance")}
+          className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
+            activeTab === "attendance"
+              ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
+              : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
+          }`}
+        >
+          <Clock className="w-4 h-4 shrink-0" />
+          Attendance & Punctuality
+        </button>
+        <button
+          onClick={() => setActiveTab("leave")}
+          className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
+            activeTab === "leave"
+              ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
+              : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
+          }`}
+        >
+          <PieChart className="w-4 h-4 shrink-0" />
+          Leave Utilization
+        </button>
+        <button
+          onClick={() => setActiveTab("generator")}
+          className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
+            activeTab === "generator"
+              ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
+              : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
+          }`}
+        >
+          <TrendingUp className="w-4 h-4 shrink-0" />
+          Generate Report
+        </button>
       </div>
 
       {/* ================================================================= */}
@@ -1287,281 +1181,6 @@ export default function Reports() {
               </Button>
             </Card>
 
-          </div>
-        </div>
-      )}
-
-      {/* ================================================================= */}
-      {/* TAB 4: PORTAL MANAGEMENT & SETTINGS */}
-      {/* ================================================================= */}
-      {activeTab === "settings" && (
-        <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
-            
-            {/* Form: Add New Branch */}
-            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-6 space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-[#7B0099]/10 rounded-xl text-[#7B0099]">
-                  <Building2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">Register New Branch</h3>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">Insert a new regional branch office into the database</p>
-                </div>
-              </div>
-
-              <form onSubmit={handleAddBranch} className="space-y-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-1.5 col-span-1">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Branch Code</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. KMM"
-                      value={branchCode}
-                      onChange={(e) => setBranchCode(e.target.value)}
-                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1.5 col-span-2">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Branch Name</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Kemaman Branch Office"
-                      value={branchNameInput}
-                      onChange={(e) => setBranchNameInput(e.target.value)}
-                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case outline-none"
-                    />
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={submittingBranch}
-                  className="w-full py-5 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/90 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-[#7B0099]/15 transition-all"
-                >
-                  {submittingBranch ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Branch to System
-                    </>
-                  )}
-                </Button>
-              </form>
-            </Card>
-
-            {/* Form: Add New Staff */}
-            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-6 space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-[#7B0099]/10 rounded-xl text-[#7B0099]">
-                  <UserPlus className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">Onboard New Staff</h3>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">Add a new employee and configure system authorization role</p>
-                </div>
-              </div>
-
-              <form onSubmit={handleAddStaff} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5 col-span-2">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Full Name</label>
-                    <input
-                      type="text"
-                      placeholder="Enter employee's full name"
-                      value={staffName}
-                      onChange={(e) => setStaffName(e.target.value)}
-                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Email Address</label>
-                    <input
-                      type="email"
-                      placeholder="e.g. staff@gmail.com"
-                      value={staffEmail}
-                      onChange={(e) => setStaffEmail(e.target.value)}
-                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Password</label>
-                    <input
-                      type="password"
-                      placeholder="Minimum 6 characters"
-                      value={staffPassword}
-                      onChange={(e) => setStaffPassword(e.target.value)}
-                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Office Branch</label>
-                    <Select value={staffBranch} onValueChange={setStaffBranch}>
-                      <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
-                        <SelectValue placeholder="Select Branch" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        {branches.map(b => (
-                          <SelectItem key={b.code} value={b.code} className="text-[10px] font-black uppercase tracking-widest">{b.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Department</label>
-                    <Select value={staffDept} onValueChange={setStaffDept}>
-                      <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
-                        <SelectValue placeholder="Select Dept" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        {departments.map(d => (
-                          <SelectItem key={d} value={d} className="text-[10px] font-black uppercase tracking-widest">{d}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">System Authorization Role</label>
-                    <Select value={staffRole} onValueChange={setStaffRole}>
-                      <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
-                        <SelectValue placeholder="Role" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        <SelectItem value="employee" className="text-[10px] font-black uppercase tracking-widest">Employee (Staff)</SelectItem>
-                        <SelectItem value="finance_manager" className="text-[10px] font-black uppercase tracking-widest">Finance Manager</SelectItem>
-                        <SelectItem value="managing_director" className="text-[10px] font-black uppercase tracking-widest">Managing Director</SelectItem>
-                        <SelectItem value="head_of_department" className="text-[10px] font-black uppercase tracking-widest">Head of Department (HOD)</SelectItem>
-                        <SelectItem value="branch_leader" className="text-[10px] font-black uppercase tracking-widest">Branch Leader</SelectItem>
-                        <SelectItem value="hr_admin" className="text-[10px] font-black uppercase tracking-widest">HR Administrator</SelectItem>
-                        <SelectItem value="branch_officer" className="text-[10px] font-black uppercase tracking-widest">Branch Officer</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Employment Status</label>
-                    <Select value={staffStatus} onValueChange={setStaffStatus}>
-                      <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        <SelectItem value="Active" className="text-[10px] font-black uppercase tracking-widest">Active Personnel</SelectItem>
-                        <SelectItem value="Inactive" className="text-[10px] font-black uppercase tracking-widest">Suspended / Inactive</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={submittingStaff}
-                  className="w-full py-5 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/90 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-[#7B0099]/15 transition-all mt-2"
-                >
-                  {submittingStaff ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <UserPlus className="w-4 h-4 mr-2" />
-                      Create Staff Account
-                    </>
-                  )}
-                </Button>
-              </form>
-            </Card>
-
-            {/* Configurations panel */}
-            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-6 space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-[#7B0099]/10 rounded-xl text-[#7B0099]">
-                  <Settings2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">System Configurations</h3>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">Manage alerts, currencies, and shift check-in windows</p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-muted/20 border border-border/30 rounded-2xl">
-                  <div>
-                    <span className="text-[10px] font-black text-foreground uppercase tracking-wider">Real-time Notification Alerts</span>
-                    <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Receive immediate SSE socket alerts</p>
-                  </div>
-                  <button 
-                    onClick={() => {
-                      setIsAlertsEnabled(!isAlertsEnabled);
-                      toast.success(`SSE Socket Alerts ${!isAlertsEnabled ? 'enabled' : 'disabled'}`);
-                    }}
-                    className={`w-12 h-6 flex items-center rounded-full p-1 transition-all ${isAlertsEnabled ? 'bg-[#7B0099]' : 'bg-muted-foreground/30'}`}
-                  >
-                    <div className={`bg-white w-4.5 h-4.5 rounded-full shadow-md transform transition-all ${isAlertsEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-muted/20 border border-border/30 rounded-2xl">
-                  <div>
-                    <span className="text-[10px] font-black text-foreground uppercase tracking-wider">Automated Report Scheduling</span>
-                    <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Generate and email weekly performance audits</p>
-                  </div>
-                  <button 
-                    onClick={() => {
-                      setIsSchedulingEnabled(!isSchedulingEnabled);
-                      toast.success(`Weekly Schedule ${!isSchedulingEnabled ? 'enabled' : 'disabled'}`);
-                    }}
-                    className={`w-12 h-6 flex items-center rounded-full p-1 transition-all ${isSchedulingEnabled ? 'bg-[#7B0099]' : 'bg-muted-foreground/30'}`}
-                  >
-                    <div className={`bg-white w-4.5 h-4.5 rounded-full shadow-md transform transition-all ${isSchedulingEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-muted/20 border border-border/30 rounded-2xl">
-                  <div>
-                    <span className="text-[10px] font-black text-foreground uppercase tracking-wider">Late Arrivals Window</span>
-                    <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Define shift late threshold time</p>
-                  </div>
-                  <Select value={workStartTime} onValueChange={(val) => {
-                    setWorkStartTime(val);
-                    toast.success(`Late threshold updated to ${val}`);
-                  }}>
-                    <SelectTrigger className="w-[120px] h-9 text-[10px] font-black rounded-xl border-border bg-background/30">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      <SelectItem value="08:00 AM" className="text-[10px] font-black uppercase tracking-widest">08:00 AM</SelectItem>
-                      <SelectItem value="08:30 AM" className="text-[10px] font-black uppercase tracking-widest">08:30 AM</SelectItem>
-                      <SelectItem value="09:00 AM" className="text-[10px] font-black uppercase tracking-widest">09:00 AM</SelectItem>
-                      <SelectItem value="09:30 AM" className="text-[10px] font-black uppercase tracking-widest">09:30 AM</SelectItem>
-                      <SelectItem value="10:00 AM" className="text-[10px] font-black uppercase tracking-widest">10:00 AM</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </Card>
-
-            {/* HQ Department Structure Visuals */}
-            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-6 space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-[#7B0099]/10 rounded-xl text-[#7B0099]">
-                  <Building2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">HQ Department Structure</h3>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">Visual representation of core departments and active employee capacity</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {deptStats.map((dept) => (
-                  <div key={dept.name} className="flex flex-col justify-between p-3.5 bg-muted/20 border border-border/30 hover:border-[#7B0099]/30 rounded-2xl shadow-inner select-none transition-all">
-                    <span className="text-[10px] font-black text-foreground truncate uppercase tracking-wider">{dept.name}</span>
-                    <div className="flex items-baseline gap-1 mt-4">
-                      <span className="text-xl font-black text-[#7B0099]">{dept.employee_count}</span>
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Staff</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
           </div>
         </div>
       )}

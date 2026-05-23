@@ -20,6 +20,7 @@ import Employees from "./pages/Employees";
 import Branches from "./pages/Branches";
 import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
+import SettingsPage from "./pages/Settings";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import RealTimeCalendar from "@/components/RealTimeCalendar";
@@ -68,6 +69,7 @@ function ProtectedRoutes() {
           <Route path="/employees" element={<Employees />} />
           <Route path="/branches" element={<Branches />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/analytics" element={<EmployeeAnalytics />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/calendar" element={<RealTimeCalendar />} />
