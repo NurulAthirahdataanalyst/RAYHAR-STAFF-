@@ -50,7 +50,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUserName(data.profile.full_name);
           setUserBranch(data.profile.branch || "HQ");
           setUserDepartment(data.profile.department || "");
-          setRole(data.role || "employee");
+          setRole((data.role ? data.role.trim() : "employee") as UserRole);
         } else {
           setUserName(user.full_name || user.name || user.email || "User");
           setUserBranch("HQ");
