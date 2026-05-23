@@ -169,7 +169,7 @@ export default function Login() {
                             title: "🔒 Secure Telegram Password Reset",
                             description: "Please message our official Telegram bot to reset your password. The HR team will not have access to your new password, preserving your privacy.",
                           });
-                          const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "RayharStaffBot";
+                          const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "RayharStaffPortal_bot";
                           setTimeout(() => {
                             window.open(`https://t.me/${botUsername}`, "_blank");
                           }, 1500);

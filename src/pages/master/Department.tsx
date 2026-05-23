@@ -76,7 +76,7 @@ export default function Department() {
       {loading ? (
         <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md">
           <CardContent className="p-12 flex flex-col items-center justify-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
             <p className="text-xs font-bold text-muted-foreground animate-pulse uppercase tracking-widest">Loading Departments...</p>
           </CardContent>
         </Card>
@@ -87,13 +87,13 @@ export default function Department() {
             return (
               <Card 
                 key={dept} 
-                className="border-border/50 shadow-sm overflow-hidden bg-card/60 backdrop-blur-md hover:border-[#7B0099]/30 transition-colors group cursor-pointer"
+                className="border-border/50 shadow-sm overflow-hidden bg-card/60 backdrop-blur-md hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 duration-300 group cursor-pointer"
                 onClick={() => navigate(`/master/department/${encodeURIComponent(dept)}`)}
               >
                 <CardHeader className="pb-2 border-b border-border/50 bg-muted/20">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-[#7B0099] group-hover:scale-110 transition-transform">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                         <Building2 className="w-5 h-5" />
                       </div>
                       <CardTitle className="text-lg font-bold text-foreground">
@@ -105,14 +105,14 @@ export default function Department() {
                 <CardContent className="pt-4 space-y-4">
                   <div className="grid grid-cols-2 gap-2">
                     <div className="bg-muted/30 p-3 rounded-xl border border-border/50 text-center">
-                      <p className="text-2xl font-black text-[#7B0099]">{stats.count}</p>
+                      <p className="text-2xl font-black text-primary">{stats.count}</p>
                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1 flex items-center justify-center gap-1">
                         <Users className="w-3 h-3" /> Total Staff
                       </p>
                     </div>
-                    <div className="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100/50 text-center">
-                      <p className="text-2xl font-black text-emerald-600">{stats.active}</p>
-                      <p className="text-[10px] font-bold text-emerald-600/70 uppercase tracking-widest mt-1">
+                    <div className="bg-emerald-500/5 dark:bg-emerald-500/10 p-3 rounded-xl border border-emerald-100/50 dark:border-emerald-500/20 text-center">
+                      <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{stats.active}</p>
+                      <p className="text-[10px] font-bold text-emerald-600/70 dark:text-emerald-400/70 uppercase tracking-widest mt-1">
                         Active
                       </p>
                     </div>
@@ -123,7 +123,7 @@ export default function Department() {
                     {stats.hods.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {stats.hods.map((hod) => (
-                          <Badge key={hod.user_id} variant="outline" className="bg-[#7B0099]/5 border-[#7B0099]/20 text-[#7B0099]">
+                          <Badge key={hod.user_id} variant="outline" className="bg-primary/5 border-primary/20 text-primary dark:text-primary">
                             {hod.full_name || "Unknown HOD"}
                           </Badge>
                         ))}

@@ -104,7 +104,7 @@ export default function DepartmentDetails() {
         </Button>
         <div>
           <h1 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-[#7B0099]" />
+            <Building2 className="w-6 h-6 text-primary" />
             {deptName}
           </h1>
           <p className="text-sm text-muted-foreground font-medium">Manage department details and personnel</p>
@@ -146,10 +146,10 @@ export default function DepartmentDetails() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[25px] border-[#7B0099]/30 shadow-md bg-[#7B0099]/5 relative overflow-hidden">
-          <div className="absolute right-0 top-0 w-32 h-32 bg-[#7B0099]/10 rounded-full -mr-16 -mt-16 blur-2xl" />
+        <Card className="rounded-[25px] border-primary/30 shadow-md bg-primary/5 relative overflow-hidden">
+          <div className="absolute right-0 top-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-2xl" />
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-[#7B0099] uppercase tracking-wider flex items-center justify-between">
+            <CardTitle className="text-sm font-bold text-primary uppercase tracking-wider flex items-center justify-between">
               Head of Department
               <UserCog className="w-4 h-4" />
             </CardTitle>
@@ -169,7 +169,7 @@ export default function DepartmentDetails() {
 
             <Dialog open={transferModalOpen} onOpenChange={setTransferModalOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="w-full bg-[#7B0099] hover:bg-[#5a0073] text-white rounded-xl shadow-lg shadow-purple-900/20">
+                <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl shadow-lg shadow-purple-900/20">
                   {currentHod ? "Transfer Role" : "Assign HOD"}
                 </Button>
               </DialogTrigger>
@@ -207,7 +207,7 @@ export default function DepartmentDetails() {
                   <Button 
                     onClick={handleHodTransfer} 
                     disabled={isTransferring || !selectedNewHod}
-                    className="rounded-xl bg-[#7B0099] hover:bg-[#5a0073] text-white shadow-lg shadow-purple-900/20"
+                    className="rounded-xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-purple-900/20"
                   >
                     {isTransferring ? "Processing..." : "Confirm Transfer"}
                   </Button>
@@ -239,7 +239,7 @@ export default function DepartmentDetails() {
                   <tr key={emp.user_id} className="hover:bg-muted/10 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[#7B0099]/10 text-[#7B0099] flex items-center justify-center font-black text-xs">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xs">
                           {emp.full_name.charAt(0)}
                         </div>
                         <div>
@@ -267,7 +267,7 @@ export default function DepartmentDetails() {
                       <div className="flex items-center gap-2">
                         <div className="w-full bg-muted rounded-full h-2 max-w-[100px]">
                           <div 
-                            className="bg-[#7B0099] h-2 rounded-full" 
+                            className="bg-primary h-2 rounded-full" 
                             style={{ width: `${emp.attendance_rate || 0}%` }}
                           />
                         </div>
