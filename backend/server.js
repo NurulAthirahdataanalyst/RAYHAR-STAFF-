@@ -1825,7 +1825,6 @@ app.listen(PORT, "0.0.0.0", () => {
 // SECURE PASSWORD RESET TELEGRAM BOT (NATIVE LONG POLLING)
 // =================================================================
 const https = require("https");
-const bcrypt = require("bcryptjs");
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
