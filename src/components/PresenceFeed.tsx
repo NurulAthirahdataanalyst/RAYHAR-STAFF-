@@ -6,6 +6,14 @@ import { Input } from "@/components/ui/input";
 import { useRole } from "@/contexts/RoleContext";
 import { API_BASE_URL } from "@/config/api";
 
+const parseLocalDate = (value: string | null) => {
+  if (!value) return null;
+  let dateStr = value;
+  dateStr = dateStr.replace(" ", "T").replace(/Z$/, "").replace(/\+00:?00$/, "");
+  const parsed = new Date(dateStr);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
 interface PresenceFeedProps {
   isCollapsed?: boolean;
 }
@@ -85,7 +93,8 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
     }
     if (status === "Present") {
       // Late check: if clockIn is after 9 AM
-      const isLate = clockIn && new Date(clockIn).getHours() >= 9;
+      const clockInDate = parseLocalDate(clockIn);
+      const isLate = clockInDate && clockInDate.getHours() >= 9;
       if (isLate) {
         return { 
           icon: Clock, 
@@ -146,8 +155,8 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
   };
 
   const formatTime = (timeStr: string | null) => {
-    if (!timeStr) return "--:--";
-    const date = new Date(timeStr);
+    const date = parseLocalDate(timeStr);
+    if (!date) return "--:--";
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   };
 
