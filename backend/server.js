@@ -1582,39 +1582,53 @@ app.get("/api/reports/analytics", async (req, res) => {
 });
 
 // ===============================
-// GET BRANCHES API
+// GET & POST BRANCHES API
 // ===============================
 app.get("/api/branches", async (req, res) => {
   try {
-    const branches = [
-      { code: "HQ", name: "Rayhar HQ" },
-      { code: "KMM", name: "Kemaman" },
-      { code: "CNH", name: "Cheneh" },
-      { code: "KBG", name: "Kuala Berang" },
-      { code: "TGG", name: "Kuala Terengganu" },
-      { code: "DGN", name: "Dungun" },
-      { code: "JTH", name: "Jertih" },
-      { code: "KBR", name: "Kota Bharu" },
-      { code: "RMP", name: "Rompin" },
-      { code: "MZM", name: "Muadzam Shah" },
-      { code: "SHA", name: "Shah Alam" },
-      { code: "BBB", name: "Bandar Baru Bangi" },
-      { code: "KUL", name: "Kuala Lumpur" },
-      { code: "IPH", name: "Ipoh" },
-      { code: "MJG", name: "Manjung" },
-      { code: "KKS", name: "Kuala Kangsar" },
-      { code: "MLK", name: "Melaka" },
-      { code: "AOR", name: "Alor Setar" },
-      { code: "BTM", name: "Bertam" },
-      { code: "SNS", name: "Seremban" },
-      { code: "BTP", name: "Batu Pahat" },
-      { code: "JB", name: "Johor Bharu" },
-      { code: "TWU", name: "Tawau" }
-    ];
+    let [rows] = await pool.query("SELECT code, name FROM branches ORDER BY name ASC");
+    
+    if (rows.length === 0) {
+      const fallbackBranches = [
+        { code: "HQ", name: "Rayhar HQ" },
+        { code: "KMM", name: "Kemaman" },
+        { code: "CNH", name: "Cheneh" },
+        { code: "KBG", name: "Kuala Berang" },
+        { code: "TGG", name: "Kuala Terengganu" },
+        { code: "DGN", name: "Dungun" },
+        { code: "JTH", name: "Jertih" },
+        { code: "KBR", name: "Kota Bharu" },
+        { code: "RMP", name: "Rompin" },
+        { code: "MZM", name: "Muadzam Shah" },
+        { code: "SHA", name: "Shah Alam" },
+        { code: "BBB", name: "Bandar Baru Bangi" },
+        { code: "KUL", name: "Kuala Lumpur" },
+        { code: "IPH", name: "Ipoh" },
+        { code: "MJG", name: "Manjung" },
+        { code: "KKS", name: "Kuala Kangsar" },
+        { code: "MLK", name: "Melaka" },
+        { code: "AOR", name: "Alor Setar" },
+        { code: "BTM", name: "Bertam" },
+        { code: "SNS", name: "Seremban" },
+        { code: "BTP", name: "Batu Pahat" },
+        { code: "JB", name: "Johor Bharu" },
+        { code: "TWU", name: "Tawau" }
+      ];
+
+      for (const b of fallbackBranches) {
+        await pool.query(
+          "INSERT INTO branches (branch, code, name) VALUES (?, ?, ?)",
+          [b.code, b.code, b.name]
+        );
+      }
+      
+      const [reFetch] = await pool.query("SELECT code, name FROM branches ORDER BY name ASC");
+      rows = reFetch;
+    }
 
     res.json({
       success: true,
-      branches
+      branches: rows
     });
 
   } catch (err) {
@@ -1623,6 +1637,32 @@ app.get("/api/branches", async (req, res) => {
       success: false,
       error: err.message
     });
+  }
+});
+
+app.post("/api/branches", async (req, res) => {
+  const { code, name } = req.body;
+
+  if (!code || !name) {
+    return res.status(400).json({ success: false, error: "Code and name are required" });
+  }
+
+  try {
+    const cleanCode = code.trim().toUpperCase();
+    const [existing] = await pool.query("SELECT code FROM branches WHERE code = ?", [cleanCode]);
+    if (existing.length > 0) {
+      return res.status(409).json({ success: false, error: "Branch code already exists" });
+    }
+
+    await pool.query(
+      "INSERT INTO branches (branch, code, name) VALUES (?, ?, ?)",
+      [cleanCode, cleanCode, name.trim()]
+    );
+
+    res.json({ success: true, message: "Branch created successfully" });
+  } catch (err) {
+    console.error("Error creating branch:", err);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
@@ -1697,6 +1737,65 @@ app.get("/api/who-out-today", async (req, res) => {
     res.json({ success: true, employees: rows });
   } catch (err) {
     console.error("Who Out Today Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ===============================
+// LEAVE UTILIZATION ANALYTICS
+// ===============================
+app.get("/api/reports/leave-utilization", async (req, res) => {
+  try {
+    // 1. Department Utilization
+    const [deptRows] = await pool.query(`
+      SELECT 
+        COALESCE(p.department, 'GENERAL') as department, 
+        lr.leave_type, 
+        SUM(lr.days) as total_days
+      FROM leave_requests lr
+      JOIN profiles p ON p.user_id = lr.user_id
+      WHERE lr.status = 'Approved'
+      GROUP BY p.department, lr.leave_type
+    `);
+
+    // 2. Leave Type Distribution
+    const [distRows] = await pool.query(`
+      SELECT 
+        lr.leave_type, 
+        SUM(lr.days) as total_days
+      FROM leave_requests lr
+      WHERE lr.status = 'Approved'
+      GROUP BY lr.leave_type
+    `);
+
+    // 3. Leader Leaves (Upcoming / Active HOD/Leader Leaves)
+    const [leaderRows] = await pool.query(`
+      SELECT 
+        lr.leave_id, 
+        lr.leave_type, 
+        lr.start_date, 
+        lr.end_date, 
+        lr.days, 
+        p.full_name, 
+        COALESCE(p.department, 'GENERAL') as department, 
+        p.branch, 
+        ur.role
+      FROM leave_requests lr
+      JOIN profiles p ON p.user_id = lr.user_id
+      JOIN user_role ur ON ur.user_id = p.user_id
+      WHERE lr.status = 'Approved' AND ur.role IN ('head_of_department', 'branch_leader')
+      ORDER BY lr.start_date DESC 
+      LIMIT 10
+    `);
+
+    res.json({
+      success: true,
+      departmentUtilization: deptRows,
+      leaveTypeDistribution: distRows,
+      leaderLeaves: leaderRows
+    });
+  } catch (err) {
+    console.error("Leave Utilization Error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
