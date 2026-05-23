@@ -172,12 +172,22 @@ pgPool.on('connect', (connection) => {
   connection.query("SET TIME ZONE 'Asia/Kuala_Lumpur'");
 });
 
-// Test connection
+// Test connection & Migration
 (async () => {
   try {
     const connection = await pool.getConnection();
     const [rows] = await connection.query('SELECT NOW() as now');
     console.log('✅ Connected to PostgreSQL successfully. Server time:', rows[0].now);
+
+    // Auto migration for telegram_chat_id
+    try {
+      await connection.query("ALTER TABLE profiles ADD COLUMN telegram_chat_id VARCHAR(100) DEFAULT NULL");
+      console.log('🚀 Successfully migrated: Added telegram_chat_id column to profiles table.');
+    } catch (migErr) {
+      // Column likely already exists
+      console.log('ℹ️ profiles table telegram_chat_id column already matches schema.');
+    }
+
     connection.release();
   } catch (error) {
     console.error('❌ Error connecting to PostgreSQL:', error.message);
@@ -1810,3 +1820,176 @@ console.log("PORT FROM ENV:", process.env.PORT);
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// =================================================================
+// SECURE PASSWORD RESET TELEGRAM BOT (NATIVE LONG POLLING)
+// =================================================================
+const https = require("https");
+const bcrypt = require("bcryptjs");
+
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+
+if (!TELEGRAM_BOT_TOKEN) {
+  console.log("ℹ️ TELEGRAM_BOT_TOKEN not configured in .env. Password reset via Telegram is disabled.");
+} else {
+  console.log("🚀 Telegram Bot Token found. Starting secure password reset bot...");
+  
+  let offset = 0;
+  const resetStates = {}; // in-memory state: chatId -> { user_id }
+
+  function sendTelegramMessage(chatId, text) {
+    const data = JSON.stringify({ chat_id: chatId, text: text });
+    const options = {
+      hostname: "api.telegram.org",
+      port: 443,
+      path: `/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": data.length,
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      res.on("data", () => {});
+    });
+
+    req.on("error", (err) => {
+      console.error("Error sending Telegram message:", err);
+    });
+
+    req.write(data);
+    req.end();
+  }
+
+  async function handleTelegramMessage(chatId, text, username) {
+    const trimmed = text.trim();
+    
+    // Check if in password reset state
+    if (resetStates[chatId]) {
+      const { user_id } = resetStates[chatId];
+      if (trimmed.length < 6) {
+        sendTelegramMessage(chatId, "❌ Password must be at least 6 characters. Please enter your new password again:");
+        return;
+      }
+
+      try {
+        const hashedPassword = await bcrypt.hash(trimmed, 10);
+        await pool.query("UPDATE profiles SET password = ? WHERE user_id = ?", [hashedPassword, user_id]);
+        
+        delete resetStates[chatId];
+        sendTelegramMessage(chatId, `🔒 Success! Your password has been updated securely.\n\nThe HR team does not have access to this new password. You can now sign in to the portal using your new password!`);
+        console.log(`🔑 Password updated securely via Telegram for user ${user_id}`);
+      } catch (err) {
+        console.error("Error updating password via Telegram:", err);
+        sendTelegramMessage(chatId, "❌ An error occurred while updating your password. Please try again later or contact support.");
+      }
+      return;
+    }
+
+    if (trimmed === "/start") {
+      sendTelegramMessage(
+        chatId,
+        `Welcome to Rayhar Group Staff Bot! 🔒\n\nTo securely link your account so you can reset your password privately, please send:\n\n/start <Staff ID>\n\n(For example: /start E001)`
+      );
+      return;
+    }
+
+    if (trimmed.startsWith("/start ")) {
+      const parts = trimmed.split(" ");
+      const rawUserId = parts[1]?.trim().toUpperCase();
+      if (!rawUserId) {
+        sendTelegramMessage(chatId, "❌ Invalid format. Please send /start <Staff ID> (e.g. /start E001).");
+        return;
+      }
+
+      try {
+        const [rows] = await pool.query("SELECT * FROM profiles WHERE user_id = ?", [rawUserId]);
+        if (rows.length === 0) {
+          sendTelegramMessage(chatId, `❌ Error: Staff ID "${rawUserId}" not found in the database. Please verify your ID or ask HR to onboard you.`);
+          return;
+        }
+
+        // Link the telegram chat ID
+        await pool.query("UPDATE profiles SET telegram_chat_id = ? WHERE user_id = ?", [String(chatId), rawUserId]);
+        sendTelegramMessage(
+          chatId,
+          `✅ Success! Your Telegram account has been linked to your Staff Profile (ID: ${rawUserId}).\n\nYou can now reset your password securely at any time by sending /reset to this bot.`
+        );
+        console.log(`🔗 Linked Telegram Chat ID ${chatId} with user ${rawUserId}`);
+      } catch (err) {
+        console.error("Error linking Telegram Chat ID:", err);
+        sendTelegramMessage(chatId, "❌ An error occurred during linking. Please try again later.");
+      }
+      return;
+    }
+
+    if (trimmed === "/reset") {
+      try {
+        const [rows] = await pool.query("SELECT * FROM profiles WHERE telegram_chat_id = ?", [String(chatId)]);
+        if (rows.length === 0) {
+          sendTelegramMessage(
+            chatId,
+            "❌ Your Telegram account is not linked to any Staff Profile yet.\n\nPlease link it first by sending:\n/start <Staff ID> (e.g. /start E001)"
+          );
+          return;
+        }
+
+        const user = rows[0];
+        resetStates[chatId] = { user_id: user.user_id };
+        sendTelegramMessage(
+          chatId,
+          `🔒 Initiating Password Reset for ${user.full_name} (ID: ${user.user_id}).\n\nPlease reply with your new private password (min. 6 characters):`
+        );
+      } catch (err) {
+        console.error("Error initiating reset via Telegram:", err);
+        sendTelegramMessage(chatId, "❌ An error occurred. Please try again later.");
+      }
+      return;
+    }
+
+    // Default reply
+    sendTelegramMessage(
+      chatId,
+      "ℹ️ Command not recognized.\n\n• Send /start to link your Staff ID.\n• Send /reset to privately reset your password."
+    );
+  }
+
+  function pollUpdates() {
+    https
+      .get(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=${offset}&timeout=30`, (res) => {
+        let body = "";
+        res.on("data", (chunk) => {
+          body += chunk;
+        });
+
+        res.on("end", () => {
+          try {
+            const data = JSON.parse(body);
+            if (data.ok && data.result) {
+              for (const update of data.result) {
+                offset = update.update_id + 1;
+                if (update.message && update.message.text) {
+                  const chatId = update.message.chat.id;
+                  const text = update.message.text;
+                  const username = update.message.from.username || "";
+                  handleTelegramMessage(chatId, text, username);
+                }
+              }
+            }
+          } catch (e) {
+            // Ignore JSON parsing errors
+          }
+          // Immediate polling for next batch
+          pollUpdates();
+        });
+      })
+      .on("error", (err) => {
+        // Retry after delay on network error
+        setTimeout(pollUpdates, 5000);
+      });
+  }
+
+  // Start polling loop
+  pollUpdates();
+}

@@ -169,8 +169,9 @@ export default function Login() {
                             title: "🔒 Secure Telegram Password Reset",
                             description: "Please message our official Telegram bot to reset your password. The HR team will not have access to your new password, preserving your privacy.",
                           });
+                          const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "RayharStaffBot";
                           setTimeout(() => {
-                            window.open("https://t.me/RayharStaffBot", "_blank");
+                            window.open(`https://t.me/${botUsername}`, "_blank");
                           }, 1500);
                         }}
                         className="text-[#7B0099] font-black hover:underline cursor-pointer transition-colors"
