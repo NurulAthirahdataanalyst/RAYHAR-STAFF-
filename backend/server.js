@@ -1862,74 +1862,76 @@ if (!TELEGRAM_BOT_TOKEN) {
   }
 
   async function handleTelegramMessage(chatId, text, username) {
-    const trimmed = text.trim();
-    
-    // Check if in password reset state
-    if (resetStates[chatId]) {
-      const { user_id } = resetStates[chatId];
-      if (trimmed.length < 6) {
-        sendTelegramMessage(chatId, "❌ Password must be at least 6 characters. Please enter your new password again:");
-        return;
-      }
-
-      try {
-        const hashedPassword = await bcrypt.hash(trimmed, 10);
-        await pool.query("UPDATE profiles SET password = ? WHERE user_id = ?", [hashedPassword, user_id]);
-        
-        delete resetStates[chatId];
-        sendTelegramMessage(chatId, `🔒 Success! Your password has been updated securely.\n\nThe HR team does not have access to this new password. You can now sign in to the portal using your new password!`);
-        console.log(`🔑 Password updated securely via Telegram for user ${user_id}`);
-      } catch (err) {
-        console.error("Error updating password via Telegram:", err);
-        sendTelegramMessage(chatId, "❌ An error occurred while updating your password. Please try again later or contact support.");
-      }
-      return;
-    }
-
-    if (trimmed === "/start") {
-      sendTelegramMessage(
-        chatId,
-        `Welcome to Rayhar Group Staff Bot! 🔒\n\nTo securely link your account so you can reset your password privately, please send:\n\n/start <Staff ID>\n\n(For example: /start E001)`
-      );
-      return;
-    }
-
-    if (trimmed.startsWith("/start ")) {
-      const parts = trimmed.split(" ");
-      const rawUserId = parts[1]?.trim().toUpperCase();
-      if (!rawUserId) {
-        sendTelegramMessage(chatId, "❌ Invalid format. Please send /start <Staff ID> (e.g. /start E001).");
-        return;
-      }
-
-      try {
-        const [rows] = await pool.query("SELECT * FROM profiles WHERE user_id = ?", [rawUserId]);
-        if (rows.length === 0) {
-          sendTelegramMessage(chatId, `❌ Error: Staff ID "${rawUserId}" not found in the database. Please verify your ID or ask HR to onboard you.`);
+    try {
+      console.log(`📩 Telegram Bot received message from ${chatId} (${username}): "${text}"`);
+      const trimmed = text.trim();
+      
+      // Check if in password reset state
+      if (resetStates[chatId]) {
+        const { user_id } = resetStates[chatId];
+        if (trimmed.length < 6) {
+          sendTelegramMessage(chatId, "❌ Password must be at least 6 characters. Please enter your new password again:");
           return;
         }
 
-        // Link the telegram chat ID
-        await pool.query("UPDATE profiles SET telegram_chat_id = ? WHERE user_id = ?", [String(chatId), rawUserId]);
+        try {
+          const hashedPassword = await bcrypt.hash(trimmed, 10);
+          await pool.query("UPDATE profiles SET password = ? WHERE user_id = ?", [hashedPassword, user_id]);
+          
+          delete resetStates[chatId];
+          sendTelegramMessage(chatId, `🔒 Success! Your password has been updated securely.\n\nThe HR team does not have access to this new password. You can now sign in to the portal using your new password!`);
+          console.log(`🔑 Password updated securely via Telegram for user ${user_id}`);
+        } catch (err) {
+          console.error("Error updating password via Telegram:", err);
+          sendTelegramMessage(chatId, "❌ An error occurred while updating your password. Please try again later or contact support.");
+        }
+        return;
+      }
+
+      if (trimmed === "/start") {
         sendTelegramMessage(
           chatId,
-          `✅ Success! Your Telegram account has been linked to your Staff Profile (ID: ${rawUserId}).\n\nYou can now reset your password securely at any time by sending /reset to this bot.`
+          `Welcome to Rayhar Group Staff Bot! 🔒\n\nTo securely link your account so you can reset your password privately, please send:\n\n/start <Staff ID>\n\n(For example: /start E001)`
         );
-        console.log(`🔗 Linked Telegram Chat ID ${chatId} with user ${rawUserId}`);
-      } catch (err) {
-        console.error("Error linking Telegram Chat ID:", err);
-        sendTelegramMessage(chatId, "❌ An error occurred during linking. Please try again later.");
+        return;
       }
-      return;
-    }
 
-    if (trimmed === "/reset") {
-      try {
-        const [rows] = await pool.query("SELECT * FROM profiles WHERE telegram_chat_id = ?", [String(chatId)]);
-        if (rows.length === 0) {
+      if (trimmed.startsWith("/start ")) {
+        const parts = trimmed.split(" ");
+        const rawUserId = parts[1]?.trim().toUpperCase();
+        if (!rawUserId) {
+          sendTelegramMessage(chatId, "❌ Invalid format. Please send /start <Staff ID> (e.g. /start E001).");
+          return;
+        }
+
+        try {
+          const [rows] = await pool.query("SELECT * FROM profiles WHERE user_id = ?", [rawUserId]);
+          if (rows.length === 0) {
+            sendTelegramMessage(chatId, `❌ Error: Staff ID "${rawUserId}" not found in the database. Please verify your ID or ask HR to onboard you.`);
+            return;
+          }
+
+          // Link the telegram chat ID
+          await pool.query("UPDATE profiles SET telegram_chat_id = ? WHERE user_id = ?", [String(chatId), rawUserId]);
           sendTelegramMessage(
             chatId,
-            "❌ Your Telegram account is not linked to any Staff Profile yet.\n\nPlease link it first by sending:\n/start <Staff ID> (e.g. /start E001)"
+            `✅ Success! Your Telegram account has been linked to your Staff Profile (ID: ${rawUserId}).\n\nYou can now reset your password securely at any time by sending /reset to this bot.`
+          );
+          console.log(`🔗 Linked Telegram Chat ID ${chatId} with user ${rawUserId}`);
+        } catch (err) {
+          console.error("Error linking Telegram Chat ID:", err);
+          sendTelegramMessage(chatId, "❌ An error occurred during linking. Please try again later.");
+        }
+        return;
+      }
+
+      if (trimmed === "/reset") {
+        try {
+          const [rows] = await pool.query("SELECT * FROM profiles WHERE telegram_chat_id = ?", [String(chatId)]);
+          if (rows.length === 0) {
+            sendTelegramMessage(
+              chatId,
+              "❌ Your Telegram account is not linked to any Staff Profile yet.\n\nPlease link it first by sending:\n/start <Staff ID> (e.g. /start E001)"
           );
           return;
         }
@@ -1952,6 +1954,9 @@ if (!TELEGRAM_BOT_TOKEN) {
       chatId,
       "ℹ️ Command not recognized.\n\n• Send /start to link your Staff ID.\n• Send /reset to privately reset your password."
     );
+    } catch (criticalErr) {
+      console.error("❌ Critical error inside handleTelegramMessage:", criticalErr);
+    }
   }
 
   function pollUpdates() {
@@ -1975,6 +1980,8 @@ if (!TELEGRAM_BOT_TOKEN) {
                   handleTelegramMessage(chatId, text, username);
                 }
               }
+            } else if (!data.ok) {
+              console.error("❌ Telegram getUpdates error:", data.description || data);
             }
           } catch (e) {
             // Ignore JSON parsing errors
@@ -1984,11 +1991,30 @@ if (!TELEGRAM_BOT_TOKEN) {
         });
       })
       .on("error", (err) => {
+        console.error("❌ Telegram connection error during polling:", err.message);
         // Retry after delay on network error
         setTimeout(pollUpdates, 5000);
       });
   }
 
-  // Start polling loop
-  pollUpdates();
+  // Clear any existing webhook to ensure getUpdates (long polling) works perfectly
+  console.log("🧹 Clearing any existing Telegram Webhooks to force long-polling mode...");
+  https.get(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/deleteWebhook`, (res) => {
+    let body = "";
+    res.on("data", (chunk) => { body += chunk; });
+    res.on("end", () => {
+      try {
+        const parsed = JSON.parse(body);
+        console.log("🧹 Webhook delete result:", parsed);
+      } catch (e) {
+        console.log("🧹 Webhook delete raw response:", body);
+      }
+      // Start polling loop
+      pollUpdates();
+    });
+  }).on("error", (err) => {
+    console.error("❌ Error deleting webhook on startup:", err.message);
+    // Fallback: Start polling anyway
+    pollUpdates();
+  });
 }
