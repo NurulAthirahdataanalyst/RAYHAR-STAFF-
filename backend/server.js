@@ -1961,7 +1961,7 @@ if (!TELEGRAM_BOT_TOKEN) {
 
   function pollUpdates() {
     https
-      .get(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=${offset}&timeout=30`, (res) => {
+      .get(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=${offset}&timeout=1`, (res) => {
         let body = "";
         res.on("data", (chunk) => {
           body += chunk;
@@ -1986,8 +1986,8 @@ if (!TELEGRAM_BOT_TOKEN) {
           } catch (e) {
             // Ignore JSON parsing errors
           }
-          // Immediate polling for next batch
-          pollUpdates();
+          // Poll again after 2 seconds to prevent Render gateway proxy connection hangs
+          setTimeout(pollUpdates, 2000);
         });
       })
       .on("error", (err) => {
