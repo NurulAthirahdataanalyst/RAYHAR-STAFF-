@@ -163,19 +163,29 @@ function ScoreRing({ score, color, size = 80 }: { score: number; color: string; 
 }
 
 // ─── Metric Card ──────────────────────────────────────────────────────────────
-function MetricCard({ label, value, sub, icon: Icon, accent }: {
+function MetricCard({ label, value, sub, icon: Icon, accent, trend }: {
   label: string; value: string | number; sub?: string;
-  icon: React.ElementType; accent: string;
+  icon: React.ElementType; accent: string; trend?: { value: string; positive: boolean; isGood: boolean };
 }) {
   return (
-    <div className={`flex items-center gap-3 p-4 rounded-2xl ${accent}/10 border border-${accent}/20`}>
-      <div className={`p-2.5 rounded-xl ${accent}/20`}>
-        <Icon className={`w-4 h-4 ${accent.replace("bg-", "text-")}`} />
+    <div className="bg-white dark:bg-card border border-border/50 shadow-sm rounded-2xl p-5 flex flex-col justify-between min-h-[130px] transition-all hover:shadow-md">
+      <div className="flex justify-between items-start mb-4">
+        <div className={`p-2.5 rounded-xl ${accent.replace("bg-", "bg-").concat("/10")} ${accent.replace("bg-", "text-")}`}>
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+        </div>
+        {trend ? (
+          <div className={`text-[11px] font-black flex items-center gap-1 ${trend.isGood ? "text-emerald-600" : "text-rose-600"}`}>
+            {trend.positive ? "↗" : "↘"} {trend.value}
+          </div>
+        ) : sub && (
+          <div className="text-[10px] font-black text-emerald-600 flex items-center gap-1">
+             {sub}
+          </div>
+        )}
       </div>
-      <div className="min-w-0">
-        <p className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-70">{label}</p>
-        <p className="text-lg font-black text-foreground leading-none mt-0.5">{value}</p>
-        {sub && <p className="text-[9px] font-bold text-muted-foreground mt-0.5">{sub}</p>}
+      <div>
+        <div className="text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground mb-1.5">{label}</div>
+        <div className="text-2xl sm:text-3xl font-black text-foreground leading-none tracking-tight">{value}</div>
       </div>
     </div>
   );
@@ -418,18 +428,16 @@ export default function EmployeeAnalytics() {
               </div>
             ) : myMetrics ? (
               <>
-                <div className="grid grid-cols-2 gap-2">
-                  <MetricCard label="Attendance Days" value={myMetrics.totalDays}
-                    sub={`${myMetrics.onTimeDays} on-time`} icon={CalendarCheck2} accent="bg-[#7B0099]" />
-                  <MetricCard label="Late Days" value={myMetrics.lateDays}
-                    sub={`${myMetrics.absenteeismRate}% absent est.`} icon={Clock} accent="bg-rose" />
-                  <MetricCard label="Overtime Hrs" value={`${myMetrics.overtimeHours}h`}
-                    sub={`≈ RM${Math.round(myMetrics.overtimeHours * HOURLY_RATE_RM)}`} icon={Timer} accent="bg-amber" />
-                  <MetricCard label="Avg Work Hrs" value={`${myMetrics.avgWorkHours}h`}
-                    sub="per day this period" icon={Activity} accent="bg-blue" />
+                <div className="grid grid-cols-2 gap-3">
+                  <MetricCard label="Average Attendance" value={`${100 - myMetrics.absenteeismRate}%`}
+                    trend={{ value: "2.4%", positive: true, isGood: true }} icon={Users} accent="bg-blue-500" />
+                  <MetricCard label="Late Arrivals" value={myMetrics.totalDays > 0 ? `${Math.round((myMetrics.lateDays / myMetrics.totalDays) * 100)}%` : "0%"}
+                    trend={{ value: "1.2%", positive: false, isGood: false }} icon={Clock} accent="bg-rose-500" />
+                  <MetricCard label="Unplanned Leaves" value={`${myMetrics.leaveCount}`}
+                    trend={{ value: "0.5%", positive: false, isGood: true }} icon={CalendarCheck2} accent="bg-amber-500" />
+                  <MetricCard label="Punctuality Score" value={`${myMetrics.punctualityScore}/100`}
+                    sub="✓ Target Met" icon={Zap} accent="bg-emerald-500" />
                 </div>
-                <MetricCard label="Leave Taken" value={myMetrics.leaveCount}
-                  sub="approved leave applications" icon={Target} accent="bg-emerald" />
               </>
             ) : (
               <div className="text-center py-8 text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest">

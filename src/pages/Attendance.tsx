@@ -42,8 +42,13 @@ export default function Attendance() {
   const [fetchingHistory, setFetchingHistory] = useState(false);
 
   // Advanced Interactive Filters & States
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  });
+  const selectedMonth = parseInt(selectedDate.split('-')[1]);
+  const selectedYear = parseInt(selectedDate.split('-')[0]);
+
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ON TIME" | "LATE" | "REMOTE">("ALL");
   const [expandedLogId, setExpandedLogId] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -524,23 +529,15 @@ export default function Attendance() {
           {/* Top Actions Row */}
           <div className="flex items-center justify-between gap-2 mb-6">
             <div className="relative">
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                className="appearance-none flex items-center justify-center gap-1.5 px-4 py-2 bg-[#7B0099] text-white text-xs font-black rounded-full shadow-lg shadow-purple-900/10 hover:scale-105 active:scale-95 transition-all outline-none border-none pr-8 cursor-pointer"
-              >
-                {Array.from({ length: 12 }, (_, i) => {
-                  const d = new Date(2026, i, 1);
-                  return (
-                    <option key={i + 1} value={i + 1} className="text-foreground bg-background">
-                      {d.toLocaleString("default", { month: "long" })}
-                    </option>
-                  );
-                })}
-              </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white w-3 h-3">
-                <ChevronDown className="w-3.5 h-3.5" />
-              </div>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => {
+                  if (e.target.value) setSelectedDate(e.target.value);
+                }}
+                className="appearance-none flex items-center justify-center gap-1.5 px-4 py-2 bg-[#7B0099] text-white text-[11px] font-black rounded-full shadow-lg shadow-purple-900/10 hover:scale-105 active:scale-95 transition-all outline-none border-none cursor-pointer uppercase tracking-widest relative z-10"
+                style={{ colorScheme: "dark" }}
+              />
             </div>
             
             <div className="flex items-center gap-2">
@@ -603,6 +600,11 @@ export default function Attendance() {
               <div className="space-y-3.5">
                 {historyLogs
                   .filter(log => statusFilter === "ALL" || log.status === statusFilter)
+                  .filter(log => {
+                    const d = new Date(log.clock_in);
+                    const logDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                    return logDate === selectedDate;
+                  })
                   .slice(0, visibleLogsCount)
                   .map((log, index) => {
                     const clockInDate = new Date(log.clock_in);
@@ -689,7 +691,10 @@ export default function Attendance() {
               </div>
 
               {/* Load More Button */}
-              {historyLogs.filter(log => statusFilter === "ALL" || log.status === statusFilter).length > visibleLogsCount && (
+              {historyLogs.filter(log => statusFilter === "ALL" || log.status === statusFilter).filter(log => {
+                 const d = new Date(log.clock_in);
+                 return (d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')) === selectedDate;
+              }).length > visibleLogsCount && (
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();
