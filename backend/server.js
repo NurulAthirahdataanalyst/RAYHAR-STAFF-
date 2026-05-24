@@ -2050,9 +2050,12 @@ app.post("/api/reset-password", async (req, res) => {
 // ===============================
 
 // Get personal notes for a user
-app.get("/api/personal-notes", authenticateToken, async (req, res) => {
+app.get("/api/personal-notes", async (req, res) => {
   try {
-    const userId = req.user.user_id;
+    const userId = req.query.userId;
+    if (!userId) {
+      return res.status(400).json({ success: false, error: "Missing userId" });
+    }
     // We can filter by month if needed, but for now let's just return all or a specific date range
     // Assuming frontend will pass ?month=YYYY-MM or just fetch all for the user
     const [rows] = await pool.query(
@@ -2067,13 +2070,12 @@ app.get("/api/personal-notes", authenticateToken, async (req, res) => {
 });
 
 // Add or update a personal note
-app.post("/api/personal-notes", authenticateToken, async (req, res) => {
+app.post("/api/personal-notes", async (req, res) => {
   try {
-    const userId = req.user.user_id;
-    const { date, note_text, type } = req.body;
+    const { userId, date, note_text, type } = req.body;
     
-    if (!date || !note_text) {
-      return res.status(400).json({ success: false, error: "Date and note text are required" });
+    if (!userId || !date || !note_text) {
+      return res.status(400).json({ success: false, error: "UserId, Date and note text are required" });
     }
     
     const [result] = await pool.query(
@@ -2090,10 +2092,14 @@ app.post("/api/personal-notes", authenticateToken, async (req, res) => {
 });
 
 // Delete a personal note
-app.delete("/api/personal-notes/:id", authenticateToken, async (req, res) => {
+app.delete("/api/personal-notes/:id", async (req, res) => {
   try {
-    const userId = req.user.user_id;
+    const userId = req.query.userId;
     const noteId = req.params.id;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, error: "Missing userId" });
+    }
     
     await pool.query(
       "DELETE FROM personal_notes WHERE id = ? AND user_id = ?",

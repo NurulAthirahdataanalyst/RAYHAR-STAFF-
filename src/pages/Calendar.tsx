@@ -59,10 +59,13 @@ export default function Calendar() {
       const token = localStorage.getItem("token");
       if (!token) return;
 
+      const currentUserId = user?.user_id || user?.id;
+      if (!currentUserId) return;
+
       const headers = { Authorization: `Bearer ${token}` };
 
       // Fetch Notes
-      const notesRes = await fetch(`${API_BASE_URL}/api/personal-notes`, { headers });
+      const notesRes = await fetch(`${API_BASE_URL}/api/personal-notes?userId=${currentUserId}`, { headers });
       const notesData = await notesRes.json();
       if (notesData.success) setNotes(notesData.notes);
 
@@ -74,7 +77,7 @@ export default function Calendar() {
       // Fetch Attendance
       // For simplicity, we assume we fetch the last 30 days or so, 
       // but if the endpoint is /api/attendance/history we can use that.
-      const attRes = await fetch(`${API_BASE_URL}/api/attendance/history`, { headers });
+      const attRes = await fetch(`${API_BASE_URL}/api/attendance/history?userId=${currentUserId}`, { headers });
       const attData = await attRes.json();
       if (attData.success) setAttendance(attData.history);
 
@@ -109,6 +112,8 @@ export default function Calendar() {
 
     try {
       const token = localStorage.getItem("token");
+      const currentUserId = user?.user_id || user?.id;
+      if (!currentUserId) return;
       const res = await fetch(`${API_BASE_URL}/api/personal-notes`, {
         method: "POST",
         headers: {
@@ -116,6 +121,7 @@ export default function Calendar() {
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
+          userId: currentUserId,
           date: selectedDateStr,
           note_text: newNoteText,
           type: newNoteType
@@ -137,7 +143,9 @@ export default function Calendar() {
   const handleDeleteNote = async (id: number) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/api/personal-notes/${id}`, {
+      const currentUserId = user?.user_id || user?.id;
+      if (!currentUserId) return;
+      const res = await fetch(`${API_BASE_URL}/api/personal-notes/${id}?userId=${currentUserId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
