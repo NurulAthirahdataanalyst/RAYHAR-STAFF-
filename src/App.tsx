@@ -24,7 +24,7 @@ import SettingsPage from "./pages/Settings";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
-import RealTimeCalendar from "@/components/RealTimeCalendar";
+import CalendarPage from "./pages/Calendar";
 import MasterPlaceholder from "./pages/master/Placeholder";
 import Department from "./pages/master/Department";
 import DepartmentDetails from "./pages/master/DepartmentDetails";
@@ -71,7 +71,7 @@ function ProtectedRoutes() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/analytics" element={<EmployeeAnalytics />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/calendar" element={<RealTimeCalendar />} />
+          <Route path="/calendar" element={<CalendarPage />} />
           
           {/* Master Section */}
           <Route path="/master/department" element={<Department />} />

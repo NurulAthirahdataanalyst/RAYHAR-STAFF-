@@ -16,7 +16,8 @@ import {
   Moon,
   Sun,
   PieChart,
-  Settings
+  Settings,
+  Calendar
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRole } from "@/contexts/RoleContext";
@@ -72,6 +73,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
   const menuItems = [
     { title: "Dashboard", icon: LayoutDashboard, path: "/", roles: ALL_ROLES },
+    { title: "Calendar", icon: Calendar, path: "/calendar", roles: ALL_ROLES },
     { title: "Attendance", icon: Clock, path: "/attendance", roles: ALL_ROLES },
     {
       title: "Leave Management",

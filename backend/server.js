@@ -299,6 +299,23 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
     const [rows] = await connection.query('SELECT NOW() as now');
     console.log('✅ Connected to PostgreSQL successfully. Server time:', rows[0].now);
 
+    // Auto-migrate personal_notes table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS personal_notes (
+        id SERIAL PRIMARY KEY,
+        user_id UUID NOT NULL,
+        date DATE NOT NULL,
+        note_text TEXT NOT NULL,
+        type VARCHAR(50) DEFAULT 'note',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES profiles(user_id) ON DELETE CASCADE
+      );
+    `);
+    // Create an index to make looking up notes by month faster
+    await connection.query(`CREATE INDEX IF NOT EXISTS idx_personal_notes_user_date ON personal_notes(user_id, date);`);
+    console.log('✅ Auto-migration for personal_notes completed.');
+
+
     // Auto migration for telegram_chat_id
     try {
       await connection.query("ALTER TABLE profiles ADD COLUMN telegram_chat_id VARCHAR(100) DEFAULT NULL");
@@ -2026,6 +2043,124 @@ app.post("/api/reset-password", async (req, res) => {
     }
     return res.status(400).json({ success: false, error: "Invalid or expired token" });
   }
+});
+
+// ===============================
+// PERSONAL NOTES & CALENDAR API
+// ===============================
+
+// Get personal notes for a user
+app.get("/api/personal-notes", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    // We can filter by month if needed, but for now let's just return all or a specific date range
+    // Assuming frontend will pass ?month=YYYY-MM or just fetch all for the user
+    const [rows] = await pool.query(
+      "SELECT * FROM personal_notes WHERE user_id = ? ORDER BY date ASC, created_at ASC",
+      [userId]
+    );
+    res.json({ success: true, notes: rows });
+  } catch (err) {
+    console.error("Error fetching personal notes:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch notes" });
+  }
+});
+
+// Add or update a personal note
+app.post("/api/personal-notes", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    const { date, note_text, type } = req.body;
+    
+    if (!date || !note_text) {
+      return res.status(400).json({ success: false, error: "Date and note text are required" });
+    }
+    
+    const [result] = await pool.query(
+      "INSERT INTO personal_notes (user_id, date, note_text, type) VALUES (?, ?, ?, ?) RETURNING *",
+      [userId, date, note_text, type || 'note']
+    );
+    
+    const newNote = result[0] || { id: result.insertId, user_id: userId, date, note_text, type: type || 'note' };
+    res.status(201).json({ success: true, note: newNote });
+  } catch (err) {
+    console.error("Error adding personal note:", err);
+    res.status(500).json({ success: false, error: "Failed to add note" });
+  }
+});
+
+// Delete a personal note
+app.delete("/api/personal-notes/:id", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    const noteId = req.params.id;
+    
+    await pool.query(
+      "DELETE FROM personal_notes WHERE id = ? AND user_id = ?",
+      [noteId, userId]
+    );
+    res.json({ success: true, message: "Note deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting personal note:", err);
+    res.status(500).json({ success: false, error: "Failed to delete note" });
+  }
+});
+
+// Get Malaysian Public Holidays (Static List for 2024-2026)
+app.get("/api/holidays", (req, res) => {
+  const malaysiaHolidays = [
+    // 2024
+    { date: "2024-01-01", name: "New Year's Day" },
+    { date: "2024-02-10", name: "Chinese New Year" },
+    { date: "2024-02-11", name: "Chinese New Year" },
+    { date: "2024-03-28", name: "Nuzul Al-Quran" },
+    { date: "2024-04-10", name: "Hari Raya Aidilfitri" },
+    { date: "2024-04-11", name: "Hari Raya Aidilfitri" },
+    { date: "2024-05-01", name: "Labour Day" },
+    { date: "2024-05-22", name: "Wesak Day" },
+    { date: "2024-06-03", name: "Agong's Birthday" },
+    { date: "2024-06-17", name: "Hari Raya Haji" },
+    { date: "2024-07-07", name: "Awal Muharram" },
+    { date: "2024-08-31", name: "Merdeka Day" },
+    { date: "2024-09-16", name: "Malaysia Day" },
+    { date: "2024-10-31", name: "Deepavali" },
+    { date: "2024-12-25", name: "Christmas Day" },
+    
+    // 2025
+    { date: "2025-01-01", name: "New Year's Day" },
+    { date: "2025-01-29", name: "Chinese New Year" },
+    { date: "2025-01-30", name: "Chinese New Year" },
+    { date: "2025-03-17", name: "Nuzul Al-Quran" },
+    { date: "2025-03-31", name: "Hari Raya Aidilfitri" },
+    { date: "2025-04-01", name: "Hari Raya Aidilfitri" },
+    { date: "2025-05-01", name: "Labour Day" },
+    { date: "2025-05-12", name: "Wesak Day" },
+    { date: "2025-06-02", name: "Agong's Birthday" },
+    { date: "2025-06-06", name: "Hari Raya Haji" },
+    { date: "2025-06-27", name: "Awal Muharram" },
+    { date: "2025-08-31", name: "Merdeka Day" },
+    { date: "2025-09-16", name: "Malaysia Day" },
+    { date: "2025-10-20", name: "Deepavali" },
+    { date: "2025-12-25", name: "Christmas Day" },
+    
+    // 2026
+    { date: "2026-01-01", name: "New Year's Day" },
+    { date: "2026-02-17", name: "Chinese New Year" },
+    { date: "2026-02-18", name: "Chinese New Year" },
+    { date: "2026-03-06", name: "Nuzul Al-Quran" },
+    { date: "2026-03-20", name: "Hari Raya Aidilfitri" },
+    { date: "2026-03-21", name: "Hari Raya Aidilfitri" },
+    { date: "2026-05-01", name: "Labour Day" },
+    { date: "2026-05-24", name: "Wesak Day" },
+    { date: "2026-05-27", name: "Hari Raya Haji" },
+    { date: "2026-06-01", name: "Agong's Birthday" },
+    { date: "2026-06-16", name: "Awal Muharram" },
+    { date: "2026-08-31", name: "Merdeka Day" },
+    { date: "2026-09-16", name: "Malaysia Day" },
+    { date: "2026-11-08", name: "Deepavali" },
+    { date: "2026-12-25", name: "Christmas Day" }
+  ];
+  res.json({ success: true, holidays: malaysiaHolidays });
 });
 
 // ===============================
