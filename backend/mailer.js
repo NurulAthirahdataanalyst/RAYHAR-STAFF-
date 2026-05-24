@@ -25,6 +25,9 @@ function initMailer() {
         user: smtpUser,
         pass: smtpPass,
       },
+      connectionTimeout: 5000, // 5 seconds to prevent infinite hanging
+      greetingTimeout: 5000,
+      socketTimeout: 5000
     });
 
     console.log("Nodemailer: SMTP initialized successfully.");
