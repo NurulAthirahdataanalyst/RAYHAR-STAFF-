@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle2, Clock3, FileText, Plus, XCircle, Calendar } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { API_BASE_URL } from "../config/api";
@@ -50,11 +51,20 @@ const approvalStatusIcon = (status: string) => {
 };
 
 const formatDate = (value: string) => value ? value.slice(0, 10) : "";
+const YEARS = ["2027", "2026", "2025", "2024"];
 
 export default function LeaveOverview() {
   const navigate = useNavigate();
   const { userId, userName } = useRole();
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+
+  const filteredLeaveRequests = useMemo(() => {
+    return leaveRequests.filter(req => {
+      if (!req.from) return false;
+      return req.from.startsWith(selectedYear);
+    });
+  }, [leaveRequests, selectedYear]);
 
   useEffect(() => {
     const fetchLeaveRequests = async () => {
@@ -101,10 +111,10 @@ export default function LeaveOverview() {
   const leaveBalances = useMemo(() => {
     return leaveTypes.map((item) => ({
       label: leaveTypeLabels[item.type],
-      used: getUsedLeaveDays(leaveRequests, item.type),
+      used: getUsedLeaveDays(filteredLeaveRequests, item.type),
       total: item.total,
     }));
-  }, [leaveRequests]);
+  }, [filteredLeaveRequests]);
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
@@ -121,13 +131,25 @@ export default function LeaveOverview() {
             </p>
           </div>
         </div>
-        <Button
-          onClick={() => navigate("/leave/apply")}
-          className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-6 py-5 shadow-lg shadow-[#7B0099]/20 transition-all active:scale-95"
-        >
-          <Plus className="w-4 h-4" />
-          Apply for Leave
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-[90px] h-11 text-[11px] font-black uppercase tracking-widest rounded-xl border border-[#7B0099]/20 bg-card">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              {YEARS.map(y => (
+                <SelectItem key={y} value={y} className="text-[10px] font-black uppercase tracking-widest">{y}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            onClick={() => navigate("/leave/apply")}
+            className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-6 py-5 shadow-lg shadow-[#7B0099]/20 transition-all active:scale-95"
+          >
+            <Plus className="w-4 h-4" />
+            Apply for Leave
+          </Button>
+        </div>
       </div>
 
       {/* Leave Balance Cards */}
@@ -190,8 +212,8 @@ export default function LeaveOverview() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
-                {leaveRequests.length > 0 ? (
-                  leaveRequests.map((req, i) => (
+                {filteredLeaveRequests.length > 0 ? (
+                  filteredLeaveRequests.map((req, i) => (
                     <tr key={i} className="hover:bg-[#7B0099]/5 transition-colors group">
                       <td className="px-6 py-4 font-black text-[#7B0099] dark:text-purple-400">{leaveTypeLabels[req.type]}</td>
                       <td className="px-6 py-4 text-muted-foreground font-bold">{req.from}</td>
@@ -226,8 +248,8 @@ export default function LeaveOverview() {
 
           {/* Mobile Card View */}
           <div className="sm:hidden divide-y divide-border/50">
-            {leaveRequests.length > 0 ? (
-              leaveRequests.map((req, i) => (
+            {filteredLeaveRequests.length > 0 ? (
+              filteredLeaveRequests.map((req, i) => (
                 <div key={i} className="p-4 active:bg-[#7B0099]/5 transition-colors space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-black text-foreground">{leaveTypeLabels[req.type]}</span>
@@ -269,8 +291,8 @@ export default function LeaveOverview() {
           <CardTitle className="text-base sm:text-lg font-black text-foreground">Approval Status Tracker</CardTitle>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 space-y-4">
-          {leaveRequests.length > 0 ? (
-            leaveRequests.map((req) => {
+          {filteredLeaveRequests.length > 0 ? (
+            filteredLeaveRequests.map((req) => {
               const fileName = req.formFileName || getLeaveFormFileName(req.appliedAt, req.type, userName);
 
               return (

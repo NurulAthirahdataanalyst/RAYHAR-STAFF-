@@ -189,7 +189,7 @@ const MONTHS = [
   { value: "9", label: "September" },{ value: "10", label: "October" },
   { value: "11", label: "November" },{ value: "12", label: "December" },
 ];
-const YEARS = ["2026", "2025", "2024"];
+const YEARS = ["2027", "2026", "2025", "2024"];
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function EmployeeAnalytics() {
