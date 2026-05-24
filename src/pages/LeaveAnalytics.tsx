@@ -326,7 +326,7 @@ export default function LeaveAnalytics() {
       {/* ── Filter Bar ── */}
       <Card className="border-none shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] bg-card/90 backdrop-blur-md rounded-[24px] overflow-hidden">
         <CardContent className="p-4 sm:p-5">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-3 w-full overflow-x-auto scrollbar-none pb-1">
             <div className="flex items-center gap-2 shrink-0">
               <div className="p-1.5 bg-[#7B0099]/10 rounded-lg">
                 <Filter className="w-3.5 h-3.5 text-[#7B0099]" />

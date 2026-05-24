@@ -408,7 +408,7 @@ export default function Reports() {
       </div>
 
       {/* CORE FLOATING SEGMENT TABS */}
-      <div className="flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] p-1.5 rounded-[18px] w-full max-w-4xl shadow-xl overflow-x-auto scrollbar-none border border-[#7B0099]/20 relative z-10">
+      <div className="inline-flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] p-1.5 rounded-[18px] w-full lg:w-fit max-w-full shadow-xl overflow-x-auto scrollbar-none border border-[#7B0099]/20 relative z-10">
         <button
           onClick={() => setActiveTab("attendance")}
           className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
