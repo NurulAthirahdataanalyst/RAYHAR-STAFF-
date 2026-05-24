@@ -2016,7 +2016,15 @@ if (!TELEGRAM_BOT_TOKEN) {
       if (trimmed === "/start") {
         sendTelegramMessage(
           chatId,
-          `Welcome to Rayhar Group Staff Bot! 🔒\n\nTo securely link your account so you can reset your password privately, please send:\n\n/start <Staff ID>\n\n(For example: /start E001)`
+          `👋 Welcome to Rayhar Staff Bot!\n\nI am here to help you link your Staff Profile and securely reset your password privately. 🔒\n\n🔑 Password Reset\nSend /reset to privately update your staff account password.\n\n🔗 Link Account\nTo link your Telegram account, please enter your Staff ID in the format:\n/start <Staff ID> (e.g. /start E001)\n\nSend /help to see all available commands.`
+        );
+        return;
+      }
+
+      if (trimmed === "/help") {
+        sendTelegramMessage(
+          chatId,
+          `📖 Rayhar Staff Bot Commands:\n\n• /start - View welcome message\n• /start <Staff ID> - Link your Telegram account (e.g. /start E001)\n• /reset - Initiate secure password reset`
         );
         return;
       }
@@ -2056,29 +2064,29 @@ if (!TELEGRAM_BOT_TOKEN) {
           if (rows.length === 0) {
             sendTelegramMessage(
               chatId,
-              "❌ Your Telegram account is not linked to any Staff Profile yet.\n\nPlease link it first by sending:\n/start <Staff ID> (e.g. /start E001)"
+              "❌ Your Telegram account is not linked to any Staff Profile yet.\n\n📌 How to link:\nGo to the Rayhar Employee Portal website, click 'Forgot Password?', verify your email, and click the 'Connect with Telegram' button.\n\nOr link directly here by sending:\n/start <Staff ID> (e.g. /start E001)"
+            );
+            return;
+          }
+
+          const user = rows[0];
+          resetStates[chatId] = { user_id: user.user_id };
+          sendTelegramMessage(
+            chatId,
+            `🔒 Initiating Password Reset for ${user.full_name} (ID: ${user.user_id}).\n\nPlease reply with your new private password (min. 6 characters):`
           );
-          return;
+        } catch (err) {
+          console.error("Error initiating reset via Telegram:", err);
+          sendTelegramMessage(chatId, "❌ An error occurred. Please try again later.");
         }
-
-        const user = rows[0];
-        resetStates[chatId] = { user_id: user.user_id };
-        sendTelegramMessage(
-          chatId,
-          `🔒 Initiating Password Reset for ${user.full_name} (ID: ${user.user_id}).\n\nPlease reply with your new private password (min. 6 characters):`
-        );
-      } catch (err) {
-        console.error("Error initiating reset via Telegram:", err);
-        sendTelegramMessage(chatId, "❌ An error occurred. Please try again later.");
+        return;
       }
-      return;
-    }
 
-    // Default reply
-    sendTelegramMessage(
-      chatId,
-      "ℹ️ Command not recognized.\n\n• Send /start to link your Staff ID.\n• Send /reset to privately reset your password."
-    );
+      // Default reply
+      sendTelegramMessage(
+        chatId,
+        "ℹ️ Command not recognized.\n\n📖 Rayhar Staff Bot Commands:\n• Send /start to view instructions.\n• Send /start <Staff ID> to link your account.\n• Send /reset to privately reset your password."
+      );
     } catch (criticalErr) {
       console.error("❌ Critical error inside handleTelegramMessage:", criticalErr);
     }

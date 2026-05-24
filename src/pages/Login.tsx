@@ -30,6 +30,7 @@ export default function Login() {
   const [showTelegramReset, setShowTelegramReset] = useState(false);
   const [telegramEmail, setTelegramEmail] = useState("");
   const [telegramResetLoading, setTelegramResetLoading] = useState(false);
+  const [verifiedStaff, setVerifiedStaff] = useState<{ user_id: string; full_name: string } | null>(null);
 
   const handleTelegramReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,17 +44,14 @@ export default function Login() {
       const data = await response.json();
 
       if (response.ok && data.success && data.profile) {
-        const staffId = data.profile.user_id;
+        setVerifiedStaff({
+          user_id: data.profile.user_id,
+          full_name: data.profile.full_name || telegramEmail,
+        });
         toast({
           title: "🔒 Profile Verified",
-          description: `Staff profile found for ${data.profile.full_name || telegramEmail}. Redirecting to Telegram bot...`,
+          description: `Staff profile found for ${data.profile.full_name || telegramEmail}. Please click the button to connect with Telegram.`,
         });
-        const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "RayharStaffPortal_bot";
-        
-        // Open the telegram link in a new tab
-        setTimeout(() => {
-          window.open(`https://t.me/${botUsername}?start=${staffId}`, "_blank");
-        }, 1500);
       } else {
         toast({
           title: "Profile Not Found",
@@ -76,6 +74,7 @@ export default function Login() {
   // Signup state
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
+  const [signupConfirmPassword, setSignupConfirmPassword] = useState("");
   const [signupName, setSignupName] = useState("");
   const [signupBranch, setSignupBranch] = useState("HQ"); // Default branch
   const [signupDepartment, setSignupDepartment] = useState("");
@@ -117,6 +116,10 @@ export default function Login() {
     e.preventDefault();
     if (signupPassword.length < 6) {
       toast({ title: "Password too short", description: "Password must be at least 6 characters.", variant: "destructive" });
+      return;
+    }
+    if (signupPassword !== signupConfirmPassword) {
+      toast({ title: "Passwords do not match", description: "Please ensure your password and confirm password match.", variant: "destructive" });
       return;
     }
     setLoading(true);
@@ -227,30 +230,65 @@ export default function Login() {
 
                       {showTelegramReset && (
                         <div className="pt-2 border-t border-[#7B0099]/10 animate-in fade-in slide-in-from-top-2 duration-300">
-                          <p className="text-[10px] text-slate-500 mb-2 font-medium">
-                            Enter your email to verify profile and reset password via Telegram.
-                          </p>
-                          <div className="flex gap-2">
-                            <Input
-                              type="email"
-                              placeholder="you@rayhar.com"
-                              value={telegramEmail}
-                              onChange={(e) => setTelegramEmail(e.target.value)}
-                              className="h-8 text-xs bg-white border-[#7B0099]/20 focus-visible:ring-[#7B0099]"
-                            />
-                            <Button
-                              type="button"
-                              onClick={handleTelegramReset}
-                              disabled={telegramResetLoading}
-                              className="h-8 bg-[#7B0099] hover:bg-[#5e0080] text-white text-xs font-bold rounded-md px-3 flex items-center justify-center shrink-0"
-                            >
-                              {telegramResetLoading ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                              ) : (
-                                "Proceed"
-                              )}
-                            </Button>
-                          </div>
+                          {verifiedStaff ? (
+                            <div className="p-3 rounded-xl bg-emerald-50/80 border border-emerald-200 text-slate-700 animate-in zoom-in-95 duration-200 space-y-2.5">
+                              <div className="flex items-center gap-1.5 text-emerald-800 font-extrabold text-xs">
+                                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px]">✓</span>
+                                <span>Profile Verified!</span>
+                              </div>
+                              <p className="text-[10px] text-slate-600 leading-relaxed font-semibold">
+                                Staff profile found for <span className="text-[#7B0099] font-black">{verifiedStaff.full_name}</span>. Click the button below to connect with Telegram and reset your password:
+                              </p>
+                              <a
+                                href={`https://t.me/${import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "RayharStaffLeaveBot"}?start=${verifiedStaff.user_id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full bg-[#0088cc] hover:bg-[#0077b3] text-white rounded-lg h-9 flex items-center justify-center gap-2 font-black uppercase tracking-wider text-[10px] transition-all shadow-sm active:scale-95 cursor-pointer"
+                              >
+                                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-.99.53-1.41.52-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.36-.49.99-.74 3.88-1.69 6.47-2.8 7.77-3.32 3.7-1.47 4.47-1.73 4.97-1.74.11 0 .36.03.52.16.14.11.18.26.2.37.02.13.02.26.01.39z"/>
+                                </svg>
+                                Connect with Telegram
+                              </a>
+                              <div className="flex items-center justify-between pt-1.5 border-t border-emerald-200/50 text-[9px] text-slate-400 font-bold">
+                                <span>Once connected, send /reset to the bot.</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setVerifiedStaff(null)}
+                                  className="text-[#7B0099] hover:underline font-black cursor-pointer"
+                                >
+                                  Use different email
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <p className="text-[10px] text-slate-500 mb-2 font-medium">
+                                Enter your email to verify profile and reset password via Telegram.
+                              </p>
+                              <div className="flex gap-2">
+                                <Input
+                                  type="email"
+                                  placeholder="you@rayhar.com"
+                                  value={telegramEmail}
+                                  onChange={(e) => setTelegramEmail(e.target.value)}
+                                  className="h-8 text-xs bg-white border-[#7B0099]/20 focus-visible:ring-[#7B0099]"
+                                />
+                                <Button
+                                  type="button"
+                                  onClick={handleTelegramReset}
+                                  disabled={telegramResetLoading}
+                                  className="h-8 bg-[#7B0099] hover:bg-[#5e0080] text-white text-xs font-bold rounded-md px-3 flex items-center justify-center shrink-0"
+                                >
+                                  {telegramResetLoading ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    "Proceed"
+                                  )}
+                                </Button>
+                              </div>
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
@@ -344,6 +382,25 @@ export default function Login() {
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
                     <Input id="signup-password" type="password" placeholder="Min. 6 characters" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} required />
+                  </div>
+                  <div className="space-y-2 animate-in fade-in duration-300">
+                    <Label htmlFor="signup-confirm-password">Confirm Password</Label>
+                    <Input id="signup-confirm-password" type="password" placeholder="Confirm your password" value={signupConfirmPassword} onChange={(e) => setSignupConfirmPassword(e.target.value)} required />
+                    {signupConfirmPassword && (
+                      <div className={`text-[10px] sm:text-xs font-bold flex items-center gap-1 mt-1.5 transition-all ${signupPassword === signupConfirmPassword ? 'text-emerald-600' : 'text-rose-500'}`}>
+                        {signupPassword === signupConfirmPassword ? (
+                          <>
+                            <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-black">✓</span>
+                            <span>Passwords match</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-rose-100 text-rose-800 text-[9px] font-black">✗</span>
+                            <span>Passwords do not match</span>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">
