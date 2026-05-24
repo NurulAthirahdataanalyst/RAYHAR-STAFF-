@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { User, Mail, Building2, ShieldCheck, Calendar, MapPin, Lock } from "lucide-react";
 import { toast } from "sonner";
+import { API_BASE_URL } from "@/config/api";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -78,27 +79,38 @@ const Profile = () => {
             </div>
             
             <p className="text-xs text-muted-foreground font-semibold leading-relaxed mb-5 relative z-10">
-              Need to change or forgot your password? Reset your password securely via our official Telegram bot. This preserves your complete privacy—even the HR department cannot see your new password.
+              Need to change or forgot your password? Request a secure password reset link directly to your registered email address.
             </p>
 
             <button
               type="button"
               onClick={() => {
-                toast.success("🔒 Secure Password Reset Initiated", {
-                  description: "Redirecting you to our official Telegram bot to reset your password. The HR team will not have access to your new password, preserving your privacy.",
-                  duration: 4000
-                });
-                const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "RayharStaffPortal_bot";
-                setTimeout(() => {
-                  window.open(`https://t.me/${botUsername}?start=${userId}`, "_blank");
-                }, 1500);
+                if (!email) {
+                  toast.error("Email required to reset password.");
+                  return;
+                }
+                
+                toast.promise(
+                  fetch(`${API_BASE_URL}/api/request-password-reset`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email }),
+                  }).then(async (res) => {
+                    const data = await res.json();
+                    if (!res.ok || !data.success) throw new Error(data.error || "Failed to send reset link");
+                    return data;
+                  }),
+                  {
+                    loading: 'Sending password reset link...',
+                    success: 'Password reset link has been sent to your email!',
+                    error: (err) => err.message || 'Could not send reset link. Please try again later.'
+                  }
+                );
               }}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary hover:bg-primary/90 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-purple-900/15 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] touch-target relative z-10"
             >
-              <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-.99.53-1.41.52-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.36-.49.99-.74 3.88-1.69 6.47-2.8 7.77-3.32 3.7-1.47 4.47-1.73 4.97-1.74.11 0 .36.03.52.16.14.11.18.26.2.37.02.13.02.26.01.39z"/>
-              </svg>
-              Forgot / Reset Password
+              <Mail className="w-4 h-4 text-white" />
+              Send Reset Link
             </button>
           </Card>
         </div>

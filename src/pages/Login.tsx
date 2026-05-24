@@ -26,48 +26,49 @@ export default function Login() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
-  // Telegram Reset state
-  const [showTelegramReset, setShowTelegramReset] = useState(false);
-  const [telegramEmail, setTelegramEmail] = useState("");
-  const [telegramResetLoading, setTelegramResetLoading] = useState(false);
-  const [verifiedStaff, setVerifiedStaff] = useState<{ user_id: string; full_name: string } | null>(null);
+  // Email Password Reset state
+  const [showResetBox, setShowResetBox] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
 
-  const handleTelegramReset = async (e: React.FormEvent) => {
+  const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!telegramEmail) {
+    if (!resetEmail) {
       toast({ title: "Email required", description: "Please enter your email to proceed.", variant: "destructive" });
       return;
     }
-    setTelegramResetLoading(true);
+    setResetLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/user-details/${encodeURIComponent(telegramEmail.trim())}`);
+      const response = await fetch(`${API_BASE_URL}/api/request-password-reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetEmail.trim() }),
+      });
       const data = await response.json();
 
-      if (response.ok && data.success && data.profile) {
-        setVerifiedStaff({
-          user_id: data.profile.user_id,
-          full_name: data.profile.full_name || telegramEmail,
-        });
+      if (response.ok && data.success) {
         toast({
-          title: "🔒 Profile Verified",
-          description: `Staff profile found for ${data.profile.full_name || telegramEmail}. Please click the button to connect with Telegram.`,
+          title: "Reset Link Sent",
+          description: data.message || "Please check your email for the password reset link.",
         });
+        setShowResetBox(false);
+        setResetEmail("");
       } else {
         toast({
-          title: "Profile Not Found",
-          description: data.error || "No staff profile found with this email. Please check your spelling or contact HR.",
+          title: "Failed to send reset link",
+          description: data.error || "An error occurred. Please try again.",
           variant: "destructive",
         });
       }
     } catch (err) {
-      console.error("Error looking up profile by email:", err);
+      console.error("Error requesting password reset:", err);
       toast({
-        title: "Lookup Failed",
-        description: "Could not connect to verify your email. Please try again later.",
+        title: "Connection Failed",
+        description: "Could not connect to the server. Please try again later.",
         variant: "destructive",
       });
     } finally {
-      setTelegramResetLoading(false);
+      setResetLoading(false);
     }
   };
 
@@ -204,16 +205,17 @@ export default function Login() {
 
                   {/* Modern Bottom Utilities Section */}
                   <div className="w-full space-y-4 pt-2">
-                    {/* Telegram Reset Box */}
+                    {/* Email Reset Box */}
                     <div className="flex flex-col gap-3 p-3 rounded-[16px] bg-[#FBF0FF] border border-[#7B0099]/15 text-xs shadow-sm">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-slate-600 font-bold">
-                          <svg className="w-4 h-4 text-[#0088cc]" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-.99.53-1.41.52-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.36-.49.99-.74 3.88-1.69 6.47-2.8 7.77-3.32 3.7-1.47 4.47-1.73 4.97-1.74.11 0 .36.03.52.16.14.11.18.26.2.37.02.13.02.26.01.39z"/>
+                          <svg className="w-4 h-4 text-[#7B0099]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"/>
+                            <path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"/>
                           </svg>
                           <button
                             type="button"
-                            onClick={() => setShowTelegramReset(!showTelegramReset)}
+                            onClick={() => setShowResetBox(!showResetBox)}
                             className="hover:underline text-left cursor-pointer transition-all text-slate-600 font-bold"
                           >
                             Forgot Password?
@@ -221,74 +223,39 @@ export default function Login() {
                         </div>
                         <button
                           type="button"
-                          onClick={() => setShowTelegramReset(!showTelegramReset)}
+                          onClick={() => setShowResetBox(!showResetBox)}
                           className="text-[#7B0099] font-black hover:underline cursor-pointer transition-colors"
                         >
-                          Reset via Telegram
+                          Reset via Email
                         </button>
                       </div>
 
-                      {showTelegramReset && (
+                      {showResetBox && (
                         <div className="pt-2 border-t border-[#7B0099]/10 animate-in fade-in slide-in-from-top-2 duration-300">
-                          {verifiedStaff ? (
-                            <div className="p-3 rounded-xl bg-emerald-50/80 border border-emerald-200 text-slate-700 animate-in zoom-in-95 duration-200 space-y-2.5">
-                              <div className="flex items-center gap-1.5 text-emerald-800 font-extrabold text-xs">
-                                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px]">✓</span>
-                                <span>Profile Verified!</span>
-                              </div>
-                              <p className="text-[10px] text-slate-600 leading-relaxed font-semibold">
-                                Staff profile found for <span className="text-[#7B0099] font-black">{verifiedStaff.full_name}</span>. Click the button below to connect with Telegram and reset your password:
-                              </p>
-                              <a
-                                href={`https://t.me/${import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "RayharStaffLeaveBot"}?start=${verifiedStaff.user_id}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="w-full bg-[#0088cc] hover:bg-[#0077b3] text-white rounded-lg h-9 flex items-center justify-center gap-2 font-black uppercase tracking-wider text-[10px] transition-all shadow-sm active:scale-95 cursor-pointer"
-                              >
-                                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-.99.53-1.41.52-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.36-.49.99-.74 3.88-1.69 6.47-2.8 7.77-3.32 3.7-1.47 4.47-1.73 4.97-1.74.11 0 .36.03.52.16.14.11.18.26.2.37.02.13.02.26.01.39z"/>
-                                </svg>
-                                Connect with Telegram
-                              </a>
-                              <div className="flex items-center justify-between pt-1.5 border-t border-emerald-200/50 text-[9px] text-slate-400 font-bold">
-                                <span>Once connected, send /reset to the bot.</span>
-                                <button
-                                  type="button"
-                                  onClick={() => setVerifiedStaff(null)}
-                                  className="text-[#7B0099] hover:underline font-black cursor-pointer"
-                                >
-                                  Use different email
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <>
-                              <p className="text-[10px] text-slate-500 mb-2 font-medium">
-                                Enter your email to verify profile and reset password via Telegram.
-                              </p>
-                              <div className="flex gap-2">
-                                <Input
-                                  type="email"
-                                  placeholder="you@rayhar.com"
-                                  value={telegramEmail}
-                                  onChange={(e) => setTelegramEmail(e.target.value)}
-                                  className="h-8 text-xs bg-white border-[#7B0099]/20 focus-visible:ring-[#7B0099]"
-                                />
-                                <Button
-                                  type="button"
-                                  onClick={handleTelegramReset}
-                                  disabled={telegramResetLoading}
-                                  className="h-8 bg-[#7B0099] hover:bg-[#5e0080] text-white text-xs font-bold rounded-md px-3 flex items-center justify-center shrink-0"
-                                >
-                                  {telegramResetLoading ? (
-                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                  ) : (
-                                    "Proceed"
-                                  )}
-                                </Button>
-                              </div>
-                            </>
-                          )}
+                          <p className="text-[10px] text-slate-500 mb-2 font-medium">
+                            Enter your email to receive a secure password reset link.
+                          </p>
+                          <div className="flex gap-2">
+                            <Input
+                              type="email"
+                              placeholder="you@rayhar.com"
+                              value={resetEmail}
+                              onChange={(e) => setResetEmail(e.target.value)}
+                              className="h-8 text-xs bg-white border-[#7B0099]/20 focus-visible:ring-[#7B0099]"
+                            />
+                            <Button
+                              type="button"
+                              onClick={handlePasswordReset}
+                              disabled={resetLoading}
+                              className="h-8 bg-[#7B0099] hover:bg-[#5e0080] text-white text-xs font-bold rounded-md px-3 flex items-center justify-center shrink-0"
+                            >
+                              {resetLoading ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                "Send Link"
+                              )}
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>

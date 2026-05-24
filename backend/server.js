@@ -1936,6 +1936,101 @@ app.get("/api/reports/leave-utilization", async (req, res) => {
 });
 
 // ===============================
+// PASSWORD RESET API
+// ===============================
+app.post("/api/request-password-reset", async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ success: false, error: "Email is required" });
+  }
+
+  try {
+    // Look up user by email in profiles table
+    const [rows] = await pool.query("SELECT * FROM profiles WHERE email = ?", [email]);
+    if (rows.length === 0) {
+      // Don't leak that email doesn't exist for security reasons, just pretend success
+      return res.json({ success: true, message: "If your email is registered, you will receive a reset link shortly." });
+    }
+
+    const user = rows[0];
+
+    // Check JWT secret
+    if (!jwtSecret) {
+      return res.status(500).json({ success: false, error: "Server misconfiguration: JWT secret missing" });
+    }
+
+    // Generate JWT token valid for 15 minutes
+    const token = jwt.sign({ user_id: user.user_id, purpose: "password_reset" }, jwtSecret, { expiresIn: "15m" });
+
+    // Determine Frontend URL
+    const frontendUrl = req.headers.origin || process.env.FRONTEND_URL || "http://localhost:5173";
+    const resetLink = `${frontendUrl}/reset-password?token=${token}`;
+
+    // Send email
+    const subject = "Rayhar Staff Portal - Password Reset";
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+        <h2 style="color: #7B0099;">Password Reset Request</h2>
+        <p>Hello ${user.full_name},</p>
+        <p>We received a request to reset your password for the Rayhar Employee Portal.</p>
+        <p>Click the button below to set a new password. This link will expire in 15 minutes.</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${resetLink}" style="background-color: #7B0099; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
+        </div>
+        <p>If you did not request a password reset, please ignore this email or contact HR if you have concerns.</p>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+        <p style="font-size: 12px; color: #888; text-align: center;">Rayhar Staff Portal</p>
+      </div>
+    `;
+
+    await sendNotificationEmail(user.email, subject, html);
+    
+    res.json({ success: true, message: "Reset link sent successfully." });
+  } catch (err) {
+    console.error("Error requesting password reset:", err);
+    res.status(500).json({ success: false, error: "Internal server error" });
+  }
+});
+
+app.post("/api/reset-password", async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  if (!token || !newPassword) {
+    return res.status(400).json({ success: false, error: "Token and new password are required" });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ success: false, error: "Password must be at least 6 characters" });
+  }
+
+  try {
+    // Verify Token
+    const decoded = jwt.verify(token, jwtSecret);
+
+    if (decoded.purpose !== "password_reset") {
+      return res.status(400).json({ success: false, error: "Invalid token type" });
+    }
+
+    const userId = decoded.user_id;
+
+    // Hash new password
+    const bcrypt = require("bcryptjs");
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    await pool.query("UPDATE profiles SET password = ? WHERE user_id = ?", [hashedPassword, userId]);
+
+    res.json({ success: true, message: "Password updated successfully" });
+  } catch (err) {
+    console.error("Error resetting password:", err);
+    if (err.name === "TokenExpiredError") {
+      return res.status(400).json({ success: false, error: "Your reset link has expired. Please request a new one." });
+    }
+    return res.status(400).json({ success: false, error: "Invalid or expired token" });
+  }
+});
+
+// ===============================
 // ROUTES
 // ===============================
 const PORT = process.env.PORT || 8080;
@@ -1947,216 +2042,5 @@ app.listen(PORT, "0.0.0.0", () => {
 });
 
 // =================================================================
-// SECURE PASSWORD RESET TELEGRAM BOT (NATIVE LONG POLLING)
+// END OF FILE
 // =================================================================
-const https = require("https");
-
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-
-if (!TELEGRAM_BOT_TOKEN) {
-  console.log("ℹ️ TELEGRAM_BOT_TOKEN not configured in .env. Password reset via Telegram is disabled.");
-} else {
-  console.log("🚀 Telegram Bot Token found. Starting secure password reset bot...");
-  
-  let offset = 0;
-  const resetStates = {}; // in-memory state: chatId -> { user_id }
-
-  function sendTelegramMessage(chatId, text) {
-    console.log(`📤 Sending Telegram message to Chat ID ${chatId}...`);
-    const data = JSON.stringify({ chat_id: chatId, text: text });
-    const options = {
-      hostname: "api.telegram.org",
-      port: 443,
-      path: `/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Content-Length": data.length,
-      },
-    };
-
-    const req = https.request(options, (res) => {
-      let resBody = "";
-      res.on("data", (chunk) => { resBody += chunk; });
-      res.on("end", () => {
-        if (res.statusCode === 200 || res.statusCode === 201) {
-          console.log(`✅ Telegram message sent successfully to Chat ID ${chatId}`);
-        } else {
-          console.error(`❌ Telegram sendMessage failed with status ${res.statusCode}:`, resBody);
-        }
-      });
-    });
-
-    req.on("error", (err) => {
-      console.error("❌ Error sending Telegram message:", err);
-    });
-
-    req.write(data);
-    req.end();
-  }
-
-  async function handleTelegramMessage(chatId, text, username) {
-    try {
-      console.log(`📩 Telegram Bot received message from ${chatId} (${username}): "${text}"`);
-      const trimmed = text.trim();
-      
-      // Check if in password reset state
-      if (resetStates[chatId]) {
-        const { user_id } = resetStates[chatId];
-        if (trimmed.length < 6) {
-          sendTelegramMessage(chatId, "❌ Password must be at least 6 characters. Please enter your new password again:");
-          return;
-        }
-
-        try {
-          const hashedPassword = await bcrypt.hash(trimmed, 10);
-          await pool.query("UPDATE profiles SET password = ? WHERE user_id = ?", [hashedPassword, user_id]);
-          
-          delete resetStates[chatId];
-          sendTelegramMessage(chatId, `🔒 Success! Your password has been updated securely.\n\nThe HR team does not have access to this new password. You can now sign in to the portal using your new password!`);
-          console.log(`🔑 Password updated securely via Telegram for user ${user_id}`);
-        } catch (err) {
-          console.error("Error updating password via Telegram:", err);
-          sendTelegramMessage(chatId, "❌ An error occurred while updating your password. Please try again later or contact support.");
-        }
-        return;
-      }
-
-      if (trimmed === "/start") {
-        sendTelegramMessage(
-          chatId,
-          `👋 Welcome to Rayhar Staff Bot!\n\nI am here to help you link your Staff Profile and securely reset your password privately. 🔒\n\n🔑 Password Reset\nSend /reset to privately update your staff account password.\n\n🔗 Link Account\nTo link your Telegram account, please enter your Staff ID in the format:\n/start <Staff ID> (e.g. /start E001)\n\nSend /help to see all available commands.`
-        );
-        return;
-      }
-
-      if (trimmed === "/help") {
-        sendTelegramMessage(
-          chatId,
-          `📖 Rayhar Staff Bot Commands:\n\n• /start - View welcome message\n• /start <Staff ID> - Link your Telegram account (e.g. /start E001)\n• /reset - Initiate secure password reset`
-        );
-        return;
-      }
-
-      if (trimmed.startsWith("/start ")) {
-        const parts = trimmed.split(" ");
-        const rawUserId = parts[1]?.trim().toUpperCase();
-        if (!rawUserId) {
-          sendTelegramMessage(chatId, "❌ Invalid format. Please send /start <Staff ID> (e.g. /start E001).");
-          return;
-        }
-
-        try {
-          const [rows] = await pool.query("SELECT * FROM profiles WHERE user_id = ?", [rawUserId]);
-          if (rows.length === 0) {
-            sendTelegramMessage(chatId, `❌ Error: Staff ID "${rawUserId}" not found in the database. Please verify your ID or ask HR to onboard you.`);
-            return;
-          }
-
-          // Link the telegram chat ID
-          await pool.query("UPDATE profiles SET telegram_chat_id = ? WHERE user_id = ?", [String(chatId), rawUserId]);
-          sendTelegramMessage(
-            chatId,
-            `✅ Success! Your Telegram account has been linked to your Staff Profile (ID: ${rawUserId}).\n\nYou can now reset your password securely at any time by sending /reset to this bot.`
-          );
-          console.log(`🔗 Linked Telegram Chat ID ${chatId} with user ${rawUserId}`);
-        } catch (err) {
-          console.error("Error linking Telegram Chat ID:", err);
-          sendTelegramMessage(chatId, "❌ An error occurred during linking. Please try again later.");
-        }
-        return;
-      }
-
-      if (trimmed === "/reset") {
-        try {
-          const [rows] = await pool.query("SELECT * FROM profiles WHERE telegram_chat_id = ?", [String(chatId)]);
-          if (rows.length === 0) {
-            sendTelegramMessage(
-              chatId,
-              "❌ Your Telegram account is not linked to any Staff Profile yet.\n\n📌 How to link:\nGo to the Rayhar Employee Portal website, click 'Forgot Password?', verify your email, and click the 'Connect with Telegram' button.\n\nOr link directly here by sending:\n/start <Staff ID> (e.g. /start E001)"
-            );
-            return;
-          }
-
-          const user = rows[0];
-          resetStates[chatId] = { user_id: user.user_id };
-          sendTelegramMessage(
-            chatId,
-            `🔒 Initiating Password Reset for ${user.full_name} (ID: ${user.user_id}).\n\nPlease reply with your new private password (min. 6 characters):`
-          );
-        } catch (err) {
-          console.error("Error initiating reset via Telegram:", err);
-          sendTelegramMessage(chatId, "❌ An error occurred. Please try again later.");
-        }
-        return;
-      }
-
-      // Default reply
-      sendTelegramMessage(
-        chatId,
-        "ℹ️ Command not recognized.\n\n📖 Rayhar Staff Bot Commands:\n• Send /start to view instructions.\n• Send /start <Staff ID> to link your account.\n• Send /reset to privately reset your password."
-      );
-    } catch (criticalErr) {
-      console.error("❌ Critical error inside handleTelegramMessage:", criticalErr);
-    }
-  }
-
-  function pollUpdates() {
-    https
-      .get(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=${offset}&timeout=1`, (res) => {
-        let body = "";
-        res.on("data", (chunk) => {
-          body += chunk;
-        });
-
-        res.on("end", () => {
-          try {
-            const data = JSON.parse(body);
-            if (data.ok && data.result) {
-              for (const update of data.result) {
-                offset = update.update_id + 1;
-                if (update.message && update.message.text) {
-                  const chatId = update.message.chat.id;
-                  const text = update.message.text;
-                  const username = update.message.from.username || "";
-                  handleTelegramMessage(chatId, text, username);
-                }
-              }
-            } else if (!data.ok) {
-              console.error("❌ Telegram getUpdates error:", data.description || data);
-            }
-          } catch (e) {
-            // Ignore JSON parsing errors
-          }
-          // Poll again after 2 seconds to prevent Render gateway proxy connection hangs
-          setTimeout(pollUpdates, 2000);
-        });
-      })
-      .on("error", (err) => {
-        console.error("❌ Telegram connection error during polling:", err.message);
-        // Retry after delay on network error
-        setTimeout(pollUpdates, 5000);
-      });
-  }
-
-  // Clear any existing webhook to ensure getUpdates (long polling) works perfectly
-  console.log("🧹 Clearing any existing Telegram Webhooks to force long-polling mode...");
-  https.get(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/deleteWebhook`, (res) => {
-    let body = "";
-    res.on("data", (chunk) => { body += chunk; });
-    res.on("end", () => {
-      try {
-        const parsed = JSON.parse(body);
-        console.log("🧹 Webhook delete result:", parsed);
-      } catch (e) {
-        console.log("🧹 Webhook delete raw response:", body);
-      }
-      // Start polling loop
-      pollUpdates();
-    });
-  }).on("error", (err) => {
-    console.error("❌ Error deleting webhook on startup:", err.message);
-    // Fallback: Start polling anyway
-    pollUpdates();
-  });
-}

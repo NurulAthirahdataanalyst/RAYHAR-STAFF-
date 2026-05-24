@@ -22,6 +22,7 @@ import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
 import SettingsPage from "./pages/Settings";
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import RealTimeCalendar from "@/components/RealTimeCalendar";
 import MasterPlaceholder from "./pages/master/Placeholder";
@@ -112,6 +113,7 @@ const App = () => (
           <AuthProvider>
             <Routes>
               <Route path="/login" element={<AuthRoute />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/*" element={<ProtectedRoutes />} />
             </Routes>
           </AuthProvider>
