@@ -59,7 +59,7 @@ export default function SettingsPage() {
         if (branchData.success) setBranches(branchData.branches);
 
         // 2. Fetch Departments
-        const deptRes = await fetch(`${API_BASE_URL}/api/master/department`);
+        const deptRes = await fetch(`${API_BASE_URL}/api/departments`);
         const deptData = await deptRes.json();
         if (deptData.success) {
           setDepartments(deptData.departments.map((d: any) => d.name));
@@ -284,19 +284,21 @@ export default function SettingsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
-                <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Department</label>
-                <Select value={staffDept} onValueChange={setStaffDept}>
-                  <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
-                    <SelectValue placeholder="Select Dept" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    {departments.map(d => (
-                      <SelectItem key={d} value={d} className="text-[10px] font-black uppercase tracking-widest">{d}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {staffBranch === "HQ" && (
+                <div className="space-y-1.5 animate-in fade-in zoom-in duration-300">
+                  <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Department</label>
+                  <Select value={staffDept} onValueChange={setStaffDept}>
+                    <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
+                      <SelectValue placeholder="Select Dept" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {departments.map(d => (
+                        <SelectItem key={d} value={d} className="text-[10px] font-black uppercase tracking-widest">{d}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-1.5">
                 <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">System Authorization Role</label>
                 <Select value={staffRole} onValueChange={setStaffRole}>
