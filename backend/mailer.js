@@ -1,28 +1,33 @@
 const nodemailer = require("nodemailer");
 
-let testAccount = null;
 let transporter = null;
 
-// Initialize the Nodemailer transport with Ethereal (for testing)
-async function initMailer() {
+// Initialize the Nodemailer transport with real SMTP
+function initMailer() {
   if (transporter) return transporter;
 
-  try {
-    // Generate a test account on the fly
-    testAccount = await nodemailer.createTestAccount();
+  const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
+  const smtpPort = process.env.SMTP_PORT || 465;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
 
-    // Create reusable transporter object using the default SMTP transport
+  if (!smtpUser || !smtpPass) {
+    console.warn("⚠️ SMTP_USER or SMTP_PASS is missing in environment variables. Email sending will fail.");
+    return null;
+  }
+
+  try {
     transporter = nodemailer.createTransport({
-      host: "smtp.ethereal.email",
-      port: 587,
-      secure: false, // true for 465, false for other ports
+      host: smtpHost,
+      port: Number(smtpPort),
+      secure: Number(smtpPort) === 465, // true for 465, false for other ports (like 587)
       auth: {
-        user: testAccount.user, // generated ethereal user
-        pass: testAccount.pass, // generated ethereal password
+        user: smtpUser,
+        pass: smtpPass,
       },
     });
 
-    console.log("Nodemailer: Ethereal test account initialized.");
+    console.log("Nodemailer: SMTP initialized successfully.");
     return transporter;
   } catch (err) {
     console.error("Failed to initialize Nodemailer:", err);
@@ -38,14 +43,16 @@ async function initMailer() {
  */
 async function sendNotificationEmail(to, subject, html) {
   try {
-    const tp = await initMailer();
+    const tp = initMailer();
     if (!tp) {
-      console.warn("Mailer not initialized, skipping email.");
-      return;
+      console.warn("Mailer not initialized. Please set SMTP credentials in .env. Skipping email to:", to);
+      throw new Error("SMTP credentials not configured.");
     }
 
+    const fromAddress = process.env.SMTP_FROM || `"Rayhar Leave Portal" <${process.env.SMTP_USER}>`;
+
     const info = await tp.sendMail({
-      from: '"Rayhar Leave Portal" <no-reply@rayhar.com>',
+      from: fromAddress,
       to,
       subject,
       html,
@@ -54,13 +61,12 @@ async function sendNotificationEmail(to, subject, html) {
     console.log("-----------------------------------------");
     console.log(`Email sent to ${to} (Subject: ${subject})`);
     console.log(`Message ID: ${info.messageId}`);
-    // Preview URL is specifically for Ethereal
-    console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
     console.log("-----------------------------------------");
     
     return info;
   } catch (err) {
     console.error(`Failed to send email to ${to}:`, err);
+    throw err;
   }
 }
 
