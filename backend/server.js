@@ -1303,8 +1303,8 @@ app.get("/api/attendance/history", async (req, res) => {
         user_id,
         clock_in,
         clock_out,
-        TO_CHAR(clock_in, 'HH12:MI AM') AS time_in,
-        TO_CHAR(clock_out, 'HH12:MI AM') AS time_out,
+        TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
+        TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
         DATE(clock_in) AS date
       FROM attendances
       WHERE user_id = ?
@@ -1470,7 +1470,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     // 1. TODAY ATTENDANCE STATUS
     const [todayRows] = await pool.query(
       `
-      SELECT clock_in, clock_out, TO_CHAR(clock_in, 'HH12:MI AM') AS clock_in_time, TO_CHAR(clock_out, 'HH12:MI AM') AS clock_out_time
+      SELECT clock_in, clock_out, TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_in_time, TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_out_time
       FROM attendances WHERE user_id = ? AND DATE(clock_in) = CURRENT_DATE ORDER BY clock_in DESC LIMIT 1
       `,
       [userId]
@@ -1516,7 +1516,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const [personalRecentRows] = await pool.query(
       `
       SELECT p.full_name AS name, 'Attendance' AS action, CASE WHEN a.clock_out IS NULL THEN 'Clocked In' ELSE 'Clocked Out' END AS status,
-        CASE WHEN a.clock_out IS NULL THEN TO_CHAR(a.clock_in, 'HH12:MI AM') ELSE TO_CHAR(a.clock_out, 'HH12:MI AM') END AS time
+        CASE WHEN a.clock_out IS NULL THEN TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') ELSE TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') END AS time
       FROM attendances a JOIN profiles p ON p.user_id = a.user_id WHERE a.user_id = ? ORDER BY COALESCE(a.clock_out, a.clock_in) DESC LIMIT 5
       `,
       [userId]
@@ -1558,8 +1558,8 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         p.branch,
         a.clock_in,
         a.clock_out,
-        TO_CHAR(a.clock_in, 'HH12:MI AM') AS time_in,
-        TO_CHAR(a.clock_out, 'HH12:MI AM') AS time_out
+        TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
+        TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out
       FROM profiles p
       JOIN attendances a ON p.user_id = a.user_id
       WHERE a.attendance_id IN (

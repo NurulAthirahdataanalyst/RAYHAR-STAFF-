@@ -431,6 +431,19 @@ export default function Reports() {
           <PieChart className="w-4 h-4 shrink-0" />
           Leave Utilization
         </button>
+        {(role === "hr_admin" || role === "managing_director") && (
+          <button
+            onClick={() => setActiveTab("leave_monitoring")}
+            className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
+              activeTab === "leave_monitoring"
+                ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
+                : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
+            }`}
+          >
+            <Clock className="w-4 h-4 shrink-0" />
+            Leave Monitoring
+          </button>
+        )}
         <button
           onClick={() => setActiveTab("generator")}
           className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
@@ -442,19 +455,6 @@ export default function Reports() {
           <TrendingUp className="w-4 h-4 shrink-0" />
           Generate Report
         </button>
-        {(role === "hr_admin" || role === "managing_director") && (
-          <button
-            onClick={() => setActiveTab("leave_monitoring")}
-            className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
-              activeTab === "leave_monitoring"
-                ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
-                : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
-            }`}
-          >
-            <PieChart className="w-4 h-4 shrink-0" />
-            Leave Monitoring
-          </button>
-        )}
       </div>
 
       {/* ================================================================= */}
