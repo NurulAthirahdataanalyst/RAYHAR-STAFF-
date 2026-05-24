@@ -61,8 +61,6 @@ function ProtectedRoutes() {
           {/* 3. Panel Kelulusan Admin */}
           <Route path="/leave/admin" element={<LeaveAdmin />} />
 
-          {/* 4. Leave Analytics Dashboard (HR Admin only) */}
-          <Route path="/leave/analytics" element={<LeaveAnalytics />} />
 
           {/* 4. Leave Form Application (View/Print own forms) */}
           <Route path="/leave/forms" element={<LeaveFormView />} />

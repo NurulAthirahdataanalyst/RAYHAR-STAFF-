@@ -11,6 +11,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   LineChart, Line, Legend, Cell, PieChart as RechartsPieChart, Pie
 } from "recharts";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import LeaveAnalytics from "./LeaveAnalytics";
 import { toast } from "sonner";
 import { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -43,7 +46,7 @@ interface Department {
 
 export default function Reports() {
   const { role } = useRole();
-  const [activeTab, setActiveTab] = useState<"attendance" | "leave" | "generator" | "settings">("attendance");
+  const [activeTab, setActiveTab] = useState<"attendance" | "leave" | "generator" | "settings" | "leave_monitoring">("attendance");
   
   // Dynamic Lists from Database
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -441,6 +444,19 @@ export default function Reports() {
           <TrendingUp className="w-4 h-4 shrink-0" />
           Generate Report
         </button>
+        {(role === "hr_admin" || role === "managing_director") && (
+          <button
+            onClick={() => setActiveTab("leave_monitoring")}
+            className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
+              activeTab === "leave_monitoring"
+                ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
+                : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
+            }`}
+          >
+            <PieChart className="w-4 h-4 shrink-0" />
+            Leave Monitoring
+          </button>
+        )}
       </div>
 
       {/* ================================================================= */}
@@ -1185,6 +1201,16 @@ export default function Reports() {
           </div>
         </div>
       )}
+
+      {/* ================================================================= */}
+      {/* TAB 4: LEAVE MONITORING (LeaveAnalytics) */}
+      {/* ================================================================= */}
+      {activeTab === "leave_monitoring" && (
+        <div className="animate-in fade-in duration-500">
+          <LeaveAnalytics />
+        </div>
+      )}
+
     </div>
   );
 }
