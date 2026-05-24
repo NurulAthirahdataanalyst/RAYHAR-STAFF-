@@ -307,8 +307,7 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
         date DATE NOT NULL,
         note_text TEXT NOT NULL,
         type VARCHAR(50) DEFAULT 'note',
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES profiles(user_id) ON DELETE CASCADE
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
     // Create an index to make looking up notes by month faster
