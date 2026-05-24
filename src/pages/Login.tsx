@@ -26,6 +26,53 @@ export default function Login() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
+  // Telegram Reset state
+  const [showTelegramReset, setShowTelegramReset] = useState(false);
+  const [telegramEmail, setTelegramEmail] = useState("");
+  const [telegramResetLoading, setTelegramResetLoading] = useState(false);
+
+  const handleTelegramReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!telegramEmail) {
+      toast({ title: "Email required", description: "Please enter your email to proceed.", variant: "destructive" });
+      return;
+    }
+    setTelegramResetLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/user-details/${encodeURIComponent(telegramEmail.trim())}`);
+      const data = await response.json();
+
+      if (response.ok && data.success && data.profile) {
+        const staffId = data.profile.user_id;
+        toast({
+          title: "🔒 Profile Verified",
+          description: `Staff profile found for ${data.profile.full_name || telegramEmail}. Redirecting to Telegram bot...`,
+        });
+        const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "RayharStaffPortal_bot";
+        
+        // Open the telegram link in a new tab
+        setTimeout(() => {
+          window.open(`https://t.me/${botUsername}?start=${staffId}`, "_blank");
+        }, 1500);
+      } else {
+        toast({
+          title: "Profile Not Found",
+          description: data.error || "No staff profile found with this email. Please check your spelling or contact HR.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error("Error looking up profile by email:", err);
+      toast({
+        title: "Lookup Failed",
+        description: "Could not connect to verify your email. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setTelegramResetLoading(false);
+    }
+  };
+
   // Signup state
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
@@ -155,29 +202,57 @@ export default function Login() {
                   {/* Modern Bottom Utilities Section */}
                   <div className="w-full space-y-4 pt-2">
                     {/* Telegram Reset Box */}
-                    <div className="flex items-center justify-between p-3 rounded-[16px] bg-[#FBF0FF] border border-[#7B0099]/15 text-xs shadow-sm">
-                      <div className="flex items-center gap-2 text-slate-600 font-bold">
-                        <svg className="w-4 h-4 text-[#0088cc]" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-.99.53-1.41.52-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.36-.49.99-.74 3.88-1.69 6.47-2.8 7.77-3.32 3.7-1.47 4.47-1.73 4.97-1.74.11 0 .36.03.52.16.14.11.18.26.2.37.02.13.02.26.01.39z"/>
-                        </svg>
-                        <span>Lupa password?</span>
+                    <div className="flex flex-col gap-3 p-3 rounded-[16px] bg-[#FBF0FF] border border-[#7B0099]/15 text-xs shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-slate-600 font-bold">
+                          <svg className="w-4 h-4 text-[#0088cc]" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-.99.53-1.41.52-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.36-.49.99-.74 3.88-1.69 6.47-2.8 7.77-3.32 3.7-1.47 4.47-1.73 4.97-1.74.11 0 .36.03.52.16.14.11.18.26.2.37.02.13.02.26.01.39z"/>
+                          </svg>
+                          <button
+                            type="button"
+                            onClick={() => setShowTelegramReset(!showTelegramReset)}
+                            className="hover:underline text-left cursor-pointer transition-all text-slate-600 font-bold"
+                          >
+                            Forgot Password?
+                          </button>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowTelegramReset(!showTelegramReset)}
+                          className="text-[#7B0099] font-black hover:underline cursor-pointer transition-colors"
+                        >
+                          Reset via Telegram
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          toast({
-                            title: "🔒 Secure Telegram Password Reset",
-                            description: "Please message our official Telegram bot to reset your password. The HR team will not have access to your new password, preserving your privacy.",
-                          });
-                          const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "RayharStaffPortal_bot";
-                          setTimeout(() => {
-                            window.open(`https://t.me/${botUsername}`, "_blank");
-                          }, 1500);
-                        }}
-                        className="text-[#7B0099] font-black hover:underline cursor-pointer transition-colors"
-                      >
-                        Reset via Telegram
-                      </button>
+
+                      {showTelegramReset && (
+                        <div className="pt-2 border-t border-[#7B0099]/10 animate-in fade-in slide-in-from-top-2 duration-300">
+                          <p className="text-[10px] text-slate-500 mb-2 font-medium">
+                            Enter your email to verify profile and reset password via Telegram.
+                          </p>
+                          <div className="flex gap-2">
+                            <Input
+                              type="email"
+                              placeholder="you@rayhar.com"
+                              value={telegramEmail}
+                              onChange={(e) => setTelegramEmail(e.target.value)}
+                              className="h-8 text-xs bg-white border-[#7B0099]/20 focus-visible:ring-[#7B0099]"
+                            />
+                            <Button
+                              type="button"
+                              onClick={handleTelegramReset}
+                              disabled={telegramResetLoading}
+                              className="h-8 bg-[#7B0099] hover:bg-[#5e0080] text-white text-xs font-bold rounded-md px-3 flex items-center justify-center shrink-0"
+                            >
+                              {telegramResetLoading ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                "Proceed"
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Register Link */}
