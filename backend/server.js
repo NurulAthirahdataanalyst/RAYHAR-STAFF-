@@ -58,8 +58,130 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+// Supabase Cloud Storage Helper Functions for Medical Certificate Backup
+async function ensureSupabaseBucketExists() {
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+  const https = require("https");
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.log("⚠️ Supabase credentials not found. Cloud storage backup is disabled.");
+    return;
+  }
+
+  try {
+    const data = JSON.stringify({
+      id: "mc-attachments",
+      name: "mc-attachments",
+      public: true,
+      file_size_limit: 52428800,
+      allowed_mime_types: null
+    });
+
+    const urlObj = new URL(`${supabaseUrl}/storage/v1/bucket`);
+    const options = {
+      hostname: urlObj.hostname,
+      port: 443,
+      path: urlObj.pathname,
+      method: "POST",
+      headers: {
+        "apikey": supabaseKey,
+        "Authorization": `Bearer ${supabaseKey}`,
+        "Content-Type": "application/json",
+        "Content-Length": data.length,
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let body = "";
+      res.on("data", (chunk) => body += chunk);
+      res.on("end", () => {
+        if (res.statusCode === 200 || res.statusCode === 201) {
+          console.log("☁️ Successfully checked/created 'mc-attachments' bucket in Supabase Storage!");
+        } else {
+          // Status 409 means bucket already exists, which is perfect and expected
+          if (res.statusCode !== 409) {
+            console.log(`ℹ️ Supabase Bucket status: ${res.statusCode}.`);
+          }
+        }
+      });
+    });
+
+    req.on("error", (err) => {
+      console.error("❌ Error checking/creating Supabase Bucket:", err);
+    });
+
+    req.write(data);
+    req.end();
+  } catch (err) {
+    console.error("❌ Failed to verify Supabase Storage bucket:", err);
+  }
+}
+
+async function uploadToSupabaseStorage(filePath, filename, mimeType) {
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+  const https = require("https");
+
+  if (!supabaseUrl || !supabaseKey) return;
+
+  try {
+    const fileContent = fs.readFileSync(filePath);
+    const urlObj = new URL(`${supabaseUrl}/storage/v1/object/mc-attachments/${filename}`);
+    
+    const options = {
+      hostname: urlObj.hostname,
+      port: 443,
+      path: urlObj.pathname,
+      method: "POST",
+      headers: {
+        "apikey": supabaseKey,
+        "Authorization": `Bearer ${supabaseKey}`,
+        "Content-Type": mimeType,
+        "Content-Length": fileContent.length,
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let body = "";
+      res.on("data", (chunk) => body += chunk);
+      res.on("end", () => {
+        if (res.statusCode === 200 || res.statusCode === 201) {
+          console.log(`☁️ Successfully backed up ${filename} to Supabase Storage!`);
+        } else {
+          console.error(`❌ Supabase Storage upload failed with status ${res.statusCode}:`, body);
+        }
+      });
+    });
+
+    req.on("error", (err) => {
+      console.error("❌ Error uploading to Supabase Storage:", err);
+    });
+
+    req.write(fileContent);
+    req.end();
+  } catch (err) {
+    console.error("❌ Failed to upload to Supabase Storage:", err);
+  }
+}
+
+// Call bucket check on startup
+ensureSupabaseBucketExists();
+
 // Serve uploads statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Fallback redirection for files wiped by Render ephemeral restart
+app.get('/uploads/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  if (supabaseUrl) {
+    const publicUrl = `${supabaseUrl}/storage/v1/object/public/mc-attachments/${filename}`;
+    console.log(`↪️ File ${filename} not found locally. Redirecting to Supabase fallback: ${publicUrl}`);
+    return res.redirect(publicUrl);
+  }
+  res.status(404).send('Cannot GET /uploads/' + filename);
+});
 
 // ===============================
 // DATABASE CONNECTION (PRODUCTION SAFE)
@@ -540,6 +662,9 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
   }
 
   const mc_file_url = req.file ? `/uploads/${req.file.filename}` : null;
+  if (req.file) {
+    uploadToSupabaseStorage(req.file.path, req.file.filename, req.file.mimetype);
+  }
   const signature_val = cuti_tanpa_gaji_signature === "true";
   
   try {
