@@ -1962,6 +1962,7 @@ if (!TELEGRAM_BOT_TOKEN) {
   const resetStates = {}; // in-memory state: chatId -> { user_id }
 
   function sendTelegramMessage(chatId, text) {
+    console.log(`📤 Sending Telegram message to Chat ID ${chatId}...`);
     const data = JSON.stringify({ chat_id: chatId, text: text });
     const options = {
       hostname: "api.telegram.org",
@@ -1975,11 +1976,19 @@ if (!TELEGRAM_BOT_TOKEN) {
     };
 
     const req = https.request(options, (res) => {
-      res.on("data", () => {});
+      let resBody = "";
+      res.on("data", (chunk) => { resBody += chunk; });
+      res.on("end", () => {
+        if (res.statusCode === 200 || res.statusCode === 201) {
+          console.log(`✅ Telegram message sent successfully to Chat ID ${chatId}`);
+        } else {
+          console.error(`❌ Telegram sendMessage failed with status ${res.statusCode}:`, resBody);
+        }
+      });
     });
 
     req.on("error", (err) => {
-      console.error("Error sending Telegram message:", err);
+      console.error("❌ Error sending Telegram message:", err);
     });
 
     req.write(data);
