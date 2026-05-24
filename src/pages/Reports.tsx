@@ -11,8 +11,6 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   LineChart, Line, Legend, Cell, PieChart as RechartsPieChart, Pie
 } from "recharts";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
 import LeaveAnalytics from "./LeaveAnalytics";
 import { toast } from "sonner";
 import { useState, useEffect, useCallback } from "react";
