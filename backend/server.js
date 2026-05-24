@@ -289,10 +289,8 @@ const pool = {
 };
 
 
-// Set timezone to Malaysia (UTC+8) for every new connection
-pgPool.on('connect', (connection) => {
-  connection.query("SET TIME ZONE 'Asia/Kuala_Lumpur'");
-});
+// Set timezone to Malaysia (UTC+8) for PostgreSQL globally
+process.env.PGTZ = 'Asia/Kuala_Lumpur';
 
 // Test connection & Migration
 (async () => {
