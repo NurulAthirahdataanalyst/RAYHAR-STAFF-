@@ -435,8 +435,8 @@ export default function Employees() {
                     const toStr = new Date(req.end_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     return (
                       <div key={req.leave_id} className="rounded-lg border p-6 space-y-6 bg-white shadow-sm mb-6">
-                        <div className="text-center border-b-2 border-slate-900 pb-4">
-                          <h2 className="text-2xl font-black tracking-tight text-slate-900">RAYHAR GROUP</h2>
+                        <div className="text-center border-b-2 border-foreground pb-4">
+                          <h2 className="text-2xl font-black tracking-tight text-foreground">RAYHAR GROUP</h2>
                           <p className="text-sm font-bold tracking-widest uppercase">Permohonan Cuti Kakitangan</p>
                         </div>
 
@@ -523,11 +523,11 @@ export default function Employees() {
                           <div className="grid grid-cols-2 gap-4 text-sm border rounded-xl p-4 bg-rose-50/50 border-rose-100">
                             <div>
                               <p className="text-[10px] uppercase font-bold text-rose-600">No. Tel H/P</p>
-                              <p className="font-bold text-base text-slate-900">{req.cuti_tanpa_gaji_phone || "-"}</p>
+                              <p className="font-bold text-base text-foreground">{req.cuti_tanpa_gaji_phone || "-"}</p>
                             </div>
                             <div>
                               <p className="text-[10px] uppercase font-bold text-rose-600">Tandatangan Pengesahan</p>
-                              <p className="font-bold text-base text-slate-900">
+                              <p className="font-bold text-base text-foreground">
                                 {req.cuti_tanpa_gaji_signature ? "✓ Disahkan" : "Tiada Pengesahan"}
                               </p>
                             </div>
@@ -555,13 +555,13 @@ export default function Employees() {
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1">
                               <label className="text-[10px] font-bold text-muted-foreground uppercase">Nama Waris</label>
-                              <p className="text-sm font-semibold text-slate-900 border-b border-dotted pb-1">
+                              <p className="text-sm font-semibold text-foreground border-b border-dotted pb-1">
                                 {req.waris_nama || "-"}
                               </p>
                             </div>
                             <div className="space-y-1">
                               <label className="text-[10px] font-bold text-muted-foreground uppercase">Hubungan</label>
-                              <p className="text-sm font-semibold text-slate-900 border-b border-dotted pb-1">
+                              <p className="text-sm font-semibold text-foreground border-b border-dotted pb-1">
                                 {req.waris_hubungan || "-"}
                               </p>
                             </div>

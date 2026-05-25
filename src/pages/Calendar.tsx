@@ -185,7 +185,7 @@ export default function Calendar() {
       {/* HEADER */}
       <div className="mb-8">
         <h1 className="text-3xl font-black text-foreground uppercase tracking-tight flex items-center gap-3">
-          <CalendarDays className="w-8 h-8 text-[#7B0099]" />
+          <CalendarDays className="w-8 h-8 text-[#7B0099] dark:text-purple-400" />
           My Calendar
         </h1>
         <p className="text-muted-foreground font-medium mt-1">
@@ -366,11 +366,11 @@ export default function Calendar() {
                   }}
                   classNames={{
                     day_selected: "bg-[#7B0099] text-white hover:bg-[#5e0080] focus:bg-[#7B0099]",
-                    head_cell: "text-muted-foreground font-bold text-[10px] uppercase tracking-wider",
+                    head_cell: "text-muted-foreground font-bold text-[10px] uppercase tracking-wider w-10 text-center",
                     cell: "h-10 w-10 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-muted/50 [&:has([aria-selected])]:bg-muted/50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
                     day: "h-10 w-10 p-0 font-medium aria-selected:opacity-100 text-foreground hover:bg-muted rounded-full transition-all",
                     nav_button: "h-8 w-8 bg-transparent p-0 text-muted-foreground hover:text-foreground transition-colors",
-                    caption_label: "text-sm font-bold text-[#7B0099]",
+                    caption_label: "text-sm font-bold text-[#7B0099] dark:text-purple-400",
                   }}
                 />
               </div>

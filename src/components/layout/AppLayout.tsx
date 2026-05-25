@@ -227,11 +227,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* Panel Sisi (Collapsible Sidebar - 30% or slim) */}
-            <aside 
-              className={`hidden lg:flex flex-col shrink-0 transition-all duration-500 ease-in-out relative border-l border-border/20 pl-4 py-1 gap-6 items-center lg:items-stretch ${
-                sidebarCollapsed ? "w-[72px]" : "w-[360px]"
-              }`}
-            >
+            {resolvedRole !== "employee" && (
+              <aside 
+                className={`hidden lg:flex flex-col shrink-0 transition-all duration-500 ease-in-out relative border-l border-border/20 pl-4 py-1 gap-6 items-center lg:items-stretch ${
+                  sidebarCollapsed ? "w-[72px]" : "w-[360px]"
+                }`}
+              >
               {/* Floating Toggle Button on Left Boundary */}
               <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -242,8 +243,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </button>
 
               {/* ═══════ PENDING APPROVALS ═══════ */}
-              {!sidebarCollapsed ? (
-                <div className="bg-[#7B0099] p-6 rounded-[25px] shadow-lg text-white relative overflow-hidden group w-full transition-all duration-500">
+              {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(resolvedRole) && (
+                !sidebarCollapsed ? (
+                  <div className="bg-[#7B0099] p-6 rounded-[25px] shadow-lg text-white relative overflow-hidden group w-full transition-all duration-500">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
                   
                   <div className="flex items-center justify-between mb-3">
@@ -286,12 +288,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <p className="opacity-80">{pendingApprovals} requests require review</p>
                   </div>
                 </div>
-              )}
+              ))}
 
               {/* ═══════ SECONDARY CARD: PRESENCE FEED OR CALENDAR ═══════ */}
               {["hr_admin", "managing_director"].includes(resolvedRole) ? (
                 <PresenceFeed isCollapsed={sidebarCollapsed} />
-              ) : (
+              ) : location.pathname !== "/calendar" ? (
                 !sidebarCollapsed ? (
                   <div className="bg-card/85 dark:bg-card/40 backdrop-blur-md p-6 rounded-[25px] shadow-xl border border-white/40 dark:border-white/10 w-full">
                     <div className="flex items-center justify-between mb-4">
@@ -373,9 +375,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     </div>
                   </div>
                 )
-              )}
+              ) : null}
 
             </aside>
+            )}
           </div>
         </div>
       </main>

@@ -396,10 +396,10 @@ export default function Attendance() {
       {/* Dynamic Background Top Half */}
       <div className="absolute top-0 left-0 right-0 h-[40%] sm:h-[45%] bg-gradient-to-br from-[#5e0080] via-[#7B0099] to-[#a855f7] rounded-b-[40px] sm:rounded-b-[60px] z-0 shadow-2xl" />
 
-      <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-6 lg:gap-8 p-4 sm:p-8 md:p-10 animate-in fade-in zoom-in-95 duration-700 w-full max-w-2xl lg:max-w-5xl mx-auto">
+      <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-6 lg:gap-8 p-4 sm:p-8 md:p-10 animate-in fade-in zoom-in-95 duration-700 w-full max-w-2xl lg:max-w-[1400px] mx-auto">
 
         {/* Main Clocking Card */}
-        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md lg:flex-1 lg:max-w-[450px] rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-5 sm:p-6 md:p-8 flex flex-col items-center relative overflow-hidden border border-border/30">
+        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md lg:flex-1 rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-5 sm:p-6 md:p-8 flex flex-col items-center relative overflow-hidden border border-border/30">
 
           {user ? (
             <div className="flex-1 flex flex-col items-center justify-between w-full h-full">
@@ -530,7 +530,7 @@ export default function Attendance() {
         </div>
 
         {/* Daily Logs History Card */}
-        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md md:max-w-xl lg:flex-1 lg:max-w-[450px] rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-5 sm:p-6 md:p-8 flex flex-col relative border border-border/30 overflow-hidden min-h-[480px]">
+        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md md:max-w-xl lg:flex-1 rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-5 sm:p-6 md:p-8 flex flex-col relative border border-border/30 overflow-hidden min-h-[480px]">
           
           {/* Top Actions Row */}
           <div className="flex items-center justify-between gap-2 mb-6">

@@ -17,15 +17,37 @@ if (!jwtSecret) {
 
 const app = express();
 
+// Global Settings Memory
+let settingsCache = {
+  lateThreshold: "09:00 AM",
+  leaveRequests: "Pending",
+  overtime: "Disabled",
+  companyCode: "RAYHAR2024"
+};
+
 const settingsFile = path.join(__dirname, 'settings.json');
-function getSettings() {
+
+// Load settings on startup
+try {
   if (fs.existsSync(settingsFile)) {
-    try { return JSON.parse(fs.readFileSync(settingsFile, 'utf8')); } catch(e){}
+    const data = fs.readFileSync(settingsFile, 'utf8');
+    settingsCache = { ...settingsCache, ...JSON.parse(data) };
   }
-  return { lateThreshold: "10:00 AM" };
+} catch (e) {
+  console.error('Error loading settings:', e);
 }
-function saveSettings(settings) {
-  fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
+
+function saveSettings(newSettings) {
+  settingsCache = { ...settingsCache, ...newSettings };
+  try {
+    fs.writeFileSync(settingsFile, JSON.stringify(settingsCache, null, 2));
+  } catch (e) {
+    console.error('Error saving settings:', e);
+  }
+}
+
+function getSettings() {
+  return settingsCache;
 }
 
 app.get("/api/settings", (req, res) => res.json({ success: true, settings: getSettings() }));
@@ -37,7 +59,7 @@ app.post("/api/settings", (req, res) => {
 });
 
 function getLateThresholdTime() {
-  const t = getSettings().lateThreshold || "10:00 AM";
+  const t = settingsCache.lateThreshold || "09:00 AM";
   const parts = t.split(' ');
   const time = parts[0];
   const modifier = parts[1] || 'AM';
@@ -1350,8 +1372,8 @@ app.get("/api/attendance/history", async (req, res) => {
         user_id,
         clock_in,
         clock_out,
-        TO_CHAR(clock_in AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
-        TO_CHAR(clock_out AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
+        TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
+        TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
         DATE(clock_in) AS date
       FROM attendances
       WHERE user_id = ?
@@ -1522,7 +1544,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     // 1. TODAY ATTENDANCE STATUS
     const [todayRows] = await pool.query(
       `
-      SELECT clock_in, clock_out, TO_CHAR(clock_in AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_in_time, TO_CHAR(clock_out AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_out_time
+      SELECT clock_in, clock_out, TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_in_time, TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_out_time
       FROM attendances WHERE user_id = ? AND DATE(clock_in AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur') = (CURRENT_DATE AT TIME ZONE 'Asia/Kuala_Lumpur') ORDER BY clock_in DESC LIMIT 1
       `,
       [userId]
@@ -1568,7 +1590,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const [personalRecentRows] = await pool.query(
       `
       SELECT p.full_name AS name, 'Attendance' AS action, CASE WHEN a.clock_out IS NULL THEN 'Clocked In' ELSE 'Clocked Out' END AS status,
-        CASE WHEN a.clock_out IS NULL THEN TO_CHAR(a.clock_in AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') ELSE TO_CHAR(a.clock_out AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') END AS time
+        CASE WHEN a.clock_out IS NULL THEN TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') ELSE TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') END AS time
       FROM attendances a JOIN profiles p ON p.user_id = a.user_id WHERE a.user_id = ? ORDER BY COALESCE(a.clock_out, a.clock_in) DESC LIMIT 5
       `,
       [userId]
@@ -1610,8 +1632,8 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         p.branch,
         a.clock_in,
         a.clock_out,
-        TO_CHAR(a.clock_in AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
-        TO_CHAR(a.clock_out AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out
+        TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
+        TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out
       FROM profiles p
       JOIN attendances a ON p.user_id = a.user_id
       WHERE a.attendance_id IN (
@@ -1624,7 +1646,25 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       `,
       queryDate ? [queryDate] : []
     );
-    res.json({ success: true, report: rows });
+
+    const lateTimeStr = getLateThresholdTime();
+    const [lateH, lateM] = lateTimeStr.split(':').map(Number);
+
+    const formattedReport = rows.map((row) => {
+      let isLate = false;
+      if (row.clock_in) {
+        const klTime = new Date(new Date(row.clock_in).getTime() + 8 * 60 * 60 * 1000);
+        const clockInHour = klTime.getUTCHours();
+        const clockInMinute = klTime.getUTCMinutes();
+        isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
+      }
+      return {
+        ...row,
+        is_late: isLate
+      };
+    });
+
+    res.json({ success: true, report: formattedReport });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -2091,10 +2131,8 @@ app.get("/api/personal-notes", async (req, res) => {
     if (!userId) {
       return res.status(400).json({ success: false, error: "Missing userId" });
     }
-    // We can filter by month if needed, but for now let's just return all or a specific date range
-    // Assuming frontend will pass ?month=YYYY-MM or just fetch all for the user
     const [rows] = await pool.query(
-      "SELECT * FROM personal_notes WHERE user_id = ? ORDER BY date ASC, created_at ASC",
+      "SELECT id, user_id, TO_CHAR(date, 'YYYY-MM-DD') as date, note_text, type, created_at FROM personal_notes WHERE user_id = ? ORDER BY date DESC",
       [userId]
     );
     res.json({ success: true, notes: rows });
@@ -2121,8 +2159,8 @@ app.post("/api/personal-notes", async (req, res) => {
     const newNote = result[0] || { id: result.insertId, user_id: userId, date, note_text, type: type || 'note' };
     res.status(201).json({ success: true, note: newNote });
   } catch (err) {
-    console.error("Error adding personal note:", err);
-    res.status(500).json({ success: false, error: "Failed to add note" });
+    console.error("Error adding personal note:", err.message, err.stack);
+    res.status(500).json({ success: false, error: "Failed to add note: " + err.message });
   }
 });
 

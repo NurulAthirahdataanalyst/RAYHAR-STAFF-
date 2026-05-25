@@ -348,16 +348,8 @@ export default function Reports() {
 
   const totalStaffCount = branchComparison.reduce((sum, b) => sum + (b.totalEmployees || 0), 0);
 
-  // Late check count (arrived past 10:00:00 AM)
-  const lateArrivalsCount = dailyAttendance.filter(r => {
-    if (!r.time_in) return false;
-    const parts = r.time_in.split(" ");
-    const timeParts = parts[0].split(":");
-    const hours = parseInt(timeParts[0]);
-    const isPm = parts[1] === "PM";
-    const actualHours = isPm && hours !== 12 ? hours + 12 : (!isPm && hours === 12 ? 0 : hours);
-    return actualHours >= 10;
-  }).length;
+  // Late check count (arrived past dynamic threshold)
+  const lateArrivalsCount = dailyAttendance.filter(r => (r as any).is_late).length;
 
   const lateRate = dailyAttendance.length > 0 
     ? Math.round((lateArrivalsCount / dailyAttendance.length) * 100) 
@@ -642,13 +634,7 @@ export default function Reports() {
             </CardHeader>
             <CardContent className="pt-6">
               <div className="space-y-4">
-                {dailyAttendance.filter(r => {
-                  if (!r.time_in) return false;
-                  const parts = r.time_in.split(" ");
-                  const timeParts = parts[0].split(":");
-                  const hours = parseInt(timeParts[0]);
-                  return hours >= 10 && parts[1] === "AM"; // past 10 AM
-                }).slice(0, 4).map((record) => (
+                {dailyAttendance.filter(r => (r as any).is_late).slice(0, 4).map((record) => (
                   <div key={record.user_id} className="flex items-center justify-between p-4 bg-[#F59E0B]/5 hover:bg-[#F59E0B]/10 rounded-2xl border border-[#F59E0B]/10 hover:border-[#F59E0B]/30 transition-all">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-[#F59E0B]/10 flex items-center justify-center text-[#F59E0B] shrink-0">
@@ -665,13 +651,7 @@ export default function Reports() {
                   </div>
                 ))}
 
-                {dailyAttendance.filter(r => {
-                  if (!r.time_in) return false;
-                  const parts = r.time_in.split(" ");
-                  const timeParts = parts[0].split(":");
-                  const hours = parseInt(timeParts[0]);
-                  return hours >= 10 && parts[1] === "AM";
-                }).length === 0 && (
+                {dailyAttendance.filter(r => (r as any).is_late).length === 0 && (
                   <div className="text-center py-8 text-xs text-muted-foreground uppercase font-bold tracking-widest">
                     No active anomalies detected today
                   </div>

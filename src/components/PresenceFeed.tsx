@@ -8,9 +8,8 @@ import { API_BASE_URL } from "@/config/api";
 
 const parseLocalDate = (value: string | null) => {
   if (!value) return null;
-  let dateStr = value;
-  dateStr = dateStr.replace(" ", "T").replace(/Z$/, "").replace(/\+00:?00$/, "");
-  const parsed = new Date(dateStr);
+  // Let the browser handle standard UTC date strings (with Z or timezone offsets) natively
+  const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
@@ -130,6 +129,24 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
     e.department?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const [lateThreshold, setLateThreshold] = useState("09:00");
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/settings`);
+      const data = await response.json();
+      if (data.success && data.settings?.lateThreshold) {
+        setLateThreshold(data.settings.lateThreshold);
+      }
+    } catch (e) {
+      console.error("Error fetching settings:", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
   const getStatusConfig = (status: string, clockIn: string | null) => {
     if (status === "Leave Submitted") {
       return { 
@@ -150,9 +167,11 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
       };
     }
     if (status === "Present") {
-      // Late check: if clockIn is after 9 AM
+      // Late check based on dynamic threshold
       const clockInDate = parseLocalDate(clockIn);
-      const isLate = clockInDate && clockInDate.getHours() >= 9;
+      const [lateH, lateM] = lateThreshold.split(":").map(Number);
+      const isLate = clockInDate && (clockInDate.getHours() > lateH || (clockInDate.getHours() === lateH && clockInDate.getMinutes() >= lateM));
+      
       if (isLate) {
         return { 
           icon: Clock, 
