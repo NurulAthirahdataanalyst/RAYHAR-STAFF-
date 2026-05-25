@@ -1501,7 +1501,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       const lateTimeStr = getLateThresholdTime();
       const [lateRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur') AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = CURRENT_DATE AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' ${attendanceFilter}`,
         queryParams
       );
 
@@ -1546,7 +1546,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const [todayRows] = await pool.query(
       `
       SELECT clock_in, clock_out, TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_in_time, TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_out_time
-      FROM attendances WHERE user_id = ? AND DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur') ORDER BY clock_in DESC LIMIT 1
+      FROM attendances WHERE user_id = ? AND DATE(clock_in) = CURRENT_DATE ORDER BY clock_in DESC LIMIT 1
       `,
       [userId]
     );
