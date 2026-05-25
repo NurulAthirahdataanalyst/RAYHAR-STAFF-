@@ -30,6 +30,17 @@ const formatAttendanceTime = (dateStr: string | null | undefined) => {
   return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
 };
 
+const calculateWorkingHours = (clockIn: string | null | undefined, clockOut: string | null | undefined) => {
+  if (!clockIn || !clockOut) return "--";
+  const start = new Date(clockIn).getTime();
+  const end = new Date(clockOut).getTime();
+  const diffMs = end - start;
+  if (diffMs < 0) return "--";
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  return `${hours}h ${minutes}m`;
+};
+
 interface AttendanceRecord {
   user_id: string;
   full_name: string;
@@ -578,6 +589,7 @@ export default function Reports() {
                         <th className="px-6 py-4">Branch</th>
                         <th className="px-6 py-4">In</th>
                         <th className="px-6 py-4">Out</th>
+                        <th className="px-6 py-4 text-center">Work Hrs</th>
                         <th className="px-6 py-4 text-center">Status</th>
                       </tr>
                     </thead>
@@ -592,6 +604,7 @@ export default function Reports() {
                             <td className="px-6 py-4 text-muted-foreground font-black text-[11px] uppercase tracking-widest">{record.branch}</td>
                             <td className="px-6 py-4 font-black text-[#7B0099] text-xs">{formatAttendanceTime(record.clock_in)}</td>
                             <td className="px-6 py-4 text-xs font-bold text-muted-foreground">{record.clock_out ? formatAttendanceTime(record.clock_out) : "--:--"}</td>
+                            <td className="px-6 py-4 text-xs font-bold text-muted-foreground text-center">{calculateWorkingHours(record.clock_in, record.clock_out)}</td>
                             <td className="px-6 py-4 text-center">
                               <Badge
                                 className={`text-[9px] font-black px-2.5 h-5.5 shadow-sm border-none text-white ${!record.clock_out

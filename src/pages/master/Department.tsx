@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Users, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Building2, Users, Loader2, Trash2 } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
+import { toast } from "sonner";
 
 export default function Department() {
   const { role, userBranch } = useRole();
@@ -32,6 +34,28 @@ export default function Department() {
       }
     } catch (error) {
       console.error("Error fetching departments:", error);
+    }
+  };
+
+  const handleDeleteDepartment = async (e: React.MouseEvent, deptName: string) => {
+    e.stopPropagation();
+    if (deptName === "HQ General") {
+      toast.error("Cannot delete default HQ General department");
+      return;
+    }
+    if (!window.confirm(`Are you sure you want to delete the ${deptName} department?`)) return;
+    
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/departments/${encodeURIComponent(deptName)}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Department deleted successfully");
+        fetchDepartments();
+      } else {
+        toast.error(data.error || "Failed to delete department");
+      }
+    } catch (err) {
+      toast.error("Server error");
     }
   };
 
@@ -98,14 +122,24 @@ export default function Department() {
               >
                 <CardHeader className="pb-2 border-b border-border/50 bg-muted/20">
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                         <Building2 className="w-5 h-5" />
                       </div>
-                      <CardTitle className="text-lg font-bold text-foreground">
+                      <CardTitle className="text-lg font-bold text-foreground truncate">
                         {dept}
                       </CardTitle>
                     </div>
+                    {dept !== "HQ General" && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="w-8 h-8 shrink-0 hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground z-10"
+                        onClick={(e) => handleDeleteDepartment(e, dept)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="pt-4 space-y-4">

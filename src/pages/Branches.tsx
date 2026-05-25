@@ -3,9 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ArrowLeft, Building2, CalendarCheck, Clock, Loader2, MapPin, TrendingUp, Users, FileText, PhoneCall, X } from "lucide-react";
+import { ArrowLeft, Building2, CalendarCheck, Clock, Loader2, MapPin, TrendingUp, Users, FileText, PhoneCall, X, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { API_BASE_URL } from "../config/api";
+import { toast } from "sonner";
 
 const branches = [
   { code: "HQ", name: "Rayhar HQ", location: "Kemaman,Terengganu", leader: "Maria Santos" },
@@ -79,6 +80,31 @@ export default function Branches() {
     };
     fetchBranches();
   }, []);
+
+  const fetchBranchesList = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/branches`);
+      const data = await response.json();
+      if (data.success) setAllBranches(data.branches);
+    } catch (err) {}
+  };
+
+  const handleDeleteBranch = async (e: React.MouseEvent, code: string) => {
+    e.stopPropagation();
+    if (!window.confirm(`Are you sure you want to delete branch ${code}?`)) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/branches/${code}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Branch deleted successfully");
+        fetchBranchesList();
+      } else {
+        toast.error(data.error || "Failed to delete branch");
+      }
+    } catch (err) {
+      toast.error("Server error");
+    }
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -400,7 +426,17 @@ export default function Branches() {
                               </div>
                             </div>
                           </div>
-                          <Badge variant="outline" className="font-mono text-[9px] h-5 px-1.5 shrink-0 bg-muted/20 border-border/50">{branch.code}</Badge>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Badge variant="outline" className="font-mono text-[9px] h-5 px-1.5 bg-muted/20 border-border/50">{branch.code}</Badge>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="w-7 h-7 hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground"
+                              onClick={(e) => handleDeleteBranch(e, branch.code)}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
                         </div>
                         <div className="grid grid-cols-3 gap-2 mt-6">
                           <div className="bg-emerald-500/10 rounded-[16px] p-3 border border-emerald-500/20 text-center">

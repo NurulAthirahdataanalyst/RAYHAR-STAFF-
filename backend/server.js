@@ -1909,6 +1909,18 @@ app.post("/api/branches", async (req, res) => {
   }
 });
 
+app.delete("/api/branches/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    // Note: The param name is code
+    await pool.query("DELETE FROM branches WHERE code = ?", [id]);
+    res.json({ success: true, message: "Branch deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting branch:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ===============================
 // GET BRANCHES STATS API
 // ===============================
@@ -1976,6 +1988,17 @@ app.post("/api/departments", async (req, res) => {
   } catch (error) {
     console.error("Register department error:", error);
     res.status(500).json({ success: false, error: "Server Error" });
+  }
+});
+
+app.delete("/api/departments/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query("DELETE FROM departments WHERE name = ?", [id]);
+    res.json({ success: true, message: "Department deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting department:", err);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
