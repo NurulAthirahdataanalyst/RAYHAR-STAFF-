@@ -188,7 +188,7 @@ export default function Branches() {
                     <thead>
                       <tr className="bg-muted/30 text-foreground border-b border-border">
                         <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Personnel</th>
-                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Leave Bal.</th>
+                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Leave Balance</th>
                         <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Attendance</th>
                         <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Today</th>
                       </tr>
@@ -217,7 +217,7 @@ export default function Branches() {
                                 </div>
                               </div>
                             </td>
-                            <td className="py-4 px-6 font-bold text-foreground text-xs">{employee.annual_leave_balance}d</td>
+                            <td className="py-4 px-6 font-bold text-foreground text-xs uppercase">{employee.annual_leave_balance} DAYS</td>
                             <td className="py-4 px-6 font-bold text-muted-foreground text-xs">{employee.attendance_rate || 0}%</td>
                             <td className="py-4 px-6">
                               <Badge className={`text-[9px] font-black px-2.5 h-5 ${
