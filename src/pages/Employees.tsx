@@ -25,6 +25,8 @@ import { API_BASE_URL } from "../config/api";
 export default function Employees() {
   const { role, userBranch, userDepartment } = useRole();
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [dbEmployees, setDbEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
@@ -113,6 +115,15 @@ export default function Employees() {
     e.name.toLowerCase().includes(search.toLowerCase()) ||
     e.position.toLowerCase().includes(search.toLowerCase())
   );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  const indexOfLastItem = currentPage * entriesPerPage;
+  const indexOfFirstItem = indexOfLastItem - entriesPerPage;
+  const currentItems = filtered.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filtered.length / entriesPerPage);
 
   const handleEmployeeClick = (emp: any) => {
     setSelectedEmployee(emp);
@@ -224,8 +235,8 @@ export default function Employees() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/50">
-                    {filtered.length > 0 ? (
-                      filtered.map((emp) => (
+                    {currentItems.length > 0 ? (
+                      currentItems.map((emp) => (
                         <tr 
                           key={emp.id} 
                           className="hover:bg-[#7B0099]/5 transition-colors cursor-pointer group"
@@ -264,8 +275,8 @@ export default function Employees() {
 
               {/* Mobile Card View */}
               <div className="md:hidden divide-y divide-border/50">
-                {filtered.length > 0 ? (
-                  filtered.map((emp) => (
+                {currentItems.length > 0 ? (
+                  currentItems.map((emp) => (
                     <div 
                       key={emp.id} 
                       className="p-4 active:bg-[#7B0099]/5 transition-colors flex items-center gap-4 cursor-pointer"
@@ -293,6 +304,68 @@ export default function Employees() {
                   <div className="py-12 text-center text-muted-foreground italic font-medium p-6">No employees found.</div>
                 )}
               </div>
+
+              {/* Pagination Controls */}
+              {filtered.length > 0 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-border/50 gap-4 bg-muted/10">
+                  <div className="flex items-center gap-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                    <span>
+                      Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filtered.length)} of {filtered.length} Entries
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span>Show</span>
+                      <Select 
+                        value={entriesPerPage.toString()} 
+                        onValueChange={(val) => { setEntriesPerPage(Number(val)); setCurrentPage(1); }}
+                      >
+                        <SelectTrigger className="h-7 text-xs font-bold rounded-lg border-border w-[70px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="h-8 px-3 text-xs font-bold"
+                    >
+                      «
+                    </Button>
+                    <div className="flex items-center gap-1 overflow-x-auto max-w-[200px] sm:max-w-none">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`h-8 w-8 p-0 text-xs font-bold ${currentPage === pageNum ? 'bg-primary text-primary-foreground' : ''}`}
+                        >
+                          {pageNum}
+                        </Button>
+                      ))}
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="h-8 px-3 text-xs font-bold"
+                    >
+                      »
+                    </Button>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </CardContent>

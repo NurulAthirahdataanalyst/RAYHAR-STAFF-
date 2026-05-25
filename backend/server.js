@@ -50,14 +50,6 @@ function getSettings() {
   return settingsCache;
 }
 
-app.get("/api/settings", (req, res) => res.json({ success: true, settings: getSettings() }));
-app.post("/api/settings", (req, res) => {
-  const current = getSettings();
-  if (req.body.lateThreshold) current.lateThreshold = req.body.lateThreshold;
-  saveSettings(current);
-  res.json({ success: true, settings: current });
-});
-
 function getLateThresholdTime() {
   const t = settingsCache.lateThreshold || "09:00 AM";
   const parts = t.split(' ');
@@ -93,6 +85,14 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+app.get("/api/settings", (req, res) => res.json({ success: true, settings: getSettings() }));
+app.post("/api/settings", (req, res) => {
+  const current = getSettings();
+  if (req.body && req.body.lateThreshold) current.lateThreshold = req.body.lateThreshold;
+  saveSettings(current);
+  res.json({ success: true, settings: current });
+});
 
 // Ensure uploads folder exists
 const uploadsDir = path.join(__dirname, "uploads");
