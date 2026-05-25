@@ -1267,7 +1267,7 @@ app.get("/api/attendance-status", async (req, res) => {
     const [rows] = await pool.query(`
       SELECT * FROM attendances
       WHERE user_id = ?
-      AND DATE(clock_in) = CURRENT_DATE
+      AND DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')
       AND clock_out IS NULL
       LIMIT 1
       `, [empId]);
@@ -1328,7 +1328,7 @@ app.post("/api/clock-out", async (req, res) => {
       UPDATE attendances
       SET clock_out = NOW()
       WHERE user_id = ?
-      AND DATE(clock_in) = CURRENT_DATE
+      AND DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')
       AND clock_out IS NULL
       `,
       [user_id]
@@ -1337,7 +1337,7 @@ app.post("/api/clock-out", async (req, res) => {
     const [rows] = await pool.query(`
       SELECT * FROM attendances
       WHERE user_id = ?
-      AND DATE(clock_in) = CURRENT_DATE
+      AND DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')
       ORDER BY clock_in DESC
       LIMIT 1
       `,
@@ -1500,7 +1500,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       const lateTimeStr = getLateThresholdTime();
       const [lateRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur') = (CURRENT_DATE AT TIME ZONE 'Asia/Kuala_Lumpur') AND (clock_in AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur') AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' ${attendanceFilter}`,
         queryParams
       );
 
@@ -1545,7 +1545,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const [todayRows] = await pool.query(
       `
       SELECT clock_in, clock_out, TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_in_time, TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_out_time
-      FROM attendances WHERE user_id = ? AND DATE(clock_in AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur') = (CURRENT_DATE AT TIME ZONE 'Asia/Kuala_Lumpur') ORDER BY clock_in DESC LIMIT 1
+      FROM attendances WHERE user_id = ? AND DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur') ORDER BY clock_in DESC LIMIT 1
       `,
       [userId]
     );
@@ -1941,7 +1941,27 @@ app.get("/api/departments", async (req, res) => {
 // WHO'S OUT TODAY
 // ===============================
 app.get("/api/who-out-today", async (req, res) => {
+  const { role, branch, department } = req.query;
+
   try {
+    const filters = [];
+    const params = [];
+
+    if (role === "branch_leader" && branch) {
+      filters.push("p.branch = ?");
+      params.push(branch);
+    } else if (role === "head_of_department" && branch && department) {
+      filters.push("p.branch = ? AND p.department = ?");
+      params.push(branch, department);
+    } else if (role === "head_of_department") {
+      filters.push("1 = 0");
+    } else if (!["hr_admin", "managing_director", "finance_manager"].includes(role) && branch) {
+      filters.push("p.branch = ?");
+      params.push(branch);
+    }
+
+    const whereClause = filters.length ? `AND ${filters.join(" AND ")}` : "";
+
     const [rows] = await pool.query(`
       SELECT
         lr.leave_id,
@@ -1957,8 +1977,9 @@ app.get("/api/who-out-today", async (req, res) => {
       JOIN profiles p ON p.user_id = lr.user_id
       WHERE lr.status = 'Approved'
         AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date
+        ${whereClause}
       ORDER BY lr.end_date ASC
-    `);
+    `, params);
     res.json({ success: true, employees: rows });
   } catch (err) {
     console.error("Who Out Today Error:", err);

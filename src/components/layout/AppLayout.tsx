@@ -283,7 +283,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   )}
                   
                   {/* Custom CSS Tooltip */}
-                  <div className="absolute left-full ml-3 px-3 py-2 bg-slate-900 dark:bg-slate-950 text-white text-xs rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 whitespace-nowrap z-50 transform translate-x-2 group-hover:translate-x-0 border border-slate-800 flex flex-col gap-0.5">
+                  <div className="absolute right-full mr-3 px-3 py-2 bg-slate-900 dark:bg-slate-950 text-white text-xs rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 whitespace-nowrap z-50 transform -translate-x-2 group-hover:translate-x-0 border border-slate-800 flex flex-col gap-0.5">
                     <p className="font-bold">Pending Approvals</p>
                     <p className="opacity-80">{pendingApprovals} requests require review</p>
                   </div>

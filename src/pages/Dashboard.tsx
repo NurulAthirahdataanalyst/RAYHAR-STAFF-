@@ -155,7 +155,12 @@ export default function Dashboard() {
 
   const fetchWhoOutToday = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/who-out-today`);
+      const params = new URLSearchParams({
+        role,
+        branch: userBranch || "",
+        department: userDepartment || "",
+      });
+      const response = await fetch(`${API_BASE_URL}/api/who-out-today?${params}`);
       const data = await response.json();
       if (data.success) {
         setWhoOutToday(data.employees || []);
@@ -163,7 +168,7 @@ export default function Dashboard() {
     } catch (err) {
       console.error("Who Out Today Error:", err);
     }
-  }, []);
+  }, [role, userBranch, userDepartment]);
 
   // Initial fetch + refresh when focus + Custom Event Listener
   useEffect(() => {
