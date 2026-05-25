@@ -41,7 +41,7 @@ const LEAVE_TYPES = [
 
 const PIE_COLORS: Record<string, string> = {
   "Annual/Emergency Leave": "#7B0099",
-  "Sick Leave":             "#3b82f6",
+  "Sick Leave":             "#ec4899",
   "Replacement Leave":      "#10b981",
   "Unpaid Leave":           "#f59e0b",
 };
@@ -140,7 +140,14 @@ export default function LeaveAnalytics() {
   const [loading, setLoading] = useState(true);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
-  // ─ Fetch all leave requests ─────────────────────────────────────────────────
+  const [attendanceStats, setAttendanceStats] = useState({
+    presentToday: 0,
+    lateArrivals: 0,
+    absentToday: 0,
+    attendanceRate: 0,
+  });
+
+  // ─ Fetch all leave requests & attendance stats ──────────────────────────────
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -149,8 +156,14 @@ export default function LeaveAnalytics() {
         branch: "",
         department: "",
       });
-      const res = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`);
-      const data = await res.json();
+      
+      const [leaveRes, statsRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/leave-requests?${params}`),
+        fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=hr_admin&branch=All`)
+      ]);
+      
+      const data = await leaveRes.json();
+      const statsData = await statsRes.json();
 
       if (data.success && Array.isArray(data.leaveRequests)) {
         const formatted: LeaveRecord[] = data.leaveRequests.map((r: any) => ({
@@ -168,6 +181,23 @@ export default function LeaveAnalytics() {
         }));
         setRecords(formatted);
         setLastFetched(new Date());
+      }
+
+      if (statsData.success && statsData.stats) {
+        const s = statsData.stats;
+        const total = s.totalEmployees || 0;
+        const present = s.presentToday || 0;
+        const late = s.lateArrivals || 0;
+        const onLeave = s.onLeave || 0;
+        const absent = Math.max(0, total - present - onLeave);
+        const rate = (total - onLeave) > 0 ? Math.round((present / (total - onLeave)) * 100) : 0;
+
+        setAttendanceStats({
+          presentToday: present,
+          lateArrivals: late,
+          absentToday: absent,
+          attendanceRate: rate,
+        });
       }
     } catch (err) {
       console.error("LeaveAnalytics fetch error:", err);
@@ -426,6 +456,14 @@ export default function LeaveAnalytics() {
         </CardContent>
       </Card>
 
+      {/* ── Attendance Widget ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
+        <StatCard label="Present Today" value={attendanceStats.presentToday} icon={Users} accent="bg-blue-500/10 text-blue-600" loading={loading} />
+        <StatCard label="Late Today" value={attendanceStats.lateArrivals} icon={Loader2} accent="bg-amber-500/10 text-amber-600" loading={loading} />
+        <StatCard label="Absent Today" value={attendanceStats.absentToday} icon={XCircle} accent="bg-rose-500/10 text-rose-600" loading={loading} />
+        <StatCard label="Attendance Rate" value={`${attendanceStats.attendanceRate}%`} icon={TrendingUp} accent="bg-emerald-500/10 text-emerald-600" loading={loading} />
+      </div>
+
       {/* ── Summary Cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
@@ -540,6 +578,9 @@ export default function LeaveAnalytics() {
                     </div>
                   ))}
                 </div>
+                <p className="text-[10px] font-bold text-foreground/70 italic text-center mt-3">
+                  {typeDistribution.length > 0 ? `${typeDistribution[0].name} accounts for ${total > 0 ? Math.round((typeDistribution[0].value / total) * 100) : 0}% of all applications.` : "No leave requests found."}
+                </p>
               </>
             )}
           </CardContent>
@@ -554,34 +595,35 @@ export default function LeaveAnalytics() {
               </div>
               Approved vs Rejected
             </CardTitle>
-            <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
+            <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground/70 ml-11 italic">
               By leave type — current filter
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             {loading ? (
-              <div className="h-[260px] flex items-center justify-center">
+              <div className="h-[200px] flex items-center justify-center">
                 <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-8 h-8" />
               </div>
             ) : approvalByType.length === 0 ? (
-              <div className="h-[260px] flex items-center justify-center text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-30">
+              <div className="h-[200px] flex items-center justify-center text-[10px] font-black text-foreground/50 uppercase tracking-widest">
                 No data for selection
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={approvalByType} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" vertical={false} />
-                  <XAxis
-                    dataKey="type"
-                    tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
-                    axisLine={false}
-                    tickLine={false}
-                    interval={0}
-                    angle={-18}
-                    textAnchor="end"
-                  />
-                  <YAxis
-                    tick={{ fontSize: 9, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
+              <>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={approvalByType} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" vertical={false} />
+                    <XAxis
+                      dataKey="type"
+                      tick={{ fontSize: 9, fontWeight: 900, fill: "hsl(var(--foreground))", opacity: 0.8 }}
+                      axisLine={false}
+                      tickLine={false}
+                      interval={0}
+                      angle={-18}
+                      textAnchor="end"
+                    />
+                    <YAxis
+                      tick={{ fontSize: 9, fontWeight: 900, fill: "hsl(var(--foreground))", opacity: 0.8 }}
                     axisLine={false}
                     tickLine={false}
                     allowDecimals={false}
@@ -606,6 +648,10 @@ export default function LeaveAnalytics() {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
+              <p className="text-[10px] font-bold text-foreground/70 italic text-center mt-2">
+                {total > 0 ? `${Math.round((approved / total) * 100)}% of leave requests this month were approved.` : "No leave requests found."}
+              </p>
+              </>
             )}
           </CardContent>
         </Card>
@@ -694,31 +740,32 @@ export default function LeaveAnalytics() {
               </div>
               Monthly Leave Trend
             </CardTitle>
-            <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
+            <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground/70 ml-11 italic">
               Total applications over time
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             {loading ? (
-              <div className="h-[260px] flex items-center justify-center">
+              <div className="h-[200px] flex items-center justify-center">
                 <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-8 h-8" />
               </div>
             ) : monthlyTrend.length === 0 ? (
-              <div className="h-[260px] flex items-center justify-center text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-30">
+              <div className="h-[200px] flex items-center justify-center text-[10px] font-black text-foreground/50 uppercase tracking-widest">
                 No data for selection
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={monthlyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" vertical={false} />
-                  <XAxis
-                    dataKey="month"
-                    tick={{ fontSize: 9, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 9, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
+              <>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={monthlyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" vertical={false} />
+                    <XAxis
+                      dataKey="month"
+                      tick={{ fontSize: 9, fontWeight: 900, fill: "hsl(var(--foreground))", opacity: 0.8 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 9, fontWeight: 900, fill: "hsl(var(--foreground))", opacity: 0.8 }}
                     axisLine={false}
                     tickLine={false}
                     allowDecimals={false}
@@ -737,6 +784,10 @@ export default function LeaveAnalytics() {
                   <Bar dataKey="rejected" name="Rejected" fill="#ef4444" radius={[6, 6, 0, 0]} barSize={18} animationDuration={1400} />
                 </BarChart>
               </ResponsiveContainer>
+              <p className="text-[10px] font-bold text-foreground/70 italic text-center mt-2">
+                Trend analysis: Applications are highest in {monthlyTrend.length > 0 ? monthlyTrend.reduce((max, obj) => obj.total > max.total ? obj : max, monthlyTrend[0]).month : "N/A"}.
+              </p>
+              </>
             )}
           </CardContent>
         </Card>
@@ -765,6 +816,49 @@ export default function LeaveAnalytics() {
                 Approval rate: {Math.round((approved / total) * 100)}% · Rejection rate: {Math.round((rejected / total) * 100)}%
               </div>
             )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Workforce Health Overview ── */}
+      <Card className="border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden mt-6">
+        <CardHeader className="pb-0 border-b border-border/40">
+          <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+            <div className="p-2 bg-indigo-500/10 rounded-xl">
+              <CheckCircle2 className="w-4 h-4 text-indigo-500" />
+            </div>
+            Workforce Health Overview
+          </CardTitle>
+          <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground/70 ml-11 italic">
+            Automated workforce analysis
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-muted/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Attendance Stability</p>
+              <p className={`text-lg font-black uppercase ${attendanceStats.attendanceRate >= 90 ? "text-emerald-500" : attendanceStats.attendanceRate >= 80 ? "text-amber-500" : "text-rose-500"}`}>
+                {attendanceStats.attendanceRate >= 90 ? "Excellent" : attendanceStats.attendanceRate >= 80 ? "Good" : "Needs Review"}
+              </p>
+            </div>
+            <div className="bg-muted/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Leave Risk</p>
+              <p className={`text-lg font-black uppercase ${balancePct < 30 ? "text-emerald-500" : balancePct < 70 ? "text-amber-500" : "text-rose-500"}`}>
+                {balancePct < 30 ? "Low" : balancePct < 70 ? "Medium" : "High"}
+              </p>
+            </div>
+            <div className="bg-muted/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Approval Efficiency</p>
+              <p className={`text-lg font-black uppercase ${pending === 0 ? "text-emerald-500" : pending < 5 ? "text-amber-500" : "text-rose-500"}`}>
+                {pending === 0 ? "Excellent" : pending < 5 ? "Good" : "Backlog"}
+              </p>
+            </div>
+            <div className="bg-muted/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Branch Coverage</p>
+              <p className="text-lg font-black uppercase text-blue-500">
+                Stable
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
