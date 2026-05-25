@@ -31,6 +31,7 @@ export default function SettingsPage() {
   // Add Branch Form State
   const [branchCode, setBranchCode] = useState("");
   const [branchNameInput, setBranchNameInput] = useState("");
+  const [branchLocationInput, setBranchLocationInput] = useState("");
   const [submittingBranch, setSubmittingBranch] = useState(false);
 
   // Add Department Form State
@@ -102,7 +103,8 @@ export default function SettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           code: branchCode.trim().toUpperCase(),
-          name: branchNameInput.trim()
+          name: branchNameInput.trim(),
+          location: branchLocationInput.trim()
         })
       });
       const data = await response.json();
@@ -110,6 +112,7 @@ export default function SettingsPage() {
         toast.success(`Branch ${branchNameInput} registered successfully!`);
         setBranchCode("");
         setBranchNameInput("");
+        setBranchLocationInput("");
         
         // Refresh branches list
         const branchRes = await fetch(`${API_BASE_URL}/api/branches`);
@@ -241,7 +244,7 @@ export default function SettingsPage() {
           </div>
 
           <form onSubmit={handleAddBranch} className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-1.5 col-span-1">
                 <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Branch Code</label>
                 <input
@@ -252,7 +255,7 @@ export default function SettingsPage() {
                   className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
                 />
               </div>
-              <div className="space-y-1.5 col-span-2">
+              <div className="space-y-1.5 col-span-1 md:col-span-2">
                 <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Branch Name</label>
                 <input
                   type="text"
@@ -262,6 +265,17 @@ export default function SettingsPage() {
                   className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case outline-none"
                 />
               </div>
+            </div>
+            
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Branch Location / District</label>
+              <input
+                type="text"
+                placeholder="e.g. Alor Setar, Kedah"
+                value={branchLocationInput}
+                onChange={(e) => setBranchLocationInput(e.target.value)}
+                className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case outline-none uppercase"
+              />
             </div>
 
             <Button

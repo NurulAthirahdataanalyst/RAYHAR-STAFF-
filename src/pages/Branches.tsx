@@ -406,7 +406,7 @@ export default function Branches() {
                 const absent = Math.max(0, totalEmployees - presentToday - onLeave);
                 const attendanceRate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
                 const staticInfo = branches.find(b => b.code === branch.code);
-                const location = staticInfo?.location || "Rayhar Branch";
+                const location = branch.location || staticInfo?.location || "Rayhar Branch";
                 const leader = branch.leader_name || staticInfo?.leader || "Branch Leader";
 
                 return (

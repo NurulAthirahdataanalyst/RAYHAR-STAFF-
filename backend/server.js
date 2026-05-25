@@ -1884,7 +1884,7 @@ app.get("/api/branches", async (req, res) => {
 });
 
 app.post("/api/branches", async (req, res) => {
-  const { code, name } = req.body;
+  const { code, name, location } = req.body;
 
   if (!code || !name) {
     return res.status(400).json({ success: false, error: "Code and name are required" });
@@ -1897,9 +1897,11 @@ app.post("/api/branches", async (req, res) => {
       return res.status(409).json({ success: false, error: "Branch code already exists" });
     }
 
+    const branchLocation = location ? location.trim() : 'RAYHAR BRANCH';
+
     await pool.query(
-      "INSERT INTO branches (branch, code, name) VALUES (?, ?, ?)",
-      [cleanCode, cleanCode, name.trim()]
+      "INSERT INTO branches (branch, code, name, location) VALUES (?, ?, ?, ?)",
+      [cleanCode, cleanCode, name.trim(), branchLocation]
     );
 
     res.json({ success: true, message: "Branch created successfully" });
