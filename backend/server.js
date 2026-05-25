@@ -1267,8 +1267,9 @@ app.get("/api/attendance-status", async (req, res) => {
     const [rows] = await pool.query(`
       SELECT * FROM attendances
       WHERE user_id = ?
-      AND DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')
+      AND DATE(clock_in) = CURRENT_DATE
       AND clock_out IS NULL
+      ORDER BY clock_in DESC
       LIMIT 1
       `, [empId]);
 
@@ -1328,7 +1329,7 @@ app.post("/api/clock-out", async (req, res) => {
       UPDATE attendances
       SET clock_out = NOW()
       WHERE user_id = ?
-      AND DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')
+      AND DATE(clock_in) = CURRENT_DATE
       AND clock_out IS NULL
       `,
       [user_id]
@@ -1337,7 +1338,7 @@ app.post("/api/clock-out", async (req, res) => {
     const [rows] = await pool.query(`
       SELECT * FROM attendances
       WHERE user_id = ?
-      AND DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')
+      AND DATE(clock_in) = CURRENT_DATE
       ORDER BY clock_in DESC
       LIMIT 1
       `,
