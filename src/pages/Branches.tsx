@@ -381,7 +381,7 @@ export default function Branches() {
                 const attendanceRate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
                 const staticInfo = branches.find(b => b.code === branch.code);
                 const location = staticInfo?.location || "Rayhar Branch";
-                const leader = branch.leader_name || "Branch Leader";
+                const leader = branch.leader_name || staticInfo?.leader || "Branch Leader";
 
                 return (
                   <Card key={branch.code} className="cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all border-none shadow-sm bg-card/80 backdrop-blur-md overflow-hidden group rounded-[24px]" onClick={() => setSelectedBranch({...branch, location, leader, employees: totalEmployees, attendance: attendanceRate})}>
