@@ -197,11 +197,11 @@ export default function Calendar() {
         
         {/* LEFT COLUMN: DAILY AGENDA */}
         <div className="lg:col-span-8 space-y-6">
-          <Card className="border-white/10 bg-[#1A1C1E]/50 backdrop-blur-xl shadow-2xl overflow-hidden rounded-[24px]">
+          <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] overflow-hidden rounded-[24px]">
             <div className="p-6 sm:p-8">
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-white">Daily Agenda</h2>
+                  <h2 className="text-2xl font-bold text-foreground">Daily Agenda</h2>
                   <p className="text-purple-400 font-medium">
                     {format(selectedDate, "EEEE, MMMM d, yyyy")}
                   </p>
@@ -217,10 +217,10 @@ export default function Calendar() {
 
               {/* Add Note Form */}
               {isAddNoteOpen && (
-                <div className="mb-6 p-4 rounded-2xl bg-white/5 border border-white/10 animate-in slide-in-from-top-2">
+                <div className="mb-6 p-4 rounded-2xl bg-muted/50 border border-border/50 animate-in slide-in-from-top-2">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-white">New Note/Reminder</h3>
-                    <button onClick={() => setIsAddNoteOpen(false)} className="text-slate-400 hover:text-white">
+                    <h3 className="font-bold text-foreground">New Note/Reminder</h3>
+                    <button onClick={() => setIsAddNoteOpen(false)} className="text-muted-foreground hover:text-foreground">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
@@ -230,7 +230,7 @@ export default function Calendar() {
                         type="button"
                         onClick={() => setNewNoteType('note')}
                         className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${
-                          newNoteType === 'note' ? 'bg-[#7B0099] text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'
+                          newNoteType === 'note' ? 'bg-[#7B0099] text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80'
                         }`}
                       >
                         Personal Note
@@ -239,7 +239,7 @@ export default function Calendar() {
                         type="button"
                         onClick={() => setNewNoteType('reminder')}
                         className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${
-                          newNoteType === 'reminder' ? 'bg-yellow-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'
+                          newNoteType === 'reminder' ? 'bg-yellow-600 text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80'
                         }`}
                       >
                         Reminder
@@ -247,7 +247,7 @@ export default function Calendar() {
                     </div>
                     <textarea 
                       placeholder="Type your note here..."
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-purple-500 min-h-[100px]"
+                      className="w-full bg-background border border-border rounded-xl p-3 text-foreground focus:outline-none focus:border-[#7B0099] min-h-[100px]"
                       value={newNoteText}
                       onChange={e => setNewNoteText(e.target.value)}
                       required
@@ -270,9 +270,9 @@ export default function Calendar() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-black uppercase tracking-wider text-red-400 bg-red-500/10 px-2 py-0.5 rounded-md">Public Holiday</span>
+                        <span className="text-xs font-black uppercase tracking-wider text-red-600 dark:text-red-400 bg-red-500/10 px-2 py-0.5 rounded-md">Public Holiday</span>
                       </div>
-                      <h3 className="font-bold text-white mt-1">{h.name}</h3>
+                      <h3 className="font-bold text-foreground mt-1">{h.name}</h3>
                     </div>
                   </div>
                 ))}
@@ -292,8 +292,8 @@ export default function Calendar() {
                           <span className="text-xs font-black uppercase tracking-wider text-purple-400">Shift</span>
                         </div>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                          <h3 className="font-bold text-white">{clockInTime} - {clockOutTime}</h3>
-                          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                          <h3 className="font-bold text-foreground">{clockInTime} - {clockOutTime}</h3>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             <MapPin className="w-3.5 h-3.5" />
                             {a.location_in || "Unknown"}
                           </div>
@@ -305,21 +305,21 @@ export default function Calendar() {
 
                 {/* NOTES & REMINDERS */}
                 {selectedNotes.map((note) => (
-                  <div key={note.id} className="p-4 rounded-2xl bg-white/5 border border-white/10 flex gap-4 items-start relative group">
+                  <div key={note.id} className="p-4 rounded-2xl bg-muted/20 border border-border/50 flex gap-4 items-start relative group">
                     <div className={`p-2.5 rounded-xl shrink-0 ${
-                      note.type === 'reminder' ? 'bg-yellow-500/10 text-yellow-400' : 'bg-blue-500/10 text-blue-400'
+                      note.type === 'reminder' ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
                     }`}>
                       {note.type === 'reminder' ? <Bell className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
                     </div>
                     <div className="pr-8">
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`text-xs font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                          note.type === 'reminder' ? 'text-yellow-400 bg-yellow-500/10' : 'text-blue-400 bg-blue-500/10'
+                          note.type === 'reminder' ? 'text-yellow-600 dark:text-yellow-400 bg-yellow-500/10' : 'text-blue-600 dark:text-blue-400 bg-blue-500/10'
                         }`}>
                           {note.type === 'reminder' ? 'Reminder' : 'Personal Note'}
                         </span>
                       </div>
-                      <p className="text-slate-300 whitespace-pre-wrap text-sm leading-relaxed mt-2">{note.note_text}</p>
+                      <p className="text-foreground/80 whitespace-pre-wrap text-sm leading-relaxed mt-2">{note.note_text}</p>
                     </div>
                     <button 
                       onClick={() => handleDeleteNote(note.id)}
@@ -331,12 +331,12 @@ export default function Calendar() {
                 ))}
 
                 {selectedNotes.length === 0 && selectedAttendance.length === 0 && selectedHolidays.length === 0 && (
-                  <div className="text-center py-12 px-4 rounded-2xl bg-white/5 border border-white/10 border-dashed">
-                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
-                      <ListTodo className="w-6 h-6 text-slate-500" />
+                  <div className="text-center py-12 px-4 rounded-2xl bg-muted/20 border border-border/50 border-dashed">
+                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                      <ListTodo className="w-6 h-6 text-muted-foreground" />
                     </div>
-                    <h3 className="text-white font-bold mb-1">Nothing planned for this day</h3>
-                    <p className="text-sm text-slate-400 max-w-sm mx-auto">
+                    <h3 className="text-foreground font-bold mb-1">Nothing planned for this day</h3>
+                    <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                       Add a personal note, set a reminder, or request leave to build your daily agenda.
                     </p>
                   </div>
@@ -350,12 +350,12 @@ export default function Calendar() {
         <div className="lg:col-span-4 space-y-6">
           
           {/* Calendar Widget */}
-          <Card className="border-white/10 bg-[#1A1C1E] shadow-2xl overflow-hidden rounded-[24px]">
-            <div className="p-4 sm:p-6 bg-gradient-to-br from-[#1E2024] to-[#121315]">
+          <Card className="border-border/50 bg-card shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] overflow-hidden rounded-[24px]">
+            <div className="p-4 sm:p-6">
               <div className="flex justify-between items-center mb-6 px-2">
-                <span className="text-[11px] font-black tracking-[0.2em] uppercase text-slate-400">Calendar</span>
+                <span className="text-[11px] font-black tracking-[0.2em] uppercase text-muted-foreground">Calendar</span>
               </div>
-              <div className="bg-[#16181A] rounded-[20px] p-2 border border-white/5">
+              <div className="bg-muted/30 rounded-[20px] p-2 border border-border/50">
                 <CalendarComponent
                   mode="single"
                   selected={selectedDate}
@@ -365,25 +365,25 @@ export default function Calendar() {
                     DayContent: CustomDayContent
                   }}
                   classNames={{
-                    day_selected: "bg-[#7B0099] text-white hover:bg-purple-800 focus:bg-[#7B0099]",
-                    head_cell: "text-slate-500 font-bold text-[10px] uppercase tracking-wider",
-                    cell: "h-10 w-10 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-white/5 [&:has([aria-selected])]:bg-white/5 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                    day: "h-10 w-10 p-0 font-medium aria-selected:opacity-100 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-all",
-                    nav_button: "h-8 w-8 bg-transparent p-0 text-slate-400 hover:text-white transition-colors",
-                    caption_label: "text-sm font-bold text-purple-400",
+                    day_selected: "bg-[#7B0099] text-white hover:bg-[#5e0080] focus:bg-[#7B0099]",
+                    head_cell: "text-muted-foreground font-bold text-[10px] uppercase tracking-wider",
+                    cell: "h-10 w-10 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-muted/50 [&:has([aria-selected])]:bg-muted/50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                    day: "h-10 w-10 p-0 font-medium aria-selected:opacity-100 text-foreground hover:bg-muted rounded-full transition-all",
+                    nav_button: "h-8 w-8 bg-transparent p-0 text-muted-foreground hover:text-foreground transition-colors",
+                    caption_label: "text-sm font-bold text-[#7B0099]",
                   }}
                 />
               </div>
               
               {/* Legend */}
               <div className="mt-6 flex flex-wrap justify-center gap-4 px-2">
-                <div className="flex items-center gap-2 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                <div className="flex items-center gap-2 text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
                   <span className="w-2 h-2 rounded-full bg-blue-500" /> Note
                 </div>
-                <div className="flex items-center gap-2 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                <div className="flex items-center gap-2 text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
                   <span className="w-2 h-2 rounded-full bg-yellow-500" /> Reminder
                 </div>
-                <div className="flex items-center gap-2 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                <div className="flex items-center gap-2 text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
                   <span className="w-2 h-2 rounded-full bg-red-500" /> Holiday
                 </div>
               </div>
@@ -391,9 +391,9 @@ export default function Calendar() {
           </Card>
 
           {/* Upcoming Holidays Widget */}
-          <Card className="border-white/10 bg-[#1A1C1E] shadow-2xl overflow-hidden rounded-[24px]">
+          <Card className="border-border/50 bg-card shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] overflow-hidden rounded-[24px]">
             <div className="p-4 sm:p-6">
-              <span className="text-[11px] font-black tracking-[0.2em] uppercase text-slate-400 block mb-4">Upcoming Holidays</span>
+              <span className="text-[11px] font-black tracking-[0.2em] uppercase text-muted-foreground block mb-4">Upcoming Holidays</span>
               
               <div className="space-y-3">
                 {holidays
@@ -403,14 +403,14 @@ export default function Calendar() {
                   .map((holiday, i) => {
                     const holDate = new Date(holiday.date);
                     return (
-                      <div key={i} className="flex items-center gap-4 p-3 rounded-2xl bg-[#16181A] border border-white/5 hover:border-white/10 transition-colors group cursor-pointer" onClick={() => setSelectedDate(holDate)}>
+                      <div key={i} className="flex items-center gap-4 p-3 rounded-2xl bg-muted/30 border border-border/50 hover:border-[#7B0099]/30 transition-colors group cursor-pointer" onClick={() => setSelectedDate(holDate)}>
                         <div className="bg-[#E51B5C] rounded-xl p-2.5 w-14 flex flex-col items-center justify-center shrink-0 shadow-lg shadow-pink-900/20 group-hover:scale-105 transition-transform">
                           <span className="text-[10px] font-black uppercase text-white/90 leading-none mb-1">{format(holDate, "MMM")}</span>
                           <span className="text-lg font-black text-white leading-none">{format(holDate, "dd")}</span>
                         </div>
                         <div>
-                          <h4 className="text-sm font-bold text-white group-hover:text-pink-400 transition-colors">{holiday.name}</h4>
-                          <p className="text-[11px] text-slate-400 font-medium italic mt-0.5">Public Holiday</p>
+                          <h4 className="text-sm font-bold text-foreground group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">{holiday.name}</h4>
+                          <p className="text-[11px] text-muted-foreground font-medium italic mt-0.5">Public Holiday</p>
                         </div>
                       </div>
                     );

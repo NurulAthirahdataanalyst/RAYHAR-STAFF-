@@ -16,6 +16,37 @@ if (!jwtSecret) {
 }
 
 const app = express();
+
+const settingsFile = path.join(__dirname, 'settings.json');
+function getSettings() {
+  if (fs.existsSync(settingsFile)) {
+    try { return JSON.parse(fs.readFileSync(settingsFile, 'utf8')); } catch(e){}
+  }
+  return { lateThreshold: "10:00 AM" };
+}
+function saveSettings(settings) {
+  fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
+}
+
+app.get("/api/settings", (req, res) => res.json({ success: true, settings: getSettings() }));
+app.post("/api/settings", (req, res) => {
+  const current = getSettings();
+  if (req.body.lateThreshold) current.lateThreshold = req.body.lateThreshold;
+  saveSettings(current);
+  res.json({ success: true, settings: current });
+});
+
+function getLateThresholdTime() {
+  const t = getSettings().lateThreshold || "10:00 AM";
+  const parts = t.split(' ');
+  const time = parts[0];
+  const modifier = parts[1] || 'AM';
+  let [hours, minutes] = time.split(':');
+  if (hours === '12') hours = '00';
+  if (modifier === 'PM') hours = (parseInt(hours, 10) + 12).toString();
+  return `${hours.padStart(2, '0')}:${minutes}:00`;
+}
+
 const allowedOrigins = [
   "https://rayharstaffportal.vercel.app",
   "http://localhost:5173",
@@ -1319,8 +1350,8 @@ app.get("/api/attendance/history", async (req, res) => {
         user_id,
         clock_in,
         clock_out,
-        TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
-        TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
+        TO_CHAR(clock_in AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
+        TO_CHAR(clock_out AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
         DATE(clock_in) AS date
       FROM attendances
       WHERE user_id = ?
@@ -1350,10 +1381,14 @@ app.get("/api/attendance/history", async (req, res) => {
         duration = `${diffHrs}h ${diffMins}m`;
       }
 
-      // 2. Late Check Detection (10:00:00 AM)
-      const clockInHour = clockInDate.getHours();
-      const clockInMinute = clockInDate.getMinutes();
-      const isLate = clockInHour > 10 || (clockInHour === 10 && clockInMinute > 0);
+      // 2. Late Check Detection (dynamic)
+      const lateTimeStr = getLateThresholdTime();
+      const [lateH, lateM] = lateTimeStr.split(':').map(Number);
+      
+      const klTime = new Date(clockInDate.getTime() + 8 * 60 * 60 * 1000);
+      const clockInHour = klTime.getUTCHours();
+      const clockInMinute = klTime.getUTCMinutes();
+      const isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
 
       // 3. Location Mapping (simulated professionally based on ID)
       const isRemote = row.attendance_id % 3 === 1;
@@ -1441,8 +1476,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
         queryParams
       );
 
+      const lateTimeStr = getLateThresholdTime();
       const [lateRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = CURRENT_DATE AND clock_in::time > '10:00:00' ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur') = (CURRENT_DATE AT TIME ZONE 'Asia/Kuala_Lumpur') AND (clock_in AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' ${attendanceFilter}`,
         queryParams
       );
 
@@ -1486,8 +1522,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
     // 1. TODAY ATTENDANCE STATUS
     const [todayRows] = await pool.query(
       `
-      SELECT clock_in, clock_out, TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_in_time, TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_out_time
-      FROM attendances WHERE user_id = ? AND DATE(clock_in) = CURRENT_DATE ORDER BY clock_in DESC LIMIT 1
+      SELECT clock_in, clock_out, TO_CHAR(clock_in AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_in_time, TO_CHAR(clock_out AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_out_time
+      FROM attendances WHERE user_id = ? AND DATE(clock_in AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur') = (CURRENT_DATE AT TIME ZONE 'Asia/Kuala_Lumpur') ORDER BY clock_in DESC LIMIT 1
       `,
       [userId]
     );
@@ -1532,7 +1568,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const [personalRecentRows] = await pool.query(
       `
       SELECT p.full_name AS name, 'Attendance' AS action, CASE WHEN a.clock_out IS NULL THEN 'Clocked In' ELSE 'Clocked Out' END AS status,
-        CASE WHEN a.clock_out IS NULL THEN TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') ELSE TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') END AS time
+        CASE WHEN a.clock_out IS NULL THEN TO_CHAR(a.clock_in AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') ELSE TO_CHAR(a.clock_out AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') END AS time
       FROM attendances a JOIN profiles p ON p.user_id = a.user_id WHERE a.user_id = ? ORDER BY COALESCE(a.clock_out, a.clock_in) DESC LIMIT 5
       `,
       [userId]
@@ -1574,8 +1610,8 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         p.branch,
         a.clock_in,
         a.clock_out,
-        TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
-        TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out
+        TO_CHAR(a.clock_in AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
+        TO_CHAR(a.clock_out AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out
       FROM profiles p
       JOIN attendances a ON p.user_id = a.user_id
       WHERE a.attendance_id IN (

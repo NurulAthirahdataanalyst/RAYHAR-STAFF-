@@ -13,7 +13,7 @@ const formatAttendanceTime = (value: unknown) => {
     // Backend sometimes returns the time as UTC (e.g. ends with Z) but the time is already 
     // in Malaysia time. We remove the Z so JS parses it as local time instead of adding 8 hours.
     if (typeof value === "string") {
-      dateStr = dateStr.replace(" ", "T").replace(/Z$/, "").replace(/\+00:?00$/, "");
+      dateStr = dateStr.replace(" ", "T");
     }
 
     const parsed = value instanceof Date ? value : new Date(dateStr);

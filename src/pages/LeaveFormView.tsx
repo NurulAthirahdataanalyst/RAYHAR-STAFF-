@@ -340,8 +340,8 @@ export default function LeaveFormView() {
 
               <div id="leave-form-print" className="p-4 sm:p-8 space-y-6">
                 <div className="rounded-[24px] border border-border/50 p-6 sm:p-8 space-y-6 bg-card shadow-sm">
-                  <div className="text-center border-b-2 border-slate-900 pb-4">
-                    <h2 className="text-3xl font-black tracking-tighter text-slate-900">RAYHAR GROUP</h2>
+                  <div className="text-center border-b-2 border-foreground pb-4">
+                    <h2 className="text-3xl font-black tracking-tighter text-foreground">RAYHAR GROUP</h2>
                     <p className="text-[20px] font-black tracking-[0.3em] uppercase opacity-60">Permohonan Cuti Kakitangan</p>
                   </div>
 
@@ -524,10 +524,10 @@ export default function LeaveFormView() {
                   )}
 
                   <div className="hidden print:grid grid-cols-2 gap-16 pt-12 pb-4">
-                    <div className="border-t border-slate-900 pt-2 text-center">
+                    <div className="border-t border-foreground pt-2 text-center">
                       <p className="text-[10px] font-bold uppercase">Tandatangan Kakitangan</p>
                     </div>
-                    <div className="border-t border-slate-900 pt-2 text-center">
+                    <div className="border-t border-foreground pt-2 text-center">
                       <p className="text-[10px] font-bold uppercase">Kelulusan Pengurus / HR</p>
                     </div>
                   </div>

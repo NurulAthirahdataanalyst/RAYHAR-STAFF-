@@ -65,6 +65,15 @@ export default function SettingsPage() {
           setDepartments(deptData.departments.map((d: any) => d.name));
           setDeptStats(deptData.departments);
         }
+        
+        // 3. Fetch Settings
+        const settingsRes = await fetch(`${API_BASE_URL}/api/settings`);
+        const settingsData = await settingsRes.json();
+        if (settingsData.success && settingsData.settings) {
+          if (settingsData.settings.lateThreshold) {
+            setWorkStartTime(settingsData.settings.lateThreshold);
+          }
+        }
       } catch (err) {
         console.error("Settings initialization error:", err);
       } finally {
@@ -397,9 +406,18 @@ export default function SettingsPage() {
                 <span className="text-[10px] font-black text-foreground uppercase tracking-wider">Late Arrivals Window</span>
                 <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Define shift late threshold time</p>
               </div>
-              <Select value={workStartTime} onValueChange={(val) => {
+              <Select value={workStartTime} onValueChange={async (val) => {
                 setWorkStartTime(val);
-                toast.success(`Late threshold updated to ${val}`);
+                try {
+                  await fetch(`${API_BASE_URL}/api/settings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lateThreshold: val })
+                  });
+                  toast.success(`Late threshold updated to ${val}`);
+                } catch (e) {
+                  toast.error('Failed to update late threshold');
+                }
               }}>
                 <SelectTrigger className="w-[120px] h-9 text-[10px] font-black rounded-xl border-border bg-background/30">
                   <SelectValue />
