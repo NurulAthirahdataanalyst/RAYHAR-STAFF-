@@ -1817,10 +1817,11 @@ app.get("/api/branches", async (req, res) => {
         b.code, 
         b.name,
         (
-          SELECT full_name 
-          FROM profiles 
-          WHERE (b.code = 'HQ' AND role = 'managing_director') 
-             OR (b.code != 'HQ' AND branch = b.code AND role = 'branch_leader') 
+          SELECT p.full_name 
+          FROM profiles p
+          JOIN user_role ur ON p.user_id = ur.user_id
+          WHERE (b.code = 'HQ' AND ur.role = 'managing_director') 
+             OR (b.code != 'HQ' AND p.branch = b.code AND ur.role = 'branch_leader') 
           LIMIT 1
         ) AS leader_name
       FROM branches b 
