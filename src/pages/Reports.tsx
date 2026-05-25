@@ -354,7 +354,7 @@ export default function Reports() {
     ? Math.round(branchComparison.reduce((sum, b) => sum + (b.activeRate || 0), 0) / branchComparison.length)
     : 95;
 
-  const totalStaffCount = branchComparison.reduce((sum, b) => sum + (b.totalEmployees || 0), 0);
+  const totalStaffCount = branchComparison.reduce((sum, b) => sum + Number(b.totalEmployees || 0), 0);
 
   // Late check count (arrived past dynamic threshold)
   const lateArrivalsCount = dailyAttendance.filter(r => (r as any).is_late).length;
@@ -420,17 +420,7 @@ export default function Reports() {
           <Clock className="w-4 h-4 shrink-0" />
           Attendance & Punctuality
         </button>
-        <button
-          onClick={() => setActiveTab("leave")}
-          className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
-            activeTab === "leave"
-              ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
-              : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
-          }`}
-        >
-          <PieChart className="w-4 h-4 shrink-0" />
-          Leave Utilization
-        </button>
+
         {(role === "hr_admin" || role === "managing_director") && (
           <button
             onClick={() => setActiveTab("leave_monitoring")}
