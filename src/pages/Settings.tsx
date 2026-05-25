@@ -33,6 +33,11 @@ export default function SettingsPage() {
   const [branchNameInput, setBranchNameInput] = useState("");
   const [submittingBranch, setSubmittingBranch] = useState(false);
 
+  // Add Department Form State
+  const [deptCode, setDeptCode] = useState("");
+  const [deptNameInput, setDeptNameInput] = useState("");
+  const [submittingDept, setSubmittingDept] = useState(false);
+
   // Add Staff Form State
   const [staffName, setStaffName] = useState("");
   const [staffEmail, setStaffEmail] = useState("");
@@ -117,6 +122,46 @@ export default function SettingsPage() {
       toast.error("Network connection error");
     } finally {
       setSubmittingBranch(false);
+    }
+  };
+
+  // Add Department Submit
+  const handleAddDepartment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deptCode || !deptNameInput) {
+      toast.error("Department Code and Name are required");
+      return;
+    }
+    setSubmittingDept(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/departments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: deptCode.trim().toUpperCase(),
+          name: deptNameInput.trim()
+        })
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        toast.success(`Department ${deptNameInput} registered successfully!`);
+        setDeptCode("");
+        setDeptNameInput("");
+        
+        // Refresh departments list
+        const deptRes = await fetch(`${API_BASE_URL}/api/departments`);
+        const deptData = await deptRes.json();
+        if (deptData.success) {
+          setDepartments(deptData.departments.map((d: any) => d.name));
+          setDeptStats(deptData.departments);
+        }
+      } else {
+        toast.error(data.error || "Failed to register department");
+      }
+    } catch (err) {
+      toast.error("Network connection error");
+    } finally {
+      setSubmittingDept(false);
     }
   };
 
@@ -230,6 +275,59 @@ export default function SettingsPage() {
                 <>
                   <Plus className="w-4 h-4 mr-2" />
                   Add Branch to System
+                </>
+              )}
+            </Button>
+          </form>
+        </Card>
+
+        {/* Form: Register New Department */}
+        <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-6 space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-[#7B0099]/10 rounded-xl text-[#7B0099]">
+              <Building2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">Register New Department</h3>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">Insert a new department into the HQ database</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleAddDepartment} className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-1.5 col-span-1">
+                <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Dept Code</label>
+                <input
+                  type="text"
+                  placeholder="e.g. HR"
+                  value={deptCode}
+                  onChange={(e) => setDeptCode(e.target.value)}
+                  className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
+                />
+              </div>
+              <div className="space-y-1.5 col-span-2">
+                <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Dept Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Human Resources"
+                  value={deptNameInput}
+                  onChange={(e) => setDeptNameInput(e.target.value)}
+                  className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case outline-none"
+                />
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={submittingDept}
+              className="w-full py-5 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/90 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-[#7B0099]/15 transition-all"
+            >
+              {submittingDept ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Department
                 </>
               )}
             </Button>

@@ -1941,18 +1941,42 @@ app.get("/api/branches-stats", async (req, res) => {
 // DEPARTMENTS API (HQ Departments)
 // ===============================
 app.get("/api/departments", async (req, res) => {
-  // Static list of HQ departments
-  const departments = [
-    { id: 1, name: "Customer Service", code: "CS" },
-    { id: 2, name: "Haji Umrah (BHU)", code: "BHU" },
-    { id: 3, name: "Marketing & Media", code: "MKT" },
-    { id: 4, name: "Otb & Design", code: "OTB" },
-    { id: 5, name: "IT Department", code: "IT" },
-    { id: 6, name: "Reservation & Visa", code: "RV" },
-    { id: 7, name: "Account", code: "ACC" },
-  ];
+  try {
+    const [rows] = await pool.query("SELECT * FROM departments ORDER BY id ASC");
+    res.json({ success: true, departments: rows });
+  } catch (error) {
+    console.error("Fetch departments error:", error);
+    res.status(500).json({ success: false, error: "Server Error" });
+  }
+});
 
-  res.json({ success: true, departments });
+app.post("/api/departments", async (req, res) => {
+  const { code, name } = req.body;
+  
+  if (!code || !name) {
+    return res.status(400).json({ success: false, error: "Code and name are required" });
+  }
+
+  try {
+    const [existing] = await pool.query(
+      "SELECT * FROM departments WHERE code = ? OR name = ?", 
+      [code.toUpperCase(), name]
+    );
+
+    if (existing.length > 0) {
+      return res.status(409).json({ success: false, error: "Department with this code or name already exists" });
+    }
+
+    await pool.query(
+      "INSERT INTO departments (code, name) VALUES (?, ?)",
+      [code.toUpperCase(), name]
+    );
+
+    res.json({ success: true, message: "Department registered successfully" });
+  } catch (error) {
+    console.error("Register department error:", error);
+    res.status(500).json({ success: false, error: "Server Error" });
+  }
 });
 
 // ===============================
