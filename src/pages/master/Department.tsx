@@ -6,28 +6,36 @@ import { useRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
 
-const DEPARTMENTS = [
-  "IT",
-  "HAJI/UMRAH (BHU)",
-  "MARKETING & MEDIA",
-  "OTB & DESIGN",
-  "RESERVATION & VISA",
-  "ACCOUNT DEPARTMENT",
-  "HQ General" // Added for users with "HQ" branch but no specific department
-];
-
 export default function Department() {
   const { role, userBranch } = useRole();
   const navigate = useNavigate();
   const [employees, setEmployees] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchEmployees();
+    const fetchAll = async () => {
+      setLoading(true);
+      await fetchDepartments();
+      await fetchEmployees();
+      setLoading(false);
+    };
+    fetchAll();
   }, [role, userBranch]);
 
+  const fetchDepartments = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/departments`);
+      const data = await response.json();
+      if (data.success) {
+        setDepartments([...data.departments.map((d: any) => d.name), "HQ General"]);
+      }
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+    }
+  };
+
   const fetchEmployees = async () => {
-    setLoading(true);
     try {
       const params = new URLSearchParams({
         role: role || "",
@@ -42,8 +50,6 @@ export default function Department() {
       }
     } catch (error) {
       console.error("Error fetching employees:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -82,7 +88,7 @@ export default function Department() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {DEPARTMENTS.map((dept) => {
+          {departments.map((dept) => {
             const stats = getDepartmentStats(dept);
             return (
               <Card 
