@@ -475,9 +475,9 @@ export default function LeaveAdmin() {
 
               <div id="leave-form-print" className="p-4 sm:p-8 space-y-6">
                 <div className="rounded-[24px] border border-border/50 p-6 sm:p-8 space-y-6 bg-card shadow-sm">
-                  <div className="text-center border-b-2 border-foreground pb-4">
-                    <h2 className="text-2xl font-black tracking-tighter text-foreground">RAYHAR GROUP</h2>
-                    <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60">Permohonan Cuti Kakitangan</p>
+                  <div className="text-center border-b-2 border-foreground/50 dark:border-purple-500/50 pb-4">
+                    <h2 className="text-2xl font-black tracking-tighter text-foreground dark:text-purple-400">RAYHAR GROUP</h2>
+                    <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">Permohonan Cuti Kakitangan</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 text-xs font-bold">
@@ -619,7 +619,7 @@ export default function LeaveAdmin() {
                         </div>
                         <div className="space-y-1">
                           <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Alamat</span>
-                          <p className="text-[10px] font-bold text-muted-foreground line-clamp-1">{selectedRequest.warisAlamat}</p>
+                          <p className="text-[10px] font-bold text-muted-foreground break-words">{selectedRequest.warisAlamat}</p>
                         </div>
                       </div>
                     </div>

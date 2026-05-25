@@ -181,7 +181,7 @@ export default function Calendar() {
   };
 
   return (
-    <div className="p-4 sm:p-8 max-w-[1600px] mx-auto min-h-screen">
+    <div className="w-full min-h-screen">
       {/* HEADER */}
       <div className="mb-8">
         <h1 className="text-3xl font-black text-foreground uppercase tracking-tight flex items-center gap-3">

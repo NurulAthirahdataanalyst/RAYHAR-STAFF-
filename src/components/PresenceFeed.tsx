@@ -105,6 +105,18 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
       try {
         const data = JSON.parse(event.data);
         console.log("📡 Live presence update received:", data);
+        
+        // Filter out events that do not belong to the user's branch
+        if (role === "branch_leader" || role === "branch_officer" || !["hr_admin", "managing_director", "finance_manager"].includes(role)) {
+          if (data.branch !== userBranch) {
+             return;
+          }
+        } else if (role === "head_of_department") {
+          if (data.branch !== userBranch || (data.department && data.department !== userDepartment)) {
+             return;
+          }
+        }
+        
         fetchEmployeesAndLeaves();
       } catch (err) {
         console.error("Error parsing stream message:", err);

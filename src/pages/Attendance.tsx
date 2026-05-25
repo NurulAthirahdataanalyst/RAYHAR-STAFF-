@@ -644,7 +644,7 @@ export default function Attendance() {
                             {/* Middle Details Block */}
                             <div className="flex flex-col gap-0.5">
                               <div className="text-[11px] sm:text-xs font-black text-foreground/90 tracking-tight">
-                                {log.time_in} — {log.time_out}
+                                {formatAttendanceTime(log.clock_in)} — {log.clock_out ? formatAttendanceTime(log.clock_out) : "--:--"}
                               </div>
                               <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-muted-foreground/75 font-semibold">
                                 {log.location_type === "remote" ? (

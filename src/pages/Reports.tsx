@@ -24,10 +24,18 @@ const fallbackMonthlyData = [
   { month: "Apr", attendance: 95, leave_request: 15 },
 ];
 
+const formatAttendanceTime = (dateStr: string | null | undefined) => {
+  if (!dateStr) return "--:--";
+  const d = new Date(dateStr);
+  return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+};
+
 interface AttendanceRecord {
   user_id: string;
   full_name: string;
   branch: string;
+  clock_in: string;
+  clock_out: string | null;
   time_in: string;
   time_out: string | null;
 }
@@ -229,8 +237,8 @@ export default function Reports() {
     const rows = dailyAttendance.map(r => [
       r.full_name,
       r.branch,
-      r.time_in,
-      r.time_out || "--:--",
+      formatAttendanceTime(r.clock_in),
+      r.clock_out ? formatAttendanceTime(r.clock_out) : "--:--",
       r.time_out ? "Clocked Out" : "Active"
     ]);
 
@@ -592,11 +600,11 @@ export default function Reports() {
                               <p className="text-[9px] font-bold text-muted-foreground uppercase opacity-50">ID: {record.user_id}</p>
                             </td>
                             <td className="px-6 py-4 text-muted-foreground font-black text-[11px] uppercase tracking-widest">{record.branch}</td>
-                            <td className="px-6 py-4 font-black text-[#7B0099] text-xs">{record.time_in}</td>
-                            <td className="px-6 py-4 font-black text-muted-foreground/50 text-xs">{record.time_out || "--:--"}</td>
+                            <td className="px-6 py-4 font-black text-[#7B0099] text-xs">{formatAttendanceTime(record.clock_in)}</td>
+                            <td className="px-6 py-4 text-xs font-bold text-muted-foreground">{record.clock_out ? formatAttendanceTime(record.clock_out) : "--:--"}</td>
                             <td className="px-6 py-4 text-center">
                               <Badge
-                                className={`text-[9px] font-black px-2.5 h-5.5 shadow-sm border-none text-white ${!record.time_out
+                                className={`text-[9px] font-black px-2.5 h-5.5 shadow-sm border-none text-white ${!record.clock_out
                                     ? "bg-[#22C55E]"
                                     : "bg-muted text-muted-foreground opacity-50"
                                   }`}
@@ -642,7 +650,7 @@ export default function Reports() {
                       </div>
                       <div>
                         <p className="text-xs font-black text-foreground uppercase tracking-wide">{record.full_name}</p>
-                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{record.branch} • Late Arrival today at {record.time_in}</p>
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{record.branch} • Late Arrival today at {formatAttendanceTime(record.clock_in)}</p>
                       </div>
                     </div>
                     <Badge className="bg-[#F59E0B]/15 text-[#F59E0B] hover:bg-[#F59E0B]/20 font-black text-[9px] tracking-wider border-none px-3 py-1 uppercase rounded-lg">
