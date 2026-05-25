@@ -1811,7 +1811,23 @@ app.get("/api/reports/analytics", async (req, res) => {
 // ===============================
 app.get("/api/branches", async (req, res) => {
   try {
-    let [rows] = await pool.query("SELECT code, name FROM branches ORDER BY name ASC");
+    const queryStr = `
+      SELECT 
+        b.code, 
+        b.name,
+        (
+          SELECT full_name 
+          FROM profiles 
+          WHERE (b.code = 'HQ' AND role = 'managing_director') 
+             OR (b.code != 'HQ' AND branch = b.code AND role = 'branch_leader') 
+          LIMIT 1
+        ) AS leader_name
+      FROM branches b 
+      ORDER BY 
+        CASE WHEN b.code = 'HQ' THEN 0 ELSE 1 END,
+        b.name ASC
+    `;
+    let [rows] = await pool.query(queryStr);
     
     if (rows.length === 0) {
       const fallbackBranches = [
@@ -1847,7 +1863,7 @@ app.get("/api/branches", async (req, res) => {
         );
       }
       
-      const [reFetch] = await pool.query("SELECT code, name FROM branches ORDER BY name ASC");
+      const [reFetch] = await pool.query(queryStr);
       rows = reFetch;
     }
 
