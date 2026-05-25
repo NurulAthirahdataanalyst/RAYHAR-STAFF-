@@ -1816,6 +1816,7 @@ app.get("/api/branches", async (req, res) => {
       SELECT 
         b.code, 
         b.name,
+        b.location,
         (
           SELECT p.full_name 
           FROM profiles p
