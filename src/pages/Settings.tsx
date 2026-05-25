@@ -135,7 +135,7 @@ export default function SettingsPage() {
         body: JSON.stringify({
           email: staffEmail.trim(),
           password: staffPassword,
-          fullName: staffName.trim(),
+          full_name: staffName.trim(),
           branch: staffBranch,
           department: staffDept || "Unassigned",
           role: staffRole,
