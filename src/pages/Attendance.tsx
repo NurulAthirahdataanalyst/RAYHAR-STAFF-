@@ -10,10 +10,14 @@ const formatAttendanceTime = (value: unknown) => {
   try {
     let dateStr = typeof value === "string" ? value : String(value);
     
-    // Backend sometimes returns the time as UTC (e.g. ends with Z) but the time is already 
-    // in Malaysia time. We remove the Z so JS parses it as local time instead of adding 8 hours.
+    // The backend stores times in UTC, but the MySQL/PG adapter might return them without a 'Z'.
+    // So if the string doesn't end with Z and doesn't specify an offset, append 'Z' so the browser 
+    // correctly interprets it as UTC and adds the local timezone offset (e.g. +8 hours for Malaysia).
     if (typeof value === "string") {
       dateStr = dateStr.replace(" ", "T");
+      if (!dateStr.endsWith("Z") && !dateStr.includes("+") && (dateStr.length < 19 || !dateStr.substring(10).includes("-"))) {
+        dateStr += "Z";
+      }
     }
 
     const parsed = value instanceof Date ? value : new Date(dateStr);
@@ -62,13 +66,15 @@ export default function Attendance() {
       setCurrentTime(now);
 
       if (activeSession && activeSession.clock_in) {
-        const start = new Date(
-          activeSession.clock_in instanceof Date
-            ? activeSession.clock_in
-            : typeof activeSession.clock_in === "string" && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(activeSession.clock_in)
-              ? activeSession.clock_in.replace(" ", "T")
-              : activeSession.clock_in
-        ).getTime();
+        let clockInStr = activeSession.clock_in;
+        if (typeof clockInStr === "string") {
+          clockInStr = clockInStr.replace(" ", "T");
+          if (!clockInStr.endsWith("Z") && !clockInStr.includes("+") && (clockInStr.length < 19 || !clockInStr.substring(10).includes("-"))) {
+            clockInStr += "Z";
+          }
+        }
+        
+        const start = new Date(clockInStr).getTime();
         const diffMs = now.getTime() - start;
         const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
         const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
