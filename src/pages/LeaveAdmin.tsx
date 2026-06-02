@@ -329,7 +329,7 @@ export default function LeaveAdmin() {
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <p className="text-[11px] text-muted-foreground italic line-clamp-2 max-w-[200px]">"{req.reason}"</p>
+                            <p className="text-[11px] text-muted-foreground italic line-clamp-2 max-w-[200px]">"{getCleanReason(req.reason)}"</p>
                           </td>
                           <td className="px-6 py-4">
                             <Badge
@@ -420,7 +420,7 @@ export default function LeaveAdmin() {
 
                       <div className="flex items-center justify-between gap-3 pt-1">
                         <div className="text-[9px] font-bold text-muted-foreground italic truncate max-w-[150px]">
-                          "{req.reason}"
+                          "{getCleanReason(req.reason)}"
                         </div>
                         {canApprove && ((req.status.startsWith("Pending HOD") && role === "head_of_department") ||
                           (req.status === "Pending Branch Leader" && role === "branch_leader") ||

@@ -7,6 +7,7 @@ import { ArrowLeft, Building2, CalendarCheck, Clock, Loader2, MapPin, TrendingUp
 import { useEffect, useMemo, useState } from "react";
 import { API_BASE_URL } from "../config/api";
 import { toast } from "sonner";
+import { getCleanReason } from "@/lib/leaveStorage";
 
 const branches = [
   { code: "HQ", name: "Rayhar HQ", location: "Kemaman,Terengganu", leader: "Maria Santos" },
@@ -568,7 +569,7 @@ export default function Branches() {
                           <div className="space-y-2">
                             <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50 tracking-widest">Reason / Purpose</p>
                             <p className="rounded-[16px] border border-border/40 p-4 italic text-foreground/80 bg-muted/20 text-xs leading-relaxed">
-                              "{req.reason || "-"}"
+                              "{getCleanReason(req.reason) || "-"}"
                             </p>
                           </div>
 
