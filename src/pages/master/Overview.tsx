@@ -170,7 +170,7 @@ export default function MasterOverview() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
             
             {/* KPI 1: Branches */}
-            <Card className="shadow-md bg-[#fff0f5] dark:bg-[#2d0a1f] border border-[#fce7f3] dark:border-[#5c1340]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group hover:shadow-lg">
+            <Card onClick={() => navigate("/branches")} className="cursor-pointer shadow-md bg-[#fff0f5] dark:bg-[#2d0a1f] border border-[#fce7f3] dark:border-[#5c1340]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group hover:shadow-lg">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-pink-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
@@ -188,7 +188,7 @@ export default function MasterOverview() {
             </Card>
 
             {/* KPI 2: Departments */}
-            <Card className="shadow-md bg-[#eff6ff] dark:bg-[#0c1f3c] border border-[#dbeafe] dark:border-[#163063]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group hover:shadow-lg">
+            <Card onClick={() => navigate("/master/department")} className="cursor-pointer shadow-md bg-[#eff6ff] dark:bg-[#0c1f3c] border border-[#dbeafe] dark:border-[#163063]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group hover:shadow-lg">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
@@ -205,8 +205,8 @@ export default function MasterOverview() {
               </CardContent>
             </Card>
 
-            {/* KPI 2: Total System Users */}
-            <Card className="shadow-md bg-[#faf5ff] dark:bg-[#200a2d] border border-[#f3e8ff] dark:border-[#4c1266]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group hover:shadow-lg">
+            {/* KPI 3: Total System Users */}
+            <Card onClick={() => navigate("/employees")} className="cursor-pointer shadow-md bg-[#faf5ff] dark:bg-[#200a2d] border border-[#f3e8ff] dark:border-[#4c1266]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group hover:shadow-lg">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#7B0099]" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
