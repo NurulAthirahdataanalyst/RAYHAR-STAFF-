@@ -42,7 +42,23 @@ function saveSettings(newSettings) {
   try {
     fs.writeFileSync(settingsFile, JSON.stringify(settingsCache, null, 2));
   } catch (e) {
-    console.error('Error saving settings:', e);
+    console.error('Error saving settings locally:', e);
+  }
+}
+
+async function saveSettingsToDB(newSettings) {
+  settingsCache = { ...settingsCache, ...newSettings };
+  saveSettings(newSettings); // keep local copy as fallback
+  
+  if (newSettings.lateThreshold) {
+    try {
+      await pool.query(
+        "INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value",
+        ['lateThreshold', newSettings.lateThreshold]
+      );
+    } catch (e) {
+      console.error('Error saving settings to DB:', e);
+    }
   }
 }
 
@@ -87,10 +103,10 @@ app.use(cors({
 app.use(express.json());
 
 app.get("/api/settings", (req, res) => res.json({ success: true, settings: getSettings() }));
-app.post("/api/settings", (req, res) => {
+app.post("/api/settings", async (req, res) => {
   const current = getSettings();
   if (req.body && req.body.lateThreshold) current.lateThreshold = req.body.lateThreshold;
-  saveSettings(current);
+  await saveSettingsToDB(current);
   res.json({ success: true, settings: current });
 });
 
@@ -378,6 +394,25 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
     // Create an index to make looking up notes by month faster
     await connection.query(`CREATE INDEX IF NOT EXISTS idx_personal_notes_user_date ON personal_notes(user_id, date);`);
     console.log('✅ Auto-migration for personal_notes completed.');
+
+    // Auto-migrate system_settings table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS system_settings (
+        setting_key VARCHAR(50) PRIMARY KEY,
+        setting_value VARCHAR(255)
+      );
+    `);
+
+    // Load settings from db
+    try {
+       const [settingRows] = await connection.query('SELECT * FROM system_settings');
+       for (const row of settingRows) {
+          settingsCache[row.setting_key] = row.setting_value;
+       }
+       console.log('✅ Settings loaded from DB:', settingsCache);
+    } catch (e) {
+       console.error('Error loading settings from DB', e);
+    }
 
 
     // Auto migration for telegram_chat_id
