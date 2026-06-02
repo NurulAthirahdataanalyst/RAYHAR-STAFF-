@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import AppLayout from "@/components/layout/AppLayout";
+import { PageLoader } from "./components/shared/PageLoader";
 
 import Dashboard from "./pages/Dashboard";
 import Attendance from "./pages/Attendance";
@@ -108,6 +109,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <PageLoader />
           <AuthProvider>
             <Routes>
               <Route path="/login" element={<AuthRoute />} />

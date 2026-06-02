@@ -73,6 +73,12 @@ export default function Reports() {
   // Attendance & Punctuality State
   const [dailyAttendance, setDailyAttendance] = useState<AttendanceRecord[]>([]);
   const [loadingDaily, setLoadingDaily] = useState(false);
+  const [attendanceStats, setAttendanceStats] = useState({
+    presentToday: 0,
+    lateArrivals: 0,
+    absentToday: 0,
+    attendanceRate: 0,
+  });
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
   const [branchComparison, setBranchComparison] = useState<any[]>([]);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
@@ -150,13 +156,35 @@ export default function Reports() {
   const fetchDailyAttendance = async () => {
     setLoadingDaily(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${selectedDate}`);
-      const data = await response.json();
+      const [resDaily, resStats] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${selectedDate}`),
+        fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=hr_admin&branch=All`)
+      ]);
+      const data = await resDaily.json();
+      const statsData = await resStats.json();
+
       if (data.success) {
         setDailyAttendance(data.report);
       }
+
+      if (statsData.success && statsData.stats) {
+        const s = statsData.stats;
+        const total = s.totalEmployees || 0;
+        const present = s.presentToday || 0;
+        const late = s.lateArrivals || 0;
+        const onLeave = s.onLeave || 0;
+        const absent = Math.max(0, total - present - onLeave);
+        const rate = (total - onLeave) > 0 ? Math.round((present / (total - onLeave)) * 100) : 0;
+
+        setAttendanceStats({
+          presentToday: present,
+          lateArrivals: late,
+          absentToday: absent,
+          attendanceRate: rate,
+        });
+      }
     } catch (error) {
-      console.error("Error fetching daily attendance:", error);
+      console.error("Error fetching daily attendance & stats:", error);
     } finally {
       setLoadingDaily(false);
     }
@@ -465,33 +493,33 @@ export default function Reports() {
         <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500">
           {/* KPI HIGHLIGHT CARDS */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {/* Card 1: Average Attendance */}
-            <Card className="shadow-md bg-[#eefcf2] dark:bg-[#0d2a1a] hover:bg-[#e6f9ed] dark:hover:bg-[#0f331f] border border-[#c3f2d2] dark:border-[#0e4827]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
-              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500" />
+            {/* Card 1: Present Today */}
+            <Card className="shadow-md bg-[#eff6ff] dark:bg-[#0c1f3c] hover:bg-[#e0f0ff] dark:hover:bg-[#0e2547] border border-[#dbeafe] dark:border-[#163063]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
+              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest block truncate">Average Attendance</span>
+                  <span className="text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-widest block truncate">Present Today</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
-                    <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">{activeRateAvg}%</span>
-                    <span className="text-[9px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">▲ Target Met</span>
+                    <span className="text-3xl font-black text-blue-600 dark:text-blue-400">{attendanceStats.presentToday}</span>
+                    <span className="text-[9px] font-black text-blue-700 dark:text-blue-300 bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">Active Personnel</span>
                   </div>
-                  <p className="text-[9px] text-emerald-800/60 dark:text-emerald-400/60 font-semibold uppercase tracking-wider">Across all regional branches</p>
+                  <p className="text-[9px] text-blue-800/60 dark:text-blue-400/60 font-semibold uppercase tracking-wider">Arrived and clocked in</p>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 group-hover:scale-110 transition-transform">
-                  <Activity className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-110 transition-transform">
+                  <Users className="w-5 h-5" />
                 </div>
               </CardContent>
             </Card>
 
-            {/* Card 2: Late Arrivals */}
+            {/* Card 2: Late Today */}
             <Card className="shadow-md bg-[#fffbeb] dark:bg-[#2c1e0e] hover:bg-[#fff7d6] dark:hover:bg-[#342411] border border-[#fef3c7] dark:border-[#4d3214]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest block truncate">Late Arrivals</span>
+                  <span className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest block truncate">Late Today</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
-                    <span className="text-3xl font-black text-amber-600 dark:text-amber-400">{lateRate}%</span>
-                    <span className="text-[9px] font-black text-amber-700 dark:text-amber-300 bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">● {lateArrivalsCount} Late</span>
+                    <span className="text-3xl font-black text-amber-600 dark:text-amber-400">{attendanceStats.lateArrivals}</span>
+                    <span className="text-[9px] font-black text-amber-700 dark:text-amber-300 bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">Post Threshold</span>
                   </div>
                   <p className="text-[9px] text-amber-800/60 dark:text-amber-400/60 font-semibold uppercase tracking-wider">Post {workStartTime} Window</p>
                 </div>
@@ -501,38 +529,38 @@ export default function Reports() {
               </CardContent>
             </Card>
 
-            {/* Card 3: Approved Leaves */}
-            <Card className="shadow-md bg-[#eff6ff] dark:bg-[#0c1f3c] hover:bg-[#e0f0ff] dark:hover:bg-[#0e2547] border border-[#dbeafe] dark:border-[#163063]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
-              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500" />
+            {/* Card 3: Absent Today */}
+            <Card className="shadow-md bg-[#fef2f2] dark:bg-[#3b1313] hover:bg-[#fee2e2] dark:hover:bg-[#471717] border border-[#fecaca] dark:border-[#631e1e]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
+              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-red-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-widest block truncate">Active Approved Leaves</span>
+                  <span className="text-[10px] font-black text-red-700 dark:text-red-400 uppercase tracking-widest block truncate">Absent Today</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
-                    <span className="text-3xl font-black text-blue-600 dark:text-blue-400">{totalLeaveRequests}</span>
-                    <span className="text-[9px] font-black text-blue-700 dark:text-blue-300 bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">Total Records</span>
+                    <span className="text-3xl font-black text-red-600 dark:text-red-400">{attendanceStats.absentToday}</span>
+                    <span className="text-[9px] font-black text-red-700 dark:text-red-300 bg-red-500/10 dark:bg-red-500/20 border border-red-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">Not Synced</span>
                   </div>
-                  <p className="text-[9px] text-blue-800/60 dark:text-blue-400/60 font-semibold uppercase tracking-wider">Leaves registered in system</p>
+                  <p className="text-[9px] text-red-800/60 dark:text-red-400/60 font-semibold uppercase tracking-wider">Not clocked in today</p>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-110 transition-transform">
-                  <Calendar className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-2xl bg-red-500/10 dark:bg-red-500/20 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0 group-hover:scale-110 transition-transform">
+                  <AlertCircle className="w-5 h-5" />
                 </div>
               </CardContent>
             </Card>
 
-            {/* Card 4: Total Staff Count */}
-            <Card className="shadow-md bg-[#faf5ff] dark:bg-[#200a2d] hover:bg-[#f3ebff] dark:hover:bg-[#260c35] border border-[#f3e8ff] dark:border-[#4c1266]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
-              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#7B0099]" />
+            {/* Card 4: Attendance Rate */}
+            <Card className="shadow-md bg-[#eefcf2] dark:bg-[#0d2a1a] hover:bg-[#e6f9ed] dark:hover:bg-[#0f331f] border border-[#c3f2d2] dark:border-[#0e4827]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
+              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-purple-700 dark:text-purple-400 uppercase tracking-widest block truncate">Total Staff Count</span>
+                  <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest block truncate">Attendance Rate</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
-                    <span className="text-3xl font-black text-[#7B0099] dark:text-purple-400">{totalStaffCount || 10}</span>
-                    <span className="text-[9px] font-black text-purple-700 dark:text-purple-300 bg-purple-500/10 dark:bg-purple-500/20 border border-[#7B0099]/20 rounded-full px-2 py-0.5 whitespace-nowrap">Active personnel</span>
+                    <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">{attendanceStats.attendanceRate}%</span>
+                    <span className="text-[9px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">▲ Target Met</span>
                   </div>
-                  <p className="text-[9px] text-purple-800/60 dark:text-purple-400/60 font-semibold uppercase tracking-wider">HQ & Regional Branches</p>
+                  <p className="text-[9px] text-emerald-800/60 dark:text-emerald-400/60 font-semibold uppercase tracking-wider">Excluding active leaves</p>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-[#7B0099]/10 dark:bg-[#7B0099]/20 flex items-center justify-center text-[#7B0099] dark:text-purple-400 shrink-0 group-hover:scale-110 transition-transform">
-                  <Users className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 group-hover:scale-110 transition-transform">
+                  <TrendingUp className="w-5 h-5" />
                 </div>
               </CardContent>
             </Card>

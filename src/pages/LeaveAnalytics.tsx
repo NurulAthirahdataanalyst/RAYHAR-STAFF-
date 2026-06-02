@@ -456,14 +456,6 @@ export default function LeaveAnalytics() {
         </CardContent>
       </Card>
 
-      {/* ── Attendance Widget ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
-        <StatCard label="Present Today" value={attendanceStats.presentToday} icon={Users} accent="bg-blue-500/10 text-blue-600" loading={loading} />
-        <StatCard label="Late Today" value={attendanceStats.lateArrivals} icon={Loader2} accent="bg-amber-500/10 text-amber-600" loading={loading} />
-        <StatCard label="Absent Today" value={attendanceStats.absentToday} icon={XCircle} accent="bg-rose-500/10 text-rose-600" loading={loading} />
-        <StatCard label="Attendance Rate" value={`${attendanceStats.attendanceRate}%`} icon={TrendingUp} accent="bg-emerald-500/10 text-emerald-600" loading={loading} />
-      </div>
-
       {/* ── Summary Cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
