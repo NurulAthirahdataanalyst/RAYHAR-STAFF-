@@ -1233,6 +1233,15 @@ app.post("/api/login", async (req, res) => {
 
     const user = rows[0];
 
+    // Block login for Inactive users
+    if (user.status && user.status.trim().toLowerCase() === 'inactive') {
+      return res.status(403).json({ 
+        success: false, 
+        error: "Your account has been deactivated. Please contact HR.", 
+        message: "Your account has been deactivated. Please contact HR." 
+      });
+    }
+
     let isMatch = false;
     if (typeof user.password === 'string' && (user.password.startsWith('$2a$') || user.password.startsWith('$2b$') || user.password.startsWith('$2y$'))) {
       isMatch = await bcrypt.compare(password, user.password);
