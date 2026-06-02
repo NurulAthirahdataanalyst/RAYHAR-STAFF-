@@ -46,7 +46,14 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     .reduce((acc, curr) => acc + curr.days, 0);
 
   const totalLeavesUsed = annualLeavesUsed + sickLeavesUsed + emergencyLeavesUsed;
-  const leaveBalanceRemaining = Math.max(14 - annualLeavesUsed, 0);
+  
+  // Calculate remaining balance using the exact same logic as Leave Management (Quota includes Pending and Sick Leaves)
+  const quotaLeavesUsed = leaveRequests
+    .filter(l => l.status !== "Rejected")
+    .filter(l => ['Cuti Tahunan', 'Annual/Emergency Leave', 'Cuti Sakit', 'Sick Leave', 'Kecemasan', 'Emergency'].includes(l.leave_type))
+    .reduce((acc, curr) => acc + Number(curr.days || 0), 0);
+    
+  const leaveBalanceRemaining = Math.max(14 - quotaLeavesUsed, 0);
 
   // Streak
   let streak = 0;
