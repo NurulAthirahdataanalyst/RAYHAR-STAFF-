@@ -1871,6 +1871,7 @@ app.get("/api/reports/analytics", async (req, res) => {
   try {
     const requestedMonth = parseInt(req.query.month) || (new Date().getMonth() + 1);
     const requestedYear = parseInt(req.query.year) || new Date().getFullYear();
+    const requestedDateStr = req.query.date || new Date().toISOString().split('T')[0];
     
     const now = new Date();
     const isCurrentMonth = requestedMonth === (now.getMonth() + 1) && requestedYear === now.getFullYear();
@@ -1883,7 +1884,7 @@ app.get("/api/reports/analytics", async (req, res) => {
         p.branch,
         COUNT(DISTINCT (a.user_id, DATE(a.clock_in))) as total_present,
         COUNT(DISTINCT p.user_id) as total_employees,
-        COUNT(DISTINCT CASE WHEN a.clock_out IS NULL AND DATE(a.clock_in) = CURRENT_DATE THEN a.user_id END) as active_now
+        COUNT(DISTINCT CASE WHEN DATE(a.clock_in) = ? THEN a.user_id END) as active_now
       FROM profiles p
       LEFT JOIN attendances a ON p.user_id = a.user_id 
         AND EXTRACT(MONTH FROM a.clock_in) = ? 
@@ -1891,7 +1892,7 @@ app.get("/api/reports/analytics", async (req, res) => {
       WHERE p.status = 'Active'
       GROUP BY p.branch
       `,
-      [requestedMonth, requestedYear]
+      [requestedDateStr, requestedMonth, requestedYear]
     );
 
     const branchComparison = branchRows.map(row => {

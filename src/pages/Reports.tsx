@@ -200,7 +200,7 @@ export default function Reports() {
   const fetchAnalytics = async () => {
     setLoadingAnalytics(true);
     try {
-      const params = new URLSearchParams({ month: selectedMonth, year: selectedYear });
+      const params = new URLSearchParams({ month: selectedMonth.toString(), year: selectedYear.toString(), date: selectedDate });
       const response = await fetch(`${API_BASE_URL}/api/reports/analytics?${params}`);
       const data = await response.json();
       if (data.success) {
