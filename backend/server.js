@@ -1057,6 +1057,35 @@ app.get("/api/employees", async (req, res) => {
 });
 
 // ===============================
+// UPDATE EMPLOYEE STATUS
+// ===============================
+app.post("/api/employees/status", async (req, res) => {
+  const { user_id, status, changer_role } = req.body;
+
+  if (!user_id || !status) {
+    return res.status(400).json({ success: false, error: "Missing required fields: user_id or status" });
+  }
+
+  // Security check: Only hr_admin and managing_director can modify employee status
+  if (changer_role !== "hr_admin" && changer_role !== "managing_director") {
+    return res.status(403).json({ success: false, error: "Unauthorized: Only HR Admins or Managing Directors can change employee status." });
+  }
+
+  try {
+    await pool.query(
+      "UPDATE profiles SET status = ? WHERE user_id = ?",
+      [status, user_id]
+    );
+
+    res.json({ success: true, message: `Employee status updated to ${status} successfully.` });
+    broadcastPresenceUpdate({ type: 'employee-status-change', userId: user_id, status });
+  } catch (err) {
+    console.error("Update Employee Status Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ===============================
 // DEPARTMENT HOD TRANSFER
 // ===============================
 app.post("/api/departments/hod-transfer", async (req, res) => {

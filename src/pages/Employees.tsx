@@ -130,6 +130,51 @@ export default function Employees() {
     setIsModalOpen(true);
   };
 
+  const handleToggleStatus = async (e: React.MouseEvent, emp: any) => {
+    e.stopPropagation();
+    const currentStatus = emp.status || "Active";
+    const nextStatus = currentStatus === "Active" ? "Inactive" : "Active";
+    
+    const confirmMessage = currentStatus === "Active" 
+      ? `Are you sure you want to mark ${emp.name} as Resigned/Inactive?`
+      : `Are you sure you want to reactivate ${emp.name}?`;
+      
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/employees/status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: emp.id || emp.user_id,
+          status: nextStatus,
+          changer_role: role
+        })
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        toast({
+          title: `Status Updated!`,
+          description: `Successfully marked ${emp.name} as ${nextStatus}.`
+        });
+        fetchEmployees();
+      } else {
+        toast({
+          title: "Update Failed",
+          description: data.error || "Failed to update status",
+          variant: "destructive"
+        });
+      }
+    } catch (err) {
+      console.error("Error toggling status:", err);
+      toast({
+        title: "Connection Error",
+        description: "Could not connect to the server.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (signupPassword.length < 6) {
@@ -257,10 +302,26 @@ export default function Employees() {
                             <span className="text-xs font-bold text-muted-foreground capitalize">{emp.position.replace('_', ' ')}</span>
                           </td>
                           <td className="py-4 px-6 text-xs font-bold text-muted-foreground">{emp.branch}</td>
-                          <td className="py-4 px-6">
-                            <Badge variant={emp.status === "Active" ? "default" : "secondary"} className={`text-[10px] font-black px-3 ${emp.status === 'Active' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}>
-                              {emp.status}
-                            </Badge>
+                           <td className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-2">
+                              <Badge variant={emp.status === "Active" ? "default" : "secondary"} className={`text-[10px] font-black px-3 ${emp.status === 'Active' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}>
+                                {emp.status}
+                              </Badge>
+                              {role === "hr_admin" && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => handleToggleStatus(e, emp)}
+                                  className={`h-7 px-2.5 rounded-lg text-[9px] font-black uppercase tracking-wider ${
+                                    emp.status === "Active"
+                                      ? "hover:bg-red-500/10 hover:text-red-500 text-red-400"
+                                      : "hover:bg-emerald-500/10 hover:text-emerald-500 text-emerald-400"
+                                  }`}
+                                >
+                                  {emp.status === "Active" ? "Resigned / Inactivate" : "Re-activate"}
+                                </Button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -288,9 +349,25 @@ export default function Employees() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2 mb-1">
                           <p className="font-black text-sm text-foreground truncate">{emp.name}</p>
-                          <Badge className={`text-[9px] font-black h-5 shrink-0 ${emp.status === 'Active' ? 'bg-emerald-500' : 'bg-muted text-muted-foreground'}`}>
-                            {emp.status}
-                          </Badge>
+                           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                            <Badge className={`text-[9px] font-black h-5 shrink-0 ${emp.status === 'Active' ? 'bg-emerald-500' : 'bg-muted text-muted-foreground'}`}>
+                              {emp.status}
+                            </Badge>
+                            {role === "hr_admin" && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => handleToggleStatus(e, emp)}
+                                className={`h-6 px-2 rounded-md text-[8px] font-black uppercase tracking-wider ${
+                                  emp.status === "Active"
+                                    ? "hover:bg-red-500/10 hover:text-red-500 text-red-500"
+                                    : "hover:bg-emerald-500/10 hover:text-emerald-500 text-emerald-500"
+                                }`}
+                              >
+                                {emp.status === "Active" ? "Inactivate" : "Activate"}
+                              </Button>
+                            )}
+                          </div>
                         </div>
                         <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                           <span className="truncate max-w-[100px]">{emp.position.replace('_', ' ')}</span>
