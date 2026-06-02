@@ -29,6 +29,7 @@ import CalendarPage from "./pages/Calendar";
 import MasterPlaceholder from "./pages/master/Placeholder";
 import Department from "./pages/master/Department";
 import DepartmentDetails from "./pages/master/DepartmentDetails";
+import MasterOverview from "./pages/master/Overview";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +76,7 @@ function ProtectedRoutes() {
           <Route path="/calendar" element={<CalendarPage />} />
           
           {/* Master Section */}
+          <Route path="/master" element={<MasterOverview />} />
           <Route path="/master/department" element={<Department />} />
           <Route path="/master/department/:deptName" element={<DepartmentDetails />} />
           <Route path="/master/designation" element={<MasterPlaceholder title="Designation" />} />
