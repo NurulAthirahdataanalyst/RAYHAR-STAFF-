@@ -366,6 +366,9 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
 
     // Ensure user_id column is VARCHAR(100) and not UUID (to support employee format IDs like 'E019')
     try {
+      // First drop potential foreign key constraints that would block changing column type
+      await connection.query("ALTER TABLE personal_notes DROP CONSTRAINT IF EXISTS fk_user");
+      await connection.query("ALTER TABLE personal_notes DROP CONSTRAINT IF EXISTS personal_notes_user_id_fkey");
       await connection.query("ALTER TABLE personal_notes ALTER COLUMN user_id TYPE VARCHAR(100)");
       console.log('🚀 Successfully verified/migrated personal_notes.user_id column type to VARCHAR(100).');
     } catch (colErr) {

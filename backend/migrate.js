@@ -11,7 +11,7 @@ async function migrate() {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS personal_notes (
         id SERIAL PRIMARY KEY,
-        user_id UUID NOT NULL,
+        user_id VARCHAR(100) NOT NULL,
         date DATE NOT NULL,
         note_text TEXT NOT NULL,
         type VARCHAR(50) DEFAULT 'note',

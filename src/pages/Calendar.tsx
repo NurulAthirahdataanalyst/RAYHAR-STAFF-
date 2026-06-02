@@ -126,10 +126,12 @@ export default function Calendar() {
         setNotes([...notes, data.note]);
         setNewNoteText("");
         setIsAddNoteOpen(false);
-        toast.success("Note added successfully");
+        toast.success(newNoteType === 'reminder' ? "Reminder added successfully" : "Note added successfully");
+      } else {
+        toast.error(data.error || "Failed to add event");
       }
     } catch (error) {
-      toast.error("Failed to add note");
+      toast.error("Failed to add event");
     }
   };
 
@@ -143,10 +145,12 @@ export default function Calendar() {
       const data = await res.json();
       if (data.success) {
         setNotes(notes.filter(n => n.id !== id));
-        toast.success("Note deleted");
+        toast.success("Event deleted");
+      } else {
+        toast.error(data.error || "Failed to delete event");
       }
     } catch (error) {
-      toast.error("Failed to delete note");
+      toast.error("Failed to delete event");
     }
   };
 
@@ -357,7 +361,7 @@ export default function Calendar() {
                   }}
                   classNames={{
                     day_selected: "bg-[#7B0099] text-white hover:bg-[#5e0080] focus:bg-[#7B0099]",
-                    day_today: "border-2 border-[#7B0099] text-[#7B0099] font-black rounded-full shadow-sm bg-purple-500/10",
+                    day_today: "border-2 border-[#7B0099] text-[#7B0099] font-black rounded-full shadow-sm bg-purple-500/10 aria-selected:bg-[#7B0099] aria-selected:text-white aria-selected:border-[#7B0099]",
                     head_cell: "text-muted-foreground font-bold text-[10px] uppercase tracking-wider w-10 text-center",
                     cell: "h-10 w-10 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-muted/50 [&:has([aria-selected])]:bg-muted/50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
                     day: "h-10 w-10 p-0 font-medium aria-selected:opacity-100 text-foreground hover:bg-muted rounded-full transition-all",
