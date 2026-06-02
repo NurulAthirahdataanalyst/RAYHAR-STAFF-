@@ -1684,7 +1684,17 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const totalDays = parseInt(todayDayRows[0].today_day || 1);
     const attendanceRate = totalDays > 0 ? Math.round((daysPresent / totalDays) * 100) : 0;
 
-    // 3. PENDING LEAVES
+    // 3. PENDING LEAVES & LEAVE BALANCE
+    const [leaveRows] = await pool.query(
+      `SELECT SUM(days) AS used_days FROM leave_requests 
+       WHERE user_id = ? 
+       AND status != 'Rejected' 
+       AND leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Cuti Sakit', 'Sick Leave', 'Kecemasan', 'Emergency')`,
+      [userId]
+    );
+    const quotaLeavesUsed = parseFloat(leaveRows[0].used_days || 0);
+    const leaveBalance = Math.max(14 - quotaLeavesUsed, 0);
+
     const [pendingRows] = await pool.query(
       `SELECT COUNT(*) AS pending FROM leave_requests WHERE user_id = ? AND status LIKE 'Pending%'`,
       [userId]
@@ -1704,7 +1714,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     res.json({
       success: true,
       stats: {
-        leaveBalance: 14,
+        leaveBalance,
         pendingLeaves,
         todayStatus,
         clockInTime,
