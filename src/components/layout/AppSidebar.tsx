@@ -98,7 +98,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "User", icon: Users, path: "/employees", roles: ["hr_admin"] },
       ],
     },
-    { title: "Branches", icon: Building2, path: "/branches", roles: ["hr_admin", "managing_director", "finance_manager"] },
+    { title: "Branches", icon: Building2, path: "/branches", roles: ADMIN_ROLES },
     { title: "Analytical", icon: BarChart3, path: "/reports", roles: ["hr_admin"] },
     // All other roles (employees, managers, HOD, etc.) get the Employee Performance Insights page
     { title: "Analytical", icon: BarChart3, path: "/analytics", roles: ALL_ROLES.filter(r => r !== "hr_admin") },

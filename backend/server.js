@@ -386,6 +386,41 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       console.error('⚠️ Database sanitization warning:', sanErr.message);
     }
 
+    // Auto-update branch locations to be geographically accurate (Kemaman, Terengganu, Selangor, Johor, Perak, etc.) instead of generic "RAYHAR BRANCH"
+    try {
+      const correctBranches = [
+        { code: "HQ", location: "Kemaman,Terengganu" },
+        { code: "KMM", location: "Kemaman,Terengganu" },
+        { code: "CNH", location: "Kemaman,Terengganu" },
+        { code: "KBG", location: "Hulu Terengganu,Terengganu" },
+        { code: "TGG", location: "Kuala Terengganu,Terengganu" },
+        { code: "DGN", location: "Dungun,Terengganu" },
+        { code: "JTH", location: "Besut,Terengganu" },
+        { code: "KBR", location: "Kota Bharu,Kelantan" },
+        { code: "RMP", location: "Rompin,Pahang" },
+        { code: "MZM", location: "Muadzam Shah,Pahang" },
+        { code: "SHA", location: "Shah Alam,Selangor" },
+        { code: "BBB", location: "Bandar Baru Bangi,Selangor" },
+        { code: "KUL", location: "Kuala Lumpur,Wilayah Persekutuan" },
+        { code: "IPH", location: "Ipoh,Perak" },
+        { code: "MJG", location: "Manjung,Perak" },
+        { code: "KKS", location: "Kuala Kangsar,Perak" },
+        { code: "MLK", location: "Melaka,Melaka" },
+        { code: "AOR", location: "Alor Setar,Kedah" },
+        { code: "BTM", location: "Bertam,Pulau Pinang" },
+        { code: "SNS", location: "Seremban,Negeri Sembilan" },
+        { code: "BTP", location: "Batu Pahat,Johor" },
+        { code: "JB", location: "Johor Bharu,Johor" },
+        { code: "TWU", location: "Tawau,Sabah" }
+      ];
+      for (const b of correctBranches) {
+        await connection.query("UPDATE branches SET location = ? WHERE code = ? AND (location IS NULL OR location = 'RAYHAR BRANCH' OR location = '')", [b.location, b.code]);
+      }
+      console.log('🚀 Successfully updated correct geographical locations for all Rayhar branches in the database.');
+    } catch (branchLocErr) {
+      console.error('⚠️ Database branch location update warning:', branchLocErr.message);
+    }
+
     connection.release();
   } catch (error) {
     console.error('❌ Error connecting to PostgreSQL:', error.message);
@@ -1882,35 +1917,35 @@ app.get("/api/branches", async (req, res) => {
     
     if (rows.length === 0) {
       const fallbackBranches = [
-        { code: "HQ", name: "Rayhar HQ" },
-        { code: "KMM", name: "Kemaman" },
-        { code: "CNH", name: "Cheneh" },
-        { code: "KBG", name: "Kuala Berang" },
-        { code: "TGG", name: "Kuala Terengganu" },
-        { code: "DGN", name: "Dungun" },
-        { code: "JTH", name: "Jertih" },
-        { code: "KBR", name: "Kota Bharu" },
-        { code: "RMP", name: "Rompin" },
-        { code: "MZM", name: "Muadzam Shah" },
-        { code: "SHA", name: "Shah Alam" },
-        { code: "BBB", name: "Bandar Baru Bangi" },
-        { code: "KUL", name: "Kuala Lumpur" },
-        { code: "IPH", name: "Ipoh" },
-        { code: "MJG", name: "Manjung" },
-        { code: "KKS", name: "Kuala Kangsar" },
-        { code: "MLK", name: "Melaka" },
-        { code: "AOR", name: "Alor Setar" },
-        { code: "BTM", name: "Bertam" },
-        { code: "SNS", name: "Seremban" },
-        { code: "BTP", name: "Batu Pahat" },
-        { code: "JB", name: "Johor Bharu" },
-        { code: "TWU", name: "Tawau" }
+        { code: "HQ", name: "Rayhar HQ", location: "Kemaman,Terengganu" },
+        { code: "KMM", name: "Kemaman", location: "Kemaman,Terengganu" },
+        { code: "CNH", name: "Cheneh", location: "Kemaman,Terengganu" },
+        { code: "KBG", name: "Kuala Berang", location: "Hulu Terengganu,Terengganu" },
+        { code: "TGG", name: "Kuala Terengganu", location: "Kuala Terengganu,Terengganu" },
+        { code: "DGN", name: "Dungun", location: "Dungun,Terengganu" },
+        { code: "JTH", name: "Jertih", location: "Besut,Terengganu" },
+        { code: "KBR", name: "Kota Bharu", location: "Kota Bharu,Kelantan" },
+        { code: "RMP", name: "Rompin", location: "Rompin,Pahang" },
+        { code: "MZM", name: "Muadzam Shah", location: "Muadzam Shah,Pahang" },
+        { code: "SHA", name: "Shah Alam", location: "Shah Alam,Selangor" },
+        { code: "BBB", name: "Bandar Baru Bangi", location: "Bandar Baru Bangi,Selangor" },
+        { code: "KUL", name: "Kuala Lumpur", location: "Kuala Lumpur,Wilayah Persekutuan" },
+        { code: "IPH", name: "Ipoh", location: "Ipoh,Perak" },
+        { code: "MJG", name: "Manjung", location: "Manjung,Perak" },
+        { code: "KKS", name: "Kuala Kangsar", location: "Kuala Kangsar,Perak" },
+        { code: "MLK", name: "Melaka", location: "Melaka,Melaka" },
+        { code: "AOR", name: "Alor Setar", location: "Alor Setar,Kedah" },
+        { code: "BTM", name: "Bertam", location: "Bertam,Pulau Pinang" },
+        { code: "SNS", name: "Seremban", location: "Seremban,Negeri Sembilan" },
+        { code: "BTP", name: "Batu Pahat", location: "Batu Pahat,Johor" },
+        { code: "JB", name: "Johor Bharu", location: "Johor Bharu,Johor" },
+        { code: "TWU", name: "Tawau", location: "Tawau,Sabah" }
       ];
 
       for (const b of fallbackBranches) {
         await pool.query(
-          "INSERT INTO branches (branch, code, name) VALUES (?, ?, ?)",
-          [b.code, b.code, b.name]
+          "INSERT INTO branches (branch, code, name, location) VALUES (?, ?, ?, ?)",
+          [b.code, b.code, b.name, b.location]
         );
       }
       
