@@ -109,15 +109,22 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     }
   }
 
-  // Leave Utilization (Jan - Dec)
-  const monthsStr = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const utilizationData = monthsStr.map((m, i) => {
-    const mLeaves = approvedLeaves.filter(l => new Date(l.start_date).getMonth() === i);
-    const ann = mLeaves.filter(l => ['Cuti Tahunan', 'Annual/Emergency Leave'].includes(l.leave_type)).reduce((a, b) => a + b.days, 0);
-    const sck = mLeaves.filter(l => ['Cuti Sakit', 'Sick Leave'].includes(l.leave_type)).reduce((a, b) => a + b.days, 0);
-    const emg = mLeaves.filter(l => ['Kecemasan', 'Emergency'].includes(l.leave_type)).reduce((a, b) => a + b.days, 0);
-    return { name: m, "Annual Leave": ann, "Sick Leave": sck, "Emergency Leave": emg };
-  }).filter(m => m["Annual Leave"] > 0 || m["Sick Leave"] > 0 || m["Emergency Leave"] > 0 || monthsStr.indexOf(m.name) <= new Date().getMonth());
+  // Leave Utilization (Selected Month)
+  const selectedMonthIndex = parseInt(month) - 1;
+  const monthNameStr = new Date(parseInt(year), selectedMonthIndex).toLocaleString('default', { month: 'short' });
+  const mLeaves = approvedLeaves.filter(l => new Date(l.start_date).getMonth() === selectedMonthIndex && new Date(l.start_date).getFullYear() === parseInt(year));
+  const monthAnn = mLeaves.filter(l => ['Cuti Tahunan', 'Annual/Emergency Leave'].includes(l.leave_type)).reduce((a, b) => a + b.days, 0);
+  const monthSck = mLeaves.filter(l => ['Cuti Sakit', 'Sick Leave'].includes(l.leave_type)).reduce((a, b) => a + b.days, 0);
+  const monthEmg = mLeaves.filter(l => ['Kecemasan', 'Emergency'].includes(l.leave_type)).reduce((a, b) => a + b.days, 0);
+  
+  const utilizationData = [
+    { 
+      name: monthNameStr, 
+      "Annual Leave": monthAnn, 
+      "Sick Leave": monthSck, 
+      "Emergency Leave": monthEmg 
+    }
+  ];
 
   // Clock in analysis
   let earliest = "23:59:59";
@@ -274,7 +281,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
         <Card className="rounded-[24px] border-none shadow-sm bg-white/90 dark:bg-card">
           <CardContent className="p-5">
-            <h3 className="text-xs font-black uppercase tracking-widest text-foreground mb-4">LEAVE UTILIZATION (This Year)</h3>
+            <h3 className="text-xs font-black uppercase tracking-widest text-foreground mb-4">LEAVE UTILIZATION (This Month)</h3>
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={utilizationData} margin={{ top: 5, right: 20, bottom: 5, left: -20 }}>
@@ -283,9 +290,9 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
                   <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
-                  <Bar dataKey="Annual Leave" fill="#10b981" radius={[4,4,0,0]} barSize={12} />
-                  <Bar dataKey="Sick Leave" fill="#3b82f6" radius={[4,4,0,0]} barSize={12} />
-                  <Bar dataKey="Emergency Leave" fill="#f59e0b" radius={[4,4,0,0]} barSize={12} />
+                  <Bar dataKey="Annual Leave" fill="#10b981" radius={[4,4,0,0]} barSize={24} />
+                  <Bar dataKey="Sick Leave" fill="#3b82f6" radius={[4,4,0,0]} barSize={24} />
+                  <Bar dataKey="Emergency Leave" fill="#f59e0b" radius={[4,4,0,0]} barSize={24} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
