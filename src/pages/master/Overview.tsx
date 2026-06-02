@@ -29,6 +29,7 @@ export default function MasterOverview() {
   const navigate = useNavigate();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
+  const [branches, setBranches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
 
@@ -51,6 +52,13 @@ export default function MasterOverview() {
         setDepartments(deptsList);
       }
 
+      // Fetch branches
+      const branchRes = await fetch(`${API_BASE_URL}/api/branches`);
+      const branchData = await branchRes.json();
+      if (branchData.success) {
+        setBranches(branchData.branches);
+      }
+
       // Fetch employees (All employees for HR Admin view)
       const empRes = await fetch(`${API_BASE_URL}/api/employees?role=hr_admin&branch=`);
       const empData = await empRes.json();
@@ -71,6 +79,7 @@ export default function MasterOverview() {
 
   // Calculations
   const totalDepartments = departments.length;
+  const totalBranches = branches.length > 0 ? branches.length : 24;
   const totalUsers = employees.length;
   const activeUsers = employees.filter(e => e.status === "Active").length;
   const inactiveUsers = totalUsers - activeUsers;
@@ -158,9 +167,27 @@ export default function MasterOverview() {
         <div className="space-y-6 sm:space-y-8">
           
           {/* TOP EXECUTIVE KPI CARDS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
             
-            {/* KPI 1: Departments */}
+            {/* KPI 1: Branches */}
+            <Card className="shadow-md bg-[#fff0f5] dark:bg-[#2d0a1f] border border-[#fce7f3] dark:border-[#5c1340]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group hover:shadow-lg">
+              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-pink-500" />
+              <CardContent className="p-6 flex items-center justify-between gap-4">
+                <div className="space-y-1.5 min-w-0 flex-1">
+                  <span className="text-[10px] font-black text-pink-700 dark:text-pink-400 uppercase tracking-widest block truncate">Branches</span>
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="text-3xl font-black text-pink-600 dark:text-pink-400">{totalBranches}</span>
+                    <span className="text-[9px] font-black text-pink-700 dark:text-pink-300 bg-pink-500/10 dark:bg-pink-500/20 border border-pink-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">Active Branches</span>
+                  </div>
+                  <p className="text-[9px] text-pink-800/60 dark:text-pink-400/60 font-semibold uppercase tracking-wider">Regional Offices & Outlets</p>
+                </div>
+                <div className="w-12 h-12 rounded-2xl bg-pink-500/10 dark:bg-pink-500/20 flex items-center justify-center text-pink-600 dark:text-pink-400 shrink-0 group-hover:scale-110 transition-transform">
+                  <MapPin className="w-5 h-5" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* KPI 2: Departments */}
             <Card className="shadow-md bg-[#eff6ff] dark:bg-[#0c1f3c] border border-[#dbeafe] dark:border-[#163063]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group hover:shadow-lg">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
@@ -234,7 +261,7 @@ export default function MasterOverview() {
           </div>
 
           {/* MAIN PORTAL SELECTOR CARDS */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             
             {/* Left Portal: Department Master Overview */}
             <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden flex flex-col justify-between">
@@ -335,6 +362,57 @@ export default function MasterOverview() {
                   className="w-full py-5 rounded-xl bg-[#7B0099] hover:bg-[#5e0080] text-white font-black text-[10px] uppercase tracking-widest shadow-md flex items-center justify-center gap-1.5"
                 >
                   Manage System Users
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </Card>
+
+            {/* Right Portal: Branches Directory */}
+            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden flex flex-col justify-between">
+              <div>
+                <CardHeader className="pb-4 border-b border-border/40 flex flex-row items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-pink-500/10 text-pink-600 rounded-xl">
+                      <MapPin className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">Branches Directory</CardTitle>
+                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Regional network configuration</CardDescription>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="font-black text-[10px] px-3.5 py-1 text-pink-600 border-none bg-pink-500/10">
+                    {totalBranches} BRANCHES
+                  </Badge>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-4">
+                  {/* Branch Density List */}
+                  <div className="space-y-3.5">
+                    <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Branch Allocation Density</h4>
+                    <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1">
+                      {Object.entries(branchCounts).sort((a: any, b: any) => b[1] - a[1]).slice(0, 4).map(([branchName, count]: [string, any]) => {
+                        const pct = totalUsers > 0 ? Math.round((count / totalUsers) * 100) : 0;
+                        return (
+                          <div key={branchName} className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span className="font-black text-foreground">{branchName}</span>
+                              <span className="font-black text-muted-foreground">{count} Staff ({pct}%)</span>
+                            </div>
+                            <div className="h-2 w-full rounded-full bg-muted/40 overflow-hidden">
+                              <div className="h-full bg-pink-500 rounded-full" style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </CardContent>
+              </div>
+              <div className="p-6 border-t border-border/40 bg-muted/5">
+                <Button 
+                  onClick={() => navigate("/branches")}
+                  className="w-full py-5 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-black text-[10px] uppercase tracking-widest shadow-md flex items-center justify-center gap-1.5"
+                >
+                  Configure Branches
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
