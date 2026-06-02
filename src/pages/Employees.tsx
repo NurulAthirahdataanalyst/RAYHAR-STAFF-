@@ -136,7 +136,7 @@ export default function Employees() {
     const nextStatus = currentStatus === "Active" ? "Inactive" : "Active";
     
     const confirmMessage = currentStatus === "Active" 
-      ? `Are you sure you want to mark ${emp.name} as Resigned/Inactive?`
+      ? `Are you sure you want to mark ${emp.name} as Inactive?`
       : `Are you sure you want to reactivate ${emp.name}?`;
       
     if (!window.confirm(confirmMessage)) return;
@@ -318,7 +318,7 @@ export default function Employees() {
                                       : "hover:bg-emerald-500/10 hover:text-emerald-500 text-emerald-400"
                                   }`}
                                 >
-                                  {emp.status === "Active" ? "Resigned / Inactivate" : "Re-activate"}
+                                  {emp.status === "Active" ? "Inactive" : "Re-activate"}
                                 </Button>
                               )}
                             </div>
@@ -364,7 +364,7 @@ export default function Employees() {
                                     : "hover:bg-emerald-500/10 hover:text-emerald-500 text-emerald-500"
                                 }`}
                               >
-                                {emp.status === "Active" ? "Inactivate" : "Activate"}
+                                {emp.status === "Active" ? "Inactive" : "Activate"}
                               </Button>
                             )}
                           </div>
