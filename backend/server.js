@@ -356,13 +356,22 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
     await connection.query(`
       CREATE TABLE IF NOT EXISTS personal_notes (
         id SERIAL PRIMARY KEY,
-        user_id UUID NOT NULL,
+        user_id VARCHAR(100) NOT NULL,
         date DATE NOT NULL,
         note_text TEXT NOT NULL,
         type VARCHAR(50) DEFAULT 'note',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    // Ensure user_id column is VARCHAR(100) and not UUID (to support employee format IDs like 'E019')
+    try {
+      await connection.query("ALTER TABLE personal_notes ALTER COLUMN user_id TYPE VARCHAR(100)");
+      console.log('🚀 Successfully verified/migrated personal_notes.user_id column type to VARCHAR(100).');
+    } catch (colErr) {
+      console.error('⚠️ Personal notes migration warning:', colErr.message);
+    }
+
     // Create an index to make looking up notes by month faster
     await connection.query(`CREATE INDEX IF NOT EXISTS idx_personal_notes_user_date ON personal_notes(user_id, date);`);
     console.log('✅ Auto-migration for personal_notes completed.');

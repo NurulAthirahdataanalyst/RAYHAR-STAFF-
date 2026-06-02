@@ -56,16 +56,11 @@ export default function Calendar() {
 
   const fetchCalendarData = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
       const currentUserId = user?.user_id || user?.id;
       if (!currentUserId) return;
 
-      const headers = { Authorization: `Bearer ${token}` };
-
       // Fetch Notes
-      const notesRes = await fetch(`${API_BASE_URL}/api/personal-notes?userId=${currentUserId}`, { headers });
+      const notesRes = await fetch(`${API_BASE_URL}/api/personal-notes?userId=${currentUserId}`);
       const notesData = await notesRes.json();
       if (notesData.success) setNotes(notesData.notes);
 
@@ -75,9 +70,7 @@ export default function Calendar() {
       if (holData.success) setHolidays(holData.holidays);
 
       // Fetch Attendance
-      // For simplicity, we assume we fetch the last 30 days or so, 
-      // but if the endpoint is /api/attendance/history we can use that.
-      const attRes = await fetch(`${API_BASE_URL}/api/attendance/history?userId=${currentUserId}`, { headers });
+      const attRes = await fetch(`${API_BASE_URL}/api/attendance/history?userId=${currentUserId}`);
       const attData = await attRes.json();
       if (attData.success) setAttendance(attData.history);
 
@@ -90,8 +83,10 @@ export default function Calendar() {
   };
 
   useEffect(() => {
-    fetchCalendarData();
-  }, []);
+    if (user) {
+      fetchCalendarData();
+    }
+  }, [user]);
 
   // Filter items for selected date
   const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
@@ -111,14 +106,12 @@ export default function Calendar() {
     if (!newNoteText.trim()) return;
 
     try {
-      const token = localStorage.getItem("token");
       const currentUserId = user?.user_id || user?.id;
       if (!currentUserId) return;
       const res = await fetch(`${API_BASE_URL}/api/personal-notes`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           userId: currentUserId,
@@ -142,12 +135,10 @@ export default function Calendar() {
 
   const handleDeleteNote = async (id: number) => {
     try {
-      const token = localStorage.getItem("token");
       const currentUserId = user?.user_id || user?.id;
       if (!currentUserId) return;
       const res = await fetch(`${API_BASE_URL}/api/personal-notes/${id}?userId=${currentUserId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
+        method: "DELETE"
       });
       const data = await res.json();
       if (data.success) {
@@ -366,6 +357,7 @@ export default function Calendar() {
                   }}
                   classNames={{
                     day_selected: "bg-[#7B0099] text-white hover:bg-[#5e0080] focus:bg-[#7B0099]",
+                    day_today: "border-2 border-[#7B0099] text-[#7B0099] font-black rounded-full shadow-sm bg-purple-500/10",
                     head_cell: "text-muted-foreground font-bold text-[10px] uppercase tracking-wider w-10 text-center",
                     cell: "h-10 w-10 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-muted/50 [&:has([aria-selected])]:bg-muted/50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
                     day: "h-10 w-10 p-0 font-medium aria-selected:opacity-100 text-foreground hover:bg-muted rounded-full transition-all",
