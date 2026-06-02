@@ -51,6 +51,11 @@ export default function Calendar() {
   const [isAddNoteOpen, setIsAddNoteOpen] = useState(false);
   const [newNoteText, setNewNoteText] = useState("");
   const [newNoteType, setNewNoteType] = useState("note");
+  
+  // Reminder-specific fields
+  const [newNoteTitle, setNewNoteTitle] = useState("");
+  const [newNoteTimeEnabled, setNewNoteTimeEnabled] = useState(false);
+  const [newNoteTime, setNewNoteTime] = useState("09:00");
 
   const [loading, setLoading] = useState(true);
 
@@ -103,7 +108,32 @@ export default function Calendar() {
 
   const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newNoteText.trim()) return;
+    
+    let finalNoteText = "";
+    if (newNoteType === 'reminder') {
+      if (!newNoteTitle.trim()) {
+        toast.error("Reminder title is required");
+        return;
+      }
+      let timeString = "";
+      if (newNoteTimeEnabled && newNoteTime) {
+        const [hours, minutes] = newNoteTime.split(':');
+        const h = parseInt(hours, 10);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const h12 = h % 12 || 12;
+        timeString = ` at ${h12}:${minutes} ${ampm}`;
+      }
+      finalNoteText = `${newNoteTitle}${timeString}`;
+      if (newNoteText.trim()) {
+        finalNoteText += `\n\n${newNoteText}`;
+      }
+    } else {
+      if (!newNoteText.trim()) {
+        toast.error("Note text is required");
+        return;
+      }
+      finalNoteText = newNoteText;
+    }
 
     try {
       const currentUserId = user?.user_id || user?.id;
@@ -116,7 +146,7 @@ export default function Calendar() {
         body: JSON.stringify({
           userId: currentUserId,
           date: selectedDateStr,
-          note_text: newNoteText,
+          note_text: finalNoteText,
           type: newNoteType
         })
       });
@@ -125,6 +155,9 @@ export default function Calendar() {
       if (data.success) {
         setNotes([...notes, data.note]);
         setNewNoteText("");
+        setNewNoteTitle("");
+        setNewNoteTimeEnabled(false);
+        setNewNoteTime("09:00");
         setIsAddNoteOpen(false);
         toast.success(newNoteType === 'reminder' ? "Reminder added successfully" : "Note added successfully");
       } else {
@@ -240,15 +273,64 @@ export default function Calendar() {
                         Reminder
                       </button>
                     </div>
-                    <textarea 
-                      placeholder="Type your note here..."
-                      className="w-full bg-background border border-border rounded-xl p-3 text-foreground focus:outline-none focus:border-[#7B0099] min-h-[100px]"
-                      value={newNoteText}
-                      onChange={e => setNewNoteText(e.target.value)}
-                      required
-                    />
-                    <div className="flex justify-end">
-                      <Button type="submit" className="bg-[#7B0099] hover:bg-purple-800 text-white rounded-xl font-bold">
+
+                    {newNoteType === 'note' ? (
+                      <textarea 
+                        placeholder="Type your note here..."
+                        className="w-full bg-background border border-border rounded-xl p-3 text-foreground focus:outline-none focus:border-[#7B0099] min-h-[100px]"
+                        value={newNoteText}
+                        onChange={e => setNewNoteText(e.target.value)}
+                        required
+                      />
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="space-y-3 p-4 bg-background border border-border rounded-xl">
+                          <input
+                            type="text"
+                            placeholder="Title"
+                            className="w-full bg-transparent border-b border-border pb-3 text-foreground focus:outline-none focus:border-yellow-600 font-bold placeholder:font-normal"
+                            value={newNoteTitle}
+                            onChange={e => setNewNoteTitle(e.target.value)}
+                            required
+                          />
+                          <textarea 
+                            placeholder="Notes"
+                            className="w-full bg-transparent pt-1 text-foreground focus:outline-none min-h-[60px] resize-none placeholder:font-normal"
+                            value={newNoteText}
+                            onChange={e => setNewNoteText(e.target.value)}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between p-3.5 bg-background border border-border rounded-xl">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-blue-500 rounded-md p-1.5 text-white">
+                              <Clock className="w-4 h-4" />
+                            </div>
+                            <span className="font-bold text-sm text-foreground">Time</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            {newNoteTimeEnabled && (
+                              <input 
+                                type="time"
+                                value={newNoteTime}
+                                onChange={e => setNewNoteTime(e.target.value)}
+                                className="bg-muted p-1 rounded-md text-sm font-bold outline-none border border-border/50 text-foreground"
+                              />
+                            )}
+                            <button 
+                              type="button"
+                              onClick={() => setNewNoteTimeEnabled(!newNoteTimeEnabled)}
+                              className={`w-12 h-6 flex items-center rounded-full p-1 transition-all ${newNoteTimeEnabled ? 'bg-green-500' : 'bg-muted-foreground/30'}`}
+                            >
+                              <div className={`bg-white w-4.5 h-4.5 rounded-full shadow-sm transform transition-all ${newNoteTimeEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-end pt-2">
+                      <Button type="submit" className={newNoteType === 'reminder' ? "bg-yellow-600 hover:bg-yellow-700 text-white rounded-xl font-bold px-6" : "bg-[#7B0099] hover:bg-purple-800 text-white rounded-xl font-bold px-6"}>
                         Save
                       </Button>
                     </div>
