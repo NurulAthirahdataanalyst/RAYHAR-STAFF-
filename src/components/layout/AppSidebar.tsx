@@ -164,7 +164,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                 ? location.pathname === item.path
                 : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
             const visibleChildren = item.children?.filter((child) =>
-              child.roles.includes(role || "branch_leader")
+              child.roles.includes(role || "employee")
             );
 
             return (

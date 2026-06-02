@@ -377,11 +377,21 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       console.log('ℹ️ profiles table telegram_chat_id column already matches schema.');
     }
 
+    // Auto sanitization of database user_role table and profiles status column (fixes trailing carriage returns/newlines/spaces for all roles)
+    try {
+      await connection.query("UPDATE user_role SET role = TRIM(BOTH FROM REGEXP_REPLACE(role, '[\\r\\n\\s]+', '', 'g'))");
+      await connection.query("UPDATE profiles SET status = TRIM(BOTH FROM REGEXP_REPLACE(status, '[\\r\\n\\s]+', '', 'g'))");
+      console.log('🚀 Successfully sanitized all database user roles and profile statuses.');
+    } catch (sanErr) {
+      console.error('⚠️ Database sanitization warning:', sanErr.message);
+    }
+
     connection.release();
   } catch (error) {
     console.error('❌ Error connecting to PostgreSQL:', error.message);
   }
 })();
+
 
 // ===============================
 // REAL-TIME PRESENCE FEED (SSE)
@@ -614,7 +624,9 @@ app.get("/api/branch-employees", async (req, res) => {
 // LEAVE REQUESTS
 // ===============================
 app.get("/api/leave-requests", async (req, res) => {
-  const { userId, role, branch } = req.query;
+  const userId = req.query.userId;
+  const role = req.query.role ? req.query.role.toString().trim() : "";
+  const branch = req.query.branch ? req.query.branch.toString().trim() : "";
 
   try {
     const params = [];
@@ -826,7 +838,9 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
               <br/>
               <p>Please log in to the Employee Portal to review and approve/reject this request as <strong>${approverTitle}</strong>.</p>
             `;
-            sendNotificationEmail(approverEmail, subject, html);
+            sendNotificationEmail(approverEmail, subject, html).catch(err => {
+              console.error("Failed to send HOD notification email asynchronously:", err);
+            });
           }
         }
       } catch (mailErr) {
@@ -842,7 +856,8 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
 
 app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
   const { leaveId } = req.params;
-  const { status, approver_id, approver_note, role, remarks, action } = req.body;
+  const { status, approver_id, approver_note, remarks, action } = req.body;
+  const role = req.body.role ? req.body.role.toString().trim() : "";
 
   // status can be 'Approved', 'Rejected', etc.
   // action can be 'Approve' or 'Reject'
@@ -946,7 +961,9 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
         }
 
         if (targetEmail) {
-          sendNotificationEmail(targetEmail, subject, html);
+          sendNotificationEmail(targetEmail, subject, html).catch(err => {
+            console.error("Failed to send status update email asynchronously:", err);
+          });
         }
       }
     } catch (mailErr) {
@@ -1484,7 +1501,9 @@ app.get("/api/attendance/history", async (req, res) => {
 // DASHBOARD STATS
 // ===============================
 app.get("/api/dashboard-stats", async (req, res) => {
-  const { userId, role, branch } = req.query;
+  const userId = req.query.userId;
+  const role = req.query.role ? req.query.role.toString().trim() : "";
+  const branch = req.query.branch ? req.query.branch.toString().trim() : "";
 
   if (!userId) {
     return res.status(400).json({ success: false, error: "Missing userId" });

@@ -95,8 +95,8 @@ export default function Reports() {
   const [leaveUtilization, setLeaveUtilization] = useState<any>(null);
   const [loadingLeave, setLoadingLeave] = useState(false);
 
-  // Settings config values (Static fallback)
-  const workStartTime = "09:00 AM";
+  // Settings config values (Dynamic fetch with static fallback)
+  const [workStartTime, setWorkStartTime] = useState("09:00 AM");
 
   // Report Generator State
   const [generatorType, setGeneratorType] = useState<"stability" | "trends" | "leave" | "financial">("trends");
@@ -142,6 +142,13 @@ export default function Reports() {
       if (deptData.success) {
         setDeptStats(deptData.departments);
         setDepartments(deptData.departments.map((d: any) => d.name));
+      }
+
+      // 3. Fetch Settings for Late Arrival Threshold
+      const settingsRes = await fetch(`${API_BASE_URL}/api/settings`);
+      const settingsData = await settingsRes.json();
+      if (settingsData.success && settingsData.settings?.lateThreshold) {
+        setWorkStartTime(settingsData.settings.lateThreshold);
       }
     } catch (e) {
       console.error("Error loading system lists:", e);
@@ -378,15 +385,6 @@ export default function Reports() {
        ...d,
        fill: d.rate >= 90 ? '#22C55E' : d.rate >= 75 ? '#F59E0B' : '#EF4444'
     }));
-
-  const heatmapDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const heatmapData = liveBranchRanking.map((b, i) => ({
-    branch: b.branch,
-    days: heatmapDays.map((day, dIdx) => ({
-      day,
-      rate: i % 2 === 0 ? (90 - dIdx * 3) : (82 + dIdx * 2)
-    }))
-  }));
 
   // Calculate live values
   const activeRateAvg = branchComparison.length > 0
@@ -709,46 +707,53 @@ export default function Reports() {
                   </div>
                   Live Branch Pulse
                 </CardTitle>
-                <CardDescription className="text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-70 ml-12 italic text-muted-foreground mt-1">Real-time branch attendance averages and intensity heatmap patterns</CardDescription>
+                <CardDescription className="text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-70 ml-12 italic text-muted-foreground mt-1">Real-time branch attendance averages leaderboard</CardDescription>
               </div>
               
-              <div className="flex flex-wrap items-center gap-3">
-                <Select value={liveRegion} onValueChange={setLiveRegion}>
-                  <SelectTrigger className="w-[140px] h-10 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-xl border-border/50 bg-white/50 dark:bg-black/20 shadow-sm">
-                    <Filter className="w-3.5 h-3.5 mr-2 inline text-[#7B0099]" />
-                    <SelectValue placeholder="Region" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="all" className="text-[10px] font-black uppercase tracking-widest">All Regions</SelectItem>
-                    <SelectItem value="North Malaysia" className="text-[10px] font-black uppercase tracking-widest">North Region</SelectItem>
-                    <SelectItem value="Central / West Coast" className="text-[10px] font-black uppercase tracking-widest">Central Region</SelectItem>
-                    <SelectItem value="South Malaysia" className="text-[10px] font-black uppercase tracking-widest">South Region</SelectItem>
-                    <SelectItem value="East Coast / East Malaysia" className="text-[10px] font-black uppercase tracking-widest">East Region</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="flex flex-wrap items-center gap-2">
+                {[
+                  { value: "all", label: "All Regions" },
+                  { value: "North Malaysia", label: "North" },
+                  { value: "Central / West Coast", label: "Central" },
+                  { value: "South Malaysia", label: "South" },
+                  { value: "East Coast / East Malaysia", label: "East" }
+                ].map((reg) => (
+                  <Button
+                    key={reg.value}
+                    variant={liveRegion === reg.value ? "default" : "outline"}
+                    onClick={() => setLiveRegion(reg.value)}
+                    className={`h-8 rounded-full text-[10px] font-black uppercase tracking-wider transition-all duration-300 border-border/60 ${
+                      liveRegion === reg.value
+                        ? "bg-[#7B0099] hover:bg-[#5e0080] text-white shadow-md shadow-[#7B0099]/10"
+                        : "text-muted-foreground hover:bg-[#7B0099]/5 hover:text-[#7B0099] bg-white/50 dark:bg-black/10"
+                    }`}
+                  >
+                    {reg.label}
+                  </Button>
+                ))}
               </div>
             </CardHeader>
-            <CardContent className="pt-8 grid grid-cols-1 xl:grid-cols-3 gap-10 xl:gap-8">
+            <CardContent className="pt-8 w-full">
               {/* Horizontal Bar Chart */}
-              <div className="xl:col-span-2 flex flex-col">
+              <div className="flex flex-col w-full">
                 <div className="flex items-center justify-between mb-6">
                   <h4 className="text-xs font-black text-foreground uppercase tracking-widest flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#7B0099] animate-pulse" />
                     Branch Leaderboard
                   </h4>
                 </div>
-                <div className="w-full transition-all duration-500" style={{ height: `${Math.max(250, liveBranchRanking.length * 35)}px` }}>
+                <div className="w-full transition-all duration-500" style={{ height: `${Math.max(250, liveBranchRanking.length * 40)}px` }}>
                   {liveBranchRanking.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={liveBranchRanking} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
+                      <BarChart data={liveBranchRanking} layout="vertical" margin={{ top: 0, right: 40, left: 10, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" horizontal={true} vertical={false} />
                         <XAxis type="number" domain={[0, 100]} hide />
-                        <YAxis dataKey="branch" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: 'hsl(var(--foreground))' }} width={40} />
+                        <YAxis dataKey="branch" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: 'hsl(var(--foreground))' }} width={45} />
                         <Tooltip
                           cursor={{ fill: 'rgba(123,0,153,0.03)' }}
                           contentStyle={{ borderRadius: '16px', border: '1px solid rgba(123,0,153,0.1)', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', padding: '12px', backgroundColor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)' }}
                         />
-                        <Bar dataKey="rate" radius={[0, 8, 8, 0]} barSize={12}>
+                        <Bar dataKey="rate" radius={[0, 8, 8, 0]} barSize={14}>
                           {liveBranchRanking.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.fill} />
                           ))}
@@ -758,56 +763,6 @@ export default function Reports() {
                   ) : (
                     <div className="flex h-full items-center justify-center text-xs text-muted-foreground uppercase font-black">
                       No matching records
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Heatmap */}
-              <div className="flex flex-col xl:border-l border-border/40 xl:pl-8">
-                <h4 className="text-xs font-black text-foreground uppercase tracking-widest mb-6 flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#7B0099]" />
-                  7-Day Attendance Intensity
-                </h4>
-                <div className="flex-1 overflow-hidden pb-2">
-                  {heatmapData.length > 0 ? (
-                    <div className="w-full">
-                      <div className="grid grid-cols-8 gap-1 mb-2">
-                        <div className="col-span-1"></div>
-                        {heatmapDays.map(day => (
-                          <div key={day} className="text-[8px] font-black text-muted-foreground text-center uppercase tracking-tighter">{day}</div>
-                        ))}
-                        <div className="text-[8px] font-black text-muted-foreground text-center uppercase tracking-tighter">Avg</div>
-                      </div>
-                      <div className="space-y-1.5">
-                        {heatmapData.slice(0, 10).map((row) => {
-                          const rowAvg = Math.round(row.days.reduce((sum, d) => sum + d.rate, 0) / row.days.length);
-                          return (
-                            <div key={row.branch} className="grid grid-cols-8 gap-1 items-center group">
-                              <div className="text-[9px] font-black text-foreground truncate">{row.branch}</div>
-                              {row.days.map((d, i) => {
-                                const opacity = d.rate < 70 ? 0.3 : d.rate < 85 ? 0.6 : 1;
-                                return (
-                                  <div 
-                                    key={i} 
-                                    className="bg-[#7B0099] h-5 rounded-[4px] transition-all duration-300 group-hover:scale-[1.05] cursor-help relative hover:z-10 shadow-sm"
-                                    style={{ opacity }}
-                                  >
-                                    <div className="absolute opacity-0 hover:opacity-100 bottom-full left-1/2 -translate-x-1/2 mb-1 z-50 bg-foreground text-background text-[9px] font-black px-2 py-1 rounded-md shadow-xl whitespace-nowrap pointer-events-none transition-opacity">
-                                      {d.day}: {d.rate}%
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                              <div className="text-[9px] font-black text-[#7B0099] text-center bg-[#7B0099]/10 rounded-md py-0.5">{rowAvg}%</div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-20 text-xs text-muted-foreground uppercase font-black">
-                      No patterns detected
                     </div>
                   )}
                 </div>
