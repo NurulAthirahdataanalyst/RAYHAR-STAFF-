@@ -17,12 +17,14 @@ import {
 import { User, LogOut, ChevronRight, ChevronLeft, Settings, Menu, ClipboardCheck, Calendar, Sparkles } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { API_BASE_URL } from "../../config/api";
+import { useShiftNotifications } from "@/hooks/useShiftNotifications";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { role: resolvedRole, userBranch, userDepartment } = useRole();
+  useShiftNotifications();
   const [pendingApprovals, setPendingApprovals] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {

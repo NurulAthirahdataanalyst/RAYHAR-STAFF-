@@ -1790,6 +1790,71 @@ app.get("/api/reports/total-leave-requests", async (req, res) => {
 });
 
 // ===============================
+// EMPLOYEE RANK API
+// ===============================
+app.get("/api/reports/employee-rank", async (req, res) => {
+  const userId = req.query.userId;
+  const requestedMonth = parseInt(req.query.month) || (new Date().getMonth() + 1);
+  const requestedYear = parseInt(req.query.year) || new Date().getFullYear();
+
+  if (!userId) {
+    return res.status(400).json({ success: false, error: "Missing userId" });
+  }
+
+  try {
+    const lateTimeStr = getLateThresholdTime();
+    
+    // Fetch all active employees attendance for the month
+    const [rows] = await pool.query(
+      `
+      SELECT 
+        a.user_id,
+        COUNT(a.attendance_id) AS total_days,
+        SUM(CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END) AS late_days
+      FROM attendances a
+      JOIN profiles p ON p.user_id = a.user_id
+      WHERE EXTRACT(MONTH FROM a.clock_in) = ?
+        AND EXTRACT(YEAR FROM a.clock_in) = ?
+        AND p.status = 'Active'
+      GROUP BY a.user_id
+      `,
+      [lateTimeStr, requestedMonth, requestedYear]
+    );
+
+    const rankings = rows.map(row => {
+      const total = parseInt(row.total_days);
+      const late = parseInt(row.late_days || 0);
+      const onTime = total - late;
+      const score = total > 0 ? Math.round((onTime / total) * 100) : 0;
+      return { user_id: row.user_id, score, total };
+    });
+
+    rankings.sort((a, b) => b.score - a.score || b.total - a.total); // higher score first, then more days first
+
+    const rankIndex = rankings.findIndex(r => r.user_id === userId);
+    
+    // Also get total active employees for "of 58"
+    const [empRows] = await pool.query(`SELECT COUNT(*) as total_active FROM profiles WHERE status = 'Active'`);
+    const totalActive = parseInt(empRows[0].total_active || rankings.length);
+    
+    if (rankIndex === -1) {
+      // No attendance yet
+      return res.json({ success: true, rank: null, total: totalActive, score: 0 });
+    }
+
+    res.json({
+      success: true,
+      rank: rankIndex + 1,
+      total: totalActive,
+      score: rankings[rankIndex].score
+    });
+  } catch (err) {
+    console.error("Employee Rank Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ===============================
 // ANALYTICS REPORT API
 // ===============================
 app.get("/api/reports/analytics", async (req, res) => {

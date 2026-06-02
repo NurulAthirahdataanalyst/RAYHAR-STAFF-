@@ -15,7 +15,7 @@ import {
   ArrowUpRight, Star,
 } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
-
+import EmployeeAnalyticsView from "./EmployeeAnalyticsView";
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface AttendanceLog {
   attendance_id: number;
@@ -212,7 +212,7 @@ export default function EmployeeAnalytics() {
 
   // Self data
   const [myLogs, setMyLogs]     = useState<AttendanceLog[]>([]);
-  const [myLeaves, setMyLeaves] = useState(0);
+  const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
   const [loadingMe, setLoadingMe] = useState(true);
 
   // Team data (admin view)
@@ -250,7 +250,7 @@ export default function EmployeeAnalytics() {
         setMyLogs(attData.history);
       }
       if (leaveData.success && Array.isArray(leaveData.leaveRequests)) {
-        setMyLeaves(leaveData.leaveRequests.filter((l: any) => l.status === "Approved").length);
+        setLeaveRequests(leaveData.leaveRequests);
       }
     } catch (err) {
       console.error("EmployeeAnalytics: fetchMyData error", err);
@@ -262,8 +262,9 @@ export default function EmployeeAnalytics() {
   // ── My Metrics ────────────────────────────────────────────────────────────
   const myMetrics = useMemo(() => {
     if (!userId || myLogs.length === 0) return null;
-    return computeMetrics(myLogs, myLeaves, userId, userName, userBranch, userDepartment || "");
-  }, [myLogs, myLeaves, userId, userName, userBranch, userDepartment]);
+    const approvedLeaves = leaveRequests.filter(l => l.status === "Approved").length;
+    return computeMetrics(myLogs, approvedLeaves, userId, userName, userBranch, userDepartment || "");
+  }, [myLogs, leaveRequests, userId, userName, userBranch, userDepartment]);
 
   // ── Fetch team (admin only) ───────────────────────────────────────────────
   useEffect(() => {
@@ -387,160 +388,14 @@ export default function EmployeeAnalytics() {
       {/* ═══════════════════════════════════════════════════════════════════
           SECTION 1 — MY ATTENDANCE PROFILE
       ═══════════════════════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-5">
-
-        {/* My Profile Card */}
-        <Card className="xl:col-span-1 border-none shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
-          <div className="bg-gradient-to-br from-[#7B0099] to-[#a855f7] p-6 text-white">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/70">My Profile</p>
-                <h2 className="text-lg font-black tracking-tight mt-0.5 truncate max-w-[180px]">{userName}</h2>
-                <p className="text-[10px] font-bold text-white/70 uppercase tracking-widest">{userBranch}</p>
-              </div>
-              {myMetrics && (() => {
-                const cfg = BADGE_CONFIG[myMetrics.badge];
-                const Icon = cfg.icon;
-                return (
-                  <div className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl ${cfg.color} shadow-lg`}>
-                    <Icon className="w-4 h-4" />
-                    <span className="text-[8px] font-black uppercase tracking-widest">{cfg.label}</span>
-                  </div>
-                );
-              })()}
-            </div>
-
-            {/* Score rings */}
-            {loadingMe ? (
-              <div className="flex justify-center py-6">
-                <Loader2 className="animate-spin w-8 h-8 text-white/50" />
-              </div>
-            ) : myMetrics ? (
-              <div className="flex items-center justify-around mt-4">
-                <div className="flex flex-col items-center gap-1">
-                  <ScoreRing score={myMetrics.punctualityScore} color="#a3e635" size={72} />
-                  <span className="text-[9px] font-black uppercase tracking-widest text-white/70">Punctuality</span>
-                </div>
-                <div className="flex flex-col items-center gap-1">
-                  <ScoreRing score={myMetrics.consistencyScore} color="#38bdf8" size={72} />
-                  <span className="text-[9px] font-black uppercase tracking-widest text-white/70">Consistency</span>
-                </div>
-              </div>
-            ) : (
-              <p className="text-center text-white/50 text-[10px] font-bold py-4">No data this period</p>
-            )}
-          </div>
-
-          <CardContent className="p-5 space-y-3">
-            {loadingMe ? (
-              <div className="space-y-2">
-                {[1,2,3,4].map(i => <div key={i} className="h-10 bg-muted/50 rounded-2xl animate-pulse" />)}
-              </div>
-            ) : myMetrics ? (
-              <>
-                <div className="grid grid-cols-2 gap-3">
-                  <MetricCard label="Average Attendance" value={`${100 - myMetrics.absenteeismRate}%`}
-                    trend={{ value: "2.4%", positive: true, isGood: true }} icon={Users} accent="bg-blue-500" />
-                  <MetricCard label="Late Arrivals" value={myMetrics.totalDays > 0 ? `${Math.round((myMetrics.lateDays / myMetrics.totalDays) * 100)}%` : "0%"}
-                    trend={{ value: "1.2%", positive: false, isGood: false }} icon={Clock} accent="bg-rose-500" />
-                  <MetricCard label="Unplanned Leaves" value={`${myMetrics.leaveCount}`}
-                    trend={{ value: "0.5%", positive: false, isGood: true }} icon={CalendarCheck2} accent="bg-amber-500" />
-                  <MetricCard label="Punctuality Score" value={`${myMetrics.punctualityScore}/100`}
-                    sub="✓ Target Met" icon={Zap} accent="bg-emerald-500" />
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-8 text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest">
-                Clock in to see your metrics
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Streak + 14-day Calendar */}
-        <Card className="xl:col-span-2 border-none shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
-          <CardHeader className="border-b border-border/40">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-                  <div className="p-2 bg-amber-500/10 rounded-xl"><Flame className="w-4 h-4 text-amber-500" /></div>
-                  Attendance Streak
-                </CardTitle>
-                <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
-                  Consecutive on-time arrivals
-                </CardDescription>
-              </div>
-              {myMetrics && (
-                <div className="flex items-center gap-4">
-                  <div className="text-center">
-                    <div className="text-3xl font-black text-amber-500">{myMetrics.streak}</div>
-                    <div className="text-[8px] font-black text-muted-foreground uppercase">Current</div>
-                  </div>
-                  <div className="w-px h-10 bg-border/50" />
-                  <div className="text-center">
-                    <div className="text-3xl font-black text-[#7B0099]">{myMetrics.longestStreak}</div>
-                    <div className="text-[8px] font-black text-muted-foreground uppercase">Best</div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="p-5">
-            {loadingMe ? (
-              <div className="h-[200px] flex items-center justify-center">
-                <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-8 h-8" />
-              </div>
-            ) : recentDays.length === 0 ? (
-              <div className="h-[200px] flex items-center justify-center text-[10px] font-black text-muted-foreground/30 uppercase tracking-widest">
-                No attendance records this period
-              </div>
-            ) : (
-              <>
-                {/* Calendar strip */}
-                <div className="mb-4">
-                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2">Recent Days</p>
-                  <div className="flex flex-wrap gap-2">
-                    {recentDays.map((d, i) => (
-                      <div key={i} className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl border transition-all ${
-                        d.onTime
-                          ? "bg-emerald-500/10 border-emerald-500/30"
-                          : "bg-rose-500/10 border-rose-500/30"
-                      }`}>
-                        <span className="text-[8px] font-black text-muted-foreground uppercase">{d.date.split(" ")[0]}</span>
-                        <span className="text-[10px] font-black text-foreground">{d.date.split(" ")[1]}</span>
-                        <span className={`text-[8px] font-black uppercase ${d.onTime ? "text-emerald-600" : "text-rose-600"}`}>
-                          {d.onTime ? "✓" : "Late"}
-                        </span>
-                        <span className="text-[8px] font-bold text-muted-foreground/60">{d.hours.toFixed(1)}h</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Hours trend chart */}
-                <ResponsiveContainer width="100%" height={160}>
-                  <BarChart data={recentDays} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(123,0,153,0.05)" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
-                      axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
-                      axisLine={false} tickLine={false} domain={[0, 10]} />
-                    <Tooltip contentStyle={tooltipStyle}
-                      formatter={(v: number) => [`${v.toFixed(1)}h`, "Working Hours"]}
-                      labelStyle={{ fontWeight: 900, fontSize: 10 }} />
-                    <Bar dataKey="hours" radius={[6, 6, 0, 0]} barSize={18}
-                      fill="#7B0099" animationDuration={1200}>
-                      {recentDays.map((d, i) => (
-                        <rect key={i} fill={d.onTime ? "#7B0099" : "#ef4444"} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      <EmployeeAnalyticsView
+        userId={userId!}
+        userName={userName}
+        month={selectedMonth}
+        year={selectedYear}
+        myLogs={myLogs}
+        leaveRequests={leaveRequests}
+      />
 
       {/* ═══════════════════════════════════════════════════════════════════
           SECTION 2 — TEAM VIEW (admin roles only)

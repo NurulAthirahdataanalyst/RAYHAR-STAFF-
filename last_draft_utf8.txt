@@ -1,0 +1,63 @@
+﻿<USER_REQUEST>
+CONTINUE, FOLLOW THIS DRAFT,# Web-Based Employee Attendance Management \& Leave Tracking System for Human Resource Monitoring
+
+**Student Name:** NURUL ATHIRAH BINTI ABDUL RAHMAN  
+**Matric No:** AW230109  
+**Degree:** Bachelor of Science (Computational Data Analytics) with Honours  
+**Faculty:** Faculty of Applied Sciences and Technology, Universiti Tun Hussein Onn Malaysia  
+**Date:** May 2026
+
+\---
+
+## CHAPTER 1: INTRODUCTION
+
+### 1.1 Background of the Industrial Based Project
+
+Human Resource (HR) management is the backbone of organizational operations, responsible for managing employee welfare, tracking workforce productivity, and ensuring accurate payroll processing. One of the most fundamental yet labor-intensive tasks within HR is monitoring employee attendance and managing leave requests. Historically, organizations have relied on manual methods, such as paper-based logbooks, punch cards, or standalone spreadsheet files, to record when employees start and end their shifts.
+
+As digital transformation reshapes the modern workplace, there is a significant shift towards web-based HR monitoring systems. A Web-Based Employee Attendance Management and Leave Tracking System is a centralized digital platform that allows employees to clock in and out using web browsers and apply for leaves digitally. For HR administrators, it provides a real-time, consolidated view of workforce availability. By leveraging computational data analytics, these systems can process raw attendance timestamps to generate meaningful insights, such as identifying chronic absenteeism, tracking total hours worked, and automatically calculating remaining leave balances. This transition from manual to automated web-based tracking is crucial for enhancing operational efficiency, ensuring data integrity, and fostering a transparent work environment.
+
+### 1.2 Problem Statement
+
+Despite the availability of software solutions, many organizations still utilize outdated, semi-manual processes for attendance and leave tracking. This proje
+<truncated 10996 bytes>
+hedule relies on the Agile methodology, ensuring continuous progression from requirement analysis through to final deployment and documentation.
+
+### 5.2 Gantt Chart Schedule
+
+*(Note: A formal Gantt chart graphic will be inserted into the final report. The following represents the structured timeline.)*
+
+|Project Phase / Task|Week 1|Week 2|Week 3|Week 4|Week 5|Week 6|Week 7|Week 8|Week 9|Week 10|Week 11|Week 12|Week 13|Week 14|
+|-|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+|**Phase 1: Research \& Planning**|||||||||||||||
+|Literature Review \& Requirement Gathering|X|X|||||||||||||
+|Project Proposal Submission||X|||||||||||||
+|**Phase 2: System Design**|||||||||||||||
+|UI/UX Wireframing|||X||||||||||||
+|Database Schema \& Flowchart Design|||X|X|||||||||||
+|**Phase 3: Backend Development**|||||||||||||||
+|Database Setup \& User Authentication|||||X|X|||||||||
+|API Development (Attendance \& Leave)||||||X|X||||||||
+|**Phase 4: Frontend \& Analytics**|||||||||||||||
+|UI Integration \& Responsive Design||||||||X|X||||||
+|Dashboard Data Analytics Integration|||||||||X|X|||||
+|**Phase 5: Testing \& Refinement**|||||||||||||||
+|Unit Testing \& Bug Fixing|||||||||||X|X|||
+|Usability Evaluation with Simulated Data||||||||||||X|||
+|**Phase 6: Documentation**|||||||||||||||
+|Final Report Writing||||||||||||X|X|X|
+|Final Presentation Preparation||||||||||||||X|
+
+\---
+
+**REFERENCES**
+*(References will be formatted in APA style based on UTHM guidelines, incorporating academic sources on HR Information Systems, Agile Software Development, and the application of Data Analytics in Human Resources).*
+
+
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-02T12:45:31+08:00.
+</ADDITIONAL_METADATA>
+<USER_SETTINGS_CHANGE>
+The user changed setting `Model Selection` from Gemini 3.5 Flash (High) to Gemini 3.1 Pro (High). No need to comment on this change if the user doesn't ask about it. If reporting what model you are, please use a human readable name instead of the exact string.
+</USER_SETTINGS_CHANGE>
