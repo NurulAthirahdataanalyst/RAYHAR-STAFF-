@@ -1767,15 +1767,41 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
 
     const formattedReport = rows.map((row) => {
       let isLate = false;
+      let missingClockOut = false;
+      let isEarlyLeaver = false;
+      let isOvertime = false;
+      
       if (row.clock_in) {
-        const klTime = new Date(new Date(row.clock_in).getTime() + 8 * 60 * 60 * 1000);
-        const clockInHour = klTime.getUTCHours();
-        const clockInMinute = klTime.getUTCMinutes();
+        const klTimeIn = new Date(new Date(row.clock_in).getTime() + 8 * 60 * 60 * 1000);
+        const clockInHour = klTimeIn.getUTCHours();
+        const clockInMinute = klTimeIn.getUTCMinutes();
         isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
+
+        if (row.clock_out) {
+           const klTimeOut = new Date(new Date(row.clock_out).getTime() + 8 * 60 * 60 * 1000);
+           const clockOutHour = klTimeOut.getUTCHours();
+           if (clockOutHour < 17) {
+             isEarlyLeaver = true;
+           }
+           
+           const diffMs = new Date(row.clock_out).getTime() - new Date(row.clock_in).getTime();
+           if (diffMs > 9 * 60 * 60 * 1000) {
+             isOvertime = true;
+           }
+        } else {
+           const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
+           const isPastDate = klTimeIn.getUTCDate() !== nowKl.getUTCDate() || klTimeIn.getUTCMonth() !== nowKl.getUTCMonth() || klTimeIn.getUTCFullYear() !== nowKl.getUTCFullYear();
+           if (isPastDate) {
+             missingClockOut = true;
+           }
+        }
       }
       return {
         ...row,
-        is_late: isLate
+        is_late: isLate,
+        missing_clock_out: missingClockOut,
+        is_early_leaver: isEarlyLeaver,
+        is_overtime: isOvertime
       };
     });
 

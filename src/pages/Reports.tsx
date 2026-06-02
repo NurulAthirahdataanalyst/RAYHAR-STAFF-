@@ -671,24 +671,43 @@ export default function Reports() {
             </CardHeader>
             <CardContent className="pt-6">
               <div className="space-y-4">
-                {dailyAttendance.filter(r => (r as any).is_late).slice(0, 4).map((record) => (
-                  <div key={record.user_id} className="flex items-center justify-between p-4 bg-[#F59E0B]/5 hover:bg-[#F59E0B]/10 rounded-2xl border border-[#F59E0B]/10 hover:border-[#F59E0B]/30 transition-all">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#F59E0B]/10 flex items-center justify-center text-[#F59E0B] shrink-0">
-                        <AlertCircle className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-black text-foreground uppercase tracking-wide">{record.full_name}</p>
-                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{record.branch} • Late Arrival today at {formatAttendanceTime(record.clock_in)}</p>
-                      </div>
-                    </div>
-                    <Badge className="bg-[#F59E0B]/15 text-[#F59E0B] hover:bg-[#F59E0B]/20 font-black text-[9px] tracking-wider border-none px-3 py-1 uppercase rounded-lg">
-                      Late Checked
-                    </Badge>
-                  </div>
-                ))}
+                {(() => {
+                  const allAnomalies = dailyAttendance.flatMap(record => {
+                    const list = [];
+                    if ((record as any).is_late) {
+                      list.push({ id: `${record.user_id}-late`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'LATE', title: 'Late Checked', desc: `Late Arrival today at ${formatAttendanceTime(record.clock_in)}`, color: '#F59E0B' });
+                    }
+                    if ((record as any).is_early_leaver) {
+                      list.push({ id: `${record.user_id}-early`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'EARLY LEAVE', title: 'Early Leave', desc: `Clocked out early at ${formatAttendanceTime(record.clock_out)}`, color: '#F43F5E' });
+                    }
+                    if ((record as any).missing_clock_out) {
+                      list.push({ id: `${record.user_id}-missing`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'MISSING OUT', title: 'Missing Clock-Out', desc: `No clock-out recorded for this shift`, color: '#8B5CF6' });
+                    }
+                    if ((record as any).is_overtime) {
+                      list.push({ id: `${record.user_id}-overtime`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'OVERTIME', title: 'Overtime', desc: `Logged more than 9 hours for this shift`, color: '#3B82F6' });
+                    }
+                    return list;
+                  });
 
-                {dailyAttendance.filter(r => (r as any).is_late).length === 0 && (
+                  return allAnomalies.slice(0, 4).map((anomaly) => (
+                    <div key={anomaly.id} className="flex items-center justify-between p-4 rounded-2xl border transition-all" style={{ backgroundColor: `${anomaly.color}0D`, borderColor: `${anomaly.color}1A` }}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${anomaly.color}1A`, color: anomaly.color }}>
+                          <AlertCircle className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-foreground uppercase tracking-wide">{anomaly.full_name}</p>
+                          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{anomaly.branch} • {anomaly.desc}</p>
+                        </div>
+                      </div>
+                      <Badge className="font-black text-[9px] tracking-wider border-none px-3 py-1 uppercase rounded-lg" style={{ backgroundColor: `${anomaly.color}26`, color: anomaly.color }}>
+                        {anomaly.title}
+                      </Badge>
+                    </div>
+                  ));
+                })()}
+
+                {dailyAttendance.filter(r => (r as any).is_late || (r as any).is_early_leaver || (r as any).missing_clock_out || (r as any).is_overtime).length === 0 && (
                   <div className="text-center py-8 text-xs text-muted-foreground uppercase font-bold tracking-widest">
                     No active anomalies detected today
                   </div>
