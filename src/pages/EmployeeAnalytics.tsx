@@ -3,6 +3,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, Legend, LabelList,
@@ -58,7 +59,6 @@ interface EmployeeMetrics {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const WORK_START_HOUR = 8; // 08:00
 const STANDARD_HOURS  = 8; // hours/day
-const HOURLY_RATE_RM  = 12; // RM per OT hour (estimate)
 
 function parseHours(duration: string): number {
   // e.g. "08:30 hrs" or "08:30"
@@ -220,6 +220,8 @@ export default function EmployeeAnalytics() {
   const [teamMetrics, setTeamMetrics] = useState<EmployeeMetrics[]>([]);
   const [loadingTeam, setLoadingTeam] = useState(false);
   const [selectedEmpId, setSelectedEmpId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(5);
 
   const tooltipStyle = {
     borderRadius: "16px", border: "none",
@@ -271,6 +273,7 @@ export default function EmployeeAnalytics() {
 
   const fetchTeam = async () => {
     setLoadingTeam(true);
+    setCurrentPage(1);
     try {
       const empRes = await fetch(`${API_BASE_URL}/api/employees?role=${role}&branch=${userBranch}&department=${userDepartment || ""}`);
       const empData = await empRes.json();
@@ -305,6 +308,13 @@ export default function EmployeeAnalytics() {
     if (!selectedEmpId) return null;
     return teamMetrics.find(m => m.userId === selectedEmpId) ?? null;
   }, [selectedEmpId, teamMetrics]);
+
+  const indexOfLastItem = currentPage * entriesPerPage;
+  const indexOfFirstItem = indexOfLastItem - entriesPerPage;
+  const currentEntries = useMemo(() => {
+    return teamMetrics.slice(indexOfFirstItem, indexOfLastItem);
+  }, [teamMetrics, indexOfFirstItem, indexOfLastItem]);
+  const totalPages = Math.ceil(teamMetrics.length / entriesPerPage);
 
   // ── Dept Overtime Chart ───────────────────────────────────────────────────
   const deptOvertimeData = useMemo(() => {
@@ -565,83 +575,152 @@ export default function EmployeeAnalytics() {
                   No team data available for this period
                 </div>
               ) : (
-                <div className="divide-y divide-border/50">
-                  {teamMetrics.map((m, idx) => {
-                    const cfg = BADGE_CONFIG[m.badge];
-                    const BadgeIcon = cfg.icon;
-                    const isSelected = selectedEmpId === m.userId;
-                    return (
-                      <button
-                        key={m.userId}
-                        type="button"
-                        onClick={() => setSelectedEmpId(isSelected ? null : m.userId)}
-                        className={`w-full text-left px-4 sm:px-6 py-4 transition-all duration-200 hover:bg-[#7B0099]/5 ${
-                          isSelected ? "bg-[#7B0099]/8 border-l-2 border-[#7B0099]" : ""
-                        }`}
-                      >
-                        <div className="flex items-center gap-4">
-                          {/* Rank */}
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${
-                            idx === 0 ? "bg-amber-500 text-white" :
-                            idx === 1 ? "bg-slate-400 text-white" :
-                            idx === 2 ? "bg-orange-600 text-white" :
-                            "bg-muted text-muted-foreground"
-                          }`}>{idx + 1}</div>
+                <>
+                  <div className="divide-y divide-border/50">
+                    {currentEntries.map((m, idx) => {
+                      const cfg = BADGE_CONFIG[m.badge];
+                      const BadgeIcon = cfg.icon;
+                      const isSelected = selectedEmpId === m.userId;
+                      const absoluteRank = indexOfFirstItem + idx + 1;
+                      return (
+                        <button
+                          key={m.userId}
+                          type="button"
+                          onClick={() => setSelectedEmpId(isSelected ? null : m.userId)}
+                          className={`w-full text-left px-4 sm:px-6 py-4 transition-all duration-200 hover:bg-[#7B0099]/5 ${
+                            isSelected ? "bg-[#7B0099]/8 border-l-2 border-[#7B0099]" : ""
+                          }`}
+                        >
+                          <div className="flex items-center gap-4">
+                            {/* Rank */}
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${
+                              absoluteRank === 1 ? "bg-amber-500 text-white" :
+                              absoluteRank === 2 ? "bg-slate-400 text-white" :
+                              absoluteRank === 3 ? "bg-orange-600 text-white" :
+                              "bg-muted text-muted-foreground"
+                            }`}>{absoluteRank}</div>
 
-                          {/* Name */}
-                          <div className="flex-1 min-w-0">
-                            <p className="font-black text-sm text-foreground truncate">{m.name}</p>
-                            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{m.branch} · {m.department || "—"}</p>
-                          </div>
+                            {/* Name */}
+                            <div className="flex-1 min-w-0">
+                                <p className="font-black text-sm text-foreground truncate">{m.name}</p>
+                                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{m.branch} · {m.department || "—"}</p>
+                            </div>
 
-                          {/* Score bars */}
-                          <div className="hidden sm:flex items-center gap-4">
-                            <div className="flex flex-col items-end gap-0.5">
-                              <span className="text-[8px] font-black text-muted-foreground uppercase">Punctuality</span>
-                              <div className="flex items-center gap-1.5">
-                                <div className="w-24 h-1.5 rounded-full bg-muted/40 overflow-hidden">
-                                  <div className="h-full rounded-full bg-[#7B0099] transition-all"
-                                    style={{ width: `${m.punctualityScore}%` }} />
+                            {/* Score bars */}
+                            <div className="hidden sm:flex items-center gap-4">
+                              <div className="flex flex-col items-end gap-0.5">
+                                <span className="text-[8px] font-black text-muted-foreground uppercase">Punctuality</span>
+                                <div className="flex items-center gap-1.5">
+                                  <div className="w-24 h-1.5 rounded-full bg-muted/40 overflow-hidden">
+                                    <div className="h-full rounded-full bg-[#7B0099] transition-all"
+                                      style={{ width: `${m.punctualityScore}%` }} />
+                                  </div>
+                                  <span className="text-[10px] font-black text-[#7B0099] w-8">{m.punctualityScore}%</span>
                                 </div>
-                                <span className="text-[10px] font-black text-[#7B0099] w-8">{m.punctualityScore}%</span>
+                              </div>
+                              <div className="flex flex-col items-end gap-0.5">
+                                <span className="text-[8px] font-black text-muted-foreground uppercase">OT Hrs</span>
+                                <span className="text-[11px] font-black text-amber-600">{m.overtimeHours}h</span>
                               </div>
                             </div>
-                            <div className="flex flex-col items-end gap-0.5">
-                              <span className="text-[8px] font-black text-muted-foreground uppercase">OT Hrs</span>
-                              <span className="text-[11px] font-black text-amber-600">{m.overtimeHours}h</span>
-                            </div>
+
+                            <Badge className={`text-[8px] font-black px-2 py-0.5 ${cfg.color} border-none flex items-center gap-1`}>
+                              <BadgeIcon className="w-2.5 h-2.5" />{cfg.label}
+                            </Badge>
+                            <ChevronRight className={`w-4 h-4 text-muted-foreground/40 transition-transform ${isSelected ? "rotate-90 text-[#7B0099]" : ""}`} />
                           </div>
 
-                          <Badge className={`text-[8px] font-black px-2 py-0.5 ${cfg.color} border-none flex items-center gap-1`}>
-                            <BadgeIcon className="w-2.5 h-2.5" />{cfg.label}
-                          </Badge>
-                          <ChevronRight className={`w-4 h-4 text-muted-foreground/40 transition-transform ${isSelected ? "rotate-90 text-[#7B0099]" : ""}`} />
+                          {/* Expanded detail */}
+                          {isSelected && (
+                            <div className="mt-4 pt-4 border-t border-border/40 grid grid-cols-2 sm:grid-cols-4 gap-3 animate-in fade-in duration-200">
+                              {[
+                                { label: "Total Days",    value: m.totalDays,                  color: "text-foreground"   },
+                                { label: "On Time",       value: `${m.onTimeDays}d`,            color: "text-emerald-600"  },
+                                { label: "Late",          value: `${m.lateDays}d`,              color: "text-rose-600"     },
+                                { label: "Streak",        value: `${m.streak}d 🔥`,             color: "text-amber-600"    },
+                                { label: "Overtime",      value: `${m.overtimeHours}h`,         color: "text-amber-500"    },
+                                { label: "Consistency",   value: `${m.consistencyScore}%`,      color: "text-blue-600"     },
+                                { label: "Avg Hours",     value: `${m.avgWorkHours}h`,          color: "text-foreground"   },
+                                { label: "Leave Taken",   value: `${m.leaveCount}`,             color: "text-[#7B0099]"    },
+                              ].map(s => (
+                                <div key={s.label} className="bg-muted/20 p-3 rounded-2xl">
+                                  <p className="text-[8px] font-black text-muted-foreground uppercase opacity-60">{s.label}</p>
+                                  <p className={`text-sm font-black mt-0.5 ${s.color}`}>{s.value}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Pagination Controls */}
+                  {teamMetrics.length > 0 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-border/50 gap-4 bg-muted/10">
+                      <div className="flex items-center gap-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                        <span>
+                          Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, teamMetrics.length)} of {teamMetrics.length} Entries
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span>Show</span>
+                          <Select 
+                            value={entriesPerPage.toString()} 
+                            onValueChange={(val) => { setEntriesPerPage(Number(val)); setCurrentPage(1); }}
+                          >
+                            <SelectTrigger className="h-7 text-[10px] font-black rounded-lg border-border w-[70px] bg-white dark:bg-card">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="5">5</SelectItem>
+                              <SelectItem value="10">10</SelectItem>
+                              <SelectItem value="25">25</SelectItem>
+                              <SelectItem value="50">50</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
-
-                        {/* Expanded detail */}
-                        {isSelected && (
-                          <div className="mt-4 pt-4 border-t border-border/40 grid grid-cols-2 sm:grid-cols-4 gap-3 animate-in fade-in duration-200">
-                            {[
-                              { label: "Total Days",    value: m.totalDays,                  color: "text-foreground"   },
-                              { label: "On Time",       value: `${m.onTimeDays}d`,            color: "text-emerald-600"  },
-                              { label: "Late",          value: `${m.lateDays}d`,              color: "text-rose-600"     },
-                              { label: "Streak",        value: `${m.streak}d 🔥`,             color: "text-amber-600"    },
-                              { label: "Overtime",      value: `${m.overtimeHours}h`,         color: "text-amber-500"    },
-                              { label: "Consistency",   value: `${m.consistencyScore}%`,      color: "text-blue-600"     },
-                              { label: "Avg Hours",     value: `${m.avgWorkHours}h`,          color: "text-foreground"   },
-                              { label: "Leave Taken",   value: `${m.leaveCount}`,             color: "text-[#7B0099]"    },
-                            ].map(s => (
-                              <div key={s.label} className="bg-muted/20 p-3 rounded-2xl">
-                                <p className="text-[8px] font-black text-muted-foreground uppercase opacity-60">{s.label}</p>
-                                <p className={`text-sm font-black mt-0.5 ${s.color}`}>{s.value}</p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-1">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          disabled={currentPage === 1}
+                          className="h-8 px-3 text-xs font-bold border-border bg-white dark:bg-card"
+                        >
+                          «
+                        </Button>
+                        <div className="flex items-center gap-1 overflow-x-auto max-w-[200px] sm:max-w-none">
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                            <Button
+                              key={pageNum}
+                              variant={currentPage === pageNum ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setCurrentPage(pageNum)}
+                              className={`h-8 w-8 p-0 text-xs font-bold ${
+                                currentPage === pageNum 
+                                  ? 'bg-[#7B0099] text-white hover:bg-[#7B0099]/90' 
+                                  : 'border-border bg-white dark:bg-card'
+                              }`}
+                            >
+                              {pageNum}
+                            </Button>
+                          ))}
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                          disabled={currentPage === totalPages}
+                          className="h-8 px-3 text-xs font-bold border-border bg-white dark:bg-card"
+                        >
+                          »
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
@@ -671,7 +750,6 @@ export default function EmployeeAnalytics() {
                       data={teamMetrics.filter(m => m.overtimeHours > 0).slice(0, 10).map(m => ({
                         name: m.name.split(" ")[0],
                         overtime: m.overtimeHours,
-                        cost: Math.round(m.overtimeHours * HOURLY_RATE_RM),
                       }))}
                       margin={{ top: 5, right: 10, left: -20, bottom: 20 }}
                     >
@@ -681,7 +759,7 @@ export default function EmployeeAnalytics() {
                       <YAxis tick={{ fontSize: 8, fontWeight: 900, fill: "hsl(var(--muted-foreground))" }}
                         axisLine={false} tickLine={false} />
                       <Tooltip contentStyle={tooltipStyle}
-                        formatter={(v: number, name: string) => [name === "overtime" ? `${v}h` : `RM ${v}`, name === "overtime" ? "OT Hours" : "Est. Cost"]}
+                        formatter={(v: number) => [`${v}h`, "OT Hours"]}
                         labelStyle={{ fontWeight: 900, fontSize: 10 }} />
                       <Bar dataKey="overtime" name="OT Hours" fill="#f59e0b" radius={[6, 6, 0, 0]} barSize={20} animationDuration={1200}>
                         <LabelList dataKey="overtime" position="top" style={{ fontSize: 8, fontWeight: 900, fill: "#f59e0b" }}
@@ -701,7 +779,7 @@ export default function EmployeeAnalytics() {
                   Department Overtime Trends
                 </CardTitle>
                 <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
-                  Avg OT hours + estimated cost · budgeting view
+                  Average overtime hours per department
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-5">
@@ -733,20 +811,15 @@ export default function EmployeeAnalytics() {
                       </BarChart>
                     </ResponsiveContainer>
 
-                    {/* Cost table */}
+                    {/* Average OT Hours List */}
                     <div className="mt-3 space-y-2">
                       <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">
-                        Estimated OT Cost (RM {HOURLY_RATE_RM}/hr)
+                        Average OT Hours
                       </p>
                       {deptOvertimeData.map(d => (
                         <div key={d.dept} className="flex items-center justify-between gap-2">
                           <span className="text-[10px] font-bold text-muted-foreground truncate">{d.dept}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black text-amber-600">{d.overtime.toFixed(1)}h</span>
-                            <span className="text-[10px] font-black text-foreground">
-                              RM {Math.round(d.overtime * HOURLY_RATE_RM)}
-                            </span>
-                          </div>
+                          <span className="text-[10px] font-black text-amber-600">{d.avgOvertime.toFixed(1)}h avg</span>
                         </div>
                       ))}
                     </div>
@@ -774,9 +847,9 @@ export default function EmployeeAnalytics() {
                       <span className="text-[10px] font-black text-muted-foreground uppercase">{s.label}</span>
                     </div>
                   ))}
-                  <div className="ml-auto flex items-center gap-1.5 text-[9px] font-black text-muted-foreground/50 italic">
-                    <ArrowUpRight className="w-3 h-3" />
-                    Total est. OT cost: RM {Math.round(teamMetrics.reduce((s, m) => s + m.overtimeHours * HOURLY_RATE_RM, 0))}
+                  <div className="ml-auto flex items-center gap-1.5 text-[9px] font-black text-[#7B0099] uppercase tracking-wider bg-[#7B0099]/10 px-3 py-1.5 rounded-xl font-bold">
+                    <ArrowUpRight className="w-3.5 h-3.5 text-[#7B0099]" />
+                    Team Average OT: {(teamMetrics.reduce((s, m) => s + m.overtimeHours, 0) / teamMetrics.length).toFixed(1)}h
                   </div>
                 </div>
               </CardContent>
