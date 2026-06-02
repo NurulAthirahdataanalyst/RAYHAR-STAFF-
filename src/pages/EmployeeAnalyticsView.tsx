@@ -65,13 +65,32 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   const presentDays = myLogs.length;
   const lateArrivals = myLogs.filter(l => l.is_late || l.status === "LATE").length;
   
-  // Working days assumption: approx 22. Absent = 22 - present (or 0)
-  const workingDaysInMonth = 22;
-  const absentDays = Math.max(0, workingDaysInMonth - presentDays - totalLeavesUsed);
+  // Calculate exact absent days (past weekdays with no logs and no leaves)
+  const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
+  let absentDays = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(parseInt(year), parseInt(month) - 1, d);
+    if (date > new Date() && parseInt(month) === (new Date().getMonth() + 1)) break;
+    
+    const dayOfWeek = date.getDay();
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Weekday
+      const dateStr = `${year}-${month.padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const hasLog = myLogs.some(l => l.date && l.date.startsWith(dateStr));
+      const hasLeave = approvedLeaves.some(l => {
+        const s = new Date(l.start_date);
+        const e = new Date(l.end_date);
+        const curr = new Date(dateStr);
+        return curr >= s && curr <= e;
+      });
+      
+      if (!hasLog && !hasLeave) {
+        absentDays++;
+      }
+    }
+  }
 
   // Attendance Trend (Cumulative or Daily Status)
   // We'll create a daily array for the month
-  const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
   const trendData = [];
   let cumPresent = 0;
   let cumLate = 0;
@@ -111,20 +130,19 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
   // Leave Utilization (Selected Month)
   const selectedMonthIndex = parseInt(month) - 1;
-  const monthNameStr = new Date(parseInt(year), selectedMonthIndex).toLocaleString('default', { month: 'short' });
+  const monthNameFull = new Date(parseInt(year), selectedMonthIndex).toLocaleString('default', { month: 'long' }).toUpperCase();
   const mLeaves = approvedLeaves.filter(l => new Date(l.start_date).getMonth() === selectedMonthIndex && new Date(l.start_date).getFullYear() === parseInt(year));
   const monthAnn = mLeaves.filter(l => ['Cuti Tahunan', 'Annual/Emergency Leave'].includes(l.leave_type)).reduce((a, b) => a + b.days, 0);
   const monthSck = mLeaves.filter(l => ['Cuti Sakit', 'Sick Leave'].includes(l.leave_type)).reduce((a, b) => a + b.days, 0);
   const monthEmg = mLeaves.filter(l => ['Kecemasan', 'Emergency'].includes(l.leave_type)).reduce((a, b) => a + b.days, 0);
   
-  const utilizationData = [
-    { 
-      name: monthNameStr, 
-      "Annual Leave": monthAnn, 
-      "Sick Leave": monthSck, 
-      "Emergency Leave": monthEmg 
-    }
-  ];
+  const monthPieData = [
+    { name: 'Annual Leave', value: monthAnn },
+    { name: 'Sick Leave', value: monthSck },
+    { name: 'Emergency Leave', value: monthEmg },
+  ].filter(d => d.value > 0);
+  
+  if (monthPieData.length === 0) monthPieData.push({ name: 'None', value: 1 });
 
   // Clock in analysis
   let earliest = "23:59:59";
@@ -160,14 +178,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     avgFmt = formatTime(`${String(hr).padStart(2,'0')}:${String(min).padStart(2,'0')}:00`);
   }
 
-  // Leave Breakdown Pie
-  const pieData = [
-    { name: 'Annual Leave', value: annualLeavesUsed },
-    { name: 'Sick Leave', value: sickLeavesUsed },
-    { name: 'Emergency Leave', value: emergencyLeavesUsed },
-  ].filter(d => d.value > 0);
-
-  if (pieData.length === 0) pieData.push({ name: 'None', value: 1 });
+  // Leave breakdown logic is now combined above for the monthly utilization
 
   // Heatmap Calendar
   const firstDay = new Date(parseInt(year), parseInt(month) - 1, 1).getDay();
@@ -280,21 +291,30 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         <Card className="rounded-[24px] border-none shadow-sm bg-white/90 dark:bg-card">
-          <CardContent className="p-5">
-            <h3 className="text-xs font-black uppercase tracking-widest text-foreground mb-4">LEAVE UTILIZATION (This Month)</h3>
-            <div className="h-[200px]">
+          <CardContent className="p-5 flex flex-col h-full">
+            <h3 className="text-xs font-black uppercase tracking-widest text-foreground mb-4">LEAVE UTILIZATION ({monthNameFull})</h3>
+            <div className="flex items-center justify-center flex-1 h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={utilizationData} margin={{ top: 5, right: 20, bottom: 5, left: -20 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                <PieChart>
+                  <Pie data={monthPieData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value" stroke="none">
+                    {monthPieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
                   <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
-                  <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
-                  <Bar dataKey="Annual Leave" fill="#10b981" radius={[4,4,0,0]} barSize={24} />
-                  <Bar dataKey="Sick Leave" fill="#3b82f6" radius={[4,4,0,0]} barSize={24} />
-                  <Bar dataKey="Emergency Leave" fill="#f59e0b" radius={[4,4,0,0]} barSize={24} />
-                </BarChart>
+                </PieChart>
               </ResponsiveContainer>
+              <div className="space-y-3 w-[120px] shrink-0 ml-4">
+                {monthPieData.map((d, i) => (
+                  <div key={d.name} className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-foreground">{d.name}</span>
+                      <span className="text-[9px] text-muted-foreground">{d.value} Days</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -323,85 +343,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       </div>
 
       {/* ROW 4: Heatmap & Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Calendar Heatmap */}
-        <Card className="lg:col-span-1 rounded-[24px] border-none shadow-sm bg-white/90 dark:bg-card">
-          <CardContent className="p-5">
-            <h3 className="text-xs font-black uppercase tracking-widest text-foreground mb-4">ATTENDANCE CALENDAR</h3>
-            <div className="grid grid-cols-7 gap-2 mb-2">
-              {["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map(d => (
-                <div key={d} className="text-[9px] font-black text-center text-muted-foreground">{d}</div>
-              ))}
-            </div>
-            <div className="grid grid-cols-7 gap-2">
-              {calendarDays.map((d, i) => {
-                if (!d) return <div key={i} className="aspect-square rounded-lg bg-transparent" />;
-                
-                const dateStr = `${year}-${month.padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                const hasLog = myLogs.some(l => l.date && l.date.startsWith(dateStr));
-                const hasLeave = approvedLeaves.some(l => {
-                  const curr = new Date(dateStr);
-                  return curr >= new Date(l.start_date) && curr <= new Date(l.end_date);
-                });
-                
-                let bg = "bg-muted/30 text-muted-foreground"; // Default (Future or absent)
-                if (hasLog) bg = "bg-emerald-500 text-white";
-                else if (hasLeave) bg = "bg-amber-500 text-white";
-                else if (new Date(dateStr) < new Date() && (i % 7 < 5)) bg = "bg-rose-500 text-white"; // Absent on past weekday
-                else if (i % 7 >= 5) bg = "bg-slate-200 dark:bg-slate-800 text-muted-foreground"; // Weekend
-
-                return (
-                  <div key={i} className={`aspect-square rounded-lg flex items-center justify-center text-[10px] font-bold ${bg} shadow-sm`}>
-                    {d}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex items-center gap-3 mt-4 flex-wrap">
-              {[
-                { color: "bg-emerald-500", label: "Present" },
-                { color: "bg-amber-500", label: "Leave" },
-                { color: "bg-rose-500", label: "Absent" },
-                { color: "bg-blue-500", label: "Public Holiday" }
-              ].map(lg => (
-                <div key={lg.label} className="flex items-center gap-1.5">
-                  <div className={`w-2.5 h-2.5 rounded-sm ${lg.color}`} />
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase">{lg.label}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Leave Breakdown */}
-        <Card className="lg:col-span-1 rounded-[24px] border-none shadow-sm bg-white/90 dark:bg-card">
-          <CardContent className="p-5 flex flex-col h-full">
-            <h3 className="text-xs font-black uppercase tracking-widest text-foreground mb-4">LEAVE BREAKDOWN</h3>
-            <div className="flex items-center justify-center flex-1">
-              <ResponsiveContainer width="100%" height={160}>
-                <PieChart>
-                  <Pie data={pieData} innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value" stroke="none">
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="space-y-3">
-                {pieData.map((d, i) => (
-                  <div key={d.name} className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-bold text-foreground">{d.name}</span>
-                      <span className="text-[9px] text-muted-foreground">{d.value} Days</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Clock-In Analysis */}
         <Card className="lg:col-span-1 rounded-[24px] border-none shadow-sm bg-white/90 dark:bg-card relative overflow-hidden">
