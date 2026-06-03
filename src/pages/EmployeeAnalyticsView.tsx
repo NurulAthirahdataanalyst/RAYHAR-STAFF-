@@ -82,7 +82,14 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     const dayOfWeek = date.getDay();
     if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Weekday
       const dateStr = `${year}-${month.padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-      const hasLog = myLogs.some(l => l.date && l.date.startsWith(dateStr));
+      const hasLog = myLogs.some(l => {
+        if (!l.clock_in) return false;
+        const clockDate = new Date(l.clock_in);
+        const y = clockDate.getFullYear();
+        const m = String(clockDate.getMonth() + 1).padStart(2, '0');
+        const day = String(clockDate.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}` === dateStr;
+      });
       const hasLeave = approvedLeaves.some(l => {
         const s = new Date(l.start_date);
         const e = new Date(l.end_date);
@@ -105,7 +112,14 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${year}-${month.padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const logsOnDay = myLogs.filter(l => l.date && l.date.startsWith(dateStr));
+    const logsOnDay = myLogs.filter(l => {
+      if (!l.clock_in) return false;
+      const clockDate = new Date(l.clock_in);
+      const y = clockDate.getFullYear();
+      const m = String(clockDate.getMonth() + 1).padStart(2, '0');
+      const day = String(clockDate.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}` === dateStr;
+    });
     const leavesOnDay = approvedLeaves.filter(l => {
       const s = new Date(l.start_date);
       const e = new Date(l.end_date);
@@ -279,7 +293,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="rounded-[24px] border-none shadow-sm bg-white/90 dark:bg-card">
           <CardContent className="p-5">
-            <h3 className="text-xs font-black uppercase tracking-widest text-foreground mb-4">ATTENDANCE TREND (This Month)</h3>
+            <h3 className="text-xs font-black uppercase tracking-widest text-foreground mb-4">ATTENDANCE TREND ({monthNameFull})</h3>
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={trendData} margin={{ top: 5, right: 20, bottom: 5, left: -20 }}>

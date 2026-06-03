@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Clock, Fingerprint, Hand, Timer, MapPin, Home, SlidersHorizontal, Download, ChevronDown } from "lucide-react";
 import { API_BASE_URL } from "@/config/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 const formatAttendanceTime = (value: unknown) => {
   if (!value) return "--:--";
@@ -39,7 +40,7 @@ export default function Attendance() {
   const [initialFetch, setInitialFetch] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeSession, setActiveSession] = useState<any>(null);
-  const [user, setUser] = useState<any>(null);
+  const { user } = useAuth();
   const [workingHrs, setWorkingHrs] = useState("--:--");
   const [historyLogs, setHistoryLogs] = useState<any[]>([]);
   const [visibleLogsCount, setVisibleLogsCount] = useState(4);
@@ -86,13 +87,10 @@ export default function Attendance() {
     return () => clearInterval(timer);
   }, [activeSession]);
 
-  // 2. Load user from localStorage and fetch status
+  // 2. Fetch status and history logs when user context changes or mounts
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-      const userId = parsedUser.user_id || parsedUser.id;
+    if (user) {
+      const userId = user.user_id || user.id;
       if (userId) {
         fetchStatus(userId);
         fetchHistoryLogs(userId, selectedMonth, selectedYear);
@@ -102,7 +100,7 @@ export default function Attendance() {
     } else {
       setInitialFetch(false);
     }
-  }, []);
+  }, [user]);
 
   // 3. Fetch attendance status (GET)
   const fetchStatus = useCallback(async (id: string) => {

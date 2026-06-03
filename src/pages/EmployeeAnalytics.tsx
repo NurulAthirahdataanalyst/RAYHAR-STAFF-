@@ -236,7 +236,7 @@ export default function EmployeeAnalytics() {
     void fetchMyData();
 
     // Listen for real-time attendance updates via SSE
-    const streamUrl = `${API_BASE_URL}/api/stream/attendance`;
+    const streamUrl = `${API_BASE_URL}/api/presence/stream`;
     const eventSource = new EventSource(streamUrl);
 
     eventSource.onmessage = (event) => {
@@ -245,9 +245,10 @@ export default function EmployeeAnalytics() {
         if (data.type === "init" || data.type === "ping") return;
         
         // If there's an attendance update, refresh our data
-        if (data.user_id && data.user_id.toString() === userId.toString()) {
+        const eventUserId = data.userId || data.user_id;
+        if (eventUserId && eventUserId.toString() === userId.toString()) {
           void fetchMyData();
-        } else if (!data.user_id) { // Broadcast
+        } else if (!eventUserId || data.type === 'refresh') { // Broadcast or generic refresh
           void fetchMyData();
         }
       } catch (err) {
