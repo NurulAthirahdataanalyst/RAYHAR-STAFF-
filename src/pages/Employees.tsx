@@ -483,7 +483,7 @@ export default function Employees() {
                       </div>
                       <div className="flex justify-between items-center text-xs">
                         <span className="font-bold text-slate-400 uppercase tracking-widest">Status</span>
-                        <Badge className="bg-emerald-500 text-white font-black text-[9px] h-5">{selectedEmployee.status}</Badge>
+                        <Badge className={`text-white font-black text-[9px] h-5 ${selectedEmployee.status === 'Active' ? 'bg-emerald-500' : 'bg-rose-500'}`}>{selectedEmployee.status}</Badge>
                       </div>
                     </div>
                   </div>
