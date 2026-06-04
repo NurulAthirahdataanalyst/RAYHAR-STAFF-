@@ -392,11 +392,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         
         {/* Attendance Summary */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card">
-          <CardContent className="p-5 h-full flex flex-col">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card self-start">
+          <CardContent className="p-5">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground mb-6">ATTENDANCE SUMMARY ({monthNameFull})</h3>
             
-            <div className="space-y-6 flex-1 flex flex-col justify-center">
+            <div className="space-y-6">
               {[
                 { label: "Present", value: presentDays - lateArrivals, color: "bg-emerald-500" },
                 { label: "Late", value: lateArrivals, color: "bg-amber-400" },
