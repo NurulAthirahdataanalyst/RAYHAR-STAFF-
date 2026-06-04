@@ -177,9 +177,15 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   // For Line Chart
   const trendData: any[] = [];
   
+  let validClockIns = 0;
+
   myLogs.forEach(l => {
     if (l.clock_in) {
-       const klTime = new Date(new Date(l.clock_in).getTime() + 8 * 60 * 60 * 1000);
+       const origTime = new Date(l.clock_in);
+       if (isNaN(origTime.getTime())) return;
+       
+       validClockIns++;
+       const klTime = new Date(origTime.getTime() + 8 * 60 * 60 * 1000);
        const timeMs = klTime.getTime() % (24 * 60 * 60 * 1000);
        totalTimeMs += timeMs;
        
@@ -220,8 +226,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
   let avgFmt = "--:-- AM";
   let avgDecimal = 0;
-  if (myLogs.length > 0) {
-    const avgMs = totalTimeMs / myLogs.length;
+  if (validClockIns > 0) {
+    const avgMs = totalTimeMs / validClockIns;
     const hr = Math.floor(avgMs / (60 * 60 * 1000));
     const min = Math.floor((avgMs % (60 * 60 * 1000)) / (60 * 1000));
     avgFmt = formatTime(`${String(hr).padStart(2,'0')}:${String(min).padStart(2,'0')}:00`);
