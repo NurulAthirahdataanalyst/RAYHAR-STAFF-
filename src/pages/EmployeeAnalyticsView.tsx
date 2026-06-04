@@ -396,7 +396,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           <CardContent className="p-5 flex-1 flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground mb-6">ATTENDANCE SUMMARY ({monthNameFull})</h3>
             
-            <div className="space-y-6">
+            <div className="space-y-6 flex-1 flex flex-col justify-center">
               {[
                 { label: "Present", value: presentDays - lateArrivals, color: "bg-emerald-500" },
                 { label: "Late", value: lateArrivals, color: "bg-amber-400" },
@@ -441,14 +441,14 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <p className="text-sm font-bold text-muted-foreground">No leaves applied this month</p>
               </div>
             ) : (
-              <div className="flex items-center justify-center flex-1">
-                <div className="h-[180px] w-1/2">
+              <div className="flex items-center flex-1">
+                <div className="w-[120px] h-[120px] shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie 
                         data={monthPieData} 
-                        innerRadius={55} 
-                        outerRadius={75} 
+                        innerRadius={40} 
+                        outerRadius={55} 
                         paddingAngle={5} 
                         dataKey="value" 
                         stroke="none"
@@ -462,7 +462,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="space-y-4 w-1/2 ml-4">
+                <div className="ml-8 flex-1 space-y-3">
                   {monthPieData.map((d, i) => (
                     <div key={d.name} className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
