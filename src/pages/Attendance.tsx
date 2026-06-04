@@ -220,6 +220,34 @@ export default function Attendance() {
       return;
     }
 
+    const branchNames: Record<string, string> = {
+      "HQ": "Rayhar HQ",
+      "KMM": "Kemaman",
+      "TGG": "Kuala Terengganu",
+      "CNH": "Cheneh",
+      "KBG": "Kuala Berang",
+      "DGN": "Dungun",
+      "JTH": "Jertih",
+      "KBR": "Kota Baru",
+      "RMP": "Rompin",
+      "MZM": "Muadzam Shah",
+      "SHA": "Shah Alam",
+      "BBB": "Bandar Baru Bangi",
+      "KUL": "Kuala Lumpur",
+      "IPH": "Ipoh",
+      "MJG": "Manjung",
+      "MLK": "Melaka",
+      "KKS": "Kuala Kangsar",
+      "TWU": "Tawau",
+      "SNS": "Seremban",
+      "AOR": "Alor Setar",
+      "BTM": "Bertam",
+      "BTP": "Batu Pahat",
+      "JB": "Johor Bharu"
+    };
+    const userBranchCode = user?.branch || 'N/A';
+    const fullBranchName = branchNames[userBranchCode] || userBranchCode;
+
     const logsHtml = historyLogs.map(log => {
       const d = new Date(log.clock_in);
       const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
@@ -229,7 +257,7 @@ export default function Attendance() {
           <td>${log.time_in || '--:--'}</td>
           <td>${log.time_out || '--:--'}</td>
           <td><span class="badge badge-${log.status.toLowerCase().replace(' ', '')}">${log.status}</span></td>
-          <td>${log.location_name || 'Main Office'}</td>
+          <td>${log.location_type === 'remote' ? log.location_name : fullBranchName}</td>
           <td class="duration">${log.duration || '--'}</td>
         </tr>
       `;
@@ -275,7 +303,7 @@ export default function Attendance() {
           <div class="meta-grid">
             <div class="meta-item"><strong>Employee Name:</strong> ${user?.full_name || 'N/A'}</div>
             <div class="meta-item"><strong>Employee ID:</strong> ${user?.user_id || 'N/A'}</div>
-            <div class="meta-item"><strong>Branch:</strong> ${user?.branch || 'N/A'}</div>
+            <div class="meta-item"><strong>Branch:</strong> ${fullBranchName}</div>
             <div class="meta-item"><strong>Report Period:</strong> ${monthName}</div>
           </div>
 
