@@ -1407,6 +1407,13 @@ app.get("/api/attendance-status", async (req, res) => {
     return res.status(400).json({ success: false, error: "Missing empId" });
   }
   try {
+    const [leaveRows] = await pool.query(`
+      SELECT status FROM leave_requests 
+      WHERE user_id = ? AND status = 'Approved' AND CURRENT_DATE BETWEEN start_date AND end_date
+    `, [empId]);
+
+    const isOnLeave = leaveRows.length > 0;
+
     const [rows] = await pool.query(`
       SELECT * FROM attendances
       WHERE user_id = ?
@@ -1420,6 +1427,7 @@ app.get("/api/attendance-status", async (req, res) => {
       success: true,
       active: rows.length > 0,
       record: rows[0] || null,
+      isOnLeave: isOnLeave,
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -1439,6 +1447,15 @@ app.post("/api/attendance", async (req, res) => {
   }
 
   try {
+    const [leaveRows] = await pool.query(
+      `SELECT status FROM leave_requests WHERE user_id = ? AND status = 'Approved' AND CURRENT_DATE BETWEEN start_date AND end_date`,
+      [user_id]
+    );
+
+    if (leaveRows.length > 0) {
+      return res.status(403).json({ success: false, error: "You are currently on an approved leave today." });
+    }
+
     const [result] = await pool.query(
       `INSERT INTO attendances (user_id, clock_in) VALUES (?, NOW())`,
       [user_id]
@@ -1712,6 +1729,17 @@ app.get("/api/dashboard-stats", async (req, res) => {
         clockOutTime = record.clock_out_time || "--:--";
         todayStatusTime = clockOutTime;
       }
+    }
+
+    // OVERRIDE IF ON LEAVE TODAY
+    const [onLeaveTodayRows] = await pool.query(
+      `SELECT status FROM leave_requests WHERE user_id = ? AND status = 'Approved' AND CURRENT_DATE BETWEEN start_date AND end_date`,
+      [userId]
+    );
+
+    if (onLeaveTodayRows.length > 0) {
+      todayStatus = "On Leave";
+      todayStatusTime = "--:--";
     }
 
     // 2. MONTHLY ATTENDANCE RATE

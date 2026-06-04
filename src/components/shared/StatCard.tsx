@@ -6,7 +6,7 @@ interface StatCardProps {
   subtitle?: string;
   icon: LucideIcon;
   trend?: { value: string; positive: boolean };
-  variant?: "default" | "maroon" | "gold" | "success" | "gauge" | "warning";
+  variant?: "default" | "maroon" | "gold" | "success" | "gauge" | "warning" | "purple";
   progress?: number; 
 }
 
@@ -17,6 +17,7 @@ const variantStyles = {
   success: "bg-card dark:bg-card border-none shadow-sm border-l-4 border-l-emerald-500",
   gauge: "bg-card dark:bg-card border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]",
   warning: "bg-card dark:bg-card border-none shadow-sm border-l-4 border-l-amber-500",
+  purple: "bg-card dark:bg-card border-none shadow-sm border-l-4 border-l-purple-500",
 };
 
 export default function StatCard({ 
@@ -97,13 +98,15 @@ export default function StatCard({
           variant === 'maroon' ? 'bg-white/15' : 
           variant === 'gold' ? 'bg-amber-100 dark:bg-amber-900/20' : 
           variant === 'success' ? 'bg-emerald-50 dark:bg-emerald-950/30' :
-          variant === 'warning' ? 'bg-amber-50 dark:bg-amber-950/30' : 'bg-muted/50 dark:bg-muted'
+          variant === 'warning' ? 'bg-amber-50 dark:bg-amber-950/30' : 
+          variant === 'purple' ? 'bg-purple-50 dark:bg-purple-950/30' : 'bg-muted/50 dark:bg-muted'
         }`}>
           <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${
             variant === 'maroon' ? 'text-white' : 
             variant === 'gold' ? 'text-amber-600 dark:text-amber-400' : 
             variant === 'success' ? 'text-emerald-600 dark:text-emerald-400' :
-            variant === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-foreground/70'
+            variant === 'warning' ? 'text-amber-600 dark:text-amber-400' : 
+            variant === 'purple' ? 'text-purple-600 dark:text-purple-400' : 'text-foreground/70'
           }`} />
         </div>
       </div>

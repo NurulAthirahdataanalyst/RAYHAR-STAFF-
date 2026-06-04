@@ -57,6 +57,7 @@ export default function Attendance() {
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ON TIME" | "LATE" | "REMOTE">("ALL");
   const [expandedLogId, setExpandedLogId] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [isOnLeave, setIsOnLeave] = useState(false);
 
   const { toast } = useToast();
 
@@ -109,6 +110,10 @@ export default function Attendance() {
         `${API_BASE_URL}/api/attendance-status?empId=${id}`
       );
       const data = await response.json();
+
+      if (data.isOnLeave) {
+        setIsOnLeave(true);
+      }
 
       if (data.active && data.record) {
         setActiveSession(data.record);
@@ -472,15 +477,23 @@ export default function Attendance() {
 
                 <button
                   onClick={handleAttendanceAction}
-                  disabled={loading}
-                  className={`relative w-28 h-28 sm:w-36 sm:h-36 md:w-38 md:h-38 rounded-full flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.96] shadow-2xl focus:outline-none focus:ring-4 focus:ring-offset-4 dark:focus:ring-offset-card touch-target ${activeSession
+                  disabled={loading || isOnLeave}
+                  className={`relative w-28 h-28 sm:w-36 sm:h-36 md:w-38 md:h-38 rounded-full flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.96] shadow-2xl focus:outline-none focus:ring-4 focus:ring-offset-4 dark:focus:ring-offset-card touch-target ${
+                    isOnLeave 
+                    ? "bg-muted cursor-not-allowed border-none text-muted-foreground shadow-none"
+                    : activeSession
                     ? "bg-card dark:bg-card border-[3px] border-emerald-500 focus:ring-emerald-200 dark:focus:ring-emerald-800 text-emerald-600 dark:text-emerald-400 shadow-emerald-500/20"
                     : "bg-gradient-to-tr from-[#5e0080] via-[#7B0099] to-purple-500 focus:ring-purple-200 dark:focus:ring-purple-800 text-white shadow-purple-500/40"
                     }`}
-                  aria-label={activeSession ? "Clock out - End shift" : "Clock in - Start shift"}
+                  aria-label={isOnLeave ? "On Leave" : activeSession ? "Clock out - End shift" : "Clock in - Start shift"}
                 >
                   {loading ? (
-                    <Loader2 className={`animate-spin w-6 h-6 sm:w-8 sm:h-8 ${activeSession ? "text-emerald-500" : "text-white"}`} />
+                    <Loader2 className={`animate-spin w-6 h-6 sm:w-8 sm:h-8 ${isOnLeave ? "text-muted-foreground" : activeSession ? "text-emerald-500" : "text-white"}`} />
+                  ) : isOnLeave ? (
+                    <>
+                      <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground mb-0.5" />
+                      <span className="font-black tracking-widest text-sm sm:text-base md:text-lg text-muted-foreground">ON LEAVE</span>
+                    </>
                   ) : activeSession ? (
                     <>
                       <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-500 dark:text-emerald-400 mb-0.5" />
@@ -495,17 +508,21 @@ export default function Attendance() {
                 </button>
               </div>
 
-              {/* Status Message */}
               <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-xs font-bold mb-4 sm:mb-6 bg-muted/30 dark:bg-muted/50 py-1.5 px-4 rounded-full w-full border border-border/50">
-                {activeSession ? (
+                {isOnLeave ? (
                   <>
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                    <span className="text-emerald-700 dark:text-emerald-400 truncate">Location: You are in Office-reach</span>
+                    <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+                    <span className="text-purple-600 dark:text-purple-400">Enjoy your leave!</span>
+                  </>
+                ) : activeSession ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span className="text-emerald-600 dark:text-emerald-400">Shift in progress...</span>
                   </>
                 ) : (
                   <>
-                    <div className="w-2 h-2 rounded-full bg-muted-foreground/30 shrink-0" />
-                    <span className="text-muted-foreground truncate">Location: Checking position...</span>
+                    <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+                    <span className="text-purple-600 dark:text-purple-400">Ready to start</span>
                   </>
                 )}
               </div>
