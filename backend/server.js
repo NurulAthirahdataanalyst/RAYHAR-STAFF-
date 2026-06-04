@@ -1758,7 +1758,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         attendanceRate,
         ...(adminStats || {})
       },
-      recentActivities: adminStats ? globalRecentActivities : personalRecentRows,
+      recentActivities: personalRecentRows,
     });
   } catch (error) {
     console.error("Dashboard Stats Error:", error);
