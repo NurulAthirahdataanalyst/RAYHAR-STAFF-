@@ -45,12 +45,37 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
 
       let activeList: any[] = [];
       if (empData.success) {
-        activeList = empData.employees.map((e: any) => ({
-          ...e,
-          id: `emp-${e.user_id}`,
-          is_leave_submission: false,
-          event_time: e.today_clock_out || e.today_clock_in,
-        }));
+        empData.employees.forEach((e: any) => {
+          let hasActivity = false;
+          if (e.today_clock_out) {
+            activeList.push({
+              ...e,
+              id: `emp-out-${e.user_id}`,
+              is_leave_submission: false,
+              today_status: "Clocked Out",
+              event_time: e.today_clock_out,
+            });
+            hasActivity = true;
+          }
+          if (e.today_clock_in) {
+            activeList.push({
+              ...e,
+              id: `emp-in-${e.user_id}`,
+              is_leave_submission: false,
+              today_status: "Present",
+              event_time: e.today_clock_in,
+            });
+            hasActivity = true;
+          }
+          if (!hasActivity) {
+            activeList.push({
+              ...e,
+              id: `emp-${e.user_id}`,
+              is_leave_submission: false,
+              event_time: null,
+            });
+          }
+        });
       }
 
       // 2. Fetch leave requests if user has HR role

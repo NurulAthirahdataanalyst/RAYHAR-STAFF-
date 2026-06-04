@@ -1125,8 +1125,8 @@ app.get("/api/employees", async (req, res) => {
           user_id,
           COUNT(DISTINCT DATE(clock_in)) AS days_present
         FROM attendances
-        WHERE EXTRACT(YEAR FROM clock_in) = EXTRACT(YEAR FROM ${date ? '?' : 'CURRENT_DATE' + '::date'})
-        AND EXTRACT(MONTH FROM clock_in) = EXTRACT(MONTH FROM ${date ? '?' : 'CURRENT_DATE' + '::date'})
+        WHERE EXTRACT(YEAR FROM clock_in) = EXTRACT(YEAR FROM ${date ? '?::date' : 'CURRENT_DATE' + '::date'})
+        AND EXTRACT(MONTH FROM clock_in) = EXTRACT(MONTH FROM ${date ? '?::date' : 'CURRENT_DATE' + '::date'})
         GROUP BY user_id
       ) att ON att.user_id = p.user_id
       LEFT JOIN (
@@ -1135,7 +1135,7 @@ app.get("/api/employees", async (req, res) => {
         INNER JOIN (
           SELECT user_id, MAX(attendance_id) AS latest_attendance_id
           FROM attendances
-          WHERE DATE((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur') = ${date ? '?' : 'CURRENT_DATE'}
+          WHERE DATE((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur') = ${date ? '?::date' : 'CURRENT_DATE'}
           GROUP BY user_id
         ) latest ON latest.latest_attendance_id = a.attendance_id
       ) today ON today.user_id = p.user_id
