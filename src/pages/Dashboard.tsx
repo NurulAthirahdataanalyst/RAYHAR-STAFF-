@@ -22,7 +22,7 @@ import { API_BASE_URL } from "../config/api";
 
 const getStoredUser = () => {
   try {
-    return JSON.parse(localStorage.getItem("user") || "null");
+    return JSON.parse(sessionStorage.getItem("user") || "null");
   } catch {
     return null;
   }
@@ -116,14 +116,14 @@ export default function Dashboard() {
         const data = await response.json();
 
         if (data.success) {
-          const latestUpdate = localStorage.getItem("latestAttendanceUpdate");
+          const latestUpdate = sessionStorage.getItem("latestAttendanceUpdate");
           let localUpdate = null;
 
           if (latestUpdate) {
             try {
               localUpdate = JSON.parse(latestUpdate);
             } catch {
-              localStorage.removeItem("latestAttendanceUpdate");
+              sessionStorage.removeItem("latestAttendanceUpdate");
             }
           }
 
@@ -172,12 +172,12 @@ export default function Dashboard() {
 
   // Initial fetch + refresh when focus + Custom Event Listener
   useEffect(() => {
-    const latestUpdate = localStorage.getItem("latestAttendanceUpdate");
+    const latestUpdate = sessionStorage.getItem("latestAttendanceUpdate");
     if (latestUpdate) {
       try {
         applyAttendanceUpdate(JSON.parse(latestUpdate));
       } catch {
-        localStorage.removeItem("latestAttendanceUpdate");
+        sessionStorage.removeItem("latestAttendanceUpdate");
       }
     }
 
@@ -215,7 +215,7 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [dashboardUserId, fetchDashboardData]);
 
-  // Refresh dashboard if Attendance.tsx updates localStorage (cross-tab sync)
+  // Refresh dashboard if Attendance.tsx updates sessionStorage (cross-tab sync)
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === "dashboardRefresh") {
@@ -226,7 +226,7 @@ export default function Dashboard() {
         try {
           applyAttendanceUpdate(JSON.parse(event.newValue));
         } catch {
-          localStorage.removeItem("latestAttendanceUpdate");
+          sessionStorage.removeItem("latestAttendanceUpdate");
         }
       }
     };

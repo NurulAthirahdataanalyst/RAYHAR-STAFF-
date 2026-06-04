@@ -112,10 +112,10 @@ export default function Attendance() {
 
       if (data.active && data.record) {
         setActiveSession(data.record);
-        const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+        const storedUser = JSON.parse(sessionStorage.getItem("user") || "{}");
         const clockInTime = formatAttendanceTime(data.record.clock_in);
 
-        localStorage.setItem(
+        sessionStorage.setItem(
           "latestAttendanceUpdate",
           JSON.stringify({
             userId: String(id).trim(),
@@ -126,7 +126,7 @@ export default function Attendance() {
             timestamp: Date.now(),
           })
         );
-        localStorage.setItem("dashboardRefresh", Date.now().toString());
+        sessionStorage.setItem("dashboardRefresh", Date.now().toString());
       } else {
         setActiveSession(null);
       }
@@ -347,8 +347,8 @@ export default function Attendance() {
           timestamp: Date.now(),
         };
 
-        localStorage.setItem("latestAttendanceUpdate", JSON.stringify(dashboardUpdate));
-        localStorage.setItem("dashboardRefresh", Date.now().toString());
+        sessionStorage.setItem("latestAttendanceUpdate", JSON.stringify(dashboardUpdate));
+        sessionStorage.setItem("dashboardRefresh", Date.now().toString());
 
         window.dispatchEvent(
           new CustomEvent("attendanceUpdated", { detail: dashboardUpdate })

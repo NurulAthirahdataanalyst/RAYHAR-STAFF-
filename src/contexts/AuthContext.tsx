@@ -14,14 +14,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedLocalUser = localStorage.getItem("user");
+    const savedLocalUser = sessionStorage.getItem("user");
     if (savedLocalUser) {
       try {
         const parsedUser = JSON.parse(savedLocalUser);
         setUser(parsedUser);
       } catch (e) {
         console.error("Failed to parse local user", e);
-        localStorage.removeItem("user");
+        sessionStorage.removeItem("user");
       }
     }
     setLoading(false);
@@ -45,12 +45,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const loginLocal = (userData: any) => {
-    localStorage.setItem("user", JSON.stringify(userData));
+    sessionStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);
   };
 
   const signOut = async () => {
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("user");
     setUser(null);
   };
 
