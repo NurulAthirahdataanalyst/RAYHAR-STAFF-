@@ -158,9 +158,9 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   const selectedMonthIndex = parseInt(month) - 1;
   const monthNameFull = new Date(parseInt(year), selectedMonthIndex).toLocaleString('default', { month: 'long' }).toUpperCase();
   const mLeaves = approvedLeaves.filter(l => new Date(l.start_date).getMonth() === selectedMonthIndex && new Date(l.start_date).getFullYear() === parseInt(year));
-  const monthAnn = mLeaves.filter(l => ['Cuti Tahunan', 'Annual/Emergency Leave'].includes(l.leave_type)).reduce((a, b) => a + b.days, 0);
-  const monthSck = mLeaves.filter(l => ['Cuti Sakit', 'Sick Leave'].includes(l.leave_type)).reduce((a, b) => a + b.days, 0);
-  const monthEmg = mLeaves.filter(l => ['Kecemasan', 'Emergency'].includes(l.leave_type)).reduce((a, b) => a + b.days, 0);
+  const monthAnn = mLeaves.filter(l => ['Cuti Tahunan', 'Annual/Emergency Leave'].includes(l.leave_type)).length;
+  const monthSck = mLeaves.filter(l => ['Cuti Sakit', 'Sick Leave'].includes(l.leave_type)).length;
+  const monthEmg = mLeaves.filter(l => ['Kecemasan', 'Emergency'].includes(l.leave_type)).length;
   
   const monthPieData = [
     { name: 'Annual Leave', value: monthAnn, color: "#10b981" },
@@ -468,7 +468,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                       <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
                       <div className="flex flex-col">
                         <span className="text-[11px] font-bold text-foreground">{d.name}</span>
-                        <span className="text-[10px] font-medium text-muted-foreground">{d.value} Days</span>
+                        <span className="text-[10px] font-medium text-muted-foreground">{d.value} {d.value === 1 ? 'Request' : 'Requests'}</span>
                       </div>
                     </div>
                   ))}
