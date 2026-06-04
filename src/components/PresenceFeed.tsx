@@ -23,7 +23,7 @@ interface PresenceFeedProps {
 }
 
 export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps) {
-  const { role, userBranch } = useRole();
+  const { role, userBranch, userDepartment } = useRole();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
