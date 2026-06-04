@@ -268,12 +268,12 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   const offset = firstDay === 0 ? 6 : firstDay - 1; 
   
   // Previous month days to fill empty slots
-  const prevDaysInMonth = new Date(parseInt(year), parseInt(month) - 1, 0).getDate();
+  const heatmapPrevDaysInMonth = new Date(parseInt(year), parseInt(month) - 1, 0).getDate();
   const calendarDays = [];
   
   // Add previous month faded days
   for(let i = offset - 1; i >= 0; i--) {
-      calendarDays.push({ day: prevDaysInMonth - i, isCurrent: false });
+      calendarDays.push({ day: heatmapPrevDaysInMonth - i, isCurrent: false });
   }
   // Add current month days
   for(let i = 1; i <= daysInMonth; i++) {
