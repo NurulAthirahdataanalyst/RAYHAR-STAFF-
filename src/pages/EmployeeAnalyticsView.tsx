@@ -97,7 +97,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     const dayOfWeek = date.getDay();
     const isPastOrToday = date <= new Date() || parseInt(month) !== (new Date().getMonth() + 1);
     
-    if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Weekday
+    if (dayOfWeek !== 5 && dayOfWeek !== 6) { // Weekday (Sun-Thu)
       if (isPastOrToday) totalWorkingDaysPassed++;
       
       const dateStr = `${year}-${month.padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -146,7 +146,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   for (let d = 1; d <= prevDaysInMonth; d++) {
      const date = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth(), d);
      const dayOfWeek = date.getDay();
-     if (date <= new Date() && dayOfWeek !== 0 && dayOfWeek !== 6) prevWorkingDaysPassed++;
+     if (date <= new Date() && dayOfWeek !== 5 && dayOfWeek !== 6) prevWorkingDaysPassed++;
   }
   const prevPresentDays = lastMonthLogs.length;
   const prevLateArrivals = lastMonthLogs.filter(l => l.is_late || l.status === "LATE").length;
@@ -268,10 +268,10 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   
   const overallScore = scoreAttendance + scorePunctuality + scoreAbsence + scoreLeave;
 
-  // Heatmap Calendar Generator (Monday start)
+  // Heatmap Calendar Generator (Sunday start)
   const firstDay = new Date(parseInt(year), parseInt(month) - 1, 1).getDay();
-  // offset for Monday start: 0(Sun)->6, 1(Mon)->0, 2(Tue)->1, etc.
-  const offset = firstDay === 0 ? 6 : firstDay - 1; 
+  // offset for Sunday start is just firstDay (0=Sun, 1=Mon, etc.)
+  const offset = firstDay; 
   
   // Previous month days to fill empty slots
   const heatmapPrevDaysInMonth = new Date(parseInt(year), parseInt(month) - 1, 0).getDate();
@@ -486,7 +486,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
              </div>
              
              <div className="grid grid-cols-7 gap-1 mb-2 text-center">
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
                    <div key={i} className="text-[9px] font-black text-muted-foreground uppercase">{day}</div>
                 ))}
              </div>
@@ -494,7 +494,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
              <div className="grid grid-cols-7 gap-1 sm:gap-1.5 flex-1 content-start">
                 {calendarDays.map((cell, i) => {
                   
-                  const isWeekend = (i % 7 === 5) || (i % 7 === 6); // Sat & Sun in Mon-start
+                  const isWeekend = (i % 7 === 5) || (i % 7 === 6); // Fri & Sat in Sun-start
                   let status = cell.isCurrent ? heatmapData[cell.day] : null;
                   
                   let bgColor = "bg-transparent";
