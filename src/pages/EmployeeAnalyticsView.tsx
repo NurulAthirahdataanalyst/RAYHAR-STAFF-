@@ -630,26 +630,28 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground mb-4">ATTENDANCE SCORE BREAKDOWN</h3>
             
             <div className="flex items-center flex-1">
-              <div className="w-[120px] h-[120px] relative shrink-0 flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={[{ value: overallScore, fill: "#6366f1" }, { value: 100 - overallScore, fill: "rgba(0,0,0,0.05)" }]}
-                      innerRadius={45}
-                      outerRadius={55}
-                      startAngle={90}
-                      endAngle={-270}
-                      dataKey="value"
-                      stroke="none"
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-2xl font-black text-foreground leading-none">{overallScore}</span>
-                  <span className="text-[9px] font-bold text-muted-foreground">/ 100</span>
+              <div className="flex flex-col items-center shrink-0">
+                <div className="w-[120px] h-[120px] relative flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[{ value: overallScore, fill: "#6366f1" }, { value: 100 - overallScore, fill: "rgba(0,0,0,0.05)" }]}
+                        innerRadius={45}
+                        outerRadius={55}
+                        startAngle={90}
+                        endAngle={-270}
+                        dataKey="value"
+                        stroke="none"
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-2xl font-black text-foreground leading-none">{overallScore}</span>
+                    <span className="text-[9px] font-bold text-muted-foreground">/ 100</span>
+                  </div>
                 </div>
-                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2">
-                   <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${overallScore >= 90 ? 'bg-emerald-500/10 text-emerald-600' : overallScore >= 75 ? 'bg-amber-500/10 text-amber-600' : 'bg-rose-500/10 text-rose-600'}`}>
+                <div className="mt-1">
+                   <span className={`whitespace-nowrap text-[10px] font-bold px-3 py-1 rounded-full ${overallScore >= 90 ? 'bg-emerald-500/10 text-emerald-600' : overallScore >= 75 ? 'bg-amber-500/10 text-amber-600' : 'bg-rose-500/10 text-rose-600'}`}>
                      {overallScore >= 90 ? 'Excellent' : overallScore >= 75 ? 'Good' : 'Needs Work'}
                    </span>
                 </div>
