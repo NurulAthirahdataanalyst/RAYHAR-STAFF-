@@ -12,6 +12,8 @@ import {
   RefreshCcw,
   CalendarOff,
   ArrowRight,
+  FileText,
+  Bell,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -501,8 +503,18 @@ export default function Dashboard() {
                   key={i}
                   className="group flex items-center gap-3 sm:gap-4 py-3 sm:py-4 px-2 rounded-2xl hover:bg-accent/50 transition-colors duration-200"
                 >
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-muted flex items-center justify-center group-hover:bg-card group-hover:shadow-sm transition-all shrink-0">
-                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shrink-0 ${
+                    item.action === 'Reminder' ? 'bg-yellow-500/10 text-yellow-600 group-hover:bg-card group-hover:shadow-sm' :
+                    item.action === 'Note' ? 'bg-blue-500/10 text-blue-600 group-hover:bg-card group-hover:shadow-sm' :
+                    'bg-muted text-muted-foreground group-hover:bg-card group-hover:shadow-sm'
+                  }`}>
+                    {item.action === 'Reminder' ? (
+                      <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
+                    ) : item.action === 'Note' ? (
+                      <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
+                    ) : (
+                      <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+                    )}
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-black text-foreground truncate">

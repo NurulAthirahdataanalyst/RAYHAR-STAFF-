@@ -1739,11 +1739,41 @@ app.get("/api/dashboard-stats", async (req, res) => {
     // 4. RECENT ACTIVITIES
     const [personalRecentRows] = await pool.query(
       `
-      SELECT p.full_name AS name, 'Attendance' AS action, CASE WHEN a.clock_out IS NULL THEN 'Clocked In' ELSE 'Clocked Out' END AS status,
-        CASE WHEN a.clock_out IS NULL THEN TO_CHAR((a.clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') ELSE TO_CHAR((a.clock_out AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') END AS time
-      FROM attendances a JOIN profiles p ON p.user_id = a.user_id WHERE a.user_id = ? ORDER BY COALESCE(a.clock_out, a.clock_in) DESC LIMIT 5
+      WITH activities AS (
+        SELECT 
+          'Attendance' AS action, 
+          'Clocked In' AS status,
+          clock_in as sort_time,
+          TO_CHAR((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time
+        FROM attendances WHERE user_id = ? AND clock_in IS NOT NULL 
+          AND DATE((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
+
+        UNION ALL
+
+        SELECT 
+          'Attendance' AS action, 
+          'Clocked Out' AS status,
+          clock_out as sort_time,
+          TO_CHAR((clock_out AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time
+        FROM attendances WHERE user_id = ? AND clock_out IS NOT NULL 
+          AND DATE((clock_out AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
+
+        UNION ALL
+
+        SELECT 
+          CASE WHEN type = 'reminder' THEN 'Reminder' ELSE 'Note' END AS action,
+          CASE WHEN type = 'reminder' THEN 'Added Reminder' ELSE 'Added Note' END AS status,
+          created_at as sort_time,
+          TO_CHAR((created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time
+        FROM personal_notes WHERE user_id = ? 
+          AND DATE((created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
+      )
+      SELECT act.action, act.status, act.time
+      FROM activities act
+      ORDER BY act.sort_time DESC
+      LIMIT 5
       `,
-      [userId]
+      [userId, userId, userId]
     );
 
     res.json({
