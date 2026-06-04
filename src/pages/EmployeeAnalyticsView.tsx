@@ -40,9 +40,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     fetch(`${API_BASE_URL}/api/attendance/history?userId=${userId}&month=${prevM}&year=${prevY}`)
       .then(res => res.json())
       .then(data => {
-        if (data.success) {
-          setLastMonthLogs(data.logs);
-        }
+          setLastMonthLogs(data.history || []);
       })
       .catch(console.error);
   }, [userId, month, year]);
