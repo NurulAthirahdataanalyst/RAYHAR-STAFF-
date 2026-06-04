@@ -142,9 +142,9 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     if (new Date(dateStr) <= new Date() || parseInt(month) !== (new Date().getMonth() + 1)) {
        trendData.push({
          day: `${d} ${new Date(parseInt(year), parseInt(month)-1).toLocaleString('default', { month: 'short' })}`,
-         Present: cumPresent,
-         Late: cumLate,
-         Absent: cumAbsent
+         "Total Present": cumPresent,
+         "Total Late": cumLate,
+         "Total Absent": cumAbsent
        });
     }
   }
@@ -302,9 +302,9 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
                   <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
-                  <Line type="monotone" dataKey="Present" stroke="#10b981" strokeWidth={3} dot={false} />
-                  <Line type="monotone" dataKey="Late" stroke="#f59e0b" strokeWidth={3} dot={false} />
-                  <Line type="monotone" dataKey="Absent" stroke="#ef4444" strokeWidth={3} dot={false} />
+                  <Line type="monotone" dataKey="Total Present" stroke="#10b981" strokeWidth={3} dot={false} />
+                  <Line type="monotone" dataKey="Total Late" stroke="#f59e0b" strokeWidth={3} dot={false} />
+                  <Line type="monotone" dataKey="Total Absent" stroke="#ef4444" strokeWidth={3} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
