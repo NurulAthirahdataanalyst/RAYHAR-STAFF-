@@ -1,8 +1,13 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, LogIn, LogOut, Loader2, AlertCircle, Clock, Timer, FileText } from "lucide-react";
+import { Search, LogIn, LogOut, Loader2, AlertCircle, Clock, Timer, FileText, Calendar as CalendarIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { format, isToday } from "date-fns";
+import { cn } from "@/lib/utils";
 import { useRole } from "@/contexts/RoleContext";
 import { API_BASE_URL } from "@/config/api";
 
@@ -23,12 +28,15 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
   const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const fetchEmployeesAndLeaves = async () => {
     try {
+      const dateStr = selectedDate.toLocaleDateString("en-CA"); // YYYY-MM-DD
       const params = new URLSearchParams({
         role: role || "employee",
         branch: userBranch || "",
+        date: dateStr,
       });
 
       // 1. Fetch live attendance/employees
@@ -51,6 +59,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
           const leaveParams = new URLSearchParams({
             role: role,
             branch: userBranch || "",
+            date: dateStr,
           });
           const leaveResponse = await fetch(`${API_BASE_URL}/api/leave-requests?${leaveParams}`);
           const leaveData = await leaveResponse.json();
@@ -134,7 +143,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
       eventSource.close();
       clearInterval(interval);
     };
-  }, [role, userBranch]);
+  }, [role, userBranch, selectedDate]);
 
   const filtered = activities.filter((e) =>
     e.full_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -318,7 +327,30 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
           </span>
-          <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Live Activity</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "h-7 px-2.5 text-[10px] font-black uppercase tracking-wider rounded-lg border-border/60 bg-background/50 hover:bg-accent hover:text-accent-foreground shadow-sm",
+                  !isToday(selectedDate) && "text-[#7B0099] border-[#7B0099]/30 bg-purple-50 dark:bg-purple-950/20"
+                )}
+              >
+                <CalendarIcon className="mr-1.5 h-3 w-3" />
+                {isToday(selectedDate) ? "Today" : format(selectedDate, "MMM d, yyyy")}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 z-[100]" align="end">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => {
+                  if (date) setSelectedDate(date);
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </CardTitle>
         <div className="relative mt-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/60" />

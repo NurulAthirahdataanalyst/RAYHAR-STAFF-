@@ -709,6 +709,7 @@ app.get("/api/leave-requests", async (req, res) => {
   const userId = req.query.userId;
   const role = req.query.role ? req.query.role.toString().trim() : "";
   const branch = req.query.branch ? req.query.branch.toString().trim() : "";
+  const date = req.query.date;
 
   try {
     const params = [];
@@ -731,6 +732,11 @@ app.get("/api/leave-requests", async (req, res) => {
         filters.push("p.branch = ?");
         params.push(branch);
       }
+    }
+
+    if (date) {
+      filters.push("DATE((lr.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur') = ?");
+      params.push(date);
     }
 
     const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
@@ -1063,7 +1069,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
 // EMPLOYEES
 // ===============================
 app.get("/api/employees", async (req, res) => {
-  const { role, branch } = req.query;
+  const { role, branch, date } = req.query;
 
   try {
     const params = [];
@@ -1119,8 +1125,8 @@ app.get("/api/employees", async (req, res) => {
           user_id,
           COUNT(DISTINCT DATE(clock_in)) AS days_present
         FROM attendances
-        WHERE EXTRACT(YEAR FROM clock_in) = EXTRACT(YEAR FROM CURRENT_DATE)
-        AND EXTRACT(MONTH FROM clock_in) = EXTRACT(MONTH FROM CURRENT_DATE)
+        WHERE EXTRACT(YEAR FROM clock_in) = EXTRACT(YEAR FROM ${date ? '?' : 'CURRENT_DATE' + '::date'})
+        AND EXTRACT(MONTH FROM clock_in) = EXTRACT(MONTH FROM ${date ? '?' : 'CURRENT_DATE' + '::date'})
         GROUP BY user_id
       ) att ON att.user_id = p.user_id
       LEFT JOIN (
@@ -1129,14 +1135,14 @@ app.get("/api/employees", async (req, res) => {
         INNER JOIN (
           SELECT user_id, MAX(attendance_id) AS latest_attendance_id
           FROM attendances
-          WHERE DATE(clock_in) = CURRENT_DATE
+          WHERE DATE((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur') = ${date ? '?' : 'CURRENT_DATE'}
           GROUP BY user_id
         ) latest ON latest.latest_attendance_id = a.attendance_id
       ) today ON today.user_id = p.user_id
       ${branchFilter}
       ORDER BY p.full_name ASC
       `,
-      params
+      [...(date ? [date, date, date] : []), ...params]
     );
 
     const employees = rows.map((employee) => ({
