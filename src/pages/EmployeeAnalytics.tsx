@@ -352,13 +352,15 @@ export default function EmployeeAnalytics() {
     return Object.values(map).map(d => ({ ...d, avgOvertime: Math.round((d.overtime / d.count) * 10) / 10 }));
   }, [teamMetrics]);
 
-  // ── Streak Calendar (last 7 days of myLogs) ───────────────────────────────
   const recentDays = useMemo(() => {
-    return [...myLogs].slice(-14).map(l => ({
-      date: new Date(l.clock_in).toLocaleDateString("en-MY", { weekday: "short", day: "numeric" }),
-      onTime: !l.is_late && l.status !== "LATE",
-      hours: parseHours(l.duration),
-    }));
+    return [...myLogs].slice(-14).map(l => {
+      const d = new Date(l.clock_in);
+      return {
+        date: isNaN(d.getTime()) ? "Invalid" : d.toLocaleDateString("en-MY", { weekday: "short", day: "numeric" }),
+        onTime: !l.is_late && l.status !== "LATE",
+        hours: parseHours(l.duration),
+      };
+    });
   }, [myLogs]);
 
   // Displayed metrics (self or selected employee in admin view)
@@ -626,7 +628,7 @@ export default function EmployeeAnalytics() {
                   <ResponsiveContainer width="100%" height={220}>
                     <BarChart
                       data={teamMetrics.filter(m => m.overtimeHours > 0).slice(0, 10).map(m => ({
-                        name: m.name.split(" ")[0],
+                        name: (m.name || "Unknown").split(" ")[0],
                         overtime: m.overtimeHours,
                       }))}
                       margin={{ top: 5, right: 10, left: -20, bottom: 20 }}
