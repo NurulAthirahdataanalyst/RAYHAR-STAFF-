@@ -295,7 +295,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stat Cards - responsive grid */}
-      <div className={`grid grid-cols-2 ${["managing_director", "head_of_department", "finance_manager", "hr_admin"].includes(role) ? "md:grid-cols-3 lg:grid-cols-5" : "md:grid-cols-2 lg:grid-cols-4"} gap-3 sm:gap-4`}>
+      <div className={`grid grid-cols-2 ${["managing_director", "head_of_department", "finance_manager", "hr_admin", "branch_leader"].includes(role) ? "md:grid-cols-3 lg:grid-cols-5" : "md:grid-cols-2 lg:grid-cols-4"} gap-3 sm:gap-4`}>
         {role === "employee" || role === "branch_officer" ? (
           <>
             <StatCard
@@ -330,7 +330,7 @@ export default function Dashboard() {
           </>
         ) : (
           <>
-            {["managing_director", "head_of_department", "finance_manager", "hr_admin"].includes(role) && (
+            {["managing_director", "head_of_department", "finance_manager", "hr_admin", "branch_leader"].includes(role) && (
               <StatCard
                 icon={Clock}
                 title="Today's Status"
