@@ -1871,9 +1871,14 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         WHERE DATE(clock_in) = ${queryDate ? '?' : 'CURRENT_DATE'}
         GROUP BY user_id
       )
+      AND NOT EXISTS (
+        SELECT 1 FROM leave_requests lr 
+        WHERE lr.user_id = p.user_id AND lr.status = 'Approved' 
+        AND ${queryDate ? '?::date' : 'CURRENT_DATE'} BETWEEN lr.start_date AND lr.end_date
+      )
       ORDER BY a.clock_in DESC
       `,
-      queryDate ? [queryDate] : []
+      queryDate ? [queryDate, queryDate] : []
     );
 
     const lateTimeStr = getLateThresholdTime();
