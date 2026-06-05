@@ -1104,6 +1104,7 @@ app.get("/api/employees", async (req, res) => {
         GREATEST(14 - COALESCE(lr.annual_days_used, 0), 0) AS annual_leave_balance,
         COALESCE(att.days_present, 0) AS days_present,
         ROUND((COALESCE(att.days_present, 0)::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100) AS attendance_rate,
+        COALESCE(leave_today.is_on_leave_today, 0) AS is_on_leave_today,
         today.clock_in AS today_clock_in,
         today.clock_out AS today_clock_out
       FROM profiles p
@@ -1139,6 +1140,13 @@ app.get("/api/employees", async (req, res) => {
           GROUP BY user_id
         ) latest ON latest.latest_attendance_id = a.attendance_id
       ) today ON today.user_id = p.user_id
+      LEFT JOIN (
+        SELECT user_id, 1 AS is_on_leave_today
+        FROM leave_requests
+        WHERE status = 'Approved' 
+        AND ${date ? '?::date' : 'CURRENT_DATE'} BETWEEN start_date AND end_date
+        GROUP BY user_id
+      ) leave_today ON leave_today.user_id = p.user_id
       ${branchFilter}
       ORDER BY p.full_name ASC
       `,
@@ -1147,11 +1155,13 @@ app.get("/api/employees", async (req, res) => {
 
     const employees = rows.map((employee) => ({
       ...employee,
-      today_status: employee.today_clock_in
-        ? employee.today_clock_out
-          ? "Clocked Out"
-          : "Present"
-        : "Absent",
+      today_status: employee.is_on_leave_today
+        ? "On Leave"
+        : employee.today_clock_in
+          ? employee.today_clock_out
+            ? "Clocked Out"
+            : "Present"
+          : "Absent",
     }));
 
     res.json({ success: true, employees });
@@ -1447,14 +1457,7 @@ app.post("/api/attendance", async (req, res) => {
   }
 
   try {
-    const [leaveRows] = await pool.query(
-      `SELECT status FROM leave_requests WHERE user_id = ? AND status = 'Approved' AND CURRENT_DATE BETWEEN start_date AND end_date`,
-      [user_id]
-    );
 
-    if (leaveRows.length > 0) {
-      return res.status(403).json({ success: false, error: "You are currently on an approved leave today." });
-    }
 
     const [result] = await pool.query(
       `INSERT INTO attendances (user_id, clock_in) VALUES (?, NOW())`,
@@ -1652,7 +1655,13 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const [presentRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS present_today FROM attendances WHERE DATE(clock_in) = CURRENT_DATE ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS present_today FROM attendances WHERE DATE(clock_in) = CURRENT_DATE 
+         AND NOT EXISTS (
+           SELECT 1 FROM leave_requests lr 
+           WHERE lr.user_id = attendances.user_id AND lr.status = 'Approved' 
+           AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date
+         )
+         ${attendanceFilter}`,
         queryParams
       );
 
@@ -1663,7 +1672,13 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       const lateTimeStr = getLateThresholdTime();
       const [lateRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = CURRENT_DATE AND ((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = CURRENT_DATE AND ((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' 
+         AND NOT EXISTS (
+           SELECT 1 FROM leave_requests lr 
+           WHERE lr.user_id = attendances.user_id AND lr.status = 'Approved' 
+           AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date
+         )
+         ${attendanceFilter}`,
         queryParams
       );
 

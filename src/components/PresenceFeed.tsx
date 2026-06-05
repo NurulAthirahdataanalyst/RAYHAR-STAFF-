@@ -78,39 +78,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
         });
       }
 
-      // 2. Fetch leave requests if user has HR role
-      if (role === "hr_admin") {
-        try {
-          const leaveParams = new URLSearchParams({
-            role: role,
-            branch: userBranch || "",
-            date: dateStr,
-          });
-          const leaveResponse = await fetch(`${API_BASE_URL}/api/leave-requests?${leaveParams}`);
-          const leaveData = await leaveResponse.json();
-          
-          if (leaveData.success && leaveData.leaveRequests) {
-            const leaveList = leaveData.leaveRequests.map((lr: any) => ({
-              user_id: lr.user_id,
-              full_name: lr.full_name,
-              department: lr.department,
-              branch: lr.branch,
-              today_status: "Leave Submitted",
-              today_clock_in: lr.created_at,
-              today_clock_out: null,
-              id: `leave-${lr.leave_id}`,
-              is_leave_submission: true,
-              leave_type: lr.leave_type,
-              days: lr.days,
-              status: lr.status,
-              event_time: lr.created_at,
-            }));
-            activeList = [...activeList, ...leaveList];
-          }
-        } catch (err) {
-          console.error("Error fetching leave requests for Presence Feed:", err);
-        }
-      }
+      // 2. Removed Fetch leave requests for Presence Feed since users on leave should not appear here.
 
       // 3. Sort by event_time descending (most recent first)
       activeList.sort((a, b) => {
