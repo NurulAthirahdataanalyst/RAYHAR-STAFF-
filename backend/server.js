@@ -2381,6 +2381,98 @@ app.get("/api/who-out-today", async (req, res) => {
 });
 
 // ===============================
+// REPORT GENERATOR API
+// ===============================
+app.get("/api/reports/generator", async (req, res) => {
+  try {
+    const { type, month, year, branch, department } = req.query;
+    
+    let filters = [];
+    let params = [];
+    
+    if (branch && branch !== 'all') {
+      filters.push("p.branch = ?");
+      params.push(branch);
+    }
+    
+    if (department && department !== 'all') {
+      filters.push("p.department = ?");
+      params.push(department);
+    }
+    
+    if (month && month !== 'all') {
+      filters.push("EXTRACT(MONTH FROM a.clock_in) = ?");
+      params.push(month);
+    }
+    
+    if (year && year !== 'all') {
+      filters.push("EXTRACT(YEAR FROM a.clock_in) = ?");
+      params.push(year);
+    }
+    
+    let whereClause = filters.length > 0 ? "WHERE " + filters.join(" AND ") : "";
+    
+    if (type === 'trends' || type === 'stability') {
+      const [rows] = await pool.query(`
+        SELECT 
+          p.full_name,
+          p.branch,
+          a.clock_in,
+          a.clock_out
+        FROM attendances a
+        JOIN profiles p ON p.user_id = a.user_id
+        ${whereClause}
+        ORDER BY a.clock_in DESC
+      `, params);
+      
+      res.json({ success: true, data: rows });
+    } else {
+      let leaveFilters = [];
+      let leaveParams = [];
+      
+      if (branch && branch !== 'all') {
+         leaveFilters.push("p.branch = ?");
+         leaveParams.push(branch);
+      }
+      
+      if (department && department !== 'all') {
+         leaveFilters.push("p.department = ?");
+         leaveParams.push(department);
+      }
+      
+      if (month && month !== 'all') {
+         leaveFilters.push("EXTRACT(MONTH FROM lr.start_date) = ?");
+         leaveParams.push(month);
+      }
+      
+      if (year && year !== 'all') {
+         leaveFilters.push("EXTRACT(YEAR FROM lr.start_date) = ?");
+         leaveParams.push(year);
+      }
+      
+      let leaveWhereClause = leaveFilters.length > 0 ? "AND " + leaveFilters.join(" AND ") : "";
+      
+      const [rows] = await pool.query(`
+        SELECT 
+          p.full_name,
+          p.branch,
+          lr.leave_type,
+          lr.days,
+          lr.status
+        FROM leave_requests lr
+        JOIN profiles p ON p.user_id = lr.user_id
+        WHERE lr.status = 'Approved' ${leaveWhereClause}
+      `, leaveParams);
+      
+      res.json({ success: true, data: rows });
+    }
+  } catch (err) {
+    console.error("Generator Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ===============================
 // LEAVE UTILIZATION ANALYTICS
 // ===============================
 app.get("/api/reports/leave-utilization", async (req, res) => {

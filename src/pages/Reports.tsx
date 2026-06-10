@@ -309,39 +309,69 @@ export default function Reports() {
   };
 
   // Generate Report action using real data
-  const triggerGenerateReport = () => {
+  const triggerGenerateReport = async () => {
     setIsGenerating(true);
-    setTimeout(() => {
-      setIsGenerating(false);
+    try {
+      const params = new URLSearchParams({
+        type: generatorType,
+        month: selectedMonth,
+        year: selectedYear,
+        branch: generatorBranch,
+        department: generatorDept
+      });
       
-      // Select appropriate headers/dataset based on active state
-      let reportName = `Rayhar_${generatorType.toUpperCase()}_Report.csv`;
-      let headers = ["Employee Name", "Branch", "Rate %", "Status"];
-      let rows: any[] = [];
+      const response = await fetch(`${API_BASE_URL}/api/reports/generator?${params}`);
+      const data = await response.json();
       
-      if (generatorType === "stability" || generatorType === "trends") {
-        rows = dailyAttendance.map(r => [r.full_name, r.branch, "100%", r.time_out ? "Clocked Out" : "Active"]);
+      if (data.success) {
+        let reportName = `Rayhar_${generatorType.toUpperCase()}_Report_${selectedMonth}_${selectedYear}.csv`;
+        let headers: string[] = [];
+        let rows: any[] = [];
+        
+        if (generatorType === "trends" || generatorType === "stability") {
+          headers = ["Employee Name", "Branch", "Date", "Clock In", "Clock Out"];
+          rows = data.data.map((r: any) => {
+             const dateStr = new Date(r.clock_in).toLocaleDateString();
+             const timeIn = new Date(r.clock_in).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+             const timeOut = r.clock_out ? new Date(r.clock_out).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "--:--";
+             return [r.full_name, r.branch, dateStr, timeIn, timeOut];
+          });
+        } else {
+          headers = ["Employee Name", "Branch", "Leave Type", "Days", "Status"];
+          rows = data.data.map((r: any) => [r.full_name, r.branch, r.leave_type, r.days, r.status]);
+        }
+        
+        if (rows.length === 0) {
+           toast.error("No data found for the selected filters.");
+           setIsGenerating(false);
+           return;
+        }
+        
+        const csvContent = [
+          headers.join(","),
+          ...rows.map(row => row.join(","))
+        ].join("\n");
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", reportName);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        toast.success(`${generatorType.toUpperCase()} Analytical Report generated successfully!`);
       } else {
-        rows = branchComparison.map(b => [b.branch, b.branch, `${b.rate || 0}%`, "Benchmark Met"]);
+         toast.error("Failed to generate report");
       }
-      
-      const csvContent = [
-        headers.join(","),
-        ...rows.map(row => row.join(","))
-      ].join("\n");
-
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-      link.setAttribute("href", url);
-      link.setAttribute("download", reportName);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast.success(`${generatorType.toUpperCase()} Analytical Report generated successfully with active live records!`);
-    }, 1500);
+    } catch (e) {
+      console.error(e);
+      toast.error("Error generating report");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
 
