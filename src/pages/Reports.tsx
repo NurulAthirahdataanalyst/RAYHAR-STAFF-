@@ -329,12 +329,13 @@ export default function Reports() {
         let rows: any[] = [];
         
         if (generatorType === "trends" || generatorType === "stability") {
-          headers = ["Employee ID", "Employee Name", "Branch", "Date", "Clock In", "Clock Out"];
+          headers = ["Employee ID", "Employee Name", "Branch", "Date", "Clock In", "Clock Out", "Total Hours"];
           rows = data.data.map((r: any) => {
              const dateStr = new Date(r.clock_in).toLocaleDateString();
              const timeIn = new Date(r.clock_in).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
              const timeOut = r.clock_out ? new Date(r.clock_out).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "--:--";
-             return [r.user_id, r.full_name, r.branch, dateStr, timeIn, timeOut];
+             const totalHrs = calculateWorkingHours(r.clock_in, r.clock_out);
+             return [r.user_id, r.full_name, r.branch, dateStr, timeIn, timeOut, totalHrs];
           });
         } else {
           headers = ["Employee ID", "Employee Name", "Branch", "Leave Type", "Days", "Status"];
