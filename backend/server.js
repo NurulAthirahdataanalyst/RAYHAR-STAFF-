@@ -2415,6 +2415,7 @@ app.get("/api/reports/generator", async (req, res) => {
     if (type === 'trends' || type === 'stability') {
       const [rows] = await pool.query(`
         SELECT 
+          p.user_id,
           p.full_name,
           p.branch,
           a.clock_in,
@@ -2454,6 +2455,7 @@ app.get("/api/reports/generator", async (req, res) => {
       
       const [rows] = await pool.query(`
         SELECT 
+          p.user_id,
           p.full_name,
           p.branch,
           lr.leave_type,

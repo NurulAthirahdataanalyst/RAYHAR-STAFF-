@@ -329,16 +329,16 @@ export default function Reports() {
         let rows: any[] = [];
         
         if (generatorType === "trends" || generatorType === "stability") {
-          headers = ["Employee Name", "Branch", "Date", "Clock In", "Clock Out"];
+          headers = ["Employee ID", "Employee Name", "Branch", "Date", "Clock In", "Clock Out"];
           rows = data.data.map((r: any) => {
              const dateStr = new Date(r.clock_in).toLocaleDateString();
              const timeIn = new Date(r.clock_in).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
              const timeOut = r.clock_out ? new Date(r.clock_out).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "--:--";
-             return [r.full_name, r.branch, dateStr, timeIn, timeOut];
+             return [r.user_id, r.full_name, r.branch, dateStr, timeIn, timeOut];
           });
         } else {
-          headers = ["Employee Name", "Branch", "Leave Type", "Days", "Status"];
-          rows = data.data.map((r: any) => [r.full_name, r.branch, r.leave_type, r.days, r.status]);
+          headers = ["Employee ID", "Employee Name", "Branch", "Leave Type", "Days", "Status"];
+          rows = data.data.map((r: any) => [r.user_id, r.full_name, r.branch, r.leave_type, r.days, r.status]);
         }
         
         if (rows.length === 0) {
