@@ -841,7 +841,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
     
     const initialStatus = (leave_type === 'Cuti Sakit' || leave_type === 'Sick Leave') ? 'Approved' : 
                           (employeeBranch === 'HQ' 
-                            ? (employeeDept ? `Pending HOD (${employeeDept})` : 'Pending HOD') 
+                            ? 'Pending HOD' 
                             : 'Pending Branch Leader');
 
     const [result] = await pool.query(
@@ -851,36 +851,12 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
-        user_id,
-        leave_type,
-        start_date,
-        end_date,
-        days,
-        reason,
-        initialStatus,
-        waris_nama,
-        waris_phone,
-        waris_alamat,
-        waris_hubungan,
-        cuti_ganti_tarikh || null,
-        cuti_ganti_hari || null,
-        cuti_ganti_jam || null,
-        cuti_tanpa_gaji_phone || null,
-        signature_val,
-        mc_file_url
+        user_id, leave_type, start_date, end_date, days, reason, initialStatus, waris_nama, waris_phone, waris_alamat, waris_hubungan, cuti_ganti_tarikh || null, cuti_ganti_hari || null, cuti_ganti_jam || null, cuti_tanpa_gaji_phone || null, signature_val, mc_file_url
       ]
     );
 
     const [rows] = await pool.query(
-      `
-      SELECT
-        lr.*,
-        p.full_name,
-        p.branch
-      FROM leave_requests lr
-      JOIN profiles p ON p.user_id = lr.user_id
-      WHERE lr.leave_id = ?
-      `,
+      `SELECT lr.*, p.full_name, p.branch FROM leave_requests lr JOIN profiles p ON p.user_id = lr.user_id WHERE lr.leave_id = ?`,
       [result.insertId]
     );
 
@@ -889,50 +865,71 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
     res.status(201).json({ success: true, leaveRequest: leaveData });
     broadcastPresenceUpdate({ type: 'leave-status', leaveId: result.insertId, status: initialStatus, userId: user_id });
 
-    // --- SEND EMAIL NOTIFICATION TO HOD (ONLY IF NOT AUTO-APPROVED) ---
+    // --- SEND EMAIL NOTIFICATION TO HOD / BRANCH LEADER & HR ---
     if (initialStatus !== "Approved" && leaveData) {
       try {
-        // Find the HOD for this department
-        const [hodRows] = await pool.query(
-          `SELECT p.email FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND p.department = ? AND p.branch = ? LIMIT 1`,
-          [employeeDept, employeeBranch]
-        );
+        let approverEmail = "";
+        let approverTitle = "HOD";
+        let approverUserId = "";
 
-        if (hodRows.length > 0 || initialStatus === "Pending Branch Leader") {
-          let approverEmail = "";
-          let approverTitle = "HOD";
-
-          if (initialStatus === "Pending Branch Leader") {
-            const [blRows] = await pool.query(
-              `SELECT p.email FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'branch_leader' AND p.branch = ? LIMIT 1`,
-              [leaveData.branch]
-            );
-            if (blRows.length > 0) {
-              approverEmail = blRows[0].email;
-              approverTitle = "Branch Leader";
-            }
-          } else {
-            approverEmail = hodRows[0]?.email;
+        // Find approver
+        if (initialStatus === "Pending Branch Leader") {
+          const [blRows] = await pool.query(
+            `SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'branch_leader' AND p.branch = ? LIMIT 1`,
+            [leaveData.branch]
+          );
+          if (blRows.length > 0) {
+            approverEmail = blRows[0].email;
+            approverUserId = blRows[0].user_id;
+            approverTitle = "Branch Leader";
           }
-
-          if (approverEmail) {
-            const subject = `New Leave Request Pending Approval: ${leaveData.full_name}`;
-            const html = `
-              <h2>New Leave Request Requires Your Approval</h2>
-              <p><strong>Employee:</strong> ${leaveData.full_name}</p>
-              <p><strong>Leave Type:</strong> ${leaveData.leave_type}</p>
-              <p><strong>Dates:</strong> ${new Date(leaveData.start_date).toLocaleDateString()} to ${new Date(leaveData.end_date).toLocaleDateString()}</p>
-              <p><strong>Total Days:</strong> ${leaveData.days}</p>
-              <br/>
-              <p>Please log in to the Employee Portal to review and approve/reject this request as <strong>${approverTitle}</strong>.</p>
-            `;
-            sendNotificationEmail(approverEmail, subject, html).catch(err => {
-              console.error("Failed to send HOD notification email asynchronously:", err);
-            });
+        } else {
+          const [hodRows] = await pool.query(
+            `SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND p.department = ? AND p.branch = ? LIMIT 1`,
+            [employeeDept, employeeBranch]
+          );
+          if (hodRows.length > 0) {
+            approverEmail = hodRows[0].email;
+            approverUserId = hodRows[0].user_id;
           }
         }
+
+        const subject = `New Leave Request Pending Approval: ${leaveData.full_name}`;
+        const html = `
+          <h2>New Leave Request Requires Your Approval</h2>
+          <p><strong>Employee:</strong> ${leaveData.full_name}</p>
+          <p><strong>Leave Type:</strong> ${leaveData.leave_type}</p>
+          <p><strong>Dates:</strong> ${new Date(leaveData.start_date).toLocaleDateString()} to ${new Date(leaveData.end_date).toLocaleDateString()}</p>
+          <p><strong>Total Days:</strong> ${leaveData.days}</p>
+          <br/>
+          <p>Please log in to the Employee Portal to review and approve/reject this request as <strong>${approverTitle}</strong>.</p>
+        `;
+
+        if (approverEmail) {
+          sendNotificationEmail(approverEmail, subject, html).catch(err => {
+            console.error("Failed to send HOD notification email:", err);
+          });
+        }
+
+        if (approverUserId) {
+          await pool.query(
+            `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
+            [approverUserId, `New Leave Request: ${leaveData.full_name}`, `${leaveData.full_name} has requested ${leaveData.days} days of ${leaveData.leave_type}.`, 'leave_approval', result.insertId]
+          );
+        }
+
+        // Notify HR
+        const [hrRows] = await pool.query(
+          `SELECT p.email FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'hr_admin' LIMIT 1`
+        );
+        if (hrRows.length > 0) {
+          sendNotificationEmail(hrRows[0].email, `FYI - New Leave Application: ${leaveData.full_name}`, html).catch(err => {
+            console.error("Failed to send HR notification email:", err);
+          });
+        }
+
       } catch (mailErr) {
-        console.error("Error sending HOD email:", mailErr);
+        console.error("Error sending workflow emails/notifications:", mailErr);
       }
     }
 
@@ -1025,33 +1022,72 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
       if (fullLeaveRows.length > 0) {
         const leaveData = fullLeaveRows[0];
         let targetEmail = null;
+        let targetUserId = null;
         let subject = "";
         let html = "";
+        let notificationTitle = "";
+        let notificationMessage = "";
 
         if (nextStatus === "Pending Finance") {
-          const [fmRows] = await pool.query(`SELECT p.email FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'finance_manager' LIMIT 1`);
+          const [fmRows] = await pool.query(`SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'finance_manager' LIMIT 1`);
           if (fmRows.length > 0) {
             targetEmail = fmRows[0].email;
+            targetUserId = fmRows[0].user_id;
             subject = `Leave Request Pending Finance Approval: ${leaveData.employee_name}`;
             html = `<p>Approval stage complete for <strong>${leaveData.employee_name}</strong>. It is now pending your Finance review.</p>`;
+            notificationTitle = `Leave Approval Required`;
+            notificationMessage = `${leaveData.employee_name} requires your Finance approval for a leave request.`;
           }
         } else if (nextStatus === "Pending MD") {
-          const [mdRows] = await pool.query(`SELECT p.email FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'managing_director' LIMIT 1`);
+          const [mdRows] = await pool.query(`SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'managing_director' LIMIT 1`);
           if (mdRows.length > 0) {
             targetEmail = mdRows[0].email;
+            targetUserId = mdRows[0].user_id;
             subject = `Leave Request Pending MD Approval: ${leaveData.employee_name}`;
             html = `<p>Finance Manager has approved a leave request for <strong>${leaveData.employee_name}</strong>. It is now pending your final MD approval.</p>`;
+            notificationTitle = `Leave Final Approval Required`;
+            notificationMessage = `${leaveData.employee_name} requires your MD approval for a leave request.`;
           }
         } else if (nextStatus === "Approved" || nextStatus === "Rejected") {
           targetEmail = leaveData.employee_email;
+          targetUserId = leaveData.user_id;
           subject = `Leave Request ${nextStatus}: ${leaveData.leave_type}`;
           html = `<p>Hello ${leaveData.employee_name},</p><p>Your leave request for <strong>${leaveData.leave_type}</strong> has been <strong>${nextStatus}</strong>.</p>`;
+          notificationTitle = `Leave Request ${nextStatus}`;
+          notificationMessage = `Your request for ${leaveData.leave_type} has been ${nextStatus.toLowerCase()}.`;
+
+          // Notify HR
+          const [hrRows] = await pool.query(
+            `SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'hr_admin' LIMIT 1`
+          );
+          if (hrRows.length > 0) {
+            sendNotificationEmail(hrRows[0].email, `Leave Request ${nextStatus}: ${leaveData.employee_name}`, `<p>The leave request for <strong>${leaveData.employee_name}</strong> has been <strong>${nextStatus}</strong>.</p>`).catch(console.error);
+            pool.query(
+              `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
+              [hrRows[0].user_id, `Leave ${nextStatus}: ${leaveData.employee_name}`, `${leaveData.employee_name}'s request for ${leaveData.leave_type} is now ${nextStatus.toLowerCase()}.`, 'status_update', leaveId]
+            ).catch(console.error);
+          }
         }
 
-        if (targetEmail) {
+        if (targetEmail && subject) {
           sendNotificationEmail(targetEmail, subject, html).catch(err => {
             console.error("Failed to send status update email asynchronously:", err);
           });
+        }
+
+        if (targetUserId && notificationTitle) {
+          await pool.query(
+            `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
+            [targetUserId, notificationTitle, notificationMessage, 'status_update', leaveId]
+          );
+        }
+
+        // Notify employee of intermediate status updates
+        if (nextStatus === "Pending Finance" || nextStatus === "Pending MD") {
+          await pool.query(
+            `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
+            [leaveData.user_id, `Leave Update: ${nextStatus}`, `Your leave request is now ${nextStatus}.`, 'status_update', leaveId]
+          );
         }
       }
     } catch (mailErr) {
@@ -1061,6 +1097,49 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
 
   } catch (err) {
     console.error("Update Leave Request Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ===============================
+// NOTIFICATIONS
+// ===============================
+
+app.get("/api/notifications", async (req, res) => {
+  const { user_id } = req.query;
+  if (!user_id) return res.status(400).json({ success: false, error: "user_id required" });
+
+  try {
+    const [rows] = await pool.query(
+      `SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
+      [user_id]
+    );
+    res.json({ success: true, notifications: rows });
+  } catch (err) {
+    console.error("Fetch Notifications Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.patch("/api/notifications/:id/read", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query(`UPDATE notifications SET is_read = TRUE WHERE id = ?`, [id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Mark Notification Read Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.patch("/api/notifications/read-all", async (req, res) => {
+  const { user_id } = req.body;
+  if (!user_id) return res.status(400).json({ success: false, error: "user_id required" });
+  try {
+    await pool.query(`UPDATE notifications SET is_read = TRUE WHERE user_id = ?`, [user_id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Mark All Notifications Read Error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });

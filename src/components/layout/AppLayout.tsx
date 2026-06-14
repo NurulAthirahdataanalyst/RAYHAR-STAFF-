@@ -1,5 +1,6 @@
 import AppSidebar from "./AppSidebar";
 import PresenceFeed from "../PresenceFeed";
+import NotificationBell from "../NotificationBell";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -126,8 +127,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
             </div>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger className="outline-none">
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <DropdownMenu>
+                <DropdownMenuTrigger className="outline-none">
                 <div className="h-8 w-8 rounded-lg bg-white text-[#7B0099] flex items-center justify-center font-black text-xs shadow-md hover:scale-105 active:scale-95 transition-transform border border-white/20">
                   {(user?.full_name || user?.name || "E")[0].toUpperCase()}
                 </div>
@@ -151,6 +154,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </div>
           </div>
         </div>
 
@@ -187,8 +191,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </div>
                 </div>
                 
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="outline-none relative z-10">
+                <div className="flex items-center gap-4 relative z-10">
+                  <NotificationBell />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="outline-none relative z-10">
                     <div className="flex items-center gap-3.5 pr-1 group cursor-pointer">
                       <div className="text-right hidden sm:block space-y-0.5">
                         <p className="text-xs font-black text-white group-hover:text-purple-200 transition-colors">{user?.full_name || user?.name || "Employee"}</p>
@@ -223,6 +229,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                </div>
               </div>
 
               {children}

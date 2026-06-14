@@ -31,7 +31,7 @@ type LeaveForm = {
   to: string;
   days: number;
   reason: string;
-  status: "Pending HOD" | "Pending Finance" | "Pending MD" | "Approved" | "Rejected";
+  status: "Pending HOD" | "Pending Branch Leader" | "Pending Finance" | "Pending MD" | "Approved" | "Rejected" | string;
   appliedAt: string;
   formFileName: string;
   warisNama: string;

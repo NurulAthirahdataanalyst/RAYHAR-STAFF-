@@ -36,6 +36,7 @@ const approvalProgress = (status: string) => {
     case "Approved": return 100;
     case "Rejected": return 100;
     case "Pending HOD": return 25;
+    case "Pending Branch Leader": return 25;
     case "Pending Finance": return 50;
     case "Pending MD": return 75;
     default: return 25;

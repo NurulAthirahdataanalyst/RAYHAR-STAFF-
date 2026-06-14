@@ -194,7 +194,7 @@ export default function LeaveManagement() {
         from: formData.tarikhMula,
         to: formData.tarikhAkhir,
         days: formData.bilanganHari,
-        status: "Pending HOD",
+        status: data.leaveRequest?.status || "Pending HOD",
         reason: formData.tujuanCuti + serializedGanti,
         appliedAt,
         formFileName: getLeaveFormFileName(appliedAt, leaveType, formData.namaPenuh),
