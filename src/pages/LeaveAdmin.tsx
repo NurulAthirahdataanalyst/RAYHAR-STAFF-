@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -68,6 +69,23 @@ export default function LeaveAdmin() {
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
   const [activeTab, setActiveTab] = useState<TabFilter>("pending");
+  const [selectedMonth, setSelectedMonth] = useState<string>("all");
+
+  const months = [
+    { value: "all", label: "All Months" },
+    { value: "01", label: "January" },
+    { value: "02", label: "February" },
+    { value: "03", label: "March" },
+    { value: "04", label: "April" },
+    { value: "05", label: "May" },
+    { value: "06", label: "June" },
+    { value: "07", label: "July" },
+    { value: "08", label: "August" },
+    { value: "09", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
+  ];
 
   // Remarks Modal State
   const [remarksDialogOpen, setRemarksDialogOpen] = useState(false);
@@ -75,8 +93,14 @@ export default function LeaveAdmin() {
   const [remarks, setRemarks] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Filter requests based on active tab
-  const filteredRequests = requests.filter((req) => {
+  // First, filter by month
+  const requestsByMonth = requests.filter((req) => {
+    if (selectedMonth === "all") return true;
+    return req.from.substring(5, 7) === selectedMonth;
+  });
+
+  // Then, filter by active tab
+  const filteredRequests = requestsByMonth.filter((req) => {
     switch (activeTab) {
       case "pending":
         return req.status.startsWith("Pending");
@@ -87,11 +111,12 @@ export default function LeaveAdmin() {
       case "history":
         return true; // Show all
     }
+    return false;
   });
 
-  const pendingCount = requests.filter((r) => r.status.startsWith("Pending")).length;
-  const approvedCount = requests.filter((r) => r.status === "Approved").length;
-  const rejectedCount = requests.filter((r) => r.status === "Rejected").length;
+  const pendingCount = requestsByMonth.filter((r) => r.status.startsWith("Pending")).length;
+  const approvedCount = requestsByMonth.filter((r) => r.status === "Approved").length;
+  const rejectedCount = requestsByMonth.filter((r) => r.status === "Rejected").length;
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -244,9 +269,21 @@ export default function LeaveAdmin() {
                 Review and manage employee leave applications
               </CardDescription>
             </div>
-            <Badge variant="outline" className="font-black text-[10px] px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none">
-              {filteredRequests.length} {activeTab === "pending" ? "PENDING" : activeTab === "approved" ? "APPROVED" : activeTab === "rejected" ? "REJECTED" : "TOTAL"}
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-[120px] sm:w-[140px] h-8 text-[10px] font-black rounded-xl border-border/50 bg-white/50 dark:bg-black/20">
+                  <SelectValue placeholder="All Months" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  {months.map(m => (
+                    <SelectItem key={m.value} value={m.value} className="text-[10px] font-bold">{m.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Badge variant="outline" className="font-black text-[10px] px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none hidden sm:inline-flex">
+                {filteredRequests.length} {activeTab === "pending" ? "PENDING" : activeTab === "approved" ? "APPROVED" : activeTab === "rejected" ? "REJECTED" : "TOTAL"}
+              </Badge>
+            </div>
           </div>
           {/* Tab Navigation */}
           <div className="flex gap-0 border-b-0">
@@ -254,7 +291,7 @@ export default function LeaveAdmin() {
               { key: "pending" as TabFilter, label: "Pending", count: pendingCount },
               { key: "approved" as TabFilter, label: "Approved", count: approvedCount },
               { key: "rejected" as TabFilter, label: "Rejected", count: rejectedCount },
-              { key: "history" as TabFilter, label: "History", count: requests.length },
+              { key: "history" as TabFilter, label: "History", count: requestsByMonth.length },
             ]).map((tab) => (
               <button
                 key={tab.key}
