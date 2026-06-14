@@ -87,8 +87,9 @@ export default function Reports() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [selectedBranchFilter, setSelectedBranchFilter] = useState("all");
 
-  const [liveTimeRange, setLiveTimeRange] = useState("today");
+  const liveTimeRange = "today";
   const [liveRegion, setLiveRegion] = useState("all");
 
   // Leave Utilization State
@@ -424,11 +425,13 @@ export default function Reports() {
 
   const totalStaffCount = branchComparison.reduce((sum, b) => sum + Number(b.totalEmployees || 0), 0);
 
-  // Late check count (arrived past dynamic threshold)
-  const lateArrivalsCount = dailyAttendance.filter(r => (r as any).is_late).length;
+  const filteredDailyAttendance = selectedBranchFilter === "all" ? dailyAttendance : dailyAttendance.filter((r) => r.branch === selectedBranchFilter);
 
-  const lateRate = dailyAttendance.length > 0 
-    ? Math.round((lateArrivalsCount / dailyAttendance.length) * 100) 
+  // Late check count (arrived past dynamic threshold)
+  const lateArrivalsCount = filteredDailyAttendance.filter(r => (r as any).is_late).length;
+
+  const lateRate = filteredDailyAttendance.length > 0 
+    ? Math.round((lateArrivalsCount / filteredDailyAttendance.length) * 100) 
     : 4;
 
   // Leave analytics processors
@@ -619,6 +622,17 @@ export default function Reports() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-3">
+                <Select value={selectedBranchFilter} onValueChange={setSelectedBranchFilter}>
+                  <SelectTrigger className="w-[140px] h-9 text-[10px] font-black rounded-xl border-border/50 bg-white/50 dark:bg-black/20">
+                    <SelectValue placeholder="All Branches" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="all">All Branches</SelectItem>
+                    {branches.map((b) => (
+                      <SelectItem key={b.code} value={b.code}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Select value={limit} onValueChange={setLimit}>
                   <SelectTrigger className="w-[80px] h-9 text-[10px] font-black rounded-xl border-border/50 bg-white/50 dark:bg-black/20">
                     <SelectValue placeholder="10" />
@@ -630,7 +644,7 @@ export default function Reports() {
                   </SelectContent>
                 </Select>
                 <Badge className="bg-[#7B0099] text-white font-black text-[10px] px-3.5 py-2 rounded-full shadow-lg shadow-[#7B0099]/20 tracking-wider">
-                  {dailyAttendance.length} RECORDS
+                  {filteredDailyAttendance.length} RECORDS
                 </Badge>
               </div>
             </div>
@@ -654,8 +668,8 @@ export default function Reports() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/30">
-                      {dailyAttendance.length > 0 ? (
-                        dailyAttendance.slice(0, parseInt(limit)).map((record) => (
+                      {filteredDailyAttendance.length > 0 ? (
+                        filteredDailyAttendance.slice(0, parseInt(limit)).map((record) => (
                           <tr key={record.user_id} className="hover:bg-[#7B0099]/5 transition-colors group">
                             <td className="px-6 py-4">
                               <span className="font-black text-foreground group-hover:text-[#7B0099] transition-colors">{record.full_name}</span>
@@ -706,7 +720,7 @@ export default function Reports() {
             <CardContent className="pt-6">
               <div className="space-y-4">
                 {(() => {
-                  const allAnomalies = dailyAttendance.flatMap(record => {
+                  const allAnomalies = filteredDailyAttendance.flatMap(record => {
                     const list = [];
                     if ((record as any).is_late) {
                       list.push({ id: `${record.user_id}-late`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'LATE', title: 'Late Checked', desc: `Late Arrival today at ${formatAttendanceTime(record.clock_in)}`, color: '#F59E0B' });
@@ -741,7 +755,7 @@ export default function Reports() {
                   ));
                 })()}
 
-                {dailyAttendance.filter(r => (r as any).is_late || (r as any).is_early_leaver || (r as any).missing_clock_out || (r as any).is_overtime).length === 0 && (
+                {filteredDailyAttendance.filter(r => (r as any).is_late || (r as any).is_early_leaver || (r as any).missing_clock_out || (r as any).is_overtime).length === 0 && (
                   <div className="text-center py-8 text-xs text-muted-foreground uppercase font-bold tracking-widest">
                     No active anomalies detected today
                   </div>
