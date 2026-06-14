@@ -80,12 +80,12 @@ export const getUsedLeaveDays = (
         isSameType = request.type === "Unpaid Leave" || request.type === "Cuti Tanpa Gaji";
       }
 
-      const isNotRejected = request.status !== "Rejected";
+      const isApproved = request.status === "Approved";
       const isSameEmployee = userId
         ? request.userId === userId
         : true;
 
-      return isSameType && isNotRejected && isSameEmployee;
+      return isSameType && isApproved && isSameEmployee;
     })
     .reduce((total, request) => total + request.days, 0);
 };
