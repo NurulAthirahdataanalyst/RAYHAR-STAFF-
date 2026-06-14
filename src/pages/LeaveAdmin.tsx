@@ -130,13 +130,21 @@ export default function LeaveAdmin() {
     if (leaveId && requests.length > 0 && !selectedRequest) {
       const match = requests.find((r) => r.id === Number(leaveId));
       if (match) {
-        setActiveTab("history");
+        if (match.status === "Approved") {
+          setActiveTab("approved");
+        } else if (match.status === "Rejected") {
+          setActiveTab("rejected");
+        } else if (match.status.startsWith("Pending")) {
+          setActiveTab("pending");
+        } else {
+          setActiveTab("history");
+        }
         setSelectedRequest(match);
         // Clear the param so it doesn't re-trigger
         setSearchParams({}, { replace: true });
       }
     }
-  }, [searchParams, requests, selectedRequest]);
+  }, [searchParams, requests, selectedRequest, setSearchParams]);
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -228,8 +236,14 @@ export default function LeaveAdmin() {
 
       if (action === "approve") {
         toast.success("Application Processed", { description: `Status is now: ${data.nextStatus}` });
+        if (data.nextStatus === "Approved") {
+          setActiveTab("approved");
+        }
       } else {
         toast.error("Application Rejected", { description: "Status updated accordingly." });
+        if (data.nextStatus === "Rejected") {
+          setActiveTab("rejected");
+        }
       }
 
       // Refresh to get updated history

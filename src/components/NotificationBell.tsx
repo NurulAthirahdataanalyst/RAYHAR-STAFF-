@@ -77,10 +77,12 @@ export default function NotificationBell() {
     
     setIsOpen(false);
     
+    const queryParam = notif.related_leave_id ? `?leaveId=${notif.related_leave_id}` : "";
+    
     if (role === "employee") {
-      navigate("/leave/overview");
+      navigate(`/leave/overview${queryParam}`);
     } else {
-      navigate("/leave/admin");
+      navigate(`/leave/admin${queryParam}`);
     }
   };
 
