@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { API_BASE_URL } from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/contexts/RoleContext";
+import { useNavigate } from "react-router-dom";
 
 interface Notification {
   id: number;
@@ -17,8 +19,11 @@ interface Notification {
 
 export default function NotificationBell() {
   const { user } = useAuth();
+  const { role } = useRole();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isOpen, setIsOpen] = useState(false);
 
   const fetchNotifications = async () => {
     if (!user?.user_id) return;
@@ -65,8 +70,22 @@ export default function NotificationBell() {
     }
   };
 
+  const handleNotificationClick = (notif: Notification) => {
+    if (!notif.is_read) {
+      markAsRead(notif.id);
+    }
+    
+    setIsOpen(false);
+    
+    if (role === "employee") {
+      navigate("/leave/overview");
+    } else {
+      navigate("/leave/admin");
+    }
+  };
+
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-white/10 transition-colors">
           <Bell className="w-5 h-5 text-white/80" />
@@ -99,7 +118,7 @@ export default function NotificationBell() {
                 <div 
                   key={notif.id} 
                   className={`p-4 transition-colors cursor-pointer flex gap-3 items-start group ${!notif.is_read ? 'bg-[#7B0099]/10 hover:bg-[#7B0099]/20' : 'hover:bg-white/5'}`}
-                  onClick={() => !notif.is_read && markAsRead(notif.id)}
+                  onClick={() => handleNotificationClick(notif)}
                 >
                   <div className="mt-0.5">
                     {!notif.is_read ? (
