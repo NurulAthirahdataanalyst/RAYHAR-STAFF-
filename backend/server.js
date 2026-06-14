@@ -1654,32 +1654,37 @@ app.get("/api/dashboard-stats", async (req, res) => {
         queryParams
       );
 
+      const queryDate = req.query.date ? req.query.date.toString() : null;
+      const dateCondition = queryDate ? '?' : 'CURRENT_DATE';
+      const presentParams = queryDate ? [queryDate, queryDate, ...queryParams] : queryParams;
+      const onLeaveParams = queryDate ? [queryDate, ...queryParams] : queryParams;
+
       const [presentRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS present_today FROM attendances WHERE DATE(clock_in) = CURRENT_DATE 
+        `SELECT COUNT(DISTINCT user_id) AS present_today FROM attendances WHERE DATE(clock_in) = ${dateCondition} 
          AND NOT EXISTS (
            SELECT 1 FROM leave_requests lr 
            WHERE lr.user_id = attendances.user_id AND lr.status = 'Approved' 
-           AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date
+           AND ${dateCondition} BETWEEN lr.start_date AND lr.end_date
          )
          ${attendanceFilter}`,
-        queryParams
+        presentParams
       );
 
       const [onLeaveRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS on_leave FROM leave_requests WHERE status = 'Approved' AND CURRENT_DATE BETWEEN start_date AND end_date ${attendanceFilter}`,
-        queryParams
+        `SELECT COUNT(DISTINCT user_id) AS on_leave FROM leave_requests WHERE status = 'Approved' AND ${dateCondition} BETWEEN start_date AND end_date ${attendanceFilter}`,
+        onLeaveParams
       );
 
       const lateTimeStr = getLateThresholdTime();
       const [lateRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = CURRENT_DATE AND ((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' 
+        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = ${dateCondition} AND ((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' 
          AND NOT EXISTS (
            SELECT 1 FROM leave_requests lr 
            WHERE lr.user_id = attendances.user_id AND lr.status = 'Approved' 
-           AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date
+           AND ${dateCondition} BETWEEN lr.start_date AND lr.end_date
          )
          ${attendanceFilter}`,
-        queryParams
+        presentParams
       );
 
       let statusToCount = "Pending%";

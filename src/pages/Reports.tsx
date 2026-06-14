@@ -165,7 +165,7 @@ export default function Reports() {
     try {
       const [resDaily, resStats] = await Promise.all([
         fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${selectedDate}`),
-        fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=hr_admin&branch=All`)
+        fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=hr_admin&branch=All&date=${selectedDate}`)
       ]);
       const data = await resDaily.json();
       const statsData = await resStats.json();
@@ -464,6 +464,14 @@ export default function Reports() {
           </div>
         </div>
         <div className="flex gap-3">
+          <div className="flex items-center gap-2 bg-white/50 dark:bg-black/20 px-3 py-1.5 rounded-xl border border-border/50 shadow-inner">
+            <input
+              type="date"
+              className="h-8 bg-transparent border-none text-[10px] font-black uppercase tracking-widest focus:ring-0 p-0 text-foreground cursor-pointer"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+          </div>
           <Button
             variant="outline"
             onClick={handleExport}
@@ -608,14 +616,6 @@ export default function Reports() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2 bg-white/50 dark:bg-black/20 px-3 py-1.5 rounded-xl border border-border/50 shadow-inner">
-                  <input
-                    type="date"
-                    className="h-8 bg-transparent border-none text-[10px] font-black uppercase tracking-widest focus:ring-0 p-0 text-foreground cursor-pointer"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                  />
-                </div>
                 <Select value={limit} onValueChange={setLimit}>
                   <SelectTrigger className="w-[80px] h-9 text-[10px] font-black rounded-xl border-border/50 bg-white/50 dark:bg-black/20">
                     <SelectValue placeholder="10" />
