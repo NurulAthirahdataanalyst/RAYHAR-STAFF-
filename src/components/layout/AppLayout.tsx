@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, ChevronRight, ChevronLeft, Settings, Menu, ClipboardCheck, Calendar, Sparkles } from "lucide-react";
+import { User, LogOut, ChevronRight, ChevronLeft, Settings, Menu, ClipboardCheck, Calendar, Sparkles, RefreshCw } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { API_BASE_URL } from "../../config/api";
 import { useShiftNotifications } from "@/hooks/useShiftNotifications";
@@ -128,6 +128,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
 
             <div className="flex items-center gap-2">
+              <button onClick={() => window.location.reload()} className="p-1.5 rounded-full hover:bg-white/10 transition-colors">
+                <RefreshCw className="w-4 h-4 text-white/80" />
+              </button>
               <NotificationBell />
               <DropdownMenu>
                 <DropdownMenuTrigger className="outline-none">
@@ -192,6 +195,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
                 
                 <div className="flex items-center gap-4 relative z-10">
+                  <button onClick={() => window.location.reload()} className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-white/10 transition-colors text-white font-semibold text-xs border border-white/20 bg-white/5">
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Refresh</span>
+                  </button>
                   <NotificationBell />
                   <DropdownMenu>
                     <DropdownMenuTrigger className="outline-none relative z-10">

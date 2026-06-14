@@ -280,18 +280,6 @@ export default function Dashboard() {
             )}
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => fetchDashboardData()}
-          disabled={isRefreshing}
-          className="rounded-xl border-border hover:bg-accent text-foreground gap-2 font-bold self-start sm:self-auto touch-target"
-        >
-          <RefreshCcw
-            className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
-          />
-          <span className="hidden sm:inline">Refresh</span>
-        </Button>
       </div>
 
       {/* Stat Cards - responsive grid */}
