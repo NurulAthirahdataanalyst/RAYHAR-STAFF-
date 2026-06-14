@@ -1150,7 +1150,7 @@ app.get("/api/employees", async (req, res) => {
       ${branchFilter}
       ORDER BY p.full_name ASC
       `,
-      [...(date ? [date, date, date] : []), ...params]
+      [...(date ? [date, date, date, date] : []), ...params]
     );
 
     const employees = rows.map((employee) => ({

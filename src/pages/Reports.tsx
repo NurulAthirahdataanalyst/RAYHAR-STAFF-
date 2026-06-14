@@ -709,11 +709,11 @@ export default function Reports() {
                 </div>
               )}
               {filteredDailyAttendance.length > parseInt(limit) && !loadingDaily && (
-                <div className="flex justify-center items-center gap-2 py-6 border-t border-border/40 bg-muted/5">
+                <div className="flex justify-center items-center gap-2 py-4 border-t border-border/40 bg-muted/5">
                   <button 
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
                     disabled={currentPage === 1}
-                    className="w-12 h-12 rounded-2xl bg-white/80 dark:bg-black/40 flex items-center justify-center font-black text-foreground hover:bg-[#7B0099]/10 disabled:opacity-50 transition-all shadow-sm border border-border/50 text-lg"
+                    className="w-8 h-8 rounded-xl bg-white/80 dark:bg-black/40 flex items-center justify-center font-black text-foreground hover:bg-[#7B0099]/10 disabled:opacity-50 transition-all shadow-sm border border-border/50 text-xs"
                   >
                     &laquo;
                   </button>
@@ -721,7 +721,7 @@ export default function Reports() {
                     <button 
                       key={i} 
                       onClick={() => setCurrentPage(i + 1)}
-                      className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black transition-all shadow-sm border text-lg ${currentPage === i + 1 ? "bg-[#7B0099] text-white border-[#7B0099] shadow-[#7B0099]/30 scale-105" : "bg-white/80 dark:bg-black/40 text-foreground border-border/50 hover:bg-[#7B0099]/10"}`}
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center font-black transition-all shadow-sm border text-xs ${currentPage === i + 1 ? "bg-[#7B0099] text-white border-[#7B0099] shadow-[#7B0099]/30 scale-105" : "bg-white/80 dark:bg-black/40 text-foreground border-border/50 hover:bg-[#7B0099]/10"}`}
                     >
                       {i + 1}
                     </button>
@@ -729,7 +729,7 @@ export default function Reports() {
                   <button 
                     onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredDailyAttendance.length / parseInt(limit)), p + 1))} 
                     disabled={currentPage === Math.ceil(filteredDailyAttendance.length / parseInt(limit))}
-                    className="w-12 h-12 rounded-2xl bg-white/80 dark:bg-black/40 flex items-center justify-center font-black text-foreground hover:bg-[#7B0099]/10 disabled:opacity-50 transition-all shadow-sm border border-border/50 text-lg"
+                    className="w-8 h-8 rounded-xl bg-white/80 dark:bg-black/40 flex items-center justify-center font-black text-foreground hover:bg-[#7B0099]/10 disabled:opacity-50 transition-all shadow-sm border border-border/50 text-xs"
                   >
                     &raquo;
                   </button>
