@@ -463,28 +463,11 @@ export default function Reports() {
             <p className="text-xs sm:text-sm font-semibold text-muted-foreground mt-1.5 uppercase tracking-widest opacity-60">Enterprise Administration & Analytics Dashboard</p>
           </div>
         </div>
-        <div className="flex gap-3">
-          <div className="flex items-center gap-2 bg-white/50 dark:bg-black/20 px-3 py-1.5 rounded-xl border border-border/50 shadow-inner">
-            <input
-              type="date"
-              className="h-8 bg-transparent border-none text-[10px] font-black uppercase tracking-widest focus:ring-0 p-0 text-foreground cursor-pointer"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-            />
-          </div>
-          <Button
-            variant="outline"
-            onClick={handleExport}
-            className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-5 py-5 shadow-sm active:scale-95 transition-all"
-          >
-            <Download className="w-3.5 h-3.5" />
-            Export CSV
-          </Button>
-        </div>
       </div>
 
-      {/* CORE FLOATING SEGMENT TABS */}
-      <div className="inline-flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] p-1.5 rounded-[18px] w-full lg:w-fit max-w-full shadow-xl overflow-x-auto scrollbar-none border border-[#7B0099]/20 relative z-10">
+      {/* CORE FLOATING SEGMENT TABS & ACTIONS */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="inline-flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] p-1.5 rounded-[18px] w-full lg:w-fit max-w-full shadow-xl overflow-x-auto scrollbar-none border border-[#7B0099]/20 relative z-10">
         <button
           onClick={() => setActiveTab("attendance")}
           className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
@@ -522,6 +505,26 @@ export default function Reports() {
           Generate Report
         </button>
       </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 bg-white/50 dark:bg-black/20 px-3 py-1.5 rounded-xl border border-border/50 shadow-inner">
+          <input
+            type="date"
+            className="h-8 bg-transparent border-none text-[10px] font-black uppercase tracking-widest focus:ring-0 p-0 text-foreground cursor-pointer"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
+        </div>
+        <Button
+          variant="outline"
+          onClick={handleExport}
+          className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-5 py-5 shadow-sm active:scale-95 transition-all h-[44px]"
+        >
+          <Download className="w-3.5 h-3.5" />
+          Export CSV
+        </Button>
+      </div>
+    </div>
 
       {/* ================================================================= */}
       {/* TAB 1: ATTENDANCE & PUNCTUALITY */}
