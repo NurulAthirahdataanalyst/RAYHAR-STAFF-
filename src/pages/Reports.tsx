@@ -88,6 +88,11 @@ export default function Reports() {
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [selectedBranchFilter, setSelectedBranchFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [limit, selectedBranchFilter, selectedDate]);
 
   const liveTimeRange = "today";
   const [liveRegion, setLiveRegion] = useState("all");
@@ -669,7 +674,7 @@ export default function Reports() {
                     </thead>
                     <tbody className="divide-y divide-border/30">
                       {filteredDailyAttendance.length > 0 ? (
-                        filteredDailyAttendance.slice(0, parseInt(limit)).map((record) => (
+                        filteredDailyAttendance.slice((currentPage - 1) * parseInt(limit), currentPage * parseInt(limit)).map((record) => (
                           <tr key={record.user_id} className="hover:bg-[#7B0099]/5 transition-colors group">
                             <td className="px-6 py-4">
                               <span className="font-black text-foreground group-hover:text-[#7B0099] transition-colors">{record.full_name}</span>
@@ -701,6 +706,33 @@ export default function Reports() {
                       )}
                     </tbody>
                   </table>
+                </div>
+              )}
+              {filteredDailyAttendance.length > parseInt(limit) && !loadingDaily && (
+                <div className="flex justify-center items-center gap-2 py-6 border-t border-border/40 bg-muted/5">
+                  <button 
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                    disabled={currentPage === 1}
+                    className="w-12 h-12 rounded-2xl bg-white/80 dark:bg-black/40 flex items-center justify-center font-black text-foreground hover:bg-[#7B0099]/10 disabled:opacity-50 transition-all shadow-sm border border-border/50 text-lg"
+                  >
+                    &laquo;
+                  </button>
+                  {Array.from({ length: Math.ceil(filteredDailyAttendance.length / parseInt(limit)) }).map((_, i) => (
+                    <button 
+                      key={i} 
+                      onClick={() => setCurrentPage(i + 1)}
+                      className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black transition-all shadow-sm border text-lg ${currentPage === i + 1 ? "bg-[#7B0099] text-white border-[#7B0099] shadow-[#7B0099]/30 scale-105" : "bg-white/80 dark:bg-black/40 text-foreground border-border/50 hover:bg-[#7B0099]/10"}`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                  <button 
+                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredDailyAttendance.length / parseInt(limit)), p + 1))} 
+                    disabled={currentPage === Math.ceil(filteredDailyAttendance.length / parseInt(limit))}
+                    className="w-12 h-12 rounded-2xl bg-white/80 dark:bg-black/40 flex items-center justify-center font-black text-foreground hover:bg-[#7B0099]/10 disabled:opacity-50 transition-all shadow-sm border border-border/50 text-lg"
+                  >
+                    &raquo;
+                  </button>
                 </div>
               )}
             </CardContent>
