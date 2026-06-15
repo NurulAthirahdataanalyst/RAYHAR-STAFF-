@@ -415,13 +415,14 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
     }
 
 
-    // Auto migration for telegram_chat_id
+    // Auto migration: Clean up unused Telegram and reset token columns from profiles table
     try {
-      await connection.query("ALTER TABLE profiles ADD COLUMN telegram_chat_id VARCHAR(100) DEFAULT NULL");
-      console.log('🚀 Successfully migrated: Added telegram_chat_id column to profiles table.');
+      await connection.query("ALTER TABLE profiles DROP COLUMN IF EXISTS telegram_chat_id");
+      await connection.query("ALTER TABLE profiles DROP COLUMN IF EXISTS reset_token");
+      await connection.query("ALTER TABLE profiles DROP COLUMN IF EXISTS reset_token_expires");
+      console.log('🚀 Successfully migrated: Removed telegram_chat_id, reset_token, and reset_token_expires from profiles table.');
     } catch (migErr) {
-      // Column likely already exists
-      console.log('ℹ️ profiles table telegram_chat_id column already matches schema.');
+      console.error('⚠️ Migration warning during cleanup of unused columns:', migErr.message);
     }
 
     // Auto sanitization of database user_role table and profiles status column (fixes trailing carriage returns/newlines/spaces for all roles)
