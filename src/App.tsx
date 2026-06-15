@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Analytics } from "@vercel/analytics/react";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -110,6 +111,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <Analytics />
         <BrowserRouter>
           <PageLoader />
           <AuthProvider>
