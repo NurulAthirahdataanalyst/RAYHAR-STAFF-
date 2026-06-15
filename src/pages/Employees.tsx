@@ -22,9 +22,36 @@ import { useToast } from "@/hooks/use-toast";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "../config/api";
 
+const BRANCH_NAMES: Record<string, string> = {
+  HQ: "Rayhar HQ",
+  KMM: "Kemaman",
+  TGG: "Kuala Terengganu",
+  CNH: "Cheneh",
+  KBG: "Kuala Berang",
+  DGN: "Dungun",
+  JTH: "Jertih",
+  KBR: "Kota Baru",
+  RMP: "Rompin",
+  MZM: "Muadzam Shah",
+  SHA: "Shah Alam",
+  BBB: "Bandar Baru Bangi",
+  KUL: "Kuala Lumpur",
+  IPH: "Ipoh",
+  MJG: "Manjung",
+  MLK: "Melaka",
+  KKS: "Kuala Kangsar",
+  TWU: "Tawau",
+  SNS: "Seremban",
+  AOR: "Alor Setar",
+  BTM: "Bertam",
+  BTP: "Batu Pahat",
+  JB: "Johor Bharu",
+};
+
 export default function Employees() {
   const { role, userBranch, userDepartment } = useRole();
   const [search, setSearch] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [dbEmployees, setDbEmployees] = useState<any[]>([]);
@@ -111,14 +138,21 @@ export default function Employees() {
     fetchLeaves();
   }, [viewLeaveStatus, selectedEmployee]);
 
-  const filtered = dbEmployees.filter((e) =>
-    e.name.toLowerCase().includes(search.toLowerCase()) ||
-    e.position.toLowerCase().includes(search.toLowerCase())
-  );
+  const uniqueBranches = Array.from(
+    new Set(dbEmployees.map((emp) => emp.branch).filter(Boolean))
+  ).sort() as string[];
+
+  const filtered = dbEmployees.filter((e) => {
+    const matchesSearch =
+      e.name.toLowerCase().includes(search.toLowerCase()) ||
+      e.position.toLowerCase().includes(search.toLowerCase());
+    const matchesBranch = selectedBranch === "All" || e.branch === selectedBranch;
+    return matchesSearch && matchesBranch;
+  });
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search]);
+  }, [search, selectedBranch]);
 
   const indexOfLastItem = currentPage * entriesPerPage;
   const indexOfFirstItem = indexOfLastItem - entriesPerPage;
@@ -244,14 +278,32 @@ export default function Employees() {
       </div>
 
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-card/50 backdrop-blur-sm p-3 rounded-2xl border border-border/50">
-        <div className="relative w-full sm:max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search employees..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#7B0099]/20"
-          />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto flex-1 sm:max-w-xl">
+          <div className="relative w-full sm:max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search employees..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#7B0099]/20"
+            />
+          </div>
+
+          {(["hr_admin", "managing_director", "finance_manager"].includes(role) || uniqueBranches.length > 1) && (
+            <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+              <SelectTrigger className="w-full sm:w-[180px] h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#7B0099]/20 font-bold text-xs rounded-xl">
+                <SelectValue placeholder="All Branches" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="All" className="text-xs font-bold">All Branches</SelectItem>
+                {uniqueBranches.map((br) => (
+                  <SelectItem key={br} value={br} className="text-xs font-bold">
+                    {BRANCH_NAMES[br] || br}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
         
         <Badge variant="outline" className="px-3 py-1.5 text-xs font-bold whitespace-nowrap bg-muted/30 border-border/60 h-10 sm:h-auto justify-center">
