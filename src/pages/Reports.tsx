@@ -764,17 +764,65 @@ export default function Reports() {
 
           {/* ATTENDANCE ANOMALIES */}
           <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden">
-            <CardHeader className="pb-2 border-b border-border/40">
-              <CardTitle className="text-sm sm:text-base font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-                <div className="p-2 bg-rose-500/10 rounded-xl">
-                  <ShieldAlert className="w-4 h-4 text-rose-500" />
+            <CardHeader className="pb-4 border-b border-border/40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <CardTitle className="text-sm sm:text-base font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+                  <div className="p-2 bg-rose-500/10 rounded-xl">
+                    <ShieldAlert className="w-4 h-4 text-rose-500" />
+                  </div>
+                  Attendance Anomalies Detection
+                </CardTitle>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 mt-1">Automatic detection of lateness and patterns from live data</CardDescription>
+              </div>
+              
+              {allAnomalies.length > 10 && (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Show</span>
+                    <Select value={anomaliesLimit} onValueChange={setAnomaliesLimit}>
+                      <SelectTrigger className="w-[70px] h-8 text-[10px] font-black rounded-xl border-border/50 bg-white/50 dark:bg-black/20">
+                        <SelectValue placeholder="10" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="25">25</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {allAnomalies.length > parseInt(anomaliesLimit) && (
+                    <div className="flex justify-center items-center gap-1">
+                      <button 
+                        onClick={() => setAnomaliesCurrentPage(p => Math.max(1, p - 1))} 
+                        disabled={anomaliesCurrentPage === 1}
+                        className="w-7 h-7 rounded-lg bg-white/80 dark:bg-black/40 flex items-center justify-center font-black text-foreground hover:bg-[#7B0099]/10 disabled:opacity-50 transition-all shadow-sm border border-border/50 text-xs"
+                      >
+                        &laquo;
+                      </button>
+                      {Array.from({ length: Math.ceil(allAnomalies.length / parseInt(anomaliesLimit)) }).map((_, i) => (
+                        <button 
+                          key={i} 
+                          onClick={() => setAnomaliesCurrentPage(i + 1)}
+                          className={`w-7 h-7 rounded-lg flex items-center justify-center font-black transition-all shadow-sm border text-xs ${anomaliesCurrentPage === i + 1 ? "bg-[#7B0099] text-white border-[#7B0099] shadow-[#7B0099]/30 scale-105" : "bg-white/80 dark:bg-black/40 text-foreground border-border/50 hover:bg-[#7B0099]/10"}`}
+                        >
+                          {i + 1}
+                        </button>
+                      ))}
+                      <button 
+                        onClick={() => setAnomaliesCurrentPage(p => Math.min(Math.ceil(allAnomalies.length / parseInt(anomaliesLimit)), p + 1))} 
+                        disabled={anomaliesCurrentPage === Math.ceil(allAnomalies.length / parseInt(anomaliesLimit))}
+                        className="w-7 h-7 rounded-lg bg-white/80 dark:bg-black/40 flex items-center justify-center font-black text-foreground hover:bg-[#7B0099]/10 disabled:opacity-50 transition-all shadow-sm border border-border/50 text-xs"
+                      >
+                        &raquo;
+                      </button>
+                    </div>
+                  )}
                 </div>
-                Attendance Anomalies Detection
-              </CardTitle>
-              <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11">Automatic detection of lateness and patterns from live data</CardDescription>
+              )}
             </CardHeader>
             <CardContent className="p-0">
-              <div className="space-y-4 p-6 border-b border-border/40">
+              <div className="space-y-4 p-6">
                 {allAnomalies.slice((anomaliesCurrentPage - 1) * parseInt(anomaliesLimit), anomaliesCurrentPage * parseInt(anomaliesLimit)).map((anomaly) => (
                   <div key={anomaly.id} className="flex items-center justify-between p-4 rounded-2xl border transition-all" style={{ backgroundColor: `${anomaly.color}0D`, borderColor: `${anomaly.color}1A` }}>
                     <div className="flex items-center gap-3">
@@ -798,53 +846,6 @@ export default function Reports() {
                   </div>
                 )}
               </div>
-              {allAnomalies.length > parseInt(anomaliesLimit) && (
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 py-4 px-6 bg-muted/5">
-                  <div className="flex items-center gap-4">
-                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest hidden sm:inline-block">
-                      Showing {(anomaliesCurrentPage - 1) * parseInt(anomaliesLimit) + 1} to {Math.min(anomaliesCurrentPage * parseInt(anomaliesLimit), allAnomalies.length)} of {allAnomalies.length} entries
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Show</span>
-                      <Select value={anomaliesLimit} onValueChange={setAnomaliesLimit}>
-                        <SelectTrigger className="w-[70px] h-8 text-[10px] font-black rounded-xl border-border/50 bg-white/50 dark:bg-black/20">
-                          <SelectValue placeholder="10" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl">
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="flex justify-center items-center gap-2">
-                    <button 
-                      onClick={() => setAnomaliesCurrentPage(p => Math.max(1, p - 1))} 
-                      disabled={anomaliesCurrentPage === 1}
-                      className="w-8 h-8 rounded-xl bg-white/80 dark:bg-black/40 flex items-center justify-center font-black text-foreground hover:bg-[#7B0099]/10 disabled:opacity-50 transition-all shadow-sm border border-border/50 text-xs"
-                    >
-                      &laquo;
-                    </button>
-                    {Array.from({ length: Math.ceil(allAnomalies.length / parseInt(anomaliesLimit)) }).map((_, i) => (
-                      <button 
-                        key={i} 
-                        onClick={() => setAnomaliesCurrentPage(i + 1)}
-                        className={`w-8 h-8 rounded-xl flex items-center justify-center font-black transition-all shadow-sm border text-xs ${anomaliesCurrentPage === i + 1 ? "bg-[#7B0099] text-white border-[#7B0099] shadow-[#7B0099]/30 scale-105" : "bg-white/80 dark:bg-black/40 text-foreground border-border/50 hover:bg-[#7B0099]/10"}`}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
-                    <button 
-                      onClick={() => setAnomaliesCurrentPage(p => Math.min(Math.ceil(allAnomalies.length / parseInt(anomaliesLimit)), p + 1))} 
-                      disabled={anomaliesCurrentPage === Math.ceil(allAnomalies.length / parseInt(anomaliesLimit))}
-                      className="w-8 h-8 rounded-xl bg-white/80 dark:bg-black/40 flex items-center justify-center font-black text-foreground hover:bg-[#7B0099]/10 disabled:opacity-50 transition-all shadow-sm border border-border/50 text-xs"
-                    >
-                      &raquo;
-                    </button>
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
 
