@@ -12,9 +12,7 @@ import {
   LineChart, Line, Legend, Cell, PieChart as RechartsPieChart, Pie
 } from "recharts";
 import LeaveAnalytics from "./LeaveAnalytics";
-import { toast } from "sonner";
-import { useState, useEffect, useCallback } from "react";
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { API_BASE_URL } from "../config/api";
 
 const fallbackMonthlyData = [
@@ -81,18 +79,23 @@ export default function Reports() {
   });
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
   const [branchComparison, setBranchComparison] = useState<any[]>([]);
-  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [totalLeaveRequests, setTotalLeaveRequests] = useState(0);
   const [limit, setLimit] = useState("10");
+  const [anomaliesLimit, setAnomaliesLimit] = useState("10");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [selectedBranchFilter, setSelectedBranchFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [anomaliesCurrentPage, setAnomaliesCurrentPage] = useState(1);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [limit, selectedBranchFilter, selectedDate]);
+
+  useEffect(() => {
+    setAnomaliesCurrentPage(1);
+  }, [anomaliesLimit, selectedBranchFilter, selectedDate]);
 
   const liveTimeRange = "today";
   const [liveRegion, setLiveRegion] = useState("all");
@@ -432,6 +435,25 @@ export default function Reports() {
 
   const filteredDailyAttendance = selectedBranchFilter === "all" ? dailyAttendance : dailyAttendance.filter((r) => r.branch === selectedBranchFilter);
 
+  const allAnomalies = useMemo(() => {
+    return filteredDailyAttendance.flatMap(record => {
+      const list = [];
+      if ((record as any).is_late) {
+        list.push({ id: `${record.user_id}-late`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'LATE', title: 'Late Checked', desc: `Late Arrival today at ${formatAttendanceTime(record.clock_in)}`, color: '#F59E0B' });
+      }
+      if ((record as any).is_early_leaver) {
+        list.push({ id: `${record.user_id}-early`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'EARLY LEAVE', title: 'Early Leave', desc: `Clocked out early at ${formatAttendanceTime(record.clock_out)}`, color: '#F43F5E' });
+      }
+      if ((record as any).missing_clock_out) {
+        list.push({ id: `${record.user_id}-missing`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'MISSING OUT', title: 'Missing Clock-Out', desc: `No clock-out recorded for this shift`, color: '#8B5CF6' });
+      }
+      if ((record as any).is_overtime) {
+        list.push({ id: `${record.user_id}-overtime`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'OVERTIME', title: 'Overtime', desc: `Logged more than 9 hours for this shift`, color: '#3B82F6' });
+      }
+      return list;
+    });
+  }, [filteredDailyAttendance]);
+
   // Late check count (arrived past dynamic threshold)
   const lateArrivalsCount = filteredDailyAttendance.filter(r => (r as any).is_late).length;
 
@@ -749,50 +771,78 @@ export default function Reports() {
               </CardTitle>
               <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11">Automatic detection of lateness and patterns from live data</CardDescription>
             </CardHeader>
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                {(() => {
-                  const allAnomalies = filteredDailyAttendance.flatMap(record => {
-                    const list = [];
-                    if ((record as any).is_late) {
-                      list.push({ id: `${record.user_id}-late`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'LATE', title: 'Late Checked', desc: `Late Arrival today at ${formatAttendanceTime(record.clock_in)}`, color: '#F59E0B' });
-                    }
-                    if ((record as any).is_early_leaver) {
-                      list.push({ id: `${record.user_id}-early`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'EARLY LEAVE', title: 'Early Leave', desc: `Clocked out early at ${formatAttendanceTime(record.clock_out)}`, color: '#F43F5E' });
-                    }
-                    if ((record as any).missing_clock_out) {
-                      list.push({ id: `${record.user_id}-missing`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'MISSING OUT', title: 'Missing Clock-Out', desc: `No clock-out recorded for this shift`, color: '#8B5CF6' });
-                    }
-                    if ((record as any).is_overtime) {
-                      list.push({ id: `${record.user_id}-overtime`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'OVERTIME', title: 'Overtime', desc: `Logged more than 9 hours for this shift`, color: '#3B82F6' });
-                    }
-                    return list;
-                  });
-
-                  return allAnomalies.slice(0, 4).map((anomaly) => (
-                    <div key={anomaly.id} className="flex items-center justify-between p-4 rounded-2xl border transition-all" style={{ backgroundColor: `${anomaly.color}0D`, borderColor: `${anomaly.color}1A` }}>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${anomaly.color}1A`, color: anomaly.color }}>
-                          <AlertCircle className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-black text-foreground uppercase tracking-wide">{anomaly.full_name}</p>
-                          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{anomaly.branch} • {anomaly.desc}</p>
-                        </div>
+            <CardContent className="p-0">
+              <div className="space-y-4 p-6 border-b border-border/40">
+                {allAnomalies.slice((anomaliesCurrentPage - 1) * parseInt(anomaliesLimit), anomaliesCurrentPage * parseInt(anomaliesLimit)).map((anomaly) => (
+                  <div key={anomaly.id} className="flex items-center justify-between p-4 rounded-2xl border transition-all" style={{ backgroundColor: `${anomaly.color}0D`, borderColor: `${anomaly.color}1A` }}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${anomaly.color}1A`, color: anomaly.color }}>
+                        <AlertCircle className="w-4 h-4" />
                       </div>
-                      <Badge className="font-black text-[9px] tracking-wider border-none px-3 py-1 uppercase rounded-lg" style={{ backgroundColor: `${anomaly.color}26`, color: anomaly.color }}>
-                        {anomaly.title}
-                      </Badge>
+                      <div>
+                        <p className="text-xs font-black text-foreground uppercase tracking-wide">{anomaly.full_name}</p>
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{anomaly.branch} • {anomaly.desc}</p>
+                      </div>
                     </div>
-                  ));
-                })()}
+                    <Badge className="font-black text-[9px] tracking-wider border-none px-3 py-1 uppercase rounded-lg" style={{ backgroundColor: `${anomaly.color}26`, color: anomaly.color }}>
+                      {anomaly.title}
+                    </Badge>
+                  </div>
+                ))}
 
-                {filteredDailyAttendance.filter(r => (r as any).is_late || (r as any).is_early_leaver || (r as any).missing_clock_out || (r as any).is_overtime).length === 0 && (
+                {allAnomalies.length === 0 && (
                   <div className="text-center py-8 text-xs text-muted-foreground uppercase font-bold tracking-widest">
                     No active anomalies detected today
                   </div>
                 )}
               </div>
+              {allAnomalies.length > parseInt(anomaliesLimit) && (
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 py-4 px-6 bg-muted/5">
+                  <div className="flex items-center gap-4">
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest hidden sm:inline-block">
+                      Showing {(anomaliesCurrentPage - 1) * parseInt(anomaliesLimit) + 1} to {Math.min(anomaliesCurrentPage * parseInt(anomaliesLimit), allAnomalies.length)} of {allAnomalies.length} entries
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Show</span>
+                      <Select value={anomaliesLimit} onValueChange={setAnomaliesLimit}>
+                        <SelectTrigger className="w-[70px] h-8 text-[10px] font-black rounded-xl border-border/50 bg-white/50 dark:bg-black/20">
+                          <SelectValue placeholder="10" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="flex justify-center items-center gap-2">
+                    <button 
+                      onClick={() => setAnomaliesCurrentPage(p => Math.max(1, p - 1))} 
+                      disabled={anomaliesCurrentPage === 1}
+                      className="w-8 h-8 rounded-xl bg-white/80 dark:bg-black/40 flex items-center justify-center font-black text-foreground hover:bg-[#7B0099]/10 disabled:opacity-50 transition-all shadow-sm border border-border/50 text-xs"
+                    >
+                      &laquo;
+                    </button>
+                    {Array.from({ length: Math.ceil(allAnomalies.length / parseInt(anomaliesLimit)) }).map((_, i) => (
+                      <button 
+                        key={i} 
+                        onClick={() => setAnomaliesCurrentPage(i + 1)}
+                        className={`w-8 h-8 rounded-xl flex items-center justify-center font-black transition-all shadow-sm border text-xs ${anomaliesCurrentPage === i + 1 ? "bg-[#7B0099] text-white border-[#7B0099] shadow-[#7B0099]/30 scale-105" : "bg-white/80 dark:bg-black/40 text-foreground border-border/50 hover:bg-[#7B0099]/10"}`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                    <button 
+                      onClick={() => setAnomaliesCurrentPage(p => Math.min(Math.ceil(allAnomalies.length / parseInt(anomaliesLimit)), p + 1))} 
+                      disabled={anomaliesCurrentPage === Math.ceil(allAnomalies.length / parseInt(anomaliesLimit))}
+                      className="w-8 h-8 rounded-xl bg-white/80 dark:bg-black/40 flex items-center justify-center font-black text-foreground hover:bg-[#7B0099]/10 disabled:opacity-50 transition-all shadow-sm border border-border/50 text-xs"
+                    >
+                      &raquo;
+                    </button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
