@@ -18,6 +18,19 @@ interface EmployeeAnalyticsViewProps {
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
 
+const getLocalDateString = (dVal: any) => {
+  if (!dVal) return "";
+  if (typeof dVal === 'string') {
+    return dVal.slice(0, 10);
+  }
+  const d = new Date(dVal);
+  if (isNaN(d.getTime())) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
 export default function EmployeeAnalyticsView({ userId, userName, month, year, myLogs, leaveRequests }: EmployeeAnalyticsViewProps) {
   const [rankData, setRankData] = useState<{ rank: number | null, total: number, score: number }>({ rank: null, total: 0, score: 0 });
   const [lastMonthLogs, setLastMonthLogs] = useState<any[]>([]);
@@ -111,10 +124,9 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         return `${y}-${m}-${day}` === dateStr;
       });
       const hasLeave = approvedLeaves.some(l => {
-        const s = new Date(l.start_date);
-        const e = new Date(l.end_date);
-        const curr = new Date(dateStr);
-        return curr >= s && curr <= e;
+        const startStr = getLocalDateString(l.start_date);
+        const endStr = getLocalDateString(l.end_date);
+        return dateStr >= startStr && dateStr <= endStr;
       });
       
       if (logsOnDay.length > 0) {
@@ -159,7 +171,12 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   // Leave Utilization
   const selectedMonthIndex = parseInt(month) - 1;
   const monthNameFull = new Date(parseInt(year), selectedMonthIndex).toLocaleString('default', { month: 'long' }).toUpperCase();
-  const mLeaves = approvedLeaves.filter(l => new Date(l.start_date).getMonth() === selectedMonthIndex && new Date(l.start_date).getFullYear() === parseInt(year));
+  const mLeaves = approvedLeaves.filter(l => {
+    const startStr = getLocalDateString(l.start_date);
+    if (!startStr) return false;
+    const [y, m] = startStr.split("-");
+    return parseInt(y) === parseInt(year) && parseInt(m) === (selectedMonthIndex + 1);
+  });
   const monthAnn = mLeaves.filter(l => ['Cuti Tahunan', 'Annual/Emergency Leave'].includes(l.leave_type)).length;
   const monthSck = mLeaves.filter(l => ['Cuti Sakit', 'Sick Leave'].includes(l.leave_type)).length;
   const monthEmg = mLeaves.filter(l => ['Kecemasan', 'Emergency'].includes(l.leave_type)).length;
