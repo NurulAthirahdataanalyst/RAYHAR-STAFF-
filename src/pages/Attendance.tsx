@@ -35,6 +35,36 @@ const formatAttendanceTime = (value: unknown) => {
   }
 };
 
+const formatFullDateTime = (value: unknown) => {
+  if (!value) return "-";
+  
+  try {
+    let dateStr = typeof value === "string" ? value : String(value);
+    
+    if (typeof value === "string") {
+      dateStr = dateStr.replace(" ", "T");
+      if (!dateStr.endsWith("Z") && !dateStr.includes("+") && (dateStr.length < 19 || !dateStr.substring(10).includes("-"))) {
+        dateStr += "Z";
+      }
+    }
+
+    const parsed = value instanceof Date ? value : new Date(dateStr);
+
+    if (Number.isNaN(parsed.getTime())) return "-";
+
+    return parsed.toLocaleDateString([], {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  } catch (e) {
+    return "-";
+  }
+};
+
 export default function Attendance() {
   const [loading, setLoading] = useState(false);
   const [initialFetch, setInitialFetch] = useState(true);
@@ -54,7 +84,7 @@ export default function Attendance() {
   const selectedMonth = parseInt(selectedDate.split('-')[1]);
   const selectedYear = parseInt(selectedDate.split('-')[0]);
 
-  const [statusFilter, setStatusFilter] = useState<"ALL" | "ON TIME" | "LATE" | "REMOTE">("ALL");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "ON TIME" | "LATE">("ALL");
   const [expandedLogId, setExpandedLogId] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [isOnLeave, setIsOnLeave] = useState(false);
@@ -601,7 +631,7 @@ export default function Attendance() {
           {/* Interactive Filters Panel */}
           {showFilters && (
             <div className="flex items-center gap-1.5 p-1.5 bg-muted/40 dark:bg-muted/20 border border-border/40 rounded-2xl mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
-              {(["ALL", "ON TIME", "LATE", "REMOTE"] as const).map((status) => (
+              {(["ALL", "ON TIME", "LATE"] as const).map((status) => (
                 <button
                   key={status}
                   onClick={() => setStatusFilter(status)}
@@ -703,13 +733,13 @@ export default function Attendance() {
                         {isExpanded && (
                           <div className="mt-3 pt-3 border-t border-border/40 text-[10px] sm:text-xs text-muted-foreground space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
                             <div className="flex justify-between">
-                              <span>Raw Timestamp (In):</span>
-                              <span className="font-mono font-bold text-foreground">{log.clock_in}</span>
+                              <span>Clock In Time:</span>
+                              <span className="font-mono font-bold text-foreground">{formatFullDateTime(log.clock_in)}</span>
                             </div>
                             {log.clock_out && (
                               <div className="flex justify-between">
-                                <span>Raw Timestamp (Out):</span>
-                                <span className="font-mono font-bold text-foreground">{log.clock_out}</span>
+                                <span>Clock Out Time:</span>
+                                <span className="font-mono font-bold text-foreground">{formatFullDateTime(log.clock_out)}</span>
                               </div>
                             )}
                             <div className="flex justify-between">

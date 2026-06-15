@@ -362,7 +362,7 @@ export default function LeaveAdmin() {
                             <button
                               type="button"
                               onClick={() => setSelectedRequest(req)}
-                              className="font-black text-foreground hover:text-[#7B0099] transition-colors text-left truncate max-w-[150px]"
+                              className="font-black text-foreground hover:text-[#7B0099] transition-colors text-left break-words"
                             >
                               {req.employee}
                             </button>
@@ -444,7 +444,7 @@ export default function LeaveAdmin() {
                     <div key={req.id} className="p-4 active:bg-[#7B0099]/5 transition-colors space-y-3" onClick={() => setSelectedRequest(req)}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="font-black text-sm text-foreground truncate">{req.employee}</p>
+                          <p className="font-black text-sm text-foreground break-words">{req.employee}</p>
                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">{req.branch}</p>
                         </div>
                         <Badge className={`text-[10px] font-black h-auto py-1 px-2.5 shrink-0 whitespace-nowrap ${req.status === "Approved" ? "bg-emerald-500 text-white" :
