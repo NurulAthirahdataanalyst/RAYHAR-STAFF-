@@ -1664,9 +1664,7 @@ app.get("/api/attendance/history", async (req, res) => {
 
       // 4. Status Badge Determination
       let status = "ON TIME";
-      if (isRemote) {
-        status = "REMOTE";
-      } else if (isLate) {
+      if (isLate) {
         status = "LATE";
       }
 

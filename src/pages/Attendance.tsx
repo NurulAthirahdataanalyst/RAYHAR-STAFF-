@@ -682,8 +682,6 @@ export default function Attendance() {
                     let statusBadgeClass = "";
                     if (log.status === "ON TIME") {
                       statusBadgeClass = "bg-purple-100 dark:bg-purple-950/40 text-[#7B0099] dark:text-purple-300 border border-purple-200/50";
-                    } else if (log.status === "REMOTE") {
-                      statusBadgeClass = "bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200/50";
                     } else if (log.status === "LATE") {
                       statusBadgeClass = "bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/50";
                     }
