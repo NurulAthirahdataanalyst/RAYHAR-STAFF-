@@ -87,6 +87,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   
   const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
   let absentDays = 0;
+  let leaveDaysCount = 0;
   let totalWorkingDaysPassed = 0;
   
   // Also collect data for Calendar Heatmap
@@ -124,6 +125,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         }
       } else if (hasLeave) {
         heatmapData[d] = 'Leave';
+        leaveDaysCount++;
       } else if (isPastOrToday) {
         absentDays++;
         heatmapData[d] = 'Absent';
@@ -400,7 +402,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               {[
                 { label: "Present", value: presentDays - lateArrivals, color: "bg-emerald-500" },
                 { label: "Late", value: lateArrivals, color: "bg-amber-400" },
-                { label: "Leave", value: totalLeavesUsed, color: "bg-blue-500" },
+                { label: "Leave", value: leaveDaysCount, color: "bg-blue-500" },
                 { label: "Absent", value: absentDays, color: "bg-rose-500" }
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-4">

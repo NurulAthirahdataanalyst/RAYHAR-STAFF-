@@ -315,7 +315,14 @@ export default function EmployeeAnalytics() {
           const aData = await aRes.json();
           const lData = await lRes.json();
           const logs  = aData.success ? aData.history : [];
-          const leaves = lData.success ? lData.leaveRequests.filter((l: any) => l.status === "Approved").length : 0;
+          
+          const selectedMonthIndex = parseInt(selectedMonth) - 1;
+          const leaves = lData.success ? lData.leaveRequests.filter((l: any) => {
+            if (l.status !== "Approved") return false;
+            const d = new Date(l.start_date);
+            return d.getMonth() === selectedMonthIndex && d.getFullYear() === parseInt(selectedYear);
+          }).length : 0;
+          
           metrics.push(computeMetrics(logs, leaves, emp.user_id, emp.full_name, emp.branch, emp.department || ""));
         } catch { /* skip */ }
       }));
