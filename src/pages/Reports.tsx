@@ -13,6 +13,8 @@ import {
 } from "recharts";
 import LeaveAnalytics from "./LeaveAnalytics";
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { API_BASE_URL } from "../config/api";
 
 const fallbackMonthlyData = [
