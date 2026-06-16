@@ -164,6 +164,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
               item.path === "/"
                 ? location.pathname === item.path
                 : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+            const isExactActive = location.pathname === item.path;
             const visibleChildren = item.children?.filter((child) =>
               child.roles.includes(role || "employee")
             );
@@ -175,7 +176,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                   title={isCollapsed && !isMobile ? item.title : ""}
                   onClick={isMobile ? onMobileClose : undefined}
                   className={`group relative flex items-center gap-4 rounded-[14px] px-4 sm:px-5 py-3 transition-all duration-300 touch-target ${
-                    isActive
+                    isExactActive
                       ? "bg-purple-600/10 text-white"
                       : "text-white/90 hover:bg-white/5 hover:text-white active:bg-white/10"
                   } ${isCollapsed && !isMobile ? "justify-center px-0 w-12 mx-auto" : ""}`}
@@ -186,12 +187,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                     }`}
                   />
                   {(!isCollapsed || isMobile) && (
-                    <span className={`text-[13.5px] whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300 ${isActive ? "font-bold" : "font-medium"}`}>
+                    <span className={`text-[13.5px] whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300 ${isExactActive ? "font-bold" : isActive ? "text-white font-semibold" : "font-medium"}`}>
                       {item.title}
                     </span>
                   )}
 
-                  {isActive && (!isCollapsed || isMobile) && (
+                  {isExactActive && (!isCollapsed || isMobile) && (
                     <div className="absolute left-0 w-1 h-6 bg-[#7B0099] rounded-r-full" />
                   )}
                 </Link>
