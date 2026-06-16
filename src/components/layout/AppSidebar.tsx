@@ -205,8 +205,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                       onClick={isMobile ? onMobileClose : undefined}
                       className={`group ml-5 sm:ml-7 flex items-center gap-3 rounded-[14px] px-3 sm:px-4 py-2.5 text-[13px] transition-all duration-300 touch-target ${
                         isChildActive
-                          ? "bg-purple-50 dark:bg-purple-900/20 font-bold text-white"
-                          : "text-white/80 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-white active:bg-purple-100 dark:active:bg-purple-900/30"
+                          ? "bg-purple-600/10 font-bold text-white"
+                          : "text-white/80 hover:bg-white/5 hover:text-white active:bg-white/10"
                       }`}
                     >
                       <child.icon
