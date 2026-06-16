@@ -106,9 +106,9 @@ async function generatePDF(leave) {
   const appliedAt = leave.created_at || new Date().toISOString();
   
   const submitDate = appliedAt instanceof Date 
-    ? appliedAt.toISOString().slice(0, 10) 
-    : String(appliedAt).slice(0, 10);
-    
+     ? appliedAt.toISOString().slice(0, 10) 
+     : String(appliedAt).slice(0, 10);
+     
   const leaveTypeName = leave.leave_type.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
   const safeName = employeeName.toUpperCase().replace(/[^A-Z0-9]/g, "_");
   const filename = `${safeName}-${submitDate}-${leaveTypeName}-form.pdf`;
@@ -127,80 +127,140 @@ async function generatePDF(leave) {
     const writeStream = fs.createWriteStream(filePath);
     doc.pipe(writeStream);
 
-    doc.fontSize(22).font("Helvetica-Bold").fillColor("#7B0099").text("RAYHAR GROUP", { align: "center" });
-    doc.fontSize(14).font("Helvetica-Bold").fillColor("#333333").text("PERMOHONAN CUTI KAKITANGAN", { align: "center", characterSpacing: 1 });
-    doc.moveDown();
+    // Draw page border
+    doc.rect(40, 40, 532, 712).strokeColor("#000000").lineWidth(1.5).stroke();
 
-    doc.moveTo(50, doc.y).lineTo(562, doc.y).strokeColor("#7B0099").lineWidth(2).stroke();
-    doc.moveDown(1.5);
-
-    const leftCol = 50;
-    const rightCol = 180;
+    // Header
+    doc.fontSize(20).font("Helvetica-Bold").fillColor("#000000").text("RAYHAR GROUP", { align: "center" });
+    doc.fontSize(11).font("Helvetica-Bold").fillColor("#333333").text("PERMOHONAN CUTI KAKITANGAN", { align: "center", characterSpacing: 1 });
     
-    const drawRow = (label, value, isStatus = false) => {
-      doc.fontSize(10).font("Helvetica-Bold").fillColor("#666666").text(label.toUpperCase(), leftCol, doc.y);
-      doc.font("Helvetica-Bold");
-      if (isStatus) {
-        doc.fillColor("#7B0099").text(String(value).toUpperCase(), rightCol, doc.y - 12);
-      } else {
-        doc.fillColor("#111111").text(String(value), rightCol, doc.y - 12);
-      }
-      doc.moveDown(0.8);
-    };
+    // Divider Line under header
+    doc.moveTo(40, 95).lineTo(572, 95).strokeColor("#000000").lineWidth(1.5).stroke();
 
-    drawRow("Nama Penuh", employeeName);
-    drawRow("Cawangan", employeeBranch);
-    drawRow("Jenis Cuti", leave.leave_type);
-    drawRow("Status", leave.status || "PENDING", true);
+    const leftCol = 55;
+    const rightCol = 330;
 
-    const boxY = doc.y;
-    doc.rect(leftCol, boxY, 512, 50).fillAndStroke("#f3e8ff", "#e9d5ff");
+    // Row 1: Nama Penuh & Cawangan
+    doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("NAMA PENUH", leftCol, 108);
+    doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(employeeName.toUpperCase(), leftCol, 120);
+
+    doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("CAWANGAN", rightCol, 108);
+    doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(employeeBranch.toUpperCase(), rightCol, 120);
+
+    // Row 2: Jenis Cuti & Status
+    doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("JENIS CUTI", leftCol, 140);
+    doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(leave.leave_type, leftCol, 152);
+
+    doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("STATUS", rightCol, 140);
     
-    doc.fontSize(9).font("Helvetica-Bold").fillColor("#7B0099");
-    doc.text("DARI", leftCol + 20, boxY + 12, { width: 100, align: "center" });
-    doc.text("HINGGA", leftCol + 150, boxY + 12, { width: 100, align: "center" });
-    doc.text("HARI", leftCol + 350, boxY + 12, { width: 100, align: "center" });
+    const statusText = (leave.status || "PENDING").toUpperCase();
+    let statusColor = "#111111";
+    if (statusText === "APPROVED") statusColor = "#137333";
+    else if (statusText === "REJECTED") statusColor = "#c5221f";
+    doc.fontSize(9).font("Helvetica-Bold").fillColor(statusColor).text(statusText, rightCol, 152);
+
+    // Divider Line under main info
+    doc.moveTo(40, 175).lineTo(572, 175).strokeColor("#cccccc").lineWidth(1).stroke();
+
+    // Date Range Box
+    doc.rect(55, 185, 502, 45).strokeColor("#000000").lineWidth(1).stroke();
 
     const startDateStr = leave.start_date instanceof Date ? leave.start_date.toISOString().slice(0, 10) : String(leave.start_date).slice(0, 10);
     const endDateStr = leave.end_date instanceof Date ? leave.end_date.toISOString().slice(0, 10) : String(leave.end_date).slice(0, 10);
 
-    doc.fontSize(12).font("Helvetica-Bold").fillColor("#111111");
-    doc.text(startDateStr, leftCol + 20, boxY + 26, { width: 100, align: "center" });
-    doc.text(endDateStr, leftCol + 150, boxY + 26, { width: 100, align: "center" });
-    doc.fontSize(16).fillColor("#7B0099").text(String(leave.days), leftCol + 350, boxY + 23, { width: 100, align: "center" });
+    doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("DARI", 75, 193);
+    doc.fontSize(10).font("Helvetica-Bold").fillColor("#111111").text(startDateStr, 75, 207);
 
-    doc.x = leftCol;
-    doc.y = boxY + 70;
-    doc.moveDown();
+    doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("HINGGA", 205, 193);
+    doc.fontSize(10).font("Helvetica-Bold").fillColor("#111111").text(endDateStr, 205, 207);
 
-    doc.fontSize(10).font("Helvetica-Bold").fillColor("#666666").text("SEBAB / TUJUAN");
-    doc.moveDown(0.4);
-    doc.fontSize(11).font("Helvetica-Oblique").fillColor("#333333").text(`"${leave.reason || '-'}"`, { indent: 15 });
-    doc.moveDown(1.5);
+    // HARI box on the right
+    doc.roundedRect(375, 190, 170, 35, 4).strokeColor("#000000").lineWidth(1).stroke();
+    doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("HARI", 375, 194, { width: 170, align: "center" });
+    doc.fontSize(12).font("Helvetica-Bold").fillColor("#000000").text(String(leave.days), 375, 206, { width: 170, align: "center" });
 
-    doc.fontSize(10).font("Helvetica-Bold").fillColor("#7B0099").text("MAKLUMAT WARIS (KECEMASAN)");
-    doc.moveTo(leftCol, doc.y).lineTo(562, doc.y).strokeColor("#cccccc").lineWidth(1).stroke();
-    doc.moveDown(0.8);
+    // Divider Line under Date Range
+    doc.moveTo(40, 240).lineTo(572, 240).strokeColor("#cccccc").lineWidth(1).stroke();
 
-    const drawWarisRow = (label, value) => {
-      doc.fontSize(9).font("Helvetica-Bold").fillColor("#666666").text(label, leftCol, doc.y);
-      doc.font("Helvetica").fillColor("#111111").text(String(value), leftCol + 120, doc.y - 11);
-      doc.moveDown(0.6);
-    };
+    // Sebab / Tujuan
+    doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("SEBAB / TUJUAN", leftCol, 248);
+    doc.roundedRect(55, 260, 502, 35, 4).strokeColor("#000000").lineWidth(1).stroke();
+    doc.fontSize(9).font("Helvetica-Oblique").fillColor("#111111").text(`"${leave.reason || '-'}"`, 65, 272);
 
-    drawWarisRow("Nama Waris", leave.waris_nama || "N/A");
-    drawWarisRow("Hubungan", leave.waris_hubungan || "N/A");
-    drawWarisRow("No. Telefon", leave.waris_phone || "N/A");
-    drawWarisRow("Alamat Waris", leave.waris_alamat || "N/A");
-    doc.moveDown();
+    // Divider Line under Reason
+    doc.moveTo(40, 305).lineTo(572, 305).strokeColor("#cccccc").lineWidth(1).stroke();
 
-    const sigY = Math.max(doc.y, 620);
-    doc.moveTo(leftCol + 10, sigY).lineTo(leftCol + 180, sigY).strokeColor("#333333").lineWidth(1).stroke();
-    doc.moveTo(leftCol + 320, sigY).lineTo(leftCol + 490, sigY).stroke();
+    // Emergency Contact Heading
+    doc.fontSize(9).font("Helvetica-Bold").fillColor("#000000").text("MAKLUMAT WARIS (KECEMASAN)", leftCol, 313);
+    doc.rect(55, 330, 502, 80).strokeColor("#000000").lineWidth(1).stroke();
 
-    doc.fontSize(9).font("Helvetica-Bold").fillColor("#555555");
-    doc.text("Tandatangan Kakitangan", leftCol + 10, sigY + 5, { width: 170, align: "center" });
-    doc.text("Kelulusan Pengurus / HR", leftCol + 320, sigY + 5, { width: 170, align: "center" });
+    // Emergency Contact Info
+    doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("NAMA", 70, 340);
+    doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text((leave.waris_nama || "N/A").toUpperCase(), 70, 350);
+
+    doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("HUBUNGAN", rightCol, 340);
+    doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text((leave.waris_hubungan || "N/A").toUpperCase(), rightCol, 350);
+
+    doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("NO. TELEFON", 70, 375);
+    doc.fontSize(9).font("Helvetica-Bold").fillColor("#111111").text(leave.waris_phone || "N/A", 70, 385);
+
+    doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("ALAMAT", rightCol, 375);
+    doc.fontSize(8).font("Helvetica").fillColor("#111111").text(leave.waris_alamat || "N/A", rightCol, 385, { width: 220 });
+
+    // Divider Line under Emergency Contact
+    doc.moveTo(40, 420).lineTo(572, 420).strokeColor("#cccccc").lineWidth(1).stroke();
+
+    // Approval History Section
+    doc.fontSize(9).font("Helvetica-Bold").fillColor("#000000").text("APPROVAL HISTORY", leftCol, 428);
+    doc.rect(55, 445, 502, 110).strokeColor("#000000").lineWidth(1).stroke();
+
+    const history = leave.approval_history || [];
+    if (history.length === 0) {
+      doc.fontSize(9).font("Helvetica-Oblique").fillColor("#777777").text("No approval history recorded yet.", 70, 495);
+    } else {
+      const maxSteps = Math.min(history.length, 3);
+      for (let i = 0; i < maxSteps; i++) {
+        const step = history[i];
+        const stepY = 455 + i * 32;
+
+        // Draw timeline dot & line
+        doc.circle(70, stepY + 10, 3).fillColor("#10B981").fill();
+        if (i < maxSteps - 1) {
+          doc.moveTo(70, stepY + 13).lineTo(70, stepY + 29).strokeColor("#cccccc").lineWidth(1).stroke();
+        }
+
+        // Draw card background
+        doc.roundedRect(85, stepY, 460, 22, 4).fillColor("#f9fafb").fill();
+
+        // Draw status badge
+        const status = (step.status || "APPROVED").toUpperCase();
+        const isApproved = status === "APPROVED";
+        const badgeBg = isApproved ? "#e6f4ea" : "#fce8e6";
+        const badgeText = isApproved ? "#137333" : "#c5221f";
+
+        doc.roundedRect(95, stepY + 4, 60, 14, 3).fillColor(badgeBg).fill();
+        doc.fontSize(7).font("Helvetica-Bold").fillColor(badgeText).text(status, 95, stepY + 7, { width: 60, align: "center" });
+
+        // Draw text
+        const dateStr = step.created_at 
+          ? new Date(step.created_at).toLocaleDateString("en-GB") 
+          : "";
+        doc.fontSize(8).font("Helvetica-Bold").fillColor("#333333").text(`by ${step.approver_name || 'System'} (${step.approver_role || 'Approver'})`, 170, stepY + 7);
+        doc.fontSize(8).font("Helvetica").fillColor("#666666").text(dateStr, 480, stepY + 7);
+      }
+    }
+
+    // Divider Line under Approval History
+    doc.moveTo(40, 565).lineTo(572, 565).strokeColor("#cccccc").lineWidth(1).stroke();
+
+    // Signatures
+    const sigY = 645;
+    doc.moveTo(70, sigY).lineTo(230, sigY).strokeColor("#333333").lineWidth(1).stroke();
+    doc.moveTo(330, sigY).lineTo(490, sigY).stroke();
+
+    doc.fontSize(8).font("Helvetica-Bold").fillColor("#333333");
+    doc.text("TANDATANGAN KAKITANGAN", 70, sigY + 7, { width: 160, align: "center" });
+    doc.text("KELULUSAN PENGURUS / HR", 330, sigY + 7, { width: 160, align: "center" });
 
     doc.end();
     writeStream.on("finish", resolve);
@@ -216,7 +276,23 @@ async function generatePDF(leave) {
   console.log("⚙️ Starting offline PDF generation script...");
   try {
     const [leaves] = await pool.query(
-      `SELECT lr.*, p.full_name, p.branch 
+      `SELECT lr.*, p.full_name, p.branch, p.department,
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', la.id,
+              'approver_id', la.approver_id,
+              'approver_role', la.approver_role,
+              'status', la.status,
+              'remarks', la.remarks,
+              'created_at', la.created_at,
+              'approver_name', p2.full_name
+            ) ORDER BY la.created_at ASC
+          )
+          FROM leave_approvals la
+          LEFT JOIN profiles p2 ON p2.user_id = la.approver_id
+          WHERE la.leave_id = lr.leave_id
+        ) as approval_history
        FROM leave_requests lr 
        JOIN profiles p ON p.user_id = lr.user_id`
     );
