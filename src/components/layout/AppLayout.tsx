@@ -24,8 +24,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { role: resolvedRole, userBranch, userDepartment } = useRole();
+  const { role: resolvedRole, userBranch, userDepartment, userName } = useRole();
   useShiftNotifications();
+
+  const displayName = userName || user?.full_name || user?.name || "Employee";
+  const displayAvatar = (displayName || "E")[0].toUpperCase();
+
   const [pendingApprovals, setPendingApprovals] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -135,13 +139,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <DropdownMenu>
                 <DropdownMenuTrigger className="outline-none">
                 <div className="h-8 w-8 rounded-lg bg-white text-[#7B0099] flex items-center justify-center font-black text-xs shadow-md hover:scale-105 active:scale-95 transition-transform border border-white/20">
-                  {(user?.full_name || user?.name || "E")[0].toUpperCase()}
+                  {displayAvatar}
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 mt-3 rounded-2xl p-2 border border-white/10 bg-slate-950/95 backdrop-blur-xl shadow-2xl text-white">
                 <DropdownMenuLabel className="px-3 py-2 border-b border-white/5">
                   <div className="flex flex-col space-y-0.5">
-                    <p className="text-sm font-black text-white">{user?.full_name || user?.name}</p>
+                    <p className="text-sm font-black text-white">{displayName}</p>
                     <p className="text-[10px] text-purple-300 font-bold truncate opacity-70">{user?.email}</p>
                   </div>
                 </DropdownMenuLabel>
@@ -204,20 +208,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <DropdownMenuTrigger className="outline-none relative z-10">
                     <div className="flex items-center gap-3.5 pr-1 group cursor-pointer">
                       <div className="text-right hidden sm:block space-y-0.5">
-                        <p className="text-xs font-black text-white group-hover:text-purple-200 transition-colors">{user?.full_name || user?.name || "Employee"}</p>
+                        <p className="text-xs font-black text-white group-hover:text-purple-200 transition-colors">{displayName}</p>
                         <p className="text-[9px] font-black text-purple-200/60 uppercase tracking-widest opacity-80 leading-none">
                           {resolvedRole.replace('_', ' ')}
                         </p>
                       </div>
                       <div className="h-9 w-9 rounded-xl bg-white text-[#7B0099] flex items-center justify-center font-black text-xs shadow-lg shadow-purple-950/40 group-hover:scale-105 transition-transform border border-white/20">
-                        {(user?.full_name || user?.name || "E")[0].toUpperCase()}
+                        {displayAvatar}
                       </div>
                     </div>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56 mt-3 rounded-2xl p-2 border border-white/10 bg-slate-950/95 backdrop-blur-xl shadow-2xl text-white">
                     <DropdownMenuLabel className="px-3 py-2 border-b border-white/5">
                       <div className="flex flex-col space-y-0.5">
-                        <p className="text-sm font-black text-white">{user?.full_name || user?.name}</p>
+                        <p className="text-sm font-black text-white">{displayName}</p>
                         <p className="text-[10px] text-purple-300 font-bold truncate opacity-70">{user?.email}</p>
                       </div>
                     </DropdownMenuLabel>
