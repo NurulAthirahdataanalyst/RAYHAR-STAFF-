@@ -214,6 +214,7 @@ async function uploadToSupabaseStorage(filePath, filename, mimeType) {
         "Authorization": `Bearer ${supabaseKey}`,
         "Content-Type": mimeType,
         "Content-Length": fileContent.length,
+        "x-upsert": "true",
       }
     };
 
@@ -330,6 +331,7 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
       doc.text(endDateStr, leftCol + 150, boxY + 26, { width: 100, align: "center" });
       doc.fontSize(16).fillColor("#7B0099").text(String(leave.days), leftCol + 350, boxY + 23, { width: 100, align: "center" });
 
+      doc.x = leftCol;
       doc.y = boxY + 70;
       doc.moveDown();
 
