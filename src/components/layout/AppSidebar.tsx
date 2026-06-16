@@ -177,7 +177,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       </div>
 
       {/* MENU */}
-      <div className="flex-1 overflow-y-auto scrollbar-none pt-6 pb-2">
+      <div className={`flex-1 scrollbar-none pt-6 pb-2 ${isCollapsed && !isMobile ? "overflow-visible" : "overflow-y-auto"}`}>
         {(!isCollapsed || isMobile) && (
           <div className="px-7 mb-4">
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500/80">
