@@ -24,6 +24,31 @@ export default function LeaveManagement() {
   const { userId, userName, userBranch } = useRole();
   const [currentStep, setCurrentStep] = useState(0); // 0: Arahan, 1: Profil, 2: Cuti, 3: Waris
   const [loading, setLoading] = useState(false);
+  const [liveRequests, setLiveRequests] = useState<any[]>([]);
+
+  // Fetch live leave requests from backend to get the actual approved leave days
+  useEffect(() => {
+    if (!userId) return;
+    const fetchLiveRequests = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/leave-requests?userId=${encodeURIComponent(userId)}`);
+        const data = await response.json();
+        if (response.ok && data.success) {
+          const formatted = data.leaveRequests.map((request: any) => ({
+            id: String(request.leave_id),
+            type: request.leave_type,
+            days: Number(request.days || 0),
+            status: request.status || "Pending HOD",
+            userId: request.user_id,
+          }));
+          setLiveRequests(formatted);
+        }
+      } catch (err) {
+        console.error("Failed to fetch live requests in LeaveManagement:", err);
+      }
+    };
+    void fetchLiveRequests();
+  }, [userId]);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -96,6 +121,26 @@ export default function LeaveManagement() {
       }));
     }
   }, [formData.tarikhMula, formData.tarikhAkhir]);
+
+  // Update bakiTerdahulu when liveRequests or selected leave type changes
+  useEffect(() => {
+    if (!formData.jenisCuti) return;
+    
+    const usedAnnualLeave = getUsedLeaveDays(
+      liveRequests.length > 0 ? liveRequests : getLeaveRequests(),
+      "Annual/Emergency Leave",
+      userId || undefined
+    );
+    
+    const isAnnualOrSick = formData.jenisCuti === "Annual/Emergency Leave" || formData.jenisCuti === "Sick Leave";
+    const bakiTerdahulu = isAnnualOrSick ? 14 - usedAnnualLeave : 14;
+
+    setFormData(prev => ({
+      ...prev,
+      bakiTerdahulu,
+      bakiAkhir: bakiTerdahulu - prev.bilanganHari
+    }));
+  }, [liveRequests, formData.jenisCuti, userId]);
 
   const handleNext = () => {
     // Basic validation untuk setiap step
@@ -415,21 +460,9 @@ export default function LeaveManagement() {
                     <Select
                       onValueChange={(val) => {
                         const jenisCuti = val as LeaveType;
-                        const usedAnnualLeave = getUsedLeaveDays(
-                          getLeaveRequests(),
-                          "Annual/Emergency Leave",
-                          userId || undefined
-                        );
-                        
-                        // Quota applies to both Annual/Emergency Leave and Sick Leave
-                        const isAnnualOrSick = jenisCuti === "Annual/Emergency Leave" || jenisCuti === "Sick Leave";
-                        const bakiTerdahulu = isAnnualOrSick ? 14 - usedAnnualLeave : 14;
-
                         setFormData({
                           ...formData,
                           jenisCuti,
-                          bakiTerdahulu,
-                          bakiAkhir: bakiTerdahulu - formData.bilanganHari,
                           lampiranMc: (jenisCuti === "Sick Leave" || jenisCuti === "Cuti Sakit") ? formData.lampiranMc : null,
                         });
                       }}
