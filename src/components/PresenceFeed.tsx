@@ -261,8 +261,17 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
   };
 
   const getDeptShortCode = (dept: string, branch: string) => {
+    const d = (dept || "").trim().toLowerCase();
+    const b = (branch || "").trim().toUpperCase();
+    
+    if (d === "it" || d === "it department" || d === "it departmen") {
+      if (b === "HQ" || b === "") {
+        return "IT DEPARTMENT (HQ)";
+      }
+      return "IT DEPARTMENT";
+    }
+
     if (!dept) return branch ? branch.toUpperCase() : "STAFF";
-    const d = dept.toLowerCase();
     if (d.includes("haji") || d.includes("umrah")) return "HAJI/UMRAH (BHU)";
     if (d.includes("operation")) return "OPERATIONS";
     if (d.includes("finance")) return "FINANCE";
