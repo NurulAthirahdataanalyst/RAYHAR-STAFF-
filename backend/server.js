@@ -266,7 +266,7 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
       ? appliedAt.toISOString().slice(0, 10) 
       : String(appliedAt).slice(0, 10);
       
-    const leaveTypeName = leave.leave_type.toLowerCase().replace(/\s+/g, "-");
+    const leaveTypeName = leave.leave_type.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
     const safeName = employeeName.toUpperCase().replace(/[^A-Z0-9]/g, "_");
     const filename = `${safeName}-${submitDate}-${leaveTypeName}-form.pdf`;
 
@@ -290,7 +290,7 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
       doc.moveDown();
 
       // Divider Line
-      doc.moveTo(50, doc.y).lineTo(562, doc.y).strokeColor("#7B0099").strokeWidth(2).stroke();
+      doc.moveTo(50, doc.y).lineTo(562, doc.y).strokeColor("#7B0099").lineWidth(2).stroke();
       doc.moveDown(1.5);
 
       // Main Info
@@ -341,7 +341,7 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
 
       // Emergency Contact
       doc.fontSize(10).font("Helvetica-Bold").fillColor("#7B0099").text("MAKLUMAT WARIS (KECEMASAN)");
-      doc.moveTo(leftCol, doc.y).lineTo(562, doc.y).strokeColor("#cccccc").strokeWidth(1).stroke();
+      doc.moveTo(leftCol, doc.y).lineTo(562, doc.y).strokeColor("#cccccc").lineWidth(1).stroke();
       doc.moveDown(0.8);
 
       const drawWarisRow = (label, value) => {
@@ -358,7 +358,7 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
 
       // Signatures
       const sigY = Math.max(doc.y, 620);
-      doc.moveTo(leftCol + 10, sigY).lineTo(leftCol + 180, sigY).strokeColor("#333333").strokeWidth(1).stroke();
+      doc.moveTo(leftCol + 10, sigY).lineTo(leftCol + 180, sigY).strokeColor("#333333").lineWidth(1).stroke();
       doc.moveTo(leftCol + 320, sigY).lineTo(leftCol + 490, sigY).stroke();
 
       doc.fontSize(9).font("Helvetica-Bold").fillColor("#555555");
