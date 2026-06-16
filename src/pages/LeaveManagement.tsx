@@ -107,6 +107,16 @@ export default function LeaveManagement() {
       toast.error("Sila lengkapkan butiran cuti");
       return;
     }
+    if (currentStep === 2) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const start = new Date(formData.tarikhMula);
+      start.setHours(0, 0, 0, 0);
+      if (start.getTime() < today.getTime()) {
+        toast.error("Tarikh mula cuti mestilah hari ini atau tarikh akan datang sahaja.");
+        return;
+      }
+    }
     if (currentStep === 2 && formData.bilanganHari <= 0) {
       toast.error("Tarikh akhir mesti sama atau selepas tarikh mula");
       return;
@@ -375,11 +385,23 @@ export default function LeaveManagement() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Tarikh Mula *</Label>
-                      <Input type="date" value={formData.tarikhMula} onChange={e => setFormData({ ...formData, tarikhMula: e.target.value })} className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold" />
+                      <Input 
+                        type="date" 
+                        value={formData.tarikhMula} 
+                        min={new Date().toISOString().split('T')[0]}
+                        onChange={e => setFormData({ ...formData, tarikhMula: e.target.value })} 
+                        className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold" 
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Tarikh Akhir *</Label>
-                      <Input type="date" value={formData.tarikhAkhir} onChange={e => setFormData({ ...formData, tarikhAkhir: e.target.value })} className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold" />
+                      <Input 
+                        type="date" 
+                        value={formData.tarikhAkhir} 
+                        min={formData.tarikhMula || new Date().toISOString().split('T')[0]}
+                        onChange={e => setFormData({ ...formData, tarikhAkhir: e.target.value })} 
+                        className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold" 
+                      />
                     </div>
                   </div>
 
