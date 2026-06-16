@@ -175,8 +175,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                   onClick={isMobile ? onMobileClose : undefined}
                   className={`group relative flex items-center gap-4 rounded-[14px] px-4 sm:px-5 py-3 transition-all duration-300 touch-target ${
                     isActive
-                      ? "bg-purple-600/10 text-purple-400"
-                      : "text-slate-400 hover:bg-white/5 hover:text-white active:bg-white/10"
+                      ? "bg-purple-600/10 text-white"
+                      : "text-white/90 hover:bg-white/5 hover:text-white active:bg-white/10"
                   } ${isCollapsed && !isMobile ? "justify-center px-0 w-12 mx-auto" : ""}`}
                 >
                   <item.icon
@@ -205,8 +205,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                       onClick={isMobile ? onMobileClose : undefined}
                       className={`group ml-5 sm:ml-7 flex items-center gap-3 rounded-[14px] px-3 sm:px-4 py-2.5 text-[13px] transition-all duration-300 touch-target ${
                         isChildActive
-                          ? "bg-purple-50 dark:bg-purple-900/20 font-bold text-[#7B0099] dark:text-purple-400"
-                          : "text-muted-foreground/60 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-[#7B0099] dark:hover:text-purple-400 active:bg-purple-100 dark:active:bg-purple-900/30"
+                          ? "bg-purple-50 dark:bg-purple-900/20 font-bold text-white"
+                          : "text-white/80 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-white active:bg-purple-100 dark:active:bg-purple-900/30"
                       }`}
                     >
                       <child.icon
@@ -230,7 +230,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           variant="ghost"
           onClick={toggleTheme}
           title={isCollapsed && !isMobile ? `Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode` : ""}
-          className={`group flex w-full justify-start gap-4 rounded-[16px] px-4 sm:px-5 py-6 text-slate-400 transition-all hover:bg-white/5 hover:text-white touch-target ${
+          className={`group flex w-full justify-start gap-4 rounded-[16px] px-4 sm:px-5 py-6 text-white/90 transition-all hover:bg-white/5 hover:text-white touch-target ${
             isCollapsed && !isMobile ? "justify-center px-0 w-12 mx-auto" : ""
           }`}
         >
@@ -250,7 +250,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           variant="ghost"
           onClick={() => signOut()}
           title={isCollapsed && !isMobile ? "Log Out" : ""}
-          className={`group flex w-full justify-start gap-4 rounded-[16px] px-4 sm:px-5 py-6 text-slate-500 transition-all hover:bg-red-500/10 hover:text-red-500 touch-target ${
+          className={`group flex w-full justify-start gap-4 rounded-[16px] px-4 sm:px-5 py-6 text-white/90 transition-all hover:bg-red-500/10 hover:text-red-500 touch-target ${
             isCollapsed && !isMobile ? "justify-center px-0 w-12 mx-auto" : ""
           }`}
         >
