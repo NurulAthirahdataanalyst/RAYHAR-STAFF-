@@ -200,9 +200,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
             const handleParentClick = (e: React.MouseEvent) => {
               if (hasChildren) {
-                e.preventDefault();
                 toggleMenu(item.title);
-              } else if (isMobile) {
+              }
+              if (isMobile) {
                 onMobileClose();
               }
             };
@@ -210,7 +210,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
             return (
               <div key={item.title} className="space-y-1">
                 <Link
-                  to={hasChildren ? "#" : item.path}
+                  to={item.path}
                   title={isCollapsed && !isMobile ? item.title : ""}
                   onClick={handleParentClick}
                   className={`group relative flex items-center gap-4 rounded-[14px] px-4 sm:px-5 py-3 transition-all duration-300 touch-target ${
