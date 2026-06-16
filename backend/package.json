@@ -5,7 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build": "echo 'No build step required'"
+    "build": "echo 'No build step required'",
+    "backup:db": "node backup_db.js",
+    "restore:db": "node restore_db.js",
+    "restore:uploads": "node restore_uploads.js"
   },
   "keywords": [],
   "author": "",

@@ -11,12 +11,27 @@ async function run() {
     console.log('Insert Policy created!');
   } catch (err) {
     if (err.message.includes('already exists')) {
-      console.log('Policy already exists.');
+      console.log('Insert Policy already exists.');
     } else {
-      console.error('Error creating policy:', err);
+      console.error('Error creating insert policy:', err);
     }
-  } finally {
-    pool.end();
   }
+
+  try {
+    await pool.query(`
+      CREATE POLICY "Allow public select" ON storage.objects
+        FOR SELECT TO public
+        USING (bucket_id = 'mc-attachments');
+    `);
+    console.log('Select Policy created!');
+  } catch (err) {
+    if (err.message.includes('already exists')) {
+      console.log('Select Policy already exists.');
+    } else {
+      console.error('Error creating select policy:', err);
+    }
+  }
+
+  pool.end();
 }
 run();

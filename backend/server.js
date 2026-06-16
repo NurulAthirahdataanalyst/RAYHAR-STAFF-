@@ -110,22 +110,27 @@ app.post("/api/settings", async (req, res) => {
   res.json({ success: true, settings: current });
 });
 
-// Ensure uploads folder exists
+// Ensure uploads and uploads/temp folders exist
 const uploadsDir = path.join(__dirname, "uploads");
+const tempDir = path.join(uploadsDir, "temp");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
 }
+if (!fs.existsSync(tempDir)) {
+  fs.mkdirSync(tempDir, { recursive: true });
+}
 
-// Multer Config
+// Multer Config (saves temporarily to uploads/temp)
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, uploadsDir);
+    cb(null, tempDir);
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname));
   }
 });
 const upload = multer({ storage: storage });
+
 
 // Supabase Cloud Storage Helper Functions for Medical Certificate Backup
 async function ensureSupabaseBucketExists() {
@@ -196,7 +201,8 @@ async function uploadToSupabaseStorage(filePath, filename, mimeType) {
 
   try {
     const fileContent = fs.readFileSync(filePath);
-    const urlObj = new URL(`${supabaseUrl}/storage/v1/object/mc-attachments/${filename}`);
+    const encodedFilename = filename.split('/').map(segment => encodeURIComponent(segment)).join('/');
+    const urlObj = new URL(`${supabaseUrl}/storage/v1/object/mc-attachments/${encodedFilename}`);
     
     const options = {
       hostname: urlObj.hostname,
@@ -240,16 +246,17 @@ ensureSupabaseBucketExists();
 // Serve uploads statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Fallback redirection for files wiped by Render ephemeral restart
-app.get('/uploads/:filename', (req, res) => {
-  const filename = req.params.filename;
+// Fallback redirection for files wiped by Render ephemeral restart (supports nested folders)
+app.get(/^\/uploads\/(.+)$/, (req, res) => {
+  const fileSubpath = req.params[0];
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  if (supabaseUrl) {
-    const publicUrl = `${supabaseUrl}/storage/v1/object/public/mc-attachments/${filename}`;
-    console.log(`↪️ File ${filename} not found locally. Redirecting to Supabase fallback: ${publicUrl}`);
+  if (supabaseUrl && fileSubpath) {
+    const encodedSubpath = fileSubpath.split('/').map(segment => encodeURIComponent(segment)).join('/');
+    const publicUrl = `${supabaseUrl}/storage/v1/object/public/mc-attachments/${encodedSubpath}`;
+    console.log(`↪️ File ${fileSubpath} not found locally. Redirecting to Supabase fallback: ${publicUrl}`);
     return res.redirect(publicUrl);
   }
-  res.status(404).send('Cannot GET /uploads/' + filename);
+  res.status(404).send('Cannot GET /uploads/' + (fileSubpath || ''));
 });
 
 // ===============================
@@ -829,16 +836,49 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
     });
   }
 
-  const mc_file_url = req.file ? `/uploads/${req.file.filename}` : null;
-  if (req.file) {
-    uploadToSupabaseStorage(req.file.path, req.file.filename, req.file.mimetype);
-  }
   const signature_val = cuti_tanpa_gaji_signature === "true";
   
   try {
-    const [empRows] = await pool.query("SELECT branch, department FROM profiles WHERE user_id = ?", [user_id]);
+    const [empRows] = await pool.query("SELECT branch, department, full_name FROM profiles WHERE user_id = ?", [user_id]);
     const employeeBranch = empRows[0]?.branch || "HQ";
     const employeeDept = empRows[0]?.department || "";
+    const employeeName = empRows[0]?.full_name || user_id;
+
+    let mc_file_url = null;
+    if (req.file) {
+      try {
+        // Sanitize employee name and branch to avoid invalid folder names
+        const folderName = `${employeeName} (${employeeBranch})`.replace(/[\\/:*?"<>|]/g, "_").trim();
+        const userUploadsDir = path.join(uploadsDir, folderName);
+        
+        // Ensure subdirectory exists
+        if (!fs.existsSync(userUploadsDir)) {
+          fs.mkdirSync(userUploadsDir, { recursive: true });
+        }
+        
+        // Move file from temp to subdirectory
+        const newFilePath = path.join(userUploadsDir, req.file.filename);
+        fs.renameSync(req.file.path, newFilePath);
+        
+        // Store relative path URL
+        mc_file_url = `/uploads/${folderName}/${req.file.filename}`;
+        
+        // Backup to Supabase with folder structure
+        const supabaseStoragePath = `${folderName}/${req.file.filename}`;
+        uploadToSupabaseStorage(newFilePath, supabaseStoragePath, req.file.mimetype);
+      } catch (fileErr) {
+        console.error("❌ Error organizing file into subfolder:", fileErr);
+        // Fallback: move to base uploadsDir
+        const fallbackPath = path.join(uploadsDir, req.file.filename);
+        try {
+          fs.renameSync(req.file.path, fallbackPath);
+          mc_file_url = `/uploads/${req.file.filename}`;
+          uploadToSupabaseStorage(fallbackPath, req.file.filename, req.file.mimetype);
+        } catch (fallbackErr) {
+          console.error("❌ Fallback move also failed:", fallbackErr);
+        }
+      }
+    }
     
     const initialStatus = (leave_type === 'Cuti Sakit' || leave_type === 'Sick Leave') ? 'Approved' : 
                           (employeeBranch === 'HQ' 
@@ -1767,7 +1807,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       let statusToCount = "Pending%";
       if (role === "head_of_department") {
-        statusToCount = department ? `Pending HOD (${department})` : "Pending HOD%";
+        statusToCount = "Pending HOD%";
       } else if (role === "branch_leader") {
         statusToCount = "Pending Branch Leader";
       } else if (role === "finance_manager") {
