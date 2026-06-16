@@ -80,7 +80,7 @@ export default function NotificationBell() {
     const queryParam = notif.related_leave_id ? `?leaveId=${notif.related_leave_id}` : "";
     
     if (role === "employee") {
-      navigate(`/leave/overview${queryParam}`);
+      navigate(`/leave/forms${queryParam}`);
     } else {
       navigate(`/leave/admin${queryParam}`);
     }

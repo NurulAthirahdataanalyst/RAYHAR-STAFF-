@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +74,7 @@ type FormTabFilter = "pending" | "approved" | "rejected" | "history";
 
 export default function LeaveFormView() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { userId, userName, userBranch } = useRole();
   const [forms, setForms] = useState<LeaveForm[]>([]);
   const [loading, setLoading] = useState(true);
@@ -160,6 +161,25 @@ export default function LeaveFormView() {
       setLoading(false);
     }
   };
+
+  // Auto-open a specific leave form when navigated with ?leaveId=xxx
+  useEffect(() => {
+    const leaveId = searchParams.get("leaveId");
+    if (leaveId && forms.length > 0) {
+      const match = forms.find((f) => f.id === Number(leaveId));
+      if (match) {
+        setSelectedForm(match);
+        // Switch tab to match the status
+        if (match.status === "Approved") {
+          setActiveTab("approved");
+        } else if (match.status === "Rejected") {
+          setActiveTab("rejected");
+        } else if (match.status.startsWith("Pending")) {
+          setActiveTab("pending");
+        }
+      }
+    }
+  }, [searchParams, forms]);
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
