@@ -240,6 +240,146 @@ async function uploadToSupabaseStorage(filePath, filename, mimeType) {
   }
 }
 
+async function generateAndSaveLeaveFormPDF(leaveId) {
+  const PDFDocument = require("pdfkit");
+
+  try {
+    const [rows] = await pool.query(
+      `SELECT lr.*, p.full_name, p.branch 
+       FROM leave_requests lr 
+       JOIN profiles p ON p.user_id = lr.user_id 
+       WHERE lr.leave_id = ?`,
+      [leaveId]
+    );
+
+    if (rows.length === 0) {
+      console.error(`❌ Leave request ${leaveId} not found for PDF generation.`);
+      return;
+    }
+
+    const leave = rows[0];
+    const employeeName = leave.full_name || leave.user_id;
+    const employeeBranch = leave.branch || "HQ";
+    const appliedAt = leave.created_at || new Date().toISOString();
+    
+    const submitDate = appliedAt instanceof Date 
+      ? appliedAt.toISOString().slice(0, 10) 
+      : String(appliedAt).slice(0, 10);
+      
+    const leaveTypeName = leave.leave_type.toLowerCase().replace(/\s+/g, "-");
+    const safeName = employeeName.toUpperCase().replace(/[^A-Z0-9]/g, "_");
+    const filename = `${safeName}-${submitDate}-${leaveTypeName}-form.pdf`;
+
+    const folderName = `${employeeName} (${employeeBranch})`.replace(/[\\/:*?"<>|]/g, "_").trim();
+    const userUploadsDir = path.join(__dirname, "uploads", folderName);
+
+    if (!fs.existsSync(userUploadsDir)) {
+      fs.mkdirSync(userUploadsDir, { recursive: true });
+    }
+
+    const filePath = path.join(userUploadsDir, filename);
+
+    await new Promise((resolve, reject) => {
+      const doc = new PDFDocument({ margin: 50 });
+      const writeStream = fs.createWriteStream(filePath);
+      doc.pipe(writeStream);
+
+      // Header
+      doc.fontSize(22).font("Helvetica-Bold").fillColor("#7B0099").text("RAYHAR GROUP", { align: "center" });
+      doc.fontSize(14).font("Helvetica-Bold").fillColor("#333333").text("PERMOHONAN CUTI KAKITANGAN", { align: "center", characterSpacing: 1 });
+      doc.moveDown();
+
+      // Divider Line
+      doc.moveTo(50, doc.y).lineTo(562, doc.y).strokeColor("#7B0099").strokeWidth(2).stroke();
+      doc.moveDown(1.5);
+
+      // Main Info
+      const leftCol = 50;
+      const rightCol = 180;
+      
+      const drawRow = (label, value, isStatus = false) => {
+        doc.fontSize(10).font("Helvetica-Bold").fillColor("#666666").text(label.toUpperCase(), leftCol, doc.y);
+        doc.font("Helvetica-Bold");
+        if (isStatus) {
+          doc.fillColor("#7B0099").text(String(value).toUpperCase(), rightCol, doc.y - 12);
+        } else {
+          doc.fillColor("#111111").text(String(value), rightCol, doc.y - 12);
+        }
+        doc.moveDown(0.8);
+      };
+
+      drawRow("Nama Penuh", employeeName);
+      drawRow("Cawangan", employeeBranch);
+      drawRow("Jenis Cuti", leave.leave_type);
+      drawRow("Status", leave.status || "PENDING", true);
+
+      // Date Range Box
+      const boxY = doc.y;
+      doc.rect(leftCol, boxY, 512, 50).fillAndStroke("#f3e8ff", "#e9d5ff");
+      
+      doc.fontSize(9).font("Helvetica-Bold").fillColor("#7B0099");
+      doc.text("DARI", leftCol + 20, boxY + 12, { width: 100, align: "center" });
+      doc.text("HINGGA", leftCol + 150, boxY + 12, { width: 100, align: "center" });
+      doc.text("HARI", leftCol + 350, boxY + 12, { width: 100, align: "center" });
+
+      const startDateStr = leave.start_date instanceof Date ? leave.start_date.toISOString().slice(0, 10) : String(leave.start_date).slice(0, 10);
+      const endDateStr = leave.end_date instanceof Date ? leave.end_date.toISOString().slice(0, 10) : String(leave.end_date).slice(0, 10);
+
+      doc.fontSize(12).font("Helvetica-Bold").fillColor("#111111");
+      doc.text(startDateStr, leftCol + 20, boxY + 26, { width: 100, align: "center" });
+      doc.text(endDateStr, leftCol + 150, boxY + 26, { width: 100, align: "center" });
+      doc.fontSize(16).fillColor("#7B0099").text(String(leave.days), leftCol + 350, boxY + 23, { width: 100, align: "center" });
+
+      doc.y = boxY + 70;
+      doc.moveDown();
+
+      // Reason
+      doc.fontSize(10).font("Helvetica-Bold").fillColor("#666666").text("SEBAB / TUJUAN");
+      doc.moveDown(0.4);
+      doc.fontSize(11).font("Helvetica-Oblique").fillColor("#333333").text(`"${leave.reason || '-'}"`, { indent: 15 });
+      doc.moveDown(1.5);
+
+      // Emergency Contact
+      doc.fontSize(10).font("Helvetica-Bold").fillColor("#7B0099").text("MAKLUMAT WARIS (KECEMASAN)");
+      doc.moveTo(leftCol, doc.y).lineTo(562, doc.y).strokeColor("#cccccc").strokeWidth(1).stroke();
+      doc.moveDown(0.8);
+
+      const drawWarisRow = (label, value) => {
+        doc.fontSize(9).font("Helvetica-Bold").fillColor("#666666").text(label, leftCol, doc.y);
+        doc.font("Helvetica").fillColor("#111111").text(String(value), leftCol + 120, doc.y - 11);
+        doc.moveDown(0.6);
+      };
+
+      drawWarisRow("Nama Waris", leave.waris_nama || "N/A");
+      drawWarisRow("Hubungan", leave.waris_hubungan || "N/A");
+      drawWarisRow("No. Telefon", leave.waris_phone || "N/A");
+      drawWarisRow("Alamat Waris", leave.waris_alamat || "N/A");
+      doc.moveDown();
+
+      // Signatures
+      const sigY = Math.max(doc.y, 620);
+      doc.moveTo(leftCol + 10, sigY).lineTo(leftCol + 180, sigY).strokeColor("#333333").strokeWidth(1).stroke();
+      doc.moveTo(leftCol + 320, sigY).lineTo(leftCol + 490, sigY).stroke();
+
+      doc.fontSize(9).font("Helvetica-Bold").fillColor("#555555");
+      doc.text("Tandatangan Kakitangan", leftCol + 10, sigY + 5, { width: 170, align: "center" });
+      doc.text("Kelulusan Pengurus / HR", leftCol + 320, sigY + 5, { width: 170, align: "center" });
+
+      doc.end();
+      writeStream.on("finish", resolve);
+      writeStream.on("error", reject);
+    });
+
+    console.log(`📄 Generated PDF successfully locally: ${filePath}`);
+
+    // Backup to Supabase Storage
+    const supabaseStoragePath = `${folderName}/${filename}`;
+    await uploadToSupabaseStorage(filePath, supabaseStoragePath, "application/pdf");
+  } catch (err) {
+    console.error("❌ Error generating leave form PDF:", err);
+  }
+}
+
 // Call bucket check on startup
 ensureSupabaseBucketExists();
 
@@ -905,6 +1045,9 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
 
     res.status(201).json({ success: true, leaveRequest: leaveData });
     broadcastPresenceUpdate({ type: 'leave-status', leaveId: result.insertId, status: initialStatus, userId: user_id });
+    
+    // Generate and save the leave form PDF locally and on Supabase Storage
+    generateAndSaveLeaveFormPDF(result.insertId);
 
     // --- SEND EMAIL NOTIFICATION TO HOD / BRANCH LEADER & HR ---
     if (initialStatus !== "Approved" && leaveData) {
@@ -1049,6 +1192,9 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
 
     res.json({ success: true, nextStatus });
     broadcastPresenceUpdate({ type: 'leave-status', leaveId, status: nextStatus, userId: user_id });
+
+    // Re-generate and save the leave form PDF with the updated status
+    generateAndSaveLeaveFormPDF(leaveId);
 
     // --- SEND EMAIL NOTIFICATION ON STATUS CHANGE ---
     try {
