@@ -244,33 +244,27 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
                   {/* Floating popover for collapsed state */}
                   {isCollapsed && !isMobile && hasChildren && (
-                    <div className="absolute left-full top-0 ml-2 opacity-0 translate-x-2 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 group-hover:pointer-events-auto transition-all duration-300 z-50 bg-[#1E1E24] border border-white/10 rounded-[16px] p-3 w-48 shadow-2xl flex flex-col gap-1">
-                      <div className="px-3 py-1 border-b border-white/5 mb-1 text-[11px] font-black uppercase tracking-wider text-slate-500">
-                        {item.title}
-                      </div>
-                      <div className="relative pl-5 space-y-1">
-                        {visibleChildren.map((child, index) => {
-                          const isChildActive = location.pathname === child.path;
-                          return (
-                            <Link
-                              key={child.title}
-                              to={child.path}
-                              className={`relative flex items-center gap-3 rounded-[10px] px-3 py-2 text-[12.5px] transition-all duration-300 ${
-                                isChildActive
-                                  ? "bg-purple-600/10 font-bold text-white"
-                                  : "text-white/80 hover:bg-white/5 hover:text-white"
-                              }`}
-                            >
-                              <span className="absolute left-[-14px] top-0 w-3 h-[50%] border-l border-b border-white/15 rounded-bl-[5px]" />
-                              {index < visibleChildren.length - 1 && (
-                                <span className="absolute left-[-14px] top-[50%] bottom-0 w-[1px] bg-white/15" />
-                              )}
-                              <child.icon className={`h-3.5 w-3.5 ${isChildActive ? "text-purple-400" : "text-slate-500"}`} />
-                              <span>{child.title}</span>
-                            </Link>
-                          );
-                        })}
-                      </div>
+                    <div className="absolute left-full top-0 ml-2 opacity-0 translate-x-2 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 group-hover:pointer-events-auto transition-all duration-300 z-50 bg-[#1E1E24] border border-white/10 rounded-[14px] p-1.5 w-52 shadow-2xl flex flex-col gap-0.5">
+                      {visibleChildren.map((child) => {
+                        const isChildActive = location.pathname === child.path;
+                        return (
+                          <Link
+                            key={child.title}
+                            to={child.path}
+                            className={`group relative flex items-center justify-between rounded-[10px] px-3.5 py-2.5 text-[12.5px] transition-all duration-300 ${
+                              isChildActive
+                                ? "bg-purple-600/15 font-bold text-white"
+                                : "text-white/80 hover:bg-white/5 hover:text-white"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <child.icon className={`h-4 w-4 shrink-0 transition-colors ${isChildActive ? "text-purple-400" : "text-slate-500 group-hover:text-white"}`} />
+                              <span className="transition-colors group-hover:text-white">{child.title}</span>
+                            </div>
+                            <ChevronRight className="h-3.5 w-3.5 text-slate-500 group-hover:text-white transition-colors" />
+                          </Link>
+                        );
+                      })}
                     </div>
                   )}
                 </Link>
