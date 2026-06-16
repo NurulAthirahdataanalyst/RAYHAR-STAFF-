@@ -321,7 +321,7 @@ export default function Login() {
                         <SelectItem value="SNS">Seremban</SelectItem>
                         <SelectItem value="AOR">Alor Setar</SelectItem>
                         <SelectItem value="BTM">Bertam</SelectItem>
-                        <SelectItem value="BTP">Batu Pahatr</SelectItem>
+                        <SelectItem value="BTP">Batu Pahat</SelectItem>
                         <SelectItem value="JB">Johor Bharu</SelectItem>                        
                       </SelectContent>
                     </Select>
