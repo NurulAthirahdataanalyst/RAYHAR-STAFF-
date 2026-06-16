@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   X,
   Moon,
   Sun,
@@ -37,6 +38,10 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
+    "Leave Management": true,
+    "Master": false,
+  });
 
   // Close mobile drawer on route change
   useEffect(() => {
@@ -105,6 +110,29 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     { title: "Settings", icon: Settings, path: "/settings", roles: ["hr_admin"] },
   ];
 
+  const toggleMenu = (title: string) => {
+    setOpenMenus((prev) => ({
+      ...prev,
+      [title]: !prev[title],
+    }));
+  };
+
+  // Automatically expand menus containing the active route on mount/route change
+  useEffect(() => {
+    const initialOpen: Record<string, boolean> = {};
+    menuItems.forEach((item) => {
+      if (item.children) {
+        const hasActiveChild = item.children.some(
+          (child) => location.pathname === child.path || location.pathname.startsWith(`${child.path}/`)
+        );
+        if (hasActiveChild) {
+          initialOpen[item.title] = true;
+        }
+      }
+    });
+    setOpenMenus((prev) => ({ ...initialOpen, ...prev }));
+  }, [location.pathname]);
+
   const filteredItems = menuItems.filter((item) =>
     item.roles.includes(role || "employee")
   );
@@ -167,12 +195,24 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
               child.roles.includes(role || "employee")
             );
 
+            const hasChildren = !!visibleChildren && visibleChildren.length > 0;
+            const isMenuOpen = !!openMenus[item.title];
+
+            const handleParentClick = (e: React.MouseEvent) => {
+              if (hasChildren) {
+                e.preventDefault();
+                toggleMenu(item.title);
+              } else if (isMobile) {
+                onMobileClose();
+              }
+            };
+
             return (
               <div key={item.title} className="space-y-1">
                 <Link
-                  to={item.path}
+                  to={hasChildren ? "#" : item.path}
                   title={isCollapsed && !isMobile ? item.title : ""}
-                  onClick={isMobile ? onMobileClose : undefined}
+                  onClick={handleParentClick}
                   className={`group relative flex items-center gap-4 rounded-[14px] px-4 sm:px-5 py-3 transition-all duration-300 touch-target ${
                     isActive
                       ? "bg-purple-600/10 text-white"
@@ -190,34 +230,84 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                     </span>
                   )}
 
+                  {hasChildren && (!isCollapsed || isMobile) && (
+                    <ChevronDown
+                      className={`h-4 w-4 ml-auto text-slate-400 transition-transform duration-300 ${
+                        isMenuOpen ? "rotate-180 text-white" : "group-hover:text-white"
+                      }`}
+                    />
+                  )}
+
                   {isActive && (!isCollapsed || isMobile) && (
                     <div className="absolute left-0 w-1 h-6 bg-[#7B0099] rounded-r-full" />
                   )}
+
+                  {/* Floating popover for collapsed state */}
+                  {isCollapsed && !isMobile && hasChildren && (
+                    <div className="absolute left-full top-0 ml-2 opacity-0 translate-x-2 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 group-hover:pointer-events-auto transition-all duration-300 z-50 bg-[#1E1E24] border border-white/10 rounded-[16px] p-3 w-48 shadow-2xl flex flex-col gap-1">
+                      <div className="px-3 py-1 border-b border-white/5 mb-1 text-[11px] font-black uppercase tracking-wider text-slate-500">
+                        {item.title}
+                      </div>
+                      <div className="relative pl-5 space-y-1">
+                        {visibleChildren.map((child, index) => {
+                          const isChildActive = location.pathname === child.path;
+                          return (
+                            <Link
+                              key={child.title}
+                              to={child.path}
+                              className={`relative flex items-center gap-3 rounded-[10px] px-3 py-2 text-[12.5px] transition-all duration-300 ${
+                                isChildActive
+                                  ? "bg-purple-600/10 font-bold text-white"
+                                  : "text-white/80 hover:bg-white/5 hover:text-white"
+                              }`}
+                            >
+                              <span className="absolute left-[-14px] top-0 w-3 h-[50%] border-l border-b border-white/15 rounded-bl-[5px]" />
+                              {index < visibleChildren.length - 1 && (
+                                <span className="absolute left-[-14px] top-[50%] bottom-0 w-[1px] bg-white/15" />
+                              )}
+                              <child.icon className={`h-3.5 w-3.5 ${isChildActive ? "text-purple-400" : "text-slate-500"}`} />
+                              <span>{child.title}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </Link>
 
-                {(!isCollapsed || isMobile) && visibleChildren?.map((child) => {
-                  const isChildActive = location.pathname === child.path;
+                {(!isCollapsed || isMobile) && isMenuOpen && visibleChildren && (
+                  <div className="relative ml-8 pl-1 space-y-1 my-1">
+                    {visibleChildren.map((child, index) => {
+                      const isChildActive = location.pathname === child.path;
 
-                  return (
-                    <Link
-                      key={child.title}
-                      to={child.path}
-                      onClick={isMobile ? onMobileClose : undefined}
-                      className={`group ml-5 sm:ml-7 flex items-center gap-3 rounded-[14px] px-3 sm:px-4 py-2.5 text-[13px] transition-all duration-300 touch-target ${
-                        isChildActive
-                          ? "bg-purple-600/10 font-bold text-white"
-                          : "text-white/80 hover:bg-white/5 hover:text-white active:bg-white/10"
-                      }`}
-                    >
-                      <child.icon
-                        className={`h-4 w-4 ${
-                          isChildActive ? "text-[#7B0099] dark:text-purple-400" : "text-muted-foreground/40 group-hover:text-[#7B0099] dark:group-hover:text-purple-400"
-                        }`}
-                      />
-                      <span>{child.title}</span>
-                    </Link>
-                  );
-                })}
+                      return (
+                        <Link
+                          key={child.title}
+                          to={child.path}
+                          onClick={isMobile ? onMobileClose : undefined}
+                          className={`group relative flex items-center gap-3 rounded-[14px] px-3 sm:px-4 py-2.5 text-[13px] transition-all duration-300 touch-target ${
+                            isChildActive
+                              ? "bg-purple-600/10 font-bold text-white"
+                              : "text-white/80 hover:bg-white/5 hover:text-white active:bg-white/10"
+                          }`}
+                        >
+                          {/* Connector Branch Lines */}
+                          <span className="absolute left-[-14px] top-0 w-3 h-[50%] border-l border-b border-white/15 rounded-bl-[5px]" />
+                          {index < visibleChildren.length - 1 && (
+                            <span className="absolute left-[-14px] top-[50%] bottom-0 w-[1px] bg-white/15" />
+                          )}
+
+                          <child.icon
+                            className={`h-4 w-4 shrink-0 transition-colors ${
+                              isChildActive ? "text-purple-400" : "text-slate-500 group-hover:text-white"
+                            }`}
+                          />
+                          <span>{child.title}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
