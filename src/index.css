@@ -343,4 +343,28 @@
   .font-black {
     font-weight: 800 !important;
   }
+
+  /* Keep colors for approval history status badges and dots in print */
+  #leave-form-print .bg-emerald-500 {
+    background-color: #10B981 !important;
+  }
+  #leave-form-print .bg-rose-500 {
+    background-color: #EF4444 !important;
+  }
+  #leave-form-print .bg-emerald-500\/10 {
+    background-color: #e6f4ea !important;
+  }
+  #leave-form-print .bg-rose-500\/10 {
+    background-color: #fce8e6 !important;
+  }
+  #leave-form-print .text-emerald-600 {
+    color: #137333 !important;
+  }
+  #leave-form-print .text-rose-600 {
+    color: #c5221f !important;
+  }
+  #leave-form-print [class*="before:bg-gradient-to-b"]::before {
+    background-color: #e5e7eb !important;
+    background-image: none !important;
+  }
 }

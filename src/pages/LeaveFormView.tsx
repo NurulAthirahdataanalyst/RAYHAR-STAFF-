@@ -53,12 +53,32 @@ type LeaveForm = {
     status: string;
     remarks: string;
     created_at: string;
+    approver_department?: string;
+    approver_branch?: string;
   }[];
 };
 
 const formatDate = (value: string) => (value ? value.slice(0, 10) : "");
 
 const formatRole = (role: string) => {
+  return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
+
+const formatApproverRole = (role: string, department?: string, branch?: string) => {
+  if (!role) return "Approver";
+  const normalized = role.toLowerCase().trim();
+  if (normalized === "head_of_department") {
+    return `Head Of Department (${department || "N/A"})`;
+  }
+  if (normalized === "branch_leader") {
+    return `Branch Leader (${branch || "N/A"})`;
+  }
+  if (normalized === "finance_manager") {
+    return "Finance Manager";
+  }
+  if (normalized === "managing_director") {
+    return "Managing Director";
+  }
   return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
@@ -510,7 +530,7 @@ export default function LeaveFormView() {
 
                   {/* Approval History Timeline */}
                   {selectedForm.approvalHistory && selectedForm.approvalHistory.length > 0 && (
-                    <div className="space-y-4 pt-4 border-t border-border/50 print:hidden">
+                    <div className="space-y-4 pt-4 border-t border-border/50">
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-[#7B0099]" />
                         <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Approval History</h3>
@@ -525,7 +545,9 @@ export default function LeaveFormView() {
                                   <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
                                     {history.status}
                                   </span>
-                                  <span className="text-[10px] font-black text-foreground/70">by {history.approver_name || history.approver_id}</span>
+                                  <span className="text-[10px] font-black text-foreground/70">
+                                    by {history.approver_name || history.approver_id} ({formatApproverRole(history.approver_role, history.approver_department, history.approver_branch)})
+                                  </span>
                                 </div>
                                 <span className="text-[8px] font-black text-muted-foreground/50">
                                   {new Date(history.created_at).toLocaleDateString('ms-MY')}

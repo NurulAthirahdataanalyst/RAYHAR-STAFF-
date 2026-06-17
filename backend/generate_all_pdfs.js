@@ -99,6 +99,24 @@ async function uploadToSupabaseStorage(filePath, filename, mimeType) {
   }
 }
 
+function formatApproverRole(role, department, branch) {
+  if (!role) return "Approver";
+  const normalized = role.toLowerCase().trim();
+  if (normalized === "head_of_department") {
+    return `Head Of Department (${department || "N/A"})`;
+  }
+  if (normalized === "branch_leader") {
+    return `Branch Leader (${branch || "N/A"})`;
+  }
+  if (normalized === "finance_manager") {
+    return "Finance Manager";
+  }
+  if (normalized === "managing_director") {
+    return "Managing Director";
+  }
+  return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
 async function generatePDF(leave) {
   const PDFDocument = require("pdfkit");
   const employeeName = leave.full_name || leave.user_id;
@@ -245,7 +263,8 @@ async function generatePDF(leave) {
         const dateStr = step.created_at 
           ? new Date(step.created_at).toLocaleDateString("en-GB") 
           : "";
-        doc.fontSize(8).font("Helvetica-Bold").fillColor("#333333").text(`by ${step.approver_name || 'System'} (${step.approver_role || 'Approver'})`, 170, stepY + 7);
+        const formattedRole = formatApproverRole(step.approver_role, step.approver_department, step.approver_branch);
+        doc.fontSize(8).font("Helvetica-Bold").fillColor("#333333").text(`by ${step.approver_name || 'System'} (${formattedRole})`, 170, stepY + 7);
         doc.fontSize(8).font("Helvetica").fillColor("#666666").text(dateStr, 480, stepY + 7);
       }
     }
@@ -286,7 +305,9 @@ async function generatePDF(leave) {
               'status', la.status,
               'remarks', la.remarks,
               'created_at', la.created_at,
-              'approver_name', p2.full_name
+              'approver_name', p2.full_name,
+              'approver_department', p2.department,
+              'approver_branch', p2.branch
             ) ORDER BY la.created_at ASC
           )
           FROM leave_approvals la
