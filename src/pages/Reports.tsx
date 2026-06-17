@@ -81,6 +81,7 @@ export default function Reports() {
   });
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
   const [branchComparison, setBranchComparison] = useState<any[]>([]);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [totalLeaveRequests, setTotalLeaveRequests] = useState(0);
   const [limit, setLimit] = useState("10");
   const [anomaliesLimit, setAnomaliesLimit] = useState("10");
