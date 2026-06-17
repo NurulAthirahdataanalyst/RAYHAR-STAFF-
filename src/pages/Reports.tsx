@@ -31,9 +31,32 @@ const formatAttendanceTime = (dateStr: string | null | undefined) => {
 };
 
 const calculateWorkingHours = (clockIn: string | null | undefined, clockOut: string | null | undefined) => {
-  if (!clockIn || !clockOut) return "--";
+  if (!clockIn) return "--";
+  
   const start = new Date(clockIn).getTime();
-  const end = new Date(clockOut).getTime();
+  let end;
+  
+  if (clockOut) {
+    end = new Date(clockOut).getTime();
+  } else {
+    // If clockOut is missing, check if it's today in UTC+8
+    const clockInDate = new Date(clockIn);
+    const klNow = new Date(Date.now() + 8 * 60 * 60 * 1000);
+    const klClockInTime = new Date(clockInDate.getTime() + 8 * 60 * 60 * 1000);
+    
+    const isToday = klNow.getUTCFullYear() === klClockInTime.getUTCFullYear() &&
+                    klNow.getUTCMonth() === klClockInTime.getUTCMonth() &&
+                    klNow.getUTCDate() === klClockInTime.getUTCDate();
+    
+    if (isToday) {
+      end = Date.now();
+    } else {
+      const klEndOfDay = new Date(klClockInTime);
+      klEndOfDay.setUTCHours(23, 59, 59, 999);
+      end = klEndOfDay.getTime() - 8 * 60 * 60 * 1000;
+    }
+  }
+  
   const diffMs = end - start;
   if (diffMs < 0) return "--";
   const hours = Math.floor(diffMs / (1000 * 60 * 60));

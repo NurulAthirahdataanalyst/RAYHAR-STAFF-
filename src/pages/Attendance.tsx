@@ -340,7 +340,7 @@ export default function Attendance() {
             th { background: #7B0099; color: white; text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
             td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
             tr:nth-child(even) td { background: #f8fafc; }
-            .badge { padding: 4px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
+            .badge { padding: 4px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; display: inline-block; }
             .badge-ontime { background: #f3e8ff; color: #7b0099; }
             .badge-late { background: #ffe4e6; color: #e11d48; }
             .badge-remote { background: #dbeafe; color: #1d4ed8; }
@@ -584,7 +584,7 @@ export default function Attendance() {
       <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-6 lg:gap-8 p-4 sm:p-8 md:p-10 animate-in fade-in zoom-in-95 duration-700 w-full max-w-2xl lg:max-w-[1400px] mx-auto">
 
         {/* Main Clocking Card */}
-        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md lg:flex-1 rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-5 sm:p-6 md:p-8 flex flex-col items-center relative overflow-hidden border border-border/30">
+        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md lg:flex-1 rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-5 sm:p-6 md:p-8 flex flex-col items-center relative overflow-hidden border border-border/30 lg:self-start">
 
           {user ? (
             <div className="flex-1 flex flex-col items-center justify-between w-full h-full">

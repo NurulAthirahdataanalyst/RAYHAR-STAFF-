@@ -1898,7 +1898,25 @@ app.get("/api/attendance/history", async (req, res) => {
         const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
         duration = `${diffHrs}h ${diffMins}m`;
       } else {
-        const diffMs = Date.now() - clockInDate.getTime();
+        // Clock out is missing. Check if this clock-in was today in Kuala Lumpur timezone (UTC+8)
+        const klNow = new Date(Date.now() + 8 * 60 * 60 * 1000);
+        const klClockInTime = new Date(clockInDate.getTime() + 8 * 60 * 60 * 1000);
+        
+        const isToday = klNow.getUTCFullYear() === klClockInTime.getUTCFullYear() &&
+                        klNow.getUTCMonth() === klClockInTime.getUTCMonth() &&
+                        klNow.getUTCDate() === klClockInTime.getUTCDate();
+        
+        let endCalculationTime;
+        if (isToday) {
+          endCalculationTime = Date.now();
+        } else {
+          // Forgot to clock out on a past day. Calculate until the end of that day (23:59:59.999 KL time)
+          const klEndOfDay = new Date(klClockInTime);
+          klEndOfDay.setUTCHours(23, 59, 59, 999);
+          endCalculationTime = klEndOfDay.getTime() - 8 * 60 * 60 * 1000;
+        }
+
+        const diffMs = Math.max(0, endCalculationTime - clockInDate.getTime());
         const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
         const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
         duration = `${diffHrs}h ${diffMins}m`;

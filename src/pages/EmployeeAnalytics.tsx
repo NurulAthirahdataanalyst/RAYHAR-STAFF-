@@ -61,10 +61,18 @@ const WORK_START_HOUR = 8; // 08:00
 const STANDARD_HOURS  = 8; // hours/day
 
 function parseHours(duration: string): number {
+  if (!duration) return 0;
+  // e.g. "5h 22m" or "50h 11m"
+  const hM = duration.match(/(\d+)h\s*(\d+)m/);
+  if (hM) {
+    return parseInt(hM[1]) + parseInt(hM[2]) / 60;
+  }
   // e.g. "08:30 hrs" or "08:30"
   const m = duration.match(/(\d+):(\d+)/);
-  if (!m) return 0;
-  return parseInt(m[1]) + parseInt(m[2]) / 60;
+  if (m) {
+    return parseInt(m[1]) + parseInt(m[2]) / 60;
+  }
+  return 0;
 }
 
 function computeMetrics(logs: AttendanceLog[], leaveCount: number, userId: string, name: string, branch: string, dept: string): EmployeeMetrics {
