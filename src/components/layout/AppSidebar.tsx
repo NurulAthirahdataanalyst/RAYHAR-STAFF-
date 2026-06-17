@@ -12,6 +12,8 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   X,
   Moon,
   Sun,
@@ -37,6 +39,10 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
+    "Leave Management": true,
+    "Master": true
+  });
 
   // Close mobile drawer on route change
   useEffect(() => {
@@ -110,6 +116,21 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     item.roles.includes(role || "employee")
   );
 
+  // Automatically expand submenus if any child page is active
+  useEffect(() => {
+    filteredItems.forEach(item => {
+      if (item.children) {
+        const hasActiveChild = item.children.some(child => location.pathname === child.path);
+        if (hasActiveChild) {
+          setExpandedMenus(prev => {
+            if (prev[item.title]) return prev;
+            return { ...prev, [item.title]: true };
+          });
+        }
+      }
+    });
+  }, [location.pathname, filteredItems]);
+
   const sidebarContent = (isMobile: boolean) => (
     <>
       {/* HEADER */}
@@ -168,13 +189,23 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
             const visibleChildren = item.children?.filter((child) =>
               child.roles.includes(role || "employee")
             );
+            const hasChildren = visibleChildren && visibleChildren.length > 0;
+            const isMenuExpanded = expandedMenus[item.title];
 
             return (
-              <div key={item.title} className="space-y-1">
+              <div key={item.title} className="relative group/menu-item space-y-1">
                 <Link
                   to={item.path}
                   title={isCollapsed && !isMobile ? item.title : ""}
-                  onClick={isMobile ? onMobileClose : undefined}
+                  onClick={(e) => {
+                    if (isMobile) {
+                      onMobileClose();
+                    }
+                    if (hasChildren && !isCollapsed) {
+                      // Automatically open the menu when navigating to it
+                      setExpandedMenus(prev => ({ ...prev, [item.title]: true }));
+                    }
+                  }}
                   className={`group relative flex items-center gap-4 rounded-[14px] px-4 sm:px-5 py-3 transition-all duration-300 touch-target ${
                     isExactActive
                       ? "bg-purple-600/10 text-white"
@@ -195,31 +226,91 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                   {isExactActive && (!isCollapsed || isMobile) && (
                     <div className="absolute left-0 w-1 h-6 bg-[#7B0099] rounded-r-full" />
                   )}
+
+                  {/* Collapse/Expand chevron indicator */}
+                  {hasChildren && (!isCollapsed || isMobile) && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setExpandedMenus(prev => ({ ...prev, [item.title]: !prev[item.title] }));
+                      }}
+                      className="ml-auto p-1 rounded-md text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+                      aria-label={isMenuExpanded ? "Collapse submenu" : "Expand submenu"}
+                    >
+                      {isMenuExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </button>
+                  )}
                 </Link>
 
-                {(!isCollapsed || isMobile) && visibleChildren?.map((child) => {
-                  const isChildActive = location.pathname === child.path;
+                {/* Submenu for Expanded State (Desktop or Mobile) */}
+                {hasChildren && isMenuExpanded && (!isCollapsed || isMobile) && (
+                  <div className="relative pl-9 pr-2 py-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                    {/* Vertical tree line */}
+                    <div className="absolute left-[26px] top-0 bottom-[18px] w-[1.5px] bg-slate-700/60" />
+                    
+                    {visibleChildren.map((child) => {
+                      const isChildActive = location.pathname === child.path;
+                      return (
+                        <Link
+                          key={child.title}
+                          to={child.path}
+                          onClick={isMobile ? onMobileClose : undefined}
+                          className={`group relative flex items-center gap-3 rounded-[14px] px-3 py-2.5 text-[13px] transition-all duration-300 touch-target ${
+                            isChildActive
+                              ? "bg-purple-600/10 font-bold text-white"
+                              : "text-white/80 hover:bg-white/5 hover:text-white active:bg-white/10"
+                          }`}
+                        >
+                          {/* Horizontal stub connector line */}
+                          <div className="absolute -left-[10px] top-1/2 -translate-y-1/2 w-[10px] h-[1.5px] bg-slate-700/60" />
+                          
+                          <child.icon
+                            className={`h-4 w-4 shrink-0 transition-colors ${
+                              isChildActive ? "text-purple-400" : "text-slate-500 group-hover:text-white"
+                            }`}
+                          />
+                          <span>{child.title}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
 
-                  return (
-                    <Link
-                      key={child.title}
-                      to={child.path}
-                      onClick={isMobile ? onMobileClose : undefined}
-                      className={`group ml-5 sm:ml-7 flex items-center gap-3 rounded-[14px] px-3 sm:px-4 py-2.5 text-[13px] transition-all duration-300 touch-target ${
-                        isChildActive
-                          ? "bg-purple-600/10 font-bold text-white"
-                          : "text-white/80 hover:bg-white/5 hover:text-white active:bg-white/10"
-                      }`}
-                    >
-                      <child.icon
-                        className={`h-4 w-4 shrink-0 transition-colors ${
-                          isChildActive ? "text-purple-400" : "text-slate-500 group-hover:text-white"
-                        }`}
-                      />
-                      <span>{child.title}</span>
-                    </Link>
-                  );
-                })}
+                {/* Submenu Popover Card for Collapsed State */}
+                {hasChildren && isCollapsed && !isMobile && (
+                  <div className="absolute left-full top-0 ml-3 z-50 hidden group-hover/menu-item:block min-w-[200px] bg-[#1A1C1E] border border-white/10 rounded-[18px] p-2.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200">
+                    {/* Category Header */}
+                    <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500/80 border-b border-white/5 mb-2">
+                      {item.title}
+                    </div>
+                    {/* Submenu Items */}
+                    <div className="space-y-1">
+                      {visibleChildren.map((child) => {
+                        const isChildActive = location.pathname === child.path;
+                        return (
+                          <Link
+                            key={child.title}
+                            to={child.path}
+                            className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs transition-all duration-200 ${
+                              isChildActive
+                                ? "bg-purple-600/20 font-bold text-white"
+                                : "text-white/80 hover:bg-white/5 hover:text-white"
+                            }`}
+                          >
+                            <child.icon
+                              className={`h-4 w-4 shrink-0 transition-colors ${
+                                isChildActive ? "text-purple-400" : "text-slate-500"
+                              }`}
+                            />
+                            <span className="whitespace-nowrap">{child.title}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
