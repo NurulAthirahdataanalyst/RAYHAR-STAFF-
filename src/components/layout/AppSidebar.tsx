@@ -196,7 +196,6 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
               <div key={item.title} className="relative group/menu-item space-y-1">
                 <Link
                   to={item.path}
-                  title={isCollapsed && !isMobile ? item.title : ""}
                   onClick={(e) => {
                     if (isMobile) {
                       onMobileClose();
@@ -309,6 +308,15 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                         );
                       })}
                     </div>
+                  </div>
+                )}
+
+                {/* Tooltip Popover Card for Collapsed State (No Children) */}
+                {!hasChildren && isCollapsed && !isMobile && (
+                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 hidden group-hover/menu-item:block bg-[#1A1C1E] border border-white/10 rounded-[12px] px-3.5 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white whitespace-nowrap">
+                      {item.title}
+                    </span>
                   </div>
                 )}
               </div>
