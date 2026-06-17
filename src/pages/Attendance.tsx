@@ -85,6 +85,7 @@ export default function Attendance() {
   const selectedYear = parseInt(selectedDate.split('-')[0]);
 
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ON TIME" | "LATE">("ALL");
+  const [viewMode, setViewMode] = useState<"day" | "month">("day");
   const [expandedLogId, setExpandedLogId] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [isOnLeave, setIsOnLeave] = useState(false);
@@ -210,6 +211,11 @@ export default function Attendance() {
     }
   }, [selectedMonth, selectedYear, user?.user_id, user?.id, fetchHistoryLogs]);
 
+  // 4bb. Reset visible logs count when viewMode or selectedDate changes
+  useEffect(() => {
+    setVisibleLogsCount(viewMode === "month" ? 10 : 4);
+  }, [viewMode, selectedDate]);
+
   // 4c. Establish SSE stream for real-time updates
   useEffect(() => {
     const userId = user?.user_id || user?.id;
@@ -245,6 +251,23 @@ export default function Attendance() {
 
   // Export PDF Handler
   const handleExportPDF = () => {
+    const targetLogs = viewMode === "day"
+      ? historyLogs.filter(log => {
+          const d = new Date(log.clock_in);
+          const logDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+          return logDate === selectedDate;
+        })
+      : historyLogs;
+
+    if (targetLogs.length === 0) {
+      toast({
+        title: "Export Failed",
+        description: "No attendance logs found to export.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const printWindow = window.open("", "_blank");
     if (!printWindow) {
       toast({
@@ -283,7 +306,7 @@ export default function Attendance() {
     const userBranchCode = user?.branch || 'N/A';
     const fullBranchName = branchNames[userBranchCode] || userBranchCode;
 
-    const logsHtml = historyLogs.map(log => {
+    const logsHtml = targetLogs.map(log => {
       const d = new Date(log.clock_in);
       const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
       return `
@@ -298,7 +321,9 @@ export default function Attendance() {
       `;
     }).join("");
 
-    const monthName = new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+    const periodName = viewMode === "day"
+      ? new Date(selectedDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+      : new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
 
     printWindow.document.write(`
       <html>
@@ -339,7 +364,7 @@ export default function Attendance() {
             <div class="meta-item"><strong>Employee Name:</strong> ${user?.full_name || 'N/A'}</div>
             <div class="meta-item"><strong>Employee ID:</strong> ${user?.user_id || 'N/A'}</div>
             <div class="meta-item"><strong>Branch:</strong> ${fullBranchName}</div>
-            <div class="meta-item"><strong>Report Period:</strong> ${monthName}</div>
+            <div class="meta-item"><strong>Report Period:</strong> ${periodName}</div>
           </div>
 
           <table>
@@ -367,6 +392,96 @@ export default function Attendance() {
       </html>
     `);
     printWindow.document.close();
+  };
+
+  // Export CSV Handler
+  const handleExportCSV = () => {
+    const targetLogs = viewMode === "day"
+      ? historyLogs.filter(log => {
+          const d = new Date(log.clock_in);
+          const logDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+          return logDate === selectedDate;
+        })
+      : historyLogs;
+
+    if (targetLogs.length === 0) {
+      toast({
+        title: "Export Failed",
+        description: "No attendance logs found to export.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const branchNames: Record<string, string> = {
+      "HQ": "Rayhar HQ",
+      "KMM": "Kemaman",
+      "TGG": "Kuala Terengganu",
+      "CNH": "Cheneh",
+      "KBG": "Kuala Berang",
+      "DGN": "Dungun",
+      "JTH": "Jertih",
+      "KBR": "Kota Baru",
+      "RMP": "Rompin",
+      "MZM": "Muadzam Shah",
+      "SHA": "Shah Alam",
+      "BBB": "Bandar Baru Bangi",
+      "KUL": "Kuala Lumpur",
+      "IPH": "Ipoh",
+      "MJG": "Manjung",
+      "MLK": "Melaka",
+      "KKS": "Kuala Kangsar",
+      "TWU": "Tawau",
+      "SNS": "Seremban",
+      "AOR": "Alor Setar",
+      "BTM": "Bertam",
+      "BTP": "Batu Pahat",
+      "JB": "Johor Bharu"
+    };
+    const userBranchCode = user?.branch || 'N/A';
+    const fullBranchName = branchNames[userBranchCode] || userBranchCode;
+
+    const headers = ["Date", "Clock In", "Clock Out", "Status", "Location", "Duration"];
+    const rows = targetLogs.map(log => {
+      const d = new Date(log.clock_in);
+      const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+      const location = log.location_type === 'remote' ? log.location_name : fullBranchName;
+      
+      // Escape CSV values
+      return [
+        `"${dateStr.replace(/"/g, '""')}"`,
+        `"${(log.time_in || '--:--').replace(/"/g, '""')}"`,
+        `"${(log.time_out || '--:--').replace(/"/g, '""')}"`,
+        `"${(log.status || '').replace(/"/g, '""')}"`,
+        `"${(location || '').replace(/"/g, '""')}"`,
+        `"${(log.duration || '--').replace(/"/g, '""')}"`
+      ];
+    });
+
+    const csvContent = "\ufeff" + [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    
+    const periodFileStr = viewMode === "day"
+      ? selectedDate
+      : new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' }).replace(/ /g, '_');
+
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Rayhar_Attendance_Report_${user?.full_name || 'Employee'}_${periodFileStr}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: "Export Successful",
+      description: `CSV Report for ${periodFileStr} has been downloaded.`,
+    });
   };
 
   // 5. THE CORE ACTION: Clock In / Clock Out
@@ -440,6 +555,15 @@ export default function Attendance() {
       setLoading(false);
     }
   };
+
+  const displayedLogs = historyLogs
+    .filter(log => statusFilter === "ALL" || log.status === statusFilter)
+    .filter(log => {
+      if (viewMode === "month") return true;
+      const d = new Date(log.clock_in);
+      const logDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      return logDate === selectedDate;
+    });
 
   if (initialFetch) {
     return (
@@ -596,36 +720,82 @@ export default function Attendance() {
           {/* Top Actions Row */}
           <div className="flex items-center justify-between gap-2 mb-6">
             <div className="relative">
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => {
-                  if (e.target.value) setSelectedDate(e.target.value);
-                }}
-                className="appearance-none flex items-center justify-center gap-1.5 px-4 py-2 bg-[#7B0099] text-white text-[11px] font-black rounded-full shadow-lg shadow-purple-900/10 hover:scale-105 active:scale-95 transition-all outline-none border-none cursor-pointer uppercase tracking-widest relative z-10"
-                style={{ colorScheme: "dark" }}
-              />
+              {viewMode === "day" ? (
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => {
+                    if (e.target.value) setSelectedDate(e.target.value);
+                  }}
+                  className="appearance-none flex items-center justify-center gap-1.5 px-4 py-2 bg-[#7B0099] text-white text-[11px] font-black rounded-full shadow-lg shadow-purple-900/10 hover:scale-105 active:scale-95 transition-all outline-none border-none cursor-pointer uppercase tracking-widest relative z-10"
+                  style={{ colorScheme: "dark" }}
+                />
+              ) : (
+                <input
+                  type="month"
+                  value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      setSelectedDate(`${e.target.value}-01`);
+                    }
+                  }}
+                  className="appearance-none flex items-center justify-center gap-1.5 px-4 py-2 bg-[#7B0099] text-white text-[11px] font-black rounded-full shadow-lg shadow-purple-900/10 hover:scale-105 active:scale-95 transition-all outline-none border-none cursor-pointer uppercase tracking-widest relative z-10"
+                  style={{ colorScheme: "dark" }}
+                />
+              )}
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
               <button 
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center justify-center gap-1.5 px-3 py-2 border border-border hover:bg-muted text-xs font-black rounded-full transition-all ${
+                className={`flex items-center justify-center gap-1 px-2.5 py-1.5 border border-border hover:bg-muted text-[11px] font-black rounded-full transition-all ${
                   showFilters ? "bg-muted text-foreground" : "bg-background text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <SlidersHorizontal className="w-3 h-3" />
                 <span>Filters</span>
               </button>
               
               <button 
                 onClick={handleExportPDF}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground text-xs font-black rounded-full transition-all"
+                className="flex items-center justify-center gap-1 px-2.5 py-1.5 border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground text-[11px] font-black rounded-full transition-all"
               >
-                <Download className="w-3.5 h-3.5" />
+                <Download className="w-3 h-3" />
                 <span>Export PDF</span>
               </button>
+
+              <button 
+                onClick={handleExportCSV}
+                className="flex items-center justify-center gap-1 px-2.5 py-1.5 border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground text-[11px] font-black rounded-full transition-all"
+              >
+                <Download className="w-3 h-3" />
+                <span>Export CSV</span>
+              </button>
             </div>
+          </div>
+
+          {/* View Mode Tabs Switcher */}
+          <div className="flex bg-muted/40 dark:bg-muted/20 p-1 rounded-2xl mb-4 border border-border/40">
+            <button
+              onClick={() => setViewMode("day")}
+              className={`flex-1 py-1.5 text-[10px] font-black tracking-wider rounded-xl transition-all uppercase ${
+                viewMode === "day"
+                  ? "bg-[#7B0099] text-white shadow-md shadow-purple-950/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+            >
+              Day View
+            </button>
+            <button
+              onClick={() => setViewMode("month")}
+              className={`flex-1 py-1.5 text-[10px] font-black tracking-wider rounded-xl transition-all uppercase ${
+                viewMode === "month"
+                  ? "bg-[#7B0099] text-white shadow-md shadow-purple-950/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+            >
+              Month View
+            </button>
           </div>
 
           {/* Interactive Filters Panel */}
@@ -648,7 +818,7 @@ export default function Attendance() {
           )}
 
           <h3 className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest mb-4">
-            Daily Logs
+            {viewMode === "day" ? "Daily Logs" : "Monthly Logs"}
           </h3>
 
           {fetchingHistory && historyLogs.length === 0 ? (
@@ -656,22 +826,16 @@ export default function Attendance() {
               <Loader2 className="animate-spin text-[#7B0099] w-6 h-6" />
               <p className="text-[11px] font-bold text-muted-foreground/75 uppercase tracking-wider animate-pulse">Loading Logs...</p>
             </div>
-          ) : historyLogs.length === 0 ? (
+          ) : displayedLogs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground border border-dashed border-border/60 rounded-[24px] flex-1">
               <Clock className="w-8 h-8 opacity-40 mb-2" />
-              <p className="text-xs font-bold uppercase tracking-wider">No logs recorded yet</p>
+              <p className="text-xs font-bold uppercase tracking-wider">No logs recorded for this period</p>
               <p className="text-[10px] opacity-80 mt-0.5">Your shift logs will appear here</p>
             </div>
           ) : (
             <div className="space-y-4 flex-1 flex flex-col justify-between">
               <div className="space-y-3.5">
-                {historyLogs
-                  .filter(log => statusFilter === "ALL" || log.status === statusFilter)
-                  .filter(log => {
-                    const d = new Date(log.clock_in);
-                    const logDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-                    return logDate === selectedDate;
-                  })
+                {displayedLogs
                   .slice(0, visibleLogsCount)
                   .map((log, index) => {
                     const clockInDate = new Date(log.clock_in);
@@ -756,10 +920,7 @@ export default function Attendance() {
               </div>
 
               {/* Load More Button */}
-              {historyLogs.filter(log => statusFilter === "ALL" || log.status === statusFilter).filter(log => {
-                 const d = new Date(log.clock_in);
-                 return (d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')) === selectedDate;
-              }).length > visibleLogsCount && (
+              {displayedLogs.length > visibleLogsCount && (
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();
