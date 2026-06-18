@@ -132,7 +132,7 @@ const Profile = () => {
                   <item.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground group-hover:text-primary dark:group-hover:text-purple-400 transition-colors" />
                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{item.label}</p>
                 </div>
-                <p className="text-sm sm:text-base font-black text-foreground pl-5 sm:pl-6 truncate">{item.value}</p>
+                <p className="text-sm sm:text-base font-black text-foreground pl-5 sm:pl-6 break-words">{item.value}</p>
               </div>
             ))}
           </CardContent>
