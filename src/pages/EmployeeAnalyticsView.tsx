@@ -94,6 +94,57 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   }
   if (streak === 0) streak = cur;
 
+  // Calculate average work hours
+  const parseDurationToHours = (durationStr: string) => {
+    if (!durationStr || durationStr === "--h --m") return 0;
+    const match = durationStr.match(/(\d+)h\s*(\d+)m/);
+    if (match) {
+      const hours = parseInt(match[1]);
+      const minutes = parseInt(match[2]);
+      return hours + (minutes / 60);
+    }
+    return 0;
+  };
+
+  const logsWithDuration = myLogs.filter(l => l.duration && l.duration !== "--h --m");
+  const totalHours = logsWithDuration.reduce((acc, curr) => acc + parseDurationToHours(curr.duration), 0);
+  const avgWorkHours = logsWithDuration.length > 0 ? (totalHours / logsWithDuration.length) : 0;
+
+  // Calculate last week's average for trend
+  const getWorkHoursTrend = () => {
+    const now = new Date();
+    const oneDay = 24 * 60 * 60 * 1000;
+    
+    const last7DaysLimit = new Date(now.getTime() - 7 * oneDay);
+    const prev7DaysLimit = new Date(now.getTime() - 14 * oneDay);
+    
+    const last7DaysLogs = logsWithDuration.filter(l => {
+      const d = new Date(l.clock_in);
+      return d >= last7DaysLimit && d <= now;
+    });
+    
+    const prev7DaysLogs = logsWithDuration.filter(l => {
+      const d = new Date(l.clock_in);
+      return d >= prev7DaysLimit && d < last7DaysLimit;
+    });
+    
+    const avgLast7 = last7DaysLogs.length > 0 
+      ? last7DaysLogs.reduce((acc, curr) => acc + parseDurationToHours(curr.duration), 0) / last7DaysLogs.length
+      : 0;
+      
+    const avgPrev7 = prev7DaysLogs.length > 0 
+      ? prev7DaysLogs.reduce((acc, curr) => acc + parseDurationToHours(curr.duration), 0) / prev7DaysLogs.length
+      : 0;
+      
+    const diff = avgLast7 - avgPrev7;
+    return {
+      diff: parseFloat(diff.toFixed(1)),
+      hasPrevData: prev7DaysLogs.length > 0
+    };
+  };
+
+  const workHoursTrend = getWorkHoursTrend();
+
   // Monthly summary
   const presentDays = myLogs.length;
   const lateArrivals = myLogs.filter(l => l.is_late || l.status === "LATE").length;
@@ -344,22 +395,33 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           </CardContent>
         </Card>
 
-        {/* Attendance Streak */}
+        {/* Average Work Hours */}
         <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card">
           <CardContent className="p-5 flex items-center gap-4">
             <div className="w-12 h-12 rounded-[14px] bg-amber-500/10 flex items-center justify-center shrink-0">
-              <Flame className="w-6 h-6 text-amber-500" />
+              <Clock className="w-6 h-6 text-amber-500" />
             </div>
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">ATTENDANCE STREAK</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">AVERAGE WORK HOURS</span>
                 <Info className="w-3 h-3 text-muted-foreground/50" />
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-foreground">{streak}</span>
-                <span className="text-sm font-bold text-foreground">Days</span>
+                <span className="text-2xl font-black text-foreground">{avgWorkHours.toFixed(1)}</span>
+                <span className="text-sm font-bold text-foreground ml-1">hrs</span>
               </div>
-              <p className="text-[10px] font-medium text-muted-foreground mt-0.5">Current Streak</p>
+              <div className="flex items-center gap-1 mt-0.5">
+                {workHoursTrend.hasPrevData && workHoursTrend.diff !== 0 ? (
+                  <>
+                    {workHoursTrend.diff > 0 ? <ArrowUpRight className="w-3 h-3 text-emerald-500" /> : <ArrowDownRight className="w-3 h-3 text-rose-500" />}
+                    <span className={`text-[10px] font-bold ${workHoursTrend.diff > 0 ? "text-emerald-500" : "text-rose-500"}`}>
+                      {workHoursTrend.diff > 0 ? `+${workHoursTrend.diff}` : workHoursTrend.diff} from last week
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-[10px] font-medium text-muted-foreground">-- from last week</span>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
