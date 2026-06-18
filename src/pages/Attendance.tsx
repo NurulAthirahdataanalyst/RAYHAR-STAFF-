@@ -556,6 +556,51 @@ export default function Attendance() {
     }
   };
 
+  // Calculate shift progress percentage (based on 9 hours standard shift)
+  const getShiftProgress = () => {
+    if (!activeSession || !activeSession.clock_in) return 0;
+    
+    let clockInStr = activeSession.clock_in;
+    if (typeof clockInStr === "string") {
+      clockInStr = clockInStr.replace(" ", "T");
+      if (!clockInStr.endsWith("Z") && !clockInStr.includes("+") && (clockInStr.length < 19 || !clockInStr.substring(10).includes("-"))) {
+        clockInStr += "Z";
+      }
+    }
+    
+    const start = new Date(clockInStr).getTime();
+    const now = currentTime.getTime();
+    const elapsedMs = now - start;
+    const nineHoursMs = 9 * 60 * 60 * 1000;
+    
+    // Calculate ratio and clamp between 0 and 1
+    return Math.min(Math.max(elapsedMs / nineHoursMs, 0), 1);
+  };
+
+  const getEstClockOutTime = () => {
+    if (!activeSession || !activeSession.clock_in) return "--:--";
+    
+    let clockInStr = activeSession.clock_in;
+    if (typeof clockInStr === "string") {
+      clockInStr = clockInStr.replace(" ", "T");
+      if (!clockInStr.endsWith("Z") && !clockInStr.includes("+") && (clockInStr.length < 19 || !clockInStr.substring(10).includes("-"))) {
+        clockInStr += "Z";
+      }
+    }
+    
+    const parsed = activeSession.clock_in instanceof Date ? activeSession.clock_in : new Date(clockInStr);
+    if (Number.isNaN(parsed.getTime())) return "--:--";
+    
+    const estEnd = new Date(parsed.getTime() + 9 * 60 * 60 * 1000);
+    return estEnd.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  const shiftProgress = getShiftProgress();
+
   const displayedLogs = historyLogs
     .filter(log => statusFilter === "ALL" || log.status === statusFilter)
     .filter(log => {
@@ -604,18 +649,19 @@ export default function Attendance() {
                 {activeSession && (
                   <>
                     <div className="absolute inset-0 rounded-full border-[4px] sm:border-[6px] border-emerald-100 dark:border-emerald-900/30 opacity-50" />
-                    {/* Fake Progress Ring */}
-                    <svg className="absolute inset-0 w-full h-full transform -rotate-90 pointer-events-none">
-                      <circle cx="50%" cy="50%" r="48%" fill="none" stroke="currentColor" strokeWidth="6" className="text-muted/30 dark:text-muted" />
+                    {/* Dynamic Progress Ring */}
+                    <svg className="absolute inset-0 w-full h-full transform -rotate-90 pointer-events-none" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="6" className="text-muted/30 dark:text-muted" />
                       <circle
-                        cx="50%" cy="50%" r="48%"
+                        cx="50" cy="50" r="46"
                         fill="none"
                         stroke="#7B0099"
                         strokeWidth="6"
-                        strokeDasharray="400 800"
+                        strokeDasharray={289.027}
+                        strokeDashoffset={289.027 - (shiftProgress * 289.027)}
                         strokeLinecap="round"
                         className="animate-pulse"
-                        style={{ transition: 'stroke-dasharray 1s ease-in-out' }}
+                        style={{ transition: 'stroke-dashoffset 1s ease-in-out' }}
                       />
                     </svg>
                   </>
@@ -659,7 +705,7 @@ export default function Attendance() {
                 {activeSession ? (
                   <>
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span className="text-emerald-600 dark:text-emerald-400">Shift in progress...</span>
+                    <span className="text-emerald-600 dark:text-emerald-400">Shift in progress ({Math.round(shiftProgress * 100)}%)...</span>
                   </>
                 ) : (
                   <>
@@ -685,9 +731,11 @@ export default function Attendance() {
                   <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-rose-50 dark:bg-rose-950/30 text-rose-500 dark:text-rose-400 flex items-center justify-center shadow-inner">
                     <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
-                  <span className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Clock Out</span>
+                  <span className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                    {activeSession ? "Est. Out" : "Clock Out"}
+                  </span>
                   <span className="text-[11px] sm:text-xs font-bold text-foreground">
-                    --:--
+                    {activeSession ? getEstClockOutTime() : "--:--"}
                   </span>
                 </div>
 
