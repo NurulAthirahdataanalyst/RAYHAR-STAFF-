@@ -52,6 +52,7 @@ export default function Employees() {
   const { role, userBranch, userDepartment } = useRole();
   const [search, setSearch] = useState("");
   const [selectedBranch, setSelectedBranch] = useState("All");
+  const [selectedPosition, setSelectedPosition] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [dbEmployees, setDbEmployees] = useState<any[]>([]);
@@ -142,17 +143,22 @@ export default function Employees() {
     new Set(dbEmployees.map((emp) => emp.branch).filter(Boolean))
   ).sort() as string[];
 
+  const uniquePositions = Array.from(
+    new Set(dbEmployees.map((emp) => emp.position).filter(Boolean))
+  ).sort() as string[];
+
   const filtered = dbEmployees.filter((e) => {
     const matchesSearch =
       e.name.toLowerCase().includes(search.toLowerCase()) ||
       e.position.toLowerCase().includes(search.toLowerCase());
     const matchesBranch = selectedBranch === "All" || e.branch === selectedBranch;
-    return matchesSearch && matchesBranch;
+    const matchesPosition = selectedPosition === "All" || e.position === selectedPosition;
+    return matchesSearch && matchesBranch && matchesPosition;
   });
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, selectedBranch]);
+  }, [search, selectedBranch, selectedPosition]);
 
   const indexOfLastItem = currentPage * entriesPerPage;
   const indexOfFirstItem = indexOfLastItem - entriesPerPage;
@@ -304,6 +310,20 @@ export default function Employees() {
               </SelectContent>
             </Select>
           )}
+
+          <Select value={selectedPosition} onValueChange={setSelectedPosition}>
+            <SelectTrigger className="w-full sm:w-[180px] h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#7B0099]/20 font-bold text-xs rounded-xl">
+              <SelectValue placeholder="All Positions" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="All" className="text-xs font-bold">All Positions</SelectItem>
+              {uniquePositions.map((pos) => (
+                <SelectItem key={pos} value={pos} className="text-xs font-bold capitalize">
+                  {pos.replace('_', ' ')}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         
         <Badge variant="outline" className="px-3 py-1.5 text-xs font-bold whitespace-nowrap bg-muted/30 border-border/60 h-10 sm:h-auto justify-center">
