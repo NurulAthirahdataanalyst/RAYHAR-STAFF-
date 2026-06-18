@@ -561,7 +561,7 @@ export default function SettingsPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {deptStats.map((dept) => (
               <div key={dept.name} className="flex flex-col justify-between p-3.5 bg-muted/20 border border-border/30 hover:border-[#7B0099]/30 rounded-2xl shadow-inner select-none transition-all">
-                <span className="text-[10px] font-black text-foreground truncate uppercase tracking-wider">{dept.name}</span>
+                <span className="text-[10px] font-black text-foreground break-words uppercase tracking-wider">{dept.name}</span>
                 <div className="flex items-baseline gap-1 mt-4">
                   <span className="text-xl font-black text-[#7B0099]">{dept.employee_count}</span>
                   <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Staff</span>
