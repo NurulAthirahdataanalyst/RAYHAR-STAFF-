@@ -53,6 +53,7 @@ export default function Employees() {
   const [search, setSearch] = useState("");
   const [selectedBranch, setSelectedBranch] = useState("All");
   const [selectedPosition, setSelectedPosition] = useState("All");
+  const [selectedStatus, setSelectedStatus] = useState("Active");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [dbEmployees, setDbEmployees] = useState<any[]>([]);
@@ -153,12 +154,13 @@ export default function Employees() {
       e.position.toLowerCase().includes(search.toLowerCase());
     const matchesBranch = selectedBranch === "All" || e.branch === selectedBranch;
     const matchesPosition = selectedPosition === "All" || e.position === selectedPosition;
-    return matchesSearch && matchesBranch && matchesPosition;
+    const matchesStatus = selectedStatus === "All" || e.status === selectedStatus;
+    return matchesSearch && matchesBranch && matchesPosition && matchesStatus;
   });
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, selectedBranch, selectedPosition]);
+  }, [search, selectedBranch, selectedPosition, selectedStatus]);
 
   const indexOfLastItem = currentPage * entriesPerPage;
   const indexOfFirstItem = indexOfLastItem - entriesPerPage;
@@ -284,7 +286,7 @@ export default function Employees() {
       </div>
 
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-card/50 backdrop-blur-sm p-3 rounded-2xl border border-border/50">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto flex-1 sm:max-w-xl">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full sm:w-auto flex-1">
           <div className="relative w-full sm:max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -322,6 +324,17 @@ export default function Employees() {
                   {pos.replace('_', ' ')}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <SelectTrigger className="w-full sm:w-[150px] h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#7B0099]/20 font-bold text-xs rounded-xl">
+              <SelectValue placeholder="Status: Active" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="All" className="text-xs font-bold">All Statuses</SelectItem>
+              <SelectItem value="Active" className="text-xs font-bold">Active Only</SelectItem>
+              <SelectItem value="Inactive" className="text-xs font-bold">Inactive Only</SelectItem>
             </SelectContent>
           </Select>
         </div>

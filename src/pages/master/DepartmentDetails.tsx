@@ -36,7 +36,7 @@ export default function DepartmentDetails() {
 
   const fetchEmployees = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/employees?branch=HQ`);
+      const response = await fetch(`${API_BASE_URL}/api/employees?branch=HQ&status=Active`);
       const data = await response.json();
       if (data.success) {
         // Filter by the specific department
@@ -54,7 +54,7 @@ export default function DepartmentDetails() {
     fetchEmployees();
   }, [deptName]);
 
-  const currentHod = employees.find(e => e.role === "head_of_department");
+  const currentHod = employees.find(e => e.role === "head_of_department" && e.status === "Active");
   const activeStaff = employees.filter(e => e.status === "Active");
   
   // Potential new HODs are active staff in the same department who aren't currently the HOD

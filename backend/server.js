@@ -918,7 +918,7 @@ app.get("/api/branch-employees", async (req, res) => {
         AND CURRENT_DATE BETWEEN DATE(start_date) AND DATE(end_date)
         GROUP BY user_id
       ) leave_today ON leave_today.user_id = p.user_id
-      WHERE p.branch = ?
+      WHERE p.branch = ? AND p.status = 'Active'
       ORDER BY p.full_name ASC
       `,
       [branch]
@@ -1153,7 +1153,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
         // Find approver
         if (initialStatus === "Pending Branch Leader") {
           const [blRows] = await pool.query(
-            `SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'branch_leader' AND p.branch = ? LIMIT 1`,
+            `SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'branch_leader' AND p.branch = ? AND p.status = 'Active' LIMIT 1`,
             [leaveData.branch]
           );
           if (blRows.length > 0) {
@@ -1163,7 +1163,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
           }
         } else {
           const [hodRows] = await pool.query(
-            `SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND p.department = ? AND p.branch = ? LIMIT 1`,
+            `SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'head_of_department' AND p.department = ? AND p.branch = ? AND p.status = 'Active' LIMIT 1`,
             [employeeDept, employeeBranch]
           );
           if (hodRows.length > 0) {
@@ -1198,7 +1198,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
 
         // Notify HR
         const [hrRows] = await pool.query(
-          `SELECT p.email FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'hr_admin' LIMIT 1`
+          `SELECT p.email FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'hr_admin' AND p.status = 'Active' LIMIT 1`
         );
         if (hrRows.length > 0) {
           sendNotificationEmail(hrRows[0].email, `FYI - New Leave Application: ${leaveData.full_name}`, html).catch(err => {
@@ -1310,7 +1310,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
         let notificationMessage = "";
 
         if (nextStatus === "Pending Finance") {
-          const [fmRows] = await pool.query(`SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'finance_manager' LIMIT 1`);
+          const [fmRows] = await pool.query(`SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'finance_manager' AND p.status = 'Active' LIMIT 1`);
           if (fmRows.length > 0) {
             targetEmail = fmRows[0].email;
             targetUserId = fmRows[0].user_id;
@@ -1320,7 +1320,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
             notificationMessage = `${leaveData.employee_name} requires your Finance approval for a leave request.`;
           }
         } else if (nextStatus === "Pending MD") {
-          const [mdRows] = await pool.query(`SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'managing_director' LIMIT 1`);
+          const [mdRows] = await pool.query(`SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'managing_director' AND p.status = 'Active' LIMIT 1`);
           if (mdRows.length > 0) {
             targetEmail = mdRows[0].email;
             targetUserId = mdRows[0].user_id;
@@ -1339,7 +1339,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
 
           // Notify HR
           const [hrRows] = await pool.query(
-            `SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'hr_admin' LIMIT 1`
+            `SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'hr_admin' AND p.status = 'Active' LIMIT 1`
           );
           if (hrRows.length > 0) {
             sendNotificationEmail(hrRows[0].email, `Leave Request ${nextStatus}: ${leaveData.employee_name}`, `<p>The leave request for <strong>${leaveData.employee_name}</strong> has been <strong>${nextStatus}</strong>.</p>`).catch(console.error);
@@ -1429,22 +1429,29 @@ app.patch("/api/notifications/read-all", async (req, res) => {
 // EMPLOYEES
 // ===============================
 app.get("/api/employees", async (req, res) => {
-  const { role, branch, date } = req.query;
+  const { role, branch, date, status } = req.query;
 
   try {
     const params = [];
-    let branchFilter = "";
+    const filters = [];
 
     if (role === "branch_leader" && branch) {
-      branchFilter = "WHERE p.branch = ?";
+      filters.push("p.branch = ?");
       params.push(branch);
     } else if (role === "head_of_department" && branch && req.query.department) {
-      branchFilter = "WHERE p.branch = ? AND p.department = ?";
+      filters.push("p.branch = ? AND p.department = ?");
       params.push(branch, req.query.department);
     } else if (!["hr_admin", "managing_director", "finance_manager"].includes(role) && branch) {
-      branchFilter = "WHERE p.branch = ?";
+      filters.push("p.branch = ?");
       params.push(branch);
     }
+
+    if (status) {
+      filters.push("p.status = ?");
+      params.push(status);
+    }
+
+    const branchFilter = filters.length > 0 ? "WHERE " + filters.join(" AND ") : "";
 
     const [rows] = await pool.query(
       `
@@ -2013,15 +2020,15 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       const queryParams = [];
       let profileFilter = "";
-      let attendanceFilter = "";
+      let attendanceFilter = "AND user_id IN (SELECT user_id FROM profiles WHERE status = 'Active')";
 
       if (isBranchLeader && branch) {
         profileFilter = "AND branch = ?";
-        attendanceFilter = "AND user_id IN (SELECT user_id FROM profiles WHERE branch = ?)";
+        attendanceFilter = "AND user_id IN (SELECT user_id FROM profiles WHERE branch = ? AND status = 'Active')";
         queryParams.push(branch);
       } else if (isHOD && branch && department) {
         profileFilter = "AND branch = ? AND department = ?";
-        attendanceFilter = "AND user_id IN (SELECT user_id FROM profiles WHERE branch = ? AND department = ?)";
+        attendanceFilter = "AND user_id IN (SELECT user_id FROM profiles WHERE branch = ? AND department = ? AND status = 'Active')";
         queryParams.push(branch, department);
       }
 
@@ -2527,8 +2534,10 @@ app.get("/api/branches", async (req, res) => {
           SELECT p.full_name 
           FROM profiles p
           JOIN user_role ur ON p.user_id = ur.user_id
-          WHERE (b.code = 'HQ' AND ur.role = 'managing_director') 
-             OR (b.code != 'HQ' AND p.branch = b.code AND ur.role = 'branch_leader') 
+          WHERE p.status = 'Active' AND (
+            (b.code = 'HQ' AND ur.role = 'managing_director') 
+            OR (b.code != 'HQ' AND p.branch = b.code AND ur.role = 'branch_leader') 
+          )
           LIMIT 1
         ) AS leader_name
       FROM branches b 
@@ -2637,11 +2646,13 @@ app.get("/api/branches-stats", async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 
-        p.branch,
+        b.code AS branch,
         COUNT(DISTINCT p.user_id) AS total_employees,
         COUNT(DISTINCT att.user_id) AS present_today,
         COUNT(DISTINCT lr.leave_id) AS on_leave
-      FROM profiles p
+      FROM branches b
+      LEFT JOIN profiles p 
+        ON p.branch = b.code AND p.status = 'Active'
       LEFT JOIN attendances att 
         ON att.user_id = p.user_id 
         AND DATE(att.clock_in) = CURRENT_DATE
@@ -2649,7 +2660,7 @@ app.get("/api/branches-stats", async (req, res) => {
         ON lr.user_id = p.user_id
         AND lr.status = 'Approved'
         AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date
-      GROUP BY p.branch
+      GROUP BY b.code
     `);
     res.json({ success: true, stats: rows });
   } catch (err) {

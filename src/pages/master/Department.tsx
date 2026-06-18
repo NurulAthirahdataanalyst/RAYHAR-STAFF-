@@ -64,6 +64,7 @@ export default function Department() {
       const params = new URLSearchParams({
         role: role || "",
         branch: userBranch || "",
+        status: "Active",
       });
 
       const response = await fetch(`${API_BASE_URL}/api/employees?${params}`);

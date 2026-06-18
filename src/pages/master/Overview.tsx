@@ -87,20 +87,20 @@ export default function MasterOverview() {
   // HOD Assignments check: count of departments that have at least 1 HOD assigned
   const departmentsWithHOD = departments.filter(dept => {
     if (dept === "HQ General") {
-      return employees.some(e => e.branch === "HQ" && (!e.department || e.department === "") && e.role === "head_of_department");
+      return employees.some(e => e.branch === "HQ" && (!e.department || e.department === "") && e.role === "head_of_department" && e.status === "Active");
     }
-    return employees.some(e => e.department === dept && e.role === "head_of_department");
+    return employees.some(e => e.department === dept && e.role === "head_of_department" && e.status === "Active");
   }).length;
 
   const hodCoveragePct = totalDepartments > 0 ? Math.round((departmentsWithHOD / totalDepartments) * 100) : 0;
 
   // Access Roles summary
   const roleCounts = {
-    hr_admin: employees.filter(e => e.role === "hr_admin").length,
-    head_of_department: employees.filter(e => e.role === "head_of_department").length,
-    branch_leader: employees.filter(e => e.role === "branch_leader").length,
-    managing_director: employees.filter(e => e.role === "managing_director").length,
-    employee: employees.filter(e => e.role === "employee" || (!e.role)).length,
+    hr_admin: employees.filter(e => e.role === "hr_admin" && e.status === "Active").length,
+    head_of_department: employees.filter(e => e.role === "head_of_department" && e.status === "Active").length,
+    branch_leader: employees.filter(e => e.role === "branch_leader" && e.status === "Active").length,
+    managing_director: employees.filter(e => e.role === "managing_director" && e.status === "Active").length,
+    employee: employees.filter(e => (e.role === "employee" || (!e.role)) && e.status === "Active").length,
   };
 
   // Branch statistics
