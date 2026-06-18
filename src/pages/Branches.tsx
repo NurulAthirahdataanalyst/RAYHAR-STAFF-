@@ -388,9 +388,18 @@ export default function Branches() {
         </div>
       ) : (
         <div className="space-y-4 sm:space-y-6">
-          <div>
-            <h1 className="text-responsive-2xl font-black text-foreground tracking-tight">Branches Overview</h1>
-            <p className="text-responsive-sm text-muted-foreground font-medium mt-1">Real-time status across all locations</p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-responsive-2xl font-black text-foreground tracking-tight">Branches Overview</h1>
+                {!loadingBranches && (
+                  <Badge variant="outline" className="px-3 py-1 text-xs font-bold bg-muted/30 border-border/60 justify-center rounded-full h-fit">
+                    Total <span className="ml-2 inline-flex items-center justify-center bg-[#7B0099] text-white rounded-full px-2 py-0.5 text-[10px] min-w-[20px]">{allBranches.length}</span>
+                  </Badge>
+                )}
+              </div>
+              <p className="text-responsive-sm text-muted-foreground font-medium mt-1">Real-time status across all locations</p>
+            </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {loadingBranches ? (
