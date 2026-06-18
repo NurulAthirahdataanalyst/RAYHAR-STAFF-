@@ -6,6 +6,41 @@ import { User, Mail, Building2, ShieldCheck, Calendar, MapPin, Lock } from "luci
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
 
+const getFullBranchName = (code: string) => {
+  const branchNames: Record<string, string> = {
+    "HQ": "Rayhar HQ",
+    "KMM": "Kemaman",
+    "TGG": "Kuala Terengganu",
+    "CNH": "Cheneh",
+    "KBG": "Kuala Berang",
+    "DGN": "Dungun",
+    "JTH": "Jertih",
+    "KBR": "Kota Baru",
+    "RMP": "Rompin",
+    "MZM": "Muadzam Shah",
+    "SHA": "Shah Alam",
+    "BBB": "Bandar Baru Bangi",
+    "KUL": "Kuala Lumpur",
+    "IPH": "Ipoh",
+    "MJG": "Manjung",
+    "MLK": "Melaka",
+    "KKS": "Kuala Kangsar",
+    "TWU": "Tawau",
+    "SNS": "Seremban",
+    "AOR": "Alor Setar",
+    "BTM": "Bertam",
+    "BTP": "Batu Pahat",
+    "JB": "Johor Bharu"
+  };
+  const cleanCode = (code || "").trim().toUpperCase();
+  if (!cleanCode) return "N/A";
+  const name = branchNames[cleanCode];
+  if (name) {
+    return `${name.toUpperCase()} (${cleanCode})`;
+  }
+  return cleanCode;
+};
+
 const Profile = () => {
   const { user } = useAuth();
   const { role: resolvedRole, userName, userBranch, userDepartment, userId } = useRole();
@@ -17,7 +52,7 @@ const Profile = () => {
     { label: "Full Name", value: userName || "N/A", icon: User },
     { label: "Email Address", value: email || "N/A", icon: Mail },
     { label: "User ID", value: userId || "N/A", icon: ShieldCheck },
-    { label: "Branch", value: userBranch || "Rayhar HQ", icon: Building2 },
+    { label: "Branch", value: getFullBranchName(userBranch || "HQ"), icon: Building2 },
     { label: "Department", value: userDepartment || "N/A", icon: MapPin },
     { label: "Status", value: "Active", icon: Calendar },
   ];
@@ -57,7 +92,7 @@ const Profile = () => {
                 <div className="grid grid-cols-2 gap-3 sm:gap-4 text-center">
                   <div className="p-3 sm:p-4 rounded-2xl bg-muted/30">
                     <p className="text-[10px] font-black uppercase text-muted-foreground opacity-50 mb-1">Branch</p>
-                    <p className="text-xs sm:text-sm font-black text-foreground truncate">{userBranch || "HQ"}</p>
+                    <p className="text-xs sm:text-sm font-black text-foreground break-words">{getFullBranchName(userBranch || "HQ")}</p>
                   </div>
                   <div className="p-3 sm:p-4 rounded-2xl bg-muted/30">
                     <p className="text-[10px] font-black uppercase text-muted-foreground opacity-50 mb-1">Status</p>
