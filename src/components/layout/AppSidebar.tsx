@@ -164,7 +164,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
             {!isMobile && (
               <button
                 onClick={() => setIsCollapsed(true)}
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-white/90 hover:bg-white/15 hover:text-white shadow-sm transition-all duration-300 shrink-0"
+                className="flex h-10 w-10 items-center justify-center rounded-xl text-white/80 hover:bg-white/10 hover:text-white transition-colors shrink-0"
                 aria-label="Collapse sidebar"
               >
                 <PanelLeftClose className="h-5 w-5" />
@@ -175,7 +175,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           /* Collapsed Desktop view: show only centered Menu button */
           <button
             onClick={() => setIsCollapsed(false)}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-white/90 hover:bg-white/15 hover:text-white shadow-sm transition-all duration-300"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-white/80 hover:bg-white/10 hover:text-white transition-colors"
             aria-label="Expand sidebar"
           >
             <PanelLeftOpen className="h-5 w-5" />
