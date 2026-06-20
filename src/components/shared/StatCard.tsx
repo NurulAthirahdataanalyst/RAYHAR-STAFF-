@@ -37,7 +37,7 @@ export default function StatCard({
     return (
       <div className={`rounded-[16px] p-4 sm:p-6 flex items-center justify-between transition-all duration-300 hover:shadow-md ${currentStyle}`}>
         <div className="min-w-0">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-1 truncate">{title}</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-1 whitespace-normal break-words leading-tight">{title}</p>
           <p className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">{value}</p>
           {subtitle && <p className="text-xs text-muted-foreground mt-1 font-medium truncate">{subtitle}</p>}
         </div>
@@ -61,7 +61,7 @@ export default function StatCard({
     <div className={`rounded-[16px] p-4 sm:p-6 transition-all duration-300 hover:translate-y-[-4px] ${currentStyle}`}>
       <div className="flex items-start justify-between">
         <div className="space-y-2 min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] truncate text-muted-foreground">
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground whitespace-normal break-words leading-tight">
             {title}
           </p>
           

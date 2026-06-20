@@ -86,6 +86,23 @@ interface Department {
 
 export default function Reports() {
   const { role } = useRole();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("presenceSidebarCollapsed") === "true";
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const handleSidebarChange = () => {
+      setSidebarCollapsed(localStorage.getItem("presenceSidebarCollapsed") === "true");
+    };
+    window.addEventListener("presenceSidebarCollapsedChanged", handleSidebarChange);
+    return () => {
+      window.removeEventListener("presenceSidebarCollapsedChanged", handleSidebarChange);
+    };
+  }, []);
+
   const [activeTab, setActiveTab] = useState<"attendance" | "leave" | "generator" | "settings" | "leave_monitoring">("attendance");
   
   // Dynamic Lists from Database
@@ -588,13 +605,13 @@ export default function Reports() {
       {activeTab === "attendance" && (
         <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500">
           {/* KPI HIGHLIGHT CARDS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className={`grid grid-cols-1 sm:grid-cols-2 ${sidebarCollapsed ? "lg:grid-cols-4" : "lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"} gap-4 sm:gap-6`}>
             {/* Card 1: Present Today */}
             <Card className="shadow-md bg-[#eff6ff] dark:bg-[#0c1f3c] hover:bg-[#e0f0ff] dark:hover:bg-[#0e2547] border border-[#dbeafe] dark:border-[#163063]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-widest block truncate">Present Today</span>
+                  <span className="text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Present Today</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-blue-600 dark:text-blue-400">{attendanceStats.presentToday}</span>
                     <span className="text-[9px] font-black text-blue-700 dark:text-blue-300 bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">Active Personnel</span>
@@ -612,7 +629,7 @@ export default function Reports() {
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest block truncate">Late Today</span>
+                  <span className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Late Today</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-amber-600 dark:text-amber-400">{attendanceStats.lateArrivals}</span>
                     <span className="text-[9px] font-black text-amber-700 dark:text-amber-300 bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">Post Threshold</span>
@@ -630,7 +647,7 @@ export default function Reports() {
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-red-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-red-700 dark:text-red-400 uppercase tracking-widest block truncate">Absent Today</span>
+                  <span className="text-[10px] font-black text-red-700 dark:text-red-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Absent Today</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-red-600 dark:text-red-400">{attendanceStats.absentToday}</span>
                     <span className="text-[9px] font-black text-red-700 dark:text-red-300 bg-red-500/10 dark:bg-red-500/20 border border-red-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">Not Synced</span>
@@ -648,7 +665,7 @@ export default function Reports() {
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest block truncate">Attendance Rate</span>
+                  <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Attendance Rate</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">{attendanceStats.attendanceRate}%</span>
                     <span className="text-[9px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">▲ Target Met</span>

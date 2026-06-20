@@ -19,7 +19,8 @@ import {
   Sun,
   PieChart,
   Settings,
-  Calendar
+  Calendar,
+  Menu
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRole } from "@/contexts/RoleContext";
@@ -38,7 +39,16 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("appSidebarCollapsed") === "true";
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("appSidebarCollapsed", String(isCollapsed));
+  }, [isCollapsed]);
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
     "Leave Management": true,
     "Master": true
@@ -137,24 +147,36 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       <div className={`relative flex items-center justify-center bg-[#7B0099] overflow-hidden transition-all ${
         isCollapsed && !isMobile ? "h-20" : "h-24 px-4"
       }`}>
-        {(!isCollapsed || isMobile) && (
-          <Link to="/" className="flex items-center justify-center w-full h-full animate-in fade-in duration-300" onClick={isMobile ? onMobileClose : undefined}>
-            <img 
-              src={rayharLogo} 
-              alt="Rayhar Group" 
-              className="h-[80%] w-auto object-contain filter brightness-110" 
-            />
-          </Link>
-        )}
-        
-        {/* Desktop collapse button */}
-        {!isMobile && (
+        {/* Mobile or Expanded Desktop view: show logo (and toggle on right for desktop) */}
+        {(!isCollapsed || isMobile) ? (
+          <div className="flex items-center justify-between w-full h-full gap-2">
+            <Link to="/" className="flex items-center justify-start h-full max-w-[70%] animate-in fade-in duration-300" onClick={isMobile ? onMobileClose : undefined}>
+              <img 
+                src={rayharLogo} 
+                alt="Rayhar Group" 
+                className="h-[75%] w-auto object-contain filter brightness-110" 
+              />
+            </Link>
+            
+            {/* Desktop Menu toggle button on the right */}
+            {!isMobile && (
+              <button
+                onClick={() => setIsCollapsed(true)}
+                className="flex h-10 w-10 items-center justify-center rounded-xl text-white/80 hover:bg-white/10 hover:text-white transition-colors shrink-0"
+                aria-label="Collapse sidebar"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+        ) : (
+          /* Collapsed Desktop view: show only centered Menu button */
           <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-[#1A1C1E] text-slate-400 shadow-sm transition-all hover:bg-purple-900/20 hover:text-white z-50"
-            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            onClick={() => setIsCollapsed(false)}
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+            aria-label="Expand sidebar"
           >
-            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            <Menu className="h-5 w-5" />
           </button>
         )}
 
@@ -366,7 +388,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     <>
       {/* ═══════ DESKTOP SIDEBAR (hidden on mobile) ═══════ */}
       <aside className={`hidden lg:flex sticky top-0 z-40 min-h-screen flex-col border-r border-border bg-[#1A1C1E] transition-all duration-300 ease-in-out ${
-        isCollapsed ? "w-20" : "w-72"
+        isCollapsed ? "w-20" : "w-64"
       }`}>
         {sidebarContent(false)}
       </aside>

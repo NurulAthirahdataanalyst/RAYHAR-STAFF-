@@ -41,6 +41,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     localStorage.setItem("presenceSidebarCollapsed", String(sidebarCollapsed));
+    window.dispatchEvent(new Event("presenceSidebarCollapsedChanged"));
   }, [sidebarCollapsed]);
 
   useEffect(() => {
@@ -167,9 +168,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* ═══════ MAIN CONTENT ═══════ */}
-        <div className="relative p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="relative p-4 sm:p-6 lg:p-6 max-w-[1400px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
           
-          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start relative w-full">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-6 items-start relative w-full">
             
             {/* Ruang Kerja Utama (70% - 90%) */}
             <div className="flex-1 min-w-0 space-y-4 sm:space-y-6 transition-all duration-500 ease-in-out w-full">
@@ -263,7 +264,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {resolvedRole !== "employee" && (
               <aside 
                 className={`hidden lg:flex flex-col shrink-0 transition-all duration-500 ease-in-out relative border-l border-border/20 pl-4 py-1 gap-6 items-center lg:items-stretch ${
-                  sidebarCollapsed ? "w-[72px]" : "w-[360px]"
+                  sidebarCollapsed ? "w-[72px]" : "w-[310px]"
                 }`}
               >
               {/* Floating Toggle Button on Left Boundary */}
@@ -272,7 +273,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 className="absolute -left-3.5 top-28 z-40 flex h-7 w-7 items-center justify-center rounded-full bg-[#7B0099] text-white shadow-md hover:scale-110 active:scale-95 transition-transform border border-white/20"
                 aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
-                <ChevronLeft className={`h-4 w-4 transition-transform duration-500 ${sidebarCollapsed ? "rotate-180" : ""}`} />
+                <ChevronLeft className={`h-4 w-4 transition-transform duration-500 ${sidebarCollapsed ? "" : "rotate-180"}`} />
               </button>
 
               {!sidebarCollapsed ? (

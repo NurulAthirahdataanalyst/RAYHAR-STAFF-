@@ -41,6 +41,22 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState("");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("presenceSidebarCollapsed") === "true";
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const handleSidebarChange = () => {
+      setSidebarCollapsed(localStorage.getItem("presenceSidebarCollapsed") === "true");
+    };
+    window.addEventListener("presenceSidebarCollapsedChanged", handleSidebarChange);
+    return () => {
+      window.removeEventListener("presenceSidebarCollapsedChanged", handleSidebarChange);
+    };
+  }, []);
 
   const [stats, setStats] = useState({
     leaveBalance: 14,
@@ -283,7 +299,15 @@ export default function Dashboard() {
       </div>
 
       {/* Stat Cards - responsive grid */}
-      <div className={`grid grid-cols-2 ${["managing_director", "head_of_department", "finance_manager", "hr_admin", "branch_leader"].includes(role) ? "md:grid-cols-3 lg:grid-cols-5" : "md:grid-cols-2 lg:grid-cols-4"} gap-3 sm:gap-4`}>
+      <div className={`grid grid-cols-2 ${
+        ["managing_director", "head_of_department", "finance_manager", "hr_admin", "branch_leader"].includes(role)
+          ? sidebarCollapsed
+            ? "md:grid-cols-3 lg:grid-cols-5"
+            : "md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+          : sidebarCollapsed
+            ? "md:grid-cols-2 lg:grid-cols-4"
+            : "md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+      } gap-3 sm:gap-4`}>
         {role === "employee" || role === "branch_officer" ? (
           <>
             <StatCard
@@ -392,7 +416,11 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
             {whoOutToday.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+              <div className={`grid grid-cols-1 sm:grid-cols-2 ${
+                sidebarCollapsed
+                  ? "lg:grid-cols-3 xl:grid-cols-4"
+                  : "lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+              } gap-3 sm:gap-4`}>
                 {whoOutToday.map((emp) => {
                   const endDate = new Date(emp.end_date);
                   const today = new Date();

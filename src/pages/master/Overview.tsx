@@ -32,6 +32,22 @@ export default function MasterOverview() {
   const [branches, setBranches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("presenceSidebarCollapsed") === "true";
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const handleSidebarChange = () => {
+      setSidebarCollapsed(localStorage.getItem("presenceSidebarCollapsed") === "true");
+    };
+    window.addEventListener("presenceSidebarCollapsedChanged", handleSidebarChange);
+    return () => {
+      window.removeEventListener("presenceSidebarCollapsedChanged", handleSidebarChange);
+    };
+  }, []);
 
   // Redirect non-hr_admin roles as this is a master administration center
   useEffect(() => {
@@ -167,14 +183,14 @@ export default function MasterOverview() {
         <div className="space-y-6 sm:space-y-8">
           
           {/* TOP EXECUTIVE KPI CARDS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
+          <div className={`grid grid-cols-1 sm:grid-cols-2 ${sidebarCollapsed ? "lg:grid-cols-5" : "lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"} gap-4 sm:gap-6`}>
             
             {/* KPI 1: Branches */}
             <Card onClick={() => navigate("/branches")} className="cursor-pointer shadow-md bg-[#fff0f5] dark:bg-[#2d0a1f] border border-[#fce7f3] dark:border-[#5c1340]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group hover:shadow-lg">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-pink-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-pink-700 dark:text-pink-400 uppercase tracking-widest block truncate">Branches</span>
+                  <span className="text-[10px] font-black text-pink-700 dark:text-pink-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Branches</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-pink-600 dark:text-pink-400">{totalBranches}</span>
                     <span className="text-[9px] font-black text-pink-700 dark:text-pink-300 bg-pink-500/10 dark:bg-pink-500/20 border border-pink-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">Active Branches</span>
@@ -186,13 +202,13 @@ export default function MasterOverview() {
                 </div>
               </CardContent>
             </Card>
-
+ 
             {/* KPI 2: Departments */}
             <Card onClick={() => navigate("/master/department")} className="cursor-pointer shadow-md bg-[#eff6ff] dark:bg-[#0c1f3c] border border-[#dbeafe] dark:border-[#163063]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group hover:shadow-lg">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-widest block truncate">Departments</span>
+                  <span className="text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Departments</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-blue-600 dark:text-blue-400">{totalDepartments}</span>
                     <span className="text-[9px] font-black text-blue-700 dark:text-blue-300 bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">Active Units</span>
@@ -204,13 +220,13 @@ export default function MasterOverview() {
                 </div>
               </CardContent>
             </Card>
-
+ 
             {/* KPI 3: Total System Users */}
             <Card onClick={() => navigate("/employees")} className="cursor-pointer shadow-md bg-[#faf5ff] dark:bg-[#200a2d] border border-[#f3e8ff] dark:border-[#4c1266]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group hover:shadow-lg">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#7B0099]" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-purple-700 dark:text-purple-400 uppercase tracking-widest block truncate">Total Staff / Users</span>
+                  <span className="text-[10px] font-black text-purple-700 dark:text-purple-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Total Staff / Users</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-[#7B0099] dark:text-purple-400">{totalUsers}</span>
                     <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">{activeUsers} Active</span>
@@ -222,13 +238,13 @@ export default function MasterOverview() {
                 </div>
               </CardContent>
             </Card>
-
+ 
             {/* KPI 3: Leadership Coverage */}
             <Card className="shadow-md bg-[#fffbeb] dark:bg-[#2c1e0e] border border-[#fef3c7] dark:border-[#4d3214]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group hover:shadow-lg">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest block truncate">Leadership Coverage</span>
+                  <span className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Leadership Coverage</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-amber-600 dark:text-amber-400">{hodCoveragePct}%</span>
                     <span className="text-[9px] font-black text-amber-700 dark:text-amber-300 bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">{departmentsWithHOD} depts with HOD</span>
@@ -240,13 +256,13 @@ export default function MasterOverview() {
                 </div>
               </CardContent>
             </Card>
-
+ 
             {/* KPI 4: Integrity Status */}
             <Card className="shadow-md bg-[#eefcf2] dark:bg-[#0d2a1a] border border-[#c3f2d2] dark:border-[#0e4827]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group hover:shadow-lg">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500" />
               <CardContent className="p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0 flex-1">
-                  <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest block truncate">Directory Integrity</span>
+                  <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Directory Integrity</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">100%</span>
                     <span className="text-[9px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">Healthy</span>
@@ -259,9 +275,9 @@ export default function MasterOverview() {
               </CardContent>
             </Card>
           </div>
-
+ 
           {/* MAIN PORTAL SELECTOR CARDS */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className={`grid grid-cols-1 ${sidebarCollapsed ? "lg:grid-cols-3" : "lg:grid-cols-2 xl:grid-cols-3"} gap-6 sm:gap-8`}>
             
             {/* Left Portal: Department Master Overview */}
             <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden flex flex-col justify-between">
