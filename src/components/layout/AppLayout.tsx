@@ -372,7 +372,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </>
               ) : (
                 /* Unified Collapsed Dock */
-                <div className="bg-card/85 dark:bg-card/45 backdrop-blur-md border border-border/30 rounded-[20px] p-2 flex flex-col items-center gap-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)] w-full py-6">
+                <div className="bg-white/30 dark:bg-black/30 backdrop-blur-md border border-white/20 dark:border-white/5 rounded-[20px] p-2 flex flex-col items-center gap-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)] w-full py-6">
                   {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(resolvedRole) && (
                     <div 
                       onClick={() => navigate("/leave/admin")}
