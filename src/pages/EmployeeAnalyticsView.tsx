@@ -470,7 +470,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       </div>
 
       {/* ROW 2: Middle Section (Summary, Leave, Calendar) */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         
         {/* Attendance Summary */}
         <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card h-full flex flex-col">
@@ -587,7 +587,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Attendance Calendar */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card lg:col-span-2">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card">
           <CardContent className="p-5 h-full flex flex-col">
              <div className="flex items-center justify-between mb-4">
                 <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground">ATTENDANCE CALENDAR ({monthNameFull} {year})</h3>
