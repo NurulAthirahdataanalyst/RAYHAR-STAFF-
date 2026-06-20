@@ -273,7 +273,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 className="absolute -left-3.5 top-28 z-40 flex h-7 w-7 items-center justify-center rounded-full bg-[#7B0099] text-white shadow-md hover:scale-110 active:scale-95 transition-transform border border-white/20"
                 aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
-                <ChevronLeft className={`h-4 w-4 transition-transform duration-500 ${sidebarCollapsed ? "" : "rotate-180"}`} />
+                <ChevronLeft className={`h-4 w-4 transition-transform duration-500 ${sidebarCollapsed ? "rotate-180" : ""}`} />
               </button>
 
               {!sidebarCollapsed ? (
