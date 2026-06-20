@@ -146,7 +146,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   const sidebarContent = (isMobile: boolean) => (
     <>
       {/* HEADER */}
-      <div className={`relative flex items-center justify-center bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] border-b border-purple-950/20 overflow-hidden transition-all ${
+      <div className={`relative flex items-center justify-center bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] border-b border-purple-950/20 border-r border-[#3d0052]/50 overflow-hidden transition-all ${
         isCollapsed && !isMobile ? "h-20" : "h-24 px-4"
       }`}>
         {/* Mobile or Expanded Desktop view: show logo (and toggle on right for desktop) */}
@@ -195,7 +195,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       </div>
 
       {/* MENU */}
-      <div className={`flex-1 scrollbar-none pt-6 pb-2 ${isCollapsed && !isMobile ? "overflow-visible" : "overflow-y-auto"}`}>
+      <div className={`flex-1 scrollbar-none pt-6 pb-2 border-r border-blue-100/80 ${isCollapsed && !isMobile ? "overflow-visible" : "overflow-y-auto"}`}>
         {(!isCollapsed || isMobile) && (
           <div className="px-7 mb-4">
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500/80">
@@ -350,7 +350,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       </div>
 
       {/* FOOTER */}
-      <div className="shrink-0 border-t border-blue-100/50 p-4 sm:p-6 space-y-2 safe-area-bottom">
+      <div className="shrink-0 border-t border-blue-100/50 border-r border-blue-100/80 p-4 sm:p-6 space-y-2 safe-area-bottom">
         <Button
           variant="ghost"
           onClick={toggleTheme}
