@@ -146,7 +146,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   const sidebarContent = (isMobile: boolean) => (
     <>
       {/* HEADER */}
-      <div className={`relative flex items-center justify-center bg-transparent border-b border-blue-100/50 overflow-hidden transition-all ${
+      <div className={`relative flex items-center justify-center bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] border-b border-purple-950/20 overflow-hidden transition-all ${
         isCollapsed && !isMobile ? "h-20" : "h-24 px-4"
       }`}>
         {/* Mobile or Expanded Desktop view: show logo (and toggle on right for desktop) */}
@@ -156,7 +156,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
               <img 
                 src={rayharLogo} 
                 alt="Rayhar Group" 
-                className="h-[75%] w-auto object-contain filter brightness-110" 
+                className="h-[65%] w-auto object-contain filter brightness-110" 
               />
             </Link>
             
@@ -164,7 +164,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
             {!isMobile && (
               <button
                 onClick={() => setIsCollapsed(true)}
-                className="flex h-10 w-10 items-center justify-center text-slate-600 hover:text-[#7B0099] hover:bg-slate-200/50 rounded-xl transition-all duration-300 shrink-0"
+                className="flex h-10 w-10 items-center justify-center text-white/85 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300 shrink-0"
                 aria-label="Collapse sidebar"
               >
                 <PanelLeftClose className="h-5 w-5" />
@@ -175,7 +175,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           /* Collapsed Desktop view: show only centered Menu button */
           <button
             onClick={() => setIsCollapsed(false)}
-            className="flex h-10 w-10 items-center justify-center text-slate-600 hover:text-[#7B0099] hover:bg-slate-200/50 rounded-xl transition-all duration-300"
+            className="flex h-10 w-10 items-center justify-center text-white/85 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300"
             aria-label="Expand sidebar"
           >
             <PanelLeftOpen className="h-5 w-5" />
@@ -186,7 +186,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {isMobile && (
           <button
             onClick={onMobileClose}
-            className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-xl bg-slate-200/50 text-slate-700 hover:bg-slate-200 hover:text-[#7B0099] transition-all"
+            className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />
