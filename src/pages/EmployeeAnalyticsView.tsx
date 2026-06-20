@@ -474,31 +474,48 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         
         {/* Attendance Summary */}
         <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card h-full flex flex-col">
-          <CardContent className="p-5 flex-1 flex flex-col">
-            <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground mb-6">ATTENDANCE SUMMARY ({monthNameFull})</h3>
-            
-            <div className="space-y-6 flex-1 flex flex-col justify-center">
-              {[
-                { label: "Present", value: presentDays - lateArrivals, color: "bg-emerald-500" },
-                { label: "Late", value: lateArrivals, color: "bg-amber-400" },
-                { label: "Leave", value: leaveDaysCount, color: "bg-blue-500" },
-                { label: "Absent", value: absentDays, color: "bg-rose-500" }
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <span className="text-xs font-bold text-muted-foreground w-14 shrink-0">{item.label}</span>
-                  <div className="flex-1 h-2 bg-muted/40 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full ${item.color} transition-all duration-1000`} 
-                      style={{ width: `${daysInMonth > 0 ? (item.value / daysInMonth) * 100 : 0}%` }} 
-                    />
-                  </div>
-                  <div className="w-16 text-right shrink-0">
-                    <span className="text-xs font-black">{item.value}</span>
-                    <span className="text-[10px] text-muted-foreground ml-1">({daysInMonth > 0 ? Math.round((item.value / daysInMonth) * 100) : 0}%)</span>
-                  </div>
+          <CardContent className="p-5 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground mb-4">ATTENDANCE SUMMARY ({monthNameFull})</h3>
+              
+              {/* Summary mini cards */}
+              <div className="grid grid-cols-2 gap-3 mb-5">
+                <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">WORKING DAYS</span>
+                  <span className="text-sm font-black text-foreground mt-0.5">{totalWorkingDaysPassed} Days</span>
                 </div>
-              ))}
+                <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">PUNCTUALITY</span>
+                  <span className="text-sm font-black text-foreground mt-0.5">
+                    {presentDays > 0 ? Math.round(((presentDays - lateArrivals) / presentDays) * 100) : 100}%
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {[
+                  { label: "Present", value: presentDays - lateArrivals, color: "bg-emerald-500" },
+                  { label: "Late", value: lateArrivals, color: "bg-amber-400" },
+                  { label: "Leave", value: leaveDaysCount, color: "bg-blue-500" },
+                  { label: "Absent", value: absentDays, color: "bg-rose-500" }
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-4">
+                    <span className="text-xs font-bold text-muted-foreground w-14 shrink-0">{item.label}</span>
+                    <div className="flex-1 h-2 bg-muted/40 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full ${item.color} transition-all duration-1000`} 
+                        style={{ width: `${daysInMonth > 0 ? (item.value / daysInMonth) * 100 : 0}%` }} 
+                      />
+                    </div>
+                    <div className="w-16 text-right shrink-0">
+                      <span className="text-xs font-black">{item.value}</span>
+                      <span className="text-[10px] text-muted-foreground ml-1">({daysInMonth > 0 ? Math.round((item.value / daysInMonth) * 100) : 0}%)</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
+
             {/* Axis marks at the bottom */}
             <div className="mt-4 flex justify-between px-[72px] text-[10px] font-bold text-muted-foreground/50">
               <span>0</span>
