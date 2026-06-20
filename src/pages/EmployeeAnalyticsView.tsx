@@ -474,10 +474,10 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         
         {/* Attendance Summary */}
         <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card h-full flex flex-col">
-          <CardContent className="p-5 flex-1 flex flex-col justify-between">
-            <div>
-              <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground mb-4">ATTENDANCE SUMMARY ({monthNameFull})</h3>
-              
+          <CardContent className="p-5 flex-1 flex flex-col">
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground mb-4">ATTENDANCE SUMMARY ({monthNameFull})</h3>
+            
+            <div className="flex-1 flex flex-col justify-center">
               {/* Summary mini cards */}
               <div className="grid grid-cols-2 gap-3 mb-5">
                 <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
@@ -514,14 +514,14 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                   </div>
                 ))}
               </div>
-            </div>
 
-            {/* Axis marks at the bottom */}
-            <div className="mt-4 flex justify-between px-[72px] text-[10px] font-bold text-muted-foreground/50">
-              <span>0</span>
-              <span>10</span>
-              <span>20</span>
-              <span>30</span>
+              {/* Axis marks at the bottom of the bars */}
+              <div className="mt-4 flex justify-between px-[72px] text-[10px] font-bold text-muted-foreground/50">
+                <span>0</span>
+                <span>10</span>
+                <span>20</span>
+                <span>30</span>
+              </div>
             </div>
           </CardContent>
         </Card>
