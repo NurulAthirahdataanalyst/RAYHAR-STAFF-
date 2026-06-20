@@ -98,7 +98,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex min-h-screen bg-background transition-colors duration-300">
+    <div className="flex min-h-screen bg-background transition-colors duration-300 max-w-full overflow-x-hidden">
       <AppSidebar mobileOpen={mobileMenuOpen} onMobileClose={() => setMobileMenuOpen(false)} />
       
       <main 
