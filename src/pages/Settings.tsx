@@ -1,9 +1,10 @@
 import { useRole } from "@/contexts/RoleContext";
-import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  Building2, UserPlus, Settings2, Loader2, Plus, AlertCircle, ChevronRight,
+  Building2, UserPlus, Loader2, Plus, AlertCircle,
   SlidersHorizontal, MapPin, Layers, Info, Cloud, CheckCircle2, History, X, Save, BellRing, Calendar, Clock
 } from "lucide-react";
 import { toast } from "sonner";
@@ -22,6 +23,7 @@ interface Department {
 
 export default function SettingsPage() {
   const { role } = useRole();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"system" | "staff" | "branch" | "department">("system");
   
   // States
@@ -63,6 +65,32 @@ export default function SettingsPage() {
     startTime: "09:00 AM"
   });
 
+  // Real-time deployment operator log
+  const [deploymentLog, setDeploymentLog] = useState({
+    timestamp: "June 20, 2026 · 09:00 AM",
+    operator: "Athirah Rahman (HR Admin)"
+  });
+
+  // SSE telemetry event log
+  const [sseEvents, setSseEvents] = useState<string[]>([
+    "SSE connection active on channel #config-sync",
+    "Listening for global configuration broadcast..."
+  ]);
+
+  // Sync initial user details to deployment log on load
+  useEffect(() => {
+    if (user) {
+      const name = user.full_name || user.name || "Athirah Rahman";
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      setDeploymentLog({
+        timestamp: `${dateStr} · ${timeStr}`,
+        operator: `${name} (${role === 'hr_admin' ? 'HR Admin' : 'Admin'})`
+      });
+    }
+  }, [user, role]);
+
   // Fetch Init Data
   useEffect(() => {
     const fetchData = async () => {
@@ -102,6 +130,50 @@ export default function SettingsPage() {
     void fetchData();
   }, []);
 
+  // SSE connection for real-time telemetry
+  useEffect(() => {
+    const eventSource = new EventSource(`${API_BASE_URL}/api/presence/stream`);
+    
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        const time = new Date().toLocaleTimeString();
+        
+        if (data.type === "config-change") {
+          const roleStr = data.operatorRole === 'hr_admin' ? 'HR Admin' : data.operatorRole || 'Admin';
+          const msg = `[SSE] ${time} - ${data.operatorName} (${roleStr}): ${data.action}`;
+          setSseEvents(prev => [msg, ...prev].slice(0, 50));
+          
+          if (data.action.includes("System Configuration updated")) {
+            const dateStr = new Date(data.timestamp || new Date()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            setDeploymentLog({
+              timestamp: `${dateStr} · ${new Date(data.timestamp || new Date()).toLocaleTimeString()}`,
+              operator: `${data.operatorName} (${roleStr})`
+            });
+          }
+        } else if (data.type === "clock-in") {
+          setSseEvents(prev => [`[SSE] ${time} - User ${data.userId} clocked in`, ...prev].slice(0, 50));
+        } else if (data.type === "clock-out") {
+          setSseEvents(prev => [`[SSE] ${time} - User ${data.userId} clocked out`, ...prev].slice(0, 50));
+        } else if (data.type === "leave-status") {
+          setSseEvents(prev => [`[SSE] ${time} - Leave request #${data.leaveId} status updated to ${data.status} for User ${data.userId}`, ...prev].slice(0, 50));
+        } else if (data.type === "employee-status-change") {
+          setSseEvents(prev => [`[SSE] ${time} - Employee ${data.userId} status changed to ${data.status}`, ...prev].slice(0, 50));
+        }
+      } catch (e) {
+        console.error("Failed to parse SSE event:", e);
+      }
+    };
+    
+    eventSource.onerror = (err) => {
+      console.error("SSE connection error:", err);
+    };
+    
+    return () => {
+      eventSource.close();
+    };
+  }, []);
+
   // Add Branch Submit
   const handleAddBranch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,7 +189,9 @@ export default function SettingsPage() {
         body: JSON.stringify({
           code: branchCode.trim().toUpperCase(),
           name: branchNameInput.trim(),
-          location: branchLocationInput.trim()
+          location: branchLocationInput.trim(),
+          operatorName: user?.full_name || user?.name || "Athirah Rahman",
+          operatorRole: role || "hr_admin"
         })
       });
       const data = await response.json();
@@ -155,7 +229,9 @@ export default function SettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           code: deptCode.trim().toUpperCase(),
-          name: deptNameInput.trim()
+          name: deptNameInput.trim(),
+          operatorName: user?.full_name || user?.name || "Athirah Rahman",
+          operatorRole: role || "hr_admin"
         })
       });
       const data = await response.json();
@@ -202,7 +278,9 @@ export default function SettingsPage() {
           branch: staffBranch,
           department: staffDept || "Unassigned",
           role: staffRole,
-          status: staffStatus
+          status: staffStatus,
+          operatorName: user?.full_name || user?.name || "Athirah Rahman",
+          operatorRole: role || "hr_admin"
         })
       });
       const data = await response.json();
@@ -231,7 +309,11 @@ export default function SettingsPage() {
       const response = await fetch(`${API_BASE_URL}/api/settings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lateThreshold: workStartTime })
+        body: JSON.stringify({
+          lateThreshold: workStartTime,
+          operatorName: user?.full_name || user?.name || "Athirah Rahman",
+          operatorRole: role || "hr_admin"
+        })
       });
       const data = await response.json();
       if (response.ok && data.success) {
@@ -292,8 +374,8 @@ export default function SettingsPage() {
         </button>
       </div>
 
-      {/* HORIZONTAL NAVIGATION TABS */}
-      <div className="flex border-b border-border/40 overflow-x-auto gap-2 scrollbar-none">
+      {/* HORIZONTAL NAVIGATION TABS - PILL REDESIGN */}
+      <div className="flex bg-[#7B0099] p-1.5 rounded-2xl md:rounded-full shadow-lg overflow-x-auto gap-2 scrollbar-none items-center">
         {[
           { id: "system", label: "System Configuration", icon: SlidersHorizontal },
           { id: "staff", label: "Personnel Management", icon: UserPlus },
@@ -306,13 +388,13 @@ export default function SettingsPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 py-3 px-4 font-bold text-xs uppercase tracking-wider whitespace-nowrap border-b-2 transition-all outline-none ${
+              className={`flex items-center gap-2 py-2.5 px-6 font-black text-[10px] uppercase tracking-widest whitespace-nowrap rounded-full transition-all duration-300 ${
                 isActive 
-                  ? "border-[#7B0099] text-[#7B0099] font-black" 
-                  : "border-transparent text-muted-foreground hover:text-foreground opacity-75"
+                  ? "bg-white text-[#7B0099] shadow-md scale-100 animate-in zoom-in-95 duration-200" 
+                  : "text-white/80 hover:text-white hover:bg-white/10"
               }`}
             >
-              <Icon className="w-4 h-4 shrink-0" />
+              <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? "text-[#7B0099]" : "text-white/80"}`} />
               <span>{tab.label}</span>
             </button>
           );
@@ -391,7 +473,9 @@ export default function SettingsPage() {
                     <Select 
                       disabled={!isSchedulingEnabled}
                       value="monthly" 
-                      onValueChange={(val) => toast.info(`Report frequency updated to ${val}`)}
+                      onValueChange={(val) => {
+                        toast.info(`Report frequency updated to ${val}`);
+                      }}
                     >
                       <SelectTrigger className="w-[110px] h-8 text-[10px] font-black rounded-lg border-border bg-background/30">
                         <SelectValue placeholder="Frequency" />
@@ -450,7 +534,7 @@ export default function SettingsPage() {
             </Card>
           )}
 
-          {/* TAB 2: ONBOARD A NEW STAFF */}
+          {/* TAB 2: PERSONNEL MANAGEMENT */}
           {activeTab === "staff" && (
             <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-6 space-y-6 animate-in slide-in-from-left duration-300">
               <div className="flex items-center gap-3">
@@ -590,7 +674,7 @@ export default function SettingsPage() {
             </Card>
           )}
 
-          {/* TAB 3: REGISTER NEW BRANCH */}
+          {/* TAB 3: BRANCH MANAGEMENT */}
           {activeTab === "branch" && (
             <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-6 space-y-6 animate-in slide-in-from-left duration-300">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -653,7 +737,7 @@ export default function SettingsPage() {
                       placeholder="e.g. Alor Setar, Kedah"
                       value={branchLocationInput}
                       onChange={(e) => setBranchLocationInput(e.target.value)}
-                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case outline-none uppercase"
+                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case uppercase outline-none"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -705,7 +789,7 @@ export default function SettingsPage() {
             </Card>
           )}
 
-          {/* TAB 4: REGISTER NEW DEPARTMENT */}
+          {/* TAB 4: DEPARTMENT MANAGEMENT */}
           {activeTab === "department" && (
             <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-6 space-y-6 animate-in slide-in-from-left duration-300">
               <div className="flex items-center gap-3">
@@ -821,8 +905,30 @@ export default function SettingsPage() {
                 
                 <div className="p-4 bg-muted/20 border border-border/30 rounded-2xl space-y-1">
                   <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest block">Last Configuration Deployment</span>
-                  <span className="text-xs font-black text-foreground block">Oct 24, 2023 · 14:22 PM</span>
-                  <span className="text-[9px] font-medium text-muted-foreground block opacity-85">By Admin (M. Thompson)</span>
+                  <span className="text-xs font-black text-foreground block">
+                    {deploymentLog.timestamp}
+                  </span>
+                  <span className="text-[9px] font-medium text-muted-foreground block opacity-85">
+                    By {deploymentLog.operator}
+                  </span>
+                </div>
+              </Card>
+
+              {/* Real-time SSE Log Stream */}
+              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[28px] p-6 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Live SSE Stream</h4>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                    <span className="text-[8px] font-black text-emerald-500 uppercase tracking-wider">Active</span>
+                  </div>
+                </div>
+                <div className="p-3.5 bg-slate-950 dark:bg-slate-900 border border-border/20 rounded-2xl h-[120px] overflow-y-auto font-mono text-[7px] space-y-2 text-purple-300/80 leading-normal scrollbar-thin">
+                  {sseEvents.map((evt, i) => (
+                    <div key={i} className="break-all border-b border-white/5 pb-1 last:border-0">
+                      {evt}
+                    </div>
+                  ))}
                 </div>
               </Card>
 
@@ -831,7 +937,7 @@ export default function SettingsPage() {
                 <Card className="border-none shadow-sm bg-amber-500/10 border border-amber-500/25 rounded-[28px] p-5 space-y-4 animate-in zoom-in-95 duration-200">
                   <div className="flex items-start gap-2.5">
                     <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
-                    <p className="text-[9px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider leading-relaxed">
+                    <p className="text-[9px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider leading-normal">
                       You have unsaved changes in portal configurations. Deactivate or save to deploy changes.
                     </p>
                   </div>
@@ -953,7 +1059,7 @@ export default function SettingsPage() {
                   <Info className="w-4 h-4 text-purple-200" />
                   <span className="text-[10px] font-black uppercase tracking-widest text-purple-100">Registry Note</span>
                 </div>
-                <p className="text-[9px] font-semibold tracking-wide text-purple-200 leading-normal leading-relaxed">
+                <p className="text-[9px] font-semibold tracking-wide text-purple-200 leading-relaxed">
                   New branches are automatically assigned a network gateway. Verification may take up to 24 hours for security clearance.
                 </p>
               </div>

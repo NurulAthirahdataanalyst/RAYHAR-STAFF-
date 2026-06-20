@@ -107,6 +107,18 @@ app.post("/api/settings", async (req, res) => {
   const current = getSettings();
   if (req.body && req.body.lateThreshold) current.lateThreshold = req.body.lateThreshold;
   await saveSettingsToDB(current);
+
+  // SSE broadcast for settings change
+  const operatorName = req.body.operatorName || "System";
+  const operatorRole = req.body.operatorRole || "admin";
+  broadcastPresenceUpdate({
+    type: "config-change",
+    timestamp: new Date().toISOString(),
+    operatorName,
+    operatorRole,
+    action: `System Configuration updated (Late Arrivals Grace Period to ${current.lateThreshold})`
+  });
+
   res.json({ success: true, settings: current });
 });
 
@@ -786,7 +798,7 @@ app.get("/api/health", async (req, res) => {
 
 // SIGN-UP API
 app.post("/api/signup", async (req, res) => {
-  const { full_name, email, password, branch, department, status, role } = req.body;
+  const { full_name, email, password, branch, department, status, role, operatorName, operatorRole } = req.body;
 
   if (!full_name || !email || !password || !branch) {
     return res.status(400).json({ success: false, error: "All fields are required" });
@@ -830,6 +842,15 @@ app.post("/api/signup", async (req, res) => {
     );
 
     connection.release();
+
+    // Broadcast onboard staff event via SSE
+    broadcastPresenceUpdate({
+      type: "config-change",
+      timestamp: new Date().toISOString(),
+      operatorName: operatorName || "System",
+      operatorRole: operatorRole || "admin",
+      action: `Onboarded new staff: ${full_name.trim()} (${role || 'employee'})`
+    });
 
     return res.status(201).json({
       success: true,
@@ -2609,7 +2630,7 @@ app.get("/api/branches", async (req, res) => {
 });
 
 app.post("/api/branches", async (req, res) => {
-  const { code, name, location } = req.body;
+  const { code, name, location, operatorName, operatorRole } = req.body;
 
   if (!code || !name) {
     return res.status(400).json({ success: false, error: "Code and name are required" });
@@ -2624,10 +2645,14 @@ app.post("/api/branches", async (req, res) => {
 
     const branchLocation = location ? location.trim() : 'RAYHAR BRANCH';
 
-    await pool.query(
-      "INSERT INTO branches (branch, code, name, location) VALUES (?, ?, ?, ?)",
-      [cleanCode, cleanCode, name.trim(), branchLocation]
-    );
+    // Broadcast branch registration event via SSE
+    broadcastPresenceUpdate({
+      type: "config-change",
+      timestamp: new Date().toISOString(),
+      operatorName: operatorName || "System",
+      operatorRole: operatorRole || "admin",
+      action: `Registered new branch: ${name.trim()} (${cleanCode})`
+    });
 
     res.json({ success: true, message: "Branch created successfully" });
   } catch (err) {
@@ -2692,7 +2717,7 @@ app.get("/api/departments", async (req, res) => {
 });
 
 app.post("/api/departments", async (req, res) => {
-  const { code, name } = req.body;
+  const { code, name, operatorName, operatorRole } = req.body;
   
   if (!code || !name) {
     return res.status(400).json({ success: false, error: "Code and name are required" });
@@ -2708,10 +2733,14 @@ app.post("/api/departments", async (req, res) => {
       return res.status(409).json({ success: false, error: "Department with this code or name already exists" });
     }
 
-    await pool.query(
-      "INSERT INTO departments (code, name) VALUES (?, ?)",
-      [code.toUpperCase(), name]
-    );
+    // Broadcast department registration event via SSE
+    broadcastPresenceUpdate({
+      type: "config-change",
+      timestamp: new Date().toISOString(),
+      operatorName: operatorName || "System",
+      operatorRole: operatorRole || "admin",
+      action: `Created department: ${name.trim()} (${code.toUpperCase()})`
+    });
 
     res.json({ success: true, message: "Department registered successfully" });
   } catch (error) {
