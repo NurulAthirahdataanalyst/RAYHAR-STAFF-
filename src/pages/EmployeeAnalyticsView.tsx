@@ -162,7 +162,10 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     const dayOfWeek = date.getDay();
     const isPastOrToday = date <= new Date() || parseInt(month) !== (new Date().getMonth() + 1);
     
-    if (dayOfWeek !== 5 && dayOfWeek !== 6) { // Weekday (Sun-Thu)
+    // Friday & Saturday are off days for the first week (days 1-7), Friday only for remaining weeks
+    const isWeekendDay = (dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7);
+    
+    if (!isWeekendDay) { // Working day
       if (isPastOrToday) totalWorkingDaysPassed++;
       
       const dateStr = `${year}-${month.padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -211,7 +214,9 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   for (let d = 1; d <= prevDaysInMonth; d++) {
      const date = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth(), d);
      const dayOfWeek = date.getDay();
-     if (date <= new Date() && dayOfWeek !== 5 && dayOfWeek !== 6) prevWorkingDaysPassed++;
+     // Friday & Saturday are off days for the first week (days 1-7), Friday only for remaining weeks
+     const isWeekendDay = (dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7);
+     if (date <= new Date() && !isWeekendDay) prevWorkingDaysPassed++;
   }
   const prevPresentDays = lastMonthLogs.length;
   const prevLateArrivals = lastMonthLogs.filter(l => l.is_late || l.status === "LATE").length;
@@ -602,7 +607,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
              <div className="grid grid-cols-7 gap-1 sm:gap-1.5 flex-1 content-start">
                 {calendarDays.map((cell, i) => {
                   
-                  const isWeekend = (i % 7 === 5) || (i % 7 === 6); // Fri & Sat in Sun-start
+                  // Friday & Saturday are off days for the first week (days 1-7), Friday only for remaining weeks
+                  const isWeekend = (i % 7 === 5) || (i % 7 === 6 && cell.day <= 7);
                   let status = cell.isCurrent ? heatmapData[cell.day] : null;
                   
                   let bgColor = "bg-transparent";
