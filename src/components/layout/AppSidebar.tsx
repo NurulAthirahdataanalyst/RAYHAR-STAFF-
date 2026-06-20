@@ -165,7 +165,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                 className="flex h-10 w-10 items-center justify-center rounded-xl text-white/80 hover:bg-white/10 hover:text-white transition-colors shrink-0"
                 aria-label="Collapse sidebar"
               >
-                <Menu className="h-5 w-5" />
+                <X className="h-5 w-5" />
               </button>
             )}
           </div>
