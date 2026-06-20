@@ -158,14 +158,39 @@ export default function Employees() {
     return matchesSearch && matchesBranch && matchesPosition && matchesStatus;
   });
 
+  // Sort priority for roles: Head of Department at position 4, Branch Leader at position 5
+  const getRolePriority = (roleStr: string) => {
+    switch (roleStr) {
+      case "managing_director": return 1;
+      case "finance_manager": return 2;
+      case "hr_admin": return 3;
+      case "head_of_department": return 4;
+      case "branch_leader": return 5;
+      case "branch_officer": return 6;
+      case "employee": return 7;
+      default: return 8;
+    }
+  };
+
+  const sorted = [...filtered].sort((a, b) => {
+    const priorityA = getRolePriority(a.role);
+    const priorityB = getRolePriority(b.role);
+    
+    if (priorityA !== priorityB) {
+      return priorityA - priorityB;
+    }
+    // Secondary sort: alphabetical by name
+    return a.name.localeCompare(b.name);
+  });
+
   useEffect(() => {
     setCurrentPage(1);
   }, [search, selectedBranch, selectedPosition, selectedStatus]);
 
   const indexOfLastItem = currentPage * entriesPerPage;
   const indexOfFirstItem = indexOfLastItem - entriesPerPage;
-  const currentItems = filtered.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filtered.length / entriesPerPage);
+  const currentItems = sorted.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(sorted.length / entriesPerPage);
 
   const handleEmployeeClick = (emp: any) => {
     setSelectedEmployee(emp);

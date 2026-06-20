@@ -579,24 +579,26 @@ export default function Reports() {
         </button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2 bg-white/50 dark:bg-black/20 px-3 py-1.5 rounded-xl border border-border/50 shadow-inner">
-          <input
-            type="date"
-            className="h-8 bg-transparent border-none text-[10px] font-black uppercase tracking-widest focus:ring-0 p-0 text-foreground cursor-pointer"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-          />
+      {activeTab !== "generator" && (
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 bg-white/50 dark:bg-black/20 px-3 py-1.5 rounded-xl border border-border/50 shadow-inner">
+            <input
+              type="date"
+              className="h-8 bg-transparent border-none text-[10px] font-black uppercase tracking-widest focus:ring-0 p-0 text-foreground cursor-pointer"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+          </div>
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-5 py-5 shadow-sm active:scale-95 transition-all h-[44px]"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Export CSV
+          </Button>
         </div>
-        <Button
-          variant="outline"
-          onClick={handleExport}
-          className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-5 py-5 shadow-sm active:scale-95 transition-all h-[44px]"
-        >
-          <Download className="w-3.5 h-3.5" />
-          Export CSV
-        </Button>
-      </div>
+      )}
     </div>
 
       {/* ================================================================= */}

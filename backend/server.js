@@ -942,7 +942,18 @@ app.get("/api/branch-employees", async (req, res) => {
         GROUP BY user_id
       ) leave_today ON leave_today.user_id = p.user_id
       WHERE p.branch = ? AND p.status = 'Active'
-      ORDER BY p.full_name ASC
+      ORDER BY 
+        CASE 
+          WHEN ur.role = 'managing_director' THEN 1
+          WHEN ur.role = 'finance_manager' THEN 2
+          WHEN ur.role = 'hr_admin' THEN 3
+          WHEN ur.role = 'head_of_department' THEN 4
+          WHEN ur.role = 'branch_leader' THEN 5
+          WHEN ur.role = 'branch_officer' THEN 6
+          WHEN ur.role = 'employee' THEN 7
+          ELSE 8
+        END ASC,
+        p.full_name ASC
       `,
       [branch]
     );
@@ -1538,7 +1549,18 @@ app.get("/api/employees", async (req, res) => {
         GROUP BY user_id
       ) leave_today ON leave_today.user_id = p.user_id
       ${branchFilter}
-      ORDER BY p.full_name ASC
+      ORDER BY 
+        CASE 
+          WHEN ur.role = 'managing_director' THEN 1
+          WHEN ur.role = 'finance_manager' THEN 2
+          WHEN ur.role = 'hr_admin' THEN 3
+          WHEN ur.role = 'head_of_department' THEN 4
+          WHEN ur.role = 'branch_leader' THEN 5
+          WHEN ur.role = 'branch_officer' THEN 6
+          WHEN ur.role = 'employee' THEN 7
+          ELSE 8
+        END ASC,
+        p.full_name ASC
       `,
       [...(date ? [date, date, date, date] : []), ...params]
     );
