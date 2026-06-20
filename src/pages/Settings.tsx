@@ -718,10 +718,10 @@ export default function SettingsPage() {
               <form onSubmit={handleAddBranch} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-1.5 col-span-1">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Branch Code (UID)</label>
+                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Branch Code</label>
                     <input
                       type="text"
-                      placeholder="e.g. HUB-SEA-001"
+                      placeholder="e.g. AOR "
                       value={branchCode}
                       onChange={(e) => setBranchCode(e.target.value)}
                       className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
@@ -731,7 +731,7 @@ export default function SettingsPage() {
                     <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Branch Name</label>
                     <input
                       type="text"
-                      placeholder="e.g. North Seattle Regional HQ"
+                      placeholder="e.g. AOR SETAR "
                       value={branchNameInput}
                       onChange={(e) => setBranchNameInput(e.target.value)}
                       className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case outline-none"
@@ -754,7 +754,7 @@ export default function SettingsPage() {
                     <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Primary Contact Number</label>
                     <input
                       type="text"
-                      placeholder="e.g. +60 (555) 000-0000"
+                      placeholder="e.g. 0* ***-****"
                       className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold outline-none"
                     />
                   </div>
