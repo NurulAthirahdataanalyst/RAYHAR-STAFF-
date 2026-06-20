@@ -368,3 +368,60 @@
     background-image: none !important;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════ */
+/* 3. PREMIUM ENTERPRISE-GRADE UI / BALANCED RADIUS & GLASSMORPHISM */
+/* ════════════════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  /* 1. Main Cards and Large Panels (16px / rounded-2xl) */
+  .rounded-\[20px\],
+  .rounded-\[24px\],
+  .rounded-\[25px\],
+  .rounded-\[28px\],
+  .rounded-\[30px\],
+  .rounded-\[32px\],
+  .rounded-3xl {
+    border-radius: 16px !important;
+  }
+
+  /* 2. KPI / Stat Cards (14px / rounded-[14px]) */
+  .rounded-\[16px\] {
+    border-radius: 14px !important;
+  }
+
+  /* 3. Active Sidebar Menu Items (12px / rounded-xl) */
+  .rounded-\[14px\] {
+    border-radius: 12px !important;
+  }
+
+  /* 4. Top Navigation Bar (20px / rounded-[20px]) */
+  .top-nav-bar {
+    border-radius: 20px !important;
+  }
+
+  /* 5. Clean Glassmorphism & Enterprise Softer Shadows */
+  /* High blur, low opacity shadows + thin white transparency borders */
+  .card,
+  .bg-card,
+  [class*="bg-card/"],
+  [class*="bg-card"] {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.025) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .dark .card,
+  .dark .bg-card,
+  .dark [class*="bg-card/"],
+  .dark [class*="bg-card"] {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.05) !important;
+  }
+
+  /* Ensure cards with backdrop blur filter look high-res and clean */
+  .glass-card,
+  [class*="backdrop-blur"] {
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+  }
+}

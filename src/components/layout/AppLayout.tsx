@@ -115,7 +115,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         
         {/* ═══════ MOBILE TOP BAR ═══════ */}
         <div className="lg:hidden sticky top-0 z-30 p-2.5 safe-area-top">
-          <div className="bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] rounded-[16px] p-2.5 px-4 flex items-center justify-between shadow-lg border border-[#7B0099]/15">
+          <div className="bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] rounded-[16px] p-2.5 px-4 flex items-center justify-between shadow-lg border border-[#7B0099]/15 top-nav-bar">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setMobileMenuOpen(true)}
@@ -175,7 +175,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {/* Ruang Kerja Utama (70% - 90%) */}
             <div className="flex-1 min-w-0 space-y-4 sm:space-y-6 transition-all duration-500 ease-in-out w-full">
               {/* Breadcrumb & Header Pantas - hidden on mobile (we have the top-bar instead) */}
-              <div className="hidden lg:flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] rounded-[20px] p-4 px-6 items-center justify-between shadow-lg relative overflow-hidden border border-[#7B0099]/15">
+              <div className="hidden lg:flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] rounded-[20px] p-4 px-6 items-center justify-between shadow-lg relative overflow-hidden border border-[#7B0099]/15 top-nav-bar">
                 <div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
                 
                 <div className="flex items-center gap-4 relative z-10">
