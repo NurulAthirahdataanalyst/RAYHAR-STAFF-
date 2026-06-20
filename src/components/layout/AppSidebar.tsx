@@ -394,8 +394,13 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
   return (
     <>
-      {/* ═══════ DESKTOP SIDEBAR (hidden on mobile) ═══════ */}
-      <aside className={`hidden lg:flex sticky top-0 z-40 min-h-screen flex-col border-r border-blue-100/80 dark:border-r-white/10 bg-[#EBF2FC] dark:bg-[#16141A] transition-all duration-300 ease-in-out ${
+      {/* ═══════ DESKTOP SIDEBAR spacer ═══════ */}
+      <div className={`hidden lg:block shrink-0 transition-all duration-300 ease-in-out ${
+        isCollapsed ? "w-20" : "w-64"
+      }`} />
+
+      {/* ═══════ DESKTOP SIDEBAR (fixed on desktop) ═══════ */}
+      <aside className={`hidden lg:flex fixed top-0 left-0 z-40 h-screen flex-col border-r border-blue-100/80 dark:border-r-white/10 bg-[#EBF2FC] dark:bg-[#16141A] transition-all duration-300 ease-in-out ${
         isCollapsed ? "w-20" : "w-64"
       }`}>
         {sidebarContent(false)}
