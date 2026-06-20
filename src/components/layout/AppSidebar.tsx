@@ -146,7 +146,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   const sidebarContent = (isMobile: boolean) => (
     <>
       {/* HEADER */}
-      <div className={`relative flex items-center justify-center bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] border-b border-purple-950/20 border-r border-[#3d0052]/50 overflow-hidden transition-all ${
+      <div className={`relative flex items-center justify-center bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] dark:bg-none dark:bg-transparent border-b border-purple-950/20 dark:border-b-white/5 border-r border-[#3d0052]/50 dark:border-r-white/10 overflow-hidden transition-all ${
         isCollapsed && !isMobile ? "h-20" : "h-24 px-4"
       }`}>
         {/* Mobile or Expanded Desktop view: show logo (and toggle on right for desktop) */}
@@ -195,7 +195,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       </div>
 
       {/* MENU */}
-      <div className={`flex-1 scrollbar-none pt-6 pb-2 border-r border-blue-100/80 ${isCollapsed && !isMobile ? "overflow-visible" : "overflow-y-auto"}`}>
+      <div className={`flex-1 scrollbar-none pt-6 pb-2 border-r border-blue-100/80 dark:border-r-white/10 ${isCollapsed && !isMobile ? "overflow-visible" : "overflow-y-auto"}`}>
         {(!isCollapsed || isMobile) && (
           <div className="px-7 mb-4">
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500/80">
@@ -231,21 +231,27 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                   }}
                   className={`group relative flex items-center gap-4 rounded-[14px] px-4 sm:px-5 py-3 transition-all duration-300 touch-target ${
                     isExactActive
-                      ? "bg-[#7B0099] text-white shadow-sm font-bold"
-                      : "text-slate-600 hover:bg-slate-200/60 hover:text-[#7B0099] active:bg-slate-200/80"
+                      ? "bg-[#7B0099] dark:bg-[#7B0099]/20 text-white dark:text-white shadow-sm font-bold"
+                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-white/5 hover:text-[#7B0099] dark:hover:text-white active:bg-slate-200/80 dark:active:bg-white/10"
                   } ${isCollapsed && !isMobile ? "justify-center px-0 w-12 mx-auto" : ""}`}
                 >
                   <item.icon
                     className={`h-5 w-5 shrink-0 transition-colors ${
                       isExactActive 
-                        ? "text-white" 
+                        ? "text-white dark:text-purple-400" 
                         : isActive 
-                          ? "text-[#7B0099]" 
-                          : "text-slate-400 group-hover:text-[#7B0099]"
+                          ? "text-[#7B0099] dark:text-purple-400" 
+                          : "text-slate-400 dark:text-slate-500 group-hover:text-[#7B0099] dark:group-hover:text-white"
                     }`}
                   />
                   {(!isCollapsed || isMobile) && (
-                    <span className={`text-[13.5px] whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300 ${isExactActive ? "font-bold text-white" : isActive ? "text-[#7B0099] font-bold" : "text-slate-600 group-hover:text-[#7B0099] font-medium"}`}>
+                    <span className={`text-[13.5px] whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300 ${
+                      isExactActive 
+                        ? "font-bold text-white dark:text-white" 
+                        : isActive 
+                          ? "text-[#7B0099] dark:text-purple-400 font-bold" 
+                          : "text-slate-600 dark:text-slate-400 group-hover:text-[#7B0099] dark:group-hover:text-white font-medium"
+                    }`}>
                       {item.title}
                     </span>
                   )}
@@ -259,7 +265,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                         e.stopPropagation();
                         setExpandedMenus(prev => ({ ...prev, [item.title]: !prev[item.title] }));
                       }}
-                      className="ml-auto p-1 rounded-md text-slate-400 hover:text-[#7B0099] hover:bg-slate-200/50 transition-all"
+                      className="ml-auto p-1 rounded-md text-slate-400 dark:text-slate-500 hover:text-[#7B0099] dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all"
                       aria-label={isMenuExpanded ? "Collapse submenu" : "Expand submenu"}
                     >
                       {isMenuExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -271,7 +277,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                 {hasChildren && isMenuExpanded && (!isCollapsed || isMobile) && (
                   <div className="relative pl-9 pr-2 py-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
                     {/* Vertical tree line */}
-                    <div className="absolute left-[26px] top-0 bottom-[18px] w-[1.5px] bg-slate-300/80" />
+                    <div className="absolute left-[26px] top-0 bottom-[18px] w-[1.5px] bg-slate-300/80 dark:bg-white/10" />
                     
                     {visibleChildren.map((child) => {
                        const isChildActive = location.pathname === child.path;
@@ -282,16 +288,16 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                           onClick={isMobile ? onMobileClose : undefined}
                           className={`group relative flex items-center gap-3 rounded-[14px] px-3 py-2.5 text-[13px] transition-all duration-300 touch-target ${
                             isChildActive
-                              ? "bg-purple-600/15 font-bold text-[#7B0099]"
-                              : "text-slate-600 hover:bg-slate-200/50 hover:text-[#7B0099] active:bg-slate-200/80"
+                              ? "bg-purple-600/15 dark:bg-[#7B0099]/20 font-bold text-[#7B0099] dark:text-purple-300"
+                              : "text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/5 hover:text-[#7B0099] dark:hover:text-white active:bg-slate-200/80 dark:active:bg-white/10"
                           }`}
                         >
                           {/* Horizontal stub connector line */}
-                          <div className="absolute -left-[10px] top-1/2 -translate-y-1/2 w-[10px] h-[1.5px] bg-slate-300/80" />
+                          <div className="absolute -left-[10px] top-1/2 -translate-y-1/2 w-[10px] h-[1.5px] bg-slate-300/80 dark:bg-white/10" />
                           
                           <child.icon
                             className={`h-4 w-4 shrink-0 transition-colors ${
-                              isChildActive ? "text-[#7B0099]" : "text-slate-400 group-hover:text-[#7B0099]"
+                              isChildActive ? "text-[#7B0099] dark:text-purple-400" : "text-slate-400 dark:text-slate-500 group-hover:text-[#7B0099] dark:group-hover:text-white"
                             }`}
                           />
                           <span>{child.title}</span>
@@ -303,9 +309,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
                 {/* Submenu Popover Card for Collapsed State */}
                 {hasChildren && isCollapsed && !isMobile && (
-                  <div className="absolute left-full top-0 ml-3 z-50 hidden group-hover/menu-item:block min-w-[200px] bg-[#EBF2FC] border border-blue-100/80 rounded-[18px] p-2.5 shadow-[0_8px_30px_rgba(123,0,153,0.08)] animate-in fade-in zoom-in-95 duration-200">
+                  <div className="absolute left-full top-0 ml-3 z-50 hidden group-hover/menu-item:block min-w-[200px] bg-[#EBF2FC] dark:bg-[#16141A] border border-blue-100/80 dark:border-white/10 rounded-[18px] p-2.5 shadow-[0_8px_30px_rgba(123,0,153,0.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200">
                     {/* Category Header */}
-                    <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#7B0099]/85 border-b border-blue-100/50 mb-2">
+                    <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#7B0099]/85 dark:text-purple-400 border-b border-blue-100/50 dark:border-white/5 mb-2">
                       {item.title}
                     </div>
                     {/* Submenu Items */}
@@ -318,13 +324,13 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                             to={child.path}
                             className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs transition-all duration-200 ${
                               isChildActive
-                                ? "bg-purple-600/15 font-bold text-[#7B0099]"
-                                : "text-slate-600 hover:bg-slate-200/50 hover:text-[#7B0099]"
+                                ? "bg-purple-600/15 dark:bg-[#7B0099]/20 font-bold text-[#7B0099] dark:text-purple-300"
+                                : "text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/5 hover:text-[#7B0099] dark:hover:text-white"
                             }`}
                           >
                             <child.icon
                               className={`h-4 w-4 shrink-0 transition-colors ${
-                                isChildActive ? "text-[#7B0099]" : "text-slate-400"
+                                isChildActive ? "text-[#7B0099] dark:text-purple-400" : "text-slate-400 dark:text-slate-500"
                               }`}
                             />
                             <span className="whitespace-nowrap">{child.title}</span>
@@ -337,8 +343,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
                 {/* Tooltip Popover Card for Collapsed State (No Children) */}
                 {!hasChildren && isCollapsed && !isMobile && (
-                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 hidden group-hover/menu-item:block bg-[#EBF2FC] border border-blue-100 rounded-[12px] px-3.5 py-2 shadow-[0_8px_25px_rgba(123,0,153,0.08)] animate-in fade-in zoom-in-95 duration-200">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-700 whitespace-nowrap">
+                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 hidden group-hover/menu-item:block bg-[#EBF2FC] dark:bg-[#16141A] border border-blue-100 dark:border-white/10 rounded-[12px] px-3.5 py-2 shadow-[0_8px_25px_rgba(123,0,153,0.08)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 whitespace-nowrap">
                       {item.title}
                     </span>
                   </div>
@@ -350,12 +356,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       </div>
 
       {/* FOOTER */}
-      <div className="shrink-0 border-t border-blue-100/50 border-r border-blue-100/80 p-4 sm:p-6 space-y-2 safe-area-bottom">
+      <div className="shrink-0 border-t border-blue-100/50 dark:border-t-white/5 border-r border-blue-100/80 dark:border-r-white/10 p-4 sm:p-6 space-y-2 safe-area-bottom">
         <Button
           variant="ghost"
           onClick={toggleTheme}
           title={isCollapsed && !isMobile ? `Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode` : ""}
-          className={`group flex w-full justify-start gap-4 rounded-[16px] px-4 sm:px-5 py-6 text-slate-600 transition-all hover:bg-slate-200/50 hover:text-[#7B0099] touch-target ${
+          className={`group flex w-full justify-start gap-4 rounded-[16px] px-4 sm:px-5 py-6 text-slate-600 dark:text-slate-400 transition-all hover:bg-slate-200/50 dark:hover:bg-white/5 hover:text-[#7B0099] dark:hover:text-white touch-target ${
             isCollapsed && !isMobile ? "justify-center px-0 w-12 mx-auto" : ""
           }`}
         >
@@ -375,7 +381,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           variant="ghost"
           onClick={() => signOut()}
           title={isCollapsed && !isMobile ? "Log Out" : ""}
-          className={`group flex w-full justify-start gap-4 rounded-[16px] px-4 sm:px-5 py-6 text-slate-600 transition-all hover:bg-red-500/10 hover:text-red-600 touch-target ${
+          className={`group flex w-full justify-start gap-4 rounded-[16px] px-4 sm:px-5 py-6 text-slate-600 dark:text-slate-400 transition-all hover:bg-red-500/10 dark:hover:bg-red-950/20 hover:text-red-600 dark:hover:text-red-400 touch-target ${
             isCollapsed && !isMobile ? "justify-center px-0 w-12 mx-auto" : ""
           }`}
         >
@@ -389,7 +395,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   return (
     <>
       {/* ═══════ DESKTOP SIDEBAR (hidden on mobile) ═══════ */}
-      <aside className={`hidden lg:flex sticky top-0 z-40 min-h-screen flex-col border-r border-blue-100/80 bg-[#EBF2FC] transition-all duration-300 ease-in-out ${
+      <aside className={`hidden lg:flex sticky top-0 z-40 min-h-screen flex-col border-r border-blue-100/80 dark:border-r-white/10 bg-[#EBF2FC] dark:bg-[#16141A] transition-all duration-300 ease-in-out ${
         isCollapsed ? "w-20" : "w-64"
       }`}>
         {sidebarContent(false)}
@@ -406,7 +412,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
       {/* ═══════ MOBILE DRAWER PANEL ═══════ */}
       <aside
-        className={`lg:hidden fixed top-0 left-0 z-50 h-full w-[280px] sm:w-[320px] flex flex-col bg-[#EBF2FC] shadow-2xl transition-transform duration-300 ease-out safe-area-top ${
+        className={`lg:hidden fixed top-0 left-0 z-50 h-full w-[280px] sm:w-[320px] flex flex-col bg-[#EBF2FC] dark:bg-[#16141A] border-r border-blue-100/80 dark:border-r-white/10 shadow-2xl transition-transform duration-300 ease-out safe-area-top ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         role="dialog"
