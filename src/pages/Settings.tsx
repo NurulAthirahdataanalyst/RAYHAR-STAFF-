@@ -296,9 +296,9 @@ export default function SettingsPage() {
       <div className="flex border-b border-border/40 overflow-x-auto gap-2 scrollbar-none">
         {[
           { id: "system", label: "System Configuration", icon: SlidersHorizontal },
-          { id: "staff", label: "Onboard a New Staff", icon: UserPlus },
-          { id: "branch", label: "Register New Branch", icon: MapPin },
-          { id: "department", label: "Register New Department", icon: Layers }
+          { id: "staff", label: "Personnel Management", icon: UserPlus },
+          { id: "branch", label: "Branch Management", icon: MapPin },
+          { id: "department", label: "Department Management", icon: Layers }
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
