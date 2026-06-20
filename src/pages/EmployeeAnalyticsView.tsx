@@ -527,19 +527,29 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Leave Utilization (PIE CHART - AS REQUESTED) */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card">
-          <CardContent className="p-5 flex flex-col h-full">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground">LEAVE UTILIZATION ({monthNameFull})</h3>
-            </div>
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card h-full flex flex-col">
+          <CardContent className="p-5 flex-1 flex flex-col">
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground mb-4">LEAVE UTILIZATION ({monthNameFull})</h3>
             
+            {/* Summary mini cards */}
+            <div className="grid grid-cols-2 gap-3 mb-5">
+              <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
+                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">APPROVED LEAVES</span>
+                <span className="text-sm font-black text-foreground mt-0.5">{mLeaves.length} {mLeaves.length === 1 ? 'Request' : 'Requests'}</span>
+              </div>
+              <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
+                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">REMAINING BALANCE</span>
+                <span className="text-sm font-black text-foreground mt-0.5">{leaveBalanceRemaining} Days</span>
+              </div>
+            </div>
+
             {monthPieData.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50">
+              <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50 my-auto">
                 <Briefcase className="w-10 h-10 mb-2 text-muted-foreground" />
                 <p className="text-sm font-bold text-muted-foreground">No leaves applied this month</p>
               </div>
             ) : (
-              <div className="flex items-center flex-1">
+              <div className="flex-1 flex items-center justify-center my-auto">
                 <div className="w-[120px] h-[120px] shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
