@@ -581,7 +581,15 @@ export default function SettingsPage() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Office Branch</label>
-                    <Select value={staffBranch} onValueChange={setStaffBranch}>
+                    <Select 
+                      value={staffBranch} 
+                      onValueChange={(val) => {
+                        setStaffBranch(val);
+                        if (val !== "HQ") {
+                          setStaffDept("");
+                        }
+                      }}
+                    >
                       <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
                         <SelectValue placeholder="Select Branch" />
                       </SelectTrigger>
@@ -593,19 +601,21 @@ export default function SettingsPage() {
                     </Select>
                   </div>
                   
-                  <div className="space-y-1.5 animate-in fade-in duration-300">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Department</label>
-                    <Select value={staffDept} onValueChange={setStaffDept}>
-                      <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
-                        <SelectValue placeholder="Select Dept" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        {departments.map(d => (
-                          <SelectItem key={d} value={d} className="text-[10px] font-black uppercase tracking-widest">{d}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {staffBranch === "HQ" && (
+                    <div className="space-y-1.5 animate-in fade-in duration-300">
+                      <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Department</label>
+                      <Select value={staffDept} onValueChange={setStaffDept}>
+                        <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
+                          <SelectValue placeholder="Select Dept" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {departments.map(d => (
+                            <SelectItem key={d} value={d} className="text-[10px] font-black uppercase tracking-widest">{d}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                   <div className="space-y-1.5">
                     <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">System Authorization Role</label>
