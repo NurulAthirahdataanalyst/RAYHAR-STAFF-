@@ -313,7 +313,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
 
               return (
                 <div key={emp.id} className="relative group flex items-center justify-center">
-                  <div className={`w-10 h-10 rounded-full border flex items-center justify-center shrink-0 cursor-pointer shadow-sm hover:scale-105 active:scale-95 transition-all ${statusConf.bg} ${statusConf.color}`}>
+                  <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 cursor-pointer shadow-sm hover:scale-105 active:scale-95 transition-all ${statusConf.bg} ${statusConf.color}`}>
                     <statusConf.icon className="w-4 h-4" />
                   </div>
                   
@@ -346,7 +346,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
   }
 
   return (
-    <Card className="bg-card/40 backdrop-blur-md rounded-[25px] shadow-lg border border-white/20 dark:border-white/5 flex flex-col h-full max-h-[500px]">
+    <Card className="bg-card/40 backdrop-blur-md rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-white/20 dark:border-white/5 flex flex-col h-full max-h-[500px]">
       <CardHeader className="pb-3 border-b border-border/40">
         <CardTitle className="text-sm font-black text-foreground flex items-center justify-between">
           <span className="flex items-center gap-2">
@@ -387,7 +387,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
             placeholder="Filter activity..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9 text-xs border-border/60 bg-background/30 focus-visible:ring-[#7B0099]/20 rounded-xl"
+            className="pl-9 h-9 text-xs border-border/60 bg-background/30 focus-visible:ring-[#7B0099]/20 rounded-lg"
           />
         </div>
       </CardHeader>

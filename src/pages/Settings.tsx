@@ -409,7 +409,7 @@ export default function SettingsPage() {
           
           {/* TAB 1: SYSTEM CONFIGURATION */}
           {activeTab === "system" && (
-            <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-6 space-y-6">
+            <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] overflow-hidden p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-[#7B0099]/10 rounded-xl text-[#7B0099]">
@@ -536,7 +536,7 @@ export default function SettingsPage() {
 
           {/* TAB 2: PERSONNEL MANAGEMENT */}
           {activeTab === "staff" && (
-            <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-6 space-y-6 animate-in slide-in-from-left duration-300">
+            <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] overflow-hidden p-6 space-y-6 animate-in slide-in-from-left duration-300">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-[#7B0099]/10 rounded-xl text-[#7B0099]">
                   <UserPlus className="w-5 h-5" />
@@ -676,7 +676,7 @@ export default function SettingsPage() {
 
           {/* TAB 3: BRANCH MANAGEMENT */}
           {activeTab === "branch" && (
-            <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-6 space-y-6 animate-in slide-in-from-left duration-300">
+            <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] overflow-hidden p-6 space-y-6 animate-in slide-in-from-left duration-300">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-[#7B0099]/10 rounded-xl text-[#7B0099]">
@@ -791,7 +791,7 @@ export default function SettingsPage() {
 
           {/* TAB 4: DEPARTMENT MANAGEMENT */}
           {activeTab === "department" && (
-            <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-6 space-y-6 animate-in slide-in-from-left duration-300">
+            <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] overflow-hidden p-6 space-y-6 animate-in slide-in-from-left duration-300">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-[#7B0099]/10 rounded-xl text-[#7B0099]">
                   <Layers className="w-5 h-5" />
@@ -891,7 +891,7 @@ export default function SettingsPage() {
           {activeTab === "system" && (
             <>
               {/* Active Environment */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[28px] p-6 space-y-5">
+              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-5">
                 <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Active Environment</h4>
                 <div className="flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
                   <div className="flex items-center gap-3">
@@ -915,7 +915,7 @@ export default function SettingsPage() {
               </Card>
 
               {/* Real-time SSE Log Stream */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[28px] p-6 space-y-3">
+              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Live SSE Stream</h4>
                   <div className="flex items-center gap-1.5">
@@ -934,7 +934,7 @@ export default function SettingsPage() {
 
               {/* Action Bar Footer equivalent */}
               {hasUnsavedChanges && (
-                <Card className="border-none shadow-sm bg-amber-500/10 border border-amber-500/25 rounded-[28px] p-5 space-y-4 animate-in zoom-in-95 duration-200">
+                <Card className="border-none shadow-sm bg-amber-500/10 border border-amber-500/25 rounded-[20px] p-5 space-y-4 animate-in zoom-in-95 duration-200">
                   <div className="flex items-start gap-2.5">
                     <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
                     <p className="text-[9px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider leading-normal">
@@ -966,7 +966,7 @@ export default function SettingsPage() {
           {activeTab === "staff" && (
             <>
               {/* Guidelines */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[28px] p-6 space-y-5">
+              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-5">
                 <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Onboarding Policy</h4>
                 <div className="space-y-3.5">
                   {[
@@ -985,7 +985,7 @@ export default function SettingsPage() {
               </Card>
 
               {/* Department Structure List */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[28px] p-6 space-y-5">
+              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-5">
                 <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">HQ Department Structure</h4>
                 <div className="grid grid-cols-1 gap-2.5 max-h-[220px] overflow-y-auto pr-1">
                   {deptStats.map((dept) => (
@@ -1003,7 +1003,7 @@ export default function SettingsPage() {
           {activeTab === "branch" && (
             <>
               {/* Network Density Mock Visualizer */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[28px] p-6 space-y-4">
+              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-4">
                 <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Regional Network Density</h4>
                 <div className="aspect-video w-full rounded-2xl bg-slate-900 border border-border/30 overflow-hidden relative flex items-center justify-center">
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/40 via-transparent to-transparent" />
@@ -1024,7 +1024,7 @@ export default function SettingsPage() {
               </Card>
 
               {/* Recent Clusters */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[28px] p-6 space-y-4">
+              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Recent Clusters</h4>
                   <button 
@@ -1054,7 +1054,7 @@ export default function SettingsPage() {
               </Card>
 
               {/* Purple Alert Note */}
-              <div className="p-5 bg-[#7B0099] border border-[#7B0099]/30 rounded-[28px] text-white space-y-2">
+              <div className="p-5 bg-[#7B0099] border border-[#7B0099]/30 rounded-[20px] text-white space-y-2">
                 <div className="flex items-center gap-2">
                   <Info className="w-4 h-4 text-purple-200" />
                   <span className="text-[10px] font-black uppercase tracking-widest text-purple-100">Registry Note</span>
@@ -1070,7 +1070,7 @@ export default function SettingsPage() {
           {activeTab === "department" && (
             <>
               {/* Current structure list */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[28px] p-6 space-y-4">
+              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-4">
                 <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Current Structure</h4>
                 <div className="space-y-2.5 max-h-[180px] overflow-y-auto pr-1">
                   {deptStats.map((dept, i) => (
@@ -1092,7 +1092,7 @@ export default function SettingsPage() {
               </Card>
 
               {/* Enterprise Quota Progress */}
-              <Card className="border-none shadow-sm bg-[#7B0099] border border-[#7B0099]/30 rounded-[28px] p-6 text-white space-y-4">
+              <Card className="border-none shadow-sm bg-[#7B0099] border border-[#7B0099]/30 rounded-[20px] p-6 text-white space-y-4">
                 <div>
                   <span className="text-[8px] font-black uppercase tracking-widest text-purple-200">Enterprise Quota</span>
                   <div className="flex items-baseline gap-1 mt-1">
@@ -1109,7 +1109,7 @@ export default function SettingsPage() {
               </Card>
 
               {/* Policy Checklist */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[28px] p-6 space-y-4">
+              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-4">
                 <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Policy Checklist</h4>
                 <div className="space-y-3">
                   {[

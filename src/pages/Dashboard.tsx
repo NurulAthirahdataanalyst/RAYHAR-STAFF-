@@ -363,7 +363,7 @@ export default function Dashboard() {
 
       {/* Who's Out Today - admin roles only */}
       {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role) && (
-        <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-[24px] sm:rounded-[32px] overflow-hidden bg-card">
+        <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] rounded-[20px] overflow-hidden bg-card">
           <CardHeader className="border-b border-border/50 pb-4 px-4 sm:px-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div className="flex items-center gap-3">
@@ -452,12 +452,9 @@ export default function Dashboard() {
                 })}
               </div>
             ) : (
-              <div className="py-8 sm:py-10 text-center">
-                <div className="bg-emerald-500/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-                </div>
-                <p className="text-sm font-black text-foreground">All Hands on Deck!</p>
-                <p className="text-xs text-muted-foreground font-medium mt-1">No employees are on leave today.</p>
+              <div className="py-4 text-center flex items-center justify-center gap-3 bg-emerald-500/5 rounded-xl border border-emerald-500/10 max-w-md mx-auto my-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span className="text-xs font-bold text-foreground">All Hands on Deck! No employees are on leave today.</span>
               </div>
             )}
           </CardContent>
@@ -465,7 +462,7 @@ export default function Dashboard() {
       )}
 
       {/* Recent Activity - responsive */}
-      <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-[24px] sm:rounded-[32px] overflow-hidden bg-card">
+      <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] rounded-[20px] overflow-hidden bg-card">
         <CardHeader className="border-b border-border/50 pb-4 px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <CardTitle className="text-base sm:text-lg font-black text-foreground uppercase tracking-wider">
@@ -518,11 +515,9 @@ export default function Dashboard() {
                 </div>
               ))
             ) : (
-              <div className="py-8 sm:py-12 text-center">
-                <div className="bg-muted w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Clock className="w-6 h-6 text-muted-foreground" />
-                </div>
-                <p className="text-sm text-muted-foreground font-bold tracking-tight">
+              <div className="py-4 text-center flex flex-col items-center justify-center gap-1.5">
+                <Clock className="w-4 h-4 text-muted-foreground/60" />
+                <p className="text-xs text-muted-foreground font-bold tracking-tight">
                   No activity recorded for this period.
                 </p>
               </div>
