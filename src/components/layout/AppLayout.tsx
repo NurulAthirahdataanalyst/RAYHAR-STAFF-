@@ -92,6 +92,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const getPageTitle = () => {
     if (location.pathname === "/") return "Dashboard";
     if (location.pathname.includes("employees")) return "Staff";
+    if (location.pathname.includes("settings")) return "CONFIGURATION";
     return location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ").toUpperCase() || "Page";
   };
 
@@ -189,11 +190,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       <span className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/")}>Home</span>
                       <ChevronRight className="w-2.5 h-2.5 text-white/40" />
                       <span className="text-white capitalize">
-                        {location.pathname === "/" ? "Dashboard" : location.pathname.includes("employees") ? "Staff" : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ")}
+                        {location.pathname === "/" 
+                          ? "Dashboard" 
+                          : location.pathname.includes("employees") 
+                            ? "Staff" 
+                            : location.pathname.includes("settings")
+                              ? "Configuration"
+                              : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ")}
                       </span>
                     </div>
                     <h2 className="text-sm font-black text-white uppercase tracking-wider leading-none">
-                      {location.pathname === "/" ? "Main Workspace" : location.pathname.includes("employees") ? "STAFF" : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ").toUpperCase()}
+                      {location.pathname === "/" 
+                        ? "Main Workspace" 
+                        : location.pathname.includes("employees") 
+                          ? "STAFF" 
+                          : location.pathname.includes("settings")
+                            ? "CONFIGURATION"
+                            : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ").toUpperCase()}
                     </h2>
                   </div>
                 </div>
