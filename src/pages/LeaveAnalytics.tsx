@@ -101,27 +101,28 @@ function StatCard({
   icon: React.ElementType; accent: string; loading: boolean;
 }) {
   return (
-    <Card className="border border-border/50 shadow-sm bg-card rounded-2xl">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-2">
+    <Card className="relative overflow-hidden border border-border/60 shadow-[0_10px_28px_rgba(0,0,0,0.05)] bg-white/90 dark:bg-card/75 rounded-[22px]">
+      <div className={`absolute left-0 top-0 bottom-0 w-1 ${accent}`} />
+      <CardContent className="p-4 sm:p-5 pl-5 sm:pl-5">
+        <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">{label}</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-muted-foreground">{label}</p>
             {loading ? (
-              <div className="h-8 w-16 bg-muted/50 rounded-lg animate-pulse" />
+              <div className="mt-2 h-7 w-16 bg-muted/50 rounded-lg animate-pulse" />
             ) : (
-              <p className={`font-black text-foreground leading-none ${
+              <p className={`mt-2 font-black text-foreground leading-none ${
                 typeof value === "string" && value.length > 12
-                  ? "text-sm sm:text-base leading-tight"
-                  : "text-3xl"
+                  ? "text-base sm:text-lg leading-tight"
+                  : "text-2xl sm:text-[28px]"
               }`}>
                 {value}
               </p>
             )}
             {sub && !loading && (
-              <p className="text-[10px] text-muted-foreground mt-2 truncate">{sub}</p>
+              <p className="mt-1.5 text-[10px] font-semibold text-muted-foreground truncate">{sub}</p>
             )}
           </div>
-          <div className={`p-2.5 rounded-xl shrink-0 ${accent}`}>
+          <div className={`h-11 w-11 rounded-2xl shrink-0 flex items-center justify-center ${accent}`}>
             <Icon className="w-4 h-4" />
           </div>
         </div>
@@ -429,10 +430,10 @@ export default function LeaveAnalytics() {
   };
 
   return (
-    <div className="space-y-5 sm:space-y-7 animate-in fade-in duration-500 pb-10">
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500 pb-10">
 
       {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-[#7B0099]/10 dark:bg-[#7B0099]/20 rounded-xl text-[#7B0099] dark:text-purple-400">
             <PieChartIcon className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -480,9 +481,9 @@ export default function LeaveAnalytics() {
       </div>
 
       {/* ── Filter Bar ── */}
-      <Card className="border-none shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] bg-card/90 backdrop-blur-md rounded-[24px] overflow-hidden">
-        <CardContent className="p-4 sm:p-5">
-          <div className="flex items-center gap-3 w-full overflow-x-auto scrollbar-none pb-1">
+      <Card className="border border-border/40 shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.16)] bg-white/90 dark:bg-card/85 backdrop-blur-md rounded-[22px] overflow-hidden">
+        <CardContent className="p-3.5 sm:p-4">
+          <div className="flex items-center gap-2.5 w-full overflow-x-auto scrollbar-none pb-0.5">
             <div className="flex items-center gap-2 shrink-0">
               <div className="p-1.5 bg-[#7B0099]/10 rounded-lg">
                 <Filter className="w-3.5 h-3.5 text-[#7B0099]" />
@@ -583,7 +584,7 @@ export default function LeaveAnalytics() {
       </Card>
 
       {/* ── Summary Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           label="Total Applications"
           value={total}
