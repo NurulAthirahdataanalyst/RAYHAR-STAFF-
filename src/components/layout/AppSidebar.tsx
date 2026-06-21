@@ -230,27 +230,23 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                     }
                   }}
                   className={`group relative flex items-center gap-4 rounded-[14px] px-4 sm:px-5 py-3 transition-all duration-300 touch-target ${
-                    isExactActive
-                      ? "bg-[#7B0099] dark:bg-[#7B0099]/20 text-white dark:text-white shadow-sm font-bold"
+                    isActive
+                      ? "bg-[#7B0099] text-white font-bold border-b-[4px] border-[#450057] dark:border-[#22002b] shadow-md hover:bg-[#850da0] hover:border-[#4d0161] active:translate-y-[2px] active:border-b-[2px]"
                       : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80"
                   } ${isCollapsed && !isMobile ? "justify-center px-0 w-12 mx-auto" : ""}`}
                 >
                   <item.icon
                     className={`h-5 w-5 shrink-0 transition-colors ${
-                      isExactActive 
-                        ? "text-white dark:text-purple-400" 
-                        : isActive 
-                          ? "text-[#7B0099] dark:text-purple-400" 
-                          : "text-sidebar-foreground/60 group-hover:text-sidebar-accent-foreground"
+                      isActive 
+                        ? "text-white dark:text-white" 
+                        : "text-sidebar-foreground/60 group-hover:text-sidebar-accent-foreground"
                     }`}
                   />
                   {(!isCollapsed || isMobile) && (
                     <span className={`text-[13.5px] whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300 ${
-                      isExactActive 
+                      isActive 
                         ? "font-bold text-white dark:text-white" 
-                        : isActive 
-                          ? "text-[#7B0099] dark:text-purple-400 font-bold" 
-                          : "text-sidebar-foreground/80 group-hover:text-sidebar-accent-foreground font-medium"
+                        : "text-sidebar-foreground/80 group-hover:text-sidebar-accent-foreground font-medium"
                     }`}>
                       {item.title}
                     </span>
@@ -288,7 +284,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                           onClick={isMobile ? onMobileClose : undefined}
                           className={`group relative flex items-center gap-3 rounded-[14px] px-3 py-2.5 text-[13px] transition-all duration-300 touch-target ${
                             isChildActive
-                              ? "bg-[#7B0099]/10 dark:bg-[#7B0099]/20 font-bold text-[#7B0099] dark:text-purple-300"
+                              ? "bg-[#7B0099]/10 dark:bg-slate-800/80 font-bold text-[#7B0099] dark:text-purple-300 border-b-[3px] border-[#7B0099]/20 dark:border-slate-900 shadow-sm active:translate-y-[1px] active:border-b-[1px]"
                               : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80"
                           }`}
                         >
@@ -324,7 +320,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                             to={child.path}
                             className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs transition-all duration-200 ${
                               isChildActive
-                                ? "bg-purple-600/15 dark:bg-[#7B0099]/20 font-bold text-[#7B0099] dark:text-purple-300"
+                                ? "bg-[#7B0099]/10 dark:bg-slate-800/80 font-bold text-[#7B0099] dark:text-purple-300 border-b-[3px] border-[#7B0099]/20 dark:border-slate-900 shadow-sm active:translate-y-[1px] active:border-b-[1px]"
                                 : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                             }`}
                           >

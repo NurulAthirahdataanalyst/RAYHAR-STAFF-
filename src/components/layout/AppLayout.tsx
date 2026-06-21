@@ -15,8 +15,9 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, ChevronRight, ChevronLeft, Settings, Menu, ClipboardCheck, Calendar, Sparkles, RefreshCw } from "lucide-react";
+import { User, LogOut, ChevronRight, ChevronLeft, Settings, Menu, ClipboardCheck, Calendar, Sparkles, RefreshCw, Sun, Moon } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { API_BASE_URL } from "../../config/api";
 import { useShiftNotifications } from "@/hooks/useShiftNotifications";
 
@@ -25,6 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { role: resolvedRole, userBranch, userDepartment, userName } = useRole();
+  const { theme, toggleTheme } = useTheme();
   useShiftNotifications();
 
   const displayName = userName || user?.full_name || user?.name || "Employee";
@@ -157,6 +159,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Refresh</span>
               </button>
+              <button 
+                onClick={toggleTheme} 
+                className="p-2 rounded-xl text-white hover:bg-white/10 transition-all duration-300 relative z-10 flex items-center justify-center border border-white/15 bg-white/5 hover:scale-105 active:scale-95"
+                title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
+              >
+                {theme === "light" ? (
+                  <Moon className="w-4 h-4 text-purple-250" />
+                ) : (
+                  <Sun className="w-4 h-4 text-yellow-300" />
+                )}
+              </button>
               <NotificationBell />
               <DropdownMenu>
                 <DropdownMenuTrigger className="outline-none relative z-10">
@@ -221,6 +234,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2">
               <button onClick={() => window.location.reload()} className="p-1.5 rounded-full hover:bg-white/10 transition-colors">
                 <RefreshCw className="w-4 h-4 text-white/80" />
+              </button>
+              <button 
+                onClick={toggleTheme} 
+                className="p-1.5 rounded-full hover:bg-white/10 transition-colors text-white/80 flex items-center justify-center"
+                title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
+              >
+                {theme === "light" ? (
+                  <Moon className="w-4 h-4 text-purple-250" />
+                ) : (
+                  <Sun className="w-4 h-4 text-yellow-300" />
+                )}
               </button>
               <NotificationBell />
               <DropdownMenu>
