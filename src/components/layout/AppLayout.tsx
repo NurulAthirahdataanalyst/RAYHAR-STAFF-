@@ -113,6 +113,91 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       >
         <div className="absolute inset-0 bg-background/60 dark:bg-background/90 pointer-events-none" />
         
+        {/* ═══════ DESKTOP TOP BAR ═══════ */}
+        <header className="hidden lg:flex sticky top-0 z-30 w-full bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] py-4 px-8 items-center justify-between shadow-md relative overflow-hidden border-b border-[#7B0099]/15">
+          <div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
+          
+          <div className="flex items-center gap-4 relative z-10 w-full justify-between">
+            <div className="flex items-center gap-4">
+              <img 
+                src={rayharLogo} 
+                className="h-8 w-auto object-contain filter brightness-110 hover:scale-105 active:scale-95 transition-all cursor-pointer" 
+                alt="Rayhar" 
+                onClick={() => navigate("/")}
+              />
+              <div className="h-6 w-[1px] bg-white/20 hidden sm:block" />
+              <div className="hidden sm:flex flex-col text-left space-y-0.5">
+                <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-purple-200/70">
+                  <span className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/")}>Home</span>
+                  <ChevronRight className="w-2.5 h-2.5 text-white/40" />
+                  <span className="text-white capitalize">
+                    {location.pathname === "/" 
+                      ? "Dashboard" 
+                      : location.pathname.includes("employees") 
+                        ? "Staff" 
+                        : location.pathname.includes("settings")
+                          ? "Configuration"
+                          : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ")}
+                  </span>
+                </div>
+                <h2 className="text-sm font-black text-white uppercase tracking-wider leading-none">
+                  {location.pathname === "/" 
+                    ? "Main Workspace" 
+                    : location.pathname.includes("employees") 
+                      ? "STAFF" 
+                      : location.pathname.includes("settings")
+                        ? "CONFIGURATION"
+                        : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ").toUpperCase()}
+                </h2>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 relative z-10">
+              <button onClick={() => window.location.reload()} className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-white/10 transition-colors text-white font-semibold text-xs border border-white/20 bg-white/5">
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
+              <NotificationBell />
+              <DropdownMenu>
+                <DropdownMenuTrigger className="outline-none relative z-10">
+                  <div className="flex items-center gap-3.5 pr-1 group cursor-pointer">
+                    <div className="text-right hidden sm:block space-y-0.5">
+                      <p className="text-xs font-black text-white group-hover:text-purple-200 transition-colors">{displayName}</p>
+                      <p className="text-[9px] font-black text-purple-200/60 uppercase tracking-widest opacity-80 leading-none">
+                        {resolvedRole.replace('_', ' ')}
+                      </p>
+                    </div>
+                    <div className="h-9 w-9 rounded-xl bg-white text-[#7B0099] flex items-center justify-center font-black text-xs shadow-lg shadow-purple-950/40 group-hover:scale-105 transition-transform border border-white/20">
+                      {displayAvatar}
+                    </div>
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 mt-3 rounded-2xl p-2 border border-white/10 bg-slate-950/95 backdrop-blur-xl shadow-2xl text-white">
+                  <DropdownMenuLabel className="px-3 py-2 border-b border-white/5">
+                    <div className="flex flex-col space-y-0.5">
+                      <p className="text-sm font-black text-white">{displayName}</p>
+                      <p className="text-[10px] text-purple-300 font-bold truncate opacity-70">{user?.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-white/10 focus:text-white cursor-pointer transition-colors text-white/90">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>My Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-white/10 focus:text-white cursor-pointer transition-colors text-white/90">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Account Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-white/5" />
+                  <DropdownMenuItem onClick={() => signOut()} className="rounded-xl px-3 py-2.5 focus:bg-red-500/20 focus:text-red-400 cursor-pointer text-red-400 font-bold transition-colors">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </header>
+
         {/* ═══════ MOBILE TOP BAR ═══════ */}
         <div className="lg:hidden sticky top-0 z-30 p-2.5 safe-area-top">
           <div className="bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] rounded-[16px] p-2.5 px-4 flex items-center justify-between shadow-lg border border-[#7B0099]/15 top-nav-bar">
@@ -174,89 +259,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             
             {/* Ruang Kerja Utama (70% - 90%) */}
             <div className="flex-1 min-w-0 space-y-4 sm:space-y-6 transition-all duration-500 ease-in-out w-full">
-              {/* Breadcrumb & Header Pantas - hidden on mobile (we have the top-bar instead) */}
-              <div className="hidden lg:flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] rounded-[20px] p-4 px-6 items-center justify-between shadow-lg relative overflow-hidden border border-[#7B0099]/15 top-nav-bar">
-                <div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
-                
-                <div className="flex items-center gap-4 relative z-10">
-                  <img 
-                    src={rayharLogo} 
-                    className="h-8 w-auto object-contain filter brightness-110 hover:scale-105 active:scale-95 transition-all cursor-pointer" 
-                    alt="Rayhar" 
-                    onClick={() => navigate("/")}
-                  />
-                  <div className="h-6 w-[1px] bg-white/20 hidden sm:block" />
-                  <div className="hidden sm:flex flex-col text-left space-y-0.5">
-                    <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-purple-200/70">
-                      <span className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/")}>Home</span>
-                      <ChevronRight className="w-2.5 h-2.5 text-white/40" />
-                      <span className="text-white capitalize">
-                        {location.pathname === "/" 
-                          ? "Dashboard" 
-                          : location.pathname.includes("employees") 
-                            ? "Staff" 
-                            : location.pathname.includes("settings")
-                              ? "Configuration"
-                              : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ")}
-                      </span>
-                    </div>
-                    <h2 className="text-sm font-black text-white uppercase tracking-wider leading-none">
-                      {location.pathname === "/" 
-                        ? "Main Workspace" 
-                        : location.pathname.includes("employees") 
-                          ? "STAFF" 
-                          : location.pathname.includes("settings")
-                            ? "CONFIGURATION"
-                            : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ").toUpperCase()}
-                    </h2>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-4 relative z-10">
-                  <button onClick={() => window.location.reload()} className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-white/10 transition-colors text-white font-semibold text-xs border border-white/20 bg-white/5">
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Refresh</span>
-                  </button>
-                  <NotificationBell />
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="outline-none relative z-10">
-                    <div className="flex items-center gap-3.5 pr-1 group cursor-pointer">
-                      <div className="text-right hidden sm:block space-y-0.5">
-                        <p className="text-xs font-black text-white group-hover:text-purple-200 transition-colors">{displayName}</p>
-                        <p className="text-[9px] font-black text-purple-200/60 uppercase tracking-widest opacity-80 leading-none">
-                          {resolvedRole.replace('_', ' ')}
-                        </p>
-                      </div>
-                      <div className="h-9 w-9 rounded-xl bg-white text-[#7B0099] flex items-center justify-center font-black text-xs shadow-lg shadow-purple-950/40 group-hover:scale-105 transition-transform border border-white/20">
-                        {displayAvatar}
-                      </div>
-                    </div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 mt-3 rounded-2xl p-2 border border-white/10 bg-slate-950/95 backdrop-blur-xl shadow-2xl text-white">
-                    <DropdownMenuLabel className="px-3 py-2 border-b border-white/5">
-                      <div className="flex flex-col space-y-0.5">
-                        <p className="text-sm font-black text-white">{displayName}</p>
-                        <p className="text-[10px] text-purple-300 font-bold truncate opacity-70">{user?.email}</p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-white/10 focus:text-white cursor-pointer transition-colors text-white/90">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>My Profile</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-white/10 focus:text-white cursor-pointer transition-colors text-white/90">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Account Settings</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-white/5" />
-                    <DropdownMenuItem onClick={() => signOut()} className="rounded-xl px-3 py-2.5 focus:bg-red-500/20 focus:text-red-400 cursor-pointer text-red-400 font-bold transition-colors">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Sign Out</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                </div>
-              </div>
-
               {children}
             </div>
 
