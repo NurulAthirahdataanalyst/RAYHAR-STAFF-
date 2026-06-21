@@ -121,13 +121,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           
           <div className="flex items-center gap-4 relative z-10 w-full justify-between">
             <div className="flex items-center gap-4">
-              <img 
-                src={rayharLogo} 
-                className="h-8 w-auto object-contain filter brightness-110 hover:scale-105 active:scale-95 transition-all cursor-pointer" 
-                alt="Rayhar" 
-                onClick={() => navigate("/")}
-              />
-              <div className="h-6 w-[1px] bg-white/20 hidden sm:block" />
               <div className="hidden sm:flex flex-col text-left space-y-0.5">
                 <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-purple-200/70">
                   <span className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/")}>Home</span>

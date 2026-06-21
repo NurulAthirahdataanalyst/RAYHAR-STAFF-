@@ -143,8 +143,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
   const sidebarContent = (isMobile: boolean) => (
     <>
-      {/* HEADER */}
-      <div className={`relative flex items-center justify-center bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] dark:bg-none dark:bg-transparent border-b border-purple-950/20 dark:border-b-white/5 border-r border-[#3d0052]/50 dark:border-r-white/10 overflow-hidden transition-all ${
+      <div className={`relative flex items-center justify-center bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] border-b border-purple-950/20 dark:border-b-white/5 overflow-hidden transition-all ${
         isCollapsed && !isMobile ? "h-20" : "h-24 px-4"
       }`}>
         {/* Mobile or Expanded Desktop view: show logo (and toggle on right for desktop) */}
@@ -170,13 +169,18 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
             )}
           </div>
         ) : (
-          /* Collapsed Desktop view: show only centered Menu button */
+          /* Collapsed Desktop view: show centered logo (fit with the box), click to expand */
           <button
             onClick={() => setIsCollapsed(false)}
-            className="flex h-10 w-10 items-center justify-center text-white/85 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300"
+            className="flex h-10 w-16 items-center justify-center hover:scale-105 active:scale-95 transition-all duration-300"
+            title="Expand sidebar"
             aria-label="Expand sidebar"
           >
-            <ChevronRight className="h-5 w-5" />
+            <img 
+              src={rayharLogo} 
+              alt="Rayhar Group" 
+              className="h-[50%] w-auto object-contain filter brightness-110" 
+            />
           </button>
         )}
 
@@ -394,7 +398,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       }`} />
 
       {/* ═══════ DESKTOP SIDEBAR (fixed on desktop) ═══════ */}
-      <aside className={`hidden lg:flex fixed top-0 left-0 z-40 h-screen flex-col border-r border-sidebar-border bg-sidebar transition-all duration-300 ease-in-out ${
+      <aside className={`hidden lg:flex fixed top-0 left-0 z-40 h-screen flex-col bg-sidebar transition-all duration-300 ease-in-out ${
         isCollapsed ? "w-20" : "w-64"
       }`}>
         {sidebarContent(false)}
