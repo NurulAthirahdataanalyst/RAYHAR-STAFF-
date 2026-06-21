@@ -120,9 +120,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
           
           <div className="flex items-center gap-4 relative z-10 w-full justify-between">
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex flex-col text-left space-y-0.5">
-                <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-purple-200/70">
+              <div className="hidden sm:flex flex-col text-left space-y-1">
+                <h2 className="text-[15px] font-black text-white uppercase tracking-wider leading-none">
+                  {location.pathname === "/" 
+                    ? "Main Workspace" 
+                    : location.pathname.includes("employees") 
+                      ? "STAFF" 
+                      : location.pathname.includes("settings")
+                        ? "CONFIGURATION"
+                        : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ").toUpperCase()}
+                </h2>
+                <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.12em] text-purple-200/70">
                   <span className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/")}>Home</span>
                   <ChevronRight className="w-2.5 h-2.5 text-white/40" />
                   <span className="text-white capitalize">
@@ -135,17 +143,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                           : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ")}
                   </span>
                 </div>
-                <h2 className="text-sm font-black text-white uppercase tracking-wider leading-none">
-                  {location.pathname === "/" 
-                    ? "Main Workspace" 
-                    : location.pathname.includes("employees") 
-                      ? "STAFF" 
-                      : location.pathname.includes("settings")
-                        ? "CONFIGURATION"
-                        : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ").toUpperCase()}
-                </h2>
               </div>
-            </div>
 
             <div className="flex items-center gap-4 relative z-10">
               <button onClick={() => window.location.reload()} className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-white/10 transition-colors text-white font-semibold text-xs border border-white/20 bg-white/5">
