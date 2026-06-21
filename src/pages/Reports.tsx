@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Download, FileBarChart, Loader2, Users, TrendingUp, History, Calendar, Filter, 
   Activity, Clock, AlertCircle, Sparkles, Plus, Check, Trash2, Building2, UserPlus, 
-  Settings2, RefreshCw, BarChart2, PieChart, Info, ShieldAlert, MapPin
+  Settings2, RefreshCw, BarChart2, PieChart, Info, ShieldAlert, MapPin, ChevronDown, FileText, FileSpreadsheet
 } from "lucide-react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -16,6 +16,12 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { API_BASE_URL } from "../config/api";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 const fallbackMonthlyData = [
   { month: "Jan", attendance: 94, leave_request: 18 },
@@ -360,6 +366,101 @@ export default function Reports() {
     toast.success("CSV Report exported successfully!");
   };
 
+  // Export PDF Handler
+  const handleExportPDF = () => {
+    if (dailyAttendance.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      toast.error("Could not open print window. Please allow popups.");
+      return;
+    }
+
+    const rowsHtml = dailyAttendance.map(r => {
+      const timeIn = formatAttendanceTime(r.clock_in);
+      const timeOut = r.clock_out ? formatAttendanceTime(r.clock_out) : "--:--";
+      const status = r.time_out ? "Clocked Out" : "Active";
+      const badgeClass = r.time_out ? "badge-ontime" : "badge-remote";
+      return `
+        <tr>
+          <td>${r.full_name}</td>
+          <td>${r.branch}</td>
+          <td>${timeIn}</td>
+          <td>${timeOut}</td>
+          <td><span class="badge ${badgeClass}">${status}</span></td>
+        </tr>
+      `;
+    }).join("");
+
+    const displayDate = selectedDate ? new Date(selectedDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : new Date().toLocaleDateString();
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Rayhar Daily Attendance Report - ${displayDate}</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; padding: 40px; }
+            h1 { color: #7B0099; margin-bottom: 5px; font-size: 24px; font-weight: 800; }
+            h2 { color: #64748b; font-size: 13px; margin-top: 0; font-weight: 600; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px; }
+            .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; padding: 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
+            .meta-item { font-size: 13px; }
+            .meta-item strong { color: #475569; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th { background: #7B0099; color: white; text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+            td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+            tr:nth-child(even) td { background: #f8fafc; }
+            .badge { padding: 4px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; display: inline-block; }
+            .badge-ontime { background: #d1fae5; color: #065f46; }
+            .badge-remote { background: #dbeafe; color: #1d4ed8; }
+            @media print {
+              body { padding: 0; }
+              button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <h1 style="margin: 0; font-size: 28px; letter-spacing: -0.5px;">RAYHAR GROUP</h1>
+              <h2 style="margin: 2px 0 24px 0; font-size: 13px; font-weight: 700; color: #64748b;">Daily Attendance Report</h2>
+            </div>
+            <button onclick="window.print();" style="background: #7B0099; color: white; border: none; padding: 10px 20px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: 12px; transition: background 0.2s;">PRINT REPORT</button>
+          </div>
+          
+          <div class="meta-grid">
+            <div class="meta-item"><strong>Date:</strong> ${displayDate}</div>
+            <div class="meta-item"><strong>Total Records:</strong> ${dailyAttendance.length}</div>
+          </div>
+
+          <table>
+            <thead>
+               <tr>
+                 <th>Employee Name</th>
+                 <th>Branch</th>
+                 <th>Time In</th>
+                 <th>Time Out</th>
+                 <th>Status</th>
+               </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+          
+          <script>
+            window.onload = function() {
+              setTimeout(function() { window.print(); }, 500);
+            }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   // Generate Report action using real data
   const triggerGenerateReport = async () => {
     setIsGenerating(true);
@@ -579,7 +680,7 @@ export default function Reports() {
         </button>
       </div>
 
-      {activeTab !== "generator" && (
+      {activeTab === "attendance" && (
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 bg-white/50 dark:bg-black/20 px-3 py-1.5 rounded-xl border border-border/50 shadow-inner">
             <input
@@ -589,14 +690,25 @@ export default function Reports() {
               onChange={(e) => setSelectedDate(e.target.value)}
             />
           </div>
-          <Button
-            variant="outline"
-            onClick={handleExport}
-            className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-5 py-5 shadow-sm active:scale-95 transition-all h-[44px]"
-          >
-            <Download className="w-3.5 h-3.5" />
-            Export CSV
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center justify-center gap-1.5 px-5 py-2.5 bg-[#f97316] hover:bg-[#ea580c] text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-md shadow-orange-500/10 active:scale-95 h-[44px]">
+                <Download className="w-3.5 h-3.5" />
+                <span>Export</span>
+                <ChevronDown className="w-3.5 h-3.5 opacity-80" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="rounded-xl border border-border bg-background p-1 shadow-lg min-w-[150px]">
+              <DropdownMenuItem onClick={handleExportPDF} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
+                <FileText className="w-3.5 h-3.5 text-red-500" />
+                <span>Export as PDF</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExport} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
+                <FileSpreadsheet className="w-3.5 h-3.5 text-green-600" />
+                <span>Export as Excel</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
     </div>

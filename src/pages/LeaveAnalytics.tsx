@@ -12,9 +12,15 @@ import {
 import {
   PieChart as PieChartIcon, Filter, Loader2,
   FileBarChart2, CheckCircle2, XCircle, TrendingUp,
-  Award, Users, Download, RefreshCw,
+  Award, Users, Download, RefreshCw, ChevronDown, FileText, FileSpreadsheet,
 } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface LeaveRecord {
@@ -105,7 +111,9 @@ function StatCard({
           {loading ? (
             <div className="h-7 w-14 mt-1 bg-muted/50 rounded-lg animate-pulse" />
           ) : (
-            <p className="text-2xl font-black text-foreground leading-none mt-0.5">{value}</p>
+            <p className={`${typeof value === "string" && value.length > 12 ? "text-xs sm:text-sm font-black leading-tight mt-1" : "text-2xl font-black leading-none mt-0.5"} text-foreground`}>
+              {value}
+            </p>
           )}
           {sub && !loading && (
             <p className="text-[10px] font-bold text-muted-foreground mt-0.5 truncate">{sub}</p>
@@ -304,6 +312,108 @@ export default function LeaveAnalytics() {
     a.click();
   };
 
+  // PDF Export
+  const handleExportPDF = () => {
+    if (filtered.length === 0) {
+      alert("No data to export");
+      return;
+    }
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      alert("Could not open print window. Please allow popups.");
+      return;
+    }
+
+    const rowsHtml = filtered.map(r => {
+      const start = r.start_date ? new Date(r.start_date).toLocaleDateString() : "-";
+      const end = r.end_date ? new Date(r.end_date).toLocaleDateString() : "-";
+      const statusClass = r.status.toLowerCase().replace(/\s+/g, '-');
+      return `
+        <tr>
+          <td>${r.full_name}</td>
+          <td>${r.branch}</td>
+          <td>${r.leave_type}</td>
+          <td>${start}</td>
+          <td>${end}</td>
+          <td style="font-weight: 700;">${r.days}</td>
+          <td><span class="badge badge-${statusClass}">${r.status}</span></td>
+        </tr>
+      `;
+    }).join("");
+
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const periodName = selectedMonth === "all" ? `Year ${selectedYear}` : `${monthNames[parseInt(selectedMonth) - 1]} ${selectedYear}`;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Rayhar Staff Leave Report - ${periodName}</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; padding: 40px; }
+            h1 { color: #7B0099; margin-bottom: 5px; font-size: 24px; font-weight: 800; }
+            h2 { color: #64748b; font-size: 13px; margin-top: 0; font-weight: 600; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px; }
+            .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; padding: 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
+            .meta-item { font-size: 13px; }
+            .meta-item strong { color: #475569; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th { background: #7B0099; color: white; text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+            td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+            tr:nth-child(even) td { background: #f8fafc; }
+            .badge { padding: 4px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; display: inline-block; }
+            .badge-approved { background: #d1fae5; color: #065f46; }
+            .badge-rejected { background: #fee2e2; color: #991b1b; }
+            .badge-pending { background: #fef3c7; color: #92400e; }
+            @media print {
+              body { padding: 0; }
+              button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <h1 style="margin: 0; font-size: 28px; letter-spacing: -0.5px;">RAYHAR GROUP</h1>
+              <h2 style="margin: 2px 0 24px 0; font-size: 13px; font-weight: 700; color: #64748b;">Staff Leave Summary Report</h2>
+            </div>
+            <button onclick="window.print();" style="background: #7B0099; color: white; border: none; padding: 10px 20px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: 12px; transition: background 0.2s;">PRINT REPORT</button>
+          </div>
+          
+          <div class="meta-grid">
+            <div class="meta-item"><strong>Report Period:</strong> ${periodName}</div>
+            <div class="meta-item"><strong>Total Records:</strong> ${filtered.length}</div>
+            <div class="meta-item"><strong>Filtered Branch:</strong> ${selectedBranch}</div>
+            <div class="meta-item"><strong>Filtered Status:</strong> ${selectedStatus}</div>
+          </div>
+
+          <table>
+            <thead>
+               <tr>
+                 <th>Employee</th>
+                 <th>Branch</th>
+                 <th>Leave Type</th>
+                 <th>Start Date</th>
+                 <th>End Date</th>
+                 <th>Days</th>
+                 <th>Status</th>
+               </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+          
+          <script>
+            window.onload = function() {
+              setTimeout(function() { window.print(); }, 500);
+            }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   // Tooltip style (shared)
   const tooltipStyle = {
     borderRadius: "16px", border: "none",
@@ -341,15 +451,25 @@ export default function LeaveAnalytics() {
             <RefreshCw className="w-3.5 h-3.5" />
             Refresh
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExport}
-            className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-4 py-2 shadow-md shadow-[#7B0099]/10"
-          >
-            <Download className="w-3.5 h-3.5" />
-            Export CSV
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-md shadow-orange-500/10 active:scale-95">
+                <Download className="w-3.5 h-3.5" />
+                <span>Export</span>
+                <ChevronDown className="w-3.5 h-3.5 opacity-80" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="rounded-xl border border-border bg-background p-1 shadow-lg min-w-[150px]">
+              <DropdownMenuItem onClick={handleExportPDF} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
+                <FileText className="w-3.5 h-3.5 text-red-500" />
+                <span>Export as PDF</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExport} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
+                <FileSpreadsheet className="w-3.5 h-3.5 text-green-600" />
+                <span>Export as Excel</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -484,7 +604,7 @@ export default function LeaveAnalytics() {
         />
         <StatCard
           label="Most Common Type"
-          value={loading ? "—" : (mostCommonType.length > 18 ? mostCommonType.slice(0, 16) + "…" : mostCommonType)}
+          value={loading ? "—" : mostCommonType}
           sub={typeDistribution[0] ? `${typeDistribution[0].value} applications` : ""}
           icon={Award}
           accent="bg-amber-500/10 text-amber-600"

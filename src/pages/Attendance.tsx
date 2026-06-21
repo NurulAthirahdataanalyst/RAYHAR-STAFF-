@@ -1,9 +1,15 @@
 import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Clock, Fingerprint, Hand, Timer, MapPin, Home, SlidersHorizontal, Download, ChevronDown, FileText } from "lucide-react";
+import { Loader2, Clock, Fingerprint, Hand, Timer, MapPin, Home, SlidersHorizontal, Download, ChevronDown, FileText, FileSpreadsheet } from "lucide-react";
 import { API_BASE_URL } from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 const formatAttendanceTime = (value: unknown) => {
   if (!value) return "--:--";
@@ -804,21 +810,25 @@ export default function Attendance() {
                 <span>Filters</span>
               </button>
               
-              <button 
-                onClick={handleExportPDF}
-                className="flex items-center justify-center gap-1 px-2.5 py-1.5 border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground text-[11px] font-black rounded-full transition-all"
-              >
-                <Download className="w-3 h-3" />
-                <span>Export PDF</span>
-              </button>
-
-              <button 
-                onClick={handleExportCSV}
-                className="flex items-center justify-center gap-1 px-2.5 py-1.5 border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground text-[11px] font-black rounded-full transition-all"
-              >
-                <Download className="w-3 h-3" />
-                <span>Export CSV</span>
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-[#f97316] hover:bg-[#ea580c] text-white text-[11px] font-black rounded-full transition-all shadow-md shadow-orange-500/10 active:scale-95">
+                    <Download className="w-3 h-3" />
+                    <span>Export</span>
+                    <ChevronDown className="w-3 h-3 opacity-80" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="rounded-xl border border-border bg-background p-1 shadow-lg min-w-[150px]">
+                  <DropdownMenuItem onClick={handleExportPDF} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
+                    <FileText className="w-3.5 h-3.5 text-red-500" />
+                    <span>Export as PDF</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportCSV} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-green-600" />
+                    <span>Export as Excel</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
