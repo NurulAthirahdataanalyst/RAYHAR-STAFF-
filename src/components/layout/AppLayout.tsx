@@ -94,7 +94,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const getPageTitle = () => {
     if (location.pathname === "/") return "Dashboard";
-    if (location.pathname.includes("employees")) return "Staff";
+    if (location.pathname.includes("employees")) return "Employee Directory";
     if (location.pathname.includes("settings")) return "CONFIGURATION";
     return location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ").toUpperCase() || "Page";
   };
@@ -125,7 +125,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   {location.pathname === "/" 
                     ? "Main Workspace" 
                     : location.pathname.includes("employees") 
-                      ? "STAFF" 
+                      ? "EMPLOYEE DIRECTORY" 
                       : location.pathname.includes("settings")
                         ? "CONFIGURATION"
                         : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ").toUpperCase()}
@@ -137,7 +137,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     {location.pathname === "/" 
                       ? "Dashboard" 
                       : location.pathname.includes("employees") 
-                        ? "Staff" 
+                        ? "Employee Directory" 
                         : location.pathname.includes("settings")
                           ? "Configuration"
                           : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ")}
