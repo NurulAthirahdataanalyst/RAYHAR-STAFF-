@@ -53,7 +53,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   }, [isCollapsed]);
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
     "Leave Management": true,
-    "Master": true
+    "Administration": true
   });
 
   // Close mobile drawer on route change
@@ -99,27 +99,26 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       path: "/leave",
       roles: ALL_ROLES,
       children: [
-        { title: "Apply for Leave", icon: FilePlus2, path: "/leave/apply", roles: ALL_ROLES },
-        { title: "Leave Form Application", icon: FileSearch, path: "/leave/forms", roles: ALL_ROLES },
+        { title: "Leave Application", icon: FilePlus2, path: "/leave/apply", roles: ALL_ROLES },
+        { title: "My Leave Requests", icon: FileSearch, path: "/leave/forms", roles: ALL_ROLES },
         { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", roles: [...ADMIN_ROLES] },
-
       ],
     },
-    { title: "Staff", icon: Users, path: "/employees", roles: ADMIN_ROLES },
+    { title: "Employee Directory", icon: Users, path: "/employees", roles: ADMIN_ROLES },
     {
-      title: "Master",
+      title: "Administration",
       icon: Users,
       path: "/master",
       roles: ["hr_admin"],
       children: [
-        { title: "Department", icon: Building2, path: "/master/department", roles: ["hr_admin"] },
-        { title: "User", icon: Users, path: "/employees", roles: ["hr_admin"] },
+        { title: "Departments", icon: Building2, path: "/master/department", roles: ["hr_admin"] },
+        { title: "User Management", icon: Users, path: "/employees", roles: ["hr_admin"] },
       ],
     },
     { title: "Branches", icon: Building2, path: "/branches", roles: ["hr_admin", "managing_director", "finance_manager"] },
-    { title: "Analytical", icon: BarChart3, path: "/reports", roles: ["hr_admin"] },
+    { title: "Reports & Analytics", icon: BarChart3, path: "/reports", roles: ["hr_admin"] },
     // All other roles (employees, managers, HOD, etc.) get the Employee Performance Insights page
-    { title: "Analytical", icon: BarChart3, path: "/analytics", roles: ALL_ROLES.filter(r => r !== "hr_admin") },
+    { title: "Reports & Analytics", icon: BarChart3, path: "/analytics", roles: ALL_ROLES.filter(r => r !== "hr_admin") },
     { title: "Configuration", icon: Settings, path: "/settings", roles: ["hr_admin"] },
   ];
 
@@ -376,13 +375,13 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         <Button
           variant="ghost"
           onClick={() => signOut()}
-          title={isCollapsed && !isMobile ? "Log Out" : ""}
+          title={isCollapsed && !isMobile ? "Sign Out" : ""}
           className={`group flex w-full justify-start gap-4 rounded-[16px] px-4 sm:px-5 py-6 text-sidebar-foreground/85 transition-all hover:bg-red-500/10 dark:hover:bg-red-950/20 hover:text-red-600 dark:hover:text-red-400 touch-target ${
             isCollapsed && !isMobile ? "justify-center px-0 w-12 mx-auto" : ""
           }`}
         >
           <LogOut className="h-5 w-5 shrink-0 transition-transform group-hover:-translate-x-1" />
-          {(!isCollapsed || isMobile) && <span className="text-sm font-bold whitespace-nowrap animate-in fade-in duration-300">Log Out System</span>}
+          {(!isCollapsed || isMobile) && <span className="text-sm font-bold whitespace-nowrap animate-in fade-in duration-300">Sign Out</span>}
         </Button>
       </div>
     </>
