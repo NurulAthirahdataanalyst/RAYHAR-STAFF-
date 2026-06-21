@@ -375,7 +375,7 @@ export default function SettingsPage() {
       </div>
 
       {/* HORIZONTAL NAVIGATION TABS - PILL REDESIGN */}
-      <div className="flex bg-[#7B0099] p-1.5 rounded-2xl md:rounded-full shadow-lg overflow-x-auto gap-2 scrollbar-none items-center">
+      <div className="inline-flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] p-1.5 rounded-2xl md:rounded-full shadow-lg overflow-x-auto gap-2 scrollbar-none items-center w-full lg:w-fit max-w-full border border-[#7B0099]/20 relative z-10">
         {[
           { id: "system", label: "System Configuration", icon: SlidersHorizontal },
           { id: "staff", label: "Personnel Management", icon: UserPlus },
@@ -390,11 +390,11 @@ export default function SettingsPage() {
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center gap-2 py-2.5 px-6 font-black text-[10px] uppercase tracking-widest whitespace-nowrap rounded-full transition-all duration-300 ${
                 isActive 
-                  ? "bg-white text-[#7B0099] shadow-md scale-100 animate-in zoom-in-95 duration-200" 
+                  ? "bg-white text-[#7B0099] border-b-[3px] border-[#d4b0eb] shadow-md active:translate-y-[1px] active:border-b-[1px]" 
                   : "text-white/80 hover:text-white hover:bg-white/10"
               }`}
             >
-              <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? "text-[#7B0099]" : "text-white/80"}`} />
+              <Icon className={`w-3.5 h-3.5 shrink-0 transition-colors ${isActive ? "text-[#7B0099]" : "text-white/80"}`} />
               <span>{tab.label}</span>
             </button>
           );

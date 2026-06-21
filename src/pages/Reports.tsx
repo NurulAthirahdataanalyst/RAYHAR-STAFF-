@@ -545,7 +545,7 @@ export default function Reports() {
           onClick={() => setActiveTab("attendance")}
           className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
             activeTab === "attendance"
-              ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
+              ? "bg-white text-[#7B0099] border-b-[3px] border-[#d4b0eb] shadow-md active:translate-y-[1px] active:border-b-[1px]"
               : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
           }`}
         >
@@ -558,7 +558,7 @@ export default function Reports() {
             onClick={() => setActiveTab("leave_monitoring")}
             className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
               activeTab === "leave_monitoring"
-                ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
+                ? "bg-white text-[#7B0099] border-b-[3px] border-[#d4b0eb] shadow-md active:translate-y-[1px] active:border-b-[1px]"
                 : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
             }`}
           >
@@ -570,7 +570,7 @@ export default function Reports() {
           onClick={() => setActiveTab("generator")}
           className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
             activeTab === "generator"
-              ? "bg-white text-[#7B0099] shadow-md scale-[1.01]"
+              ? "bg-white text-[#7B0099] border-b-[3px] border-[#d4b0eb] shadow-md active:translate-y-[1px] active:border-b-[1px]"
               : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
           }`}
         >
