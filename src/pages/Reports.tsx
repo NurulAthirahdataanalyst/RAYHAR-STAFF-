@@ -794,7 +794,7 @@ export default function Reports() {
           </div>
 
           {/* TODAY'S ATTENDANCE LIVE PULSE */}
-          <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden">
+          <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px]">
             <div className="bg-[#7B0099]/5 px-6 py-6 border-b border-border/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-white/50 dark:bg-black/20 rounded-xl">
@@ -1308,7 +1308,7 @@ export default function Reports() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
             
             {/* Generator Settings Form */}
-            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden lg:col-span-2 p-6 space-y-6">
+            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] lg:col-span-2 p-6 space-y-6">
               <div>
                 <h3 className="text-base sm:text-lg font-black text-foreground uppercase tracking-tight">Configure Analytical Report</h3>
                 <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider opacity-60">Generate targeted PDF/CSV datasets compiled directly from live database logs</p>
