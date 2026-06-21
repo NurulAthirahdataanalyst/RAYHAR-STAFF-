@@ -30,7 +30,7 @@ import MasterPlaceholder from "./pages/master/Placeholder";
 import Department from "./pages/master/Department";
 import DepartmentDetails from "./pages/master/DepartmentDetails";
 import MasterOverview from "./pages/master/Overview";
-
+import AttendanceDashboard from "./pages/hr-analytics/AttendanceDashboard";
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
@@ -72,6 +72,8 @@ function ProtectedRoutes() {
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/analytics" element={<EmployeeAnalytics />} />
+          <Route path="/hr-analytics/attendance" element={<AttendanceDashboard />} />
+          <Route path="/hr-analytics/leave" element={<LeaveAnalytics />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/calendar" element={<CalendarPage />} />
           
