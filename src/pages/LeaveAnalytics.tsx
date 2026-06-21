@@ -101,23 +101,29 @@ function StatCard({
   icon: React.ElementType; accent: string; loading: boolean;
 }) {
   return (
-    <Card className="border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[24px] overflow-hidden">
-      <CardContent className="p-5 flex items-center gap-4">
-        <div className={`p-3 rounded-2xl shrink-0 ${accent}`}>
-          <Icon className="w-5 h-5" />
-        </div>
-        <div className="min-w-0">
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-70">{label}</p>
-          {loading ? (
-            <div className="h-7 w-14 mt-1 bg-muted/50 rounded-lg animate-pulse" />
-          ) : (
-            <p className={`${typeof value === "string" && value.length > 12 ? "text-xs sm:text-sm font-black leading-tight mt-1" : "text-2xl font-black leading-none mt-0.5"} text-foreground`}>
-              {value}
-            </p>
-          )}
-          {sub && !loading && (
-            <p className="text-[10px] font-bold text-muted-foreground mt-0.5 truncate">{sub}</p>
-          )}
+    <Card className="border border-border/50 shadow-sm bg-card rounded-2xl">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">{label}</p>
+            {loading ? (
+              <div className="h-8 w-16 bg-muted/50 rounded-lg animate-pulse" />
+            ) : (
+              <p className={`font-black text-foreground leading-none ${
+                typeof value === "string" && value.length > 12
+                  ? "text-sm sm:text-base leading-tight"
+                  : "text-3xl"
+              }`}>
+                {value}
+              </p>
+            )}
+            {sub && !loading && (
+              <p className="text-[10px] text-muted-foreground mt-2 truncate">{sub}</p>
+            )}
+          </div>
+          <div className={`p-2.5 rounded-xl shrink-0 ${accent}`}>
+            <Icon className="w-4 h-4" />
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -577,7 +583,7 @@ export default function LeaveAnalytics() {
       </Card>
 
       {/* ── Summary Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           label="Total Applications"
           value={total}
@@ -613,7 +619,7 @@ export default function LeaveAnalytics() {
       </div>
 
       {/* ── Row 2: Pie Chart + Approval Status ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
 
         {/* Pie Chart */}
         <Card className="lg:col-span-2 border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
@@ -770,7 +776,7 @@ export default function LeaveAnalytics() {
       </div>
 
       {/* ── Row 3: Leave Balance Usage + Monthly Trend ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
 
         {/* Leave Balance Usage */}
         <Card className="lg:col-span-2 border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">

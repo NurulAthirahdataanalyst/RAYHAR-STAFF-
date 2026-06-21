@@ -92,12 +92,80 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   ];
   const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
 
-  const getPageTitle = () => {
-    if (location.pathname === "/") return "Dashboard";
-    if (location.pathname.includes("employees")) return "Employee Directory";
-    if (location.pathname.includes("settings")) return "CONFIGURATION";
-    return location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ").toUpperCase() || "Page";
+  const getRouteLabel = (pathname: string) => {
+    if (pathname === "/") return "DASHBOARD";
+    if (pathname.startsWith("/leave")) return "LEAVE MANAGEMENT";
+    if (pathname.includes("employees")) return "EMPLOYEE DIRECTORY";
+    if (pathname.includes("settings")) return "CONFIGURATION";
+    if (pathname.includes("reports")) return "REPORTS & ANALYTICS";
+    if (pathname.includes("analytics")) return "REPORTS & ANALYTICS";
+    if (pathname.includes("calendar")) return "WORK CALENDAR";
+    if (pathname.includes("attendance")) return "ATTENDANCE";
+    if (pathname.includes("branches")) return "BRANCHES";
+    if (pathname.includes("profile")) return "PROFILE";
+    if (pathname.includes("master")) return "ADMINISTRATION";
+    const lastSegment = pathname.split("/").filter(Boolean).pop();
+    return lastSegment ? lastSegment.replace(/-/g, " ").toUpperCase() : "PAGE";
   };
+
+  const getBreadcrumb = () => {
+    const pathname = location.pathname;
+
+    if (pathname === "/") {
+      return ["HOME", "DASHBOARD"];
+    }
+
+    if (pathname === "/leave") {
+      return ["HOME", "LEAVE MANAGEMENT"];
+    }
+
+    if (pathname.startsWith("/leave/")) {
+      const leavePageLabels: Record<string, string> = {
+        "/leave/apply": "LEAVE APPLICATION",
+        "/leave/forms": "MY LEAVE REQUESTS",
+        "/leave/admin": "LEAVE APPROVAL",
+      };
+
+      return ["HOME", "LEAVE MANAGEMENT", leavePageLabels[pathname] || "PAGE"];
+    }
+
+    if (pathname.includes("employees")) {
+      return ["HOME", "EMPLOYEE DIRECTORY"];
+    }
+
+    if (pathname.includes("settings")) {
+      return ["HOME", "CONFIGURATION"];
+    }
+
+    if (pathname.includes("reports") || pathname.includes("analytics")) {
+      return ["HOME", "REPORTS & ANALYTICS"];
+    }
+
+    if (pathname.includes("calendar")) {
+      return ["HOME", "WORK CALENDAR"];
+    }
+
+    if (pathname.includes("attendance")) {
+      return ["HOME", "ATTENDANCE"];
+    }
+
+    if (pathname.includes("branches")) {
+      return ["HOME", "BRANCHES"];
+    }
+
+    if (pathname.includes("profile")) {
+      return ["HOME", "PROFILE"];
+    }
+
+    if (pathname.includes("master")) {
+      return ["HOME", "ADMINISTRATION"];
+    }
+
+    return ["HOME", getRouteLabel(pathname)];
+  };
+
+  const pageTitle = getRouteLabel(location.pathname);
+  const breadcrumb = getBreadcrumb();
 
   return (
     <div className="flex min-h-screen bg-background transition-colors duration-300 max-w-full overflow-x-hidden">
@@ -122,26 +190,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-4 relative z-10 w-full justify-between">
               <div className="hidden sm:flex flex-col text-left space-y-1">
                 <h2 className="text-[15px] font-black text-white uppercase tracking-wider leading-none">
-                  {location.pathname === "/" 
-                    ? "Main Workspace" 
-                    : location.pathname.includes("employees") 
-                      ? "EMPLOYEE DIRECTORY" 
-                      : location.pathname.includes("settings")
-                        ? "CONFIGURATION"
-                        : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ").toUpperCase()}
+                  {pageTitle}
                 </h2>
                 <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.12em] text-purple-200/70">
-                  <span className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/")}>Home</span>
-                  <ChevronRight className="w-2.5 h-2.5 text-white/40" />
-                  <span className="text-white capitalize">
-                    {location.pathname === "/" 
-                      ? "Dashboard" 
-                      : location.pathname.includes("employees") 
-                        ? "Employee Directory" 
-                        : location.pathname.includes("settings")
-                          ? "Configuration"
-                          : location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ")}
-                  </span>
+                  {breadcrumb.map((segment, index) => (
+                    <div key={`${segment}-${index}`} className="flex items-center gap-1">
+                      <span
+                        className={`transition-colors ${index === 0 ? "hover:text-white cursor-pointer" : "text-white"}`}
+                        onClick={index === 0 ? () => navigate("/") : undefined}
+                      >
+                        {segment}
+                      </span>
+                      {index < breadcrumb.length - 1 && <ChevronRight className="w-2.5 h-2.5 text-white/40" />}
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -217,7 +279,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <img src={rayharLogo} className="h-6 w-auto object-contain filter brightness-110" alt="Rayhar" />
                 <div className="h-4 w-[1px] bg-white/20" />
                 <div>
-                  <h2 className="text-[11px] font-black text-white tracking-wider leading-none uppercase">{getPageTitle()}</h2>
+                  <h2 className="text-[11px] font-black text-white tracking-wider leading-none uppercase">{pageTitle}</h2>
                 </div>
               </div>
             </div>
