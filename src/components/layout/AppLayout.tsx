@@ -330,20 +330,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* ═══════ MAIN CONTENT ═══════ */}
-        <div className="relative p-3 sm:p-4 lg:p-5 max-w-[1400px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="relative p-2.5 sm:p-3.5 lg:p-4 max-w-[1500px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
           
-          <div className="flex flex-col lg:flex-row gap-4 lg:gap-5 items-start relative w-full">
+          <div className="flex flex-col lg:flex-row gap-3.5 lg:gap-4 items-start relative w-full">
             
             {/* Ruang Kerja Utama (70% - 90%) */}
-            <div className="flex-1 min-w-0 space-y-3 sm:space-y-5 transition-all duration-500 ease-in-out w-full">
+            <div className="flex-1 min-w-0 space-y-3 sm:space-y-4 transition-all duration-500 ease-in-out w-full">
               {children}
             </div>
 
             {/* Panel Sisi (Collapsible Sidebar - 30% or slim) */}
             {resolvedRole !== "employee" && (
               <aside 
-                className={`hidden lg:flex flex-col shrink-0 transition-all duration-500 ease-in-out relative border-l border-border/20 pl-3 py-1 sticky top-5 max-h-[calc(100vh-40px)] overflow-visible ${
-                  sidebarCollapsed ? "w-[72px]" : "w-[310px]"
+                className={`hidden lg:flex flex-col shrink-0 transition-all duration-500 ease-in-out relative border-l border-border/20 pl-3 py-1 sticky top-4 max-h-[calc(100vh-32px)] overflow-visible ${
+                  sidebarCollapsed ? "w-[64px]" : "w-[280px]"
                 }`}
               >
               {/* Floating Toggle Button on Left Boundary */}
@@ -356,12 +356,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </button>
 
               {/* Scrollable Panel content */}
-              <div className="flex-1 w-full overflow-y-auto overflow-x-visible scrollbar-none flex flex-col gap-4 items-center lg:items-stretch py-1 pr-0.5">
+              <div className="flex-1 w-full overflow-y-auto overflow-x-visible scrollbar-none flex flex-col gap-3.5 items-center lg:items-stretch py-1 pr-0.5">
                 {!sidebarCollapsed ? (
                   <>
                     {/* ═══════ PENDING APPROVALS ═══════ */}
                     {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(resolvedRole) && (
-                      <div className="bg-[#7B0099] p-5 rounded-[20px] shadow-lg text-white relative overflow-hidden group w-full transition-all duration-500">
+                      <div className="bg-[#7B0099] p-4 rounded-[20px] shadow-lg text-white relative overflow-hidden group w-full transition-all duration-500">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
                         
                         <div className="flex items-center justify-between mb-3">
@@ -392,8 +392,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     {["hr_admin", "managing_director"].includes(resolvedRole) ? (
                       <PresenceFeed isCollapsed={false} />
                     ) : location.pathname !== "/calendar" ? (
-                      <div className="bg-card/85 dark:bg-card/40 backdrop-blur-md p-5 rounded-[20px] shadow-xl border border-white/40 dark:border-white/10 w-full">
-                        <div className="flex items-center justify-between mb-3">
+                      <div className="bg-card/85 dark:bg-card/40 backdrop-blur-md p-4 rounded-[20px] shadow-xl border border-white/40 dark:border-white/10 w-full">
+                        <div className="flex items-center justify-between mb-2.5">
                           <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground">
                             Calendar
                           </h3>
@@ -401,7 +401,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                             {monthName} {calendarYear}
                           </span>
                         </div>
-                        <div className="mb-4 rounded-[16px] bg-white/45 dark:bg-black/20 p-3 border border-white/30 dark:border-white/5">
+                        <div className="mb-3 rounded-[16px] bg-white/45 dark:bg-black/20 p-3 border border-white/30 dark:border-white/5">
                           <div className="grid grid-cols-7 gap-1 mb-2">
                             {weekdays.map((day, index) => (
                               <span key={`${day}-${index}`} className="text-center text-[10px] font-black text-muted-foreground/60">
@@ -433,7 +433,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                             })}
                           </div>
                         </div>
-                        <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">
+                        <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-2.5">
                           Upcoming Holidays
                         </h3>
                         <div className="space-y-4">
@@ -453,7 +453,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </>
                 ) : (
                   /* Unified Collapsed Dock */
-                  <div className="bg-white/30 dark:bg-black/30 backdrop-blur-md border border-white/20 dark:border-white/5 rounded-[20px] p-2 flex flex-col items-center gap-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)] w-full py-5">
+                  <div className="bg-white/30 dark:bg-black/30 backdrop-blur-md border border-white/20 dark:border-white/5 rounded-[20px] p-2 flex flex-col items-center gap-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.06)] w-full py-4">
                     {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(resolvedRole) && (
                       <div 
                         onClick={() => navigate("/leave/admin")}
