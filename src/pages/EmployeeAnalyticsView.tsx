@@ -369,10 +369,10 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   return (
     <div className="space-y-4 animate-in fade-in">
       {/* ROW 1: Key Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Attendance Rate */}
         <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card">
-          <CardContent className="p-5 flex items-center gap-4">
+          <CardContent className="p-4 flex items-center gap-3">
             <div className="w-12 h-12 rounded-[14px] bg-[#7B0099]/10 flex items-center justify-center shrink-0">
               <CalendarCheck2 className="w-6 h-6 text-[#7B0099]" />
             </div>
@@ -402,7 +402,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
         {/* Average Work Hours */}
         <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card">
-          <CardContent className="p-5 flex items-center gap-4">
+          <CardContent className="p-4 flex items-center gap-3">
             <div className="w-12 h-12 rounded-[14px] bg-amber-500/10 flex items-center justify-center shrink-0">
               <Clock className="w-6 h-6 text-amber-500" />
             </div>
@@ -433,7 +433,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
         {/* Leave Balance */}
         <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card">
-          <CardContent className="p-5 flex items-center gap-4">
+          <CardContent className="p-4 flex items-center gap-3">
             <div className="w-12 h-12 rounded-[14px] bg-emerald-500/10 flex items-center justify-center shrink-0">
               <Briefcase className="w-6 h-6 text-emerald-500" />
             </div>
@@ -453,7 +453,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
         {/* Attendance Rank */}
         <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card">
-          <CardContent className="p-5 flex items-center gap-4">
+          <CardContent className="p-4 flex items-center gap-3">
             <div className="w-12 h-12 rounded-[14px] bg-blue-500/10 flex items-center justify-center shrink-0">
               <Trophy className="w-6 h-6 text-blue-500" />
             </div>
@@ -475,21 +475,21 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       </div>
 
       {/* ROW 2: Middle Section (Summary, Leave, Calendar) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         
         {/* Attendance Summary */}
         <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card h-full flex flex-col">
-          <CardContent className="p-5 flex-1 flex flex-col">
-            <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground mb-4">ATTENDANCE SUMMARY ({monthNameFull})</h3>
+          <CardContent className="p-4 flex-1 flex flex-col">
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground mb-3">ATTENDANCE SUMMARY ({monthNameFull})</h3>
             
-            <div className="flex-1 flex flex-col justify-center">
+            <div className="flex-1 flex flex-col justify-start">
               {/* Summary mini cards */}
-              <div className="grid grid-cols-2 gap-3 mb-5">
-                <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
+              <div className="grid grid-cols-2 gap-2.5 mb-3.5">
+                <div className="p-2.5 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
                   <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">WORKING DAYS</span>
                   <span className="text-sm font-black text-foreground mt-0.5">{totalWorkingDaysPassed} Days</span>
                 </div>
-                <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
+                <div className="p-2.5 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
                   <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">PUNCTUALITY</span>
                   <span className="text-sm font-black text-foreground mt-0.5">
                     {presentDays > 0 ? Math.round(((presentDays - lateArrivals) / presentDays) * 100) : 100}%
@@ -497,14 +497,14 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-2.5">
                 {[
                   { label: "Present", value: presentDays - lateArrivals, color: "bg-emerald-500" },
                   { label: "Late", value: lateArrivals, color: "bg-amber-400" },
                   { label: "Leave", value: leaveDaysCount, color: "bg-blue-500" },
                   { label: "Absent", value: absentDays, color: "bg-rose-500" }
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-4">
+                  <div key={i} className="flex items-center gap-3">
                     <span className="text-xs font-bold text-muted-foreground w-14 shrink-0">{item.label}</span>
                     <div className="flex-1 h-2 bg-muted/40 rounded-full overflow-hidden">
                       <div 
@@ -521,7 +521,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               </div>
 
               {/* Axis marks at the bottom of the bars */}
-              <div className="mt-4 flex justify-between px-[72px] text-[10px] font-bold text-muted-foreground/50">
+              <div className="mt-3 flex justify-between px-[64px] text-[10px] font-bold text-muted-foreground/50">
                 <span>0</span>
                 <span>10</span>
                 <span>20</span>
@@ -533,16 +533,16 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
         {/* Leave Utilization (PIE CHART - AS REQUESTED) */}
         <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card h-full flex flex-col">
-          <CardContent className="p-5 flex-1 flex flex-col">
-            <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground mb-4">LEAVE UTILIZATION ({monthNameFull})</h3>
+          <CardContent className="p-4 flex-1 flex flex-col">
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground mb-3">LEAVE UTILIZATION ({monthNameFull})</h3>
             
             {/* Summary mini cards */}
-            <div className="grid grid-cols-2 gap-3 mb-5">
-              <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
+            <div className="grid grid-cols-2 gap-2.5 mb-3.5">
+              <div className="p-2.5 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
                 <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">APPROVED LEAVES</span>
                 <span className="text-sm font-black text-foreground mt-0.5">{mLeaves.length} {mLeaves.length === 1 ? 'Request' : 'Requests'}</span>
               </div>
-              <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
+              <div className="p-2.5 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
                 <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">REMAINING BALANCE</span>
                 <span className="text-sm font-black text-foreground mt-0.5">{leaveBalanceRemaining} Days</span>
               </div>
@@ -555,7 +555,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               </div>
             ) : (
               <div className="flex-1 flex items-center justify-center my-auto">
-                <div className="w-[120px] h-[120px] shrink-0">
+                <div className="w-[112px] h-[112px] shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie 
@@ -575,7 +575,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="ml-8 flex-1 space-y-3">
+                <div className="ml-6 flex-1 space-y-2.5">
                   {monthPieData.map((d, i) => (
                     <div key={d.name} className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
@@ -646,7 +646,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       </div>
       
       {/* ROW 3: Bottom Section (Clock In, Trend, Score) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         
         {/* Clock In Analysis */}
         <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card">
