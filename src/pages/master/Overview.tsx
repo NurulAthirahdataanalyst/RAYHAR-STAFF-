@@ -164,7 +164,7 @@ export default function MasterOverview() {
             variant="outline"
             size="sm"
             onClick={fetchData}
-            className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-4 py-4.5 shadow-sm active:scale-95 transition-all"
+            className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-4 py-4 shadow-sm active:scale-95 transition-all"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Sync Hub

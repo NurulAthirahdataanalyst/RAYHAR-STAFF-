@@ -35,13 +35,13 @@ export default function StatCard({
   // Render for Circular Gauge (Attendance Rate)
   if (variant === "gauge") {
     return (
-      <div className={`rounded-[16px] p-4 sm:p-6 flex items-center justify-between transition-all duration-300 hover:shadow-md ${currentStyle}`}>
+      <div className={`rounded-[18px] p-4 sm:p-5 flex items-center justify-between transition-all duration-300 hover:shadow-md ${currentStyle}`}>
         <div className="min-w-0">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-1 whitespace-normal break-words leading-tight">{title}</p>
-          <p className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">{value}</p>
-          {subtitle && <p className="text-xs text-muted-foreground mt-1 font-medium truncate">{subtitle}</p>}
+          <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.22em] whitespace-normal break-words leading-tight">{title}</p>
+          <p className="mt-1.5 text-2xl sm:text-[28px] font-black text-foreground tracking-tight">{value}</p>
+          {subtitle && <p className="text-[10px] text-muted-foreground mt-1 font-semibold truncate">{subtitle}</p>}
         </div>
-        <div className="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center shrink-0 ml-2">
+        <div className="relative w-14 h-14 sm:w-14 sm:h-14 flex items-center justify-center shrink-0 ml-2">
           <svg className="w-full h-full transform -rotate-90">
             <circle cx="50%" cy="50%" r="42%" stroke="currentColor" strokeWidth="5" fill="transparent" className="text-muted/50 dark:text-muted" />
             <circle cx="50%" cy="50%" r="42%" stroke="currentColor" strokeWidth="5" fill="transparent" 
@@ -51,21 +51,21 @@ export default function StatCard({
               strokeLinecap="round"
             />
           </svg>
-          <span className="absolute text-[11px] font-black text-foreground">{progress}%</span>
+          <span className="absolute text-[10px] font-black text-foreground">{progress}%</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`rounded-[16px] p-4 sm:p-6 transition-all duration-300 hover:translate-y-[-4px] ${currentStyle}`}>
+    <div className={`rounded-[18px] p-4 sm:p-5 transition-all duration-300 hover:translate-y-[-3px] ${currentStyle}`}>
       <div className="flex items-start justify-between">
-        <div className="space-y-2 min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground whitespace-normal break-words leading-tight">
+        <div className="space-y-1.5 min-w-0 flex-1">
+          <p className="text-[9px] font-black uppercase tracking-[0.22em] text-muted-foreground whitespace-normal break-words leading-tight">
             {title}
           </p>
           
-          <p className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+          <p className="text-2xl sm:text-[28px] font-black tracking-tight text-foreground">
             {value}
           </p>
 
@@ -79,7 +79,7 @@ export default function StatCard({
                 </span>
               )}
               {subtitle && (
-                <p className="text-[11px] font-bold truncate text-muted-foreground">
+                <p className="text-[10px] font-semibold truncate text-muted-foreground">
                   {subtitle}
                 </p>
               )}
@@ -87,14 +87,14 @@ export default function StatCard({
           )}
         </div>
 
-        <div className={`p-2.5 sm:p-3 rounded-xl transition-colors duration-300 shrink-0 ml-2 ${
+        <div className={`p-2.5 rounded-2xl transition-colors duration-300 shrink-0 ml-2 ${
           variant === 'maroon' ? 'bg-rose-50 dark:bg-rose-950/30' : 
           variant === 'gold' ? 'bg-amber-100 dark:bg-amber-900/20' : 
           variant === 'success' ? 'bg-emerald-50 dark:bg-emerald-950/30' :
           variant === 'warning' ? 'bg-amber-50 dark:bg-amber-950/30' : 
           variant === 'purple' ? 'bg-purple-50 dark:bg-purple-950/30' : 'bg-muted/50 dark:bg-muted'
         }`}>
-          <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${
+          <Icon className={`w-5 h-5 ${
             variant === 'maroon' ? 'text-rose-600 dark:text-rose-400' : 
             variant === 'gold' ? 'text-amber-600 dark:text-amber-400' : 
             variant === 'success' ? 'text-emerald-600 dark:text-emerald-400' :

@@ -118,9 +118,9 @@ export default function LeaveOverview() {
   }, [filteredLeaveRequests]);
 
   return (
-    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-3 sm:space-y-5 animate-in fade-in duration-500">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-[#7B0099]/10 dark:bg-[#7B0099]/20 rounded-xl text-[#7B0099] dark:text-purple-400">
             <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -132,9 +132,9 @@ export default function LeaveOverview() {
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[90px] h-11 text-[11px] font-black uppercase tracking-widest rounded-xl border border-[#7B0099]/20 bg-card">
+            <SelectTrigger className="w-[90px] h-10 text-[10px] font-black uppercase tracking-widest rounded-xl border border-[#7B0099]/20 bg-card">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -145,7 +145,7 @@ export default function LeaveOverview() {
           </Select>
           <Button
             onClick={() => navigate("/leave/apply")}
-            className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-6 py-5 shadow-lg shadow-[#7B0099]/20 transition-all active:scale-95"
+            className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-5 py-4 shadow-lg shadow-[#7B0099]/20 transition-all active:scale-95"
           >
             <Plus className="w-4 h-4" />
             Apply for Leave
@@ -154,18 +154,19 @@ export default function LeaveOverview() {
       </div>
 
       {/* Leave Balance Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         {leaveBalances.map((item) => (
-          <Card key={item.label} className="border-none shadow-[0_10px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] overflow-hidden group hover:shadow-xl transition-all duration-300">
-            <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+          <Card key={item.label} className="relative overflow-hidden border border-border/40 shadow-[0_10px_28px_rgba(0,0,0,0.04)] dark:shadow-[0_10px_28px_rgba(0,0,0,0.18)] bg-white/90 dark:bg-card/80 backdrop-blur-md rounded-[20px] group hover:shadow-xl transition-all duration-300">
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#7B0099]" />
+            <CardContent className="p-4 sm:p-5 space-y-2.5 sm:space-y-3 pl-5 sm:pl-5">
               <div className="flex items-center justify-between">
-                <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-[#7B0099] dark:text-purple-400 truncate">{item.label}</p>
+                <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.22em] text-[#7B0099] dark:text-purple-400 truncate">{item.label}</p>
                 <div className="w-6 h-6 rounded-full bg-[#7B0099]/5 flex items-center justify-center">
                   <Calendar className="w-3 h-3 text-[#7B0099]/40" />
                 </div>
               </div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-3xl sm:text-4xl font-black text-foreground group-hover:scale-110 transition-transform origin-left duration-500">{item.used}</span>
+                <span className="text-3xl sm:text-[34px] font-black text-foreground group-hover:scale-110 transition-transform origin-left duration-500">{item.used}</span>
                 <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase">
                   {item.total ? `/ ${item.total} DAYS` : "USED"}
                 </span>
@@ -195,8 +196,8 @@ export default function LeaveOverview() {
       </div>
 
       {/* Leave Requests Table */}
-      <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
-        <CardHeader className="border-b border-border/50 pb-4 px-4 sm:px-6">
+      <Card className="border-none shadow-[0_18px_42px_rgba(0,0,0,0.04)] dark:shadow-[0_18px_42px_rgba(0,0,0,0.18)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[28px] overflow-hidden">
+        <CardHeader className="border-b border-border/50 pb-3 px-4 sm:px-5">
           <CardTitle className="text-base sm:text-lg font-black text-foreground">Recent Applications</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -205,22 +206,22 @@ export default function LeaveOverview() {
             <table className="w-full text-sm text-left">
               <thead className="bg-muted/30 text-foreground uppercase text-[10px] font-black tracking-widest">
                 <tr>
-                  <th className="px-6 py-4">Leave Type</th>
-                  <th className="px-6 py-4">From</th>
-                  <th className="px-6 py-4">To</th>
-                  <th className="px-6 py-4 text-center">Days</th>
-                  <th className="px-6 py-4 text-center">Status</th>
+                  <th className="px-5 py-3.5">Leave Type</th>
+                  <th className="px-5 py-3.5">From</th>
+                  <th className="px-5 py-3.5">To</th>
+                  <th className="px-5 py-3.5 text-center">Days</th>
+                  <th className="px-5 py-3.5 text-center">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
                 {filteredLeaveRequests.length > 0 ? (
                   filteredLeaveRequests.map((req, i) => (
                     <tr key={i} className="hover:bg-[#7B0099]/5 transition-colors group">
-                      <td className="px-6 py-4 font-black text-[#7B0099] dark:text-purple-400">{leaveTypeLabels[req.type]}</td>
-                      <td className="px-6 py-4 text-muted-foreground font-bold">{req.from}</td>
-                      <td className="px-6 py-4 text-muted-foreground font-bold">{req.to}</td>
-                      <td className="px-6 py-4 text-center font-black text-foreground">{req.days}</td>
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-5 py-3.5 font-black text-[#7B0099] dark:text-purple-400">{leaveTypeLabels[req.type]}</td>
+                      <td className="px-5 py-3.5 text-muted-foreground font-bold">{req.from}</td>
+                      <td className="px-5 py-3.5 text-muted-foreground font-bold">{req.to}</td>
+                      <td className="px-5 py-3.5 text-center font-black text-foreground">{req.days}</td>
+                      <td className="px-5 py-3.5 text-center">
                         <Badge
                           className={`text-[11px] font-black px-3 py-1 h-auto shadow-sm whitespace-nowrap ${
                             req.status === "Approved" ? "bg-emerald-500 text-white" :
@@ -238,7 +239,7 @@ export default function LeaveOverview() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-xs font-black text-muted-foreground uppercase tracking-widest italic opacity-30">
+                    <td colSpan={5} className="px-5 py-10 text-center text-xs font-black text-muted-foreground uppercase tracking-widest italic opacity-30">
                       No leave applications found in registry
                     </td>
                   </tr>

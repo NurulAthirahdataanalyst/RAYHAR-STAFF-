@@ -279,7 +279,7 @@ export default function LeaveAdmin() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-3 sm:space-y-5 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-[#7B0099]/10 dark:bg-[#7B0099]/20 rounded-xl text-[#7B0099] dark:text-purple-400">
@@ -294,16 +294,16 @@ export default function LeaveAdmin() {
         </div>
       </div>
 
-      <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
-        <CardHeader className="border-b border-border/50 pb-0">
-          <div className="flex items-center justify-between mb-4">
+      <Card className="border-none shadow-[0_18px_42px_rgba(0,0,0,0.04)] dark:shadow-[0_18px_42px_rgba(0,0,0,0.18)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[28px] overflow-hidden">
+        <CardHeader className="border-b border-border/50 pb-0 px-4 sm:px-5">
+          <div className="flex items-center justify-between mb-3">
             <div className="space-y-1">
               <CardTitle className="text-base sm:text-lg font-black text-foreground">Leave Applications</CardTitle>
               <CardDescription className="text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-60">
                 Review and manage employee leave applications
               </CardDescription>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                 <SelectTrigger className="w-[120px] sm:w-[140px] h-8 text-[10px] font-black rounded-xl border-border/50 bg-white/50 dark:bg-black/20">
                   <SelectValue placeholder="All Months" />
@@ -320,7 +320,7 @@ export default function LeaveAdmin() {
             </div>
           </div>
           {/* Tab Navigation */}
-          <div className="flex gap-0 border-b-0">
+          <div className="flex gap-0 border-b-0 overflow-x-auto scrollbar-none">
             {([
               { key: "pending" as TabFilter, label: "Pending", count: pendingCount },
               { key: "approved" as TabFilter, label: "Approved", count: approvedCount },
@@ -331,7 +331,7 @@ export default function LeaveAdmin() {
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
-                className={`relative px-4 sm:px-6 py-3 text-[11px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${activeTab === tab.key
+                className={`relative px-4 sm:px-5 py-3 text-[11px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeTab === tab.key
                     ? "text-[#7B0099]"
                     : "text-muted-foreground hover:text-foreground"
                   }`}
@@ -355,7 +355,7 @@ export default function LeaveAdmin() {
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex flex-col items-center justify-center p-12 gap-3">
+            <div className="flex flex-col items-center justify-center p-10 gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Fetching Applications...</p>
             </div>
@@ -366,12 +366,12 @@ export default function LeaveAdmin() {
                 <table className="w-full text-sm text-left">
                   <thead className="bg-muted/30 text-foreground uppercase text-[10px] font-black tracking-widest">
                     <tr>
-                      <th className="px-6 py-4">Employee</th>
-                      <th className="px-6 py-4">Leave Type</th>
-                      <th className="px-6 py-4">Duration</th>
-                      <th className="px-6 py-4">Reason</th>
-                      <th className="px-6 py-4">Status</th>
-                      {canApprove && <th className="px-6 py-4 text-right">Actions</th>}
+                      <th className="px-5 py-3.5">Employee</th>
+                      <th className="px-5 py-3.5">Leave Type</th>
+                      <th className="px-5 py-3.5">Duration</th>
+                      <th className="px-5 py-3.5">Reason</th>
+                      <th className="px-5 py-3.5">Status</th>
+                      {canApprove && <th className="px-5 py-3.5 text-right">Actions</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/50">
