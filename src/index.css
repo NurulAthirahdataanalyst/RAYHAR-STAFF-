@@ -53,14 +53,14 @@
 
     --radius: 0.625rem;
 
-    --sidebar-background: 270 30% 8%;
-    --sidebar-foreground: 270 15% 85%;
-    --sidebar-primary: 289 100% 40%;
+    --sidebar-background: 214 77% 95%;
+    --sidebar-foreground: 215 25% 25%;
+    --sidebar-primary: 289 100% 30%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 270 25% 14%;
-    --sidebar-accent-foreground: 270 15% 90%;
-    --sidebar-border: 270 20% 16%;
-    --sidebar-ring: 289 100% 40%;
+    --sidebar-accent: 214 30% 90%;
+    --sidebar-accent-foreground: 289 100% 30%;
+    --sidebar-border: 214 30% 90%;
+    --sidebar-ring: 289 100% 30%;
 
     --font-heading: 'Outfit', system-ui, sans-serif;
     --font-body: 'Outfit', system-ui, sans-serif;
@@ -86,7 +86,7 @@
     --border: 270 10% 18%;
     --input: 270 10% 18%;
     --ring: 289 80% 55%;
-    --sidebar-background: 270 15% 6%;
+    --sidebar-background: 260 13% 9%;
     --sidebar-foreground: 270 5% 96%;
     --sidebar-primary: 289 80% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
