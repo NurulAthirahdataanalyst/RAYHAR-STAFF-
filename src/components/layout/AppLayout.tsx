@@ -184,10 +184,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="absolute inset-0 bg-background/60 dark:bg-background/90 pointer-events-none" />
         
         {/* ═══════ DESKTOP TOP BAR ═══════ */}
-        <header className="hidden lg:flex sticky top-0 z-30 w-full bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] py-4 px-6 items-center justify-between shadow-md relative overflow-hidden border-b border-[#7B0099]/15">
+        <header className="hidden lg:flex sticky top-0 z-30 w-full bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] py-2.5 px-3 items-center justify-between shadow-md relative overflow-hidden border-b border-[#7B0099]/15">
           <div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
           
-          <div className="flex items-center gap-4 relative z-10 w-full justify-between">
+          <div className="flex items-center gap-3 relative z-10 w-full justify-between">
               <div className="hidden sm:flex flex-col text-left space-y-1">
                 <h2 className="text-[15px] font-black text-white uppercase tracking-wider leading-none">
                   {pageTitle}
@@ -208,13 +208,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
 
             <div className="flex items-center gap-4 relative z-10">
-              <button onClick={() => window.location.reload()} className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-white/10 transition-colors text-white font-semibold text-xs border border-white/20 bg-white/5">
+              <button onClick={() => window.location.reload()} className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition-colors text-white font-semibold text-xs border border-white/20 bg-white/5">
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Refresh</span>
               </button>
               <button 
                 onClick={toggleTheme} 
-                className="p-2 rounded-xl text-white hover:bg-white/10 transition-all duration-300 relative z-10 flex items-center justify-center border border-white/15 bg-white/5 hover:scale-105 active:scale-95"
+                className="p-1.5 rounded-xl text-white hover:bg-white/10 transition-all duration-300 relative z-10 flex items-center justify-center border border-white/15 bg-white/5 hover:scale-105 active:scale-95"
                 title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
               >
                 {theme === "light" ? (
@@ -226,7 +226,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <NotificationBell />
               <DropdownMenu>
                 <DropdownMenuTrigger className="outline-none relative z-10">
-                  <div className="flex items-center gap-3.5 pr-1 group cursor-pointer">
+                    <div className="flex items-center gap-3 pr-1 group cursor-pointer">
                     <div className="text-right hidden sm:block space-y-0.5">
                       <p className="text-xs font-black text-white group-hover:text-purple-200 transition-colors">{displayName}</p>
                       <p className="text-[9px] font-black text-purple-200/60 uppercase tracking-widest opacity-80 leading-none">
@@ -265,8 +265,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* ═══════ MOBILE TOP BAR ═══════ */}
-        <div className="lg:hidden sticky top-0 z-30 p-2 safe-area-top">
-          <div className="bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] rounded-[16px] p-2 px-3 flex items-center justify-between shadow-lg border border-[#7B0099]/15 top-nav-bar">
+        <div className="lg:hidden sticky top-0 z-30 p-1.5 safe-area-top">
+          <div className="bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] rounded-[16px] p-1.5 px-2.5 flex items-center justify-between shadow-lg border border-[#7B0099]/15 top-nav-bar">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setMobileMenuOpen(true)}
@@ -330,9 +330,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* ═══════ MAIN CONTENT ═══════ */}
-        <div className="relative p-2 sm:p-3 lg:p-3.5 max-w-[1500px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="relative p-2 sm:p-2 lg:p-2 max-w-[1500px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
           
-          <div className="flex flex-col lg:flex-row gap-3 lg:gap-3.5 items-start relative w-full">
+          <div className="flex flex-col lg:flex-row gap-2.5 items-start relative w-full">
             
             {/* Ruang Kerja Utama (70% - 90%) */}
             <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3 transition-all duration-500 ease-in-out w-full">
@@ -342,7 +342,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {/* Panel Sisi (Collapsible Sidebar - 30% or slim) */}
             {resolvedRole !== "employee" && (
               <aside 
-                className={`hidden lg:flex flex-col shrink-0 transition-all duration-500 ease-in-out relative border-l border-border/20 pl-3 py-1 sticky top-4 max-h-[calc(100vh-32px)] overflow-visible ${
+                className={`hidden lg:flex flex-col shrink-0 transition-all duration-500 ease-in-out relative border-l border-border/20 pl-2.5 py-1 sticky top-4 max-h-[calc(100vh-32px)] overflow-visible ${
                   sidebarCollapsed ? "w-[64px]" : "w-[280px]"
                 }`}
               >
@@ -356,12 +356,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </button>
 
               {/* Scrollable Panel content */}
-              <div className="flex-1 w-full overflow-y-auto overflow-x-visible scrollbar-none flex flex-col gap-3.5 items-center lg:items-stretch py-1 pr-0.5">
+              <div className="flex-1 w-full overflow-y-auto overflow-x-visible scrollbar-none flex flex-col gap-3 items-center lg:items-stretch py-1 pr-0.5">
                 {!sidebarCollapsed ? (
                   <>
                     {/* ═══════ PENDING APPROVALS ═══════ */}
                     {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(resolvedRole) && (
-                      <div className="bg-[#7B0099] p-4 rounded-[20px] shadow-lg text-white relative overflow-hidden group w-full transition-all duration-500">
+                      <div className="bg-[#7B0099] p-3.5 rounded-[20px] shadow-lg text-white relative overflow-hidden group w-full transition-all duration-500">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
                         
                         <div className="flex items-center justify-between mb-3">
@@ -381,7 +381,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         
                         <button
                           onClick={() => navigate("/leave/admin")}
-                          className="w-full mt-3 py-2.5 px-4 bg-purple-50 dark:bg-purple-950/40 text-[#7B0099] dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/60 rounded-xl font-black text-[11px] transition-all shadow-md active:scale-98 tracking-wider uppercase"
+                          className="w-full mt-3 py-2 px-3.5 bg-purple-50 dark:bg-purple-950/40 text-[#7B0099] dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/60 rounded-xl font-black text-[11px] transition-all shadow-md active:scale-98 tracking-wider uppercase"
                         >
                           View Requests
                         </button>
@@ -392,7 +392,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     {["hr_admin", "managing_director"].includes(resolvedRole) ? (
                       <PresenceFeed isCollapsed={false} />
                     ) : location.pathname !== "/calendar" ? (
-                      <div className="bg-card/85 dark:bg-card/40 backdrop-blur-md p-4 rounded-[20px] shadow-xl border border-white/40 dark:border-white/10 w-full">
+                      <div className="bg-card/85 dark:bg-card/40 backdrop-blur-md p-3.5 rounded-[20px] shadow-xl border border-white/40 dark:border-white/10 w-full">
                         <div className="flex items-center justify-between mb-2.5">
                           <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground">
                             Calendar
@@ -437,7 +437,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                           Upcoming Holidays
                         </h3>
                         <div className="space-y-4">
-                          <div className="flex items-center gap-4 p-3 bg-white/40 dark:bg-white/5 rounded-[16px] border border-white/20 dark:border-white/5">
+                          <div className="flex items-center gap-3 p-3 bg-white/40 dark:bg-white/5 rounded-[16px] border border-white/20 dark:border-white/5">
                             <div className="bg-[#C2185B] text-white p-2 rounded-xl font-bold text-center min-w-[50px] shadow-lg">
                               <span className="block text-[10px] uppercase opacity-80">Apr</span>
                               <span className="text-lg leading-none font-black">22</span>
@@ -453,7 +453,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </>
                 ) : (
                   /* Unified Collapsed Dock */
-                  <div className="bg-white/30 dark:bg-black/30 backdrop-blur-md border border-white/20 dark:border-white/5 rounded-[20px] p-2 flex flex-col items-center gap-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.06)] w-full py-4">
+                  <div className="bg-white/30 dark:bg-black/30 backdrop-blur-md border border-white/20 dark:border-white/5 rounded-[20px] p-2 flex flex-col items-center gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] w-full py-3.5">
                     {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(resolvedRole) && (
                       <div 
                         onClick={() => navigate("/leave/admin")}
@@ -491,7 +491,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     )}
 
                     {resolvedRole !== "hr_admin" && resolvedRole !== "managing_director" && location.pathname !== "/calendar" && (
-                      <div className="relative group flex items-center justify-center w-11 h-11 rounded-xl bg-card border border-border/40 text-foreground shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer">
+                      <div className="relative group flex items-center justify-center w-10 h-10 rounded-xl bg-card border border-border/40 text-foreground shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer">
                         <Sparkles className="w-5 h-5 text-pink-500 animate-pulse" />
                         <div className="absolute right-full mr-3 px-3 py-2 bg-slate-900 dark:bg-slate-950 text-white text-xs rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 whitespace-nowrap z-50 transform translate-x-2 group-hover:translate-x-0 border border-slate-800 flex flex-col gap-0.5 animate-in fade-in slide-in-from-right-2">
                           <p className="font-bold text-slate-100">Upcoming Holiday</p>

@@ -277,7 +277,7 @@ export default function Dashboard() {
         : "Not clocked in today";
 
   return (
-    <div className="space-y-3 sm:space-y-4 animate-in fade-in duration-500">
+    <div className="space-y-3 animate-in fade-in duration-500">
       {/* Header - responsive */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div className="min-w-0">
@@ -299,7 +299,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stat Cards - responsive grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
         {role === "employee" || role === "branch_officer" ? (
           <>
             <StatCard
@@ -406,7 +406,7 @@ export default function Dashboard() {
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="p-3 sm:p-4">
+          <CardContent className="p-3 sm:p-3">
             {whoOutToday.length > 0 ? (
               <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3`}>
                 {whoOutToday.map((emp) => {
@@ -437,11 +437,10 @@ export default function Dashboard() {
                     <div
                       key={emp.leave_id}
                       onClick={() => navigate(`/leave/admin?leaveId=${emp.leave_id}`)}
-                      className="cursor-pointer group rounded-[20px] border border-border/60 bg-card
-                        hover:border-[#7B0099]/30 hover:shadow-lg transition-all duration-300 p-4"
+                      className="cursor-pointer group rounded-[20px] border border-border/60 bg-card hover:border-[#7B0099]/30 hover:shadow-lg transition-all duration-300 p-3.5"
                     >
                       {/* Top: Avatar + Info */}
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-[#7B0099]/10 flex items-center justify-center text-base font-black text-[#7B0099] group-hover:scale-110 transition-transform shrink-0">
                           {emp.full_name?.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                         </div>
@@ -455,7 +454,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                       {/* Bottom: Badge + Branch */}
-                      <div className="flex items-center justify-between mt-4 pt-3 border-t border-border/40">
+                      <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border/40">
                         <Badge className={`${typeInfo.color} text-white text-[10px] font-black px-2.5 py-0.5 h-auto border-none rounded-full`}>
                           {typeInfo.short}
                         </Badge>
@@ -468,7 +467,7 @@ export default function Dashboard() {
                 })}
               </div>
             ) : (
-              <div className="py-4 text-center flex items-center justify-center gap-3 bg-emerald-500/5 rounded-xl border border-emerald-500/10 max-w-md mx-auto my-2">
+              <div className="py-3 text-center flex items-center justify-center gap-3 bg-emerald-500/5 rounded-xl border border-emerald-500/10 max-w-md mx-auto my-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                 <span className="text-xs font-bold text-foreground">All Hands on Deck! No employees are on leave today.</span>
               </div>
@@ -499,13 +498,13 @@ export default function Dashboard() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-3 sm:pt-4 px-3 sm:px-4">
+        <CardContent className="pt-3 px-3">
           <div className="space-y-1">
             {activities && activities.length > 0 ? (
               activities.map((item, i) => (
                 <div
                   key={i}
-                  className="group flex items-center gap-3 sm:gap-4 py-2.5 sm:py-3 px-2 rounded-2xl hover:bg-accent/50 transition-colors duration-200"
+                  className="group flex items-center gap-3 py-2 px-2.5 rounded-2xl hover:bg-accent/50 transition-colors duration-200"
                 >
                   <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shrink-0 ${
                     item.action === 'Reminder' ? 'bg-yellow-500/10 text-yellow-600 group-hover:bg-card group-hover:shadow-sm' :

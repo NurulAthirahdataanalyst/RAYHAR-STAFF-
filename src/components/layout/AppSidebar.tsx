@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import type { LucideIcon } from "lucide-react";
 import { 
   LayoutDashboard, 
   Clock, 
@@ -145,7 +146,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   const sidebarContent = (isMobile: boolean) => (
     <>
       <div className={`relative shrink-0 flex items-center justify-center bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] border-b border-purple-950/20 dark:border-b-white/5 overflow-hidden transition-all ${
-        isCollapsed && !isMobile ? "h-20" : "h-20 px-4"
+        isCollapsed && !isMobile ? "h-20" : "h-20 px-3"
       }`}>
         {/* Mobile or Expanded Desktop view: show logo (and toggle on right for desktop) */}
         {(!isCollapsed || isMobile) ? (
@@ -196,7 +197,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       {/* MENU */}
       <div className={`flex-1 scrollbar-none pt-4 pb-2 border-r border-sidebar-border ${isCollapsed && !isMobile ? "overflow-visible" : "overflow-y-auto"}`}>
         {(!isCollapsed || isMobile) && (
-          <div className="px-4 mb-2">
+          <div className="px-3 mb-1.5">
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500/80">
               Menu Navigation
             </span>
@@ -208,12 +209,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
               item.path === "/"
                 ? location.pathname === item.path
                 : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
-            const isExactActive = location.pathname === item.path;
             const visibleChildren = item.children?.filter((child) =>
               child.roles.includes(role || "employee")
             );
-            const hasChildren = visibleChildren && visibleChildren.length > 0;
+            const hasChildren = !!visibleChildren?.length;
             const isMenuExpanded = expandedMenus[item.title];
+            const ItemIcon = item.icon;
 
             return (
               <div key={item.title} className="relative group/menu-item space-y-1">
@@ -224,17 +225,16 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                       onMobileClose();
                     }
                     if (hasChildren && !isCollapsed) {
-                      // Automatically open the menu when navigating to it
-                      setExpandedMenus(prev => ({ ...prev, [item.title]: true }));
+                      setExpandedMenus((prev) => ({ ...prev, [item.title]: true }));
                     }
                   }}
-                  className={`group relative flex items-center gap-3 rounded-[14px] px-3 sm:px-3.5 py-2 transition-all duration-300 touch-target ${
+                  className={`group relative flex items-center gap-2.5 rounded-[14px] px-2.5 sm:px-3 py-2 transition-all duration-300 touch-target ${
                     isActive
                       ? "bg-[#7B0099] text-white font-bold border-b-[4px] border-[#450057] dark:border-[#22002b] shadow-md hover:bg-[#850da0] hover:border-[#4d0161] active:translate-y-[2px] active:border-b-[2px]"
                       : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80"
                   } ${isCollapsed && !isMobile ? "justify-center px-0 w-12 mx-auto" : ""}`}
                 >
-                  <item.icon
+                  <ItemIcon
                     className={`h-5 w-5 shrink-0 transition-colors ${
                       isActive 
                         ? "text-white dark:text-white" 
@@ -260,7 +260,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                         e.stopPropagation();
                         setExpandedMenus(prev => ({ ...prev, [item.title]: !prev[item.title] }));
                       }}
-                      className="ml-auto p-1 rounded-md text-slate-400 dark:text-slate-500 hover:text-[#7B0099] dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all"
+                      className="ml-auto p-0.5 rounded-md text-slate-400 dark:text-slate-500 hover:text-[#7B0099] dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all"
                       aria-label={isMenuExpanded ? "Collapse submenu" : "Expand submenu"}
                     >
                       {isMenuExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -273,38 +273,37 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                   <div className="relative pl-7 pr-2 py-0.5 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
                     {/* Vertical tree line */}
                     <div className="absolute left-[23px] top-0 bottom-[18px] w-[1.5px] bg-slate-300/80 dark:bg-white/10" />
-                    
                     {visibleChildren.map((child) => {
-                       const isChildActive = location.pathname === child.path;
-                       return (
+                      const isChildActive = location.pathname === child.path;
+                      const ChildIcon = child.icon as LucideIcon;
+                      return (
                         <Link
                           key={child.title}
                           to={child.path}
                           onClick={isMobile ? onMobileClose : undefined}
-                          className={`group relative flex items-center gap-3 rounded-[14px] px-2.5 py-2 text-[12px] transition-all duration-300 touch-target ${
+                          className={`group relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-[12px] transition-all duration-300 touch-target ${
                             isChildActive
                               ? "bg-[#7B0099]/10 dark:bg-slate-800/80 font-bold text-[#7B0099] dark:text-purple-300 border-b-[3px] border-[#7B0099]/20 dark:border-slate-900 shadow-sm active:translate-y-[1px] active:border-b-[1px]"
                               : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80"
                           }`}
                         >
                           {/* Horizontal stub connector line */}
-                        <div className="absolute -left-[9px] top-1/2 -translate-y-1/2 w-[9px] h-[1.5px] bg-sidebar-border" />
-                          
-                          <child.icon
+                          <div className="absolute -left-[9px] top-1/2 -translate-y-1/2 w-[9px] h-[1.5px] bg-sidebar-border" />
+                          <ChildIcon
                             className={`h-4 w-4 shrink-0 transition-colors ${
                               isChildActive ? "text-[#7B0099] dark:text-purple-400" : "text-sidebar-foreground/60 group-hover:text-sidebar-accent-foreground"
                             }`}
                           />
                           <span>{child.title}</span>
                         </Link>
-                       );
+                      );
                     })}
                   </div>
                 )}
 
                 {/* Submenu Popover Card for Collapsed State */}
                 {hasChildren && isCollapsed && !isMobile && (
-                  <div className="absolute left-full top-0 ml-3 z-50 hidden group-hover/menu-item:block min-w-[200px] bg-sidebar border border-sidebar-border rounded-[18px] p-2.5 shadow-[0_8px_30px_rgba(123,0,153,0.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200">
+                  <div className="absolute left-full top-0 ml-3 z-50 hidden group-hover/menu-item:block min-w-[200px] bg-sidebar border border-sidebar-border rounded-[18px] p-2 shadow-[0_8px_30px_rgba(123,0,153,0.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200">
                     {/* Category Header */}
                     <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#7B0099]/85 dark:text-purple-400 border-b border-blue-100/50 dark:border-white/5 mb-2">
                       {item.title}
@@ -313,17 +312,18 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                     <div className="space-y-1">
                       {visibleChildren.map((child) => {
                         const isChildActive = location.pathname === child.path;
+                        const ChildIcon = child.icon as LucideIcon;
                         return (
                           <Link
                             key={child.title}
                             to={child.path}
-                            className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs transition-all duration-200 ${
+                            className={`flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs transition-all duration-200 ${
                               isChildActive
                                 ? "bg-[#7B0099]/10 dark:bg-slate-800/80 font-bold text-[#7B0099] dark:text-purple-300 border-b-[3px] border-[#7B0099]/20 dark:border-slate-900 shadow-sm active:translate-y-[1px] active:border-b-[1px]"
-                                : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                                : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80"
                             }`}
                           >
-                            <child.icon
+                            <ChildIcon
                               className={`h-4 w-4 shrink-0 transition-colors ${
                                 isChildActive ? "text-[#7B0099] dark:text-purple-400" : "text-slate-400 dark:text-slate-500"
                               }`}
@@ -351,12 +351,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       </div>
 
       {/* FOOTER */}
-      <div className="shrink-0 border-t border-sidebar-border border-r border-sidebar-border p-3.5 sm:p-4 space-y-2 safe-area-bottom">
+      <div className="shrink-0 border-t border-sidebar-border border-r border-sidebar-border p-2.5 space-y-2 safe-area-bottom">
         <Button
           variant="ghost"
           onClick={toggleTheme}
           title={isCollapsed && !isMobile ? `Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode` : ""}
-          className={`group flex w-full justify-start gap-3 rounded-[16px] px-4 sm:px-4 py-4 text-sidebar-foreground/85 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground touch-target ${
+          className={`group flex w-full justify-start gap-2.5 rounded-[16px] px-2.5 sm:px-2.5 py-2.5 text-sidebar-foreground/85 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground touch-target ${
             isCollapsed && !isMobile ? "justify-center px-0 w-12 mx-auto" : ""
           }`}
         >
@@ -376,7 +376,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           variant="ghost"
           onClick={() => signOut()}
           title={isCollapsed && !isMobile ? "Sign Out" : ""}
-          className={`group flex w-full justify-start gap-3 rounded-[16px] px-4 sm:px-4 py-4 text-sidebar-foreground/85 transition-all hover:bg-red-500/10 dark:hover:bg-red-950/20 hover:text-red-600 dark:hover:text-red-400 touch-target ${
+          className={`group flex w-full justify-start gap-3 rounded-[16px] px-3 sm:px-3 py-3 text-sidebar-foreground/85 transition-all hover:bg-red-500/10 dark:hover:bg-red-950/20 hover:text-red-600 dark:hover:text-red-400 touch-target ${
             isCollapsed && !isMobile ? "justify-center px-0 w-12 mx-auto" : ""
           }`}
         >
