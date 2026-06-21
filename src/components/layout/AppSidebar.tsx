@@ -92,8 +92,16 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
   const menuItems = [
     { title: "Dashboard", icon: LayoutDashboard, path: "/", roles: ALL_ROLES },
-    { title: "Work Calendar", icon: Calendar, path: "/calendar", roles: ALL_ROLES },
-    { title: "Attendance", icon: Clock, path: "/attendance", roles: ALL_ROLES },
+    { title: "Calendar", icon: Calendar, path: "/calendar", roles: ALL_ROLES },
+    { 
+      title: "Attendance", 
+      icon: Clock, 
+      path: "/attendance", 
+      roles: ALL_ROLES,
+      children: [
+        { title: "Attendance Analytics", icon: BarChart3, path: "/analytics", roles: ALL_ROLES }
+      ]
+    },
     {
       title: "Leave Management",
       icon: CalendarDays,
@@ -102,25 +110,43 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       children: [
         { title: "Leave Application", icon: FilePlus2, path: "/leave/apply", roles: ALL_ROLES },
         { title: "My Leave Requests", icon: FileSearch, path: "/leave/forms", roles: ALL_ROLES },
-        { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", roles: [...ADMIN_ROLES] },
+        { title: "Leave Approvals", icon: ClipboardList, path: "/leave/admin", roles: [...ADMIN_ROLES] },
       ],
     },
-    { title: "Employee Directory", icon: Users, path: "/employees", roles: ADMIN_ROLES },
     {
       title: "Administration",
       icon: Users,
       path: "/master",
-      roles: ["hr_admin"],
+      roles: ADMIN_ROLES,
       children: [
         { title: "Departments", icon: Building2, path: "/master/department", roles: ["hr_admin"] },
         { title: "User Management", icon: Users, path: "/employees", roles: ["hr_admin"] },
+        { title: "Employee Directory", icon: Users, path: "/employees", roles: ADMIN_ROLES },
       ],
     },
     { title: "Branches", icon: Building2, path: "/branches", roles: ["hr_admin", "managing_director", "finance_manager"] },
-    { title: "Reports & Analytics", icon: BarChart3, path: "/reports", roles: ["hr_admin"] },
-    // All other roles (employees, managers, HOD, etc.) get the Employee Performance Insights page
-    { title: "Reports & Analytics", icon: BarChart3, path: "/analytics", roles: ALL_ROLES.filter(r => r !== "hr_admin") },
-    { title: "Configuration", icon: Settings, path: "/settings", roles: ["hr_admin"] },
+    {
+      title: "HR Analytics",
+      icon: PieChart,
+      path: "/hr-analytics",
+      roles: ["hr_admin", "managing_director", "finance_manager"],
+      children: [
+        { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance", roles: ["hr_admin", "managing_director", "finance_manager"] },
+        { title: "Leave Dashboard", icon: BarChart3, path: "/hr-analytics/leave", roles: ["hr_admin", "managing_director", "finance_manager"] },
+      ]
+    },
+    {
+      title: "Reports",
+      icon: FileSearch,
+      path: "/reports",
+      roles: ["hr_admin", "managing_director", "finance_manager"],
+      children: [
+        { title: "Daily Reports", icon: FileSearch, path: "/reports/daily", roles: ["hr_admin", "managing_director", "finance_manager"] },
+        { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance", roles: ["hr_admin", "managing_director", "finance_manager"] },
+        { title: "Leave Reports", icon: FileSearch, path: "/reports/leave", roles: ["hr_admin", "managing_director", "finance_manager"] },
+      ]
+    },
+    { title: "Settings", icon: Settings, path: "/settings", roles: ["hr_admin"] },
   ];
 
 
