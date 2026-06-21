@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ArrowLeft, Building2, CalendarCheck, Clock, Loader2, MapPin, TrendingUp, Users, FileText, PhoneCall, X, Trash2 } from "lucide-react";
+import { ArrowLeft, Building2, CalendarCheck, Clock, Loader2, MapPin, TrendingUp, Users, FileText, PhoneCall, X, Trash2, LayoutGrid, List } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { API_BASE_URL } from "../config/api";
 import { toast } from "sonner";
@@ -64,6 +64,16 @@ export default function Branches() {
   const [loadingBranches, setLoadingBranches] = useState(true);
   const [branchStats, setBranchStats] = useState<any[]>([]);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "line">(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("branchesViewMode") as "grid" | "line") || "grid";
+    }
+    return "grid";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("branchesViewMode", viewMode);
+  }, [viewMode]);
 
   useEffect(() => {
     const fetchBranches = async () => {
@@ -400,15 +410,47 @@ export default function Branches() {
               </div>
               <p className="text-responsive-sm text-muted-foreground font-medium mt-1">Real-time status across all locations</p>
             </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {loadingBranches ? (
-              <div className="col-span-full flex flex-col items-center justify-center py-20 gap-3">
-                <Loader2 className="h-10 w-10 animate-spin text-[#7B0099]" />
-                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground animate-pulse">Scanning Network...</p>
+            
+            {!loadingBranches && (
+              <div className="flex items-center gap-1 bg-muted/40 dark:bg-muted/10 p-1 rounded-xl border border-border/50 self-start sm:self-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setViewMode("grid")}
+                  className={`rounded-lg px-3 py-1.5 h-8 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
+                    viewMode === "grid"
+                      ? "bg-[#7B0099] text-white hover:bg-[#7B0099]/90 shadow-md"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                  }`}
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span>Grid</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setViewMode("line")}
+                  className={`rounded-lg px-3 py-1.5 h-8 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
+                    viewMode === "line"
+                      ? "bg-[#7B0099] text-white hover:bg-[#7B0099]/90 shadow-md"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                  }`}
+                >
+                  <List className="w-3.5 h-3.5" />
+                  <span>Line</span>
+                </Button>
               </div>
-            ) : (
-              allBranches.map((branch) => {
+            )}
+          </div>
+
+          {loadingBranches ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3 bg-card/60 backdrop-blur-md rounded-[32px] border border-border/50">
+              <Loader2 className="h-10 w-10 animate-spin text-[#7B0099]" />
+              <p className="text-xs font-black uppercase tracking-widest text-muted-foreground animate-pulse">Scanning Network...</p>
+            </div>
+          ) : viewMode === "grid" ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {allBranches.map((branch) => {
                 const stat = branchStats.find((s) => s.branch === branch.code);
                 const totalEmployees = stat ? stat.total_employees : 0;
                 const presentToday = stat ? stat.present_today : 0;
@@ -484,9 +526,94 @@ export default function Branches() {
                     </CardContent>
                   </Card>
                 );
-              })
-            )}
-          </div>
+              })}
+            </div>
+          ) : (
+            <div className="overflow-x-auto bg-card/60 backdrop-blur-md rounded-[24px] border border-border/40 shadow-sm">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/30 text-foreground border-b border-border">
+                    <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Branch Name</th>
+                    <th className="text-center py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Present</th>
+                    <th className="text-center py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Leave</th>
+                    <th className="text-center py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Absent</th>
+                    <th className="text-center py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Staff</th>
+                    <th className="text-center py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Attendance</th>
+                    <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Leader</th>
+                    <th className="text-right py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/50">
+                  {allBranches.map((branch) => {
+                    const stat = branchStats.find((s) => s.branch === branch.code);
+                    const totalEmployees = stat ? stat.total_employees : 0;
+                    const presentToday = stat ? stat.present_today : 0;
+                    const onLeave = stat ? stat.on_leave : 0;
+                    const absent = Math.max(0, totalEmployees - presentToday - onLeave);
+                    const attendanceRate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
+                    const staticInfo = branches.find(b => b.code === branch.code);
+                    const location = (branch.location && branch.location !== "Rayhar Branch" && branch.location !== "RAYHAR BRANCH" && branch.location !== "")
+                      ? branch.location
+                      : (staticInfo?.location || "Rayhar Branch");
+                    const leader = branch.leader_name || staticInfo?.leader || "Branch Leader";
+
+                    return (
+                      <tr
+                        key={branch.code}
+                        className="cursor-pointer transition-colors group hover:bg-[#7B0099]/5"
+                        onClick={() => setSelectedBranch({...branch, location, leader, employees: totalEmployees, attendance: attendanceRate})}
+                      >
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-[11px] font-black text-[#7B0099] group-hover:scale-110 transition-transform">
+                              <Building2 className="w-4.5 h-4.5" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-bold text-foreground group-hover:text-[#7B0099] transition-colors flex items-center gap-2">
+                                {branch.name}
+                                <Badge variant="outline" className="font-mono text-[9px] h-4 px-1.5 bg-muted/20 border-border/50">{branch.code}</Badge>
+                              </p>
+                              <p className="text-[10px] text-muted-foreground truncate font-medium uppercase tracking-widest">{location}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6 text-center">
+                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+                            {presentToday}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-center">
+                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs">
+                            {onLeave}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-center">
+                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold text-xs">
+                            {absent}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-center font-bold text-foreground text-xs">{totalEmployees}</td>
+                        <td className="py-4 px-6 text-center font-bold text-[#7B0099] text-xs">{attendanceRate}%</td>
+                        <td className="py-4 px-6 text-left">
+                          <p className="text-xs font-bold text-foreground/80 truncate max-w-[150px]">{leader}</p>
+                        </td>
+                        <td className="py-4 px-6 text-right" onClick={(e) => e.stopPropagation()}>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="w-7 h-7 hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground"
+                            onClick={(e) => handleDeleteBranch(e, branch.code)}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
