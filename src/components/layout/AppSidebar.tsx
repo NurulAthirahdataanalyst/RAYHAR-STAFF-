@@ -171,22 +171,15 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
             )}
           </div>
         ) : (
-          /* Collapsed Desktop view: show centered logo (fit with the box) AND expand chevron toggle below it */
-          <div className="flex flex-col items-center justify-center gap-1 w-full h-full py-1">
-            <img 
-              src={rayharLogo} 
-              alt="Rayhar Group" 
-              className="h-[32%] w-auto object-contain filter brightness-110" 
-            />
-            <button
-              onClick={() => setIsCollapsed(false)}
-              className="flex h-8 w-8 items-center justify-center text-white/85 hover:text-white hover:scale-110 active:scale-95 transition-all duration-300"
-              title="Expand sidebar"
-              aria-label="Expand sidebar"
-            >
-              <PanelLeftOpen className="h-5 w-5" />
-            </button>
-          </div>
+          /* Collapsed Desktop view: show only centered expand toggle button */
+          <button
+            onClick={() => setIsCollapsed(false)}
+            className="flex h-10 w-10 items-center justify-center text-white/85 hover:text-white hover:scale-110 active:scale-95 transition-all duration-300"
+            title="Expand sidebar"
+            aria-label="Expand sidebar"
+          >
+            <PanelLeftOpen className="h-5 w-5" />
+          </button>
         )}
 
         {/* Mobile close button */}
