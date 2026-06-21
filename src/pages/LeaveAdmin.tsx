@@ -544,8 +544,8 @@ export default function LeaveAdmin() {
                 </DialogHeader>
               </div>
 
-              <div id="leave-form-print" className="p-4 sm:p-8 space-y-6">
-                <div className="rounded-[24px] border border-border/50 p-6 sm:p-8 space-y-6 bg-card shadow-sm">
+              <div id="leave-form-print" className="p-4 sm:p-6 space-y-4">
+                <div className="rounded-[24px] border border-border/50 p-4 sm:p-6 space-y-4 bg-card shadow-sm">
                   <div className="text-center border-b-2 border-foreground/50 dark:border-purple-500/50 pb-4">
                     <h2 className="text-2xl font-black tracking-tighter text-foreground dark:text-purple-400">RAYHAR GROUP</h2>
                     <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">Permohonan Cuti Kakitangan</p>
@@ -774,7 +774,7 @@ export default function LeaveAdmin() {
               </DialogDescription>
             </DialogHeader>
           </div>
-          <div className="p-6 space-y-6">
+          <div className="p-4 space-y-4">
             <div className="space-y-2">
               <label htmlFor="remarks" className="text-[10px] font-black uppercase text-muted-foreground tracking-widest px-1">Remarks / Comments (Optional)</label>
               <textarea

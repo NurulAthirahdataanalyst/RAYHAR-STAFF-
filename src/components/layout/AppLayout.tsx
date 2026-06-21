@@ -184,7 +184,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="absolute inset-0 bg-background/60 dark:bg-background/90 pointer-events-none" />
         
         {/* ═══════ DESKTOP TOP BAR ═══════ */}
-        <header className="hidden lg:flex sticky top-0 z-30 w-full bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] py-4 px-8 items-center justify-between shadow-md relative overflow-hidden border-b border-[#7B0099]/15">
+        <header className="hidden lg:flex sticky top-0 z-30 w-full bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] py-4 px-6 items-center justify-between shadow-md relative overflow-hidden border-b border-[#7B0099]/15">
           <div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
           
           <div className="flex items-center gap-4 relative z-10 w-full justify-between">
@@ -265,8 +265,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* ═══════ MOBILE TOP BAR ═══════ */}
-        <div className="lg:hidden sticky top-0 z-30 p-2.5 safe-area-top">
-          <div className="bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] rounded-[16px] p-2.5 px-4 flex items-center justify-between shadow-lg border border-[#7B0099]/15 top-nav-bar">
+        <div className="lg:hidden sticky top-0 z-30 p-2 safe-area-top">
+          <div className="bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] rounded-[16px] p-2 px-3 flex items-center justify-between shadow-lg border border-[#7B0099]/15 top-nav-bar">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setMobileMenuOpen(true)}
@@ -330,12 +330,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* ═══════ MAIN CONTENT ═══════ */}
-        <div className="relative p-2.5 sm:p-3.5 lg:p-4 max-w-[1500px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="relative p-2 sm:p-3 lg:p-3.5 max-w-[1500px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
           
-          <div className="flex flex-col lg:flex-row gap-3.5 lg:gap-4 items-start relative w-full">
+          <div className="flex flex-col lg:flex-row gap-3 lg:gap-3.5 items-start relative w-full">
             
             {/* Ruang Kerja Utama (70% - 90%) */}
-            <div className="flex-1 min-w-0 space-y-3 sm:space-y-4 transition-all duration-500 ease-in-out w-full">
+            <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3 transition-all duration-500 ease-in-out w-full">
               {children}
             </div>
 

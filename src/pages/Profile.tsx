@@ -69,9 +69,9 @@ const Profile = () => {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 items-start">
+      <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-6 items-start">
         {/* Left Column (Profile Info & Security Card) */}
-        <div className="w-full lg:w-1/3 flex flex-col gap-4 sm:gap-6">
+        <div className="w-full lg:w-1/3 flex flex-col gap-3 sm:gap-4">
           {/* Profile Info Card */}
           <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
             <CardHeader className="text-center pt-8 sm:pt-10 pb-4 sm:pb-6">
@@ -87,7 +87,7 @@ const Profile = () => {
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6 pb-8 sm:pb-10">
+            <CardContent className="space-y-4 pb-6 sm:pb-8">
               <div className="pt-4 sm:pt-6 border-t border-border/50">
                 <div className="grid grid-cols-2 gap-3 sm:gap-4 text-center">
                   <div className="p-3 sm:p-4 rounded-2xl bg-muted/30">
@@ -160,7 +160,7 @@ const Profile = () => {
               <span className="text-responsive-base">Account Information</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 p-4 sm:p-6 md:p-8">
+          <CardContent className="grid gap-3 sm:gap-4 md:gap-4 grid-cols-1 sm:grid-cols-2 p-4 sm:p-5 md:p-6">
             {profileItems.map((item, idx) => (
               <div key={idx} className="space-y-1.5 p-3 sm:p-4 md:p-5 rounded-2xl bg-muted/20 border border-border/40 transition-all hover:border-primary/30 hover:bg-muted/30 group">
                 <div className="flex items-center gap-2 mb-1">

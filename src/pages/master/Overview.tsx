@@ -141,10 +141,10 @@ export default function MasterOverview() {
   }).sort((a, b) => b.count - a.count);
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto px-1 sm:px-4">
+    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-1 sm:px-4">
       
       {/* HEADER PANEL */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 pb-6 border-b border-border/40">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-border/40">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-[#7B0099] rounded-[20px] text-white shadow-xl shadow-[#7B0099]/20">
             <Database className="w-6 h-6 sm:w-8 sm:h-8" />
@@ -180,10 +180,10 @@ export default function MasterOverview() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6 sm:space-y-8">
+        <div className="space-y-4 sm:space-y-5">
           
           {/* TOP EXECUTIVE KPI CARDS */}
-          <div className={`grid grid-cols-1 sm:grid-cols-2 ${sidebarCollapsed ? "lg:grid-cols-5" : "lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"} gap-4 sm:gap-6`}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
             
             {/* KPI 1: Branches */}
             <Card onClick={() => navigate("/branches")} className="cursor-pointer shadow-md bg-[#fff0f5] dark:bg-[#2d0a1f] border border-[#fce7f3] dark:border-[#5c1340]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group hover:shadow-lg">
@@ -277,7 +277,7 @@ export default function MasterOverview() {
           </div>
  
           {/* MAIN PORTAL SELECTOR CARDS */}
-          <div className={`grid grid-cols-1 ${sidebarCollapsed ? "lg:grid-cols-3" : "lg:grid-cols-2 xl:grid-cols-3"} gap-6 sm:gap-8`}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
             
             {/* Left Portal: Department Master Overview */}
             <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden flex flex-col justify-between">

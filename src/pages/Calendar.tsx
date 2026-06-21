@@ -224,7 +224,7 @@ export default function Calendar() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         {/* LEFT COLUMN: DAILY AGENDA */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className="lg:col-span-8 space-y-4">
           <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] overflow-hidden rounded-[24px]">
             <div className="p-6 sm:p-8">
               <div className="flex justify-between items-center mb-6">
@@ -424,7 +424,7 @@ export default function Calendar() {
         </div>
 
         {/* RIGHT COLUMN: CALENDAR WIDGET & HOLIDAYS */}
-        <div className="lg:col-span-4 space-y-6">
+        <div className="lg:col-span-4 space-y-4">
           
           {/* Calendar Widget */}
           <Card className="border-border/50 bg-card shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] overflow-hidden rounded-[24px]">

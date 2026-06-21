@@ -625,9 +625,9 @@ export default function Reports() {
   }));
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto px-1 sm:px-4">
+    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-1 sm:px-4">
       {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 pb-6 border-b border-border/40">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-border/40">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-[#7B0099] rounded-[20px] text-white shadow-xl shadow-[#7B0099]/20">
             <FileBarChart className="w-6 h-6 sm:w-8 sm:h-8" />
@@ -719,7 +719,7 @@ export default function Reports() {
       {activeTab === "attendance" && (
         <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500">
           {/* KPI HIGHLIGHT CARDS */}
-          <div className={`grid grid-cols-1 sm:grid-cols-2 ${sidebarCollapsed ? "lg:grid-cols-4" : "lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"} gap-4 sm:gap-6`}>
+          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4`}>
             {/* Card 1: Present Today */}
             <Card className="shadow-md bg-[#eff6ff] dark:bg-[#0c1f3c] hover:bg-[#e0f0ff] dark:hover:bg-[#0e2547] border border-[#dbeafe] dark:border-[#163063]/40 rounded-[24px] relative overflow-hidden transition-all duration-300 group">
               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500" />
@@ -795,7 +795,7 @@ export default function Reports() {
 
           {/* TODAY'S ATTENDANCE LIVE PULSE */}
           <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px]">
-            <div className="bg-[#7B0099]/5 px-6 py-6 border-b border-border/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="bg-[#7B0099]/5 px-4 py-4 border-b border-border/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-white/50 dark:bg-black/20 rounded-xl">
                   <Users className="w-5 h-5 text-[#7B0099]" />
@@ -1006,7 +1006,7 @@ export default function Reports() {
 
           {/* LIVE PERFORMANCE PULSE (HORIZONTAL CHARTS & HEATMAPS) */}
           <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden">
-            <CardHeader className="pb-4 border-b border-border/40 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
+            <CardHeader className="pb-3 border-b border-border/40 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
               <div>
                 <CardTitle className="text-sm sm:text-lg font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
                   <div className="p-2.5 bg-[#7B0099]/10 rounded-xl relative overflow-hidden">
@@ -1078,7 +1078,7 @@ export default function Reports() {
           </Card>
 
           {/* HISTORICAL CHARTS */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
             <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden">
               <CardHeader className="pb-2 border-b border-border/40">
                 <CardTitle className="text-sm sm:text-base font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
@@ -1130,8 +1130,8 @@ export default function Reports() {
       {/* TAB 2: LEAVE UTILIZATION ANALYTICS */}
       {/* ================================================================= */}
       {activeTab === "leave" && (
-        <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
             
             {/* Department Utilization Bar Chart */}
             <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden lg:col-span-2">
@@ -1226,7 +1226,7 @@ export default function Reports() {
 
           {/* ACTIVE STAFFING GAPS WARNING */}
           <Card className="border-none shadow-sm bg-rose-500/10 border border-rose-500/20 rounded-[28px] overflow-hidden">
-            <CardContent className="p-6 flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+            <CardContent className="p-4 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
               <div className="w-12 h-12 bg-rose-500 text-white rounded-full flex items-center justify-center shrink-0 shadow-lg shadow-rose-500/20">
                 <ShieldAlert className="w-6 h-6 animate-pulse" />
               </div>
@@ -1304,11 +1304,11 @@ export default function Reports() {
       {/* TAB 3: GENERATE REPORT SECTION */}
       {/* ================================================================= */}
       {activeTab === "generator" && (
-        <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
+        <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 items-start">
             
             {/* Generator Settings Form */}
-            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] lg:col-span-2 p-6 space-y-6">
+            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] lg:col-span-2 p-4 space-y-4">
               <div>
                 <h3 className="text-base sm:text-lg font-black text-foreground uppercase tracking-tight">Configure Analytical Report</h3>
                 <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider opacity-60">Generate targeted PDF/CSV datasets compiled directly from live database logs</p>
@@ -1458,7 +1458,7 @@ export default function Reports() {
             </Card>
 
             {/* Synthesis Preview Panel */}
-            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-6 flex flex-col gap-6">
+            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-4 flex flex-col gap-4">
               <div>
                 <h4 className="text-xs font-black text-foreground uppercase tracking-widest">Synthesis Preview</h4>
                 <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider opacity-60 mt-0.5">Real-time compilation preview</p>

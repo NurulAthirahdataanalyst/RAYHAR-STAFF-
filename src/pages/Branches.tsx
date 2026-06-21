@@ -319,7 +319,7 @@ export default function Branches() {
               <SheetHeader className="pb-6 border-b border-border/50 pt-4">
                 <SheetTitle className="text-xl font-black text-foreground tracking-tight">Staff Analytics</SheetTitle>
               </SheetHeader>
-              <div className="py-6 space-y-6">
+              <div className="py-4 space-y-4">
                 {selectedEmployee ? (
                   <>
                     <div className="bg-muted/30 p-6 rounded-[24px] border border-border/50">
@@ -445,7 +445,7 @@ export default function Branches() {
               <p className="text-xs font-black uppercase tracking-widest text-muted-foreground animate-pulse">Scanning Network...</p>
             </div>
           ) : viewMode === "grid" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {allBranches.map((branch) => {
                 const stat = branchStats.find((s) => s.branch === branch.code);
                 const totalEmployees = stat ? stat.total_employees : 0;

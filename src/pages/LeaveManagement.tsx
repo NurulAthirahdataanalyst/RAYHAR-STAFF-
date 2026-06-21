@@ -292,7 +292,7 @@ export default function LeaveManagement() {
       {/* STEP 0: ARAHAN (FRONT PAGE) */}
       {currentStep === 0 && (
         <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
-          <CardContent className="p-6 sm:p-10 text-center space-y-6 sm:space-y-8">
+          <CardContent className="p-5 sm:p-8 text-center space-y-4 sm:space-y-5">
             <div className="bg-[#7B0099]/10 w-20 h-20 sm:w-24 sm:h-24 rounded-[32px] flex items-center justify-center mx-auto rotate-12 transition-transform hover:rotate-0 duration-300">
               <PlaneTakeoff className="w-10 h-10 sm:w-12 sm:h-12 text-[#7B0099]" />
             </div>
@@ -301,7 +301,7 @@ export default function LeaveManagement() {
               <p className="text-xs sm:text-sm font-medium text-muted-foreground italic">Pastikan anda mematuhi polisi syarikat sebelum memohon.</p>
             </div>
 
-            <div className="text-left bg-muted/30 p-5 sm:p-6 rounded-[24px] border border-border/50 max-w-sm mx-auto">
+            <div className="text-left bg-muted/30 p-4 sm:p-5 rounded-[24px] border border-border/50 max-w-sm mx-auto">
               <ul className="space-y-4 text-[11px] sm:text-xs font-bold text-foreground/70 uppercase tracking-widest">
                 <li className="flex items-start gap-3">
                   <span className="bg-[#7B0099] text-white text-[9px] rounded-full w-5 h-5 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">1</span>
@@ -346,7 +346,7 @@ export default function LeaveManagement() {
           </div>
 
           <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-[#7B0099] to-[#a855f7] text-white p-6 sm:p-8">
+            <CardHeader className="bg-gradient-to-r from-[#7B0099] to-[#a855f7] text-white p-4 sm:p-6">
               <CardTitle className="flex items-center gap-3 text-base sm:text-lg font-black uppercase tracking-widest">
                 <div className="bg-white/20 p-2 rounded-xl">
                   <History className="w-5 h-5" />
@@ -354,7 +354,7 @@ export default function LeaveManagement() {
                 {steps[currentStep - 1]}
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 sm:p-8 space-y-6">
+            <CardContent className="p-4 sm:p-6 space-y-4">
 
               {/* SECTION 1: PROFIL KAKITANGAN */}
               {currentStep === 1 && (
@@ -426,7 +426,7 @@ export default function LeaveManagement() {
 
               {/* SECTION 2: BUTIRAN CUTI */}
               {currentStep === 2 && (
-                <div className="space-y-6 animate-in slide-in-from-right duration-500">
+                <div className="space-y-4 animate-in slide-in-from-right duration-500">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Tarikh Mula *</Label>

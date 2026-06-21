@@ -277,9 +277,9 @@ export default function Dashboard() {
         : "Not clocked in today";
 
   return (
-    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-3 sm:space-y-4 animate-in fade-in duration-500">
       {/* Header - responsive */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div className="min-w-0">
           <h1 className="text-responsive-2xl font-black tracking-tight text-foreground truncate">
             {getGreeting()}, {rawName}!
@@ -299,15 +299,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stat Cards - responsive grid */}
-      <div className={`grid grid-cols-2 ${
-        ["managing_director", "head_of_department", "finance_manager", "hr_admin", "branch_leader"].includes(role)
-          ? sidebarCollapsed
-            ? "md:grid-cols-3 lg:grid-cols-5"
-            : "md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
-          : sidebarCollapsed
-            ? "md:grid-cols-2 lg:grid-cols-4"
-            : "md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-      } gap-3 sm:gap-4`}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
         {role === "employee" || role === "branch_officer" ? (
           <>
             <StatCard
@@ -388,7 +380,7 @@ export default function Dashboard() {
       {/* Who's Out Today - admin roles only */}
       {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role) && (
         <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] rounded-[20px] overflow-hidden bg-card">
-          <CardHeader className="border-b border-border/50 pb-4 px-4 sm:px-6">
+          <CardHeader className="border-b border-border/50 pb-3 px-3 sm:px-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-rose-500/10 rounded-xl">
@@ -414,13 +406,9 @@ export default function Dashboard() {
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-3 sm:p-4">
             {whoOutToday.length > 0 ? (
-              <div className={`grid grid-cols-1 sm:grid-cols-2 ${
-                sidebarCollapsed
-                  ? "lg:grid-cols-3 xl:grid-cols-4"
-                  : "lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
-              } gap-3 sm:gap-4`}>
+              <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3`}>
                 {whoOutToday.map((emp) => {
                   const endDate = new Date(emp.end_date);
                   const today = new Date();
@@ -450,7 +438,7 @@ export default function Dashboard() {
                       key={emp.leave_id}
                       onClick={() => navigate(`/leave/admin?leaveId=${emp.leave_id}`)}
                       className="cursor-pointer group rounded-[20px] border border-border/60 bg-card
-                        hover:border-[#7B0099]/30 hover:shadow-lg transition-all duration-300 p-5"
+                        hover:border-[#7B0099]/30 hover:shadow-lg transition-all duration-300 p-4"
                     >
                       {/* Top: Avatar + Info */}
                       <div className="flex items-center gap-4">
@@ -491,7 +479,7 @@ export default function Dashboard() {
 
       {/* Recent Activity - responsive */}
       <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] rounded-[20px] overflow-hidden bg-card">
-        <CardHeader className="border-b border-border/50 pb-4 px-4 sm:px-6">
+        <CardHeader className="border-b border-border/50 pb-3 px-3 sm:px-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <CardTitle className="text-base sm:text-lg font-black text-foreground uppercase tracking-wider">
               Recent Activity
@@ -511,13 +499,13 @@ export default function Dashboard() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-4 sm:pt-6 px-4 sm:px-6">
+        <CardContent className="pt-3 sm:pt-4 px-3 sm:px-4">
           <div className="space-y-1">
             {activities && activities.length > 0 ? (
               activities.map((item, i) => (
                 <div
                   key={i}
-                  className="group flex items-center gap-3 sm:gap-4 py-3 sm:py-4 px-2 rounded-2xl hover:bg-accent/50 transition-colors duration-200"
+                  className="group flex items-center gap-3 sm:gap-4 py-2.5 sm:py-3 px-2 rounded-2xl hover:bg-accent/50 transition-colors duration-200"
                 >
                   <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shrink-0 ${
                     item.action === 'Reminder' ? 'bg-yellow-500/10 text-yellow-600 group-hover:bg-card group-hover:shadow-sm' :

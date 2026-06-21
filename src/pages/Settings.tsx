@@ -356,7 +356,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-16">
+    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500 pb-16">
       {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -402,10 +402,10 @@ export default function SettingsPage() {
       </div>
 
       {/* ACTIVE TAB CONTENTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 items-start">
         
         {/* LEFT/MAIN CONTAINER (SPAN 2 COLS) */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           
           {/* TAB 1: SYSTEM CONFIGURATION */}
           {activeTab === "system" && (
@@ -877,7 +877,7 @@ export default function SettingsPage() {
         </div>
 
         {/* RIGHT/SIDEBAR CONTAINER (SPAN 1 COL) */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           
           {/* SIDEBAR FOR SYSTEM TAB */}
           {activeTab === "system" && (
@@ -1000,7 +1000,7 @@ export default function SettingsPage() {
                 <div className="aspect-video w-full rounded-2xl bg-slate-900 border border-border/30 overflow-hidden relative flex items-center justify-center">
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/40 via-transparent to-transparent" />
                   <div className="relative flex flex-col items-center gap-1 opacity-80 scale-90">
-                    <div className="flex gap-6">
+                    <div className="flex gap-4">
                       <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
                       <div className="w-2 h-2 rounded-full bg-emerald-500" />
                       <div className="w-2 h-2 rounded-full bg-amber-500" />

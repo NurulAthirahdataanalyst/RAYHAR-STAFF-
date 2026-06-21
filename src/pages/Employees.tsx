@@ -565,10 +565,10 @@ export default function Employees() {
             <DialogTitle className="text-xl font-black text-slate-800">Staff Profile</DialogTitle>
           </DialogHeader>
           
-          <div className="py-6 space-y-6">
+          <div className="py-4 space-y-4">
             {selectedEmployee ? (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Left Column: Bio */}
                   <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col items-center text-center">
                     <div className="w-24 h-24 rounded-2xl bg-[#7B0099] flex items-center justify-center text-white text-4xl font-black shadow-xl mb-4">
@@ -694,7 +694,7 @@ export default function Employees() {
                     const fromStr = new Date(req.start_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     const toStr = new Date(req.end_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     return (
-                      <div key={req.leave_id} className="rounded-lg border p-6 space-y-6 bg-white shadow-sm mb-6">
+                      <div key={req.leave_id} className="rounded-lg border p-4 space-y-4 bg-white shadow-sm mb-4">
                         <div className="text-center border-b-2 border-foreground pb-4">
                           <h2 className="text-2xl font-black tracking-tight text-foreground">RAYHAR GROUP</h2>
                           <p className="text-sm font-bold tracking-widest uppercase">Permohonan Cuti Kakitangan</p>

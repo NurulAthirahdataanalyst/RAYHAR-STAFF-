@@ -632,10 +632,10 @@ export default function Attendance() {
       {/* Dynamic Background Top Half */}
       <div className="absolute top-0 left-0 right-0 h-[40%] sm:h-[45%] bg-gradient-to-br from-[#5e0080] via-[#7B0099] to-[#a855f7] rounded-b-[40px] sm:rounded-b-[60px] z-0 shadow-2xl" />
 
-      <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-6 lg:gap-8 p-4 sm:p-8 md:p-10 animate-in fade-in zoom-in-95 duration-700 w-full max-w-2xl lg:max-w-[1400px] mx-auto">
+      <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-5 lg:gap-6 p-3 sm:p-6 md:p-8 animate-in fade-in zoom-in-95 duration-700 w-full max-w-2xl lg:max-w-[1400px] mx-auto">
 
         {/* Main Clocking Card */}
-        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md lg:flex-1 rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-5 sm:p-6 md:p-8 flex flex-col items-center relative overflow-hidden border border-border/30 lg:self-start">
+        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md lg:flex-1 rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-4 sm:p-5 md:p-6 flex flex-col items-center relative overflow-hidden border border-border/30 lg:self-start">
 
           {user ? (
             <div className="flex-1 flex flex-col items-center justify-between w-full h-full">
@@ -707,7 +707,7 @@ export default function Attendance() {
                 </button>
               </div>
 
-              <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-xs font-bold mb-4 sm:mb-6 bg-muted/30 dark:bg-muted/50 py-1.5 px-4 rounded-full w-full border border-border/50">
+              <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-xs font-bold mb-3 sm:mb-4 bg-muted/30 dark:bg-muted/50 py-1.5 px-4 rounded-full w-full border border-border/50">
                 {activeSession ? (
                   <>
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -722,7 +722,7 @@ export default function Attendance() {
               </div>
 
               {/* Bottom Details Row */}
-              <div className="w-full grid grid-cols-3 gap-2 border-t border-border/50 pt-4 sm:pt-6">
+              <div className="w-full grid grid-cols-3 gap-2 border-t border-border/50 pt-3 sm:pt-4">
                 <div className="flex flex-col items-center gap-1.5 sm:gap-2">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 dark:bg-purple-950/30 text-[#7B0099] dark:text-purple-400 flex items-center justify-center shadow-inner">
                     <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -758,7 +758,7 @@ export default function Attendance() {
 
             </div>
           ) : (
-            <div className="py-12 sm:py-20 space-y-4 text-center">
+            <div className="py-10 sm:py-16 space-y-3 text-center">
               <div className="w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
                 <Fingerprint className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground" />
               </div>
@@ -769,7 +769,7 @@ export default function Attendance() {
         </div>
 
         {/* Daily Logs History Card */}
-        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md md:max-w-xl lg:flex-1 rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-5 sm:p-6 md:p-8 flex flex-col relative border border-border/30 overflow-hidden min-h-[480px]">
+        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md md:max-w-xl lg:flex-1 rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-4 sm:p-5 md:p-6 flex flex-col relative border border-border/30 overflow-hidden min-h-[480px]">
           
           {/* Top Actions Row */}
           <div className="flex items-center justify-between gap-2 mb-6">
@@ -891,7 +891,7 @@ export default function Attendance() {
               <p className="text-[10px] opacity-80 mt-0.5">Your shift logs will appear here</p>
             </div>
           ) : (
-            <div className="space-y-4 flex-1 flex flex-col justify-between">
+              <div className="space-y-2.5 flex-1 flex flex-col justify-between">
               <div className="space-y-3.5">
                 {displayedLogs
                   .slice(0, visibleLogsCount)

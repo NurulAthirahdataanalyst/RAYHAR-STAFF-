@@ -196,13 +196,13 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       {/* MENU */}
       <div className={`flex-1 scrollbar-none pt-4 pb-2 border-r border-sidebar-border ${isCollapsed && !isMobile ? "overflow-visible" : "overflow-y-auto"}`}>
         {(!isCollapsed || isMobile) && (
-          <div className="px-5 mb-3">
+          <div className="px-4 mb-2">
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500/80">
               Menu Navigation
             </span>
           </div>
         )}
-        <nav className="space-y-1 px-2.5 sm:px-3">
+        <nav className="space-y-0.5 px-2 sm:px-2.5">
           {filteredItems.map((item) => {
             const isActive =
               item.path === "/"
@@ -228,7 +228,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                       setExpandedMenus(prev => ({ ...prev, [item.title]: true }));
                     }
                   }}
-                  className={`group relative flex items-center gap-3 rounded-[14px] px-3.5 sm:px-4 py-2.5 transition-all duration-300 touch-target ${
+                  className={`group relative flex items-center gap-3 rounded-[14px] px-3 sm:px-3.5 py-2 transition-all duration-300 touch-target ${
                     isActive
                       ? "bg-[#7B0099] text-white font-bold border-b-[4px] border-[#450057] dark:border-[#22002b] shadow-md hover:bg-[#850da0] hover:border-[#4d0161] active:translate-y-[2px] active:border-b-[2px]"
                       : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80"
@@ -270,7 +270,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
                 {/* Submenu for Expanded State (Desktop or Mobile) */}
                 {hasChildren && isMenuExpanded && (!isCollapsed || isMobile) && (
-                  <div className="relative pl-8 pr-2 py-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="relative pl-7 pr-2 py-0.5 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
                     {/* Vertical tree line */}
                     <div className="absolute left-[23px] top-0 bottom-[18px] w-[1.5px] bg-slate-300/80 dark:bg-white/10" />
                     
@@ -281,7 +281,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                           key={child.title}
                           to={child.path}
                           onClick={isMobile ? onMobileClose : undefined}
-                          className={`group relative flex items-center gap-3 rounded-[14px] px-3 py-2.5 text-[12px] transition-all duration-300 touch-target ${
+                          className={`group relative flex items-center gap-3 rounded-[14px] px-2.5 py-2 text-[12px] transition-all duration-300 touch-target ${
                             isChildActive
                               ? "bg-[#7B0099]/10 dark:bg-slate-800/80 font-bold text-[#7B0099] dark:text-purple-300 border-b-[3px] border-[#7B0099]/20 dark:border-slate-900 shadow-sm active:translate-y-[1px] active:border-b-[1px]"
                               : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80"
