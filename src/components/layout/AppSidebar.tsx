@@ -20,9 +20,7 @@ import {
   PieChart,
   Settings,
   Calendar,
-  Menu,
-  PanelLeftClose,
-  PanelLeftOpen
+  Menu
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRole } from "@/contexts/RoleContext";
@@ -167,7 +165,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                 className="flex h-10 w-10 items-center justify-center text-white/85 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300 shrink-0"
                 aria-label="Collapse sidebar"
               >
-                <PanelLeftClose className="h-5 w-5" />
+                <ChevronLeft className="h-5 w-5" />
               </button>
             )}
           </div>
@@ -178,7 +176,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
             className="flex h-10 w-10 items-center justify-center text-white/85 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300"
             aria-label="Expand sidebar"
           >
-            <PanelLeftOpen className="h-5 w-5" />
+            <ChevronRight className="h-5 w-5" />
           </button>
         )}
 
