@@ -262,8 +262,11 @@ export default function Attendance() {
         }
         
         const logDate = new Date(log.clock_in);
-        const logDateStr = logDate.toISOString().split('T')[0];
-        if (logDateStr === today) {
+        // Correctly handle timezone by using local date string for 'today' match
+        // Or just use the date property from the log directly
+        const logDateStr = log.date ? new Date(log.date).toISOString().split('T')[0] : logDate.toISOString().split('T')[0];
+        
+        if (logDateStr === today || (log.date && log.date.startsWith(today))) {
           totalToday += hours;
         }
         if (logDate >= weekAgo) {
@@ -272,13 +275,20 @@ export default function Attendance() {
       }
     });
 
+    const formatHrs = (decimalHours: number) => {
+      if (isNaN(decimalHours) || decimalHours < 0) return "00:00";
+      const h = Math.floor(decimalHours);
+      const m = Math.round((decimalHours - h) * 60);
+      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    };
+
     setStats({
-      totalHoursToday: totalToday.toFixed(2),
-      totalHoursWeek: totalWeek.toFixed(2),
-      totalHoursMonth: totalMonth.toFixed(2),
-      overtimeMonth: overtime.toFixed(2),
-      productiveHours: (totalMonth - breakTime).toFixed(2),
-      breakHours: breakTime.toFixed(2)
+      totalHoursToday: formatHrs(totalToday),
+      totalHoursWeek: formatHrs(totalWeek),
+      totalHoursMonth: formatHrs(totalMonth),
+      overtimeMonth: formatHrs(overtime),
+      productiveHours: formatHrs(totalMonth - breakTime),
+      breakHours: formatHrs(breakTime)
     });
   }, [historyLogs]);
 
