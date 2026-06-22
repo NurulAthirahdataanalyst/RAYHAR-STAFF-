@@ -91,6 +91,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   const APPROVER_ROLES = ["managing_director", "finance_manager", "head_of_department"];
 
   const menuItems = [
+    { title: "MAIN NAVIGATION", isSection: true, roles: ALL_ROLES },
     { title: "Dashboard", icon: LayoutDashboard, path: "/", roles: ALL_ROLES },
     { title: "Calendar", icon: Calendar, path: "/calendar", roles: ALL_ROLES },
     { title: "Attendance", icon: Clock, path: "/attendance", roles: ALL_ROLES },
@@ -102,39 +103,49 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       children: [
         { title: "Leave Application", icon: FilePlus2, path: "/leave/apply", roles: ALL_ROLES },
         { title: "My Leave Requests", icon: FileSearch, path: "/leave/forms", roles: ALL_ROLES },
-        { title: "Leave Approvals", icon: ClipboardList, path: "/leave/admin", roles: [...ADMIN_ROLES] },
       ],
     },
+    { title: "Analytics", icon: BarChart3, path: "/analytics", roles: ALL_ROLES },
+
+    { title: "HR ADMINISTRATION", isSection: true, roles: ADMIN_ROLES },
     {
-      title: "Administration",
+      title: "Leave Administration",
+      icon: ClipboardList,
+      path: "/leave-admin",
+      roles: ADMIN_ROLES,
+      children: [
+        { title: "Leave Approvals", icon: FileCheck, path: "/leave/admin", roles: ADMIN_ROLES },
+      ]
+    },
+    {
+      title: "Employee Management",
       icon: Users,
       path: "/master",
       roles: ADMIN_ROLES,
       children: [
-        { title: "Departments", icon: Building2, path: "/master/department", roles: ["hr_admin"] },
-        { title: "User Management", icon: Users, path: "/employees", roles: ["hr_admin"] },
         { title: "Employee Directory", icon: Users, path: "/employees", roles: ADMIN_ROLES },
+        { title: "Department", icon: Building2, path: "/master/department", roles: ["hr_admin"] },
+        { title: "Role", icon: Settings, path: "/master/role", roles: ["hr_admin"] },
       ],
     },
-    { title: "Branches", icon: Building2, path: "/branches", roles: ["hr_admin", "managing_director", "finance_manager"] },
-    { title: "Analytical", icon: BarChart3, path: "/analytics", roles: ALL_ROLES },
+    { title: "Branch Management", icon: Building2, path: "/branches", roles: ["hr_admin", "managing_director", "finance_manager"] },
     {
-      title: "HR Analytics",
+      title: "Workforce Analytics",
       icon: PieChart,
       path: "/hr-analytics",
       roles: ["hr_admin", "managing_director", "finance_manager"],
       children: [
         { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance", roles: ["hr_admin", "managing_director", "finance_manager"] },
-        { title: "Leave Dashboard", icon: BarChart3, path: "/hr-analytics/leave", roles: ["hr_admin", "managing_director", "finance_manager"] },
+        { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave", roles: ["hr_admin", "managing_director", "finance_manager"] },
       ]
     },
     {
       title: "Reports",
       icon: FileSearch,
       path: "/reports",
-      roles: ["hr_admin", "managing_director", "finance_manager"],
+      roles: ALL_ROLES,
       children: [
-        { title: "Daily Reports", icon: FileSearch, path: "/reports/daily", roles: ["hr_admin", "managing_director", "finance_manager"] },
+        { title: "Daily Reports", icon: FileSearch, path: "/reports/daily", roles: ALL_ROLES },
         { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance", roles: ["hr_admin", "managing_director", "finance_manager"] },
         { title: "Leave Reports", icon: FileSearch, path: "/reports/leave", roles: ["hr_admin", "managing_director", "finance_manager"] },
       ]
@@ -215,19 +226,23 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
       {/* MENU */}
       <div className={`flex-1 scrollbar-none pt-4 pb-2 border-r border-sidebar-border ${isCollapsed && !isMobile ? "overflow-visible" : "overflow-y-auto"}`}>
-        {(!isCollapsed || isMobile) && (
-          <div className="px-3 mb-1.5">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500/80">
-              Menu Navigation
-            </span>
-          </div>
-        )}
-        <nav className="space-y-0.5 px-2 sm:px-2.5">
-          {filteredItems.map((item) => {
+        <nav className="space-y-0.5 px-2 sm:px-2.5 mt-2">
+          {filteredItems.map((item, index) => {
+            if (item.isSection) {
+              if (isCollapsed && !isMobile) return <div key={item.title} className="h-4"></div>;
+              return (
+                <div key={item.title} className={`px-2 mb-1.5 ${index > 0 ? "mt-5" : ""}`}>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500/80">
+                    {item.title}
+                  </span>
+                </div>
+              );
+            }
+
             const isActive =
               item.path === "/"
                 ? location.pathname === item.path
-                : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+                : item.path && (location.pathname === item.path || location.pathname.startsWith(`${item.path}/`));
             const visibleChildren = item.children?.filter((child) =>
               child.roles.includes(role || "employee")
             );
