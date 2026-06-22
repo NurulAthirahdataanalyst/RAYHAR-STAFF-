@@ -304,7 +304,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {/* Ruang Kerja Utama (70% - 90%) */}
             <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3 transition-all duration-500 ease-in-out w-full">
               <PageHeader />
-              {children}
+              <div className="w-full max-w-7xl mx-auto">
+                {children}
+              </div>
             </div>
 
             {/* Panel Sisi (Collapsible Sidebar - 30% or slim) */}
