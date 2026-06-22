@@ -733,12 +733,105 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
 // REAL-TIME PRESENCE FEED (SSE)
 // ===============================
 let sseClients = [];
+let liveStatsClients = [];
+
+async function getLiveAttendanceStats(queryDate) {
+  const dateStr = queryDate || new Date().toISOString().split('T')[0];
+  try {
+    const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
+
+    // Total active employees
+    const [totalRows] = await pool.query(
+      `SELECT COUNT(*) AS total FROM profiles WHERE status = 'Active'`
+    );
+    const total = parseInt(totalRows[0].total) || 0;
+
+    // On leave today
+    const [leaveRows] = await pool.query(
+      `SELECT DISTINCT lr.user_id, p.full_name, p.branch, p.department
+       FROM leave_requests lr
+       JOIN profiles p ON p.user_id = lr.user_id
+       WHERE lr.status = 'Approved' AND ? BETWEEN lr.start_date AND lr.end_date
+       AND p.status = 'Active'`,
+      [dateStr]
+    );
+
+    const onLeaveIds = new Set(leaveRows.map(r => r.user_id));
+
+    // All clock-ins today
+    const [clockRows] = await pool.query(
+      `SELECT a.user_id, p.full_name, p.branch, p.department, a.clock_in, a.clock_out
+       FROM attendances a
+       JOIN profiles p ON p.user_id = a.user_id
+       WHERE DATE(a.clock_in) = ?
+       AND p.status = 'Active'
+       ORDER BY a.clock_in ASC`,
+      [dateStr]
+    );
+
+    // Deduplicate by user_id (latest record per user)
+    const clockMap = {};
+    for (const row of clockRows) {
+      clockMap[row.user_id] = row;
+    }
+
+    const presentList = [];
+    const lateList = [];
+
+    for (const [uid, row] of Object.entries(clockMap)) {
+      if (onLeaveIds.has(uid)) continue;
+      const klTime = new Date(new Date(row.clock_in).getTime() + 8 * 60 * 60 * 1000);
+      const hh = klTime.getUTCHours();
+      const mm = klTime.getUTCMinutes();
+      const [lhStr, lmStr] = lateTimeStr.split(':');
+      const lh = parseInt(lhStr), lm = parseInt(lmStr);
+      const isLate = hh > lh || (hh === lh && mm > lm);
+      const timeInFmt = klTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+      const timeOutFmt = row.clock_out
+        ? new Date(new Date(row.clock_out).getTime() + 8 * 60 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+        : null;
+
+      const emp = { user_id: uid, full_name: row.full_name, branch: row.branch || 'HQ', department: row.department || '—', clock_in: timeInFmt, clock_out: timeOutFmt };
+      if (isLate) lateList.push({ ...emp, status: 'late' });
+      else presentList.push({ ...emp, status: 'present' });
+    }
+
+    const absentCount = Math.max(0, total - Object.keys(clockMap).length - leaveRows.length);
+
+    return {
+      type: 'presence_update',
+      timestamp: new Date().toISOString(),
+      stats: {
+        present: presentList.length,
+        late: lateList.length,
+        absent: absentCount,
+        onLeave: leaveRows.length,
+        total
+      },
+      employees: [
+        ...presentList,
+        ...lateList,
+        ...leaveRows.map(r => ({ user_id: r.user_id, full_name: r.full_name, branch: r.branch || 'HQ', department: r.department || '—', clock_in: null, clock_out: null, status: 'onLeave' }))
+      ]
+    };
+  } catch (err) {
+    console.error('getLiveAttendanceStats error:', err);
+    return { type: 'presence_update', timestamp: new Date().toISOString(), stats: { present: 0, late: 0, absent: 0, onLeave: 0, total: 0 }, employees: [] };
+  }
+}
 
 function broadcastPresenceUpdate(payload = { type: 'refresh' }) {
   console.log(`📡 Broadcasting presence update to ${sseClients.length} clients...`);
   sseClients.forEach((client) => {
     client.write(`data: ${JSON.stringify(payload)}\n\n`);
   });
+  // Also refresh live stats clients
+  if (liveStatsClients.length > 0) {
+    const today = new Date().toISOString().split('T')[0];
+    getLiveAttendanceStats(today).then(data => {
+      liveStatsClients.forEach(c => c.res.write(`data: ${JSON.stringify(data)}\n\n`));
+    }).catch(console.error);
+  }
 }
 
 // ===============================
@@ -757,6 +850,48 @@ app.get("/api/presence/stream", (req, res) => {
   req.on("close", () => {
     sseClients = sseClients.filter((c) => c !== res);
     console.log(`🔌 SSE Client disconnected. Total: ${sseClients.length}`);
+  });
+});
+
+// LIVE STATS SSE — streams enriched presence data (present/late/absent/on-leave counts + employee list)
+app.get("/api/presence/live-stats", async (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.flushHeaders();
+
+  // Send heartbeat comment to keep connection alive
+  res.write(": connected\n\n");
+
+  const queryDate = req.query.date ? req.query.date.toString() : new Date().toISOString().split('T')[0];
+
+  // Send initial snapshot immediately
+  try {
+    const snapshot = await getLiveAttendanceStats(queryDate);
+    res.write(`data: ${JSON.stringify(snapshot)}\n\n`);
+  } catch (e) {
+    console.error("live-stats initial send error:", e);
+  }
+
+  // Refresh every 30 seconds
+  const interval = setInterval(async () => {
+    try {
+      const data = await getLiveAttendanceStats(queryDate);
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    } catch (e) {
+      console.error("live-stats interval error:", e);
+    }
+  }, 30000);
+
+  const clientEntry = { res };
+  liveStatsClients.push(clientEntry);
+  console.log(`📊 Live-stats SSE client connected. Total: ${liveStatsClients.length}`);
+
+  req.on("close", () => {
+    clearInterval(interval);
+    liveStatsClients = liveStatsClients.filter(c => c !== clientEntry);
+    console.log(`📊 Live-stats SSE client disconnected. Total: ${liveStatsClients.length}`);
   });
 });
 

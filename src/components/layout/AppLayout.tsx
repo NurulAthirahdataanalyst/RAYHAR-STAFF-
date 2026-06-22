@@ -4,8 +4,6 @@ import NotificationBell from "../NotificationBell";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
-// Pastikan nama fail tepat: watercolor-bg.png
-import watercolorBg from "@/assets/watercolor-bg.png";
 import rayharLogo from "@/assets/rayhar-logo.png";
 import { 
   DropdownMenu, 
@@ -172,16 +170,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <AppSidebar mobileOpen={mobileMenuOpen} onMobileClose={() => setMobileMenuOpen(false)} />
       
       <main 
-        className="flex-1 overflow-x-hidden relative min-w-0"
-        style={{
-          backgroundImage: `url(${watercolorBg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed'
-        }}
+        className="flex-1 overflow-x-hidden relative min-w-0 bg-white"
       >
-        <div className="absolute inset-0 bg-background/60 dark:bg-background/90 pointer-events-none" />
+
         
         {/* ═══════ DESKTOP TOP BAR ═══════ */}
         <header className="hidden lg:flex sticky top-0 z-30 w-full bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] py-2.5 px-3 items-center justify-between shadow-md relative overflow-hidden border-b border-[#7B0099]/15">

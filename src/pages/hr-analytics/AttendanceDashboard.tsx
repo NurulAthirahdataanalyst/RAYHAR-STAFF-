@@ -13,7 +13,7 @@ import {
   LineChart, Line, Legend, Cell, PieChart as RechartsPieChart, Pie
 } from "recharts";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -119,6 +119,19 @@ export default function AttendanceDashboard() {
   const [departments, setDepartments] = useState<string[]>([]);
   const [deptStats, setDeptStats] = useState<Department[]>([]);
 
+  // ── LIVE SSE PRESENCE STATE ──────────────────────────────────────────
+  const [liveStats, setLiveStats] = useState<{
+    present: number; late: number; absent: number; onLeave: number; total: number;
+  }>({ present: 0, late: 0, absent: 0, onLeave: 0, total: 0 });
+  const [liveEmployees, setLiveEmployees] = useState<Array<{
+    user_id: string; full_name: string; branch: string; department: string;
+    clock_in: string | null; clock_out: string | null; status: string;
+  }>>([]);
+  const [liveLastUpdated, setLiveLastUpdated] = useState<string | null>(null);
+  const [liveConnected, setLiveConnected] = useState(false);
+  const [liveFilter, setLiveFilter] = useState<'all' | 'present' | 'late' | 'absent' | 'onLeave'>('all');
+  const liveEsRef = useRef<EventSource | null>(null);
+
   // Attendance & Punctuality State
   const [dailyAttendance, setDailyAttendance] = useState<AttendanceRecord[]>([]);
   const [loadingDaily, setLoadingDaily] = useState(false);
@@ -140,6 +153,7 @@ export default function AttendanceDashboard() {
   const [selectedBranchFilter, setSelectedBranchFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartmentFilter, setSelectedDepartmentFilter] = useState("all");
+
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("last7");
   const [currentPage, setCurrentPage] = useState(1);
@@ -196,12 +210,10 @@ export default function AttendanceDashboard() {
   // Load Initial Lists
   const fetchLists = useCallback(async () => {
     try {
-      // 1. Fetch Branches
       const branchRes = await fetch(`${API_BASE_URL}/api/branches`);
       const branchData = await branchRes.json();
       if (branchData.success) setBranches(branchData.branches);
 
-      // 2. Fetch Departments
       const deptRes = await fetch(`${API_BASE_URL}/api/departments`);
       const deptData = await deptRes.json();
       if (deptData.success) {
@@ -209,7 +221,6 @@ export default function AttendanceDashboard() {
         setDepartments(deptData.departments.map((d: any) => d.name));
       }
 
-      // 3. Fetch Settings for Late Arrival Threshold
       const settingsRes = await fetch(`${API_BASE_URL}/api/settings`);
       const settingsData = await settingsRes.json();
       if (settingsData.success && settingsData.settings?.lateThreshold) {
@@ -283,23 +294,18 @@ export default function AttendanceDashboard() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/reports/total-leave-requests`);
       const data = await response.json();
-      if (data.success) {
-        setTotalLeaveRequests(data.totalLeaveRequests);
-      }
+      if (data.success) setTotalLeaveRequests(data.totalLeaveRequests);
     } catch (error) {
       console.error("Error fetching total leave requests:", error);
     }
   };
 
-  // Fetch Leave Utilization
   const fetchLeaveUtilization = async () => {
     setLoadingLeave(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/reports/leave-utilization`);
       const data = await response.json();
-      if (data.success) {
-        setLeaveUtilization(data);
-      }
+      if (data.success) setLeaveUtilization(data);
     } catch (e) {
       console.error("Error fetching leave utilization:", e);
     } finally {
@@ -317,12 +323,43 @@ export default function AttendanceDashboard() {
     }
   }, [activeTab, selectedMonth, selectedYear, selectedDate]);
 
-  // Handle SSE live stream refresh
+  // ── LIVE-STATS SSE CONNECTION ─────────────────────────────────────────
+  useEffect(() => {
+    const url = `${API_BASE_URL}/api/presence/live-stats?date=${selectedDate}`;
+    const es = new EventSource(url);
+    liveEsRef.current = es;
+
+    es.onopen = () => setLiveConnected(true);
+    es.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'presence_update') {
+          setLiveStats(data.stats);
+          setLiveEmployees(data.employees || []);
+          setLiveLastUpdated(data.timestamp);
+          setLiveConnected(true);
+          setAttendanceStats(prev => ({
+            ...prev,
+            presentToday: data.stats.present,
+            lateArrivals: data.stats.late,
+            absentToday: data.stats.absent,
+          }));
+        }
+      } catch (err) {
+        console.error('live-stats parse error:', err);
+      }
+    };
+    es.onerror = () => setLiveConnected(false);
+
+    return () => { es.close(); liveEsRef.current = null; };
+  }, [selectedDate]);
+
+  // Handle SSE live stream refresh (table data)
   useEffect(() => {
     const streamUrl = `${API_BASE_URL}/api/presence/stream`;
     const eventSource = new EventSource(streamUrl);
 
-    eventSource.onmessage = (event) => {
+    eventSource.onmessage = () => {
       try {
         if (activeTab === "attendance") {
           fetchDailyAttendance();
@@ -344,6 +381,7 @@ export default function AttendanceDashboard() {
       toast.error("No data to export");
       return;
     }
+
     const headers = ["Employee Name", "Branch", "Time In", "Time Out", "Status"];
     const rows = dailyAttendance.map(r => [
       r.full_name,
@@ -712,75 +750,228 @@ export default function AttendanceDashboard() {
         </div>
       </div>
 
-      {/* ATTENDANCE DETAILS TODAY */}
+      {/* ── LIVE PRESENCE PANEL ─────────────────────────────────────────── */}
       <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden">
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-            <div>
-              <h2 className="text-base font-bold text-gray-800">Attendance Details Today</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Data from the ${totalStaffCount || 800}+ total no of employees</p>
-            </div>
+        <CardContent className="p-0">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 pt-5 pb-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <span className="text-xs font-medium text-gray-500">Total Absenties today</span>
-              <div className="flex -space-x-1.5">
-                <div className="w-6 h-6 rounded-full bg-rose-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-rose-600">AL</div>
-                <div className="w-6 h-6 rounded-full bg-amber-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-amber-600">BV</div>
-                <div className="w-6 h-6 rounded-full bg-purple-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-purple-600">HS</div>
-                <div className="w-6 h-6 rounded-full bg-red-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-red-600">+${attendanceStats.absentToday}</div>
+              <div className="p-2 bg-[#7B0099]/10 rounded-lg">
+                <Activity className="w-4 h-4 text-[#7B0099]" />
               </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Live Attendance Status</h2>
+                  {liveConnected ? (
+                    <span className="flex items-center gap-1 bg-red-50 text-red-600 border border-red-200 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                      LIVE
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 bg-gray-100 text-gray-500 border border-gray-200 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                      Connecting…
+                    </span>
+                  )}
+                </div>
+                <p className="text-[10px] text-gray-400 mt-0.5">
+                  {liveLastUpdated
+                    ? `Updated ${new Date(liveLastUpdated).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}`
+                    : `From ${liveStats.total || totalStaffCount || '—'} active employees`}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
+              <RefreshCw className="w-3 h-3" />
+              Auto-refresh every 30s
             </div>
           </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+
+          {/* 4 Stat Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 divide-x divide-y lg:divide-y-0 divide-gray-100">
             {/* Present */}
-            <div className="p-4 flex flex-col justify-between min-h-[90px]">
-              <span className="text-xs font-semibold text-gray-500">Present</span>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-2xl font-extrabold text-gray-800">${attendanceStats.presentToday}</span>
-                <span className="text-[10px] font-bold bg-green-50 text-green-600 border border-green-200/50 px-2 py-0.5 rounded-[4px] flex items-center gap-0.5">
-                  <span>+1%</span>
-                </span>
+            <button
+              onClick={() => setLiveFilter(liveFilter === 'present' ? 'all' : 'present')}
+              className={`group p-5 flex flex-col gap-3 text-left transition-colors hover:bg-green-50/60 ${
+                liveFilter === 'present' ? 'bg-green-50' : 'bg-white'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Present</span>
+                <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-green-600" />
+                </div>
               </div>
-            </div>
-            {/* Late Login */}
-            <div className="p-4 flex flex-col justify-between min-h-[90px] md:pl-6">
-              <span className="text-xs font-semibold text-gray-500">Late Login</span>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-2xl font-extrabold text-gray-800">${attendanceStats.lateArrivals}</span>
-                <span className="text-[10px] font-bold bg-red-50 text-red-600 border border-red-200/50 px-2 py-0.5 rounded-[4px] flex items-center gap-0.5">
-                  <span>-1%</span>
-                </span>
+              <div>
+                <span className="text-3xl font-black text-gray-900">{liveStats.present}</span>
+                <div className="mt-1 h-1 rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className="h-full bg-green-500 rounded-full transition-all duration-700"
+                    style={{ width: liveStats.total > 0 ? `${Math.round((liveStats.present / liveStats.total) * 100)}%` : '0%' }}
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1 font-medium">
+                  {liveStats.total > 0 ? `${Math.round((liveStats.present / liveStats.total) * 100)}%` : '—'} of total
+                </p>
               </div>
-            </div>
-            {/* Uninformed */}
-            <div className="p-4 flex flex-col justify-between min-h-[90px] md:pl-6">
-              <span className="text-xs font-semibold text-gray-500">Uninformed</span>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-2xl font-extrabold text-gray-800">${Math.max(0, Math.floor(attendanceStats.absentToday * 0.6))}</span>
-                <span className="text-[10px] font-bold bg-red-50 text-red-600 border border-red-200/50 px-2 py-0.5 rounded-[4px] flex items-center gap-0.5">
-                  <span>-12%</span>
-                </span>
+            </button>
+
+            {/* Late */}
+            <button
+              onClick={() => setLiveFilter(liveFilter === 'late' ? 'all' : 'late')}
+              className={`group p-5 flex flex-col gap-3 text-left transition-colors hover:bg-amber-50/60 ${
+                liveFilter === 'late' ? 'bg-amber-50' : 'bg-white'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Late</span>
+                <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-amber-600" />
+                </div>
               </div>
-            </div>
-            {/* Permission */}
-            <div className="p-4 flex flex-col justify-between min-h-[90px] md:pl-6">
-              <span className="text-xs font-semibold text-gray-500">Permission</span>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-2xl font-extrabold text-gray-800">${Math.max(1, Math.floor(attendanceStats.presentToday * 0.02))}</span>
-                <span className="text-[10px] font-bold bg-green-50 text-green-600 border border-green-200/50 px-2 py-0.5 rounded-[4px] flex items-center gap-0.5">
-                  <span>+1%</span>
-                </span>
+              <div>
+                <span className="text-3xl font-black text-gray-900">{liveStats.late}</span>
+                <div className="mt-1 h-1 rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className="h-full bg-amber-400 rounded-full transition-all duration-700"
+                    style={{ width: liveStats.total > 0 ? `${Math.round((liveStats.late / liveStats.total) * 100)}%` : '0%' }}
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1 font-medium">
+                  {liveStats.total > 0 ? `${Math.round((liveStats.late / liveStats.total) * 100)}%` : '—'} of total
+                </p>
               </div>
-            </div>
+            </button>
+
             {/* Absent */}
-            <div className="p-4 flex flex-col justify-between min-h-[90px] md:pl-6">
-              <span className="text-xs font-semibold text-gray-500">Absent</span>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-2xl font-extrabold text-gray-800">${attendanceStats.absentToday}</span>
-                <span className="text-[10px] font-bold bg-red-50 text-red-600 border border-red-200/50 px-2 py-0.5 rounded-[4px] flex items-center gap-0.5">
-                  <span>-19%</span>
-                </span>
+            <button
+              onClick={() => setLiveFilter(liveFilter === 'absent' ? 'all' : 'absent')}
+              className={`group p-5 flex flex-col gap-3 text-left transition-colors hover:bg-red-50/60 ${
+                liveFilter === 'absent' ? 'bg-red-50' : 'bg-white'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Absent</span>
+                <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
+                  <AlertCircle className="w-4 h-4 text-red-600" />
+                </div>
               </div>
+              <div>
+                <span className="text-3xl font-black text-gray-900">{liveStats.absent}</span>
+                <div className="mt-1 h-1 rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className="h-full bg-red-500 rounded-full transition-all duration-700"
+                    style={{ width: liveStats.total > 0 ? `${Math.round((liveStats.absent / liveStats.total) * 100)}%` : '0%' }}
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1 font-medium">
+                  {liveStats.total > 0 ? `${Math.round((liveStats.absent / liveStats.total) * 100)}%` : '—'} of total
+                </p>
+              </div>
+            </button>
+
+            {/* On Leave */}
+            <button
+              onClick={() => setLiveFilter(liveFilter === 'onLeave' ? 'all' : 'onLeave')}
+              className={`group p-5 flex flex-col gap-3 text-left transition-colors hover:bg-blue-50/60 ${
+                liveFilter === 'onLeave' ? 'bg-blue-50' : 'bg-white'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">On Leave</span>
+                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <Calendar className="w-4 h-4 text-blue-600" />
+                </div>
+              </div>
+              <div>
+                <span className="text-3xl font-black text-gray-900">{liveStats.onLeave}</span>
+                <div className="mt-1 h-1 rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className="h-full bg-blue-500 rounded-full transition-all duration-700"
+                    style={{ width: liveStats.total > 0 ? `${Math.round((liveStats.onLeave / liveStats.total) * 100)}%` : '0%' }}
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1 font-medium">
+                  {liveStats.total > 0 ? `${Math.round((liveStats.onLeave / liveStats.total) * 100)}%` : '—'} of total
+                </p>
+              </div>
+            </button>
+          </div>
+
+          {/* Employee List */}
+          <div className="border-t border-gray-100">
+            <div className="px-6 py-3 flex items-center justify-between bg-gray-50/60">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Employee Status</span>
+                {liveFilter !== 'all' && (
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize ${
+                    liveFilter === 'present' ? 'bg-green-100 text-green-700' :
+                    liveFilter === 'late' ? 'bg-amber-100 text-amber-700' :
+                    liveFilter === 'absent' ? 'bg-red-100 text-red-700' :
+                    'bg-blue-100 text-blue-700'
+                  }`}>
+                    {liveFilter === 'onLeave' ? 'On Leave' : liveFilter}
+                  </span>
+                )}
+              </div>
+              {liveFilter !== 'all' && (
+                <button onClick={() => setLiveFilter('all')} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 transition-colors">Clear filter ✕</button>
+              )}
+            </div>
+
+            <div className="max-h-[320px] overflow-y-auto">
+              {(() => {
+                const filtered = liveFilter === 'all' ? liveEmployees : liveEmployees.filter(e => e.status === liveFilter);
+                if (filtered.length === 0) {
+                  return (
+                    <div className="flex flex-col items-center justify-center py-10 text-center">
+                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                        <Users className="w-5 h-5 text-gray-300" />
+                      </div>
+                      <p className="text-xs font-semibold text-gray-400">No employees in this category</p>
+                      <p className="text-[10px] text-gray-300 mt-1">Data updates every 30 seconds</p>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="divide-y divide-gray-50">
+                    {filtered.map((emp) => {
+                      const statusConfig = {
+                        present: { dot: 'bg-green-500', badge: 'bg-green-50 text-green-700 border-green-100', label: 'Present' },
+                        late:    { dot: 'bg-amber-500',  badge: 'bg-amber-50  text-amber-700  border-amber-100', label: 'Late' },
+                        absent:  { dot: 'bg-red-500',    badge: 'bg-red-50    text-red-700    border-red-100',   label: 'Absent' },
+                        onLeave: { dot: 'bg-blue-500',   badge: 'bg-blue-50   text-blue-700   border-blue-100',  label: 'On Leave' },
+                      }[emp.status] || { dot: 'bg-gray-400', badge: 'bg-gray-50 text-gray-600 border-gray-100', label: emp.status };
+
+                      return (
+                        <div key={emp.user_id} className="flex items-center gap-3 px-6 py-3 hover:bg-gray-50/60 transition-colors">
+                          <div className="relative flex-shrink-0">
+                            <div className="w-9 h-9 rounded-full bg-[#7B0099]/10 text-[#7B0099] font-black flex items-center justify-center text-xs uppercase">
+                              {emp.full_name.charAt(0)}
+                            </div>
+                            <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${statusConfig.dot}`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-gray-800 truncate">{emp.full_name}</p>
+                            <p className="text-[10px] text-gray-400">{emp.department} · {emp.branch}</p>
+                          </div>
+                          <div className="flex items-center gap-3 flex-shrink-0">
+                            {emp.clock_in && (
+                              <div className="text-right hidden sm:block">
+                                <p className="text-[10px] font-bold text-gray-700">{emp.clock_in}</p>
+                                <p className="text-[9px] text-gray-400">{emp.clock_out ? `Out: ${emp.clock_out}` : 'Still in'}</p>
+                              </div>
+                            )}
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusConfig.badge}`}>
+                              {statusConfig.label}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </CardContent>
