@@ -143,6 +143,39 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+// ===============================
+// ROLES API
+// ===============================
+
+app.get("/api/roles", async (req, res) => {
+  try {
+    const result = await pgPool.query("SELECT * FROM roles ORDER BY created_at ASC");
+    res.json({ success: true, roles: result.rows });
+  } catch (err) {
+    console.error("Error fetching roles:", err);
+    res.status(500).json({ success: false, error: "Database error fetching roles" });
+  }
+});
+
+app.post("/api/roles", async (req, res) => {
+  const { name, status } = req.body;
+  if (!name) return res.status(400).json({ success: false, error: "Role name is required" });
+
+  try {
+    const result = await pgPool.query(
+      "INSERT INTO roles (name, status) VALUES ($1, $2) RETURNING *",
+      [name, status || "Active"]
+    );
+    res.json({ success: true, role: result.rows[0] });
+  } catch (err) {
+    console.error("Error adding role:", err);
+    // Handle unique constraint violation (duplicate role name)
+    if (err.code === '23505') {
+      return res.status(400).json({ success: false, error: "Role name already exists" });
+    }
+    res.status(500).json({ success: false, error: "Database error adding role" });
+  }
+});
 
 // Supabase Cloud Storage Helper Functions for Medical Certificate Backup
 async function ensureSupabaseBucketExists() {
