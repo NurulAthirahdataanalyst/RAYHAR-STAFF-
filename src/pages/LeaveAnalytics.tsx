@@ -430,55 +430,61 @@ export default function LeaveAnalytics() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500 pb-10">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 py-6">
+      
+      {/* ── MAIN PRESENCE PANEL ─────────────────────────────────────────── */}
+      <Card className="border border-white/60 bg-white/40 dark:bg-card/40 backdrop-blur-2xl rounded-3xl shadow-xl shadow-purple-900/5 overflow-hidden ring-1 ring-black/5">
+        <CardContent className="p-0">
+          
+          {/* ── Page Header ── */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-6 md:px-8 pt-6 pb-5 border-b border-white/60 dark:border-white/10 bg-white/30 dark:bg-black/20 backdrop-blur-md">
+            <div className="flex items-center gap-4">
+              <div className="p-2.5 bg-gradient-to-br from-[#800A7A] to-[#a855f7] rounded-xl shadow-md">
+                <PieChartIcon className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight uppercase flex items-center gap-2">
+                  Leave Monitoring
+                </h1>
+                <p className="text-xs text-muted-foreground font-medium flex items-center gap-2 italic">
+                  Leave Summary Analytics · HR Admin View
+                </p>
+              </div>
+            </div>
 
-      {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#7B0099]/10 dark:bg-[#7B0099]/20 rounded-xl text-[#7B0099] dark:text-purple-400">
-            <PieChartIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void fetchData()}
+                className="gap-2 bg-white/50 border-border text-muted-foreground hover:text-foreground rounded-xl font-black text-[10px] uppercase tracking-widest px-4 py-2"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Refresh
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-md shadow-orange-500/10 active:scale-95">
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Export</span>
+                    <ChevronDown className="w-3.5 h-3.5 opacity-80" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="rounded-xl border border-border bg-background p-1 shadow-lg min-w-[150px]">
+                  <DropdownMenuItem onClick={handleExportPDF} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
+                    <FileText className="w-3.5 h-3.5 text-red-500" />
+                    <span>Export as PDF</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExport} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-green-600" />
+                    <span>Export as Excel</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-          <div>
-            <h1 className="text-responsive-xl font-black text-foreground tracking-tight uppercase">
-              Leave Monitoring
-            </h1>
-            <p className="text-responsive-sm text-muted-foreground font-medium italic">
-              Leave Summary Analytics · HR Admin View
-            </p>
-          </div>
-        </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => void fetchData()}
-            className="gap-2 border-border text-muted-foreground hover:text-foreground rounded-xl font-black text-[10px] uppercase tracking-widest px-4 py-2"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Refresh
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-md shadow-orange-500/10 active:scale-95">
-                <Download className="w-3.5 h-3.5" />
-                <span>Export</span>
-                <ChevronDown className="w-3.5 h-3.5 opacity-80" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-xl border border-border bg-background p-1 shadow-lg min-w-[150px]">
-              <DropdownMenuItem onClick={handleExportPDF} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
-                <FileText className="w-3.5 h-3.5 text-red-500" />
-                <span>Export as PDF</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleExport} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
-                <FileSpreadsheet className="w-3.5 h-3.5 text-green-600" />
-                <span>Export as Excel</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
+          <div className="p-6 md:p-8 space-y-6">
 
       {/* ── Filter Bar ── */}
       <Card className="border border-border/40 shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.16)] bg-white/90 dark:bg-card/85 backdrop-blur-md rounded-[22px] overflow-hidden">
@@ -982,6 +988,9 @@ export default function LeaveAnalytics() {
         </CardContent>
       </Card>
 
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
