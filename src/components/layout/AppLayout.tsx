@@ -178,22 +178,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           
           <div className="flex items-center gap-3 relative z-10 w-full justify-between">
               <div className="hidden sm:flex flex-col text-left space-y-1">
-                <h2 className="text-[15px] font-black text-white uppercase tracking-wider leading-none">
-                  {pageTitle}
-                </h2>
-                <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.12em] text-purple-200/70">
-                  {breadcrumb.map((segment, index) => (
-                    <div key={`${segment}-${index}`} className="flex items-center gap-1">
-                      <span
-                        className={`transition-colors ${index === 0 ? "hover:text-white cursor-pointer" : "text-white"}`}
-                        onClick={index === 0 ? () => navigate("/") : undefined}
-                      >
-                        {segment}
-                      </span>
-                      {index < breadcrumb.length - 1 && <ChevronRight className="w-2.5 h-2.5 text-white/40" />}
-                    </div>
-                  ))}
-                </div>
+                {/* Title and breadcrumbs removed as requested */}
               </div>
 
             <div className="flex items-center gap-4 relative z-10">
