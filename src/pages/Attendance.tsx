@@ -79,10 +79,18 @@ export default function Attendance() {
   const { user } = useAuth();
   const [workingHrs, setWorkingHrs] = useState("--:--");
   const [historyLogs, setHistoryLogs] = useState<any[]>([]);
-  const [visibleLogsCount, setVisibleLogsCount] = useState(4);
+  const [visibleLogsCount, setVisibleLogsCount] = useState(10);
   const [fetchingHistory, setFetchingHistory] = useState(false);
 
-  // Advanced Interactive Filters & States
+  // Derived stats from historyLogs
+  const [stats, setStats] = useState({
+    totalHoursToday: "0",
+    totalHoursWeek: "0",
+    totalHoursMonth: "0",
+    overtimeMonth: "0",
+    productiveHours: "0",
+    breakHours: "0",
+  });
   const [selectedDate, setSelectedDate] = useState(() => {
     const d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -219,8 +227,60 @@ export default function Attendance() {
 
   // 4bb. Reset visible logs count when viewMode or selectedDate changes
   useEffect(() => {
-    setVisibleLogsCount(viewMode === "month" ? 10 : 4);
+    setVisibleLogsCount(10);
   }, [viewMode, selectedDate]);
+
+  // 4c. Calculate stats from historyLogs
+  useEffect(() => {
+    let totalMonth = 0;
+    let totalWeek = 0;
+    let totalToday = 0;
+    let overtime = 0;
+    let breakTime = 0;
+    
+    const today = new Date().toISOString().split('T')[0];
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    
+    historyLogs.forEach(log => {
+      if (log.duration && log.duration !== '--' && log.duration !== '--:--') {
+        const parts = log.duration.match(/(\d+)h\s*(\d+)m/);
+        let hours = 0;
+        if (parts) {
+          hours = parseInt(parts[1]) + parseInt(parts[2]) / 60;
+        } else {
+          const hParts = log.duration.match(/(\d+)h/);
+          if (hParts) hours = parseInt(hParts[1]);
+        }
+        
+        totalMonth += hours;
+        
+        // Mock breaks and overtime
+        breakTime += hours * 0.1; // 10% break
+        if (hours > 9) {
+          overtime += (hours - 9);
+        }
+        
+        const logDate = new Date(log.clock_in);
+        const logDateStr = logDate.toISOString().split('T')[0];
+        if (logDateStr === today) {
+          totalToday += hours;
+        }
+        if (logDate >= weekAgo) {
+          totalWeek += hours;
+        }
+      }
+    });
+
+    setStats({
+      totalHoursToday: totalToday.toFixed(2),
+      totalHoursWeek: totalWeek.toFixed(2),
+      totalHoursMonth: totalMonth.toFixed(2),
+      overtimeMonth: overtime.toFixed(2),
+      productiveHours: (totalMonth - breakTime).toFixed(2),
+      breakHours: breakTime.toFixed(2)
+    });
+  }, [historyLogs]);
 
   // 4c. Establish SSE stream for real-time updates
   useEffect(() => {
@@ -768,232 +828,305 @@ export default function Attendance() {
           )}
         </div>
 
-        {/* Daily Logs History Card */}
-        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md md:max-w-xl lg:flex-1 rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-4 sm:p-5 md:p-6 flex flex-col relative border border-border/30 overflow-hidden min-h-[480px]">
+        
+        {/* RIGHT PANEL: Stats & Timeline */}
+        <div className="flex-1 flex flex-col gap-4 sm:gap-6 w-full lg:max-w-none max-w-2xl">
           
-          {/* Top Actions Row */}
-          <div className="flex items-center justify-between gap-2 mb-6">
-            <div className="relative">
-              {viewMode === "day" ? (
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => {
-                    if (e.target.value) setSelectedDate(e.target.value);
-                  }}
-                  className="appearance-none flex items-center justify-center gap-1.5 px-4 py-2 bg-[#7B0099] text-white text-[11px] font-black rounded-full shadow-lg shadow-purple-900/10 hover:scale-105 active:scale-95 transition-all outline-none border-none cursor-pointer uppercase tracking-widest relative z-10"
-                  style={{ colorScheme: "dark" }}
-                />
-              ) : (
-                <input
-                  type="month"
-                  value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      setSelectedDate(`${e.target.value}-01`);
-                    }
-                  }}
-                  className="appearance-none flex items-center justify-center gap-1.5 px-4 py-2 bg-[#7B0099] text-white text-[11px] font-black rounded-full shadow-lg shadow-purple-900/10 hover:scale-105 active:scale-95 transition-all outline-none border-none cursor-pointer uppercase tracking-widest relative z-10"
-                  style={{ colorScheme: "dark" }}
-                />
-              )}
+          {/* 4 Stat Cards Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            
+            {/* Stat Card 1: Total Hours Today */}
+            <div className="bg-card dark:bg-card border border-border/40 shadow-sm rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-2 opacity-10">
+                <Clock className="w-10 h-10 text-[#7B0099]" />
+              </div>
+              <div className="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center mb-2 shadow-sm">
+                 <Clock className="w-4 h-4 text-[#7B0099] dark:text-purple-400" />
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
+                {stats.totalHoursToday} <span className="text-xs text-muted-foreground">hrs</span>
+              </div>
+              <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">
+                Total Today
+              </div>
+            </div>
+
+            {/* Stat Card 2: Total Hours Week */}
+            <div className="bg-card dark:bg-card border border-border/40 shadow-sm rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-2 opacity-10">
+                <Timer className="w-10 h-10 text-[#7B0099]" />
+              </div>
+              <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center mb-2 shadow-sm">
+                 <Timer className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
+                {stats.totalHoursWeek} <span className="text-xs text-muted-foreground">hrs</span>
+              </div>
+              <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">
+                Total This Week
+              </div>
+            </div>
+
+            {/* Stat Card 3: Total Hours Month */}
+            <div className="bg-card dark:bg-card border border-border/40 shadow-sm rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-2 opacity-10">
+                <FileText className="w-10 h-10 text-[#7B0099]" />
+              </div>
+              <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center mb-2 shadow-sm">
+                 <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
+                {stats.totalHoursMonth} <span className="text-xs text-muted-foreground">hrs</span>
+              </div>
+              <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">
+                Total This Month
+              </div>
+            </div>
+
+            {/* Stat Card 4: Overtime This Month */}
+            <div className="bg-card dark:bg-card border border-border/40 shadow-sm rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-2 opacity-10">
+                <Fingerprint className="w-10 h-10 text-[#7B0099]" />
+              </div>
+              <div className="w-8 h-8 rounded-full bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center mb-2 shadow-sm">
+                 <Fingerprint className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
+                {stats.overtimeMonth} <span className="text-xs text-muted-foreground">hrs</span>
+              </div>
+              <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">
+                OT This Month
+              </div>
+            </div>
+
+          </div>
+
+          {/* Timeline Bar Card */}
+          <div className="bg-card dark:bg-card border border-border/40 shadow-md rounded-3xl p-5 sm:p-6 flex flex-col relative overflow-hidden min-h-[220px]">
+            <h3 className="text-xs font-black text-muted-foreground/60 uppercase tracking-widest mb-6">
+              Monthly Attendance Breakdown
+            </h3>
+
+            {/* Stats Overview */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-purple-200"></span> Total Working
+                </span>
+                <span className="text-sm font-black font-mono">{stats.totalHoursMonth} hrs</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] uppercase font-bold text-emerald-600 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Productive
+                </span>
+                <span className="text-sm font-black font-mono">{stats.productiveHours} hrs</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] uppercase font-bold text-yellow-600 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-yellow-500"></span> Break Hours
+                </span>
+                <span className="text-sm font-black font-mono">{stats.breakHours} hrs</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] uppercase font-bold text-blue-600 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-blue-500"></span> Overtime
+                </span>
+                <span className="text-sm font-black font-mono">{stats.overtimeMonth} hrs</span>
+              </div>
+            </div>
+
+            {/* Visual Timeline Bar */}
+            <div className="w-full h-4 sm:h-5 bg-muted rounded-full flex overflow-hidden shadow-inner mt-auto mb-2">
+               {/* Note: Mock widths for visualization if there is no data */}
+               {Number(stats.totalHoursMonth) > 0 ? (
+                  <>
+                    <div className="bg-emerald-500 h-full" style={{ width: `${(Number(stats.productiveHours) / Number(stats.totalHoursMonth)) * 100}%` }}></div>
+                    <div className="bg-yellow-500 h-full" style={{ width: `${(Number(stats.breakHours) / Number(stats.totalHoursMonth)) * 100}%` }}></div>
+                    <div className="bg-blue-500 h-full" style={{ width: `${(Number(stats.overtimeMonth) / Number(stats.totalHoursMonth)) * 100}%` }}></div>
+                  </>
+               ) : (
+                  <div className="w-full h-full bg-muted"></div>
+               )}
             </div>
             
-            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-              <button 
-                onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center justify-center gap-1 px-2.5 py-1.5 border border-border hover:bg-muted text-[11px] font-black rounded-full transition-all ${
-                  showFilters ? "bg-muted text-foreground" : "bg-background text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <SlidersHorizontal className="w-3 h-3" />
-                <span>Filters</span>
-              </button>
+            {/* Timeline Axis Markers */}
+            <div className="flex justify-between items-center text-[9px] font-bold text-muted-foreground mt-2 px-1">
+               <span>Week 1</span>
+               <span>Week 2</span>
+               <span>Week 3</span>
+               <span>Week 4</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* BOTTOM PANEL: Employee Attendance Data Table */}
+      <div className="relative z-10 w-full max-w-2xl lg:max-w-[1400px] mx-auto px-3 sm:px-6 md:px-8 pb-8">
+        <div className="bg-card dark:bg-card border border-border/30 shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-[28px] sm:rounded-[40px] p-5 sm:p-6 md:p-8 flex flex-col min-h-[400px]">
+          
+          {/* Header Row */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-lg sm:text-xl font-black text-foreground">Employee Attendance</h2>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Detailed Log Records</p>
+            </div>
+            
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Date Filter */}
+              <div className="relative">
+                {viewMode === "day" ? (
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => {
+                      if (e.target.value) setSelectedDate(e.target.value);
+                    }}
+                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-full shadow-sm outline-none cursor-pointer uppercase tracking-widest"
+                  />
+                ) : (
+                  <input
+                    type="month"
+                    value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setSelectedDate(`${e.target.value}-01`);
+                      }
+                    }}
+                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-full shadow-sm outline-none cursor-pointer uppercase tracking-widest"
+                  />
+                )}
+              </div>
+
+              {/* View Tabs */}
+              <div className="flex bg-muted/40 p-1 rounded-full border border-border/40">
+                <button
+                  onClick={() => setViewMode("day")}
+                  className={`px-4 py-1.5 text-[10px] font-black tracking-wider rounded-full transition-all uppercase ${
+                    viewMode === "day" ? "bg-[#7B0099] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Day
+                </button>
+                <button
+                  onClick={() => setViewMode("month")}
+                  className={`px-4 py-1.5 text-[10px] font-black tracking-wider rounded-full transition-all uppercase ${
+                    viewMode === "month" ? "bg-[#7B0099] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Month
+                </button>
+              </div>
+
+              {/* Status Filter */}
+              <div className="flex bg-muted/40 p-1 rounded-full border border-border/40">
+                {(["ALL", "ON TIME", "LATE"] as const).map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setStatusFilter(status)}
+                    className={`px-3 py-1.5 text-[10px] font-black tracking-wider rounded-full transition-all uppercase ${
+                      statusFilter === status ? "bg-[#7B0099] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
               
+              {/* Export */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-[#f97316] hover:bg-[#ea580c] text-white text-[11px] font-black rounded-full transition-all shadow-md shadow-orange-500/10 active:scale-95">
+                  <button className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white text-[11px] font-black rounded-full shadow-md active:scale-95 transition-all">
                     <Download className="w-3 h-3" />
                     <span>Export</span>
                     <ChevronDown className="w-3 h-3 opacity-80" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="rounded-xl border border-border bg-background p-1 shadow-lg min-w-[150px]">
-                  <DropdownMenuItem onClick={handleExportPDF} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
+                <DropdownMenuContent align="end" className="rounded-xl border border-border p-1">
+                  <DropdownMenuItem onClick={handleExportPDF} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase text-muted-foreground cursor-pointer focus:bg-muted">
                     <FileText className="w-3.5 h-3.5 text-red-500" />
-                    <span>Export as PDF</span>
+                    <span>Export PDF</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExportCSV} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
+                  <DropdownMenuItem onClick={handleExportCSV} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase text-muted-foreground cursor-pointer focus:bg-muted">
                     <FileSpreadsheet className="w-3.5 h-3.5 text-green-600" />
-                    <span>Export as Excel</span>
+                    <span>Export CSV</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
 
-          {/* View Mode Tabs Switcher */}
-          <div className="flex bg-muted/40 dark:bg-muted/20 p-1 rounded-2xl mb-4 border border-border/40">
-            <button
-              onClick={() => setViewMode("day")}
-              className={`flex-1 py-1.5 text-[10px] font-black tracking-wider rounded-xl transition-all uppercase ${
-                viewMode === "day"
-                  ? "bg-[#7B0099] text-white shadow-md shadow-purple-950/10"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-              }`}
-            >
-              Day View
-            </button>
-            <button
-              onClick={() => setViewMode("month")}
-              className={`flex-1 py-1.5 text-[10px] font-black tracking-wider rounded-xl transition-all uppercase ${
-                viewMode === "month"
-                  ? "bg-[#7B0099] text-white shadow-md shadow-purple-950/10"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-              }`}
-            >
-              Month View
-            </button>
-          </div>
-
-          {/* Interactive Filters Panel */}
-          {showFilters && (
-            <div className="flex items-center gap-1.5 p-1.5 bg-muted/40 dark:bg-muted/20 border border-border/40 rounded-2xl mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
-              {(["ALL", "ON TIME", "LATE"] as const).map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setStatusFilter(status)}
-                  className={`flex-1 py-1.5 text-[10px] font-black rounded-xl tracking-wider transition-all uppercase ${
-                    statusFilter === status
-                      ? "bg-[#7B0099] text-white shadow-md shadow-purple-950/10"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  }`}
-                >
-                  {status}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <h3 className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest mb-4">
-            {viewMode === "day" ? "Daily Logs" : "Monthly Logs"}
-          </h3>
-
-          {fetchingHistory && historyLogs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-3 flex-1">
-              <Loader2 className="animate-spin text-[#7B0099] w-6 h-6" />
-              <p className="text-[11px] font-bold text-muted-foreground/75 uppercase tracking-wider animate-pulse">Loading Logs...</p>
-            </div>
-          ) : displayedLogs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground border border-dashed border-border/60 rounded-[24px] flex-1">
-              <Clock className="w-8 h-8 opacity-40 mb-2" />
-              <p className="text-xs font-bold uppercase tracking-wider">No logs recorded for this period</p>
-              <p className="text-[10px] opacity-80 mt-0.5">Your shift logs will appear here</p>
-            </div>
-          ) : (
-              <div className="space-y-2.5 flex-1 flex flex-col justify-between">
-              <div className="space-y-3.5">
-                {displayedLogs
-                  .slice(0, visibleLogsCount)
-                  .map((log, index) => {
+          {/* Table Container */}
+          <div className="w-full overflow-x-auto rounded-2xl border border-border/50">
+            <table className="w-full text-left border-collapse min-w-[800px]">
+              <thead>
+                <tr className="bg-muted/50 border-b border-border/50">
+                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Date</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Check In</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Status</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Check Out</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Break</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Late</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap text-right">Production Hours</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/40">
+                {fetchingHistory && historyLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center">
+                      <Loader2 className="w-6 h-6 animate-spin text-[#7B0099] mx-auto mb-2" />
+                      <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Loading Data...</p>
+                    </td>
+                  </tr>
+                ) : displayedLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center">
+                       <Clock className="w-8 h-8 opacity-20 mx-auto mb-2" />
+                       <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">No logs found</p>
+                    </td>
+                  </tr>
+                ) : (
+                  displayedLogs.slice(0, visibleLogsCount).map((log, index) => {
                     const clockInDate = new Date(log.clock_in);
-                    const month = clockInDate.toLocaleString("en-US", { month: "short" }).toUpperCase();
-                    const day = clockInDate.getDate().toString().padStart(2, "0");
-                    const isExpanded = expandedLogId === log.attendance_id;
+                    const dateStr = clockInDate.toLocaleString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' });
                     
-                    let statusBadgeClass = "";
-                    if (log.status === "ON TIME") {
-                      statusBadgeClass = "bg-purple-100 dark:bg-purple-950/40 text-[#7B0099] dark:text-purple-300 border border-purple-200/50";
-                    } else if (log.status === "LATE") {
-                      statusBadgeClass = "bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/50";
-                    }
+                    let statusBadge = "bg-muted text-muted-foreground";
+                    if (log.status === "ON TIME") statusBadge = "bg-purple-100 text-[#7B0099] border-purple-200 dark:bg-purple-900/30 dark:text-purple-400";
+                    if (log.status === "LATE") statusBadge = "bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-400";
 
                     return (
-                      <div 
-                        key={log.attendance_id || index}
-                        onClick={() => setExpandedLogId(isExpanded ? null : log.attendance_id)}
-                        className="flex flex-col p-3 bg-muted/20 hover:bg-muted/45 border border-border/40 rounded-2xl transition-all duration-300 cursor-pointer group"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            {/* Date Block Card */}
-                            <div className="flex flex-col items-center justify-center bg-purple-50 dark:bg-purple-950/20 border border-purple-100/50 dark:border-purple-900/30 rounded-xl px-2.5 py-1.5 shrink-0 select-none shadow-sm text-center min-w-[56px] h-[52px]">
-                              <span className="text-[9px] font-black text-[#7B0099] dark:text-purple-400 tracking-wider uppercase leading-none">{month}</span>
-                              <span className="text-sm font-black text-foreground mt-1 leading-none">{day}</span>
-                            </div>
-
-                            {/* Middle Details Block */}
-                            <div className="flex flex-col gap-0.5">
-                              <div className="text-[11px] sm:text-xs font-black text-foreground/90 tracking-tight">
-                                {formatAttendanceTime(log.clock_in)} — {log.clock_out ? formatAttendanceTime(log.clock_out) : "--:--"}
-                              </div>
-                              <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-muted-foreground/75 font-semibold">
-                                {log.location_type === "remote" ? (
-                                  <Home className="w-2.5 h-2.5 text-blue-500 shrink-0" />
-                                ) : (
-                                  <MapPin className="w-2.5 h-2.5 text-[#7B0099] shrink-0" />
-                                )}
-                                <span className="truncate max-w-[120px] sm:max-w-none">{log.location_name}</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Right Status & Duration Block */}
-                          <div className="flex items-center gap-3">
-                            <span className={`px-2 py-0.5 text-[8px] font-black tracking-widest rounded-full uppercase scale-90 origin-right ${statusBadgeClass}`}>
-                              {log.status}
-                            </span>
-                            <div className="text-right text-[11px] sm:text-xs font-black shrink-0 font-mono tracking-tight text-[#7B0099] dark:text-purple-300">
-                              {log.duration}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Expandable Details Block */}
-                        {isExpanded && (
-                          <div className="mt-3 pt-3 border-t border-border/40 text-[10px] sm:text-xs text-muted-foreground space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                            <div className="flex justify-between">
-                              <span>Clock In Time:</span>
-                              <span className="font-mono font-bold text-foreground">{formatFullDateTime(log.clock_in)}</span>
-                            </div>
-                            {log.clock_out && (
-                              <div className="flex justify-between">
-                                <span>Clock Out Time:</span>
-                                <span className="font-mono font-bold text-foreground">{formatFullDateTime(log.clock_out)}</span>
-                              </div>
-                            )}
-                            <div className="flex justify-between">
-                              <span>Computed Working Hours:</span>
-                              <span className="font-mono font-bold text-foreground">{log.duration}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Status Metric:</span>
-                              <span className="font-mono font-bold text-foreground">{log.status} {log.is_late ? "(LATE ARRIVAL)" : ""}</span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                      <tr key={log.attendance_id || index} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3 text-xs font-bold text-foreground whitespace-nowrap">{dateStr}</td>
+                        <td className="px-4 py-3 text-xs font-bold text-foreground font-mono">{formatAttendanceTime(log.clock_in)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={`px-2.5 py-1 text-[9px] font-black tracking-widest rounded-full uppercase border ${statusBadge}`}>
+                            {log.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-xs font-bold text-foreground font-mono">{log.clock_out ? formatAttendanceTime(log.clock_out) : "--:--"}</td>
+                        <td className="px-4 py-3 text-xs font-bold text-muted-foreground">--</td>
+                        <td className="px-4 py-3 text-xs font-bold text-rose-600">{log.is_late ? "Yes" : "--"}</td>
+                        <td className="px-4 py-3 text-xs font-black text-emerald-600 font-mono text-right">{log.duration}</td>
+                      </tr>
                     );
-                  })}
-              </div>
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
 
-              {/* Load More Button */}
-              {displayedLogs.length > visibleLogsCount && (
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setVisibleLogsCount(prev => prev + 4);
-                  }}
-                  className="w-full mt-4 py-2 flex items-center justify-center gap-1 text-[#7B0099] dark:text-purple-400 hover:text-purple-600 font-black text-[10px] sm:text-[11px] tracking-wider uppercase transition-colors"
-                >
-                  <span>Load More History</span>
-                  <ChevronDown className="w-3.5 h-3.5" />
-                </button>
-              )}
+          {/* Load More Button */}
+          {displayedLogs.length > visibleLogsCount && (
+            <div className="flex justify-center mt-6">
+              <button 
+                onClick={() => setVisibleLogsCount(prev => prev + 10)}
+                className="px-6 py-2.5 bg-muted/50 hover:bg-muted text-foreground text-[11px] font-black rounded-full uppercase tracking-widest transition-all active:scale-95 border border-border"
+              >
+                Load More Rows
+              </button>
             </div>
           )}
-        </div>
 
+        </div>
       </div>
     </div>
   );
