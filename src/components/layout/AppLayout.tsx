@@ -178,10 +178,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
           
           <div className="flex items-center gap-3 relative z-10 w-full justify-between">
-              <div className="hidden sm:flex flex-col text-left space-y-1">
-                {/* Title and breadcrumbs removed as requested */}
-              </div>
-
             <div className="flex items-center gap-4 relative z-10">
               <button onClick={() => window.location.reload()} className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition-colors text-white font-semibold text-xs border border-white/20 bg-white/5">
                 <RefreshCw className="w-3.5 h-3.5" />
@@ -252,10 +248,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </button>
               <div className="flex items-center gap-2">
                 <img src={rayharLogo} className="h-6 w-auto object-contain filter brightness-110" alt="Rayhar" />
-                <div className="h-4 w-[1px] bg-white/20" />
-                <div>
-                  <h2 className="text-[11px] font-black text-white tracking-wider leading-none uppercase">{pageTitle}</h2>
-                </div>
               </div>
             </div>
 
