@@ -625,9 +625,13 @@ export default function Reports() {
   }));
 
   return (
-    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-1 sm:px-4">
-      {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-border/40">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 py-6">
+      <Card className="border border-white/60 bg-white/40 dark:bg-card/40 backdrop-blur-2xl shadow-2xl rounded-[32px] overflow-hidden relative">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#7B0099] to-transparent opacity-50" />
+        <CardContent className="p-6 sm:p-8">
+          <div className="space-y-4 sm:space-y-5">
+            {/* HEADER SECTION */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-border/40">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-[#7B0099] rounded-[20px] text-white shadow-xl shadow-[#7B0099]/20">
             <FileBarChart className="w-6 h-6 sm:w-8 sm:h-8" />
@@ -846,6 +850,9 @@ export default function Reports() {
 
           </div>
         </div>
+        </div>
+      </CardContent>
+     </Card>
     </div>
   );
 }
