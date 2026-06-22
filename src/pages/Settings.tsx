@@ -51,9 +51,10 @@ export default function SettingsPage() {
   const [staffPassword, setStaffPassword] = useState("");
   const [staffBranch, setStaffBranch] = useState("");
   const [staffDept, setStaffDept] = useState("");
-  const [staffRole, setStaffRole] = useState("employee");
+  const [staffRole, setStaffRole] = useState("");
   const [staffStatus, setStaffStatus] = useState("Active");
   const [submittingStaff, setSubmittingStaff] = useState(false);
+  const [availableRoles, setAvailableRoles] = useState<any[]>([]);
 
   // System Configurations Toggles
   const [isAlertsEnabled, setIsAlertsEnabled] = useState(true);
@@ -121,6 +122,12 @@ export default function SettingsPage() {
             startTime: time
           });
         }
+
+        // 4. Fetch Roles
+        const rolesRes = await fetch(`${API_BASE_URL}/api/roles`);
+        const rolesData = await rolesRes.json();
+        if (rolesData.success) setAvailableRoles(rolesData.roles);
+
       } catch (err) {
         console.error("Settings initialization error:", err);
       } finally {
@@ -277,7 +284,7 @@ export default function SettingsPage() {
           full_name: staffName.trim(),
           branch: staffBranch,
           department: staffDept || "Unassigned",
-          role: staffRole,
+          role: staffRole.toLowerCase().replace(/ /g, '_'),
           status: staffStatus,
           operatorName: user?.full_name || user?.name || "Athirah Rahman",
           operatorRole: role || "hr_admin"
@@ -291,7 +298,7 @@ export default function SettingsPage() {
         setStaffPassword("");
         setStaffBranch("");
         setStaffDept("");
-        setStaffRole("employee");
+        setStaffRole("");
         setStaffStatus("Active");
       } else {
         toast.error(data.error || "Failed to onboard staff");
@@ -624,13 +631,14 @@ export default function SettingsPage() {
                         <SelectValue placeholder="Role" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
-                        <SelectItem value="employee" className="text-[10px] font-black uppercase tracking-widest">Employee (Staff)</SelectItem>
-                        <SelectItem value="finance_manager" className="text-[10px] font-black uppercase tracking-widest">Finance Manager</SelectItem>
-                        <SelectItem value="managing_director" className="text-[10px] font-black uppercase tracking-widest">Managing Director</SelectItem>
-                        <SelectItem value="head_of_department" className="text-[10px] font-black uppercase tracking-widest">Head of Department (HOD)</SelectItem>
-                        <SelectItem value="branch_leader" className="text-[10px] font-black uppercase tracking-widest">Branch Leader</SelectItem>
-                        <SelectItem value="hr_admin" className="text-[10px] font-black uppercase tracking-widest">HR Administrator</SelectItem>
-                        <SelectItem value="branch_officer" className="text-[10px] font-black uppercase tracking-widest">Branch Officer</SelectItem>
+                        {availableRoles.filter(r => r.status === 'Active').map(r => (
+                          <SelectItem key={r.id} value={r.name} className="text-[10px] font-black uppercase tracking-widest">
+                            {r.name}
+                          </SelectItem>
+                        ))}
+                        {availableRoles.filter(r => r.status === 'Active').length === 0 && (
+                          <SelectItem value="Employee" disabled className="text-[10px] font-black uppercase tracking-widest">No roles available</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
