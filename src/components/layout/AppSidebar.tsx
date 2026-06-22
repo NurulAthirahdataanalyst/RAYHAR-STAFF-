@@ -276,7 +276,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                     />
                   )}
                   {(!isCollapsed || isMobile) && (
-                    <span className={`text-[13.5px] whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300 ${
+                    <span className={`text-[13.5px] whitespace-nowrap truncate animate-in fade-in slide-in-from-left-2 duration-300 ${
                       isActive 
                         ? "font-bold text-white dark:text-white" 
                         : "text-sidebar-foreground/80 group-hover:text-sidebar-accent-foreground font-medium"
@@ -328,7 +328,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                               isChildActive ? "text-[#7B0099] dark:text-purple-400" : "text-sidebar-foreground/60 group-hover:text-sidebar-accent-foreground"
                             }`}
                           />
-                          <span>{child.title}</span>
+                          <span className="whitespace-nowrap truncate">{child.title}</span>
                         </Link>
                       );
                     })}
@@ -362,7 +362,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                                 isChildActive ? "text-[#7B0099] dark:text-purple-400" : "text-slate-400 dark:text-slate-500"
                               }`}
                             />
-                            <span className="whitespace-nowrap">{child.title}</span>
+                            <span className="whitespace-nowrap truncate">{child.title}</span>
                           </Link>
                         );
                       })}
@@ -425,12 +425,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     <>
       {/* ═══════ DESKTOP SIDEBAR spacer ═══════ */}
       <div className={`hidden lg:block shrink-0 transition-all duration-300 ease-in-out ${
-        isCollapsed ? "w-16" : "w-56"
+        isCollapsed ? "w-16" : "w-64"
       }`} />
 
       {/* ═══════ DESKTOP SIDEBAR (fixed on desktop) ═══════ */}
       <aside className={`hidden lg:flex fixed top-0 left-0 z-40 h-screen flex-col bg-sidebar transition-all duration-300 ease-in-out ${
-        isCollapsed ? "w-16" : "w-56"
+        isCollapsed ? "w-16" : "w-64"
       }`}>
         {sidebarContent(false)}
       </aside>
