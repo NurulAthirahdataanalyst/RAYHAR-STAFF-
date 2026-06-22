@@ -30,6 +30,7 @@ import MasterPlaceholder from "./pages/master/Placeholder";
 import Department from "./pages/master/Department";
 import DepartmentDetails from "./pages/master/DepartmentDetails";
 import MasterOverview from "./pages/master/Overview";
+import Role from "./pages/master/Role";
 import AttendanceDashboard from "./pages/hr-analytics/AttendanceDashboard";
 const queryClient = new QueryClient();
 
@@ -83,7 +84,7 @@ function ProtectedRoutes() {
           <Route path="/master/department" element={<Department />} />
           <Route path="/master/department/:deptName" element={<DepartmentDetails />} />
           <Route path="/master/designation" element={<MasterPlaceholder title="Designation" />} />
-          <Route path="/master/role" element={<MasterPlaceholder title="Role" />} />
+          <Route path="/master/role" element={<Role />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
