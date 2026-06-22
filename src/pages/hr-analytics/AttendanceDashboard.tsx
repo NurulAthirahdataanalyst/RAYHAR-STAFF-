@@ -701,7 +701,7 @@ export default function AttendanceDashboard() {
   }));
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 py-6 bg-[#F8F9FA] min-h-screen">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 py-6">
       {/* BREADCRUMBS & HEADER */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-gray-200">
         <div>
@@ -751,66 +751,69 @@ export default function AttendanceDashboard() {
       </div>
 
       {/* ── LIVE PRESENCE PANEL ─────────────────────────────────────────── */}
-      <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden">
+      <Card className="border border-white/60 bg-white/40 backdrop-blur-2xl rounded-3xl shadow-xl shadow-purple-900/5 overflow-hidden ring-1 ring-black/5">
         <CardContent className="p-0">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 pt-5 pb-4 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#7B0099]/10 rounded-lg">
-                <Activity className="w-4 h-4 text-[#7B0099]" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-6 md:px-8 pt-6 pb-5 border-b border-white/60 bg-white/30 backdrop-blur-md">
+            <div className="flex items-center gap-4">
+              <div className="p-2.5 bg-gradient-to-br from-[#800A7A] to-[#a855f7] rounded-xl shadow-md">
+                <Activity className="w-5 h-5 text-white" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Live Attendance Status</h2>
+                  <h2 className="text-[15px] font-black text-gray-800 uppercase tracking-wide">Live Attendance Status</h2>
                   {liveConnected ? (
-                    <span className="flex items-center gap-1 bg-red-50 text-red-600 border border-red-200 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                    <span className="flex items-center gap-1.5 bg-red-500 text-white border border-red-400 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm shadow-red-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                       LIVE
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 bg-gray-100 text-gray-500 border border-gray-200 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
+                    <span className="flex items-center gap-1 bg-gray-200 text-gray-600 border border-gray-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
                       <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
                       Connecting…
                     </span>
                   )}
                 </div>
-                <p className="text-[10px] text-gray-400 mt-0.5">
+                <p className="text-xs text-gray-500 font-medium mt-1">
                   {liveLastUpdated
                     ? `Updated ${new Date(liveLastUpdated).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}`
                     : `From ${liveStats.total || totalStaffCount || '—'} active employees`}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
-              <RefreshCw className="w-3 h-3" />
+            <div className="flex items-center gap-2 text-xs text-gray-500 font-semibold bg-white/50 px-3 py-1.5 rounded-lg border border-white/60 shadow-sm">
+              <RefreshCw className="w-3.5 h-3.5 animate-[spin_4s_linear_infinite]" />
               Auto-refresh every 30s
             </div>
           </div>
 
           {/* 4 Stat Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 divide-x divide-y lg:divide-y-0 divide-gray-100">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 p-4 md:p-6 bg-slate-50/30">
             {/* Present */}
             <button
               onClick={() => setLiveFilter(liveFilter === 'present' ? 'all' : 'present')}
-              className={`group p-5 flex flex-col gap-3 text-left transition-colors hover:bg-green-50/60 ${
-                liveFilter === 'present' ? 'bg-green-50' : 'bg-white'
+              className={`relative group p-5 flex flex-col gap-4 text-left transition-all duration-300 rounded-2xl border ${
+                liveFilter === 'present' 
+                ? 'bg-white border-green-200 shadow-lg shadow-green-900/10 scale-[1.02] ring-2 ring-green-500/20' 
+                : 'bg-white/70 border-white/80 hover:bg-white hover:border-green-100 hover:shadow-md'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Present</span>
-                <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-green-600" />
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Present</span>
+                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Users className="w-5 h-5 text-green-600" />
                 </div>
               </div>
               <div>
-                <span className="text-3xl font-black text-gray-900">{liveStats.present}</span>
-                <div className="mt-1 h-1 rounded-full bg-gray-100 overflow-hidden">
+                <span className="text-4xl font-black text-gray-900 tracking-tight">{liveStats.present}</span>
+                <div className="mt-2 h-1.5 rounded-full bg-gray-100 overflow-hidden">
                   <div
-                    className="h-full bg-green-500 rounded-full transition-all duration-700"
+                    className="h-full bg-green-500 rounded-full transition-all duration-1000 ease-out"
                     style={{ width: liveStats.total > 0 ? `${Math.round((liveStats.present / liveStats.total) * 100)}%` : '0%' }}
                   />
                 </div>
-                <p className="text-[10px] text-gray-400 mt-1 font-medium">
+                <p className="text-xs text-gray-400 mt-2 font-medium flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
                   {liveStats.total > 0 ? `${Math.round((liveStats.present / liveStats.total) * 100)}%` : '—'} of total
                 </p>
               </div>
@@ -819,25 +822,28 @@ export default function AttendanceDashboard() {
             {/* Late */}
             <button
               onClick={() => setLiveFilter(liveFilter === 'late' ? 'all' : 'late')}
-              className={`group p-5 flex flex-col gap-3 text-left transition-colors hover:bg-amber-50/60 ${
-                liveFilter === 'late' ? 'bg-amber-50' : 'bg-white'
+              className={`relative group p-5 flex flex-col gap-4 text-left transition-all duration-300 rounded-2xl border ${
+                liveFilter === 'late' 
+                ? 'bg-white border-amber-200 shadow-lg shadow-amber-900/10 scale-[1.02] ring-2 ring-amber-500/20' 
+                : 'bg-white/70 border-white/80 hover:bg-white hover:border-amber-100 hover:shadow-md'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Late</span>
-                <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-                  <Clock className="w-4 h-4 text-amber-600" />
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Late</span>
+                <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Clock className="w-5 h-5 text-amber-600" />
                 </div>
               </div>
               <div>
-                <span className="text-3xl font-black text-gray-900">{liveStats.late}</span>
-                <div className="mt-1 h-1 rounded-full bg-gray-100 overflow-hidden">
+                <span className="text-4xl font-black text-gray-900 tracking-tight">{liveStats.late}</span>
+                <div className="mt-2 h-1.5 rounded-full bg-gray-100 overflow-hidden">
                   <div
-                    className="h-full bg-amber-400 rounded-full transition-all duration-700"
+                    className="h-full bg-amber-400 rounded-full transition-all duration-1000 ease-out"
                     style={{ width: liveStats.total > 0 ? `${Math.round((liveStats.late / liveStats.total) * 100)}%` : '0%' }}
                   />
                 </div>
-                <p className="text-[10px] text-gray-400 mt-1 font-medium">
+                <p className="text-xs text-gray-400 mt-2 font-medium flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-400"></span>
                   {liveStats.total > 0 ? `${Math.round((liveStats.late / liveStats.total) * 100)}%` : '—'} of total
                 </p>
               </div>
@@ -846,25 +852,28 @@ export default function AttendanceDashboard() {
             {/* Absent */}
             <button
               onClick={() => setLiveFilter(liveFilter === 'absent' ? 'all' : 'absent')}
-              className={`group p-5 flex flex-col gap-3 text-left transition-colors hover:bg-red-50/60 ${
-                liveFilter === 'absent' ? 'bg-red-50' : 'bg-white'
+              className={`relative group p-5 flex flex-col gap-4 text-left transition-all duration-300 rounded-2xl border ${
+                liveFilter === 'absent' 
+                ? 'bg-white border-red-200 shadow-lg shadow-red-900/10 scale-[1.02] ring-2 ring-red-500/20' 
+                : 'bg-white/70 border-white/80 hover:bg-white hover:border-red-100 hover:shadow-md'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Absent</span>
-                <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
-                  <AlertCircle className="w-4 h-4 text-red-600" />
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Absent</span>
+                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <AlertCircle className="w-5 h-5 text-red-600" />
                 </div>
               </div>
               <div>
-                <span className="text-3xl font-black text-gray-900">{liveStats.absent}</span>
-                <div className="mt-1 h-1 rounded-full bg-gray-100 overflow-hidden">
+                <span className="text-4xl font-black text-gray-900 tracking-tight">{liveStats.absent}</span>
+                <div className="mt-2 h-1.5 rounded-full bg-gray-100 overflow-hidden">
                   <div
-                    className="h-full bg-red-500 rounded-full transition-all duration-700"
+                    className="h-full bg-red-500 rounded-full transition-all duration-1000 ease-out"
                     style={{ width: liveStats.total > 0 ? `${Math.round((liveStats.absent / liveStats.total) * 100)}%` : '0%' }}
                   />
                 </div>
-                <p className="text-[10px] text-gray-400 mt-1 font-medium">
+                <p className="text-xs text-gray-400 mt-2 font-medium flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
                   {liveStats.total > 0 ? `${Math.round((liveStats.absent / liveStats.total) * 100)}%` : '—'} of total
                 </p>
               </div>
@@ -873,25 +882,28 @@ export default function AttendanceDashboard() {
             {/* On Leave */}
             <button
               onClick={() => setLiveFilter(liveFilter === 'onLeave' ? 'all' : 'onLeave')}
-              className={`group p-5 flex flex-col gap-3 text-left transition-colors hover:bg-blue-50/60 ${
-                liveFilter === 'onLeave' ? 'bg-blue-50' : 'bg-white'
+              className={`relative group p-5 flex flex-col gap-4 text-left transition-all duration-300 rounded-2xl border ${
+                liveFilter === 'onLeave' 
+                ? 'bg-white border-blue-200 shadow-lg shadow-blue-900/10 scale-[1.02] ring-2 ring-blue-500/20' 
+                : 'bg-white/70 border-white/80 hover:bg-white hover:border-blue-100 hover:shadow-md'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">On Leave</span>
-                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                  <Calendar className="w-4 h-4 text-blue-600" />
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">On Leave</span>
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Calendar className="w-5 h-5 text-blue-600" />
                 </div>
               </div>
               <div>
-                <span className="text-3xl font-black text-gray-900">{liveStats.onLeave}</span>
-                <div className="mt-1 h-1 rounded-full bg-gray-100 overflow-hidden">
+                <span className="text-4xl font-black text-gray-900 tracking-tight">{liveStats.onLeave}</span>
+                <div className="mt-2 h-1.5 rounded-full bg-gray-100 overflow-hidden">
                   <div
-                    className="h-full bg-blue-500 rounded-full transition-all duration-700"
+                    className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out"
                     style={{ width: liveStats.total > 0 ? `${Math.round((liveStats.onLeave / liveStats.total) * 100)}%` : '0%' }}
                   />
                 </div>
-                <p className="text-[10px] text-gray-400 mt-1 font-medium">
+                <p className="text-xs text-gray-400 mt-2 font-medium flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                   {liveStats.total > 0 ? `${Math.round((liveStats.onLeave / liveStats.total) * 100)}%` : '—'} of total
                 </p>
               </div>
@@ -899,12 +911,12 @@ export default function AttendanceDashboard() {
           </div>
 
           {/* Employee List */}
-          <div className="border-t border-gray-100">
-            <div className="px-6 py-3 flex items-center justify-between bg-gray-50/60">
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Employee Status</span>
+          <div className="border-t border-white/60 bg-white/50 backdrop-blur-md">
+            <div className="px-6 py-4 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-black text-gray-700 uppercase tracking-widest">Employee Status</span>
                 {liveFilter !== 'all' && (
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize ${
+                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize shadow-sm ${
                     liveFilter === 'present' ? 'bg-green-100 text-green-700' :
                     liveFilter === 'late' ? 'bg-amber-100 text-amber-700' :
                     liveFilter === 'absent' ? 'bg-red-100 text-red-700' :
@@ -937,32 +949,36 @@ export default function AttendanceDashboard() {
                   <div className="divide-y divide-gray-50">
                     {filtered.map((emp) => {
                       const statusConfig = {
-                        present: { dot: 'bg-green-500', badge: 'bg-green-50 text-green-700 border-green-100', label: 'Present' },
-                        late:    { dot: 'bg-amber-500',  badge: 'bg-amber-50  text-amber-700  border-amber-100', label: 'Late' },
-                        absent:  { dot: 'bg-red-500',    badge: 'bg-red-50    text-red-700    border-red-100',   label: 'Absent' },
-                        onLeave: { dot: 'bg-blue-500',   badge: 'bg-blue-50   text-blue-700   border-blue-100',  label: 'On Leave' },
-                      }[emp.status] || { dot: 'bg-gray-400', badge: 'bg-gray-50 text-gray-600 border-gray-100', label: emp.status };
+                        present: { dot: 'bg-green-500', badge: 'bg-green-50 text-green-700 border-green-200', label: 'Present' },
+                        late:    { dot: 'bg-amber-500',  badge: 'bg-amber-50 text-amber-700 border-amber-200', label: 'Late' },
+                        absent:  { dot: 'bg-red-500',    badge: 'bg-red-50 text-red-700 border-red-200',   label: 'Absent' },
+                        onLeave: { dot: 'bg-blue-500',   badge: 'bg-blue-50 text-blue-700 border-blue-200',  label: 'On Leave' },
+                      }[emp.status] || { dot: 'bg-gray-400', badge: 'bg-gray-50 text-gray-600 border-gray-200', label: emp.status };
 
                       return (
-                        <div key={emp.user_id} className="flex items-center gap-3 px-6 py-3 hover:bg-gray-50/60 transition-colors">
+                        <div key={emp.user_id} className="flex items-center gap-4 px-6 py-4 hover:bg-white/80 transition-colors border-b border-gray-50 last:border-0 group">
                           <div className="relative flex-shrink-0">
-                            <div className="w-9 h-9 rounded-full bg-[#7B0099]/10 text-[#7B0099] font-black flex items-center justify-center text-xs uppercase">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 shadow-sm text-gray-600 font-black flex items-center justify-center text-sm uppercase group-hover:scale-105 transition-transform">
                               {emp.full_name.charAt(0)}
                             </div>
-                            <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${statusConfig.dot}`} />
+                            <span className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm ${statusConfig.dot}`} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-gray-800 truncate">{emp.full_name}</p>
-                            <p className="text-[10px] text-gray-400">{emp.department} · {emp.branch}</p>
+                            <p className="text-sm font-bold text-gray-800 truncate">{emp.full_name}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">{emp.department}</p>
+                              <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                              <p className="text-[11px] text-gray-400">{emp.branch}</p>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-3 flex-shrink-0">
+                          <div className="flex items-center gap-4 flex-shrink-0">
                             {emp.clock_in && (
                               <div className="text-right hidden sm:block">
-                                <p className="text-[10px] font-bold text-gray-700">{emp.clock_in}</p>
-                                <p className="text-[9px] text-gray-400">{emp.clock_out ? `Out: ${emp.clock_out}` : 'Still in'}</p>
+                                <p className="text-xs font-black text-gray-800">{emp.clock_in}</p>
+                                <p className="text-[10px] font-medium text-gray-400">{emp.clock_out ? `Out: ${emp.clock_out}` : 'Still in'}</p>
                               </div>
                             )}
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusConfig.badge}`}>
+                            <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border shadow-sm uppercase tracking-wider ${statusConfig.badge}`}>
                               {statusConfig.label}
                             </span>
                           </div>

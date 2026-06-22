@@ -169,9 +169,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen bg-background transition-colors duration-300 max-w-full overflow-x-hidden">
       <AppSidebar mobileOpen={mobileMenuOpen} onMobileClose={() => setMobileMenuOpen(false)} />
       
-      <main 
-        className="flex-1 overflow-x-hidden relative min-w-0 bg-white"
-      >
+      <main className="flex-1 overflow-x-hidden relative min-w-0">
 
         
         {/* ═══════ DESKTOP TOP BAR ═══════ */}
