@@ -12,7 +12,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
+import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock, CheckCircle2, XCircle, ChevronRight, ClipboardList } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
@@ -280,19 +280,31 @@ export default function LeaveAdmin() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto w-full">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 py-6">
       
-      {/* Header & Breadcrumb */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1.5 tracking-tight">Leaves</h1>
-          <div className="text-[13px] font-medium text-muted-foreground flex items-center gap-1.5">
-            <Link to="/" className="hover:text-[#7B0099] transition-colors">Dashboard</Link>
-            <ChevronRight className="w-3.5 h-3.5 opacity-60" />
-            <span className="text-foreground/80">Leave Approvals</span>
+      <Card className="border border-white/60 bg-white/40 dark:bg-card/40 backdrop-blur-2xl rounded-3xl shadow-xl shadow-purple-900/5 overflow-hidden ring-1 ring-black/5">
+        <CardContent className="p-0">
+          
+          {/* Header & Breadcrumb */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 md:px-8 pt-6 pb-5 border-b border-white/60 dark:border-white/10 bg-white/30 dark:bg-black/20 backdrop-blur-md">
+            <div className="flex items-center gap-4">
+              <div className="p-2.5 bg-gradient-to-br from-[#800A7A] to-[#a855f7] rounded-xl shadow-md">
+                <ClipboardList className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight uppercase flex items-center gap-2">
+                  Leave Approvals
+                </h1>
+                <div className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5 uppercase tracking-widest mt-1">
+                  <Link to="/" className="hover:text-[#7B0099] transition-colors">Dashboard</Link>
+                  <ChevronRight className="w-3 h-3 opacity-60" />
+                  <span className="text-foreground/80 font-bold">Leave Approvals</span>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+
+          <div className="p-6 md:p-8 space-y-6">
 
       {/* 4 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -461,6 +473,10 @@ export default function LeaveAdmin() {
               </table>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+          </div>
         </CardContent>
       </Card>
 
