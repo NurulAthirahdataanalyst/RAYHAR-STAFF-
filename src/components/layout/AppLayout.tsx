@@ -177,8 +177,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="hidden lg:flex sticky top-0 z-30 w-full bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] py-2.5 px-3 items-center justify-between shadow-md relative overflow-hidden border-b border-[#7B0099]/15">
           <div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
           
-          <div className="flex items-center gap-3 relative z-10 w-full justify-between">
-            <div className="flex items-center gap-4 relative z-10">
+          <div className="flex items-center gap-3 relative z-10 w-full justify-end">
+            <div className="flex items-center gap-4 relative z-10 ml-auto">
               <button onClick={() => window.location.reload()} className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition-colors text-white font-semibold text-xs border border-white/20 bg-white/5">
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Refresh</span>
