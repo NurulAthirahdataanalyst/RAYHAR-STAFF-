@@ -240,13 +240,30 @@ export default function Attendance() {
     
     const today = new Date().toISOString().split('T')[0];
 
-    // Week starts on Saturday. Find the most recent Saturday (day 6 = Saturday).
+    // --- Company work-week schedule ---
+    // Week 1 of month : Friday + Saturday are off  → work days Sun–Thu
+    // Weeks 2, 3, 4  : Saturday only is off        → work days Sun–Fri + Sat… 
+    //   Actually work week runs Saturday → Thursday (Fri always off).
+    //   Week 1 additionally has Saturday off, so Week 1 = Sunday → Thursday.
+    //
+    // Find the most recent Saturday to use as the tentative week start.
     const weekStart = new Date();
     weekStart.setHours(0, 0, 0, 0);
-    const dayOfWeek = weekStart.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-    // Days since last Saturday: if today is Sat(6) → 0, Sun(0) → 1, Mon(1) → 2, etc.
-    const daysSinceSaturday = dayOfWeek === 6 ? 0 : dayOfWeek + 1;
-    weekStart.setDate(weekStart.getDate() - daysSinceSaturday);
+    const dayOfWeek = weekStart.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+    // Days to go back to reach Saturday:
+    //   Sat(6)→0, Sun(0)→1, Mon(1)→2, Tue(2)→3, Wed(3)→4, Thu(4)→5, Fri(5)→6
+    const daysSinceSat = dayOfWeek === 6 ? 0 : dayOfWeek + 1;
+    weekStart.setDate(weekStart.getDate() - daysSinceSat);
+
+    // Check if this Saturday is in Week 1 of its month (days 1–7).
+    // In Week 1, Saturday is ALSO off → shift weekStart to Sunday instead.
+    const satDayOfMonth = weekStart.getDate();
+    const isWeek1 = satDayOfMonth <= 7;
+    if (isWeek1) {
+      // Saturday is off in Week 1 — week starts on Sunday
+      weekStart.setDate(weekStart.getDate() + 1);
+    }
+    // Note: Friday is always off (no attendance records will exist for Fridays).
     
     historyLogs.forEach(log => {
       if (log.duration && log.duration !== '--' && log.duration !== '--:--') {
