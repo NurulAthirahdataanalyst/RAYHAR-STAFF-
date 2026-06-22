@@ -167,7 +167,7 @@ export default function Login() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      <div className="w-full w-full sm:w-full animate-in fade-in zoom-in duration-500">
+      <div className="w-full max-w-sm sm:max-w-md animate-in fade-in zoom-in duration-500">
         <div className="flex flex-col items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
           <img src={rayharLogo} alt="Rayhar Logo" className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl shadow-xl" />
           <div className="text-center">
@@ -247,7 +247,7 @@ export default function Login() {
                               type="button"
                               onClick={handlePasswordReset}
                               disabled={resetLoading}
-                              className="h-8 bg-[#7B0099] hover:bg-[#5e0080] text-white text-xs font-bold rounded-md  flex items-center justify-center shrink-0"
+                              className="h-8 bg-[#7B0099] hover:bg-[#5e0080] text-white text-xs font-bold rounded-md px-3 flex items-center justify-center shrink-0"
                             >
                               {resetLoading ? (
                                 <Loader2 className="h-3 w-3 animate-spin" />

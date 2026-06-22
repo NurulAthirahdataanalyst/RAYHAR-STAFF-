@@ -17,7 +17,7 @@ export default function MasterPlaceholder({ title }: { title: string }) {
           <Users className="w-16 h-16 text-muted-foreground/30 mb-4" />
         )}
         <h2 className="text-lg font-bold text-foreground">Coming Soon</h2>
-        <p className="text-sm text-muted-foreground mt-2 text-center w-full
+        <p className="text-sm text-muted-foreground mt-2 text-center max-w-sm">
           The {title} management page is currently under construction. Please check back later.
         </p>
       </div>

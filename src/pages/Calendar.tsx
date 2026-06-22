@@ -330,7 +330,7 @@ export default function Calendar() {
                     )}
                     
                     <div className="flex justify-end pt-2">
-                      <Button type="submit" className={newNoteType === 'reminder' ? "bg-yellow-600 hover:bg-yellow-700 text-white rounded-xl font-bold " : "bg-[#7B0099] hover:bg-purple-800 text-white rounded-xl font-bold "}>
+                      <Button type="submit" className={newNoteType === 'reminder' ? "bg-yellow-600 hover:bg-yellow-700 text-white rounded-xl font-bold px-6" : "bg-[#7B0099] hover:bg-purple-800 text-white rounded-xl font-bold px-6"}>
                         Save
                       </Button>
                     </div>
@@ -347,7 +347,7 @@ export default function Calendar() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-black uppercase tracking-wider text-red-600 dark:text-red-400 bg-red-500/10  py-0.5 rounded-md">Public Holiday</span>
+                        <span className="text-xs font-black uppercase tracking-wider text-red-600 dark:text-red-400 bg-red-500/10 px-2 py-0.5 rounded-md">Public Holiday</span>
                       </div>
                       <h3 className="font-bold text-foreground mt-1">{h.name}</h3>
                     </div>
@@ -390,7 +390,7 @@ export default function Calendar() {
                     </div>
                     <div className="pr-8">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-xs font-black uppercase tracking-wider  py-0.5 rounded-md ${
+                        <span className={`text-xs font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
                           note.type === 'reminder' ? 'text-yellow-600 dark:text-yellow-400 bg-yellow-500/10' : 'text-blue-600 dark:text-blue-400 bg-blue-500/10'
                         }`}>
                           {note.type === 'reminder' ? 'Reminder' : 'Personal Note'}
@@ -408,12 +408,12 @@ export default function Calendar() {
                 ))}
 
                 {selectedNotes.length === 0 && selectedAttendance.length === 0 && selectedHolidays.length === 0 && (
-                  <div className="text-center py-12  rounded-2xl bg-muted/20 border border-border/50 border-dashed">
-                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center  mb-3">
+                  <div className="text-center py-12 px-4 rounded-2xl bg-muted/20 border border-border/50 border-dashed">
+                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
                       <ListTodo className="w-6 h-6 text-muted-foreground" />
                     </div>
                     <h3 className="text-foreground font-bold mb-1">Nothing planned for this day</h3>
-                    <p className="text-sm text-muted-foreground w-full ">
+                    <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                       Add a personal note, set a reminder, or request leave to build your daily agenda.
                     </p>
                   </div>
@@ -429,7 +429,7 @@ export default function Calendar() {
           {/* Calendar Widget */}
           <Card className="border-border/50 bg-card shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] overflow-hidden rounded-[24px]">
             <div className="p-4 sm:p-6">
-              <div className="flex justify-between items-center mb-6 ">
+              <div className="flex justify-between items-center mb-6 px-2">
                 <span className="text-[11px] font-black tracking-[0.2em] uppercase text-muted-foreground">Calendar</span>
               </div>
               <div className="bg-muted/30 rounded-[20px] p-2 border border-border/50">
@@ -437,7 +437,7 @@ export default function Calendar() {
                   mode="single"
                   selected={selectedDate}
                   onSelect={(d) => d && setSelectedDate(d)}
-                  className=""
+                  className="mx-auto"
                   components={{
                     DayContent: CustomDayContent
                   }}
@@ -454,7 +454,7 @@ export default function Calendar() {
               </div>
               
               {/* Legend */}
-              <div className="mt-6 flex flex-wrap justify-center gap-4 ">
+              <div className="mt-6 flex flex-wrap justify-center gap-4 px-2">
                 <div className="flex items-center gap-2 text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
                   <span className="w-2 h-2 rounded-full bg-blue-500" /> Note
                 </div>

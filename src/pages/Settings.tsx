@@ -367,7 +367,7 @@ export default function SettingsPage() {
         </div>
         <button 
           onClick={() => toast.info("Audit logs are locked. Only system super-admins can view detailed log histories.")}
-          className="flex items-center self-start sm:self-auto gap-2  py-2 bg-[#7B0099]/10 text-[#7B0099] hover:bg-[#7B0099]/15 border border-[#7B0099]/20 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-sm"
+          className="flex items-center self-start sm:self-auto gap-2 px-4 py-2 bg-[#7B0099]/10 text-[#7B0099] hover:bg-[#7B0099]/15 border border-[#7B0099]/20 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-sm"
         >
           <History className="w-3.5 h-3.5" />
           <span>View Audit Log</span>
@@ -375,7 +375,7 @@ export default function SettingsPage() {
       </div>
 
       {/* HORIZONTAL NAVIGATION TABS - PILL REDESIGN */}
-      <div className="inline-flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] p-1.5 rounded-2xl md:rounded-full shadow-lg overflow-x-auto gap-2 scrollbar-none items-center w-full lg:w-fit w-full border border-[#7B0099]/20 relative z-10">
+      <div className="inline-flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] p-1.5 rounded-2xl md:rounded-full shadow-lg overflow-x-auto gap-2 scrollbar-none items-center w-full lg:w-fit max-w-full border border-[#7B0099]/20 relative z-10">
         {[
           { id: "system", label: "System Configuration", icon: SlidersHorizontal },
           { id: "staff", label: "Personnel Management", icon: UserPlus },
@@ -388,7 +388,7 @@ export default function SettingsPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 py-2.5  font-black text-[10px] uppercase tracking-widest whitespace-nowrap rounded-full transition-all duration-300 ${
+              className={`flex items-center gap-2 py-2.5 px-6 font-black text-[10px] uppercase tracking-widest whitespace-nowrap rounded-full transition-all duration-300 ${
                 isActive 
                   ? "bg-white text-[#7B0099] border-b-[3px] border-[#d4b0eb] shadow-md active:translate-y-[1px] active:border-b-[1px]" 
                   : "text-white/80 hover:text-white hover:bg-white/10"
@@ -421,7 +421,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 {hasUnsavedChanges && (
-                  <span className=".5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[9px] font-black uppercase tracking-widest rounded-full border border-amber-500/20 animate-pulse">
+                  <span className="px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[9px] font-black uppercase tracking-widest rounded-full border border-amber-500/20 animate-pulse">
                     Pending Updates
                   </span>
                 )}
@@ -436,7 +436,7 @@ export default function SettingsPage() {
                     </div>
                     <div>
                       <span className="text-[10px] font-black text-foreground uppercase tracking-wider block">Real-time Notification Alerts</span>
-                      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5 w-full sm:w-full normal-case leading-relaxed">
+                      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5 max-w-sm sm:max-w-md normal-case leading-relaxed">
                         Enables WebSocket-driven instantaneous alerts across all admin client instances. Recommended for high-volume environments.
                       </p>
                       <div className="flex items-center gap-1.5 mt-1">
@@ -464,7 +464,7 @@ export default function SettingsPage() {
                     </div>
                     <div>
                       <span className="text-[10px] font-black text-foreground uppercase tracking-wider block">Automated Report Scheduling</span>
-                      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5 w-full sm:w-full normal-case leading-relaxed">
+                      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5 max-w-sm sm:max-w-md normal-case leading-relaxed">
                         Distribute comprehensive analytics PDF and CSV reports to designated department heads automatically based on defined cycle.
                       </p>
                     </div>
@@ -506,7 +506,7 @@ export default function SettingsPage() {
                     </div>
                     <div>
                       <span className="text-[10px] font-black text-foreground uppercase tracking-wider block">Late Arrivals Window</span>
-                      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5 w-full sm:w-full normal-case leading-relaxed">
+                      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5 max-w-sm sm:max-w-md normal-case leading-relaxed">
                         The grace period duration before a transaction or staff check-in is flagged as 'Delayed' in the global monitor.
                       </p>
                     </div>
@@ -556,7 +556,7 @@ export default function SettingsPage() {
                       placeholder="Enter employee's full name"
                       value={staffName}
                       onChange={(e) => setStaffName(e.target.value)}
-                      className="w-full h-11  bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold outline-none"
+                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold outline-none"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -566,7 +566,7 @@ export default function SettingsPage() {
                       placeholder="e.g. staff@gmail.com"
                       value={staffEmail}
                       onChange={(e) => setStaffEmail(e.target.value)}
-                      className="w-full h-11  bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold outline-none"
+                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold outline-none"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -576,7 +576,7 @@ export default function SettingsPage() {
                       placeholder="Minimum 6 characters"
                       value={staffPassword}
                       onChange={(e) => setStaffPassword(e.target.value)}
-                      className="w-full h-11  bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold outline-none"
+                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold outline-none"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -661,14 +661,14 @@ export default function SettingsPage() {
                       setStaffStatus("Active");
                       toast.info("Form reset");
                     }}
-                    className="h-11  rounded-xl border border-border bg-background/20 hover:bg-background/40 text-foreground font-black text-[9px] uppercase tracking-wider"
+                    className="h-11 px-6 rounded-xl border border-border bg-background/20 hover:bg-background/40 text-foreground font-black text-[9px] uppercase tracking-wider"
                   >
                     Reset Form
                   </Button>
                   <Button
                     type="submit"
                     disabled={submittingStaff}
-                    className="h-11  rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all"
+                    className="h-11 px-8 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all"
                   >
                     {submittingStaff ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -701,14 +701,14 @@ export default function SettingsPage() {
                   <button 
                     type="button"
                     onClick={() => toast.info("Template downloaded successfully.")}
-                    className=".5 py-1.5 border border-border/80 rounded-lg bg-background/25 hover:bg-background/40 text-[8px] font-black uppercase tracking-wider"
+                    className="px-2.5 py-1.5 border border-border/80 rounded-lg bg-background/25 hover:bg-background/40 text-[8px] font-black uppercase tracking-wider"
                   >
                     Export Template
                   </button>
                   <button 
                     type="button"
                     onClick={() => toast.info("Select a CSV/Excel file to start bulk importing branches.")}
-                    className=".5 py-1.5 bg-[#7B0099] text-white rounded-lg hover:bg-[#7B0099]/95 text-[8px] font-black uppercase tracking-wider shadow-sm"
+                    className="px-2.5 py-1.5 bg-[#7B0099] text-white rounded-lg hover:bg-[#7B0099]/95 text-[8px] font-black uppercase tracking-wider shadow-sm"
                   >
                     Bulk Import
                   </button>
@@ -724,7 +724,7 @@ export default function SettingsPage() {
                       placeholder="e.g. AOR "
                       value={branchCode}
                       onChange={(e) => setBranchCode(e.target.value)}
-                      className="w-full h-11  bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
+                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
                     />
                   </div>
                   <div className="space-y-1.5 col-span-1 md:col-span-2">
@@ -734,7 +734,7 @@ export default function SettingsPage() {
                       placeholder="e.g. ALOR SETAR "
                       value={branchNameInput}
                       onChange={(e) => setBranchNameInput(e.target.value)}
-                      className="w-full h-11  bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case uppercase outline-none"
+                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case uppercase outline-none"
                     />
                   </div>
                 </div>
@@ -746,7 +746,7 @@ export default function SettingsPage() {
                     placeholder="e.g. ALOR SETAR, KEDAH"
                     value={branchLocationInput}
                     onChange={(e) => setBranchLocationInput(e.target.value)}
-                    className="w-full h-11  bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case uppercase outline-none"
+                    className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case uppercase outline-none"
                   />
                 </div>
 
@@ -758,14 +758,14 @@ export default function SettingsPage() {
                       setBranchNameInput("");
                       setBranchLocationInput("");
                     }}
-                    className="h-11  rounded-xl border border-border bg-background/20 hover:bg-background/40 text-foreground font-black text-[9px] uppercase tracking-wider"
+                    className="h-11 px-6 rounded-xl border border-border bg-background/20 hover:bg-background/40 text-foreground font-black text-[9px] uppercase tracking-wider"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={submittingBranch}
-                    className="h-11  rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all"
+                    className="h-11 px-8 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all"
                   >
                     {submittingBranch ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -803,7 +803,7 @@ export default function SettingsPage() {
                       placeholder="e.g. Strategic Planning"
                       value={deptNameInput}
                       onChange={(e) => setDeptNameInput(e.target.value)}
-                      className="w-full h-11  bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case outline-none"
+                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case outline-none"
                     />
                   </div>
                   <div className="space-y-1.5 col-span-1">
@@ -813,7 +813,7 @@ export default function SettingsPage() {
                       placeholder="e.g. E.G. STR-PLAN-001"
                       value={deptCode}
                       onChange={(e) => setDeptCode(e.target.value)}
-                      className="w-full h-11  bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
+                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-black uppercase placeholder:normal-case outline-none"
                     />
                   </div>
                 </div>
@@ -826,7 +826,7 @@ export default function SettingsPage() {
                       placeholder="Search employee name..."
                       value={deptManager}
                       onChange={(e) => setDeptManager(e.target.value)}
-                      className="w-full h-11  bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold outline-none"
+                      className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold outline-none"
                     />
                   </div>
                   <div className="flex items-center justify-between p-4 bg-muted/20 border border-border/30 rounded-2xl h-11 mt-auto">
@@ -852,14 +852,14 @@ export default function SettingsPage() {
                       setDeptManager("");
                       setIsDeptActive(true);
                     }}
-                    className="h-11  rounded-xl border border-border bg-background/20 hover:bg-background/40 text-foreground font-black text-[9px] uppercase tracking-wider"
+                    className="h-11 px-6 rounded-xl border border-border bg-background/20 hover:bg-background/40 text-foreground font-black text-[9px] uppercase tracking-wider"
                   >
                     Discard Changes
                   </Button>
                   <Button
                     type="submit"
                     disabled={submittingDept}
-                    className="h-11  rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all"
+                    className="h-11 px-8 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all"
                   >
                     {submittingDept ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -983,7 +983,7 @@ export default function SettingsPage() {
                   {deptStats.map((dept) => (
                     <div key={dept.name} className="flex items-center justify-between p-3 bg-muted/20 border border-border/30 rounded-xl">
                       <span className="text-[10px] font-black text-foreground uppercase tracking-wider">{dept.name}</span>
-                      <span className="text-[9px] font-black bg-[#7B0099]/10 text-[#7B0099]  py-0.5 rounded-full">{dept.employee_count} Staff</span>
+                      <span className="text-[9px] font-black bg-[#7B0099]/10 text-[#7B0099] px-2 py-0.5 rounded-full">{dept.employee_count} Staff</span>
                     </div>
                   ))}
                 </div>
@@ -1037,7 +1037,7 @@ export default function SettingsPage() {
                         <span className="text-[10px] font-black text-foreground uppercase tracking-wider">{cluster.name}</span>
                         <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">{cluster.code}</span>
                       </div>
-                      <span className={`text-[8px] font-black uppercase tracking-widest  py-0.5 rounded-full border ${cluster.color}`}>
+                      <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${cluster.color}`}>
                         {cluster.status}
                       </span>
                     </div>
@@ -1071,7 +1071,7 @@ export default function SettingsPage() {
                         <span className="text-[10px] font-black text-foreground uppercase tracking-wider">{dept.name}</span>
                         <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest font-bold">Registered HQ</span>
                       </div>
-                      <span className="text-[8px] font-black uppercase tracking-widest  py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full border border-emerald-500/20">
+                      <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full border border-emerald-500/20">
                         Active
                       </span>
                     </div>

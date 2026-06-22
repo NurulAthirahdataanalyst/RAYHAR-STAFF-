@@ -195,7 +195,7 @@ export default function Branches() {
               <Button
                 type="button"
                 variant="ghost"
-                className="mb-1 gap-2  text-muted-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target"
+                className="mb-1 gap-2 px-0 text-muted-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target"
                 onClick={() => setSelectedBranch(null)}
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -204,7 +204,7 @@ export default function Branches() {
               <h1 className="text-responsive-xl font-black text-foreground tracking-tight truncate">{selectedBranch.name}</h1>
               <p className="text-responsive-sm text-muted-foreground font-medium mt-1">Branch staff overview and analytics</p>
             </div>
-            <Badge variant="outline" className="w-fit font-mono text-[10px] sm:text-xs bg-muted/30 border-border/60  py-1">
+            <Badge variant="outline" className="w-fit font-mono text-[10px] sm:text-xs bg-muted/30 border-border/60 px-3 py-1">
               {selectedBranch.code}
             </Badge>
           </div>
@@ -221,10 +221,10 @@ export default function Branches() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-muted/30 text-foreground border-b border-border">
-                        <th className="text-left py-4  text-[10px] font-black uppercase tracking-[0.2em]">Personnel</th>
-                        <th className="text-left py-4  text-[10px] font-black uppercase tracking-[0.2em]">Leave Balance</th>
-                        <th className="text-left py-4  text-[10px] font-black uppercase tracking-[0.2em]">Attendance</th>
-                        <th className="text-left py-4  text-[10px] font-black uppercase tracking-[0.2em]">Today</th>
+                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Personnel</th>
+                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Leave Balance</th>
+                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Attendance</th>
+                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Today</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/50">
@@ -240,7 +240,7 @@ export default function Branches() {
                               setIsStatsOpen(true);
                             }}
                           >
-                            <td className="py-4 ">
+                            <td className="py-4 px-6">
                               <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-[11px] font-black text-[#7B0099] group-hover:scale-110 transition-transform">
                                   {employee.full_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
@@ -251,10 +251,10 @@ export default function Branches() {
                                 </div>
                               </div>
                             </td>
-                            <td className="py-4  font-bold text-foreground text-xs uppercase">{employee.annual_leave_balance} DAYS</td>
-                            <td className="py-4  font-bold text-muted-foreground text-xs">{employee.attendance_rate || 0}%</td>
-                            <td className="py-4 ">
-                              <Badge className={`text-[9px] font-black .5 h-5 ${
+                            <td className="py-4 px-6 font-bold text-foreground text-xs uppercase">{employee.annual_leave_balance} DAYS</td>
+                            <td className="py-4 px-6 font-bold text-muted-foreground text-xs">{employee.attendance_rate || 0}%</td>
+                            <td className="py-4 px-6">
+                              <Badge className={`text-[9px] font-black px-2.5 h-5 ${
                                 employee.today_status === "Present" ? "bg-emerald-500 text-white" :
                                 employee.today_status === "On Leave" ? "bg-amber-500 text-white" :
                                 "bg-rose-500 text-white"
@@ -315,7 +315,7 @@ export default function Branches() {
           )}
 
           <Sheet open={isStatsOpen} onOpenChange={setIsStatsOpen}>
-            <SheetContent className="sm:w-full w-full overflow-y-auto border-none shadow-2xl safe-area-bottom">
+            <SheetContent className="sm:max-w-md w-full overflow-y-auto border-none shadow-2xl safe-area-bottom">
               <SheetHeader className="pb-6 border-b border-border/50 pt-4">
                 <SheetTitle className="text-xl font-black text-foreground tracking-tight">Staff Analytics</SheetTitle>
               </SheetHeader>
@@ -330,7 +330,7 @@ export default function Branches() {
                         <div className="min-w-0">
                           <h2 className="text-xl font-black text-foreground leading-tight truncate">{selectedEmployee.full_name}</h2>
                           <p className="text-[10px] font-black text-muted-foreground mt-1 uppercase tracking-widest">{selectedEmployee.user_id}</p>
-                          <Badge variant="secondary" className="mt-2 text-[10px] uppercase font-black bg-[#7B0099]/10 text-[#7B0099] border-none ">{selectedEmployee.role.replace(/_/g, ' ')}</Badge>
+                          <Badge variant="secondary" className="mt-2 text-[10px] uppercase font-black bg-[#7B0099]/10 text-[#7B0099] border-none px-2">{selectedEmployee.role.replace(/_/g, ' ')}</Badge>
                         </div>
                       </div>
                     </div>
@@ -357,7 +357,7 @@ export default function Branches() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ">Review Leave Records</p>
+                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-1">Review Leave Records</p>
                       <div className="grid grid-cols-1 gap-2">
                         <button className="flex items-center justify-between w-full rounded-[16px] bg-emerald-500/10 p-4 hover:bg-emerald-500/20 transition-all border border-emerald-500/20 group touch-target" onClick={() => setViewLeaveStatus("Approved")}>
                           <div className="flex items-center gap-3">
@@ -400,8 +400,8 @@ export default function Branches() {
               <div className="flex items-center gap-3">
                 <h1 className="text-responsive-2xl font-black text-foreground tracking-tight">Branches Overview</h1>
                 {!loadingBranches && (
-                  <Badge variant="outline" className=" py-1 text-xs font-bold bg-muted/30 border-border/60 flex items-center justify-center rounded-full h-fit">
-                    Total <span className="ml-2 flex items-center justify-center bg-[#7B0099] text-white rounded-full h-5 min-w-[20px] .5 text-[10px] leading-none shrink-0">{allBranches.length}</span>
+                  <Badge variant="outline" className="px-3 py-1 text-xs font-bold bg-muted/30 border-border/60 flex items-center justify-center rounded-full h-fit">
+                    Total <span className="ml-2 flex items-center justify-center bg-[#7B0099] text-white rounded-full h-5 min-w-[20px] px-1.5 text-[10px] leading-none shrink-0">{allBranches.length}</span>
                   </Badge>
                 )}
               </div>
@@ -414,7 +414,7 @@ export default function Branches() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setViewMode("grid")}
-                  className={`rounded-lg  py-1.5 h-8 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
+                  className={`rounded-lg px-3 py-1.5 h-8 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
                     viewMode === "grid"
                       ? "bg-[#7B0099] text-white hover:bg-[#7B0099]/90 shadow-md"
                       : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
@@ -427,7 +427,7 @@ export default function Branches() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setViewMode("line")}
-                  className={`rounded-lg  py-1.5 h-8 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
+                  className={`rounded-lg px-3 py-1.5 h-8 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
                     viewMode === "line"
                       ? "bg-[#7B0099] text-white hover:bg-[#7B0099]/90 shadow-md"
                       : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
@@ -477,7 +477,7 @@ export default function Branches() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <Badge variant="outline" className="font-mono text-[9px] h-5 .5 bg-muted/20 border-border/50">{branch.code}</Badge>
+                            <Badge variant="outline" className="font-mono text-[9px] h-5 px-1.5 bg-muted/20 border-border/50">{branch.code}</Badge>
                             <Button 
                               variant="ghost" 
                               size="icon" 
@@ -503,7 +503,7 @@ export default function Branches() {
                           </div>
                         </div>
                       </div>
-                      <div className=" py-4 bg-muted/30 flex items-center justify-between border-t border-border/50">
+                      <div className="px-6 py-4 bg-muted/30 flex items-center justify-between border-t border-border/50">
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-1.5">
                             <Users className="w-3.5 h-3.5 text-muted-foreground opacity-50" />
@@ -529,14 +529,14 @@ export default function Branches() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-muted/30 text-foreground border-b border-border">
-                    <th className="text-left py-4  text-[10px] font-black uppercase tracking-[0.2em]">Branch Name</th>
-                    <th className="text-center py-4  text-[10px] font-black uppercase tracking-[0.2em]">Present</th>
-                    <th className="text-center py-4  text-[10px] font-black uppercase tracking-[0.2em]">Leave</th>
-                    <th className="text-center py-4  text-[10px] font-black uppercase tracking-[0.2em]">Absent</th>
-                    <th className="text-center py-4  text-[10px] font-black uppercase tracking-[0.2em]">Staff</th>
-                    <th className="text-center py-4  text-[10px] font-black uppercase tracking-[0.2em]">Attendance</th>
-                    <th className="text-left py-4  text-[10px] font-black uppercase tracking-[0.2em]">Leader</th>
-                    <th className="text-right py-4  text-[10px] font-black uppercase tracking-[0.2em]">Action</th>
+                    <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Branch Name</th>
+                    <th className="text-center py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Present</th>
+                    <th className="text-center py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Leave</th>
+                    <th className="text-center py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Absent</th>
+                    <th className="text-center py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Staff</th>
+                    <th className="text-center py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Attendance</th>
+                    <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Leader</th>
+                    <th className="text-right py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
@@ -559,7 +559,7 @@ export default function Branches() {
                         className="cursor-pointer transition-colors group hover:bg-[#7B0099]/5"
                         onClick={() => setSelectedBranch({...branch, location, leader, employees: totalEmployees, attendance: attendanceRate})}
                       >
-                        <td className="py-4 ">
+                        <td className="py-4 px-6">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-[11px] font-black text-[#7B0099] group-hover:scale-110 transition-transform">
                               <Building2 className="w-4.5 h-4.5" />
@@ -567,33 +567,33 @@ export default function Branches() {
                             <div className="min-w-0">
                               <p className="font-bold text-foreground group-hover:text-[#7B0099] transition-colors flex items-center gap-2">
                                 {branch.name}
-                                <Badge variant="outline" className="font-mono text-[9px] h-4 .5 bg-muted/20 border-border/50">{branch.code}</Badge>
+                                <Badge variant="outline" className="font-mono text-[9px] h-4 px-1.5 bg-muted/20 border-border/50">{branch.code}</Badge>
                               </p>
                               <p className="text-[10px] text-muted-foreground truncate font-medium uppercase tracking-widest">{location}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="py-4  text-center">
+                        <td className="py-4 px-6 text-center">
                           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
                             {presentToday}
                           </span>
                         </td>
-                        <td className="py-4  text-center">
+                        <td className="py-4 px-6 text-center">
                           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs">
                             {onLeave}
                           </span>
                         </td>
-                        <td className="py-4  text-center">
+                        <td className="py-4 px-6 text-center">
                           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold text-xs">
                             {absent}
                           </span>
                         </td>
-                        <td className="py-4  text-center font-bold text-foreground text-xs">{totalEmployees}</td>
-                        <td className="py-4  text-center font-bold text-[#7B0099] text-xs">{attendanceRate}%</td>
-                        <td className="py-4  text-left">
-                          <p className="text-xs font-bold text-foreground/80 truncate w-full">{leader}</p>
+                        <td className="py-4 px-6 text-center font-bold text-foreground text-xs">{totalEmployees}</td>
+                        <td className="py-4 px-6 text-center font-bold text-[#7B0099] text-xs">{attendanceRate}%</td>
+                        <td className="py-4 px-6 text-left">
+                          <p className="text-xs font-bold text-foreground/80 truncate max-w-[150px]">{leader}</p>
                         </td>
-                        <td className="py-4  text-right" onClick={(e) => e.stopPropagation()}>
+                        <td className="py-4 px-6 text-right" onClick={(e) => e.stopPropagation()}>
                           <Button 
                             variant="ghost" 
                             size="icon" 
@@ -615,7 +615,7 @@ export default function Branches() {
 
       {/* LEAVE DETAILS DIALOG */}
       <Dialog open={!!viewLeaveStatus} onOpenChange={(open) => !open && setViewLeaveStatus(null)}>
-        <DialogContent className="w-full max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 overflow-hidden safe-area-bottom">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 overflow-hidden safe-area-bottom">
           <div className="p-6 bg-gradient-to-br from-[#7B0099] to-[#a855f7] text-white">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-3 text-white text-xl font-black tracking-tight">
@@ -713,7 +713,7 @@ export default function Branches() {
                                 <FileText className="w-5 h-5 text-[#7B0099]" />
                                 <span className="text-xs font-black text-[#7B0099]">MC Attachment</span>
                               </div>
-                              <a href={`${API_BASE_URL}${req.mc_file_url}`} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black uppercase tracking-widest bg-[#7B0099] text-white  py-2 rounded-lg hover:bg-[#5e0080] transition-colors">
+                              <a href={`${API_BASE_URL}${req.mc_file_url}`} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-3 py-2 rounded-lg hover:bg-[#5e0080] transition-colors">
                                 View File
                               </a>
                             </div>

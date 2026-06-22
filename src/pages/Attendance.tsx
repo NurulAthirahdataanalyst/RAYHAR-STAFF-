@@ -688,13 +688,13 @@ export default function Attendance() {
   }
 
   return (
-    <div className="relative flex flex-col  w-full animate-in fade-in duration-700">
+    <div className="relative flex flex-col mx-auto w-full animate-in fade-in duration-700">
 
 
-      <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-5 lg:gap-6 pb-6 w-full w-full lg:w-full ">
+      <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-5 lg:gap-6 pb-6 w-full max-w-2xl lg:max-w-[1400px] mx-auto">
 
         {/* Main Clocking Card */}
-        <div className="bg-card dark:bg-card w-full w-full sm:w-full lg:flex-1 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 p-4 sm:p-5 md:p-6 flex flex-col items-center relative overflow-hidden border border-border lg:self-start">
+        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md lg:flex-1 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 p-4 sm:p-5 md:p-6 flex flex-col items-center relative overflow-hidden border border-border lg:self-start">
 
           {user ? (
             <div className="flex-1 flex flex-col items-center justify-between w-full h-full">
@@ -766,7 +766,7 @@ export default function Attendance() {
                 </button>
               </div>
 
-              <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-xs font-bold mb-3 sm:mb-4 bg-muted/30 dark:bg-muted/50 py-1.5  rounded-full w-full border border-border/50">
+              <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-xs font-bold mb-3 sm:mb-4 bg-muted/30 dark:bg-muted/50 py-1.5 px-4 rounded-full w-full border border-border/50">
                 {activeSession ? (
                   <>
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -818,7 +818,7 @@ export default function Attendance() {
             </div>
           ) : (
             <div className="py-10 sm:py-16 space-y-3 text-center">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-full flex items-center justify-center  mb-4 sm:mb-6">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
                 <Fingerprint className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground" />
               </div>
               <p className="text-lg sm:text-xl text-muted-foreground font-bold">Authentication Required</p>
@@ -829,7 +829,7 @@ export default function Attendance() {
 
         
         {/* RIGHT PANEL: Stats & Timeline */}
-        <div className="flex-1 flex flex-col gap-4 sm:gap-6 w-full lg:w-full w-full
+        <div className="flex-1 flex flex-col gap-4 sm:gap-6 w-full lg:max-w-none max-w-2xl">
           
           {/* 4 Stat Cards Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
@@ -949,7 +949,7 @@ export default function Attendance() {
             </div>
             
             {/* Timeline Axis Markers */}
-            <div className="flex justify-between items-center text-[9px] font-bold text-muted-foreground mt-2 ">
+            <div className="flex justify-between items-center text-[9px] font-bold text-muted-foreground mt-2 px-1">
                <span>Week 1</span>
                <span>Week 2</span>
                <span>Week 3</span>
@@ -960,7 +960,7 @@ export default function Attendance() {
       </div>
 
       {/* BOTTOM PANEL: Employee Attendance Data Table */}
-      <div className="relative z-10 w-full w-full lg:w-full  pb-8">
+      <div className="relative z-10 w-full max-w-2xl lg:max-w-[1400px] mx-auto pb-8">
         <div className="bg-card dark:bg-card border border-border shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl p-5 sm:p-6 md:p-8 flex flex-col min-h-[400px]">
           
           {/* Header Row */}
@@ -980,7 +980,7 @@ export default function Attendance() {
                     onChange={(e) => {
                       if (e.target.value) setSelectedDate(e.target.value);
                     }}
-                    className="appearance-none flex items-center justify-center  py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-full shadow-sm outline-none cursor-pointer uppercase tracking-widest"
+                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-full shadow-sm outline-none cursor-pointer uppercase tracking-widest"
                   />
                 ) : (
                   <input
@@ -991,7 +991,7 @@ export default function Attendance() {
                         setSelectedDate(`${e.target.value}-01`);
                       }
                     }}
-                    className="appearance-none flex items-center justify-center  py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-full shadow-sm outline-none cursor-pointer uppercase tracking-widest"
+                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-full shadow-sm outline-none cursor-pointer uppercase tracking-widest"
                   />
                 )}
               </div>
@@ -1000,7 +1000,7 @@ export default function Attendance() {
               <div className="flex bg-muted/40 p-1 rounded-full border border-border/40">
                 <button
                   onClick={() => setViewMode("day")}
-                  className={` py-1.5 text-[10px] font-black tracking-wider rounded-full transition-all uppercase ${
+                  className={`px-4 py-1.5 text-[10px] font-black tracking-wider rounded-full transition-all uppercase ${
                     viewMode === "day" ? "bg-[#7B0099] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -1008,7 +1008,7 @@ export default function Attendance() {
                 </button>
                 <button
                   onClick={() => setViewMode("month")}
-                  className={` py-1.5 text-[10px] font-black tracking-wider rounded-full transition-all uppercase ${
+                  className={`px-4 py-1.5 text-[10px] font-black tracking-wider rounded-full transition-all uppercase ${
                     viewMode === "month" ? "bg-[#7B0099] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -1022,7 +1022,7 @@ export default function Attendance() {
                   <button
                     key={status}
                     onClick={() => setStatusFilter(status)}
-                    className={` py-1.5 text-[10px] font-black tracking-wider rounded-full transition-all uppercase ${
+                    className={`px-3 py-1.5 text-[10px] font-black tracking-wider rounded-full transition-all uppercase ${
                       statusFilter === status ? "bg-[#7B0099] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
@@ -1034,18 +1034,18 @@ export default function Attendance() {
               {/* Export */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center justify-center gap-1.5  py-2 bg-[#f97316] hover:bg-[#ea580c] text-white text-[11px] font-black rounded-full shadow-md active:scale-95 transition-all">
+                  <button className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white text-[11px] font-black rounded-full shadow-md active:scale-95 transition-all">
                     <Download className="w-3 h-3" />
                     <span>Export</span>
                     <ChevronDown className="w-3 h-3 opacity-80" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="rounded-xl border border-border p-1">
-                  <DropdownMenuItem onClick={handleExportPDF} className="flex items-center gap-2 rounded-lg .5 py-2 text-[10px] font-black uppercase text-muted-foreground cursor-pointer focus:bg-muted">
+                  <DropdownMenuItem onClick={handleExportPDF} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase text-muted-foreground cursor-pointer focus:bg-muted">
                     <FileText className="w-3.5 h-3.5 text-red-500" />
                     <span>Export PDF</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExportCSV} className="flex items-center gap-2 rounded-lg .5 py-2 text-[10px] font-black uppercase text-muted-foreground cursor-pointer focus:bg-muted">
+                  <DropdownMenuItem onClick={handleExportCSV} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase text-muted-foreground cursor-pointer focus:bg-muted">
                     <FileSpreadsheet className="w-3.5 h-3.5 text-green-600" />
                     <span>Export CSV</span>
                   </DropdownMenuItem>
@@ -1059,27 +1059,27 @@ export default function Attendance() {
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
                 <tr className="bg-muted/50 border-b border-border/50">
-                  <th className=" py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Date</th>
-                  <th className=" py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Check In</th>
-                  <th className=" py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Status</th>
-                  <th className=" py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Check Out</th>
-                  <th className=" py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Break</th>
-                  <th className=" py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Late</th>
-                  <th className=" py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap text-right">Production Hours</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Date</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Check In</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Status</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Check Out</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Break</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Late</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap text-right">Production Hours</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40">
                 {fetchingHistory && historyLogs.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-12 text-center">
-                      <Loader2 className="w-6 h-6 animate-spin text-[#7B0099]  mb-2" />
+                      <Loader2 className="w-6 h-6 animate-spin text-[#7B0099] mx-auto mb-2" />
                       <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Loading Data...</p>
                     </td>
                   </tr>
                 ) : displayedLogs.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-12 text-center">
-                       <Clock className="w-8 h-8 opacity-20  mb-2" />
+                       <Clock className="w-8 h-8 opacity-20 mx-auto mb-2" />
                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">No logs found</p>
                     </td>
                   </tr>
@@ -1094,17 +1094,17 @@ export default function Attendance() {
 
                     return (
                       <tr key={log.attendance_id || index} className="hover:bg-muted/30 transition-colors">
-                        <td className=" py-3 text-xs font-bold text-foreground whitespace-nowrap">{dateStr}</td>
-                        <td className=" py-3 text-xs font-bold text-foreground font-mono">{formatAttendanceTime(log.clock_in)}</td>
-                        <td className=" py-3 whitespace-nowrap">
-                          <span className={`.5 py-1 text-[9px] font-black tracking-widest rounded-full uppercase border ${statusBadge}`}>
+                        <td className="px-4 py-3 text-xs font-bold text-foreground whitespace-nowrap">{dateStr}</td>
+                        <td className="px-4 py-3 text-xs font-bold text-foreground font-mono">{formatAttendanceTime(log.clock_in)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={`px-2.5 py-1 text-[9px] font-black tracking-widest rounded-full uppercase border ${statusBadge}`}>
                             {log.status}
                           </span>
                         </td>
-                        <td className=" py-3 text-xs font-bold text-foreground font-mono">{log.clock_out ? formatAttendanceTime(log.clock_out) : "--:--"}</td>
-                        <td className=" py-3 text-xs font-bold text-muted-foreground">--</td>
-                        <td className=" py-3 text-xs font-bold text-rose-600">{log.is_late ? "Yes" : "--"}</td>
-                        <td className=" py-3 text-xs font-black text-emerald-600 font-mono text-right">{log.duration}</td>
+                        <td className="px-4 py-3 text-xs font-bold text-foreground font-mono">{log.clock_out ? formatAttendanceTime(log.clock_out) : "--:--"}</td>
+                        <td className="px-4 py-3 text-xs font-bold text-muted-foreground">--</td>
+                        <td className="px-4 py-3 text-xs font-bold text-rose-600">{log.is_late ? "Yes" : "--"}</td>
+                        <td className="px-4 py-3 text-xs font-black text-emerald-600 font-mono text-right">{log.duration}</td>
                       </tr>
                     );
                   })
@@ -1118,7 +1118,7 @@ export default function Attendance() {
             <div className="flex justify-center mt-6">
               <button 
                 onClick={() => setVisibleLogsCount(prev => prev + 10)}
-                className=" py-2.5 bg-muted/50 hover:bg-muted text-foreground text-[11px] font-black rounded-full uppercase tracking-widest transition-all active:scale-95 border border-border"
+                className="px-6 py-2.5 bg-muted/50 hover:bg-muted text-foreground text-[11px] font-black rounded-full uppercase tracking-widest transition-all active:scale-95 border border-border"
               >
                 Load More Rows
               </button>

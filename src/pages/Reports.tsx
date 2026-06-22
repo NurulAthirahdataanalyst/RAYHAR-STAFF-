@@ -625,7 +625,7 @@ export default function Reports() {
   }));
 
   return (
-    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500 w-full   ">
+    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-1 sm:px-4">
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-border/40">
         <div className="flex items-center gap-4">
@@ -641,10 +641,10 @@ export default function Reports() {
 
       {/* CORE FLOATING SEGMENT TABS & ACTIONS */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="inline-flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] p-1.5 rounded-[18px] w-full lg:w-fit w-full shadow-xl overflow-x-auto scrollbar-none border border-[#7B0099]/20 relative z-10">
+        <div className="inline-flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] p-1.5 rounded-[18px] w-full lg:w-fit max-w-full shadow-xl overflow-x-auto scrollbar-none border border-[#7B0099]/20 relative z-10">
         <button
           onClick={() => setActiveTab("attendance")}
-          className={`flex-1 flex items-center justify-center gap-2.5 py-2.5  text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
+          className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
             activeTab === "attendance"
               ? "bg-white text-[#7B0099] border-b-[3px] border-[#d4b0eb] shadow-md active:translate-y-[1px] active:border-b-[1px]"
               : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
@@ -657,7 +657,7 @@ export default function Reports() {
         {(role === "hr_admin" || role === "managing_director") && (
           <button
             onClick={() => setActiveTab("leave_monitoring")}
-            className={`flex-1 flex items-center justify-center gap-2.5 py-2.5  text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
+            className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
               activeTab === "leave_monitoring"
                 ? "bg-white text-[#7B0099] border-b-[3px] border-[#d4b0eb] shadow-md active:translate-y-[1px] active:border-b-[1px]"
                 : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
@@ -669,7 +669,7 @@ export default function Reports() {
         )}
         <button
           onClick={() => setActiveTab("generator")}
-          className={`flex-1 flex items-center justify-center gap-2.5 py-2.5  text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
+          className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 text-[11px] font-black rounded-[12px] tracking-wider transition-all uppercase whitespace-nowrap ${
             activeTab === "generator"
               ? "bg-white text-[#7B0099] border-b-[3px] border-[#d4b0eb] shadow-md active:translate-y-[1px] active:border-b-[1px]"
               : "text-white/90 hover:text-white hover:bg-white/10 active:bg-white/15"
@@ -682,7 +682,7 @@ export default function Reports() {
 
       {activeTab === "attendance" && (
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 bg-white/50 dark:bg-black/20  py-1.5 rounded-xl border border-border/50 shadow-inner">
+          <div className="flex items-center gap-2 bg-white/50 dark:bg-black/20 px-3 py-1.5 rounded-xl border border-border/50 shadow-inner">
             <input
               type="date"
               className="h-8 bg-transparent border-none text-[10px] font-black uppercase tracking-widest focus:ring-0 p-0 text-foreground cursor-pointer"
@@ -692,18 +692,18 @@ export default function Reports() {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center justify-center gap-1.5  py-2.5 bg-[#f97316] hover:bg-[#ea580c] text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-md shadow-orange-500/10 active:scale-95 h-[44px]">
+              <button className="flex items-center justify-center gap-1.5 px-5 py-2.5 bg-[#f97316] hover:bg-[#ea580c] text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-md shadow-orange-500/10 active:scale-95 h-[44px]">
                 <Download className="w-3.5 h-3.5" />
                 <span>Export</span>
                 <ChevronDown className="w-3.5 h-3.5 opacity-80" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-xl border border-border bg-background p-1 shadow-lg min-w-[150px]">
-              <DropdownMenuItem onClick={handleExportPDF} className="flex items-center gap-2 rounded-lg .5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
+              <DropdownMenuItem onClick={handleExportPDF} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
                 <FileText className="w-3.5 h-3.5 text-red-500" />
                 <span>Export as PDF</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleExport} className="flex items-center gap-2 rounded-lg .5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
+              <DropdownMenuItem onClick={handleExport} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
                 <FileSpreadsheet className="w-3.5 h-3.5 text-green-600" />
                 <span>Export as Excel</span>
               </DropdownMenuItem>
@@ -847,29 +847,29 @@ export default function Reports() {
                   <table className="w-full text-sm text-left">
                     <thead className="bg-muted/30 text-foreground uppercase text-[10px] font-black tracking-widest">
                       <tr>
-                        <th className=" py-4">Leader</th>
-                        <th className=" py-4">Role</th>
-                        <th className=" py-4">Branch/Dept</th>
-                        <th className=" py-4">Timeline</th>
-                        <th className=" py-4 text-center">Duration</th>
+                        <th className="px-6 py-4">Leader</th>
+                        <th className="px-6 py-4">Role</th>
+                        <th className="px-6 py-4">Branch/Dept</th>
+                        <th className="px-6 py-4">Timeline</th>
+                        <th className="px-6 py-4 text-center">Duration</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/30">
                       {leaveUtilization.leaderLeaves.map((leave: any) => (
                         <tr key={leave.leave_id} className="hover:bg-[#7B0099]/5 transition-colors">
-                          <td className=" py-4">
+                          <td className="px-6 py-4">
                             <span className="font-black text-foreground">{leave.full_name}</span>
                           </td>
-                          <td className=" py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                          <td className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">
                             {leave.role.replace("_", " ")}
                           </td>
-                          <td className=" py-4 text-[10px] font-black text-[#7B0099] uppercase tracking-wider">
+                          <td className="px-6 py-4 text-[10px] font-black text-[#7B0099] uppercase tracking-wider">
                             {leave.branch} • {leave.department}
                           </td>
-                          <td className=" py-4 text-xs font-semibold text-muted-foreground">
+                          <td className="px-6 py-4 text-xs font-semibold text-muted-foreground">
                             {new Date(leave.start_date).toLocaleDateString()} to {new Date(leave.end_date).toLocaleDateString()}
                           </td>
-                          <td className=" py-4 text-center font-black text-xs text-foreground font-mono">
+                          <td className="px-6 py-4 text-center font-black text-xs text-foreground font-mono">
                             {leave.days} Days
                           </td>
                         </tr>
@@ -1009,7 +1009,7 @@ export default function Reports() {
                 <div className="grid grid-cols-3 gap-3">
                   <button
                     onClick={() => setGeneratorFormat("csv")}
-                    className={`py-3  rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all ${
+                    className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all ${
                       generatorFormat === "csv"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-[#7B0099] font-black"
                         : "border-border/50 bg-background/20 text-muted-foreground font-semibold hover:bg-muted/40 hover:text-foreground"
@@ -1020,7 +1020,7 @@ export default function Reports() {
                   </button>
                   <button
                     onClick={() => setGeneratorFormat("excel")}
-                    className={`py-3  rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all ${
+                    className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all ${
                       generatorFormat === "excel"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-[#7B0099] font-black"
                         : "border-border/50 bg-background/20 text-muted-foreground font-semibold hover:bg-muted/40 hover:text-foreground"
@@ -1031,7 +1031,7 @@ export default function Reports() {
                   </button>
                   <button
                     onClick={() => setGeneratorFormat("pdf")}
-                    className={`py-3  rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all ${
+                    className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all ${
                       generatorFormat === "pdf"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-[#7B0099] font-black"
                         : "border-border/50 bg-background/20 text-muted-foreground font-semibold hover:bg-muted/40 hover:text-foreground"

@@ -701,36 +701,36 @@ export default function AttendanceDashboard() {
   }));
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 w-full   py-6">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 py-6">
       {/* ACTION BUTTONS */}
       <div className="flex flex-col md:flex-row md:items-center justify-end gap-4 pb-2">
         <div className="flex flex-wrap items-center justify-end w-full gap-2">
-          <Button variant="outline" size="sm" className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-lg  flex items-center gap-1.5 shadow-sm text-xs font-medium">
+          <Button variant="outline" size="sm" className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-lg px-3 flex items-center gap-1.5 shadow-sm text-xs font-medium">
             <Calendar className="w-4 h-4 text-gray-500" />
             <span>06/21/2026</span>
           </Button>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-lg  flex items-center gap-1.5 shadow-sm text-xs font-medium">
+              <Button variant="outline" size="sm" className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-lg px-3 flex items-center gap-1.5 shadow-sm text-xs font-medium">
                 <Download className="w-4 h-4 text-gray-500" />
                 <span>Export</span>
                 <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="rounded-lg shadow-lg border border-gray-200 bg-white z-50">
-              <DropdownMenuItem onClick={handleExport} className="text-xs font-medium text-gray-700 hover:bg-gray-50  py-2 cursor-pointer flex items-center gap-2">
+              <DropdownMenuItem onClick={handleExport} className="text-xs font-medium text-gray-700 hover:bg-gray-50 px-3 py-2 cursor-pointer flex items-center gap-2">
                 <FileSpreadsheet className="w-4 h-4 text-green-600" />
                 <span>Export CSV</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleExportPDF} className="text-xs font-medium text-gray-700 hover:bg-gray-50  py-2 cursor-pointer flex items-center gap-2">
+              <DropdownMenuItem onClick={handleExportPDF} className="text-xs font-medium text-gray-700 hover:bg-gray-50 px-3 py-2 cursor-pointer flex items-center gap-2">
                 <FileText className="w-4 h-4 text-red-500" />
                 <span>Print PDF</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button onClick={handleExportPDF} className="bg-orange-500 hover:bg-orange-600 text-white h-9 rounded-lg  shadow-sm text-xs font-semibold uppercase tracking-wider">
+          <Button onClick={handleExportPDF} className="bg-orange-500 hover:bg-orange-600 text-white h-9 rounded-lg px-4 shadow-sm text-xs font-semibold uppercase tracking-wider">
             Report
           </Button>
           
@@ -744,7 +744,7 @@ export default function AttendanceDashboard() {
       <Card className="border border-white/60 bg-white/40 backdrop-blur-2xl rounded-3xl shadow-xl shadow-purple-900/5 overflow-hidden ring-1 ring-black/5">
         <CardContent className="p-0">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4  md: pt-6 pb-5 border-b border-white/60 bg-white/30 backdrop-blur-md">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-6 md:px-8 pt-6 pb-5 border-b border-white/60 bg-white/30 backdrop-blur-md">
             <div className="flex items-center gap-4">
               <div className="p-2.5 bg-gradient-to-br from-[#800A7A] to-[#a855f7] rounded-xl shadow-md">
                 <Activity className="w-5 h-5 text-white" />
@@ -753,12 +753,12 @@ export default function AttendanceDashboard() {
                 <div className="flex items-center gap-2">
                   <h2 className="text-[15px] font-black text-gray-800 uppercase tracking-wide">Live Attendance Status</h2>
                   {liveConnected ? (
-                    <span className="flex items-center gap-1.5 bg-red-500 text-white border border-red-400 text-[10px] font-black .5 py-0.5 rounded-full uppercase tracking-widest shadow-sm shadow-red-500/20">
+                    <span className="flex items-center gap-1.5 bg-red-500 text-white border border-red-400 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm shadow-red-500/20">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                       LIVE
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 bg-gray-200 text-gray-600 border border-gray-300 text-[10px] font-bold  py-0.5 rounded-full uppercase tracking-widest">
+                    <span className="flex items-center gap-1 bg-gray-200 text-gray-600 border border-gray-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
                       <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
                       Connecting…
                     </span>
@@ -771,7 +771,7 @@ export default function AttendanceDashboard() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-500 font-semibold bg-white/50  py-1.5 rounded-lg border border-white/60 shadow-sm">
+            <div className="flex items-center gap-2 text-xs text-gray-500 font-semibold bg-white/50 px-3 py-1.5 rounded-lg border border-white/60 shadow-sm">
               <RefreshCw className="w-3.5 h-3.5 animate-[spin_4s_linear_infinite]" />
               Auto-refresh every 30s
             </div>
@@ -902,11 +902,11 @@ export default function AttendanceDashboard() {
 
           {/* Employee List */}
           <div className="border-t border-white/60 bg-white/50 backdrop-blur-md">
-            <div className=" py-4 flex items-center justify-between bg-slate-50/50">
+            <div className="px-6 py-4 flex items-center justify-between bg-slate-50/50">
               <div className="flex items-center gap-3">
                 <span className="text-xs font-black text-gray-700 uppercase tracking-widest">Employee Status</span>
                 {liveFilter !== 'all' && (
-                  <span className={`text-[10px] font-bold .5 py-1 rounded-full capitalize shadow-sm ${
+                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize shadow-sm ${
                     liveFilter === 'present' ? 'bg-green-100 text-green-700' :
                     liveFilter === 'late' ? 'bg-amber-100 text-amber-700' :
                     liveFilter === 'absent' ? 'bg-red-100 text-red-700' :
@@ -946,7 +946,7 @@ export default function AttendanceDashboard() {
                       }[emp.status] || { dot: 'bg-gray-400', badge: 'bg-gray-50 text-gray-600 border-gray-200', label: emp.status };
 
                       return (
-                        <div key={emp.user_id} className="flex items-center gap-4  py-4 hover:bg-white/80 transition-colors border-b border-gray-50 last:border-0 group">
+                        <div key={emp.user_id} className="flex items-center gap-4 px-6 py-4 hover:bg-white/80 transition-colors border-b border-gray-50 last:border-0 group">
                           <div className="relative flex-shrink-0">
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 shadow-sm text-gray-600 font-black flex items-center justify-center text-sm uppercase group-hover:scale-105 transition-transform">
                               {emp.full_name.charAt(0)}
@@ -968,7 +968,7 @@ export default function AttendanceDashboard() {
                                 <p className="text-[10px] font-medium text-gray-400">{emp.clock_out ? `Out: ${emp.clock_out}` : 'Still in'}</p>
                               </div>
                             )}
-                            <span className={`text-[10px] font-black .5 py-1 rounded-full border shadow-sm uppercase tracking-wider ${statusConfig.badge}`}>
+                            <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border shadow-sm uppercase tracking-wider ${statusConfig.badge}`}>
                               {statusConfig.label}
                             </span>
                           </div>
@@ -1084,17 +1084,17 @@ export default function AttendanceDashboard() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-gray-50/80 text-gray-500 uppercase text-[10px] font-bold tracking-wider border-b border-gray-100">
                   <tr>
-                    <th className=" py-4 w-4">
+                    <th className="px-6 py-4 w-4">
                       <input type="checkbox" className="rounded border-gray-300 text-[#7B0099] focus:ring-[#7B0099]" />
                     </th>
-                    <th className=" py-4">Employee</th>
-                    <th className=" py-4">Status</th>
-                    <th className=" py-4">Check In</th>
-                    <th className=" py-4">Check Out</th>
-                    <th className=" py-4">Break</th>
-                    <th className=" py-4">Late</th>
-                    <th className=" py-4">Production Hours</th>
-                    <th className=" py-4 w-10"></th>
+                    <th className="px-6 py-4">Employee</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4">Check In</th>
+                    <th className="px-6 py-4">Check Out</th>
+                    <th className="px-6 py-4">Break</th>
+                    <th className="px-6 py-4">Late</th>
+                    <th className="px-6 py-4">Production Hours</th>
+                    <th className="px-6 py-4 w-10"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -1119,10 +1119,10 @@ export default function AttendanceDashboard() {
 
                       return (
                         <tr key={record.user_id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className=" py-4">
+                          <td className="px-6 py-4">
                             <input type="checkbox" className="rounded border-gray-300 text-[#7B0099] focus:ring-[#7B0099]" />
                           </td>
-                          <td className=" py-4">
+                          <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-[#7B0099]/10 text-[#7B0099] font-bold flex items-center justify-center text-xs uppercase shadow-sm">
                                 {record.full_name.charAt(0)}
@@ -1133,22 +1133,22 @@ export default function AttendanceDashboard() {
                               </div>
                             </div>
                           </td>
-                          <td className=" py-4">
-                            <span className={`inline-flex items-center  py-0.5 rounded-full text-[10px] font-medium ${statusClass}`}>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${statusClass}`}>
                               <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${status === 'Present' ? 'bg-green-500' : status === 'Late' ? 'bg-amber-500' : 'bg-gray-400'}`} />
                               {status}
                             </span>
                           </td>
-                          <td className=" py-4 text-xs text-gray-600 font-medium">{formatAttendanceTime(record.clock_in)}</td>
-                          <td className=" py-4 text-xs text-gray-600 font-medium">{record.clock_out ? formatAttendanceTime(record.clock_out) : "--:--"}</td>
-                          <td className=" py-4 text-xs text-gray-500 font-medium">30 Min</td>
-                          <td className=" py-4 text-xs text-gray-500 font-medium">{isLate ? "32 Min" : "0 Min"}</td>
-                          <td className=" py-4">
-                            <span className={`inline-flex items-center  py-0.5 rounded-md text-[10px] font-bold ${isGoodHrs ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          <td className="px-6 py-4 text-xs text-gray-600 font-medium">{formatAttendanceTime(record.clock_in)}</td>
+                          <td className="px-6 py-4 text-xs text-gray-600 font-medium">{record.clock_out ? formatAttendanceTime(record.clock_out) : "--:--"}</td>
+                          <td className="px-6 py-4 text-xs text-gray-500 font-medium">30 Min</td>
+                          <td className="px-6 py-4 text-xs text-gray-500 font-medium">{isLate ? "32 Min" : "0 Min"}</td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${isGoodHrs ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                               {workHrsStr === '--' ? '0.00 Hrs' : workHrsStr.replace('h', '.').replace('m', '') + ' Hrs'}
                             </span>
                           </td>
-                          <td className=" py-4 text-right">
+                          <td className="px-6 py-4 text-right">
                             <button className="text-gray-400 hover:text-gray-600 p-1">
                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
@@ -1160,7 +1160,7 @@ export default function AttendanceDashboard() {
                     })
                   ) : (
                     <tr>
-                      <td colSpan={9} className=" py-20 text-center text-xs font-bold text-gray-400 uppercase tracking-wider italic">
+                      <td colSpan={9} className="px-6 py-20 text-center text-xs font-bold text-gray-400 uppercase tracking-wider italic">
                         No logs registered on this date
                       </td>
                     </tr>
@@ -1171,7 +1171,7 @@ export default function AttendanceDashboard() {
           )}
           
           {filteredDailyAttendance.length > parseInt(limit) && !loadingDaily && (
-            <div className="flex justify-between items-center  py-4 border-t border-gray-100 bg-gray-50/50">
+            <div className="flex justify-between items-center px-6 py-4 border-t border-gray-100 bg-gray-50/50">
               <span className="text-xs text-gray-500">
                 Showing {((currentPage - 1) * parseInt(limit)) + 1} to {Math.min(currentPage * parseInt(limit), filteredDailyAttendance.length)} of {filteredDailyAttendance.length} entries
               </span>

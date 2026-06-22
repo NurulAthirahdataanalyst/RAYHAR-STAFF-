@@ -380,7 +380,7 @@ export default function Dashboard() {
       {/* Who's Out Today - admin roles only */}
       {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role) && (
         <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] rounded-[20px] overflow-hidden bg-card">
-          <CardHeader className="border-b border-border/50 pb-3  ">
+          <CardHeader className="border-b border-border/50 pb-3 px-3 sm:px-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-rose-500/10 rounded-xl">
@@ -399,7 +399,7 @@ export default function Dashboard() {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate("/leave/admin")}
-                className="text-[10px] sm:text-xs font-black text-[#7B0099] hover:text-[#7B0099] hover:bg-[#7B0099]/5 gap-1.5 uppercase tracking-widest self-start sm:self-auto "
+                className="text-[10px] sm:text-xs font-black text-[#7B0099] hover:text-[#7B0099] hover:bg-[#7B0099]/5 gap-1.5 uppercase tracking-widest self-start sm:self-auto px-3"
               >
                 View All History
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -455,7 +455,7 @@ export default function Dashboard() {
                       </div>
                       {/* Bottom: Badge + Branch */}
                       <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border/40">
-                        <Badge className={`${typeInfo.color} text-white text-[10px] font-black .5 py-0.5 h-auto border-none rounded-full`}>
+                        <Badge className={`${typeInfo.color} text-white text-[10px] font-black px-2.5 py-0.5 h-auto border-none rounded-full`}>
                           {typeInfo.short}
                         </Badge>
                         <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
@@ -467,7 +467,7 @@ export default function Dashboard() {
                 })}
               </div>
             ) : (
-              <div className="py-3 text-center flex items-center justify-center gap-3 bg-emerald-500/5 rounded-xl border border-emerald-500/10 w-full  my-2">
+              <div className="py-3 text-center flex items-center justify-center gap-3 bg-emerald-500/5 rounded-xl border border-emerald-500/10 max-w-md mx-auto my-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                 <span className="text-xs font-bold text-foreground">All Hands on Deck! No employees are on leave today.</span>
               </div>
@@ -478,7 +478,7 @@ export default function Dashboard() {
 
       {/* Recent Activity - responsive */}
       <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] rounded-[20px] overflow-hidden bg-card">
-        <CardHeader className="border-b border-border/50 pb-3  ">
+        <CardHeader className="border-b border-border/50 pb-3 px-3 sm:px-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <CardTitle className="text-base sm:text-lg font-black text-foreground uppercase tracking-wider">
               Recent Activity
@@ -498,13 +498,13 @@ export default function Dashboard() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-3 ">
+        <CardContent className="pt-3 px-3">
           <div className="space-y-1">
             {activities && activities.length > 0 ? (
               activities.map((item, i) => (
                 <div
                   key={i}
-                  className="group flex items-center gap-3 py-2 .5 rounded-2xl hover:bg-accent/50 transition-colors duration-200"
+                  className="group flex items-center gap-3 py-2 px-2.5 rounded-2xl hover:bg-accent/50 transition-colors duration-200"
                 >
                   <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shrink-0 ${
                     item.action === 'Reminder' ? 'bg-yellow-500/10 text-yellow-600 group-hover:bg-card group-hover:shadow-sm' :
