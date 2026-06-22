@@ -77,7 +77,7 @@ export default function ResetPassword() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      <div className="w-full max-w-sm sm:max-w-md animate-in fade-in zoom-in duration-500">
+      <div className="w-full w-full sm:w-full animate-in fade-in zoom-in duration-500">
         <div className="flex flex-col items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
           <img src={rayharLogo} alt="Rayhar Logo" className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl shadow-xl" />
           <div className="text-center">

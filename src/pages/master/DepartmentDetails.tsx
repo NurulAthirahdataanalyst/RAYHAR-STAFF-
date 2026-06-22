@@ -173,7 +173,7 @@ export default function DepartmentDetails() {
                   {currentHod ? "Transfer Role" : "Assign HOD"}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px] rounded-[25px] p-6 border-border/50">
+              <DialogContent className="sm:w-full rounded-[25px] p-6 border-border/50">
                 <DialogHeader>
                   <DialogTitle className="text-xl font-black flex items-center gap-2">
                     <ShieldAlert className="w-5 h-5 text-amber-500" />
@@ -228,16 +228,16 @@ export default function DepartmentDetails() {
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-foreground uppercase bg-muted/30 font-black tracking-wider">
                 <tr>
-                  <th className="px-6 py-4">Employee</th>
-                  <th className="px-6 py-4">Role</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Attendance Rate</th>
+                  <th className=" py-4">Employee</th>
+                  <th className=" py-4">Role</th>
+                  <th className=" py-4">Status</th>
+                  <th className=" py-4">Attendance Rate</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
                 {employees.map((emp) => (
                   <tr key={emp.user_id} className="hover:bg-muted/10 transition-colors">
-                    <td className="px-6 py-4">
+                    <td className=" py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xs">
                           {emp.full_name.charAt(0)}
@@ -248,8 +248,8 @@ export default function DepartmentDetails() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                    <td className=" py-4">
+                      <span className={`inline-flex items-center .5 py-0.5 rounded-full text-xs font-bold ${
                         emp.role === 'head_of_department' 
                           ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
                           : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
@@ -257,15 +257,15 @@ export default function DepartmentDetails() {
                         {emp.role.replace(/_/g, ' ')}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className=" py-4">
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${emp.status === 'Active' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                         <span className="font-medium">{emp.status}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className=" py-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-full bg-muted rounded-full h-2 max-w-[100px]">
+                        <div className="w-full bg-muted rounded-full h-2 w-full">
                           <div 
                             className="bg-primary h-2 rounded-full" 
                             style={{ width: `${emp.attendance_rate || 0}%` }}
@@ -278,7 +278,7 @@ export default function DepartmentDetails() {
                 ))}
                 {employees.length === 0 && !loading && (
                   <tr>
-                    <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
+                    <td colSpan={4} className=" py-8 text-center text-muted-foreground">
                       No staff members found in this department.
                     </td>
                   </tr>

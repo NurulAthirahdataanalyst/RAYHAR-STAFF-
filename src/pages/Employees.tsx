@@ -312,7 +312,7 @@ export default function Employees() {
 
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-card/50 backdrop-blur-sm p-3 rounded-2xl border border-border/50">
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full sm:w-auto flex-1">
-          <div className="relative w-full sm:max-w-xs">
+          <div className="relative w-full sm:w-full
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search employees..."
@@ -364,8 +364,8 @@ export default function Employees() {
           </Select>
         </div>
         
-        <Badge variant="outline" className="px-3 py-1.5 text-xs font-bold whitespace-nowrap bg-muted/30 border-border/60 h-10 sm:h-auto flex items-center justify-center rounded-full">
-          Total <span className="ml-2 flex items-center justify-center bg-[#7B0099] text-white rounded-full h-5 min-w-[20px] px-1.5 text-[10px] leading-none shrink-0">{filtered.length}</span>
+        <Badge variant="outline" className=" py-1.5 text-xs font-bold whitespace-nowrap bg-muted/30 border-border/60 h-10 sm:h-auto flex items-center justify-center rounded-full">
+          Total <span className="ml-2 flex items-center justify-center bg-[#7B0099] text-white rounded-full h-5 min-w-[20px] .5 text-[10px] leading-none shrink-0">{filtered.length}</span>
         </Badge>
       </div>
 
@@ -383,10 +383,10 @@ export default function Employees() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-muted/30 text-foreground border-b border-border">
-                      <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Staff Member</th>
-                      <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Position</th>
-                      <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Branch</th>
-                      <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Status</th>
+                      <th className="text-left py-4  text-[10px] font-black uppercase tracking-[0.2em]">Staff Member</th>
+                      <th className="text-left py-4  text-[10px] font-black uppercase tracking-[0.2em]">Position</th>
+                      <th className="text-left py-4  text-[10px] font-black uppercase tracking-[0.2em]">Branch</th>
+                      <th className="text-left py-4  text-[10px] font-black uppercase tracking-[0.2em]">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/50">
@@ -397,7 +397,7 @@ export default function Employees() {
                           className="hover:bg-[#7B0099]/5 transition-colors cursor-pointer group"
                           onClick={() => handleEmployeeClick(emp)}
                         >
-                          <td className="py-4 px-6">
+                          <td className="py-4 ">
                             <div className="flex items-center gap-4">
                               <div className="w-10 h-10 rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-xs font-black text-[#7B0099] group-hover:scale-110 transition-transform">
                                 {emp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
@@ -408,13 +408,13 @@ export default function Employees() {
                               </div>
                             </div>
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 ">
                             <span className="text-xs font-bold text-muted-foreground capitalize">{emp.position.replace('_', ' ')}</span>
                           </td>
-                          <td className="py-4 px-6 text-xs font-bold text-muted-foreground">{emp.branch}</td>
-                           <td className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
+                          <td className="py-4  text-xs font-bold text-muted-foreground">{emp.branch}</td>
+                           <td className="py-4 " onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-2">
-                              <Badge variant={emp.status === "Active" ? "default" : "secondary"} className={`text-[10px] font-black px-3 ${emp.status === 'Active' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}>
+                              <Badge variant={emp.status === "Active" ? "default" : "secondary"} className={`text-[10px] font-black  ${emp.status === 'Active' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}>
                                 {emp.status}
                               </Badge>
                               {role === "hr_admin" && (
@@ -422,7 +422,7 @@ export default function Employees() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={(e) => handleToggleStatus(e, emp)}
-                                  className={`h-7 px-2.5 rounded-lg text-[9px] font-black uppercase tracking-wider ${
+                                  className={`h-7 .5 rounded-lg text-[9px] font-black uppercase tracking-wider ${
                                     emp.status === "Active"
                                       ? "hover:bg-red-500/10 hover:text-red-500 text-red-400"
                                       : "hover:bg-emerald-500/10 hover:text-emerald-500 text-emerald-400"
@@ -468,7 +468,7 @@ export default function Employees() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={(e) => handleToggleStatus(e, emp)}
-                                className={`h-6 px-2 rounded-md text-[8px] font-black uppercase tracking-wider ${
+                                className={`h-6  rounded-md text-[8px] font-black uppercase tracking-wider ${
                                   emp.status === "Active"
                                     ? "hover:bg-red-500/10 hover:text-red-500 text-red-500"
                                     : "hover:bg-emerald-500/10 hover:text-emerald-500 text-emerald-500"
@@ -480,7 +480,7 @@ export default function Employees() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                          <span className="truncate max-w-[100px]">{emp.position.replace('_', ' ')}</span>
+                          <span className="truncate w-full">{emp.position.replace('_', ' ')}</span>
                           <span className="opacity-30">•</span>
                           <span>{emp.branch}</span>
                         </div>
@@ -524,11 +524,11 @@ export default function Employees() {
                       size="sm" 
                       onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
-                      className="h-8 px-3 text-xs font-bold"
+                      className="h-8  text-xs font-bold"
                     >
                       «
                     </Button>
-                    <div className="flex items-center gap-1 overflow-x-auto max-w-[200px] sm:max-w-none">
+                    <div className="flex items-center gap-1 overflow-x-auto w-full sm:w-full
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
                         <Button
                           key={pageNum}
@@ -546,7 +546,7 @@ export default function Employees() {
                       size="sm" 
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages}
-                      className="h-8 px-3 text-xs font-bold"
+                      className="h-8  text-xs font-bold"
                     >
                       »
                     </Button>
@@ -560,7 +560,7 @@ export default function Employees() {
 
       {/* Employee Details Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl w-full overflow-y-auto max-h-[90vh]">
+        <DialogContent className="w-full w-full overflow-y-auto max-h-[90vh]">
           <DialogHeader className="pb-4 border-b">
             <DialogTitle className="text-xl font-black text-slate-800">Staff Profile</DialogTitle>
           </DialogHeader>
@@ -576,7 +576,7 @@ export default function Employees() {
                     </div>
                     <h2 className="text-xl font-black text-slate-800 leading-tight">{selectedEmployee.name}</h2>
                     <p className="text-sm font-bold text-[#7B0099] mt-1">{selectedEmployee.email}</p>
-                    <Badge variant="secondary" className="mt-4 text-[10px] uppercase font-black px-3 py-1">{selectedEmployee.position}</Badge>
+                    <Badge variant="secondary" className="mt-4 text-[10px] uppercase font-black  py-1">{selectedEmployee.position}</Badge>
                     
                     <div className="mt-6 pt-6 border-t border-slate-200 w-full space-y-3">
                       <div className="flex justify-between items-center text-xs">
@@ -600,7 +600,7 @@ export default function Employees() {
 
                   {/* Right Column: Stats */}
                   <div className="space-y-4">
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Performance & Leave</p>
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest ">Performance & Leave</p>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="rounded-2xl border border-slate-100 p-4 bg-white hover:border-[#7B0099]/30 transition-colors">
                         <CalendarCheck className="mb-2 h-4 w-4 text-[#7B0099]" />
@@ -625,17 +625,17 @@ export default function Employees() {
                     </div>
 
                     <div className="space-y-2 mt-4">
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Quick Links</p>
+                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest ">Quick Links</p>
                       <div className="grid grid-cols-1 gap-2">
                         <button 
-                          className="flex items-center justify-between w-full rounded-xl bg-emerald-50 px-4 py-3 hover:bg-emerald-100 transition-all border border-emerald-100" 
+                          className="flex items-center justify-between w-full rounded-xl bg-emerald-50  py-3 hover:bg-emerald-100 transition-all border border-emerald-100" 
                           onClick={() => setViewLeaveStatus("Approved")}
                         >
                           <span className="text-xs font-bold text-emerald-700">Approved Leaves</span>
                           <Badge className="bg-emerald-500 text-white font-black h-5 text-[10px]">{selectedEmployee.approved_leaves}</Badge>
                         </button>
                         <button 
-                          className="flex items-center justify-between w-full rounded-xl bg-amber-50 px-4 py-3 hover:bg-amber-100 transition-all border border-amber-100" 
+                          className="flex items-center justify-between w-full rounded-xl bg-amber-50  py-3 hover:bg-amber-100 transition-all border border-amber-100" 
                           onClick={() => setViewLeaveStatus("Pending")}
                         >
                           <span className="text-xs font-bold text-amber-700">Pending Approvals</span>
@@ -658,7 +658,7 @@ export default function Employees() {
 
       {/* LEAVE FORMS DIALOG */}
       <Dialog open={!!viewLeaveStatus} onOpenChange={(open) => !open && setViewLeaveStatus(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="w-full max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
@@ -758,17 +758,17 @@ export default function Employees() {
                                 <table className="w-full text-left text-xs">
                                   <thead>
                                     <tr className="bg-blue-100/50 text-blue-700 font-bold uppercase border-b border-blue-100">
-                                      <th className="py-2.5 px-4 text-[10px]">Tarikh Cuti</th>
-                                      <th className="py-2.5 px-4 text-[10px]">Tarikh/Hari Cuti Ganti</th>
-                                      <th className="py-2.5 px-4 text-right text-[10px]">Jam Bekerja</th>
+                                      <th className="py-2.5  text-[10px]">Tarikh Cuti</th>
+                                      <th className="py-2.5  text-[10px]">Tarikh/Hari Cuti Ganti</th>
+                                      <th className="py-2.5  text-right text-[10px]">Jam Bekerja</th>
                                     </tr>
                                   </thead>
                                   <tbody className="divide-y divide-blue-100 font-medium text-slate-800">
                                     {rows.map((row, idx) => (
                                       <tr key={idx}>
-                                        <td className="py-2 px-4">{row.tarikh || "-"}</td>
-                                        <td className="py-2 px-4">{row.hari || "-"}</td>
-                                        <td className="py-2 px-4 text-right">{row.jam || 0} Jam</td>
+                                        <td className="py-2 ">{row.tarikh || "-"}</td>
+                                        <td className="py-2 ">{row.hari || "-"}</td>
+                                        <td className="py-2  text-right">{row.jam || 0} Jam</td>
                                       </tr>
                                     ))}
                                   </tbody>
@@ -850,7 +850,7 @@ export default function Employees() {
 
       {/* Add User Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:w-full">
           <DialogHeader>
             <DialogTitle>Add New Staff</DialogTitle>
             <DialogDescription>

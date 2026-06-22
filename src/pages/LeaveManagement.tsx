@@ -277,14 +277,14 @@ export default function LeaveManagement() {
   const steps = ["PROFIL KAKITANGAN", "MAKLUMAT CUTI", "MAKLUMAT WARIS"];
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6 pb-20 animate-in fade-in duration-500">
+    <div className="w-full  space-y-4 sm:space-y-6 pb-20 animate-in fade-in duration-500">
       {/* Header Rayhar Style */}
       <header className="text-center space-y-2 mb-6 sm:mb-10 pt-4 sm:pt-6">
         <h1 className="text-4xl sm:text-5xl font-black text-[#7B0099] tracking-tighter italic decoration-4 decoration-primary/20">
           RAYHAR GROUP
         </h1>
-        <div className="h-1 sm:h-1.5 w-16 sm:w-24 bg-[#7c1b8a] mx-auto rounded-full mb-3 sm:mb-4"></div>
-        <h2 className="text-lg sm:text-2xl font-black text-[#7B0099] tracking-wide uppercase px-4">
+        <div className="h-1 sm:h-1.5 w-16 sm:w-24 bg-[#7c1b8a]  rounded-full mb-3 sm:mb-4"></div>
+        <h2 className="text-lg sm:text-2xl font-black text-[#7B0099] tracking-wide uppercase ">
           Portal Permohonan Cuti
         </h2>
       </header>
@@ -293,7 +293,7 @@ export default function LeaveManagement() {
       {currentStep === 0 && (
         <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
           <CardContent className="p-5 sm:p-8 text-center space-y-4 sm:space-y-5">
-            <div className="bg-[#7B0099]/10 w-20 h-20 sm:w-24 sm:h-24 rounded-[32px] flex items-center justify-center mx-auto rotate-12 transition-transform hover:rotate-0 duration-300">
+            <div className="bg-[#7B0099]/10 w-20 h-20 sm:w-24 sm:h-24 rounded-[32px] flex items-center justify-center  rotate-12 transition-transform hover:rotate-0 duration-300">
               <PlaneTakeoff className="w-10 h-10 sm:w-12 sm:h-12 text-[#7B0099]" />
             </div>
             <div className="space-y-2">
@@ -301,7 +301,7 @@ export default function LeaveManagement() {
               <p className="text-xs sm:text-sm font-medium text-muted-foreground italic">Pastikan anda mematuhi polisi syarikat sebelum memohon.</p>
             </div>
 
-            <div className="text-left bg-muted/30 p-4 sm:p-5 rounded-[24px] border border-border/50 max-w-sm mx-auto">
+            <div className="text-left bg-muted/30 p-4 sm:p-5 rounded-[24px] border border-border/50 w-full ">
               <ul className="space-y-4 text-[11px] sm:text-xs font-bold text-foreground/70 uppercase tracking-widest">
                 <li className="flex items-start gap-3">
                   <span className="bg-[#7B0099] text-white text-[9px] rounded-full w-5 h-5 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">1</span>
@@ -320,7 +320,7 @@ export default function LeaveManagement() {
 
             <Button
               onClick={() => setCurrentStep(1)}
-              className="w-full sm:w-auto px-12 py-7 bg-[#7B0099] text-white text-xs sm:text-sm font-black uppercase tracking-[0.2em] rounded-[20px] shadow-xl shadow-[#7B0099]/20 hover:bg-[#5e0080] hover:scale-[1.02] active:scale-95 transition-all"
+              className="w-full sm:w-auto  py-7 bg-[#7B0099] text-white text-xs sm:text-sm font-black uppercase tracking-[0.2em] rounded-[20px] shadow-xl shadow-[#7B0099]/20 hover:bg-[#5e0080] hover:scale-[1.02] active:scale-95 transition-all"
             >
               Mula Permohonan <Plus className="ml-2 w-5 h-5" />
             </Button>
@@ -332,7 +332,7 @@ export default function LeaveManagement() {
       {currentStep > 0 && (
         <div className="space-y-4 sm:space-y-6">
           {/* Step Progress Bar */}
-          <div className="flex justify-between items-center px-2 sm:px-4 mb-4">
+          <div className="flex justify-between items-center   mb-4">
             {steps.map((label, idx) => (
               <div key={idx} className="flex flex-col items-center flex-1">
                 <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-black transition-all duration-500 ${currentStep >= idx + 1 ? 'bg-[#7B0099] text-white scale-110 shadow-lg shadow-[#7B0099]/30' : 'bg-muted text-muted-foreground'}`}>
@@ -360,7 +360,7 @@ export default function LeaveManagement() {
               {currentStep === 1 && (
                 <div className="space-y-5 animate-in slide-in-from-right duration-500">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Nama Penuh *</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ">Nama Penuh *</Label>
                     <Input
                       placeholder="NAMA SEPERTI DALAM IC"
                       className="h-12 sm:h-14 border-border/50 bg-muted/30 focus:border-[#7B0099] focus:ring-[#7B0099] rounded-2xl font-bold transition-all"
@@ -370,7 +370,7 @@ export default function LeaveManagement() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">No Kad Pengenalan *</Label>
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ">No Kad Pengenalan *</Label>
                       <Input
                         placeholder="CONTOH: 900101115566"
                         value={formData.noKadPengenalan}
@@ -379,7 +379,7 @@ export default function LeaveManagement() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Tarikh Permohonan</Label>
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ">Tarikh Permohonan</Label>
                       <Input
                         type="date"
                         value={formData.tarikhPermohonan}
@@ -389,7 +389,7 @@ export default function LeaveManagement() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Cawangan *</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ">Cawangan *</Label>
                     <Select value={formData.cawangan} onValueChange={(val) => setFormData({ ...formData, cawangan: val })}>
                       <SelectTrigger className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold">
                         <SelectValue placeholder="-- Pilih Cawangan --" />
@@ -429,7 +429,7 @@ export default function LeaveManagement() {
                 <div className="space-y-4 animate-in slide-in-from-right duration-500">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Tarikh Mula *</Label>
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ">Tarikh Mula *</Label>
                       <Input 
                         type="date" 
                         value={formData.tarikhMula} 
@@ -439,7 +439,7 @@ export default function LeaveManagement() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Tarikh Akhir *</Label>
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ">Tarikh Akhir *</Label>
                       <Input 
                         type="date" 
                         value={formData.tarikhAkhir} 
@@ -456,7 +456,7 @@ export default function LeaveManagement() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Jenis Cuti *</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ">Jenis Cuti *</Label>
                     <Select
                       onValueChange={(val) => {
                         const jenisCuti = val as LeaveType;
@@ -513,7 +513,7 @@ export default function LeaveManagement() {
                       <Input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        className="h-14 bg-card border-dashed border-2 border-[#7B0099]/30 rounded-2xl file:mr-4 file:rounded-xl file:border-0 file:bg-[#7B0099] file:px-4 file:py-2 file:text-[10px] file:font-black file:uppercase file:text-white cursor-pointer"
+                        className="h-14 bg-card border-dashed border-2 border-[#7B0099]/30 rounded-2xl file:mr-4 file:rounded-xl file:border-0 file:bg-[#7B0099] file: file:py-2 file:text-[10px] file:font-black file:uppercase file:text-white cursor-pointer"
                         onChange={(event) =>
                           setFormData({
                             ...formData,
@@ -521,7 +521,7 @@ export default function LeaveManagement() {
                           })
                         }
                       />
-                      <p className="text-[10px] font-bold text-muted-foreground italic px-1">
+                      <p className="text-[10px] font-bold text-muted-foreground italic ">
                         Format diterima: PDF, JPG, PNG sahaja.
                       </p>
                     </div>
@@ -535,7 +535,7 @@ export default function LeaveManagement() {
                           type="button"
                           size="sm"
                           onClick={addCutiGantiRow}
-                          className="h-8 rounded-xl bg-[#7B0099] hover:bg-[#5e0080] text-white gap-1 text-[10px] font-black uppercase tracking-widest px-3 shadow-md shadow-[#7B0099]/20 transition-all active:scale-95"
+                          className="h-8 rounded-xl bg-[#7B0099] hover:bg-[#5e0080] text-white gap-1 text-[10px] font-black uppercase tracking-widest  shadow-md shadow-[#7B0099]/20 transition-all active:scale-95"
                         >
                           <Plus className="w-3.5 h-3.5" /> Tambah Baris
                         </Button>
@@ -601,7 +601,7 @@ export default function LeaveManagement() {
                   )}
 
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Sebab / Tujuan *</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ">Sebab / Tujuan *</Label>
                     <Textarea
                       placeholder="CONTOH: URUSAN KELUARGA / KECEMASAN..."
                       className="min-h-[120px] border-border/50 bg-muted/30 rounded-[20px] p-4 text-sm font-bold transition-all"
@@ -616,7 +616,7 @@ export default function LeaveManagement() {
               {currentStep === 3 && (
                 <div className="space-y-5 animate-in slide-in-from-right duration-500">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Nama Waris / Kecemasan *</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ">Nama Waris / Kecemasan *</Label>
                     <Input
                       value={formData.warisNama}
                       className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
@@ -625,7 +625,7 @@ export default function LeaveManagement() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">No Telefon Waris *</Label>
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ">No Telefon Waris *</Label>
                       <Input
                         value={formData.warisPhone}
                         className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
@@ -633,7 +633,7 @@ export default function LeaveManagement() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Hubungan *</Label>
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ">Hubungan *</Label>
                       <Input
                         placeholder="CONTOH: ISTERI / AYAH"
                         value={formData.warisHubungan}
@@ -643,7 +643,7 @@ export default function LeaveManagement() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Alamat Waris *</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ">Alamat Waris *</Label>
                     <Textarea
                       value={formData.warisAlamat}
                       className="min-h-[100px] border-border/50 bg-muted/30 rounded-2xl p-4 font-bold"

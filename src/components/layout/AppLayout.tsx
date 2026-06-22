@@ -302,7 +302,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex flex-col lg:flex-row gap-2.5 items-start relative w-full">
             
             {/* Ruang Kerja Utama (70% - 90%) */}
-            <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3 transition-all duration-500 ease-in-out w-full">
+            <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3 transition-all duration-500 ease-in-out w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
               <PageHeader />
               {children}
             </div>

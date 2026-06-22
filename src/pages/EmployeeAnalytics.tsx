@@ -401,7 +401,7 @@ export default function EmployeeAnalytics() {
         </div>
 
         {/* Month/Year Filter */}
-        <div className="flex items-center gap-2 self-start sm:self-auto bg-card/80 backdrop-blur-md shadow-sm border border-border/50 rounded-2xl px-3 py-2">
+        <div className="flex items-center gap-2 self-start sm:self-auto bg-card/80 backdrop-blur-md shadow-sm border border-border/50 rounded-2xl  py-2">
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
             <SelectTrigger className="w-[120px] h-8 text-[10px] font-black uppercase tracking-widest rounded-xl border-none bg-transparent">
               <SelectValue />
@@ -482,7 +482,7 @@ export default function EmployeeAnalytics() {
                           key={m.userId}
                           type="button"
                           onClick={() => setSelectedEmpId(isSelected ? null : m.userId)}
-                          className={`w-full text-left px-4 sm:px-6 py-4 transition-all duration-200 hover:bg-[#7B0099]/5 ${
+                          className={`w-full text-left   py-4 transition-all duration-200 hover:bg-[#7B0099]/5 ${
                             isSelected ? "bg-[#7B0099]/8 border-l-2 border-[#7B0099]" : ""
                           }`}
                         >
@@ -519,7 +519,7 @@ export default function EmployeeAnalytics() {
                               </div>
                             </div>
 
-                            <Badge className={`text-[8px] font-black px-2 py-0.5 ${cfg.color} border-none flex items-center gap-1`}>
+                            <Badge className={`text-[8px] font-black  py-0.5 ${cfg.color} border-none flex items-center gap-1`}>
                               <BadgeIcon className="w-2.5 h-2.5" />{cfg.label}
                             </Badge>
                             <ChevronRight className={`w-4 h-4 text-muted-foreground/40 transition-transform ${isSelected ? "rotate-90 text-[#7B0099]" : ""}`} />
@@ -582,11 +582,11 @@ export default function EmployeeAnalytics() {
                           size="sm" 
                           onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                           disabled={currentPage === 1}
-                          className="h-8 px-3 text-xs font-bold border-border bg-white dark:bg-card"
+                          className="h-8  text-xs font-bold border-border bg-white dark:bg-card"
                         >
                           «
                         </Button>
-                        <div className="flex items-center gap-1 overflow-x-auto max-w-[200px] sm:max-w-none">
+                        <div className="flex items-center gap-1 overflow-x-auto w-full sm:w-full
                           {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
                             <Button
                               key={pageNum}
@@ -608,7 +608,7 @@ export default function EmployeeAnalytics() {
                           size="sm" 
                           onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                           disabled={currentPage === totalPages}
-                          className="h-8 px-3 text-xs font-bold border-border bg-white dark:bg-card"
+                          className="h-8  text-xs font-bold border-border bg-white dark:bg-card"
                         >
                           »
                         </Button>
@@ -738,11 +738,11 @@ export default function EmployeeAnalytics() {
                     { label: "At Risk",    value: teamMetrics.filter(m => m.badge === "AT RISK").length,   color: "bg-rose-500 text-white"    },
                   ].map(s => (
                     <div key={s.label} className="flex items-center gap-2">
-                      <Badge className={`${s.color} font-black text-[10px] px-3 py-1 rounded-full`}>{s.value}</Badge>
+                      <Badge className={`${s.color} font-black text-[10px]  py-1 rounded-full`}>{s.value}</Badge>
                       <span className="text-[10px] font-black text-muted-foreground uppercase">{s.label}</span>
                     </div>
                   ))}
-                  <div className="ml-auto flex items-center gap-1.5 text-[9px] font-black text-[#7B0099] uppercase tracking-wider bg-[#7B0099]/10 px-3 py-1.5 rounded-xl font-bold">
+                  <div className="ml-auto flex items-center gap-1.5 text-[9px] font-black text-[#7B0099] uppercase tracking-wider bg-[#7B0099]/10  py-1.5 rounded-xl font-bold">
                     <ArrowUpRight className="w-3.5 h-3.5 text-[#7B0099]" />
                     Team Average OT: {(teamMetrics.reduce((s, m) => s + m.overtimeHours, 0) / teamMetrics.length).toFixed(1)}h
                   </div>

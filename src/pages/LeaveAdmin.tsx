@@ -295,7 +295,7 @@ export default function LeaveAdmin() {
       </div>
 
       <Card className="border-none shadow-[0_18px_42px_rgba(0,0,0,0.04)] dark:shadow-[0_18px_42px_rgba(0,0,0,0.18)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[28px] overflow-hidden">
-        <CardHeader className="border-b border-border/50 pb-0 px-4 sm:px-5">
+        <CardHeader className="border-b border-border/50 pb-0  ">
           <div className="flex items-center justify-between mb-3">
             <div className="space-y-1">
               <CardTitle className="text-base sm:text-lg font-black text-foreground">Leave Applications</CardTitle>
@@ -314,7 +314,7 @@ export default function LeaveAdmin() {
                   ))}
                 </SelectContent>
               </Select>
-              <Badge variant="outline" className="font-black text-[10px] px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none hidden sm:inline-flex">
+              <Badge variant="outline" className="font-black text-[10px]  py-1 bg-[#7B0099]/10 text-[#7B0099] border-none hidden sm:inline-flex">
                 {filteredRequests.length} {activeTab === "pending" ? "PENDING" : activeTab === "approved" ? "APPROVED" : activeTab === "rejected" ? "REJECTED" : "TOTAL"}
               </Badge>
             </div>
@@ -331,14 +331,14 @@ export default function LeaveAdmin() {
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
-                className={`relative px-4 sm:px-5 py-3 text-[11px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeTab === tab.key
+                className={`relative   py-3 text-[11px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeTab === tab.key
                     ? "text-[#7B0099]"
                     : "text-muted-foreground hover:text-foreground"
                   }`}
               >
                 {tab.label}
                 {tab.count > 0 && (
-                  <span className={`ml-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-full transition-colors duration-300 ${activeTab === tab.key
+                  <span className={`ml-1.5 text-[9px] font-black .5 py-0.5 rounded-full transition-colors duration-300 ${activeTab === tab.key
                       ? "bg-[#7B0099] text-white"
                       : "bg-muted text-muted-foreground"
                     }`}>
@@ -366,19 +366,19 @@ export default function LeaveAdmin() {
                 <table className="w-full text-sm text-left">
                   <thead className="bg-muted/30 text-foreground uppercase text-[10px] font-black tracking-widest">
                     <tr>
-                      <th className="px-5 py-3.5">Employee</th>
-                      <th className="px-5 py-3.5">Leave Type</th>
-                      <th className="px-5 py-3.5">Duration</th>
-                      <th className="px-5 py-3.5">Reason</th>
-                      <th className="px-5 py-3.5">Status</th>
-                      {canApprove && <th className="px-5 py-3.5 text-right">Actions</th>}
+                      <th className=" py-3.5">Employee</th>
+                      <th className=" py-3.5">Leave Type</th>
+                      <th className=" py-3.5">Duration</th>
+                      <th className=" py-3.5">Reason</th>
+                      <th className=" py-3.5">Status</th>
+                      {canApprove && <th className=" py-3.5 text-right">Actions</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/50">
                     {filteredRequests.length > 0 ? (
                       filteredRequests.map((req) => (
                         <tr key={req.id} className="hover:bg-[#7B0099]/5 transition-colors group">
-                          <td className="px-6 py-4">
+                          <td className=" py-4">
                             <button
                               type="button"
                               onClick={() => setSelectedRequest(req)}
@@ -390,21 +390,21 @@ export default function LeaveAdmin() {
                               <MapPin className="w-3 h-3 opacity-50" /> {req.branch}
                             </div>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className=" py-4">
                             <span className="text-xs font-black text-[#7B0099]/80 dark:text-purple-400/80">{req.type}</span>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className=" py-4">
                             <div className="text-[11px] font-bold text-muted-foreground">
                               {req.from} → {req.to}
                               <div className="text-[#7B0099] font-black mt-0.5">{req.days} DAYS</div>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
-                            <p className="text-[11px] text-muted-foreground italic line-clamp-2 max-w-[200px]">"{getCleanReason(req.reason)}"</p>
+                          <td className=" py-4">
+                            <p className="text-[11px] text-muted-foreground italic line-clamp-2 w-full">"{getCleanReason(req.reason)}"</p>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className=" py-4">
                             <Badge
-                              className={`text-[11px] font-black px-3 py-1 h-auto whitespace-nowrap ${req.status === "Approved" ? "bg-emerald-500 text-white" :
+                              className={`text-[11px] font-black  py-1 h-auto whitespace-nowrap ${req.status === "Approved" ? "bg-emerald-500 text-white" :
                                   req.status === "Rejected" ? "bg-rose-600 text-white" :
                                     req.status === "Pending Finance" ? "bg-orange-500 text-white" :
                                       req.status === "Pending MD" ? "bg-blue-600 text-white" :
@@ -416,7 +416,7 @@ export default function LeaveAdmin() {
                             </Badge>
                           </td>
                           {canApprove && (
-                            <td className="px-6 py-4 text-right">
+                            <td className=" py-4 text-right">
                               {((req.status.startsWith("Pending HOD") && role === "head_of_department") ||
                                 (req.status === "Pending Branch Leader" && role === "branch_leader") ||
                                 (req.status === "Pending Finance" && role === "finance_manager") ||
@@ -448,7 +448,7 @@ export default function LeaveAdmin() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={canApprove ? 6 : 5} className="px-6 py-12 text-center text-xs font-black text-muted-foreground uppercase tracking-widest italic opacity-30">
+                        <td colSpan={canApprove ? 6 : 5} className=" py-12 text-center text-xs font-black text-muted-foreground uppercase tracking-widest italic opacity-30">
                           No {activeTab === "pending" ? "pending" : activeTab === "approved" ? "approved" : activeTab === "rejected" ? "rejected" : ""} applications found
                         </td>
                       </tr>
@@ -467,7 +467,7 @@ export default function LeaveAdmin() {
                           <p className="font-black text-sm text-foreground break-words">{req.employee}</p>
                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">{req.branch}</p>
                         </div>
-                        <Badge className={`text-[10px] font-black h-auto py-1 px-2.5 shrink-0 whitespace-nowrap ${req.status === "Approved" ? "bg-emerald-500 text-white" :
+                        <Badge className={`text-[10px] font-black h-auto py-1 .5 shrink-0 whitespace-nowrap ${req.status === "Approved" ? "bg-emerald-500 text-white" :
                             req.status === "Rejected" ? "bg-rose-600 text-white" :
                               req.status === "Pending Finance" ? "bg-orange-500 text-white" :
                                 req.status === "Pending MD" ? "bg-blue-600 text-white" :
@@ -490,7 +490,7 @@ export default function LeaveAdmin() {
                       </div>
 
                       <div className="flex items-center justify-between gap-3 pt-1">
-                        <div className="text-[9px] font-bold text-muted-foreground italic truncate max-w-[150px]">
+                        <div className="text-[9px] font-bold text-muted-foreground italic truncate w-full">
                           "{getCleanReason(req.reason)}"
                         </div>
                         {canApprove && ((req.status.startsWith("Pending HOD") && role === "head_of_department") ||
@@ -500,14 +500,14 @@ export default function LeaveAdmin() {
                             <div className="flex gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                               <Button
                                 size="sm"
-                                className="h-9 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm font-black text-[10px] uppercase"
+                                className="h-9  rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm font-black text-[10px] uppercase"
                                 onClick={() => handleAction(req.id, "approve", req.status)}
                               >
                                 Approve
                               </Button>
                               <Button
                                 size="sm"
-                                className="h-9 px-3 rounded-xl bg-rose-500 hover:bg-rose-600 text-white shadow-sm font-black text-[10px] uppercase"
+                                className="h-9  rounded-xl bg-rose-500 hover:bg-rose-600 text-white shadow-sm font-black text-[10px] uppercase"
                                 onClick={() => handleAction(req.id, "reject", req.status)}
                               >
                                 Reject
@@ -529,7 +529,7 @@ export default function LeaveAdmin() {
       </Card>
 
       <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && setSelectedRequest(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 safe-area-bottom">
+        <DialogContent className="w-full max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 safe-area-bottom">
           {selectedRequest && (
             <>
               <div className="p-6 bg-gradient-to-br from-[#7B0099] to-[#a855f7] text-white print:hidden">
@@ -609,22 +609,22 @@ export default function LeaveAdmin() {
                     );
                     return (
                       <div className="space-y-3">
-                        <p className="text-[9px] font-black uppercase text-blue-600 opacity-80 tracking-widest px-1">Butiran Cuti Ganti</p>
+                        <p className="text-[9px] font-black uppercase text-blue-600 opacity-80 tracking-widest ">Butiran Cuti Ganti</p>
                         <div className="border border-blue-500/20 rounded-[20px] overflow-hidden bg-blue-500/5">
                           <table className="w-full text-left text-[10px]">
                             <thead>
                               <tr className="bg-blue-500/10 text-blue-700 font-black uppercase border-b border-blue-500/20">
-                                <th className="py-2.5 px-4">Tarikh Cuti</th>
-                                <th className="py-2.5 px-4">Tarikh/Hari Cuti Ganti</th>
-                                <th className="py-2.5 px-4 text-right">Jam Bekerja</th>
+                                <th className="py-2.5 ">Tarikh Cuti</th>
+                                <th className="py-2.5 ">Tarikh/Hari Cuti Ganti</th>
+                                <th className="py-2.5  text-right">Jam Bekerja</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-blue-500/10 font-bold text-foreground/80">
                               {rows.map((row, idx) => (
                                 <tr key={idx}>
-                                  <td className="py-2 px-4">{row.tarikh || "-"}</td>
-                                  <td className="py-2 px-4">{row.hari || "-"}</td>
-                                  <td className="py-2 px-4 text-right">{row.jam || 0} Jam</td>
+                                  <td className="py-2 ">{row.tarikh || "-"}</td>
+                                  <td className="py-2 ">{row.hari || "-"}</td>
+                                  <td className="py-2  text-right">{row.jam || 0} Jam</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -661,7 +661,7 @@ export default function LeaveAdmin() {
                         href={`${API_BASE_URL}${selectedRequest.mcFileUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[9px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
+                        className="text-[9px] font-black uppercase tracking-widest bg-[#7B0099] text-white  py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
                       >
                         View File
                       </a>
@@ -710,7 +710,7 @@ export default function LeaveAdmin() {
                             <div className="ml-6 flex-1 bg-muted/30 rounded-[16px] p-3 border border-border/40">
                               <div className="flex items-center justify-between gap-2 mb-1">
                                 <div className="flex items-center gap-2">
-                                  <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
+                                  <span className={`text-[8px] font-black uppercase  py-0.5 rounded-full ${history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
                                     {history.status}
                                   </span>
                                   <span className="text-[10px] font-black text-foreground/70">
@@ -746,7 +746,7 @@ export default function LeaveAdmin() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
+                      className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest "
                       onClick={() => window.print()}
                     >
                       <Printer className="h-4 w-4" />
@@ -762,7 +762,7 @@ export default function LeaveAdmin() {
 
       {/* Remarks Dialog */}
       <Dialog open={remarksDialogOpen} onOpenChange={setRemarksDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] border-none shadow-2xl rounded-[32px] p-0 overflow-hidden">
+        <DialogContent className="sm:w-full border-none shadow-2xl rounded-[32px] p-0 overflow-hidden">
           <div className={`p-6 text-white ${pendingAction?.action === 'approve' ? 'bg-emerald-500' : 'bg-rose-500'}`}>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-3 text-white text-lg font-black tracking-tight">
@@ -776,7 +776,7 @@ export default function LeaveAdmin() {
           </div>
           <div className="p-4 space-y-4">
             <div className="space-y-2">
-              <label htmlFor="remarks" className="text-[10px] font-black uppercase text-muted-foreground tracking-widest px-1">Remarks / Comments (Optional)</label>
+              <label htmlFor="remarks" className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ">Remarks / Comments (Optional)</label>
               <textarea
                 id="remarks"
                 value={remarks}
@@ -788,7 +788,7 @@ export default function LeaveAdmin() {
             <div className="flex flex-col sm:flex-row justify-end gap-3">
               <Button variant="ghost" className="rounded-xl font-black text-[10px] uppercase tracking-widest order-2 sm:order-1" onClick={() => setRemarksDialogOpen(false)}>Cancel</Button>
               <Button
-                className={`rounded-xl font-black text-[10px] uppercase tracking-widest px-8 shadow-lg order-1 sm:order-2 ${pendingAction?.action === 'approve' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-rose-500 hover:bg-rose-600'}`}
+                className={`rounded-xl font-black text-[10px] uppercase tracking-widest  shadow-lg order-1 sm:order-2 ${pendingAction?.action === 'approve' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-rose-500 hover:bg-rose-600'}`}
                 onClick={submitAction}
                 disabled={isSubmitting}
               >
