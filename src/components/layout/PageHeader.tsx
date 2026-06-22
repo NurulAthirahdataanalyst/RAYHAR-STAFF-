@@ -81,23 +81,23 @@ export default function PageHeader() {
     str.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 
   return (
-    <div className="bg-card border border-border/60 rounded-xl px-5 py-4 mb-5 w-full shadow-sm">
-      <h1 className="text-[22px] sm:text-[26px] font-bold text-foreground leading-tight mb-1">
+    <div className="bg-card border border-border/50 rounded-xl px-5 py-4 mb-4 w-fit min-w-[260px] shadow-sm">
+      <h1 className="text-[22px] sm:text-[24px] font-bold text-foreground leading-tight mb-0.5">
         {title}
       </h1>
-      <nav aria-label="Breadcrumb" className="flex items-center flex-wrap gap-0">
+      <nav aria-label="Breadcrumb" className="flex items-center flex-wrap">
         {crumbs.map((crumb, index) => {
           const isLast = index === crumbs.length - 1;
           return (
             <span key={index} className="flex items-center">
               {isLast ? (
-                <span className="text-[12px] font-semibold text-[#7B0099] dark:text-purple-400">
+                <span className="text-[11px] font-semibold text-[#7B0099] dark:text-purple-400">
                   {toTitleCase(crumb.label)}
                 </span>
               ) : (
                 <span
                   onClick={crumb.path ? () => navigate(crumb.path!) : undefined}
-                  className={`text-[12px] font-normal transition-colors ${
+                  className={`text-[11px] font-normal transition-colors ${
                     crumb.path
                       ? "text-muted-foreground hover:text-foreground cursor-pointer"
                       : "text-muted-foreground"
@@ -107,7 +107,9 @@ export default function PageHeader() {
                 </span>
               )}
               {!isLast && (
-                <span className="mx-1.5 text-[11px] text-muted-foreground/40 select-none">›</span>
+                <span className="mx-1 text-[11px] text-muted-foreground/50 select-none font-normal">
+                  &gt;
+                </span>
               )}
             </span>
           );
