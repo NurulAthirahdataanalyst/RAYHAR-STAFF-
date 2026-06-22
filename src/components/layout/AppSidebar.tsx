@@ -112,11 +112,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     {
       title: "Leave Administration",
       icon: ClipboardList,
-      path: "/leave-admin",
+      path: "/leave/admin",
       roles: ADMIN_ROLES,
-      children: [
-        { title: "Leave Approvals", icon: FileCheck, path: "/leave/admin", roles: ADMIN_ROLES },
-      ]
     },
     {
       title: "Employee Management",
