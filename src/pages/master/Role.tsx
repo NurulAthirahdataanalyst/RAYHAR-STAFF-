@@ -20,6 +20,12 @@ export default function Role() {
   const [newRoleName, setNewRoleName] = useState("");
   const [newRoleStatus, setNewRoleStatus] = useState("Active");
 
+  // Edit Form State
+  const [editRoleName, setEditRoleName] = useState("");
+  const [editRoleStatus, setEditRoleStatus] = useState("Active");
+  const [isSaving, setIsSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const fetchRoles = async () => {
     setLoading(true);
     try {
@@ -42,7 +48,65 @@ export default function Role() {
 
   const handleEdit = (role: any) => {
     setSelectedRole(role);
+    setEditRoleName(role.name);
+    setEditRoleStatus(role.status || "Active");
     setIsEditModalOpen(true);
+  };
+
+  const handleUpdateRole = async () => {
+    if (!editRoleName.trim()) {
+      toast.error("Role name is required");
+      return;
+    }
+    if (!selectedRole?.id) return;
+
+    setIsSaving(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/roles/${selectedRole.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editRoleName.trim(), status: editRoleStatus }),
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success("Role updated successfully");
+        setIsEditModalOpen(false);
+        setSelectedRole(null);
+        fetchRoles();
+      } else {
+        toast.error(data.error || "Failed to update role");
+      }
+    } catch (error) {
+      console.error("Error updating role:", error);
+      toast.error("Server error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteRole = async (role: any) => {
+    if (!window.confirm(`Are you sure you want to delete the role "${role.name}"? This cannot be undone.`)) return;
+
+    setDeletingId(role.id);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/roles/${role.id}`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success(`Role "${role.name}" deleted successfully`);
+        fetchRoles();
+      } else {
+        toast.error(data.error || "Failed to delete role");
+      }
+    } catch (error) {
+      console.error("Error deleting role:", error);
+      toast.error("Server error");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const handleAddRole = async () => {
@@ -217,8 +281,15 @@ export default function Role() {
                           >
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button className="p-1.5 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors">
-                            <Trash2 className="w-4 h-4" />
+                          <button 
+                            className="p-1.5 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            onClick={() => handleDeleteRole(role)}
+                            disabled={deletingId === role.id}
+                            title="Delete role"
+                          >
+                            {deletingId === role.id
+                              ? <Loader2 className="w-4 h-4 animate-spin" />
+                              : <Trash2 className="w-4 h-4" />}
                           </button>
                         </div>
                       </td>
@@ -280,16 +351,18 @@ export default function Role() {
           </DialogHeader>
           <div className="grid gap-5 p-6">
             <div className="space-y-2.5">
-              <Label htmlFor="role-name" className="text-sm font-semibold text-gray-700">Role Name</Label>
+              <Label htmlFor="edit-role-name" className="text-sm font-semibold text-gray-700">Role Name</Label>
               <Input 
-                id="role-name" 
-                defaultValue={selectedRole?.name}
+                id="edit-role-name" 
+                value={editRoleName}
+                onChange={(e) => setEditRoleName(e.target.value)}
+                placeholder="e.g. Finance Manager"
                 className="border-gray-200 focus-visible:ring-[#7B0099] h-11"
               />
             </div>
             <div className="space-y-2.5">
-              <Label htmlFor="status" className="text-sm font-semibold text-gray-700">Status</Label>
-              <Select defaultValue={selectedRole?.status}>
+              <Label htmlFor="edit-status" className="text-sm font-semibold text-gray-700">Status</Label>
+              <Select value={editRoleStatus} onValueChange={setEditRoleStatus}>
                 <SelectTrigger className="border-gray-200 focus:ring-[#7B0099] h-11">
                   <SelectValue />
                 </SelectTrigger>
@@ -304,8 +377,8 @@ export default function Role() {
             <Button variant="outline" onClick={() => setIsEditModalOpen(false)} className="border-gray-200 text-gray-700 bg-white">
               Cancel
             </Button>
-            <Button className="bg-[#7B0099] hover:bg-[#60007A] text-white">
-              Save
+            <Button onClick={handleUpdateRole} disabled={isSaving} className="bg-[#7B0099] hover:bg-[#60007A] text-white">
+              {isSaving ? "Saving..." : "Save"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -72,8 +72,25 @@ export default function Employees() {
   const [signupBranch, setSignupBranch] = useState("HQ");
   const [signupDepartment, setSignupDepartment] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
-  const [signupRole, setSignupRole] = useState("employee");
+  const [signupRole, setSignupRole] = useState("");
+  const [availableRoles, setAvailableRoles] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    fetchRoles();
+  }, []);
+
+  const fetchRoles = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/roles`);
+      const data = await response.json();
+      if (data.success) {
+        setAvailableRoles(data.roles);
+      }
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+    }
+  };
 
   useEffect(() => {
     fetchEmployees();
@@ -260,7 +277,8 @@ export default function Employees() {
           password: signupPassword,
           branch: signupBranch,
           department: signupBranch === "HQ" ? signupDepartment : null,
-          role: signupRole,
+          // Convert Proper Case display name (e.g. "Branch Leader") to snake_case (e.g. "branch_leader") for user_role table
+          role: signupRole.toLowerCase().replace(/ /g, '_'),
           status: 'Active'
         }),
       });
@@ -276,7 +294,7 @@ export default function Employees() {
         setSignupPassword("");
         setSignupBranch("HQ");
         setSignupDepartment("");
-        setSignupRole("employee");
+        setSignupRole(""); // reset so placeholder shows
         fetchEmployees(); // Refresh list
       } else {
         toast({ title: "Signup failed", description: data.error || "Could not create user", variant: "destructive" });
@@ -926,12 +944,12 @@ export default function Employees() {
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="employee">Staff (Employee)</SelectItem>
-                  <SelectItem value="branch_leader">Branch Leader</SelectItem>
-                  <SelectItem value="head_of_department">Head of Department (HOD)</SelectItem>
-                  <SelectItem value="finance_manager">Finance Manager</SelectItem>
-                  <SelectItem value="managing_director">Managing Director (MD)</SelectItem>
-                  <SelectItem value="hr_admin">HR Admin</SelectItem>
+                  {availableRoles.filter(r => r.status === 'Active').map(r => (
+                    <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
+                  ))}
+                  {availableRoles.filter(r => r.status === 'Active').length === 0 && (
+                    <SelectItem value="Employee" disabled>No roles available</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
