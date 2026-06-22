@@ -754,7 +754,7 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       await connection.query("UPDATE user_role SET role = TRIM(BOTH FROM REGEXP_REPLACE(role, '[\\r\\n\\s]+', '', 'g'))");
       await connection.query("UPDATE profiles SET status = TRIM(BOTH FROM REGEXP_REPLACE(status, '[\\r\\n\\s]+', '', 'g'))");
       // Auto-demote inactive users from leader/HOD roles to prevent them from staying assigned
-      await connection.query("UPDATE user_role ur JOIN profiles p ON ur.user_id = p.user_id SET ur.role = 'employee' WHERE p.status = 'Inactive' AND ur.role IN ('branch_leader', 'head_of_department')");
+      await connection.query("UPDATE user_role ur SET role = 'employee' FROM profiles p WHERE ur.user_id = p.user_id AND p.status = 'Inactive' AND ur.role IN ('branch_leader', 'head_of_department')");
       console.log('🚀 Successfully sanitized database and demoted inactive users from leader/HOD roles.');
     } catch (sanErr) {
       console.error('⚠️ Database sanitization/demotion warning:', sanErr.message);
