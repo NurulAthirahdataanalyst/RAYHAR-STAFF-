@@ -239,8 +239,14 @@ export default function Attendance() {
     let breakTime = 0;
     
     const today = new Date().toISOString().split('T')[0];
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
+
+    // Week starts on Saturday. Find the most recent Saturday (day 6 = Saturday).
+    const weekStart = new Date();
+    weekStart.setHours(0, 0, 0, 0);
+    const dayOfWeek = weekStart.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+    // Days since last Saturday: if today is Sat(6) → 0, Sun(0) → 1, Mon(1) → 2, etc.
+    const daysSinceSaturday = dayOfWeek === 6 ? 0 : dayOfWeek + 1;
+    weekStart.setDate(weekStart.getDate() - daysSinceSaturday);
     
     historyLogs.forEach(log => {
       if (log.duration && log.duration !== '--' && log.duration !== '--:--') {
@@ -262,6 +268,7 @@ export default function Attendance() {
         }
         
         const logDate = new Date(log.clock_in);
+        logDate.setHours(0, 0, 0, 0);
         // Correctly handle timezone by using local date string for 'today' match
         // Or just use the date property from the log directly
         const logDateStr = log.date ? new Date(log.date).toISOString().split('T')[0] : logDate.toISOString().split('T')[0];
@@ -269,7 +276,8 @@ export default function Attendance() {
         if (logDateStr === today || (log.date && log.date.startsWith(today))) {
           totalToday += hours;
         }
-        if (logDate >= weekAgo) {
+        // This week: from most recent Saturday up to today
+        if (logDate >= weekStart) {
           totalWeek += hours;
         }
       }
