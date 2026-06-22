@@ -81,33 +81,33 @@ export default function PageHeader() {
     str.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 
   return (
-    <div className="bg-card border border-border/50 rounded-xl px-5 py-4 mb-4 w-fit min-w-[260px] shadow-sm">
-      <h1 className="text-[22px] sm:text-[24px] font-bold text-foreground leading-tight mb-0.5">
+    <div className="w-full pb-4 border-b border-gray-200 dark:border-white/10 mb-2 mt-4 max-w-7xl mx-auto px-4">
+      <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 tracking-tight">
         {title}
       </h1>
-      <nav aria-label="Breadcrumb" className="flex items-center flex-wrap">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-gray-500 mt-1 flex-wrap">
         {crumbs.map((crumb, index) => {
           const isLast = index === crumbs.length - 1;
           return (
-            <span key={index} className="flex items-center">
+            <span key={index} className="flex items-center gap-2">
               {isLast ? (
-                <span className="text-[11px] font-semibold text-[#7B0099] dark:text-purple-400">
+                <span className="text-gray-800 dark:text-gray-200 font-medium">
                   {toTitleCase(crumb.label)}
                 </span>
               ) : (
                 <span
                   onClick={crumb.path ? () => navigate(crumb.path!) : undefined}
-                  className={`text-[11px] font-normal transition-colors ${
+                  className={`transition-colors ${
                     crumb.path
-                      ? "text-muted-foreground hover:text-foreground cursor-pointer"
-                      : "text-muted-foreground"
+                      ? "hover:underline cursor-pointer"
+                      : ""
                   }`}
                 >
                   {toTitleCase(crumb.label)}
                 </span>
               )}
               {!isLast && (
-                <span className="mx-1 text-[11px] text-muted-foreground/50 select-none font-normal">
+                <span className="text-gray-400 select-none">
                   &gt;
                 </span>
               )}

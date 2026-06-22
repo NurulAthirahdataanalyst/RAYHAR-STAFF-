@@ -702,19 +702,9 @@ export default function AttendanceDashboard() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 py-6">
-      {/* BREADCRUMBS & HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-gray-200">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Attendance Admin</h1>
-          <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-            <span className="cursor-pointer hover:underline">Dashboard</span>
-            <span>&gt;</span>
-            <span className="cursor-pointer hover:underline">Attendance</span>
-            <span>&gt;</span>
-            <span className="text-gray-800 font-medium">Attendance Admin</span>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
+      {/* ACTION BUTTONS */}
+      <div className="flex flex-col md:flex-row md:items-center justify-end gap-4 pb-2">
+        <div className="flex flex-wrap items-center justify-end w-full gap-2">
           <Button variant="outline" size="sm" className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-lg px-3 flex items-center gap-1.5 shadow-sm text-xs font-medium">
             <Calendar className="w-4 h-4 text-gray-500" />
             <span>06/21/2026</span>
