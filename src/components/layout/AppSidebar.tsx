@@ -254,7 +254,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
             return (
               <div key={item.title} className="relative group/menu-item space-y-1">
                 <Link
-                  to={item.path}
+                  to={item.path || "#"}
                   onClick={(e) => {
                     if (isMobile) {
                       onMobileClose();
@@ -269,13 +269,15 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                       : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80"
                   } ${isCollapsed && !isMobile ? "justify-center px-0 w-12 mx-auto" : ""}`}
                 >
-                  <ItemIcon
-                    className={`h-5 w-5 shrink-0 transition-colors ${
-                      isActive 
-                        ? "text-white dark:text-white" 
-                        : "text-sidebar-foreground/60 group-hover:text-sidebar-accent-foreground"
-                    }`}
-                  />
+                  {ItemIcon && (
+                    <ItemIcon
+                      className={`h-5 w-5 shrink-0 transition-colors ${
+                        isActive 
+                          ? "text-white dark:text-white" 
+                          : "text-sidebar-foreground/60 group-hover:text-sidebar-accent-foreground"
+                      }`}
+                    />
+                  )}
                   {(!isCollapsed || isMobile) && (
                     <span className={`text-[13.5px] whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300 ${
                       isActive 
