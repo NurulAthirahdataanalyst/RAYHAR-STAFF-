@@ -637,7 +637,7 @@ export default function Reports() {
             <FileBarChart className="w-6 h-6 sm:w-8 sm:h-8" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight uppercase leading-none">📈 Workforce Reports & Analytics</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight uppercase leading-none">Workforce Reports & Analytics</h1>
             <p className="text-xs sm:text-sm font-semibold text-muted-foreground mt-1.5 uppercase tracking-widest opacity-60">Enterprise Administration & Analytics Report</p>
           </div>
         </div>
