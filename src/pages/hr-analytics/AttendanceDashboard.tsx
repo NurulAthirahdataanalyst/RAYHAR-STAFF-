@@ -778,33 +778,31 @@ export default function AttendanceDashboard() {
           </div>
 
           {/* 4 Stat Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 p-4 md:p-6 bg-slate-50/30">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 p-5 md:p-6 bg-transparent">
             {/* Present */}
             <button
               onClick={() => setLiveFilter(liveFilter === 'present' ? 'all' : 'present')}
-              className={`relative group p-5 flex flex-col gap-4 text-left transition-all duration-300 rounded-2xl border ${
+              className={`relative overflow-hidden p-5 flex flex-col gap-3 text-left transition-all duration-300 rounded-2xl border-y border-r border-l-4 ${
                 liveFilter === 'present' 
-                ? 'bg-white border-green-200 shadow-lg shadow-green-900/10 scale-[1.02] ring-2 ring-green-500/20' 
-                : 'bg-white/70 border-white/80 hover:bg-white hover:border-green-100 hover:shadow-md'
+                ? 'bg-blue-50/80 border-r-blue-200 border-y-blue-200 border-l-blue-600 shadow-md ring-2 ring-blue-500/20 scale-[1.02]' 
+                : 'bg-[#F2F7FE] border-r-blue-100 border-y-blue-100 border-l-blue-600 hover:shadow-md hover:bg-blue-50/80'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Present</span>
-                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Users className="w-5 h-5 text-green-600" />
+              <div className="flex justify-between items-start w-full relative z-10">
+                <span className="text-[11px] font-black text-blue-800 uppercase tracking-widest mt-1">Present Today</span>
+                <div className="w-10 h-10 rounded-[14px] bg-blue-100/60 flex items-center justify-center shrink-0">
+                  <Users className="w-5 h-5 text-blue-600" />
                 </div>
               </div>
-              <div>
-                <span className="text-4xl font-black text-gray-900 tracking-tight">{liveStats.present}</span>
-                <div className="mt-2 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                  <div
-                    className="h-full bg-green-500 rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: liveStats.total > 0 ? `${Math.round((liveStats.present / liveStats.total) * 100)}%` : '0%' }}
-                  />
+              <div className="relative z-10 mt-[-20px]">
+                <div className="flex items-end gap-3">
+                  <span className="text-[40px] leading-none font-black text-blue-700 tracking-tight">{liveStats.present}</span>
+                  <span className="bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-1.5 shadow-sm">
+                    Active Personnel
+                  </span>
                 </div>
-                <p className="text-xs text-gray-400 mt-2 font-medium flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                  {liveStats.total > 0 ? `${Math.round((liveStats.present / liveStats.total) * 100)}%` : '—'} of total
+                <p className="text-[10px] font-black text-blue-500/80 uppercase tracking-widest mt-3">
+                  Arrived and Clocked In
                 </p>
               </div>
             </button>
@@ -812,29 +810,27 @@ export default function AttendanceDashboard() {
             {/* Late */}
             <button
               onClick={() => setLiveFilter(liveFilter === 'late' ? 'all' : 'late')}
-              className={`relative group p-5 flex flex-col gap-4 text-left transition-all duration-300 rounded-2xl border ${
+              className={`relative overflow-hidden p-5 flex flex-col gap-3 text-left transition-all duration-300 rounded-2xl border-y border-r border-l-4 ${
                 liveFilter === 'late' 
-                ? 'bg-white border-amber-200 shadow-lg shadow-amber-900/10 scale-[1.02] ring-2 ring-amber-500/20' 
-                : 'bg-white/70 border-white/80 hover:bg-white hover:border-amber-100 hover:shadow-md'
+                ? 'bg-amber-50/80 border-r-amber-200 border-y-amber-200 border-l-amber-500 shadow-md ring-2 ring-amber-500/20 scale-[1.02]' 
+                : 'bg-[#FFFDF4] border-r-amber-100 border-y-amber-100 border-l-amber-500 hover:shadow-md hover:bg-amber-50/80'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Late</span>
-                <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="flex justify-between items-start w-full relative z-10">
+                <span className="text-[11px] font-black text-amber-800 uppercase tracking-widest mt-1">Late Today</span>
+                <div className="w-10 h-10 rounded-[14px] bg-amber-100/60 flex items-center justify-center shrink-0">
                   <Clock className="w-5 h-5 text-amber-600" />
                 </div>
               </div>
-              <div>
-                <span className="text-4xl font-black text-gray-900 tracking-tight">{liveStats.late}</span>
-                <div className="mt-2 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                  <div
-                    className="h-full bg-amber-400 rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: liveStats.total > 0 ? `${Math.round((liveStats.late / liveStats.total) * 100)}%` : '0%' }}
-                  />
+              <div className="relative z-10 mt-[-20px]">
+                <div className="flex items-end gap-3">
+                  <span className="text-[40px] leading-none font-black text-amber-600 tracking-tight">{liveStats.late}</span>
+                  <span className="bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-1.5 shadow-sm">
+                    Post Threshold
+                  </span>
                 </div>
-                <p className="text-xs text-gray-400 mt-2 font-medium flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                  {liveStats.total > 0 ? `${Math.round((liveStats.late / liveStats.total) * 100)}%` : '—'} of total
+                <p className="text-[10px] font-black text-amber-500/80 uppercase tracking-widest mt-3">
+                  Post {workStartTime} Window
                 </p>
               </div>
             </button>
@@ -842,59 +838,53 @@ export default function AttendanceDashboard() {
             {/* Absent */}
             <button
               onClick={() => setLiveFilter(liveFilter === 'absent' ? 'all' : 'absent')}
-              className={`relative group p-5 flex flex-col gap-4 text-left transition-all duration-300 rounded-2xl border ${
+              className={`relative overflow-hidden p-5 flex flex-col gap-3 text-left transition-all duration-300 rounded-2xl border-y border-r border-l-4 ${
                 liveFilter === 'absent' 
-                ? 'bg-white border-red-200 shadow-lg shadow-red-900/10 scale-[1.02] ring-2 ring-red-500/20' 
-                : 'bg-white/70 border-white/80 hover:bg-white hover:border-red-100 hover:shadow-md'
+                ? 'bg-red-50/80 border-r-red-200 border-y-red-200 border-l-red-500 shadow-md ring-2 ring-red-500/20 scale-[1.02]' 
+                : 'bg-[#FFF6F6] border-r-red-100 border-y-red-100 border-l-red-500 hover:shadow-md hover:bg-red-50/80'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Absent</span>
-                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="flex justify-between items-start w-full relative z-10">
+                <span className="text-[11px] font-black text-red-800 uppercase tracking-widest mt-1">Absent Today</span>
+                <div className="w-10 h-10 rounded-[14px] bg-red-100/60 flex items-center justify-center shrink-0">
                   <AlertCircle className="w-5 h-5 text-red-600" />
                 </div>
               </div>
-              <div>
-                <span className="text-4xl font-black text-gray-900 tracking-tight">{liveStats.absent}</span>
-                <div className="mt-2 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                  <div
-                    className="h-full bg-red-500 rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: liveStats.total > 0 ? `${Math.round((liveStats.absent / liveStats.total) * 100)}%` : '0%' }}
-                  />
+              <div className="relative z-10 mt-[-20px]">
+                <div className="flex items-end gap-3">
+                  <span className="text-[40px] leading-none font-black text-red-600 tracking-tight">{liveStats.absent}</span>
+                  <span className="bg-red-100 text-red-700 border border-red-200 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-1.5 shadow-sm">
+                    Not Synced
+                  </span>
                 </div>
-                <p className="text-xs text-gray-400 mt-2 font-medium flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                  {liveStats.total > 0 ? `${Math.round((liveStats.absent / liveStats.total) * 100)}%` : '—'} of total
+                <p className="text-[10px] font-black text-red-500/80 uppercase tracking-widest mt-3">
+                  Not Clocked In Today
                 </p>
               </div>
             </button>
 
-            {/* On Leave */}
+            {/* Attendance Rate */}
             <button
-              onClick={() => setLiveFilter(liveFilter === 'onLeave' ? 'all' : 'onLeave')}
-              className={`relative group p-5 flex flex-col gap-4 text-left transition-all duration-300 rounded-2xl border ${
-                liveFilter === 'onLeave' 
-                ? 'bg-white border-blue-200 shadow-lg shadow-blue-900/10 scale-[1.02] ring-2 ring-blue-500/20' 
-                : 'bg-white/70 border-white/80 hover:bg-white hover:border-blue-100 hover:shadow-md'
-              }`}
+              onClick={() => setLiveFilter('all')}
+              className="relative overflow-hidden p-5 flex flex-col gap-3 text-left transition-all duration-300 rounded-2xl border-y border-r border-l-4 bg-[#F2FBF5] border-r-emerald-100 border-y-emerald-100 border-l-emerald-500 hover:shadow-md hover:bg-emerald-50/80"
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">On Leave</span>
-                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Calendar className="w-5 h-5 text-blue-600" />
+              <div className="flex justify-between items-start w-full relative z-10">
+                <span className="text-[11px] font-black text-emerald-800 uppercase tracking-widest mt-1">Attendance Rate</span>
+                <div className="w-10 h-10 rounded-[14px] bg-emerald-100/60 flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-5 h-5 text-emerald-600" />
                 </div>
               </div>
-              <div>
-                <span className="text-4xl font-black text-gray-900 tracking-tight">{liveStats.onLeave}</span>
-                <div className="mt-2 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                  <div
-                    className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: liveStats.total > 0 ? `${Math.round((liveStats.onLeave / liveStats.total) * 100)}%` : '0%' }}
-                  />
+              <div className="relative z-10 mt-[-20px]">
+                <div className="flex items-end gap-3">
+                  <span className="text-[40px] leading-none font-black text-emerald-700 tracking-tight">
+                    {liveStats.total > 0 ? Math.round((liveStats.present / liveStats.total) * 100) : 0}%
+                  </span>
+                  <span className="bg-emerald-100 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1 mb-1.5 shadow-sm">
+                    <span className="text-[10px]">▲</span> Target Met
+                  </span>
                 </div>
-                <p className="text-xs text-gray-400 mt-2 font-medium flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                  {liveStats.total > 0 ? `${Math.round((liveStats.onLeave / liveStats.total) * 100)}%` : '—'} of total
+                <p className="text-[10px] font-black text-emerald-600/80 uppercase tracking-widest mt-3">
+                  Excluding Active Leaves
                 </p>
               </div>
             </button>
