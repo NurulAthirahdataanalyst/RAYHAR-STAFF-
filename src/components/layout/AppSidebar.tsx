@@ -93,15 +93,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   const menuItems = [
     { title: "Dashboard", icon: LayoutDashboard, path: "/", roles: ALL_ROLES },
     { title: "Calendar", icon: Calendar, path: "/calendar", roles: ALL_ROLES },
-    { 
-      title: "Attendance", 
-      icon: Clock, 
-      path: "/attendance", 
-      roles: ALL_ROLES,
-      children: [
-        { title: "Attendance Analytics", icon: BarChart3, path: "/analytics", roles: ALL_ROLES }
-      ]
-    },
+    { title: "Attendance", icon: Clock, path: "/attendance", roles: ALL_ROLES },
     {
       title: "Leave Management",
       icon: CalendarDays,
@@ -110,7 +102,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       children: [
         { title: "Leave Application", icon: FilePlus2, path: "/leave/apply", roles: ALL_ROLES },
         { title: "My Leave Requests", icon: FileSearch, path: "/leave/forms", roles: ALL_ROLES },
-        { title: "Leave Approvals", icon: ClipboardList, path: "/leave/admin", roles: [...ADMIN_ROLES] },
+        { title: "Leave Approvals", icon: ClipboardList, path: "/leave/admin", roles: ALL_ROLES },
       ],
     },
     {
@@ -124,7 +116,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "Employee Directory", icon: Users, path: "/employees", roles: ADMIN_ROLES },
       ],
     },
-    { title: "Branches", icon: Building2, path: "/branches", roles: ["hr_admin", "managing_director", "finance_manager"] },
+    { title: "Branches", icon: Building2, path: "/branches", roles: ALL_ROLES },
+    { title: "Analytical", icon: BarChart3, path: "/analytics", roles: ALL_ROLES },
     {
       title: "HR Analytics",
       icon: PieChart,
@@ -139,14 +132,14 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       title: "Reports",
       icon: FileSearch,
       path: "/reports",
-      roles: ["hr_admin", "managing_director", "finance_manager"],
+      roles: ALL_ROLES,
       children: [
-        { title: "Daily Reports", icon: FileSearch, path: "/reports/daily", roles: ["hr_admin", "managing_director", "finance_manager"] },
+        { title: "Daily Reports", icon: FileSearch, path: "/reports/daily", roles: ALL_ROLES },
         { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance", roles: ["hr_admin", "managing_director", "finance_manager"] },
         { title: "Leave Reports", icon: FileSearch, path: "/reports/leave", roles: ["hr_admin", "managing_director", "finance_manager"] },
       ]
     },
-    { title: "Settings", icon: Settings, path: "/settings", roles: ["hr_admin"] },
+    { title: "Settings", icon: Settings, path: "/settings", roles: ALL_ROLES },
   ];
 
 
