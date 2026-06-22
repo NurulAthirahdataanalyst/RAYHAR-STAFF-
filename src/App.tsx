@@ -72,6 +72,7 @@ function ProtectedRoutes() {
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/analytics" element={<EmployeeAnalytics />} />
+          <Route path="/hr-analytics" element={<Navigate to="/hr-analytics/attendance" replace />} />
           <Route path="/hr-analytics/attendance" element={<AttendanceDashboard />} />
           <Route path="/hr-analytics/leave" element={<LeaveAnalytics />} />
           <Route path="/profile" element={<Profile />} />
