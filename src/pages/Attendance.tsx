@@ -688,14 +688,12 @@ export default function Attendance() {
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-8rem)] sm:min-h-[calc(100vh-6rem)] rounded-[24px] sm:rounded-[40px] overflow-hidden bg-card dark:bg-card flex flex-col mx-0 sm:mx-2 md:mx-6 my-2 sm:my-6 shadow-sm border border-border/50">
-      {/* Dynamic Background Top Half */}
-      <div className="absolute top-0 left-0 right-0 h-[40%] sm:h-[45%] bg-gradient-to-br from-[#5e0080] via-[#7B0099] to-[#a855f7] rounded-b-[40px] sm:rounded-b-[60px] z-0 shadow-2xl" />
+    <div className="relative flex flex-col mx-auto w-full animate-in fade-in duration-700">
 
-      <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-5 lg:gap-6 p-3 sm:p-6 md:p-8 animate-in fade-in zoom-in-95 duration-700 w-full max-w-2xl lg:max-w-[1400px] mx-auto">
+      <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-5 lg:gap-6 pb-6 w-full max-w-2xl lg:max-w-[1400px] mx-auto">
 
         {/* Main Clocking Card */}
-        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md lg:flex-1 rounded-[28px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-4 sm:p-5 md:p-6 flex flex-col items-center relative overflow-hidden border border-border/30 lg:self-start">
+        <div className="bg-card dark:bg-card w-full max-w-[340px] sm:max-w-md lg:flex-1 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 p-4 sm:p-5 md:p-6 flex flex-col items-center relative overflow-hidden border border-border lg:self-start">
 
           {user ? (
             <div className="flex-1 flex flex-col items-center justify-between w-full h-full">
@@ -902,7 +900,7 @@ export default function Attendance() {
           </div>
 
           {/* Timeline Bar Card */}
-          <div className="bg-card dark:bg-card border border-border/40 shadow-md rounded-3xl p-5 sm:p-6 flex flex-col relative overflow-hidden min-h-[220px]">
+          <div className="bg-card dark:bg-card border border-border shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl p-5 sm:p-6 flex flex-col relative overflow-hidden min-h-[220px]">
             <h3 className="text-xs font-black text-muted-foreground/60 uppercase tracking-widest mb-6">
               Monthly Attendance Breakdown
             </h3>
@@ -961,8 +959,8 @@ export default function Attendance() {
       </div>
 
       {/* BOTTOM PANEL: Employee Attendance Data Table */}
-      <div className="relative z-10 w-full max-w-2xl lg:max-w-[1400px] mx-auto px-3 sm:px-6 md:px-8 pb-8">
-        <div className="bg-card dark:bg-card border border-border/30 shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-[28px] sm:rounded-[40px] p-5 sm:p-6 md:p-8 flex flex-col min-h-[400px]">
+      <div className="relative z-10 w-full max-w-2xl lg:max-w-[1400px] mx-auto pb-8">
+        <div className="bg-card dark:bg-card border border-border shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl p-5 sm:p-6 md:p-8 flex flex-col min-h-[400px]">
           
           {/* Header Row */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
