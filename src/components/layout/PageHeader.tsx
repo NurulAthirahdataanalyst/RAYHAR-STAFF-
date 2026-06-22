@@ -1,5 +1,4 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, ChevronRight } from "lucide-react";
 
 interface BreadcrumbSegment {
   label: string;
@@ -77,39 +76,38 @@ export default function PageHeader() {
   const crumbs = getBreadcrumbs(location.pathname);
   const title = getPageTitle(location.pathname);
 
+  // Convert all-caps labels to Title Case for the breadcrumb display
+  const toTitleCase = (str: string) =>
+    str.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+
   return (
-    <div className="flex flex-col mb-5 w-full">
-      <h1 className="text-xl sm:text-2xl font-black text-foreground mb-1 leading-tight">{title}</h1>
-      <nav aria-label="Breadcrumb" className="flex items-center flex-wrap gap-1">
+    <div className="bg-card border border-border/60 rounded-xl px-5 py-4 mb-5 w-full shadow-sm">
+      <h1 className="text-[22px] sm:text-[26px] font-bold text-foreground leading-tight mb-1">
+        {title}
+      </h1>
+      <nav aria-label="Breadcrumb" className="flex items-center flex-wrap gap-0">
         {crumbs.map((crumb, index) => {
           const isLast = index === crumbs.length - 1;
-          const isFirst = index === 0;
           return (
-            <span key={index} className="flex items-center gap-1">
-              {isFirst && (
-                <Home
-                  className="w-3 h-3 text-muted-foreground/60 shrink-0 cursor-pointer hover:text-[#7B0099] transition-colors"
-                  onClick={() => navigate("/")}
-                />
-              )}
+            <span key={index} className="flex items-center">
               {isLast ? (
-                <span className="text-[10px] sm:text-[11px] font-bold text-[#7B0099] dark:text-purple-400 uppercase tracking-widest">
-                  {crumb.label}
+                <span className="text-[12px] font-semibold text-[#7B0099] dark:text-purple-400">
+                  {toTitleCase(crumb.label)}
                 </span>
               ) : (
                 <span
                   onClick={crumb.path ? () => navigate(crumb.path!) : undefined}
-                  className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-widest transition-colors ${
+                  className={`text-[12px] font-normal transition-colors ${
                     crumb.path
                       ? "text-muted-foreground hover:text-foreground cursor-pointer"
-                      : "text-muted-foreground/60"
+                      : "text-muted-foreground"
                   }`}
                 >
-                  {crumb.label}
+                  {toTitleCase(crumb.label)}
                 </span>
               )}
               {!isLast && (
-                <ChevronRight className="w-3 h-3 text-muted-foreground/30 shrink-0" />
+                <span className="mx-1.5 text-[11px] text-muted-foreground/40 select-none">›</span>
               )}
             </span>
           );
@@ -118,3 +116,4 @@ export default function PageHeader() {
     </div>
   );
 }
+
