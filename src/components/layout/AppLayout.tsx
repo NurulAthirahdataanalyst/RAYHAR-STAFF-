@@ -1,6 +1,7 @@
 import AppSidebar from "./AppSidebar";
 import PresenceFeed from "../PresenceFeed";
 import NotificationBell from "../NotificationBell";
+import PageHeader from "./PageHeader";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -310,6 +311,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             
             {/* Ruang Kerja Utama (70% - 90%) */}
             <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3 transition-all duration-500 ease-in-out w-full">
+              <PageHeader />
               {children}
             </div>
 

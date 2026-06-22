@@ -689,18 +689,7 @@ export default function Attendance() {
 
   return (
     <div className="relative flex flex-col mx-auto w-full animate-in fade-in duration-700">
-      
-      {/* Page Header */}
-      <div className="flex flex-col mb-4 sm:mb-6 px-2 lg:px-0 lg:max-w-[1400px] mx-auto w-full max-w-2xl">
-        <h1 className="text-xl sm:text-2xl font-black text-foreground mb-1">Employee Attendance</h1>
-        <div className="flex items-center text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest gap-1.5 sm:gap-2">
-          <span className="hover:text-foreground cursor-pointer transition-colors">Dashboard</span>
-          <span className="text-muted-foreground/40">&gt;</span>
-          <span className="hover:text-foreground cursor-pointer transition-colors">Attendance</span>
-          <span className="text-muted-foreground/40">&gt;</span>
-          <span className="text-[#7B0099] dark:text-purple-400">Employee Attendance</span>
-        </div>
-      </div>
+
 
       <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-5 lg:gap-6 pb-6 w-full max-w-2xl lg:max-w-[1400px] mx-auto">
 
