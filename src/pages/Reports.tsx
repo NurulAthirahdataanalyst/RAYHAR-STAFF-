@@ -649,7 +649,7 @@ export default function Reports() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 items-start">
             
             {/* Generator Settings Form */}
-            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] lg:col-span-2 p-4 space-y-4">
+            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] lg:col-span-2 p-4 space-y-4 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#7B0099]/10 transition-all duration-300">
               <div>
                 <h3 className="text-base sm:text-lg font-black text-foreground uppercase tracking-tight">Configure Analytical Report</h3>
                 <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider opacity-60">Generate targeted PDF/CSV datasets compiled directly from live database logs</p>
@@ -661,7 +661,7 @@ export default function Reports() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <button
                     onClick={() => setGeneratorType("trends")}
-                    className={`p-4 rounded-2xl border text-left flex flex-col gap-1.5 transition-all ${
+                    className={`p-4 rounded-2xl border text-left flex flex-col gap-1.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                       generatorType === "trends"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground"
                         : "border-border/50 bg-background/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
@@ -676,7 +676,7 @@ export default function Reports() {
 
                   <button
                     onClick={() => setGeneratorType("leave")}
-                    className={`p-4 rounded-2xl border text-left flex flex-col gap-1.5 transition-all ${
+                    className={`p-4 rounded-2xl border text-left flex flex-col gap-1.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                       generatorType === "leave"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground"
                         : "border-border/50 bg-background/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
@@ -763,7 +763,7 @@ export default function Reports() {
                 <div className="grid grid-cols-3 gap-3">
                   <button
                     onClick={() => setGeneratorFormat("csv")}
-                    className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all ${
+                    className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                       generatorFormat === "csv"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-[#7B0099] font-black"
                         : "border-border/50 bg-background/20 text-muted-foreground font-semibold hover:bg-muted/40 hover:text-foreground"
@@ -774,7 +774,7 @@ export default function Reports() {
                   </button>
                   <button
                     onClick={() => setGeneratorFormat("excel")}
-                    className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all ${
+                    className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                       generatorFormat === "excel"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-[#7B0099] font-black"
                         : "border-border/50 bg-background/20 text-muted-foreground font-semibold hover:bg-muted/40 hover:text-foreground"
@@ -785,7 +785,7 @@ export default function Reports() {
                   </button>
                   <button
                     onClick={() => setGeneratorFormat("pdf")}
-                    className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all ${
+                    className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                       generatorFormat === "pdf"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-[#7B0099] font-black"
                         : "border-border/50 bg-background/20 text-muted-foreground font-semibold hover:bg-muted/40 hover:text-foreground"
@@ -799,7 +799,7 @@ export default function Reports() {
             </Card>
 
             {/* Synthesis Preview Panel */}
-            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-4 flex flex-col gap-4">
+            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-4 flex flex-col gap-4 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#7B0099]/10 transition-all duration-300">
               <div>
                 <h4 className="text-xs font-black text-foreground uppercase tracking-widest">Synthesis Preview</h4>
                 <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider opacity-60 mt-0.5">Real-time compilation preview</p>
