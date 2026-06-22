@@ -12,7 +12,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock } from "lucide-react";
+import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "../config/api";
@@ -279,251 +280,186 @@ export default function LeaveAdmin() {
   };
 
   return (
-    <div className="space-y-3 sm:space-y-5 animate-in fade-in duration-500">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-[#7B0099]/10 dark:bg-[#7B0099]/20 rounded-xl text-[#7B0099] dark:text-purple-400">
-            <Users className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-          <div>
-            <h1 className="text-responsive-xl font-black text-foreground tracking-tight uppercase">Leave Approvals</h1>
-            <p className="text-responsive-sm text-muted-foreground font-medium italic">
-              {canApprove ? "Manage and process staff leave applications" : "View leave application registry (Read-Only)"}
-            </p>
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto w-full">
+      
+      {/* Header & Breadcrumb */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1.5 tracking-tight">Leaves</h1>
+          <div className="text-[13px] font-medium text-muted-foreground flex items-center gap-1.5">
+            <Link to="/" className="hover:text-[#7B0099] transition-colors">Dashboard</Link>
+            <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+            <span className="text-foreground/80">Leave Approvals</span>
           </div>
         </div>
       </div>
 
-      <Card className="border-none shadow-[0_18px_42px_rgba(0,0,0,0.04)] dark:shadow-[0_18px_42px_rgba(0,0,0,0.18)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[28px] overflow-hidden">
-        <CardHeader className="border-b border-border/50 pb-0 px-4 sm:px-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="space-y-1">
-              <CardTitle className="text-base sm:text-lg font-black text-foreground">Leave Applications</CardTitle>
-              <CardDescription className="text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-60">
-                Review and manage employee leave applications
-              </CardDescription>
+      {/* 4 Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        {[
+          { title: "Total Leaves", count: requestsByMonth.length, bg: "bg-emerald-500", icon: CheckCircle2 },
+          { title: "Approved Leaves", count: approvedCount, bg: "bg-pink-500", icon: FileText },
+          { title: "Rejected Leaves", count: rejectedCount, bg: "bg-amber-500", icon: XCircle },
+          { title: "Pending Requests", count: pendingCount, bg: "bg-cyan-500", icon: Clock },
+        ].map((stat, i) => (
+          <div key={i} className="bg-card border border-border shadow-sm rounded-lg overflow-hidden flex relative h-[100px] hover:shadow-md transition-shadow">
+            <div className={`w-[85px] ${stat.bg} flex items-center justify-center relative shrink-0`}>
+              <stat.icon className="text-white w-8 h-8 z-10" />
+              <div className="absolute -right-[20px] top-0 bottom-0 w-[40px] bg-card transform skew-x-[-20deg]" />
             </div>
-            <div className="flex items-center gap-2.5">
-              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger className="w-[120px] sm:w-[140px] h-8 text-[10px] font-black rounded-xl border-border/50 bg-white/50 dark:bg-black/20">
-                  <SelectValue placeholder="All Months" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {months.map(m => (
-                    <SelectItem key={m.value} value={m.value} className="text-[10px] font-bold">{m.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Badge variant="outline" className="font-black text-[10px] px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none hidden sm:inline-flex">
-                {filteredRequests.length} {activeTab === "pending" ? "PENDING" : activeTab === "approved" ? "APPROVED" : activeTab === "rejected" ? "REJECTED" : "TOTAL"}
-              </Badge>
+            <div className="flex-1 flex flex-col justify-center items-end pr-5 relative z-10">
+              <div className="text-[13px] font-medium text-muted-foreground whitespace-nowrap">{stat.title}</div>
+              <div className="text-2xl sm:text-3xl font-bold mt-0.5 tracking-tight">{stat.count}</div>
             </div>
           </div>
-          {/* Tab Navigation */}
-          <div className="flex gap-0 border-b-0 overflow-x-auto scrollbar-none">
-            {([
-              { key: "pending" as TabFilter, label: "Pending", count: pendingCount },
-              { key: "approved" as TabFilter, label: "Approved", count: approvedCount },
-              { key: "rejected" as TabFilter, label: "Rejected", count: rejectedCount },
-              { key: "history" as TabFilter, label: "History", count: requestsByMonth.length },
-            ]).map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveTab(tab.key)}
-                className={`relative px-4 sm:px-5 py-3 text-[11px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${activeTab === tab.key
-                    ? "text-[#7B0099]"
-                    : "text-muted-foreground hover:text-foreground"
-                  }`}
-              >
-                {tab.label}
-                {tab.count > 0 && (
-                  <span className={`ml-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-full transition-colors duration-300 ${activeTab === tab.key
-                      ? "bg-[#7B0099] text-white"
-                      : "bg-muted text-muted-foreground"
-                    }`}>
-                    {tab.count}
-                  </span>
-                )}
-                {/* Animated underline */}
-                {activeTab === tab.key && (
-                  <span className="absolute bottom-0 left-2 right-2 h-[3px] bg-[#7B0099] rounded-full animate-in fade-in slide-in-from-bottom-1 duration-300" />
-                )}
-              </button>
-            ))}
+        ))}
+      </div>
+
+      {/* Main Content Area */}
+      <Card className="border border-border/60 shadow-sm bg-card rounded-lg overflow-hidden">
+        
+        {/* Table Controls Header */}
+        <div className="p-4 sm:p-5 border-b border-border/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <h2 className="text-base font-bold text-foreground">Leave List</h2>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-[140px] h-9 text-xs font-medium rounded-md bg-transparent">
+                <SelectValue placeholder="All Months" />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map(m => (
+                  <SelectItem key={m.value} value={m.value} className="text-xs">{m.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={activeTab} onValueChange={(val: any) => setActiveTab(val)}>
+              <SelectTrigger className="w-[140px] h-9 text-xs font-medium rounded-md bg-transparent">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="history" className="text-xs">All Status</SelectItem>
+                <SelectItem value="pending" className="text-xs">Pending</SelectItem>
+                <SelectItem value="approved" className="text-xs">Approved</SelectItem>
+                <SelectItem value="rejected" className="text-xs">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </CardHeader>
+        </div>
+
+        {/* Table Content */}
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex flex-col items-center justify-center p-10 gap-3">
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Fetching Applications...</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground animate-pulse">Loading Leaves...</p>
             </div>
           ) : (
-            <>
-              {/* Desktop Table */}
-              <div className="hidden lg:block overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-muted/30 text-foreground uppercase text-[10px] font-black tracking-widest">
-                    <tr>
-                      <th className="px-5 py-3.5">Employee</th>
-                      <th className="px-5 py-3.5">Leave Type</th>
-                      <th className="px-5 py-3.5">Duration</th>
-                      <th className="px-5 py-3.5">Reason</th>
-                      <th className="px-5 py-3.5">Status</th>
-                      {canApprove && <th className="px-5 py-3.5 text-right">Actions</th>}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/50">
-                    {filteredRequests.length > 0 ? (
-                      filteredRequests.map((req) => (
-                        <tr key={req.id} className="hover:bg-[#7B0099]/5 transition-colors group">
-                          <td className="px-6 py-4">
-                            <button
-                              type="button"
-                              onClick={() => setSelectedRequest(req)}
-                              className="font-black text-foreground hover:text-[#7B0099] transition-colors text-left break-words"
-                            >
-                              {req.employee}
-                            </button>
-                            <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-tighter">
-                              <MapPin className="w-3 h-3 opacity-50" /> {req.branch}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left whitespace-nowrap">
+                <thead className="bg-muted/20 text-muted-foreground text-xs font-bold border-b border-border/40">
+                  <tr>
+                    <th className="px-5 py-4 font-semibold">Employee</th>
+                    <th className="px-5 py-4 font-semibold">Leave Type</th>
+                    <th className="px-5 py-4 font-semibold">From</th>
+                    <th className="px-5 py-4 font-semibold">To</th>
+                    <th className="px-5 py-4 font-semibold">No of Days</th>
+                    <th className="px-5 py-4 font-semibold">Status</th>
+                    {canApprove && <th className="px-5 py-4 font-semibold text-right">Actions</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/40">
+                  {filteredRequests.length > 0 ? (
+                    filteredRequests.map((req) => (
+                      <tr key={req.id} className="hover:bg-muted/30 transition-colors group">
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-[#7B0099]/10 text-[#7B0099] flex items-center justify-center text-xs font-bold shrink-0">
+                              {req.employee.charAt(0).toUpperCase()}
                             </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="text-xs font-black text-[#7B0099]/80 dark:text-purple-400/80">{req.type}</span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="text-[11px] font-bold text-muted-foreground">
-                              {req.from} → {req.to}
-                              <div className="text-[#7B0099] font-black mt-0.5">{req.days} DAYS</div>
+                            <div className="flex flex-col">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedRequest(req)}
+                                className="font-bold text-foreground hover:text-[#7B0099] transition-colors text-left"
+                              >
+                                {req.employee}
+                              </button>
+                              <span className="text-[11px] text-muted-foreground mt-0.5">{req.branch}</span>
                             </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <p className="text-[11px] text-muted-foreground italic line-clamp-2 max-w-[200px]">"{getCleanReason(req.reason)}"</p>
-                          </td>
-                          <td className="px-6 py-4">
-                            <Badge
-                              className={`text-[11px] font-black px-3 py-1 h-auto whitespace-nowrap ${req.status === "Approved" ? "bg-emerald-500 text-white" :
-                                  req.status === "Rejected" ? "bg-rose-600 text-white" :
-                                    req.status === "Pending Finance" ? "bg-orange-500 text-white" :
-                                      req.status === "Pending MD" ? "bg-blue-600 text-white" :
-                                        req.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
-                                          "bg-amber-500 text-white"
-                                }`}
-                            >
-                              {req.status.toUpperCase()}
-                            </Badge>
-                          </td>
-                          {canApprove && (
-                            <td className="px-6 py-4 text-right">
-                              {((req.status.startsWith("Pending HOD") && role === "head_of_department") ||
-                                (req.status === "Pending Branch Leader" && role === "branch_leader") ||
-                                (req.status === "Pending Finance" && role === "finance_manager") ||
-                                (req.status === "Pending MD" && role === "managing_director")) ? (
-                                <div className="flex justify-end gap-2">
-                                  <Button
-                                    size="sm"
-                                    className="h-8 w-8 rounded-lg p-0 bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm"
-                                    onClick={() => handleAction(req.id, "approve", req.status)}
-                                  >
-                                    <Check className="w-4 h-4" />
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    className="h-8 w-8 rounded-lg p-0 bg-rose-500 hover:bg-rose-600 text-white shadow-sm"
-                                    onClick={() => handleAction(req.id, "reject", req.status)}
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              ) : (
-                                <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest">
-                                  {req.status === "Approved" || req.status === "Rejected" ? "PROCESSED" : "WAITING..."}
-                                </span>
-                              )}
-                            </td>
-                          )}
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={canApprove ? 6 : 5} className="px-6 py-12 text-center text-xs font-black text-muted-foreground uppercase tracking-widest italic opacity-30">
-                          No {activeTab === "pending" ? "pending" : activeTab === "approved" ? "approved" : activeTab === "rejected" ? "rejected" : ""} applications found
+                          </div>
                         </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Card View */}
-              <div className="lg:hidden divide-y divide-border/50">
-                {filteredRequests.length > 0 ? (
-                  filteredRequests.map((req) => (
-                    <div key={req.id} className="p-4 active:bg-[#7B0099]/5 transition-colors space-y-3" onClick={() => setSelectedRequest(req)}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="font-black text-sm text-foreground break-words">{req.employee}</p>
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">{req.branch}</p>
-                        </div>
-                        <Badge className={`text-[10px] font-black h-auto py-1 px-2.5 shrink-0 whitespace-nowrap ${req.status === "Approved" ? "bg-emerald-500 text-white" :
-                            req.status === "Rejected" ? "bg-rose-600 text-white" :
-                              req.status === "Pending Finance" ? "bg-orange-500 text-white" :
-                                req.status === "Pending MD" ? "bg-blue-600 text-white" :
-                                  req.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
-                                    "bg-amber-500 text-white"
+                        <td className="px-5 py-3.5">
+                          <span className="text-[13px] font-medium text-foreground flex items-center gap-1.5">
+                            {req.type}
+                            {req.reason && <Info className="w-3.5 h-3.5 text-muted-foreground opacity-50" />}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5 text-[13px] font-medium text-muted-foreground">
+                          {req.from}
+                        </td>
+                        <td className="px-5 py-3.5 text-[13px] font-medium text-muted-foreground">
+                          {req.to}
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <Badge variant="secondary" className="bg-muted/50 font-medium text-foreground rounded-md px-2 py-0.5">
+                            {req.days} {req.days > 1 ? 'Days' : 'Day'}
+                          </Badge>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${
+                            req.status === "Approved" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
+                            req.status === "Rejected" ? "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" :
+                            "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                           }`}>
-                          {req.status.replace('Pending ', '').toUpperCase()}
-                        </Badge>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 bg-muted/20 p-2 rounded-xl">
-                        <div>
-                          <p className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Type</p>
-                          <p className="text-[10px] font-bold text-[#7B0099] truncate">{req.type}</p>
-                        </div>
-                        <div>
-                          <p className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Duration</p>
-                          <p className="text-[10px] font-bold text-foreground">{req.days} DAYS</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-3 pt-1">
-                        <div className="text-[9px] font-bold text-muted-foreground italic truncate max-w-[150px]">
-                          "{getCleanReason(req.reason)}"
-                        </div>
-                        {canApprove && ((req.status.startsWith("Pending HOD") && role === "head_of_department") ||
-                          (req.status === "Pending Branch Leader" && role === "branch_leader") ||
-                          (req.status === "Pending Finance" && role === "finance_manager") ||
-                          (req.status === "Pending MD" && role === "managing_director")) && (
-                            <div className="flex gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                              <Button
-                                size="sm"
-                                className="h-9 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm font-black text-[10px] uppercase"
-                                onClick={() => handleAction(req.id, "approve", req.status)}
-                              >
-                                Approve
-                              </Button>
-                              <Button
-                                size="sm"
-                                className="h-9 px-3 rounded-xl bg-rose-500 hover:bg-rose-600 text-white shadow-sm font-black text-[10px] uppercase"
-                                onClick={() => handleAction(req.id, "reject", req.status)}
-                              >
-                                Reject
-                              </Button>
-                            </div>
-                          )}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="py-12 text-center text-xs font-black text-muted-foreground uppercase tracking-widest italic opacity-30 p-6">
-                    No {activeTab === "pending" ? "pending" : activeTab === "approved" ? "approved" : activeTab === "rejected" ? "rejected" : ""} applications found.
-                  </div>
-                )}
-              </div>
-            </>
+                            {req.status === "Approved" || req.status === "Rejected" ? req.status : "Pending"}
+                          </span>
+                        </td>
+                        {canApprove && (
+                          <td className="px-5 py-3.5 text-right">
+                            {((req.status.startsWith("Pending HOD") && role === "head_of_department") ||
+                              (req.status === "Pending Branch Leader" && role === "branch_leader") ||
+                              (req.status === "Pending Finance" && role === "finance_manager") ||
+                              (req.status === "Pending MD" && role === "managing_director")) ? (
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 w-7 rounded p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200"
+                                  onClick={() => handleAction(req.id, "approve", req.status)}
+                                  title="Approve"
+                                >
+                                  <Check className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 w-7 rounded p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
+                                  onClick={() => handleAction(req.id, "reject", req.status)}
+                                  title="Reject"
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <span className="text-[11px] font-medium text-muted-foreground italic">
+                                Processed
+                              </span>
+                            )}
+                          </td>
+                        )}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={canApprove ? 7 : 6} className="px-5 py-12 text-center text-muted-foreground text-sm">
+                        No leaves found for the selected filters.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           )}
         </CardContent>
       </Card>
