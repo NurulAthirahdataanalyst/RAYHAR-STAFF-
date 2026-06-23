@@ -81,7 +81,7 @@ export default function PageHeader() {
     str.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 
   return (
-    <div className="w-full pb-4 border-b border-gray-200 dark:border-white/10 mb-2 mt-4">
+    <div className="w-full pb-4 border-b border-gray-200 dark:border-white/10 mb-2 mt-8 sm:mt-12">
       <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 tracking-tight">
         {title}
       </h1>
