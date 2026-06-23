@@ -2873,7 +2873,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     // 2. Attendance & Lates
     const [attRows] = await pool.query(
       `SELECT 
-        a.user_id, p.name, a.clock_in, a.clock_out,
+        a.user_id, p.full_name as name, a.clock_in, a.clock_out,
         CASE WHEN ((a.clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END as is_late
        FROM attendances a
        JOIN profiles p ON p.user_id = a.user_id
@@ -2912,7 +2912,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
 
     // 3. Leave Stats
     const [leaveRows] = await pool.query(
-      `SELECT lr.status, lr.start_date, lr.end_date, p.name
+      `SELECT lr.status, lr.start_date, lr.end_date, p.full_name as name
        FROM leave_requests lr
        JOIN profiles p ON p.user_id = lr.user_id
        WHERE EXTRACT(MONTH FROM lr.start_date) = ? AND EXTRACT(YEAR FROM lr.start_date) = ? AND p.status = 'Active' ${profileFilter}`,
