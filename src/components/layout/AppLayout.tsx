@@ -297,9 +297,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* ═══════ MAIN CONTENT ═══════ */}
-        <div className="relative p-2 sm:p-2 lg:p-2 max-w-[1500px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="relative p-4 sm:p-6 lg:p-8 max-w-[1500px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
           
-          <div className="flex flex-col lg:flex-row gap-2.5 items-start relative w-full">
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 items-start relative w-full">
             
             {/* Ruang Kerja Utama (70% - 90%) */}
             <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3 transition-all duration-500 ease-in-out w-full">
