@@ -2,7 +2,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Users, UserCheck, CalendarDays, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download } from "lucide-react";
+import { Loader2, Users, UserCheck, CalendarDays, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 const COLORS = ['#10b981', '#8b5cf6', '#f59e0b', '#ef4444']; // Present, Late, On Leave, Absent
 
 
+
+const cardHoverEffect = "transition-all duration-300 hover:shadow-[0_0_15px_rgba(123,0,153,0.15)] hover:border-[#7B0099]/30 hover:-translate-y-0.5";
 
 export default function WorkforceInsights() {
   const { role, userBranch, userDepartment } = useRole();
@@ -100,7 +102,7 @@ export default function WorkforceInsights() {
 
         {/* 1. Team Overview (Top KPI Cards) */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card className="rounded-lg shadow-sm border-slate-200">
+          <Card className={`rounded-lg shadow-sm border-slate-200 ${cardHoverEffect}`}>
             <CardContent className="p-5 flex items-center gap-4">
               <div className="w-10 h-10 rounded bg-blue-50 flex items-center justify-center">
                 <Users className="w-5 h-5 text-blue-600" />
@@ -111,7 +113,7 @@ export default function WorkforceInsights() {
               </div>
             </CardContent>
           </Card>
-          <Card className="rounded-lg shadow-sm border-slate-200">
+          <Card className={`rounded-lg shadow-sm border-slate-200 ${cardHoverEffect}`}>
             <CardContent className="p-5 flex items-center gap-4">
               <div className="w-10 h-10 rounded bg-emerald-50 flex items-center justify-center">
                 <UserCheck className="w-5 h-5 text-emerald-600" />
@@ -122,7 +124,7 @@ export default function WorkforceInsights() {
               </div>
             </CardContent>
           </Card>
-          <Card className="rounded-lg shadow-sm border-slate-200">
+          <Card className={`rounded-lg shadow-sm border-slate-200 ${cardHoverEffect}`}>
             <CardContent className="p-5 flex items-center gap-4">
               <div className="w-10 h-10 rounded bg-indigo-50 flex items-center justify-center">
                 <CheckCircle2 className="w-5 h-5 text-indigo-600" />
@@ -133,7 +135,7 @@ export default function WorkforceInsights() {
               </div>
             </CardContent>
           </Card>
-          <Card className="rounded-lg shadow-sm border-slate-200">
+          <Card className={`rounded-lg shadow-sm border-slate-200 ${cardHoverEffect}`}>
             <CardContent className="p-5 flex items-center gap-4">
               <div className="w-10 h-10 rounded bg-orange-50 flex items-center justify-center">
                 <CalendarDays className="w-5 h-5 text-orange-600" />
@@ -149,7 +151,7 @@ export default function WorkforceInsights() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           
           {/* 2. Attendance Overview */}
-          <Card className="col-span-1 lg:col-span-2 rounded-lg shadow-sm border-slate-200 flex flex-col">
+          <Card className={`col-span-1 lg:col-span-2 rounded-lg shadow-sm border-slate-200 flex flex-col ${cardHoverEffect}`}>
             <CardHeader className="p-5 border-b border-slate-100 pb-4">
               <CardTitle className="text-base font-bold text-slate-800">Attendance Overview</CardTitle>
             </CardHeader>
@@ -183,7 +185,7 @@ export default function WorkforceInsights() {
           </Card>
 
           {/* 5. Team Availability Dashboard */}
-          <Card className="col-span-1 rounded-lg shadow-sm border-slate-200 flex flex-col">
+          <Card className={`col-span-1 rounded-lg shadow-sm border-slate-200 flex flex-col ${cardHoverEffect}`}>
             <CardHeader className="p-5 border-b border-slate-100 pb-4 flex flex-row items-center justify-between">
               <CardTitle className="text-base font-bold text-slate-800">Team Availability</CardTitle>
             </CardHeader>
@@ -246,54 +248,65 @@ export default function WorkforceInsights() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* 3. Leave Monitoring */}
-          <Card className="col-span-1 rounded-lg shadow-sm border-slate-200">
+          <Card className={`col-span-1 rounded-lg shadow-sm border-slate-200 ${cardHoverEffect}`}>
             <CardHeader className="p-5 border-b border-slate-100 pb-4">
               <CardTitle className="text-base font-bold text-slate-800">Leave Monitoring</CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="flex flex-col">
-                <div className="flex items-center justify-between p-5 border-b border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded bg-yellow-50 flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-yellow-600" />
+            <CardContent className="p-4 sm:p-5">
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-xl transition-all duration-300 cursor-pointer group">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-yellow-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
+                      <Clock className="w-5 h-5 text-yellow-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-slate-800">Pending Requests</p>
-                      <p className="text-xs text-slate-500">Awaiting Approval</p>
+                      <p className="text-sm font-bold text-slate-800 group-hover:text-[#7B0099] transition-colors">Pending Requests</p>
+                      <p className="text-xs text-slate-500 font-medium">Awaiting Approval</p>
                     </div>
                   </div>
-                  <span className="text-lg font-bold text-slate-800">{data.leaveMonitoring.pendingApproval}</span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.pendingApproval}</span>
+                    <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-[#7B0099] group-hover:translate-x-1 transition-all duration-300" />
+                  </div>
                 </div>
-                <div className="flex items-center justify-between p-5 border-b border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded bg-emerald-50 flex items-center justify-center">
-                      <FileCheck className="w-4 h-4 text-emerald-600" />
+
+                <div className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-xl transition-all duration-300 cursor-pointer group">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-emerald-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
+                      <FileCheck className="w-5 h-5 text-emerald-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-slate-800">Approved Leave</p>
-                      <p className="text-xs text-slate-500">This Month</p>
+                      <p className="text-sm font-bold text-slate-800 group-hover:text-[#7B0099] transition-colors">Approved Leave</p>
+                      <p className="text-xs text-slate-500 font-medium">This Month</p>
                     </div>
                   </div>
-                  <span className="text-lg font-bold text-slate-800">{data.leaveMonitoring.approvedThisMonth}</span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.approvedThisMonth}</span>
+                    <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-[#7B0099] group-hover:translate-x-1 transition-all duration-300" />
+                  </div>
                 </div>
-                <div className="flex items-center justify-between p-5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded bg-blue-50 flex items-center justify-center">
-                      <Users className="w-4 h-4 text-blue-600" />
+
+                <div className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-xl transition-all duration-300 cursor-pointer group">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-blue-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
+                      <Users className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-slate-800">Staff on Leave</p>
-                      <p className="text-xs text-slate-500">Today</p>
+                      <p className="text-sm font-bold text-slate-800 group-hover:text-[#7B0099] transition-colors">Staff on Leave</p>
+                      <p className="text-xs text-slate-500 font-medium">Out of Office (Today)</p>
                     </div>
                   </div>
-                  <span className="text-lg font-bold text-slate-800">{data.leaveMonitoring.staffOnLeaveToday}</span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.staffOnLeaveToday}</span>
+                    <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-[#7B0099] group-hover:translate-x-1 transition-all duration-300" />
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* 6. Employee Performance Attendance Ranking */}
-          <Card className="col-span-1 lg:col-span-2 rounded-lg shadow-sm border-slate-200">
+          <Card className={`col-span-1 lg:col-span-2 rounded-lg shadow-sm border-slate-200 ${cardHoverEffect}`}>
             <CardHeader className="p-5 border-b border-slate-100 pb-4">
               <CardTitle className="text-base font-bold text-slate-800">Employee Performance & Attendance</CardTitle>
             </CardHeader>
