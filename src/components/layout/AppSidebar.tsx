@@ -116,12 +116,20 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       roles: ADMIN_ROLES,
     },
     {
+      // Branch Leader / HOD: direct link to Employee Directory, no submenu
+      title: "Employee Management",
+      icon: Users,
+      path: "/employees",
+      roles: ["branch_leader", "head_of_department"],
+    },
+    {
+      // HR Admin / MD / Finance: full submenu with Department and Role management
       title: "Employee Management",
       icon: Users,
       path: "/master",
-      roles: ADMIN_ROLES,
+      roles: ["hr_admin", "managing_director", "finance_manager"],
       children: [
-        { title: "Employee Directory", icon: Users, path: "/employees", roles: ADMIN_ROLES },
+        { title: "Employee Directory", icon: Users, path: "/employees", roles: ["hr_admin", "managing_director", "finance_manager"] },
         { title: "Department", icon: Building2, path: "/master/department", roles: ["hr_admin"] },
         { title: "Role", icon: Settings, path: "/master/role", roles: ["hr_admin"] },
       ],
