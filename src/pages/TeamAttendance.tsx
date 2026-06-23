@@ -2,8 +2,9 @@ import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Users, Clock, AlertCircle, Building2 } from "lucide-react";
+import { Loader2, Users, Clock, AlertCircle, Building2, Calendar, Download, ChevronDown } from "lucide-react";
 import PageHeader from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,9 @@ export default function TeamAttendance() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [dateViewMode, setDateViewMode] = useState("DAY");
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,7 +40,7 @@ export default function TeamAttendance() {
         setEmployees(teamEmployees);
 
         // Fetch today's global attendance
-        const attRes = await fetch(`${API_BASE_URL}/api/reports/daily-attendance`);
+        const attRes = await fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${selectedDate}`);
         const attData = await attRes.json();
         const globalAttendance = attData.success ? (attData.report || attData.data || []) : [];
 
@@ -53,7 +57,7 @@ export default function TeamAttendance() {
     };
 
     fetchData();
-  }, [role, userBranch, userDepartment]);
+  }, [role, userBranch, userDepartment, selectedDate]);
 
   if (loading) {
     return (
@@ -72,18 +76,38 @@ export default function TeamAttendance() {
   // Merge employee info with their attendance
   const mergedList = employees.map(emp => {
     const att = attendanceData.find(a => a.user_id === emp.user_id);
+    let workingHours = "--:--";
+    if (att && att.clock_in && att.clock_out) {
+      const diffMs = new Date(att.clock_out).getTime() - new Date(att.clock_in).getTime();
+      const hrs = Math.floor(diffMs / (1000 * 60 * 60));
+      const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      workingHours = `${hrs}h ${mins}m`;
+    }
+    
+    let statusLabel = "Absent";
+    if (att) {
+       statusLabel = att.is_late ? "Late" : "Present";
+    }
+
     return {
       ...emp,
       time_in: att?.time_in || "--:--",
       time_out: att?.time_out || "--:--",
-      status: att ? "Present" : "Absent"
+      status: statusLabel,
+      workingHours
     };
   });
 
-  const filteredList = mergedList.filter(e => 
+  let filteredList = mergedList.filter(e => 
     e.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     e.user_id?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (statusFilter === "ON TIME") {
+    filteredList = filteredList.filter(e => e.status === "Present");
+  } else if (statusFilter === "LATE") {
+    filteredList = filteredList.filter(e => e.status === "Late");
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -145,16 +169,79 @@ export default function TeamAttendance() {
 
         {/* Table */}
         <Card className="border-border shadow-sm">
-          <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <CardTitle className="text-lg">Today's Attendance Log</CardTitle>
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search employee..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+          <CardHeader className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+            <CardTitle className="text-lg whitespace-nowrap">Today's Attendance Log</CardTitle>
+            
+            <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
+              {/* Date Picker */}
+              <div className="relative inline-flex">
+                <input 
+                  type="date" 
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <Button variant="outline" size="sm" className="bg-gray-50 border-gray-200 text-gray-900 hover:bg-gray-100 h-9 rounded-full px-4 flex items-center gap-2 shadow-sm text-xs font-bold pointer-events-none">
+                  <span>{`${new Date(selectedDate).getDate()}/${(new Date(selectedDate).getMonth() + 1).toString().padStart(2, '0')}/${new Date(selectedDate).getFullYear()}`}</span>
+                  <Calendar className="w-4 h-4 text-gray-600" />
+                </Button>
+              </div>
+
+              {/* Day / Month Toggle */}
+              <div className="flex items-center bg-gray-50 border border-gray-200 rounded-full p-1 shadow-sm">
+                <button 
+                  onClick={() => setDateViewMode('DAY')}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${dateViewMode === 'DAY' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}
+                >
+                  DAY
+                </button>
+                <button 
+                  onClick={() => setDateViewMode('MONTH')}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${dateViewMode === 'MONTH' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}
+                >
+                  MONTH
+                </button>
+              </div>
+
+              {/* Status Toggle */}
+              <div className="flex items-center bg-gray-50 border border-gray-200 rounded-full p-1 shadow-sm overflow-x-auto">
+                <button 
+                  onClick={() => setStatusFilter('ALL')}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'ALL' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}
+                >
+                  ALL
+                </button>
+                <button 
+                  onClick={() => setStatusFilter('ON TIME')}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'ON TIME' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}
+                >
+                  ON TIME
+                </button>
+                <button 
+                  onClick={() => setStatusFilter('LATE')}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'LATE' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}
+                >
+                  LATE
+                </button>
+              </div>
+
+              {/* Export Button */}
+              <Button size="sm" className="bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white border-0 h-9 rounded-full px-4 flex items-center gap-2 shadow-sm text-xs font-bold">
+                <Download className="w-4 h-4" />
+                <span>Export</span>
+                <ChevronDown className="w-3.5 h-3.5 ml-1" />
+              </Button>
+
+              {/* Search */}
+              <div className="relative w-full sm:w-64 shrink-0">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
+                <Input
+                  placeholder="Search employee..."
+                  className="pl-9 h-9 rounded-full border-gray-200 bg-white shadow-sm text-sm"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -167,6 +254,7 @@ export default function TeamAttendance() {
                     <TableHead>Department</TableHead>
                     <TableHead>Clock In</TableHead>
                     <TableHead>Clock Out</TableHead>
+                    <TableHead>Working Hours</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -185,9 +273,10 @@ export default function TeamAttendance() {
                         <TableCell>{emp.department || "-"}</TableCell>
                         <TableCell>{emp.time_in}</TableCell>
                         <TableCell>{emp.time_out}</TableCell>
+                        <TableCell className="font-medium text-gray-700">{emp.workingHours}</TableCell>
                         <TableCell>
-                          <Badge variant={emp.status === "Present" ? "default" : "destructive"} 
-                                 className={emp.status === "Present" ? "bg-green-500 hover:bg-green-600" : ""}>
+                          <Badge variant={emp.status === "Present" ? "default" : (emp.status === "Late" ? "secondary" : "destructive")} 
+                                 className={`${emp.status === "Present" ? "bg-green-500 hover:bg-green-600" : ""} ${emp.status === "Late" ? "bg-amber-500 hover:bg-amber-600 text-white" : ""}`}>
                             {emp.status}
                           </Badge>
                         </TableCell>
