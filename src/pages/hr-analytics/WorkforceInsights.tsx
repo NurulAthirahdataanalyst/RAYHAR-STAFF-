@@ -7,53 +7,9 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
-const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#8b5cf6']; // Present, On Leave, Absent, Late
+const COLORS = ['#10b981', '#8b5cf6', '#f59e0b', '#ef4444']; // Present, Late, On Leave, Absent
 
-const renderActiveShape = (props: any) => {
-  const RADIAN = Math.PI / 180;
-  const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
-  const sin = Math.sin(-RADIAN * midAngle);
-  const cos = Math.cos(-RADIAN * midAngle);
-  const sx = cx + (outerRadius + 10) * cos;
-  const sy = cy + (outerRadius + 10) * sin;
-  const mx = cx + (outerRadius + 20) * cos;
-  const my = cy + (outerRadius + 20) * sin;
-  const ex = mx + (cos >= 0 ? 1 : -1) * 22;
-  const ey = my;
-  const textAnchor = cos >= 0 ? 'start' : 'end';
 
-  return (
-    <g>
-      <text x={cx} y={cy} dy={8} textAnchor="middle" fill="#334155" className="text-xl font-bold">
-        {payload.name}
-      </text>
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius}
-        outerRadius={outerRadius + 10}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-      />
-      <Sector
-        cx={cx}
-        cy={cy}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        innerRadius={outerRadius + 12}
-        outerRadius={outerRadius + 16}
-        fill={fill}
-      />
-      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
-      <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
-      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#334155" className="text-sm font-semibold">{`${value}`}</text>
-      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#64748b" className="text-xs">
-        {`(${(percent * 100).toFixed(2)}%)`}
-      </text>
-    </g>
-  );
-};
 
 export default function WorkforceInsights() {
   const { role, userBranch, userDepartment } = useRole();
@@ -62,7 +18,6 @@ export default function WorkforceInsights() {
   const [data, setData] = useState<any>(null);
   const [month, setMonth] = useState((new Date().getMonth() + 1).toString().padStart(2, '0'));
   const [year, setYear] = useState(new Date().getFullYear().toString());
-  const [activeIndex, setActiveIndex] = useState(0);
 
   const fetchInsights = async () => {
     setLoading(true);
@@ -100,13 +55,14 @@ export default function WorkforceInsights() {
 
   const donutData = [
     { name: 'Present', value: data.teamAvailability.present },
+    { name: 'Late', value: data.teamAvailability.late },
     { name: 'On Leave', value: data.teamAvailability.onLeave },
     { name: 'Absent', value: data.teamAvailability.absent },
-    { name: 'Late', value: data.teamAvailability.late },
-  ].filter(d => d.value >= 0); // Keep 0 values to show the legend
+  ];
 
-  const onPieEnter = (_: any, index: number) => setActiveIndex(index);
-
+  const availableToday = data.teamAvailability.present + data.teamAvailability.late;
+  const totalTeam = availableToday + data.teamAvailability.onLeave + data.teamAvailability.absent;
+  const availabilityRate = totalTeam > 0 ? Math.round((availableToday / totalTeam) * 100) : 0;
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
         
@@ -229,41 +185,60 @@ export default function WorkforceInsights() {
           {/* 5. Team Availability Dashboard */}
           <Card className="col-span-1 rounded-lg shadow-sm border-slate-200 flex flex-col">
             <CardHeader className="p-5 border-b border-slate-100 pb-4 flex flex-row items-center justify-between">
-              <CardTitle className="text-base font-bold text-slate-800">Team Availability (Today)</CardTitle>
+              <CardTitle className="text-base font-bold text-slate-800">Team Availability</CardTitle>
             </CardHeader>
-            <CardContent className="p-5 flex-1 flex flex-col items-center justify-center relative">
-              <div className="w-full h-[250px] mb-2">
+            <CardContent className="p-5 flex-1 flex flex-col">
+              
+              {/* Chart Section (70%) */}
+              <div className="w-full relative flex-1 min-h-[220px] flex items-center justify-center mb-6 mt-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      activeIndex={activeIndex}
-                      activeShape={renderActiveShape}
                       data={donutData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      fill="#8884d8"
+                      innerRadius={75}
+                      outerRadius={95}
+                      paddingAngle={2}
                       dataKey="value"
-                      onMouseEnter={onPieEnter}
+                      stroke="none"
                     >
                       {donutData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
+                    <RechartsTooltip 
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      itemStyle={{ color: '#334155', fontWeight: 500 }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
+                
+                {/* Center KPI Overlay */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-4xl font-bold text-slate-800 tracking-tight leading-none">{availableToday}</span>
+                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mt-1">Available Today</span>
+                </div>
               </div>
-              <div className="w-full mt-auto grid grid-cols-2 gap-2">
-                {donutData.map((entry, index) => (
-                  <div key={entry.name} className="flex items-center justify-between text-xs p-2 bg-slate-50 rounded border border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                      <span className="text-slate-600 font-medium">{entry.name}</span>
+
+              {/* Legend & Stats Section (30%) */}
+              <div className="w-full mt-auto space-y-4">
+                <div className="grid grid-cols-2 gap-y-4 gap-x-2 border-t border-slate-100 pt-5">
+                  {donutData.map((entry, index) => (
+                    <div key={entry.name} className="flex flex-col">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                        <span className="text-xs font-medium text-slate-500">{entry.name}</span>
+                      </div>
+                      <span className="text-xl font-bold text-slate-800 pl-4">{entry.value}</span>
                     </div>
-                    <span className="font-bold text-slate-800">{entry.value}</span>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                
+                <div className="bg-slate-50 rounded-md p-3 flex items-center justify-between border border-slate-100 mt-2">
+                  <span className="text-sm font-semibold text-slate-600">Availability Rate</span>
+                  <span className="text-sm font-bold text-slate-800">{availabilityRate}%</span>
+                </div>
               </div>
             </CardContent>
           </Card>
