@@ -719,43 +719,7 @@ export default function AttendanceDashboard() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 py-6">
-      {/* ACTION BUTTONS */}
-      <div className="flex flex-col md:flex-row md:items-center justify-end gap-4 pb-2">
-        <div className="flex flex-wrap items-center justify-end w-full gap-2">
-          <div className="relative inline-flex">
-            <input 
-              type="date" 
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-            <Button variant="outline" size="sm" className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-lg px-3 flex items-center gap-1.5 shadow-sm text-xs font-medium pointer-events-none">
-              <Calendar className="w-4 h-4 text-gray-500" />
-              <span>{`${new Date(selectedDate).getDate()}/${new Date(selectedDate).getMonth() + 1}/${new Date(selectedDate).getFullYear()}`}</span>
-            </Button>
-          </div>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-lg px-3 flex items-center gap-1.5 shadow-sm text-xs font-medium">
-                <Download className="w-4 h-4 text-gray-500" />
-                <span>Export</span>
-                <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="rounded-lg shadow-lg border border-gray-200 bg-white z-50">
-              <DropdownMenuItem onClick={handleExport} className="text-xs font-medium text-gray-700 hover:bg-gray-50 px-3 py-2 cursor-pointer flex items-center gap-2">
-                <FileSpreadsheet className="w-4 h-4 text-green-600" />
-                <span>Export CSV</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleExportPDF} className="text-xs font-medium text-gray-700 hover:bg-gray-50 px-3 py-2 cursor-pointer flex items-center gap-2">
-                <FileText className="w-4 h-4 text-red-500" />
-                <span>Print PDF</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
+
 
       {/* ── LIVE PRESENCE PANEL ─────────────────────────────────────────── */}
       <Card className="border border-white/60 bg-white/40 backdrop-blur-2xl rounded-3xl shadow-xl shadow-purple-900/5 overflow-hidden ring-1 ring-black/5">
@@ -788,9 +752,39 @@ export default function AttendanceDashboard() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-500 font-semibold bg-white/50 px-3 py-1.5 rounded-lg border border-white/60 shadow-sm">
-              <RefreshCw className="w-3.5 h-3.5 animate-[spin_4s_linear_infinite]" />
-              Auto-refresh every 30s
+            <div className="flex items-center gap-2">
+              <div className="relative inline-flex">
+                <input 
+                  type="date" 
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <Button variant="outline" size="sm" className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-lg px-3 flex items-center gap-1.5 shadow-sm text-xs font-medium pointer-events-none">
+                  <Calendar className="w-4 h-4 text-gray-500" />
+                  <span>{`${new Date(selectedDate).getDate()}/${new Date(selectedDate).getMonth() + 1}/${new Date(selectedDate).getFullYear()}`}</span>
+                </Button>
+              </div>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-lg px-3 flex items-center gap-1.5 shadow-sm text-xs font-medium">
+                    <Download className="w-4 h-4 text-gray-500" />
+                    <span>Export</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="rounded-lg shadow-lg border border-gray-200 bg-white z-50">
+                  <DropdownMenuItem onClick={handleExport} className="text-xs font-medium text-gray-700 hover:bg-gray-50 px-3 py-2 cursor-pointer flex items-center gap-2">
+                    <FileSpreadsheet className="w-4 h-4 text-green-600" />
+                    <span>Export CSV</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportPDF} className="text-xs font-medium text-gray-700 hover:bg-gray-50 px-3 py-2 cursor-pointer flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-red-500" />
+                    <span>Print PDF</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
