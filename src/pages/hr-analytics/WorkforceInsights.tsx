@@ -7,7 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
-const COLORS = ['#10b981', '#8b5cf6', '#f59e0b', '#ef4444']; // Present, Late, On Leave, Absent
+const COLORS = ['#4f46e5', '#eab308', '#94a3b8', '#ef4444']; // Present, Late, On Leave, Absent
 
 
 
@@ -184,23 +184,28 @@ export default function WorkforceInsights() {
             </CardContent>
           </Card>
 
-          {/* 5. Team Availability Dashboard */}
           <Card className={`col-span-1 rounded-lg shadow-sm border-slate-200 flex flex-col ${cardHoverEffect}`}>
-            <CardHeader className="p-5 border-b border-slate-100 pb-4 flex flex-row items-center justify-between">
-              <CardTitle className="text-base font-bold text-slate-800">Team Availability</CardTitle>
+            <CardHeader className="p-5 border-b border-slate-100 pb-4">
+              <div className="flex flex-row items-start justify-between">
+                <div>
+                  <CardTitle className="text-base font-bold text-slate-800">Team Availability</CardTitle>
+                  <CardDescription className="text-xs text-slate-500 mt-1">Real-time status for the current shift</CardDescription>
+                </div>
+                <span className="bg-indigo-100 text-indigo-700 text-[10px] font-semibold px-2.5 py-1 rounded-full">Live</span>
+              </div>
             </CardHeader>
             <CardContent className="p-5 flex-1 flex flex-col">
               
-              {/* Chart Section (70%) */}
-              <div className="w-full relative flex-1 min-h-[220px] flex items-center justify-center mb-6 mt-2">
+              {/* Chart Section */}
+              <div className="w-full relative flex-1 min-h-[160px] flex items-center justify-center mb-2 mt-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={donutData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={75}
-                      outerRadius={95}
+                      innerRadius={65}
+                      outerRadius={85}
                       paddingAngle={2}
                       dataKey="value"
                       stroke="none"
@@ -218,29 +223,40 @@ export default function WorkforceInsights() {
                 
                 {/* Center KPI Overlay */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-4xl font-bold text-slate-800 tracking-tight leading-none">{availableToday}</span>
-                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mt-1">Available Today</span>
+                  <span className="text-3xl font-bold text-slate-800 tracking-tight leading-none">{availabilityRate}%</span>
+                  <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mt-1">Current Rate</span>
                 </div>
               </div>
 
-              {/* Legend & Stats Section (30%) */}
-              <div className="w-full mt-auto space-y-4">
-                <div className="grid grid-cols-2 gap-y-4 gap-x-2 border-t border-slate-100 pt-5">
-                  {donutData.map((entry, index) => (
-                    <div key={entry.name} className="flex flex-col">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                        <span className="text-xs font-medium text-slate-500">{entry.name}</span>
-                      </div>
-                      <span className="text-xl font-bold text-slate-800 pl-4">{entry.value}</span>
+              {/* Text Summary */}
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-bold text-indigo-600">{availableToday} Available Today</h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  {availableToday === totalTeam ? "All team members are accounted for." : `${totalTeam - availableToday} team members are not available.`}
+                </p>
+              </div>
+
+              {/* Vertical List Legend */}
+              <div className="w-full space-y-1 mt-auto">
+                {donutData.map((entry, index) => (
+                  <div key={entry.name} className={`flex items-center justify-between p-3 rounded-lg transition-colors ${index === 0 ? 'bg-indigo-50/50' : 'hover:bg-slate-50'}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                      <span className="text-sm font-medium text-slate-700">{entry.name}</span>
                     </div>
-                  ))}
-                </div>
-                
-                <div className="bg-slate-50 rounded-md p-3 flex items-center justify-between border border-slate-100 mt-2">
-                  <span className="text-sm font-semibold text-slate-600">Availability Rate</span>
-                  <span className="text-sm font-bold text-slate-800">{availabilityRate}%</span>
-                </div>
+                    <span className="text-base font-bold text-slate-900">{entry.value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-2 mt-6">
+                <Button className="w-full bg-[#4f46e5] hover:bg-[#4338ca] text-white">
+                  <CalendarDays className="w-4 h-4 mr-2" /> Plan Shift
+                </Button>
+                <Button variant="outline" className="w-full bg-indigo-50/50 hover:bg-indigo-50 border-transparent text-[#4f46e5] font-medium">
+                  <Users className="w-4 h-4 mr-2" /> Manage Team
+                </Button>
               </div>
             </CardContent>
           </Card>
