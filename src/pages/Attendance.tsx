@@ -238,7 +238,8 @@ export default function Attendance() {
     let overtime = 0;
     let breakTime = 0;
     
-    const today = new Date().toISOString().split('T')[0];
+    // Use en-CA locale for YYYY-MM-DD format in LOCAL timezone (avoids UTC date shift for UTC+8 users)
+    const today = new Date().toLocaleDateString('en-CA');
 
     // --- Company work-week schedule ---
     // Week 1 of month : Friday + Saturday are off  → work days Sun–Thu
@@ -286,15 +287,20 @@ export default function Attendance() {
         
         const logDate = new Date(log.clock_in);
         logDate.setHours(0, 0, 0, 0);
-        // Correctly handle timezone by using local date string for 'today' match
-        // Or just use the date property from the log directly
-        const logDateStr = log.date ? new Date(log.date).toISOString().split('T')[0] : logDate.toISOString().split('T')[0];
-        
+        // Use the plain date string (YYYY-MM-DD) from log.date for reliable comparison
+        // This avoids UTC↔local timezone conversion issues with clock_in timestamps
+        const logDateStr = log.date
+          ? log.date.split('T')[0]
+          : logDate.toLocaleDateString('en-CA'); // en-CA gives YYYY-MM-DD in local time
+
+        // Format weekStart as YYYY-MM-DD for string comparison (timezone-safe)
+        const weekStartStr = weekStart.toLocaleDateString('en-CA');
+
         if (logDateStr === today || (log.date && log.date.startsWith(today))) {
           totalToday += hours;
         }
-        // This week: from most recent Saturday up to today
-        if (logDate >= weekStart) {
+        // This week: from most recent Saturday (or Sunday in Week 1) up to today
+        if (logDateStr >= weekStartStr) {
           totalWeek += hours;
         }
       }
