@@ -724,7 +724,7 @@ export default function AttendanceDashboard() {
         <div className="flex flex-wrap items-center justify-end w-full gap-2">
           <Button variant="outline" size="sm" className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-lg px-3 flex items-center gap-1.5 shadow-sm text-xs font-medium">
             <Calendar className="w-4 h-4 text-gray-500" />
-            <span>06/21/2026</span>
+            <span>{`${new Date(selectedDate).getDate()}/${new Date(selectedDate).getMonth() + 1}/${new Date(selectedDate).getFullYear()}`}</span>
           </Button>
           
           <DropdownMenu>
@@ -746,14 +746,6 @@ export default function AttendanceDashboard() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          <Button onClick={handleExportPDF} className="bg-orange-500 hover:bg-orange-600 text-white h-9 rounded-lg px-4 shadow-sm text-xs font-semibold uppercase tracking-wider">
-            Report
-          </Button>
-          
-          <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg bg-white border-gray-200 text-gray-500 hover:bg-gray-50 shadow-sm">
-            <Settings2 className="w-4 h-4" />
-          </Button>
         </div>
       </div>
 
