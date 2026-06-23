@@ -279,11 +279,9 @@ export default function Attendance() {
         
         totalMonth += hours;
         
-        // Mock breaks and overtime
-        breakTime += hours * 0.1; // 10% break
-        if (hours > 9) {
-          overtime += (hours - 9);
-        }
+        // Break time calculation (10% of working hours)
+        breakTime += hours * 0.1;
+        // NOTE: Overtime (OT) is not functional yet — hardcoded to 00:00
         
         const logDate = new Date(log.clock_in);
         logDate.setHours(0, 0, 0, 0);
@@ -317,7 +315,7 @@ export default function Attendance() {
       totalHoursToday: formatHrs(totalToday),
       totalHoursWeek: formatHrs(totalWeek),
       totalHoursMonth: formatHrs(totalMonth),
-      overtimeMonth: formatHrs(overtime),
+      overtimeMonth: "00:00", // OT not functional yet
       productiveHours: formatHrs(totalMonth - breakTime),
       breakHours: formatHrs(breakTime)
     });
