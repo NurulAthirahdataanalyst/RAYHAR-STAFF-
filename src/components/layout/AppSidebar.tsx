@@ -149,7 +149,16 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     { title: "MAIN NAVIGATION", isSection: true, roles: ALL_ROLES },
     { title: "Dashboard", icon: LayoutDashboard, path: "/", roles: ALL_ROLES },
     { title: "Calendar", icon: Calendar, path: "/calendar", roles: ALL_ROLES },
-    { title: "Attendance", icon: Clock, path: "/attendance", roles: ALL_ROLES },
+    {
+      title: "Attendance",
+      icon: Clock,
+      path: "/attendance",
+      roles: ALL_ROLES,
+      children: [
+        { title: "Attendance Overview", icon: Clock, path: "/attendance", roles: ALL_ROLES },
+        { title: "Team Attendance", icon: Users, path: "/team-attendance", roles: FULL_ADMIN_ROLES },
+      ],
+    },
     {
       title: "Leave Management",
       icon: CalendarDays,
@@ -158,6 +167,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       children: [
         { title: "Leave Application", icon: FilePlus2, path: "/leave/apply", roles: ALL_ROLES },
         { title: "My Leave Requests", icon: FileSearch, path: "/leave/forms", roles: ALL_ROLES },
+        { title: "Team Leave Requests", icon: FileCheck, path: "/leave/team", roles: FULL_ADMIN_ROLES },
       ],
     },
     { title: "Analytics", icon: BarChart3, path: "/analytics", roles: ALL_ROLES },
@@ -189,6 +199,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       children: [
         { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance", roles: FULL_ADMIN_ROLES },
         { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave", roles: FULL_ADMIN_ROLES },
+        { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce", roles: FULL_ADMIN_ROLES },
       ]
     },
     {
@@ -199,6 +210,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       children: [
         { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance", roles: FULL_ADMIN_ROLES },
         { title: "Leave Reports", icon: FileSearch, path: "/reports/leave", roles: FULL_ADMIN_ROLES },
+        { title: "Department Reports", icon: Building2, path: "/reports/department", roles: FULL_ADMIN_ROLES },
       ]
     },
     { title: "Settings", icon: Settings, path: "/settings", roles: ["hr_admin"] },
