@@ -140,7 +140,6 @@ export default function WorkforceInsights() {
                 <SelectItem value="excel">Excel Data</SelectItem>
               </SelectContent>
             </Select>
-          </div>
         </div>
 
         {/* 1. Team Overview (Top KPI Cards) */}

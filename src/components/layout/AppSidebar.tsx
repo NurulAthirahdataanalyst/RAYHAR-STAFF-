@@ -53,10 +53,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   useEffect(() => {
     localStorage.setItem("appSidebarCollapsed", String(isCollapsed));
   }, [isCollapsed]);
-  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
-    "Leave Management": true,
-    "Administration": true
-  });
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
 
   // Close mobile drawer on route change
   useEffect(() => {
@@ -225,18 +222,20 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
   // Automatically expand submenus if any child page is active
   useEffect(() => {
+    let activeParentTitle = "";
     filteredItems.forEach(item => {
       if (item.children) {
-        const hasActiveChild = item.children.some(child => location.pathname === child.path);
-        if (hasActiveChild) {
-          setExpandedMenus(prev => {
-            if (prev[item.title]) return prev;
-            return { ...prev, [item.title]: true };
-          });
+        const isParentActive = item.path && (location.pathname === item.path || location.pathname.startsWith(`${item.path}/`));
+        const hasActiveChild = item.children.some(child => child.path && location.pathname === child.path);
+        if (hasActiveChild || isParentActive) {
+          activeParentTitle = item.title;
         }
       }
     });
-  }, [location.pathname, filteredItems]);
+    if (activeParentTitle) {
+      setExpandedMenus({ [activeParentTitle]: true });
+    }
+  }, [location.pathname]);
 
   const sidebarContent = (isMobile: boolean) => (
     <>
@@ -320,11 +319,11 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                 <Link
                   to={item.path || "#"}
                   onClick={(e) => {
-                    if (isMobile) {
+                    if (isMobile && !hasChildren) {
                       onMobileClose();
                     }
                     if (hasChildren && !isCollapsed) {
-                      setExpandedMenus((prev) => ({ ...prev, [item.title]: true }));
+                      setExpandedMenus(prev => prev[item.title] ? {} : { [item.title]: true });
                     }
                   }}
                   className={`group relative flex items-center gap-2.5 rounded-[14px] px-2.5 sm:px-3 py-2 transition-all duration-300 touch-target ${
@@ -359,7 +358,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        setExpandedMenus(prev => ({ ...prev, [item.title]: !prev[item.title] }));
+                        setExpandedMenus(prev => prev[item.title] ? {} : { [item.title]: true });
                       }}
                       className="ml-auto p-0.5 rounded-md text-slate-400 dark:text-slate-500 hover:text-[#7B0099] dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all"
                       aria-label={isMenuExpanded ? "Collapse submenu" : "Expand submenu"}
@@ -372,8 +371,6 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                 {/* Submenu for Expanded State (Desktop or Mobile) */}
                 {hasChildren && isMenuExpanded && (!isCollapsed || isMobile) && (
                   <div className="relative pl-7 pr-2 py-0.5 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                    {/* Vertical tree line */}
-                    <div className="absolute left-[23px] top-0 bottom-[18px] w-[1.5px] bg-slate-300/80 dark:bg-white/10" />
                     {visibleChildren.map((child) => {
                       const isChildActive = location.pathname === child.path;
                       const ChildIcon = child.icon as LucideIcon;
@@ -388,8 +385,6 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                               : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80"
                           }`}
                         >
-                          {/* Horizontal stub connector line */}
-                          <div className="absolute -left-[9px] top-1/2 -translate-y-1/2 w-[9px] h-[1.5px] bg-sidebar-border" />
                           <ChildIcon
                             className={`h-4 w-4 shrink-0 transition-colors ${
                               isChildActive ? "text-[#7B0099] dark:text-purple-400" : "text-sidebar-foreground/60 group-hover:text-sidebar-accent-foreground"
