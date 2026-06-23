@@ -722,10 +722,18 @@ export default function AttendanceDashboard() {
       {/* ACTION BUTTONS */}
       <div className="flex flex-col md:flex-row md:items-center justify-end gap-4 pb-2">
         <div className="flex flex-wrap items-center justify-end w-full gap-2">
-          <Button variant="outline" size="sm" className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-lg px-3 flex items-center gap-1.5 shadow-sm text-xs font-medium">
-            <Calendar className="w-4 h-4 text-gray-500" />
-            <span>{`${new Date(selectedDate).getDate()}/${new Date(selectedDate).getMonth() + 1}/${new Date(selectedDate).getFullYear()}`}</span>
-          </Button>
+          <div className="relative inline-flex">
+            <input 
+              type="date" 
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            <Button variant="outline" size="sm" className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-lg px-3 flex items-center gap-1.5 shadow-sm text-xs font-medium pointer-events-none">
+              <Calendar className="w-4 h-4 text-gray-500" />
+              <span>{`${new Date(selectedDate).getDate()}/${new Date(selectedDate).getMonth() + 1}/${new Date(selectedDate).getFullYear()}`}</span>
+            </Button>
+          </div>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
