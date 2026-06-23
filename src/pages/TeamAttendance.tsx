@@ -38,7 +38,7 @@ export default function TeamAttendance() {
         // Fetch today's global attendance
         const attRes = await fetch(`${API_BASE_URL}/api/reports/daily-attendance`);
         const attData = await attRes.json();
-        const globalAttendance = attData.success ? attData.data : [];
+        const globalAttendance = attData.success ? (attData.report || attData.data || []) : [];
 
         // Map attendance to our team employees
         const teamIds = new Set(teamEmployees.map((e: any) => e.user_id));
