@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Users, CalendarClock, CalendarX2, Building2 } from "lucide-react";
-
+import PageHeader from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -69,7 +69,8 @@ export default function TeamLeaveRequests() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-col md:flex-row justify-end items-start md:items-center mb-6 gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <PageHeader />
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline" className="text-sm font-medium border-primary/20 bg-primary/5">
               <Building2 className="w-4 h-4 mr-2 text-primary" />
