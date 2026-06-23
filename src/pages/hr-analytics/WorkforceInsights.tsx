@@ -58,6 +58,7 @@ const renderActiveShape = (props: any) => {
 export default function WorkforceInsights() {
   const { role, userBranch, userDepartment } = useRole();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<any>(null);
   const [month, setMonth] = useState((new Date().getMonth() + 1).toString().padStart(2, '0'));
   const [year, setYear] = useState(new Date().getFullYear().toString());
@@ -74,10 +75,18 @@ export default function WorkforceInsights() {
         year: year
       });
       const res = await fetch(`${API_BASE_URL}/api/reports/workforce-insights?${params}`);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
       const json = await res.json();
-      if (json.success) setData(json);
-    } catch (err) {
+      if (json.success) {
+        setData(json);
+      } else {
+        throw new Error(json.error || "Failed to fetch data");
+      }
+    } catch (err: any) {
       console.error(err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -85,7 +94,9 @@ export default function WorkforceInsights() {
 
   useEffect(() => { fetchInsights(); }, [role, userBranch, userDepartment, month, year]);
 
-  if (loading || !data) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">Error: {error}. The backend may still be deploying.</div>;
+  if (!data) return <div className="min-h-screen flex items-center justify-center text-slate-500">No data available</div>;
 
   const donutData = [
     { name: 'Present', value: data.teamAvailability.present },
