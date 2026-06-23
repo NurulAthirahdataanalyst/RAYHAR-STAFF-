@@ -289,14 +289,14 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       </div>
 
       {/* MENU */}
-      <div className={`flex-1 scrollbar-none pt-4 pb-2 border-r border-sidebar-border ${isCollapsed && !isMobile ? "overflow-visible" : "overflow-y-auto"}`}>
-        <nav className="space-y-0.5 px-2 sm:px-2.5 mt-2">
+      <div className={`flex-1 scrollbar-none pt-6 pb-4 border-r border-sidebar-border ${isCollapsed && !isMobile ? "overflow-visible" : "overflow-y-auto"}`}>
+        <nav className="space-y-2 px-3 sm:px-4 mt-2">
           {filteredItems.map((item, index) => {
             if (item.isSection) {
               if (isCollapsed && !isMobile) return <div key={item.title} className="h-4"></div>;
               return (
                 <div key={item.title} className={`px-2 mb-1.5 ${index > 0 ? "mt-5" : ""}`}>
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500/80">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-sidebar-foreground/40">
                     {item.title}
                   </span>
                 </div>
@@ -326,26 +326,26 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                       setExpandedMenus(prev => prev[item.title] ? {} : { [item.title]: true });
                     }
                   }}
-                  className={`group relative flex items-center gap-2.5 rounded-[14px] px-2.5 sm:px-3 py-2 transition-all duration-300 touch-target ${
+                  className={`group relative flex items-center gap-3.5 rounded-2xl px-4 py-3 transition-all duration-300 touch-target ${
                     isActive
-                      ? "bg-[#7B0099] text-white font-bold border-b-[4px] border-[#450057] dark:border-[#22002b] shadow-md hover:bg-[#850da0] hover:border-[#4d0161] active:translate-y-[2px] active:border-b-[2px]"
-                      : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80"
+                      ? "bg-blue-600 text-white font-semibold shadow-lg shadow-blue-600/20 hover:bg-blue-500"
+                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white"
                   } ${isCollapsed && !isMobile ? "justify-center px-0 w-12 mx-auto" : ""}`}
                 >
                   {ItemIcon && (
                     <ItemIcon
                       className={`h-5 w-5 shrink-0 transition-colors ${
                         isActive 
-                          ? "text-white dark:text-white" 
-                          : "text-sidebar-foreground/60 group-hover:text-sidebar-accent-foreground"
+                          ? "text-white" 
+                          : "text-sidebar-foreground/60 group-hover:text-white"
                       }`}
                     />
                   )}
                   {(!isCollapsed || isMobile) && (
-                    <span className={`text-[13.5px] whitespace-nowrap truncate animate-in fade-in slide-in-from-left-2 duration-300 ${
+                    <span className={`text-[14px] tracking-wide whitespace-nowrap truncate animate-in fade-in slide-in-from-left-2 duration-300 ${
                       isActive 
-                        ? "font-bold text-white dark:text-white" 
-                        : "text-sidebar-foreground/80 group-hover:text-sidebar-accent-foreground font-medium"
+                        ? "text-white font-semibold" 
+                        : "text-sidebar-foreground/80 group-hover:text-white font-medium"
                     }`}>
                       {item.title}
                     </span>
@@ -379,15 +379,15 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                           key={child.title}
                           to={child.path}
                           onClick={isMobile ? onMobileClose : undefined}
-                          className={`group relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-[12px] transition-all duration-300 touch-target ${
+                          className={`group relative flex items-center gap-3 rounded-[14px] px-3 py-2.5 text-[13px] transition-all duration-300 touch-target ${
                             isChildActive
-                              ? "bg-[#7B0099]/10 dark:bg-slate-800/80 font-bold text-[#7B0099] dark:text-purple-300 border-b-[3px] border-[#7B0099]/20 dark:border-slate-900 shadow-sm active:translate-y-[1px] active:border-b-[1px]"
-                              : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80"
+                              ? "bg-white/10 font-semibold text-white shadow-sm"
+                              : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white"
                           }`}
                         >
                           <ChildIcon
                             className={`h-4 w-4 shrink-0 transition-colors ${
-                              isChildActive ? "text-[#7B0099] dark:text-purple-400" : "text-sidebar-foreground/60 group-hover:text-sidebar-accent-foreground"
+                              isChildActive ? "text-blue-400" : "text-sidebar-foreground/50 group-hover:text-blue-300"
                             }`}
                           />
                           <span className="whitespace-nowrap truncate">{child.title}</span>
@@ -401,7 +401,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                 {hasChildren && isCollapsed && !isMobile && (
                   <div className="absolute left-full top-0 ml-3 z-50 hidden group-hover/menu-item:block min-w-[200px] bg-sidebar border border-sidebar-border rounded-[18px] p-2 shadow-[0_8px_30px_rgba(123,0,153,0.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200">
                     {/* Category Header */}
-                    <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#7B0099]/85 dark:text-purple-400 border-b border-blue-100/50 dark:border-white/5 mb-2">
+                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/50 border-b border-white/5 mb-2">
                       {item.title}
                     </div>
                     {/* Submenu Items */}
@@ -413,15 +413,15 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                           <Link
                             key={child.title}
                             to={child.path}
-                            className={`flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs transition-all duration-200 ${
+                            className={`flex items-center gap-3 rounded-[14px] px-3 py-2.5 text-[13px] transition-all duration-200 ${
                               isChildActive
-                                ? "bg-[#7B0099]/10 dark:bg-slate-800/80 font-bold text-[#7B0099] dark:text-purple-300 border-b-[3px] border-[#7B0099]/20 dark:border-slate-900 shadow-sm active:translate-y-[1px] active:border-b-[1px]"
-                                : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80"
+                                ? "bg-white/10 font-semibold text-white shadow-sm"
+                                : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white"
                             }`}
                           >
                             <ChildIcon
                               className={`h-4 w-4 shrink-0 transition-colors ${
-                                isChildActive ? "text-[#7B0099] dark:text-purple-400" : "text-slate-400 dark:text-slate-500"
+                                isChildActive ? "text-blue-400" : "text-sidebar-foreground/50 group-hover:text-blue-300"
                               }`}
                             />
                             <span className="whitespace-nowrap truncate">{child.title}</span>

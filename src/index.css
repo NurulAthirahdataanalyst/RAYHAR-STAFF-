@@ -53,13 +53,13 @@
 
     --radius: 0.625rem;
 
-    --sidebar-background: 214 77% 95%;
-    --sidebar-foreground: 215 25% 25%;
+    --sidebar-background: 230 25% 12%;
+    --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 289 100% 30%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 214 30% 90%;
-    --sidebar-accent-foreground: 289 100% 30%;
-    --sidebar-border: 214 30% 90%;
+    --sidebar-accent: 230 25% 18%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 230 25% 15%;
     --sidebar-ring: 289 100% 30%;
 
     --font-heading: 'Outfit', system-ui, sans-serif;
