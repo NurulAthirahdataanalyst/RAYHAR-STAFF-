@@ -32,6 +32,12 @@ import DepartmentDetails from "./pages/master/DepartmentDetails";
 import MasterOverview from "./pages/master/Overview";
 import Role from "./pages/master/Role";
 import AttendanceDashboard from "./pages/hr-analytics/AttendanceDashboard";
+import TeamAttendance from "./pages/TeamAttendance";
+import TeamLeaveRequests from "./pages/TeamLeaveRequests";
+import WorkforceInsights from "./pages/hr-analytics/WorkforceInsights";
+import AttendanceReports from "./pages/reports/AttendanceReports";
+import LeaveReports from "./pages/reports/LeaveReports";
+import DepartmentReports from "./pages/reports/DepartmentReports";
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
@@ -79,6 +85,14 @@ function ProtectedRoutes() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/calendar" element={<CalendarPage />} />
           
+          {/* Team-specific routes for Branch Leader / HOD */}
+          <Route path="/team-attendance" element={<TeamAttendance />} />
+          <Route path="/leave/team" element={<TeamLeaveRequests />} />
+          <Route path="/hr-analytics/workforce" element={<WorkforceInsights />} />
+          <Route path="/reports/attendance" element={<AttendanceReports />} />
+          <Route path="/reports/leave" element={<LeaveReports />} />
+          <Route path="/reports/department" element={<DepartmentReports />} />
+
           {/* Master Section */}
           <Route path="/master" element={<MasterOverview />} />
           <Route path="/master/department" element={<Department />} />
