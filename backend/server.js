@@ -2534,6 +2534,8 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         p.user_id,
         p.full_name,
         p.branch,
+        p.department,
+        p.role,
         a.clock_in,
         a.clock_out,
         TO_CHAR((a.clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,

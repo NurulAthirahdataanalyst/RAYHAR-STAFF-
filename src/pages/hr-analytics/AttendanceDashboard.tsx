@@ -1016,12 +1016,9 @@ export default function AttendanceDashboard() {
                 </SelectTrigger>
                 <SelectContent className="rounded-lg">
                   <SelectItem value="all">All Departments</SelectItem>
-                  <SelectItem value="UI/UX Team">UI/UX Team</SelectItem>
-                  <SelectItem value="Development">Development</SelectItem>
-                  <SelectItem value="HR">HR</SelectItem>
-                  <SelectItem value="Managing Director">Managing Director</SelectItem>
-                  <SelectItem value="Marketing">Marketing</SelectItem>
-                  <SelectItem value="Sales">Sales</SelectItem>
+                  {departments.map((dept, idx) => (
+                    <SelectItem key={idx} value={dept}>{dept}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
@@ -1136,7 +1133,7 @@ export default function AttendanceDashboard() {
                               </div>
                               <div>
                                 <span className="font-semibold text-gray-800 block text-xs">{record.full_name}</span>
-                                <span className="text-[10px] text-gray-400">{record.department}</span>
+                                <span className="text-[10px] text-gray-400 capitalize">{(record.role || "").replace(/_/g, ' ')}</span>
                               </div>
                             </div>
                           </td>
