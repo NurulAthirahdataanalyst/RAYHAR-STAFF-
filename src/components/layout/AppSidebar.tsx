@@ -290,7 +290,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
       {/* MENU */}
       <div className={`flex-1 scrollbar-none pt-6 pb-4 border-r border-sidebar-border ${isCollapsed && !isMobile ? "overflow-visible" : "overflow-y-auto"}`}>
-        <nav className="space-y-2 px-3 sm:px-4 mt-2">
+        <nav className={`space-y-2 mt-2 ${isCollapsed && !isMobile ? "px-2" : "px-3 sm:px-4"}`}>
           {filteredItems.map((item, index) => {
             if (item.isSection) {
               if (isCollapsed && !isMobile) return <div key={item.title} className="h-4"></div>;
@@ -326,11 +326,15 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                       setExpandedMenus(prev => prev[item.title] ? {} : { [item.title]: true });
                     }
                   }}
-                  className={`group relative flex items-center gap-3.5 rounded-2xl px-4 py-3 transition-all duration-300 touch-target ${
+                  className={`group relative flex items-center gap-3.5 rounded-2xl transition-all duration-300 touch-target ${
+                    isCollapsed && !isMobile 
+                      ? "justify-center px-0 w-11 h-11 mx-auto" 
+                      : "px-4 py-3"
+                  } ${
                     isActive
-                      ? "bg-blue-600 text-white font-semibold shadow-lg shadow-blue-600/20 hover:bg-blue-500"
+                      ? "bg-[#7B0099] text-white font-semibold shadow-lg shadow-[#7B0099]/20 hover:bg-[#8a00ab]"
                       : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white"
-                  } ${isCollapsed && !isMobile ? "justify-center px-0 w-12 mx-auto" : ""}`}
+                  }`}
                 >
                   {ItemIcon && (
                     <ItemIcon
@@ -453,7 +457,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           onClick={toggleTheme}
           title={isCollapsed && !isMobile ? `Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode` : ""}
           className={`group flex w-full justify-start gap-2.5 rounded-[16px] px-2.5 sm:px-2.5 py-2.5 text-sidebar-foreground/85 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground touch-target ${
-            isCollapsed && !isMobile ? "justify-center px-0 w-12 mx-auto" : ""
+            isCollapsed && !isMobile ? "justify-center px-0 w-11 h-11 mx-auto" : ""
           }`}
         >
           {theme === "light" ? (
@@ -473,7 +477,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           onClick={() => signOut()}
           title={isCollapsed && !isMobile ? "Sign Out" : ""}
           className={`group flex w-full justify-start gap-3 rounded-[16px] px-3 sm:px-3 py-3 text-sidebar-foreground/85 transition-all hover:bg-red-500/10 dark:hover:bg-red-950/20 hover:text-red-600 dark:hover:text-red-400 touch-target ${
-            isCollapsed && !isMobile ? "justify-center px-0 w-12 mx-auto" : ""
+            isCollapsed && !isMobile ? "justify-center px-0 w-11 h-11 mx-auto" : ""
           }`}
         >
           <LogOut className="h-5 w-5 shrink-0 transition-transform group-hover:-translate-x-1" />
