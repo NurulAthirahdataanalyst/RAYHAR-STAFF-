@@ -819,13 +819,8 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
       filterP = " AND p.branch = ?";
       paramsTotal.push(branch);
     } else if (role === 'head_of_department' && department && department !== "All") {
-      if (branch && branch !== "All") {
-        filterP = " AND p.branch = ? AND p.department = ?";
-        paramsTotal.push(branch, department);
-      } else {
-        filterP = " AND p.department = ?";
-        paramsTotal.push(department);
-      }
+      filterP = " AND p.department = ?";
+      paramsTotal.push(department);
     }
 
     // Total active employees
@@ -1225,9 +1220,9 @@ app.get("/api/leave-requests", async (req, res) => {
       if (role === "branch_leader" && branch) {
         filters.push("p.branch = ?");
         params.push(branch);
-      } else if (role === "head_of_department" && branch && req.query.department) {
-        filters.push("p.branch = ? AND p.department = ?");
-        params.push(branch, req.query.department);
+      } else if (role === "head_of_department" && req.query.department) {
+        filters.push("p.department = ?");
+        params.push(req.query.department);
       } else if (role === "head_of_department") {
         // Safety: HOD must have a department to see anything
         filters.push("1 = 0");
@@ -1512,7 +1507,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
         const employeeData = employeeRows[0];
 
         if (role === "head_of_department") {
-          if (approverData.branch !== employeeData.branch || approverData.department !== employeeData.department) {
+          if (approverData.department !== employeeData.department) {
             return res.status(403).json({ success: false, error: "Unauthorized: You can only approve requests from your own department." });
           }
         } else if (role === "branch_leader") {
@@ -1701,9 +1696,9 @@ app.get("/api/employees", async (req, res) => {
     if (role === "branch_leader" && branch) {
       filters.push("p.branch = ?");
       params.push(branch);
-    } else if (role === "head_of_department" && branch && req.query.department) {
-      filters.push("p.branch = ? AND p.department = ?");
-      params.push(branch, req.query.department);
+    } else if (role === "head_of_department" && req.query.department) {
+      filters.push("p.department = ?");
+      params.push(req.query.department);
     } else if (!["hr_admin", "managing_director", "finance_manager"].includes(role) && branch) {
       filters.push("p.branch = ?");
       params.push(branch);
@@ -2529,13 +2524,8 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       profileFilter = " AND p.branch = ?";
       queryParams.push(branch);
     } else if (role === 'head_of_department' && department && department !== "All") {
-      if (branch && branch !== "All") {
-        profileFilter = " AND p.branch = ? AND p.department = ?";
-        queryParams.push(branch, department);
-      } else {
-        profileFilter = " AND p.department = ?";
-        queryParams.push(department);
-      }
+      profileFilter = " AND p.department = ?";
+      queryParams.push(department);
     }
 
     const [rows] = await pool.query(
@@ -2629,13 +2619,8 @@ app.get("/api/reports/total-leave-requests", async (req, res) => {
       filter = " AND p.branch = ?";
       params.push(branch);
     } else if (role === 'head_of_department' && department && department !== "All") {
-      if (branch && branch !== "All") {
-        filter = " AND p.branch = ? AND p.department = ?";
-        params.push(branch, department);
-      } else {
-        filter = " AND p.department = ?";
-        params.push(department);
-      }
+      filter = " AND p.department = ?";
+      params.push(department);
     }
 
     const [rows] = await pool.query(
@@ -2733,13 +2718,8 @@ app.get("/api/reports/analytics", async (req, res) => {
       profileFilter = " AND p.branch = ?";
       pFilterParams.push(branch);
     } else if (role === 'head_of_department' && department && department !== "All") {
-      if (branch && branch !== "All") {
-        profileFilter = " AND p.branch = ? AND p.department = ?";
-        pFilterParams.push(branch, department);
-      } else {
-        profileFilter = " AND p.department = ?";
-        pFilterParams.push(department);
-      }
+      profileFilter = " AND p.department = ?";
+      pFilterParams.push(department);
     }
     
     const now = new Date();
@@ -3082,9 +3062,9 @@ app.get("/api/who-out-today", async (req, res) => {
     if (role === "branch_leader" && branch) {
       filters.push("p.branch = ?");
       params.push(branch);
-    } else if (role === "head_of_department" && branch && department) {
-      filters.push("p.branch = ? AND p.department = ?");
-      params.push(branch, department);
+    } else if (role === "head_of_department" && department) {
+      filters.push("p.department = ?");
+      params.push(department);
     } else if (role === "head_of_department") {
       filters.push("1 = 0");
     } else if (!["hr_admin", "managing_director", "finance_manager"].includes(role) && branch) {
@@ -3218,6 +3198,18 @@ app.get("/api/reports/generator", async (req, res) => {
 // ===============================
 app.get("/api/reports/leave-utilization", async (req, res) => {
   try {
+    const { role, branch, department } = req.query;
+    let filter = "";
+    let params = [];
+
+    if (role === 'branch_leader' && branch && branch !== "All") {
+      filter = " AND p.branch = ?";
+      params.push(branch);
+    } else if (role === 'head_of_department' && department && department !== "All") {
+      filter = " AND p.department = ?";
+      params.push(department);
+    }
+
     // 1. Department Utilization
     const [deptRows] = await pool.query(`
       SELECT 
@@ -3226,9 +3218,9 @@ app.get("/api/reports/leave-utilization", async (req, res) => {
         SUM(lr.days) as total_days
       FROM leave_requests lr
       JOIN profiles p ON p.user_id = lr.user_id
-      WHERE lr.status = 'Approved'
+      WHERE lr.status = 'Approved' ${filter}
       GROUP BY p.department, lr.leave_type
-    `);
+    `, params);
 
     // 2. Leave Type Distribution
     const [distRows] = await pool.query(`
@@ -3236,9 +3228,10 @@ app.get("/api/reports/leave-utilization", async (req, res) => {
         lr.leave_type, 
         SUM(lr.days) as total_days
       FROM leave_requests lr
-      WHERE lr.status = 'Approved'
+      JOIN profiles p ON p.user_id = lr.user_id
+      WHERE lr.status = 'Approved' ${filter}
       GROUP BY lr.leave_type
-    `);
+    `, params);
 
     // 3. Leader Leaves (Upcoming / Active HOD/Leader Leaves)
     const [leaderRows] = await pool.query(`
@@ -3255,10 +3248,10 @@ app.get("/api/reports/leave-utilization", async (req, res) => {
       FROM leave_requests lr
       JOIN profiles p ON p.user_id = lr.user_id
       JOIN user_role ur ON ur.user_id = p.user_id
-      WHERE lr.status = 'Approved' AND ur.role IN ('head_of_department', 'branch_leader')
+      WHERE lr.status = 'Approved' AND ur.role IN ('head_of_department', 'branch_leader') ${filter}
       ORDER BY lr.start_date DESC 
       LIMIT 10
-    `);
+    `, params);
 
     res.json({
       success: true,
