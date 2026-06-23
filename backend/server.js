@@ -2843,6 +2843,175 @@ app.get("/api/reports/analytics", async (req, res) => {
 });
 
 // ===============================
+// WORKFORCE INSIGHTS DASHBOARD API
+// ===============================
+app.get("/api/reports/workforce-insights", async (req, res) => {
+  try {
+    const { role, branch, department } = req.query;
+    const requestedMonth = parseInt(req.query.month) || (new Date().getMonth() + 1);
+    const requestedYear = parseInt(req.query.year) || new Date().getFullYear();
+    // In Malaysia timezone for accurate 'today'
+    const todayStr = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"})).toISOString().split('T')[0];
+    const lateTimeStr = getLateThresholdTime();
+
+    let profileFilter = "";
+    let pFilterParams = [];
+
+    if (role === 'branch_leader' && branch && branch !== "All") {
+      profileFilter = " AND p.branch = ?";
+      pFilterParams.push(branch);
+    } else if (role === 'head_of_department' && department && department !== "All") {
+      profileFilter = " AND p.department = ?";
+      pFilterParams.push(department);
+    }
+
+    // 1. Employees & KPI
+    const [empRows] = await pool.query(`SELECT COUNT(*) as total, SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) as active FROM profiles p WHERE 1=1 ${profileFilter}`, pFilterParams);
+    const totalHeadcount = parseInt(empRows[0].total || 0);
+    const activeEmployees = parseInt(empRows[0].active || 0);
+
+    // 2. Attendance & Lates
+    const [attRows] = await pool.query(
+      `SELECT 
+        a.user_id, p.name, a.clock_in, a.clock_out,
+        CASE WHEN ((a.clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END as is_late
+       FROM attendances a
+       JOIN profiles p ON p.user_id = a.user_id
+       WHERE EXTRACT(MONTH FROM a.clock_in) = ? AND EXTRACT(YEAR FROM a.clock_in) = ? AND p.status = 'Active' ${profileFilter}`,
+      [lateTimeStr, requestedMonth, requestedYear, ...pFilterParams]
+    );
+
+    let totalLateArrivals = 0;
+    let presentToday = 0;
+    let lateToday = 0;
+    
+    const userStats = {};
+
+    attRows.forEach(att => {
+      const isLate = parseInt(att.is_late) === 1;
+      const dateObj = new Date(att.clock_in);
+      const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0]; // Quick offset for Malaysia
+      
+      if (isLate) totalLateArrivals++;
+      if (dateStr === todayStr) {
+        presentToday++;
+        if (isLate) lateToday++;
+      }
+
+      if (!userStats[att.user_id]) {
+        userStats[att.user_id] = { name: att.name, presentDays: 0, lateDays: 0 };
+      }
+      userStats[att.user_id].presentDays++;
+      if (isLate) userStats[att.user_id].lateDays++;
+    });
+
+    const workingDaysInMonth = 22; 
+    const possibleAttendances = activeEmployees * workingDaysInMonth;
+    const averageAttendance = possibleAttendances > 0 ? Math.round((attRows.length / possibleAttendances) * 100) : 0;
+    const absences = Math.max(0, possibleAttendances - attRows.length);
+
+    // 3. Leave Stats
+    const [leaveRows] = await pool.query(
+      `SELECT lr.status, lr.start_date, lr.end_date, p.name
+       FROM leave_requests lr
+       JOIN profiles p ON p.user_id = lr.user_id
+       WHERE EXTRACT(MONTH FROM lr.start_date) = ? AND EXTRACT(YEAR FROM lr.start_date) = ? AND p.status = 'Active' ${profileFilter}`,
+      [requestedMonth, requestedYear, ...pFilterParams]
+    );
+
+    let pendingApproval = 0;
+    let approvedThisMonth = 0;
+    let onLeaveToday = 0;
+
+    leaveRows.forEach(lr => {
+      if (lr.status.startsWith('Pending')) pendingApproval++;
+      if (lr.status === 'Approved') approvedThisMonth++;
+      
+      const startObj = new Date(lr.start_date);
+      const endObj = new Date(lr.end_date);
+      const start = new Date(startObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
+      const end = new Date(endObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
+      
+      if (todayStr >= start && todayStr <= end && lr.status === 'Approved') {
+        onLeaveToday++;
+      }
+    });
+
+    // 4. Team Availability today
+    const absentToday = Math.max(0, activeEmployees - presentToday - onLeaveToday);
+
+    // 5. Rankings
+    const rankings = Object.values(userStats).map(u => ({
+      name: u.name,
+      attendanceRate: Math.min(100, Math.round((u.presentDays / workingDaysInMonth) * 100)),
+      lateCount: u.lateDays
+    }));
+
+    const topAttendance = [...rankings].sort((a, b) => b.attendanceRate - a.attendanceRate).slice(0, 5);
+    const topLate = [...rankings].sort((a, b) => b.lateCount - a.lateCount).filter(u => u.lateCount > 0).slice(0, 5);
+
+    // 6. Trends (Mock Data for presentation as requested)
+    const monthlyTrend = [
+      { month: "Jan", rate: 94 }, { month: "Feb", rate: 96 }, { month: "Mar", rate: 92 },
+      { month: "Apr", rate: 97 }, { month: "May", rate: 95 }, { month: "Jun", rate: 98 }
+    ];
+    
+    // Group attRows by date for daily trend
+    const dailyMap = {};
+    attRows.forEach(att => {
+      const dateObj = new Date(att.clock_in);
+      const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
+      const d = dateStr.slice(8, 10); // Day of month
+      if (!dailyMap[d]) dailyMap[d] = { rate: 0, lates: 0, count: 0 };
+      dailyMap[d].count++;
+      if (parseInt(att.is_late) === 1) dailyMap[d].lates++;
+    });
+    
+    const dailyTrend = Object.keys(dailyMap).sort().map(d => ({
+      date: d,
+      rate: activeEmployees > 0 ? Math.round((dailyMap[d].count / activeEmployees) * 100) : 0,
+      lates: dailyMap[d].lates
+    })).slice(-10); // Last 10 days with activity
+
+    res.json({
+      success: true,
+      topKpi: {
+        totalHeadcount,
+        activeEmployees,
+        attendanceRate: Math.min(100, averageAttendance),
+        onLeaveToday
+      },
+      attendanceOverview: {
+        averageAttendance: Math.min(100, averageAttendance),
+        lateArrivals: totalLateArrivals,
+        absences,
+        monthlyTrend,
+        dailyTrend
+      },
+      leaveMonitoring: {
+        pendingApproval,
+        approvedThisMonth,
+        staffOnLeaveToday: onLeaveToday
+      },
+      teamAvailability: {
+        present: presentToday,
+        onLeave: onLeaveToday,
+        absent: absentToday,
+        late: lateToday
+      },
+      performance: {
+        topAttendance,
+        topLate
+      }
+    });
+
+  } catch (err) {
+    console.error("Workforce Insights Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ===============================
 // GET & POST BRANCHES API
 // ===============================
 app.get("/api/branches", async (req, res) => {
