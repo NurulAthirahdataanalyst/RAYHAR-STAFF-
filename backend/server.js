@@ -2535,13 +2535,14 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         p.full_name,
         p.branch,
         p.department,
-        p.role,
+        COALESCE(ur.role, 'employee') AS role,
         a.clock_in,
         a.clock_out,
         TO_CHAR((a.clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
         TO_CHAR((a.clock_out AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out
       FROM profiles p
       JOIN attendances a ON p.user_id = a.user_id
+      LEFT JOIN user_role ur ON ur.user_id = p.user_id
       WHERE a.attendance_id IN (
         SELECT MAX(attendance_id) 
         FROM attendances 
