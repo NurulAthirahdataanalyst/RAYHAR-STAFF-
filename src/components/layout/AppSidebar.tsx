@@ -31,7 +31,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
-import rayharLogo from "@/assets/rayhar-logo.png";
+
 
 interface AppSidebarProps {
   mobileOpen: boolean;
@@ -239,18 +239,20 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
   const sidebarContent = (isMobile: boolean) => (
     <>
-      <div className={`relative shrink-0 flex items-center justify-center bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] border-b border-purple-950/20 dark:border-b-white/5 overflow-hidden transition-all ${
+      <div className={`relative shrink-0 flex items-center justify-center border-b border-purple-950/20 dark:border-b-white/5 overflow-hidden transition-all ${
         isCollapsed && !isMobile ? "h-20" : "h-20 px-3"
       }`}>
         {/* Mobile or Expanded Desktop view: show logo (and toggle on right for desktop) */}
         {(!isCollapsed || isMobile) ? (
           <div className="flex items-center justify-between w-full h-full gap-2">
-            <Link to="/" className="flex items-center justify-start h-full max-w-[70%] animate-in fade-in duration-300" onClick={isMobile ? onMobileClose : undefined}>
-              <img 
-                src={rayharLogo} 
-                alt="Rayhar Group" 
-                className="h-[65%] w-auto object-contain filter brightness-110" 
-              />
+            <Link to="/" className="flex items-center gap-3 animate-in fade-in duration-300 pl-1" onClick={isMobile ? onMobileClose : undefined}>
+              <div className="w-10 h-10 rounded-[14px] bg-gradient-to-br from-[#ae5df0] to-[#7B0099] flex items-center justify-center shadow-lg shadow-[#7B0099]/20">
+                <Building2 className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-white font-bold text-lg leading-none tracking-wide">Rayhar</span>
+                <span className="text-sidebar-foreground/50 text-[10px] font-bold tracking-widest mt-0.5">PORTAL</span>
+              </div>
             </Link>
             
             {/* Desktop Menu toggle button on the right */}
@@ -290,12 +292,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
       {/* MENU */}
       <div className={`flex-1 scrollbar-none pt-6 pb-4 border-r border-sidebar-border ${isCollapsed && !isMobile ? "overflow-visible" : "overflow-y-auto"}`}>
-        <nav className={`space-y-2 mt-2 ${isCollapsed && !isMobile ? "px-2" : "px-3 sm:px-4"}`}>
+        <nav className={`space-y-1 mt-2 ${isCollapsed && !isMobile ? "px-2" : "px-0 sm:px-0"}`}>
           {filteredItems.map((item, index) => {
             if (item.isSection) {
               if (isCollapsed && !isMobile) return <div key={item.title} className="h-4"></div>;
               return (
-                <div key={item.title} className={`px-2 mb-1.5 ${index > 0 ? "mt-5" : ""}`}>
+                <div key={item.title} className={`px-5 mb-1.5 ${index > 0 ? "mt-6" : ""}`}>
                   <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-sidebar-foreground/40">
                     {item.title}
                   </span>
@@ -326,29 +328,29 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                       setExpandedMenus(prev => prev[item.title] ? {} : { [item.title]: true });
                     }
                   }}
-                  className={`group relative flex items-center gap-3.5 rounded-2xl transition-all duration-300 touch-target ${
+                  className={`group relative flex items-center gap-3.5 transition-all duration-300 touch-target ${
                     isCollapsed && !isMobile 
-                      ? "justify-center px-0 w-11 h-11 mx-auto" 
-                      : "px-4 py-3"
+                      ? "justify-center px-0 w-11 h-11 mx-auto rounded-xl" 
+                      : "px-5 py-3 rounded-r-2xl mr-4"
                   } ${
                     isActive
-                      ? "bg-[#7B0099] text-white font-semibold shadow-lg shadow-[#7B0099]/20 hover:bg-[#8a00ab]"
-                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white"
+                      ? "bg-[#7B0099]/10 text-[#e0c4ff] font-semibold border-l-[3px] border-[#7B0099]"
+                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white border-l-[3px] border-transparent"
                   }`}
                 >
                   {ItemIcon && (
                     <ItemIcon
                       className={`h-5 w-5 shrink-0 transition-colors ${
                         isActive 
-                          ? "text-white" 
-                          : "text-sidebar-foreground/60 group-hover:text-white"
+                          ? "text-[#e0c4ff]" 
+                          : "text-sidebar-foreground/60 group-hover:text-[#e0c4ff]"
                       }`}
                     />
                   )}
                   {(!isCollapsed || isMobile) && (
                     <span className={`text-[14px] tracking-wide whitespace-nowrap truncate animate-in fade-in slide-in-from-left-2 duration-300 ${
                       isActive 
-                        ? "text-white font-semibold" 
+                        ? "text-[#e0c4ff] font-semibold" 
                         : "text-sidebar-foreground/80 group-hover:text-white font-medium"
                     }`}>
                       {item.title}
@@ -374,7 +376,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
                 {/* Submenu for Expanded State (Desktop or Mobile) */}
                 {hasChildren && isMenuExpanded && (!isCollapsed || isMobile) && (
-                  <div className="relative pl-7 pr-2 py-0.5 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="relative pl-[3.25rem] pr-6 py-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="absolute left-[1.7rem] top-0 bottom-4 w-px bg-sidebar-border"></div>
                     {visibleChildren.map((child) => {
                       const isChildActive = location.pathname === child.path;
                       const ChildIcon = child.icon as LucideIcon;
@@ -383,17 +386,13 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                           key={child.title}
                           to={child.path}
                           onClick={isMobile ? onMobileClose : undefined}
-                          className={`group relative flex items-center gap-3 rounded-[14px] px-3 py-2.5 text-[13px] transition-all duration-300 touch-target ${
+                          className={`group relative flex items-center gap-3 rounded-[14px] px-4 py-2.5 text-[13px] transition-all duration-300 touch-target ${
                             isChildActive
-                              ? "bg-white/10 font-semibold text-white shadow-sm"
-                              : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white"
+                              ? "bg-[#7B0099]/10 font-semibold text-[#e0c4ff] border border-[#7B0099]/30"
+                              : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white border border-transparent"
                           }`}
                         >
-                          <ChildIcon
-                            className={`h-4 w-4 shrink-0 transition-colors ${
-                              isChildActive ? "text-blue-400" : "text-sidebar-foreground/50 group-hover:text-blue-300"
-                            }`}
-                          />
+                          <div className={`absolute -left-[1.55rem] top-1/2 w-[1.55rem] border-t transition-colors ${isChildActive ? 'border-[#7B0099]/50' : 'border-sidebar-border group-hover:border-white/30'}`}></div>
                           <span className="whitespace-nowrap truncate">{child.title}</span>
                         </Link>
                       );
@@ -419,15 +418,10 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                             to={child.path}
                             className={`flex items-center gap-3 rounded-[14px] px-3 py-2.5 text-[13px] transition-all duration-200 ${
                               isChildActive
-                                ? "bg-white/10 font-semibold text-white shadow-sm"
-                                : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white"
+                                ? "bg-[#7B0099]/10 font-semibold text-[#e0c4ff] border border-[#7B0099]/30"
+                                : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white border border-transparent"
                             }`}
                           >
-                            <ChildIcon
-                              className={`h-4 w-4 shrink-0 transition-colors ${
-                                isChildActive ? "text-blue-400" : "text-sidebar-foreground/50 group-hover:text-blue-300"
-                              }`}
-                            />
                             <span className="whitespace-nowrap truncate">{child.title}</span>
                           </Link>
                         );
