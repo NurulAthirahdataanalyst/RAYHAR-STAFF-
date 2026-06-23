@@ -89,7 +89,7 @@ export default function LeaveAdmin() {
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
-  const [activeTab, setActiveTab] = useState<TabFilter>("pending");
+  const [activeTab, setActiveTab] = useState<TabFilter>("history");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
 
   const months = [
