@@ -358,68 +358,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       </div>
                     )}
 
-                    {/* ═══════ SECONDARY CARD: PRESENCE FEED OR CALENDAR ═══════ */}
-                    {["hr_admin", "managing_director"].includes(resolvedRole) ? (
+                    {/* ═══════ SECONDARY CARD: PRESENCE FEED ═══════ */}
+                    {["hr_admin", "managing_director"].includes(resolvedRole) && (
                       <PresenceFeed isCollapsed={false} />
-                    ) : location.pathname !== "/calendar" ? (
-                      <div className="bg-card/85 dark:bg-card/40 backdrop-blur-md p-3.5 rounded-[20px] shadow-xl border border-white/40 dark:border-white/10 w-full">
-                        <div className="flex items-center justify-between mb-2.5">
-                          <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-                            Calendar
-                          </h3>
-                          <span className="text-xs font-black text-[#7B0099] dark:text-purple-400">
-                            {monthName} {calendarYear}
-                          </span>
-                        </div>
-                        <div className="mb-3 rounded-[16px] bg-white/45 dark:bg-black/20 p-3 border border-white/30 dark:border-white/5">
-                          <div className="grid grid-cols-7 gap-1 mb-2">
-                            {weekdays.map((day, index) => (
-                              <span key={`${day}-${index}`} className="text-center text-[10px] font-black text-muted-foreground/60">
-                                {day}
-                              </span>
-                            ))}
-                          </div>
-                          <div className="grid grid-cols-7 gap-1">
-                            {calendarDays.map((day, index) => {
-                              const isToday = day === today.getDate();
-                              const isHoliday = calendarMonth === 3 && day === 22;
-
-                              return (
-                                <div
-                                  key={index}
-                                  className={`aspect-square rounded-lg flex items-center justify-center text-[11px] font-bold ${
-                                    !day
-                                      ? "text-transparent"
-                                      : isToday
-                                        ? "bg-[#7B0099] text-white shadow-lg shadow-purple-900/20"
-                                        : isHoliday
-                                          ? "bg-[#C2185B] text-white"
-                                          : "text-foreground/80 hover:bg-white/60 dark:hover:bg-white/10"
-                                  }`}
-                                >
-                                  {day || "."}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                        <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-2.5">
-                          Upcoming Holidays
-                        </h3>
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-3 p-3 bg-white/40 dark:bg-white/5 rounded-[16px] border border-white/20 dark:border-white/5">
-                            <div className="bg-[#C2185B] text-white p-2 rounded-xl font-bold text-center min-w-[50px] shadow-lg">
-                              <span className="block text-[10px] uppercase opacity-80">Apr</span>
-                              <span className="text-lg leading-none font-black">22</span>
-                            </div>
-                            <div>
-                              <p className="text-sm font-bold text-foreground">Hari Raya Aidilfitri</p>
-                              <p className="text-[10px] text-muted-foreground font-medium italic">Public Holiday</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : null}
+                    )}
                   </>
                 ) : (
                   /* Unified Collapsed Dock */
@@ -445,29 +387,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
                     {["hr_admin", "managing_director"].includes(resolvedRole) && (
                       <PresenceFeed isCollapsed={true} />
-                    )}
-
-                    {resolvedRole !== "hr_admin" && resolvedRole !== "managing_director" && location.pathname !== "/calendar" && (
-                      <div 
-                        onClick={() => navigate("/calendar")}
-                        className="relative group flex items-center justify-center w-11 h-11 rounded-xl bg-card border border-border/40 text-foreground shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
-                      >
-                        <Calendar className="w-5 h-5 text-[#7B0099]" />
-                        <div className="absolute right-full mr-3 px-3 py-2 bg-slate-900 dark:bg-slate-950 text-white text-xs rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 whitespace-nowrap z-50 transform translate-x-2 group-hover:translate-x-0 border border-slate-800 flex flex-col gap-0.5 animate-in fade-in slide-in-from-right-2">
-                          <p className="font-bold text-slate-100">Calendar Summary</p>
-                          <p className="opacity-80">{monthName} {calendarYear}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {resolvedRole !== "hr_admin" && resolvedRole !== "managing_director" && location.pathname !== "/calendar" && (
-                      <div className="relative group flex items-center justify-center w-10 h-10 rounded-xl bg-card border border-border/40 text-foreground shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer">
-                        <Sparkles className="w-5 h-5 text-pink-500 animate-pulse" />
-                        <div className="absolute right-full mr-3 px-3 py-2 bg-slate-900 dark:bg-slate-950 text-white text-xs rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 whitespace-nowrap z-50 transform translate-x-2 group-hover:translate-x-0 border border-slate-800 flex flex-col gap-0.5 animate-in fade-in slide-in-from-right-2">
-                          <p className="font-bold text-slate-100">Upcoming Holiday</p>
-                          <p className="opacity-80">Apr 22: Hari Raya Aidilfitri</p>
-                        </div>
-                      </div>
                     )}
                   </div>
                 )}

@@ -808,38 +808,56 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
 let sseClients = [];
 let liveStatsClients = [];
 
-async function getLiveAttendanceStats(queryDate) {
+async function getLiveAttendanceStats(queryDate, role, branch, department) {
   const dateStr = queryDate || new Date().toISOString().split('T')[0];
   try {
     const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
 
+    let filterP = "";
+    let paramsTotal = [];
+    if (role === 'branch_leader' && branch && branch !== "All") {
+      filterP = " AND p.branch = ?";
+      paramsTotal.push(branch);
+    } else if (role === 'head_of_department' && department && department !== "All") {
+      if (branch && branch !== "All") {
+        filterP = " AND p.branch = ? AND p.department = ?";
+        paramsTotal.push(branch, department);
+      } else {
+        filterP = " AND p.department = ?";
+        paramsTotal.push(department);
+      }
+    }
+
     // Total active employees
     const [totalRows] = await pool.query(
-      `SELECT COUNT(*) AS total FROM profiles WHERE status = 'Active'`
+      `SELECT COUNT(*) AS total FROM profiles p WHERE p.status = 'Active' ${filterP}`,
+      paramsTotal
     );
     const total = parseInt(totalRows[0].total) || 0;
 
     // On leave today
+    const leaveParams = [dateStr, ...paramsTotal];
     const [leaveRows] = await pool.query(
       `SELECT DISTINCT lr.user_id, p.full_name, p.branch, p.department
        FROM leave_requests lr
        JOIN profiles p ON p.user_id = lr.user_id
        WHERE lr.status = 'Approved' AND ? BETWEEN lr.start_date AND lr.end_date
-       AND p.status = 'Active'`,
-      [dateStr]
+       AND p.status = 'Active' ${filterP}`,
+      leaveParams
     );
 
     const onLeaveIds = new Set(leaveRows.map(r => r.user_id));
 
     // All clock-ins today
+    const clockParams = [dateStr, ...paramsTotal];
     const [clockRows] = await pool.query(
       `SELECT a.user_id, p.full_name, p.branch, p.department, a.clock_in, a.clock_out
        FROM attendances a
        JOIN profiles p ON p.user_id = a.user_id
        WHERE DATE(a.clock_in) = ?
-       AND p.status = 'Active'
+       AND p.status = 'Active' ${filterP}
        ORDER BY a.clock_in ASC`,
-      [dateStr]
+      clockParams
     );
 
     // Deduplicate by user_id (latest record per user)
@@ -901,9 +919,11 @@ function broadcastPresenceUpdate(payload = { type: 'refresh' }) {
   // Also refresh live stats clients
   if (liveStatsClients.length > 0) {
     const today = new Date().toISOString().split('T')[0];
-    getLiveAttendanceStats(today).then(data => {
-      liveStatsClients.forEach(c => c.res.write(`data: ${JSON.stringify(data)}\n\n`));
-    }).catch(console.error);
+    liveStatsClients.forEach(c => {
+      getLiveAttendanceStats(today, c.role, c.branch, c.department).then(data => {
+        c.res.write(`data: ${JSON.stringify(data)}\n\n`);
+      }).catch(console.error);
+    });
   }
 }
 
@@ -938,10 +958,11 @@ app.get("/api/presence/live-stats", async (req, res) => {
   res.write(": connected\n\n");
 
   const queryDate = req.query.date ? req.query.date.toString() : new Date().toISOString().split('T')[0];
+  const { role, branch, department } = req.query;
 
   // Send initial snapshot immediately
   try {
-    const snapshot = await getLiveAttendanceStats(queryDate);
+    const snapshot = await getLiveAttendanceStats(queryDate, role, branch, department);
     res.write(`data: ${JSON.stringify(snapshot)}\n\n`);
   } catch (e) {
     console.error("live-stats initial send error:", e);
@@ -950,14 +971,14 @@ app.get("/api/presence/live-stats", async (req, res) => {
   // Refresh every 30 seconds
   const interval = setInterval(async () => {
     try {
-      const data = await getLiveAttendanceStats(queryDate);
+      const data = await getLiveAttendanceStats(queryDate, role, branch, department);
       res.write(`data: ${JSON.stringify(data)}\n\n`);
     } catch (e) {
       console.error("live-stats interval error:", e);
     }
   }, 30000);
 
-  const clientEntry = { res };
+  const clientEntry = { res, role, branch, department };
   liveStatsClients.push(clientEntry);
   console.log(`📊 Live-stats SSE client connected. Total: ${liveStatsClients.length}`);
 
@@ -2497,10 +2518,26 @@ app.get("/api/dashboard-stats", async (req, res) => {
 // DAILY ATTENDANCE REPORT
 // ===============================
 app.get("/api/reports/daily-attendance", async (req, res) => {
-  const { date } = req.query;
+  const { date, role, branch, department } = req.query;
   const queryDate = date ? date : null;
 
   try {
+    let profileFilter = "";
+    let queryParams = queryDate ? [queryDate, queryDate] : [];
+
+    if (role === 'branch_leader' && branch && branch !== "All") {
+      profileFilter = " AND p.branch = ?";
+      queryParams.push(branch);
+    } else if (role === 'head_of_department' && department && department !== "All") {
+      if (branch && branch !== "All") {
+        profileFilter = " AND p.branch = ? AND p.department = ?";
+        queryParams.push(branch, department);
+      } else {
+        profileFilter = " AND p.department = ?";
+        queryParams.push(department);
+      }
+    }
+
     const [rows] = await pool.query(
       `
       SELECT 
@@ -2524,9 +2561,10 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         WHERE lr.user_id = p.user_id AND lr.status = 'Approved' 
         AND ${queryDate ? '?::date' : 'CURRENT_DATE'} BETWEEN lr.start_date AND lr.end_date
       )
+      ${profileFilter}
       ORDER BY a.clock_in DESC
       `,
-      queryDate ? [queryDate, queryDate] : []
+      queryParams
     );
 
     const lateTimeStr = getLateThresholdTime();
@@ -2583,8 +2621,29 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
 // ===============================
 app.get("/api/reports/total-leave-requests", async (req, res) => {
   try {
+    const { role, branch, department } = req.query;
+    let filter = "";
+    let params = [];
+
+    if (role === 'branch_leader' && branch && branch !== "All") {
+      filter = " AND p.branch = ?";
+      params.push(branch);
+    } else if (role === 'head_of_department' && department && department !== "All") {
+      if (branch && branch !== "All") {
+        filter = " AND p.branch = ? AND p.department = ?";
+        params.push(branch, department);
+      } else {
+        filter = " AND p.department = ?";
+        params.push(department);
+      }
+    }
+
     const [rows] = await pool.query(
-      `SELECT COUNT(*) as total FROM leave_requests`
+      `SELECT COUNT(*) AS total 
+       FROM leave_requests lr
+       JOIN profiles p ON p.user_id = lr.user_id
+       WHERE lr.status = 'Approved' ${filter}`,
+      params
     );
     res.json({ success: true, totalLeaveRequests: rows[0].total });
   } catch (err) {
@@ -2665,6 +2724,23 @@ app.get("/api/reports/analytics", async (req, res) => {
     const requestedMonth = parseInt(req.query.month) || (new Date().getMonth() + 1);
     const requestedYear = parseInt(req.query.year) || new Date().getFullYear();
     const requestedDateStr = req.query.date || new Date().toISOString().split('T')[0];
+    const { role, branch, department } = req.query;
+    
+    let profileFilter = "";
+    let pFilterParams = [];
+
+    if (role === 'branch_leader' && branch && branch !== "All") {
+      profileFilter = " AND p.branch = ?";
+      pFilterParams.push(branch);
+    } else if (role === 'head_of_department' && department && department !== "All") {
+      if (branch && branch !== "All") {
+        profileFilter = " AND p.branch = ? AND p.department = ?";
+        pFilterParams.push(branch, department);
+      } else {
+        profileFilter = " AND p.department = ?";
+        pFilterParams.push(department);
+      }
+    }
     
     const now = new Date();
     const isCurrentMonth = requestedMonth === (now.getMonth() + 1) && requestedYear === now.getFullYear();
@@ -2682,10 +2758,10 @@ app.get("/api/reports/analytics", async (req, res) => {
       LEFT JOIN attendances a ON p.user_id = a.user_id 
         AND EXTRACT(MONTH FROM a.clock_in) = ? 
         AND EXTRACT(YEAR FROM a.clock_in) = ?
-      WHERE p.status = 'Active'
+      WHERE p.status = 'Active' ${profileFilter}
       GROUP BY p.branch
       `,
-      [requestedDateStr, requestedMonth, requestedYear]
+      [requestedDateStr, requestedMonth, requestedYear, ...pFilterParams]
     );
 
     const branchComparison = branchRows.map(row => {
@@ -2707,29 +2783,32 @@ app.get("/api/reports/analytics", async (req, res) => {
     const [attendanceRows] = await pool.query(
       `
       SELECT 
-        EXTRACT(MONTH FROM clock_in) as month_num,
-        COUNT(DISTINCT (user_id, DATE(clock_in))) as total_present
-      FROM attendances
-      WHERE EXTRACT(YEAR FROM clock_in) = ?
-      GROUP BY EXTRACT(MONTH FROM clock_in)
+        EXTRACT(MONTH FROM a.clock_in) as month_num,
+        COUNT(DISTINCT (a.user_id, DATE(a.clock_in))) as total_present
+      FROM attendances a
+      JOIN profiles p ON p.user_id = a.user_id
+      WHERE EXTRACT(YEAR FROM a.clock_in) = ? AND p.status = 'Active' ${profileFilter}
+      GROUP BY EXTRACT(MONTH FROM a.clock_in)
       `,
-      [requestedYear]
+      [requestedYear, ...pFilterParams]
     );
 
     const [leaveRows] = await pool.query(
       `
       SELECT
-        EXTRACT(MONTH FROM start_date) as month_num,
+        EXTRACT(MONTH FROM lr.start_date) as month_num,
         COUNT(*) as total_leaves
-      FROM leave_requests
-      WHERE EXTRACT(YEAR FROM start_date) = ? AND status = 'Approved'
-      GROUP BY EXTRACT(MONTH FROM start_date)
+      FROM leave_requests lr
+      JOIN profiles p ON p.user_id = lr.user_id
+      WHERE EXTRACT(YEAR FROM lr.start_date) = ? AND lr.status = 'Approved' AND p.status = 'Active' ${profileFilter}
+      GROUP BY EXTRACT(MONTH FROM lr.start_date)
       `,
-      [requestedYear]
+      [requestedYear, ...pFilterParams]
     );
 
     const [employeeCountRow] = await pool.query(
-      `SELECT COUNT(*) as total FROM profiles WHERE status = 'Active'`
+      `SELECT COUNT(*) as total FROM profiles p WHERE p.status = 'Active' ${profileFilter}`,
+      pFilterParams
     );
     const totalActiveEmployees = employeeCountRow[0].total || 1;
 

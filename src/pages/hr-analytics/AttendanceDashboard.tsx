@@ -94,7 +94,7 @@ interface Department {
 }
 
 export default function AttendanceDashboard() {
-  const { role } = useRole();
+  const { role, userBranch, userDepartment } = useRole();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("presenceSidebarCollapsed") === "true";
@@ -240,8 +240,8 @@ export default function AttendanceDashboard() {
     setLoadingDaily(true);
     try {
       const [resDaily, resStats] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${selectedDate}`),
-        fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=hr_admin&branch=All&date=${selectedDate}`)
+        fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${selectedDate}&role=${role || ""}&branch=${userBranch || ""}&department=${userDepartment || ""}`),
+        fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=${role || ""}&branch=${userBranch || "All"}&department=${userDepartment || "All"}&date=${selectedDate}`)
       ]);
       const data = await resDaily.json();
       const statsData = await resStats.json();
@@ -276,7 +276,14 @@ export default function AttendanceDashboard() {
   const fetchAnalytics = async () => {
     setLoadingAnalytics(true);
     try {
-      const params = new URLSearchParams({ month: selectedMonth.toString(), year: selectedYear.toString(), date: selectedDate });
+      const params = new URLSearchParams({ 
+        month: selectedMonth.toString(), 
+        year: selectedYear.toString(), 
+        date: selectedDate,
+        role: role || "",
+        branch: userBranch || "",
+        department: userDepartment || ""
+      });
       const response = await fetch(`${API_BASE_URL}/api/reports/analytics?${params}`);
       const data = await response.json();
       if (data.success) {
@@ -292,7 +299,12 @@ export default function AttendanceDashboard() {
 
   const fetchTotalLeaveRequests = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/reports/total-leave-requests`);
+      const params = new URLSearchParams({
+        role: role || "",
+        branch: userBranch || "",
+        department: userDepartment || ""
+      });
+      const response = await fetch(`${API_BASE_URL}/api/reports/total-leave-requests?${params}`);
       const data = await response.json();
       if (data.success) setTotalLeaveRequests(data.totalLeaveRequests);
     } catch (error) {
@@ -303,7 +315,12 @@ export default function AttendanceDashboard() {
   const fetchLeaveUtilization = async () => {
     setLoadingLeave(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/reports/leave-utilization`);
+      const params = new URLSearchParams({
+        role: role || "",
+        branch: userBranch || "",
+        department: userDepartment || ""
+      });
+      const response = await fetch(`${API_BASE_URL}/api/reports/leave-utilization?${params}`);
       const data = await response.json();
       if (data.success) setLeaveUtilization(data);
     } catch (e) {
@@ -325,7 +342,7 @@ export default function AttendanceDashboard() {
 
   // ── LIVE-STATS SSE CONNECTION ─────────────────────────────────────────
   useEffect(() => {
-    const url = `${API_BASE_URL}/api/presence/live-stats?date=${selectedDate}`;
+    const url = `${API_BASE_URL}/api/presence/live-stats?date=${selectedDate}&role=${role || ""}&branch=${userBranch || ""}&department=${userDepartment || ""}`;
     const es = new EventSource(url);
     liveEsRef.current = es;
 
