@@ -945,9 +945,10 @@ export default function Calendar() {
         if (selectedEvent.type.startsWith('custom-') && !customCat) categoryName = 'Note';
 
         let tagColorClass = "bg-[#7B0099]/10 text-[#7B0099]";
-        if (selectedEvent.type === 'meeting') tagColorClass = "bg-blue-500/10 text-blue-700";
-        else if (selectedEvent.type === 'reminder') tagColorClass = "bg-red-500/10 text-red-700";
-        else if (selectedEvent.type === 'note') tagColorClass = "bg-yellow-500/10 text-yellow-700";
+        if (selectedEvent.type === 'meeting') tagColorClass = "bg-green-500/10 text-green-700";
+        else if (selectedEvent.type === 'reminder') tagColorClass = "bg-yellow-500/10 text-yellow-700";
+        else if (selectedEvent.type === 'note') tagColorClass = "bg-blue-500/10 text-blue-700";
+        else if (selectedEvent.type === 'holiday') tagColorClass = "bg-red-500/10 text-red-700";
         else if (customCat && CATEGORY_COLORS[customCat.color]) {
           tagColorClass = CATEGORY_COLORS[customCat.color].replace(/border-l-2 border-\S+ /, '');
         }
