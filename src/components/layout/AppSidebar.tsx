@@ -31,7 +31,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
-
+import rayharLogo from "@/assets/rayhar-logo.png";
 
 interface AppSidebarProps {
   mobileOpen: boolean;
@@ -137,13 +137,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "Department Reports", icon: Building2, path: "/reports/department", roles: HOD_BL_ROLES },
       ],
     },
-    { title: "ADMINISTRATION", isSection: true, roles: HOD_BL_ROLES },
+    { title: "Administration", isSection: true, roles: HOD_BL_ROLES },
     { title: "Employee Directory", icon: Users, path: "/employees", roles: HOD_BL_ROLES },
   ];
 
-  // ── Standard sidebar (employee, branch_officer, hr_admin, MD, finance) ───
-  const menuItems = [
-    { title: "MAIN NAVIGATION", isSection: true, roles: ALL_ROLES },
+  const menuItems: MenuItem[] = [
+    { title: "Main Navigation", isSection: true, roles: ALL_ROLES },
     { title: "Dashboard", icon: LayoutDashboard, path: "/", roles: ALL_ROLES },
     { title: "Calendar", icon: Calendar, path: "/calendar", roles: ALL_ROLES },
     {
@@ -152,8 +151,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       path: "/attendance",
       roles: ALL_ROLES,
       children: [
-        { title: "Attendance Overview", icon: Clock, path: "/attendance", roles: ALL_ROLES },
-        { title: "Team Attendance", icon: Users, path: "/team-attendance", roles: FULL_ADMIN_ROLES },
+        { title: "My Attendance", icon: Clock, path: "/attendance", roles: ALL_ROLES },
+        { title: "Timesheet", icon: ClipboardList, path: "/attendance/timesheet", roles: ALL_ROLES },
       ],
     },
     {
@@ -162,13 +161,15 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       path: "/leave",
       roles: ALL_ROLES,
       children: [
-        { title: "Leave Application", icon: FilePlus2, path: "/leave/apply", roles: ALL_ROLES },
-        { title: "My Leave Requests", icon: FileSearch, path: "/leave/forms", roles: ALL_ROLES },
+        { title: "Leave Application", icon: CalendarDays, path: "/leave", roles: ALL_ROLES },
+        { title: "My Leave Requests", icon: FileText, path: "/leave/requests", roles: ALL_ROLES },
+        { title: "Team Leave Requests", icon: Users, path: "/leave/team", roles: ["hr_admin", "manager", "hod", "branch_leader"] },
+        { title: "Leave Approval", icon: CheckSquare, path: "/leave/approval", roles: ["hr_admin", "manager", "hod", "branch_leader"] },
       ],
     },
     { title: "Analytics", icon: BarChart3, path: "/analytics", roles: ALL_ROLES },
 
-    { title: "HR ADMINISTRATION", isSection: true, roles: FULL_ADMIN_ROLES },
+    { title: "HR Administration", isSection: true, roles: FULL_ADMIN_ROLES },
     {
       title: "Leave Administration",
       icon: ClipboardList,
@@ -245,14 +246,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {/* Mobile or Expanded Desktop view: show logo (and toggle on right for desktop) */}
         {(!isCollapsed || isMobile) ? (
           <div className="flex items-center justify-between w-full h-full gap-2">
-            <Link to="/" className="flex items-center gap-3 animate-in fade-in duration-300 pl-1" onClick={isMobile ? onMobileClose : undefined}>
-              <div className="w-10 h-10 rounded-[14px] bg-gradient-to-br from-[#ae5df0] to-[#7B0099] flex items-center justify-center shadow-lg shadow-[#7B0099]/20">
-                <Building2 className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-white font-bold text-lg leading-none tracking-wide">Rayhar</span>
-                <span className="text-sidebar-foreground/50 text-[10px] font-bold tracking-widest mt-0.5">PORTAL</span>
-              </div>
+            <Link to="/" className="flex items-center justify-start h-full max-w-[70%] animate-in fade-in duration-300" onClick={isMobile ? onMobileClose : undefined}>
+              <img 
+                src={rayharLogo} 
+                alt="Rayhar Group" 
+                className="h-[65%] w-auto object-contain filter brightness-110" 
+              />
             </Link>
             
             {/* Desktop Menu toggle button on the right */}
@@ -298,7 +297,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
               if (isCollapsed && !isMobile) return <div key={item.title} className="h-4"></div>;
               return (
                 <div key={item.title} className={`px-5 mb-1.5 ${index > 0 ? "mt-6" : ""}`}>
-                  <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-sidebar-foreground/40">
+                  <span className="text-[12px] font-bold capitalize tracking-wider text-sidebar-foreground/40">
                     {item.title}
                   </span>
                 </div>
@@ -334,23 +333,23 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                       : "px-5 py-3 rounded-r-2xl mr-4"
                   } ${
                     isActive
-                      ? "bg-[#7B0099]/10 text-[#e0c4ff] font-semibold border-l-[3px] border-[#7B0099]"
-                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white border-l-[3px] border-transparent"
+                      ? "bg-[#7B0099]/15 text-white font-semibold border-l-4 border-[#7B0099]"
+                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white border-l-4 border-transparent"
                   }`}
                 >
                   {ItemIcon && (
                     <ItemIcon
                       className={`h-5 w-5 shrink-0 transition-colors ${
                         isActive 
-                          ? "text-[#e0c4ff]" 
-                          : "text-sidebar-foreground/60 group-hover:text-[#e0c4ff]"
+                          ? "text-[#cda4ff]" 
+                          : "text-sidebar-foreground/60 group-hover:text-white"
                       }`}
                     />
                   )}
                   {(!isCollapsed || isMobile) && (
                     <span className={`text-[14px] tracking-wide whitespace-nowrap truncate animate-in fade-in slide-in-from-left-2 duration-300 ${
                       isActive 
-                        ? "text-[#e0c4ff] font-semibold" 
+                        ? "text-white font-semibold" 
                         : "text-sidebar-foreground/80 group-hover:text-white font-medium"
                     }`}>
                       {item.title}
@@ -376,8 +375,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
                 {/* Submenu for Expanded State (Desktop or Mobile) */}
                 {hasChildren && isMenuExpanded && (!isCollapsed || isMobile) && (
-                  <div className="relative pl-[3.25rem] pr-6 py-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <div className="absolute left-[1.7rem] top-0 bottom-4 w-px bg-sidebar-border"></div>
+                  <div className="relative pl-[2.25rem] pr-6 py-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="absolute left-[1.1rem] top-0 bottom-4 w-px bg-sidebar-border"></div>
                     {visibleChildren.map((child) => {
                       const isChildActive = location.pathname === child.path;
                       const ChildIcon = child.icon as LucideIcon;
@@ -388,11 +387,11 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                           onClick={isMobile ? onMobileClose : undefined}
                           className={`group relative flex items-center gap-3 rounded-[14px] px-4 py-2.5 text-[13px] transition-all duration-300 touch-target ${
                             isChildActive
-                              ? "bg-[#7B0099]/10 font-semibold text-[#e0c4ff] border border-[#7B0099]/30"
-                              : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white border border-transparent"
+                              ? "bg-white/5 font-semibold text-white"
+                              : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white"
                           }`}
                         >
-                          <div className={`absolute -left-[1.55rem] top-1/2 w-[1.55rem] border-t transition-colors ${isChildActive ? 'border-[#7B0099]/50' : 'border-sidebar-border group-hover:border-white/30'}`}></div>
+                          <div className={`absolute -left-[1.1rem] top-1/2 w-[1.1rem] border-t transition-colors ${isChildActive ? 'border-white/20' : 'border-sidebar-border group-hover:border-white/10'}`}></div>
                           <span className="whitespace-nowrap truncate">{child.title}</span>
                         </Link>
                       );
@@ -418,8 +417,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                             to={child.path}
                             className={`flex items-center gap-3 rounded-[14px] px-3 py-2.5 text-[13px] transition-all duration-200 ${
                               isChildActive
-                                ? "bg-[#7B0099]/10 font-semibold text-[#e0c4ff] border border-[#7B0099]/30"
-                                : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white border border-transparent"
+                                ? "bg-white/10 font-semibold text-white"
+                                : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white"
                             }`}
                           >
                             <span className="whitespace-nowrap truncate">{child.title}</span>
