@@ -185,27 +185,27 @@ export default function WorkforceInsights() {
           </Card>
 
           <Card className={`col-span-1 rounded-lg shadow-sm border-slate-200 flex flex-col ${cardHoverEffect}`}>
-            <CardHeader className="p-5 border-b border-slate-100 pb-4">
+            <CardHeader className="p-4 border-b border-slate-100 pb-3">
               <div className="flex flex-row items-start justify-between">
                 <div>
                   <CardTitle className="text-base font-bold text-slate-800">Team Availability</CardTitle>
-                  <CardDescription className="text-xs text-slate-500 mt-1">Real-time status for the current shift</CardDescription>
+                  <CardDescription className="text-xs text-slate-500 mt-0.5">Real-time status for the current shift</CardDescription>
                 </div>
-                <span className="bg-indigo-100 text-indigo-700 text-[10px] font-semibold px-2.5 py-1 rounded-full">Live</span>
+                <span className="bg-indigo-100 text-indigo-700 text-[10px] font-semibold px-2 py-0.5 rounded-full">Live</span>
               </div>
             </CardHeader>
-            <CardContent className="p-5 flex-1 flex flex-col">
+            <CardContent className="p-4 flex-1 flex flex-col">
               
               {/* Chart Section */}
-              <div className="w-full relative flex-1 min-h-[160px] flex items-center justify-center mb-2 mt-2">
+              <div className="w-full relative h-[130px] flex items-center justify-center mt-1 mb-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={donutData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={65}
-                      outerRadius={85}
+                      innerRadius={50}
+                      outerRadius={65}
                       paddingAngle={2}
                       dataKey="value"
                       stroke="none"
@@ -223,38 +223,38 @@ export default function WorkforceInsights() {
                 
                 {/* Center KPI Overlay */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-3xl font-bold text-slate-800 tracking-tight leading-none">{availabilityRate}%</span>
-                  <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mt-1">Current Rate</span>
+                  <span className="text-2xl font-bold text-slate-800 tracking-tight leading-none">{availabilityRate}%</span>
+                  <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Current Rate</span>
                 </div>
               </div>
 
               {/* Text Summary */}
-              <div className="text-center mb-6">
-                <h3 className="text-xl font-bold text-indigo-600">{availableToday} Available Today</h3>
-                <p className="text-xs text-slate-500 mt-1">
+              <div className="text-center mb-4">
+                <h3 className="text-lg font-bold text-indigo-600 leading-tight">{availableToday} Available Today</h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">
                   {availableToday === totalTeam ? "All team members are accounted for." : `${totalTeam - availableToday} team members are not available.`}
                 </p>
               </div>
 
-              {/* Vertical List Legend */}
-              <div className="w-full space-y-1 mt-auto">
+              {/* 4-Shape Compact Legend */}
+              <div className="grid grid-cols-4 gap-2 w-full mt-auto mb-4">
                 {donutData.map((entry, index) => (
-                  <div key={entry.name} className={`flex items-center justify-between p-3 rounded-lg transition-colors ${index === 0 ? 'bg-indigo-50/50' : 'hover:bg-slate-50'}`}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                      <span className="text-sm font-medium text-slate-700">{entry.name}</span>
+                  <div key={entry.name} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border ${index === 0 ? 'bg-indigo-50/70 border-indigo-100' : 'bg-slate-50 border-slate-100'} transition-colors`}>
+                    <div className="flex items-center gap-1 mb-1">
+                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider truncate max-w-[40px] sm:max-w-[50px]">{entry.name}</span>
                     </div>
-                    <span className="text-base font-bold text-slate-900">{entry.value}</span>
+                    <span className="text-lg font-bold text-slate-800 leading-none">{entry.value}</span>
                   </div>
                 ))}
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col gap-2 mt-6">
-                <Button className="w-full bg-[#4f46e5] hover:bg-[#4338ca] text-white">
+              <div className="flex flex-col gap-2 mt-auto">
+                <Button className="w-full bg-[#4f46e5] hover:bg-[#4338ca] text-white h-9">
                   <CalendarDays className="w-4 h-4 mr-2" /> Plan Shift
                 </Button>
-                <Button variant="outline" className="w-full bg-indigo-50/50 hover:bg-indigo-50 border-transparent text-[#4f46e5] font-medium">
+                <Button variant="outline" className="w-full bg-indigo-50/50 hover:bg-indigo-50 border-transparent text-[#4f46e5] font-medium h-9">
                   <Users className="w-4 h-4 mr-2" /> Manage Team
                 </Button>
               </div>
