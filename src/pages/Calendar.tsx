@@ -60,6 +60,8 @@ export default function Calendar() {
   const [eventLocation, setEventLocation] = useState("");
   const [eventDescription, setEventDescription] = useState("");
   const [eventType, setEventType] = useState("reminder");
+  const [selectedEvent, setSelectedEvent] = useState<PersonalNote | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -246,18 +248,31 @@ export default function Calendar() {
           <Card className="border-border/50 bg-card overflow-hidden rounded-[16px] shadow-sm">
             <div className="p-5">
               <h3 className="font-bold text-foreground mb-4">Event Categories</h3>
-              <p className="text-xs text-muted-foreground mb-4">Drag and drop your event or click in the calendar</p>
+              <p className="text-xs text-muted-foreground mb-4">Click to filter, or add an event to calendar</p>
               <div className="space-y-3">
-                <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-blue-500/10 text-blue-700 dark:text-blue-400 font-bold text-sm cursor-pointer hover:bg-blue-500/20 transition-colors">
+                <div 
+                  onClick={() => setActiveFilter(activeFilter === 'note' ? null : 'note')}
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'note' ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/30' : 'bg-blue-500/5 text-blue-700 dark:text-blue-400 hover:bg-blue-500/10'}`}>
                   <span className="w-3 h-3 rounded-full bg-blue-500 border border-blue-600/20" /> Notes
                 </div>
-                <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 font-bold text-sm cursor-pointer hover:bg-yellow-500/20 transition-colors">
+                <div 
+                  onClick={() => setActiveFilter(activeFilter === 'reminder' ? null : 'reminder')}
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'reminder' ? 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border border-yellow-500/30' : 'bg-yellow-500/5 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-500/10'}`}>
                   <span className="w-3 h-3 rounded-full bg-yellow-500 border border-yellow-600/20" /> Reminders
                 </div>
-                <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-red-500/10 text-red-700 dark:text-red-400 font-bold text-sm cursor-pointer hover:bg-red-500/20 transition-colors">
+                <div 
+                  onClick={() => setActiveFilter(activeFilter === 'meeting' ? null : 'meeting')}
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'meeting' ? 'bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/30' : 'bg-green-500/5 text-green-700 dark:text-green-400 hover:bg-green-500/10'}`}>
+                  <span className="w-3 h-3 rounded-full bg-green-500 border border-green-600/20" /> Meetings
+                </div>
+                <div 
+                  onClick={() => setActiveFilter(activeFilter === 'holiday' ? null : 'holiday')}
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'holiday' ? 'bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/30' : 'bg-red-500/5 text-red-700 dark:text-red-400 hover:bg-red-500/10'}`}>
                   <span className="w-3 h-3 rounded-full bg-red-500 border border-red-600/20" /> Holidays
                 </div>
-                <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-[#7B0099]/10 text-[#7B0099] dark:text-[#a000c7] font-bold text-sm cursor-pointer hover:bg-[#7B0099]/20 transition-colors">
+                <div 
+                  onClick={() => setActiveFilter(activeFilter === 'attendance' ? null : 'attendance')}
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'attendance' ? 'bg-[#7B0099]/20 text-[#7B0099] dark:text-[#a000c7] border border-[#7B0099]/30' : 'bg-[#7B0099]/5 text-[#7B0099] dark:text-[#a000c7] hover:bg-[#7B0099]/10'}`}>
                   <span className="w-3 h-3 rounded-full bg-[#7B0099] border border-[#7B0099]/20" /> Attendance
                 </div>
               </div>
@@ -293,9 +308,9 @@ export default function Calendar() {
             </div>
           </div>
           
-          <div className="grid grid-cols-7 border-b border-border/60 bg-muted/10">
+          <div className="grid grid-cols-7 border-b border-border/60 bg-[#7B0099]">
             {weekDays.map(day => (
-              <div key={day} className="py-3 text-center text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              <div key={day} className="py-3 text-center text-xs font-bold text-white uppercase tracking-wider">
                 {day}
               </div>
             ))}
@@ -306,15 +321,14 @@ export default function Calendar() {
               const isCurrentMonth = isSameMonth(day, selectedDate);
               const dayStr = format(day, 'yyyy-MM-dd');
               
-              const dayNotes = notes.filter(n => n.date.startsWith(dayStr));
-              const dayHolidays = holidays.filter(h => h.date === dayStr);
-              const dayAttendance = attendance.filter(a => a.clock_in && format(new Date(a.clock_in), 'yyyy-MM-dd') === dayStr);
+              const dayNotes = notes.filter(n => n.date.startsWith(dayStr) && (!activeFilter || activeFilter === n.type));
+              const dayHolidays = holidays.filter(h => h.date === dayStr && (!activeFilter || activeFilter === 'holiday'));
+              const dayAttendance = attendance.filter(a => a.clock_in && format(new Date(a.clock_in), 'yyyy-MM-dd') === dayStr && (!activeFilter || activeFilter === 'attendance'));
               
               return (
                 <div 
                   key={i} 
-                  className={`bg-card p-1.5 flex flex-col transition-colors hover:bg-muted/30 cursor-pointer ${!isCurrentMonth ? 'bg-muted/10 opacity-70' : ''}`}
-                  onClick={() => setSelectedDate(day)}
+                  className={`bg-card p-1.5 flex flex-col transition-colors hover:bg-muted/10 ${!isCurrentMonth ? 'bg-muted/10 opacity-70' : ''}`}
                 >
                   <div className="text-right mb-1.5 p-1">
                     <span className={`text-sm font-bold inline-flex items-center justify-center w-7 h-7 rounded-full ${isSameDay(day, new Date()) ? 'bg-[#ff5b37] text-white shadow-sm' : 'text-foreground/80 hover:bg-muted'}`}>
@@ -341,18 +355,24 @@ export default function Calendar() {
                       )
                     })}
 
-                    {/* Notes & Reminders */}
+                    {/* Notes, Reminders, Meetings */}
                     {dayNotes.map((note) => {
                       const isReminder = note.type === 'reminder';
-                      const colorClass = isReminder 
-                        ? 'bg-yellow-500/10 border-l-2 border-yellow-500 text-yellow-700 dark:text-yellow-400' 
-                        : 'bg-blue-500/10 border-l-2 border-blue-500 text-blue-700 dark:text-blue-400';
+                      const isMeeting = note.type === 'meeting';
+                      
+                      let colorClass = 'bg-blue-500/10 border-l-2 border-blue-500 text-blue-700 dark:text-blue-400';
+                      if (isReminder) colorClass = 'bg-yellow-500/10 border-l-2 border-yellow-500 text-yellow-700 dark:text-yellow-400';
+                      if (isMeeting) colorClass = 'bg-green-500/10 border-l-2 border-green-500 text-green-700 dark:text-green-400';
                       
                       // Extract title (first line) for pill
                       const title = note.note_text.split('\n')[0];
 
                       return (
-                        <div key={note.id} className={`px-2 py-1 rounded-[4px] text-[11px] font-bold truncate shadow-sm relative group ${colorClass}`}>
+                        <div 
+                          key={note.id} 
+                          onClick={(e) => { e.stopPropagation(); setSelectedEvent(note); }}
+                          className={`px-2 py-1 rounded-[4px] text-[11px] font-bold truncate shadow-sm relative group cursor-pointer hover:brightness-95 ${colorClass}`}
+                        >
                           {title}
                           <button 
                             onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id); }}
@@ -472,6 +492,7 @@ export default function Calendar() {
                   >
                     <option value="reminder">Reminder (Yellow)</option>
                     <option value="note">Note (Blue)</option>
+                    <option value="meeting">Meeting (Green)</option>
                   </select>
                 </div>
                 <Button type="button" variant="ghost" onClick={() => setIsAddEventModalOpen(false)} className="font-bold">
@@ -482,6 +503,43 @@ export default function Calendar() {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Event Details Modal */}
+      {selectedEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in" onClick={() => setSelectedEvent(null)}>
+          <div 
+            className="bg-card w-full max-w-md rounded-2xl shadow-2xl border border-border/60 overflow-hidden animate-in zoom-in-95 duration-200"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-5 bg-[#7B0099] text-white">
+              <h3 className="font-bold text-lg text-white/90">Event Details</h3>
+              <button 
+                onClick={() => setSelectedEvent(null)} 
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <h4 className="text-xl font-bold text-foreground">{selectedEvent.note_text.split('\n')[0]}</h4>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
+                <CalendarIcon className="w-4 h-4 text-[#7B0099]" />
+                {format(new Date(selectedEvent.date), "EEEE, MMMM d, yyyy")}
+              </div>
+              <div className="bg-muted/30 p-4 rounded-xl border border-border/50 text-sm whitespace-pre-wrap leading-relaxed text-foreground/80 font-medium">
+                {selectedEvent.note_text.split('\n').slice(1).join('\n').trim() || "No additional details provided."}
+              </div>
+              
+              <div className="flex justify-end pt-2">
+                <Button variant="outline" onClick={() => setSelectedEvent(null)} className="font-bold">
+                  Close
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}
