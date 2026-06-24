@@ -83,7 +83,7 @@ const Profile = () => {
               </CardTitle>
               <div className="flex items-center justify-center gap-2 mt-2">
                 <Badge variant="secondary" className="text-[10px] uppercase font-black px-3 py-1 bg-primary/10 dark:bg-primary/20 text-primary dark:text-purple-400 border-none">
-                  {resolvedRole?.replace('_', ' ') || "Employee"}
+                  {resolvedRole?.replace(/_/g, ' ') || "Employee"}
                 </Badge>
               </div>
             </CardHeader>

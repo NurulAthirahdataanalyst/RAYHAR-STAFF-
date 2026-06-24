@@ -201,7 +201,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <div className="text-right hidden sm:block space-y-0.5">
                       <p className="text-xs font-black text-white group-hover:text-purple-200 transition-colors">{displayName}</p>
                       <p className="text-[9px] font-black text-purple-200/60 uppercase tracking-widest opacity-80 leading-none">
-                        {resolvedRole.replace('_', ' ')}
+                        {resolvedRole.replace(/_/g, ' ')}
                       </p>
                     </div>
                     <div className="h-9 w-9 rounded-xl bg-white text-[#7B0099] flex items-center justify-center font-black text-xs shadow-lg shadow-purple-950/40 group-hover:scale-105 transition-transform border border-white/20">

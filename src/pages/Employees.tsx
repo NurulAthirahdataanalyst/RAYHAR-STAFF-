@@ -209,7 +209,7 @@ export default function Employees() {
       ...filtered.map((emp) => [
         `"${emp.name}"`,
         `"${emp.email}"`,
-        `"${emp.position.replace('_', ' ')}"`,
+        `"${emp.position.replace(/_/g, ' ')}"`,
         `"${emp.branch}"`,
         `"${emp.status}"`,
       ])
@@ -412,7 +412,7 @@ export default function Employees() {
               <SelectItem value="All" className="text-xs font-bold">All Positions</SelectItem>
               {uniquePositions.map((pos) => (
                 <SelectItem key={pos} value={pos} className="text-xs font-bold capitalize">
-                  {pos.replace('_', ' ')}
+                  {pos.replace(/_/g, ' ')}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -475,7 +475,7 @@ export default function Employees() {
                             </div>
                           </TableCell>
                           <TableCell className="py-4 px-6">
-                            <span className="text-xs font-bold text-muted-foreground capitalize">{emp.position.replace('_', ' ')}</span>
+                            <span className="text-xs font-bold text-muted-foreground capitalize">{emp.position.replace(/_/g, ' ')}</span>
                           </TableCell>
                           <TableCell className="py-4 px-6 text-xs font-bold text-muted-foreground">{emp.branch}</TableCell>
                           <TableCell className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
@@ -546,7 +546,7 @@ export default function Employees() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                          <span className="truncate max-w-[100px]">{emp.position.replace('_', ' ')}</span>
+                          <span className="truncate max-w-[100px]">{emp.position.replace(/_/g, ' ')}</span>
                           <span className="opacity-30">•</span>
                           <span>{emp.branch}</span>
                         </div>
