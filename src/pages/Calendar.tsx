@@ -272,7 +272,7 @@ export default function Calendar() {
                   cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-[#ff5b37]/10 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
                   day: "h-9 w-9 p-0 font-medium aria-selected:opacity-100 hover:bg-muted rounded-full transition-all",
                   day_selected: "bg-[#ff5b37] text-white hover:bg-[#e04526] hover:text-white focus:bg-[#ff5b37] focus:text-white",
-                  day_today: "bg-accent text-accent-foreground font-bold",
+                  day_today: "bg-[#7B0099]/10 text-[#7B0099] font-bold",
                   day_outside: "text-muted-foreground opacity-50",
                   day_disabled: "text-muted-foreground opacity-50",
                   day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
@@ -777,7 +777,12 @@ export default function Calendar() {
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between p-5 border-b border-slate-100">
-                <h3 className="font-bold text-lg text-slate-900 tracking-tight">Event Details</h3>
+                <div className="flex items-center gap-3">
+                  <h3 className="font-bold text-lg text-slate-900 tracking-tight">Event Details</h3>
+                  <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-[#7B0099]/10 text-[#7B0099]">
+                    {categoryName}
+                  </span>
+                </div>
                 <button 
                   onClick={() => setSelectedEvent(null)} 
                   className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
@@ -787,15 +792,12 @@ export default function Calendar() {
               </div>
               <div className="p-6">
                 <div className="mb-6">
-                  <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold bg-[#7B0099]/10 text-[#7B0099] mb-3">
-                    {categoryName}
-                  </span>
                   <h3 className="text-2xl font-extrabold text-slate-900 leading-tight">{modalEventName}</h3>
                 </div>
 
                 <div className="flex flex-col">
                   {/* DATE ROW */}
-                  <div className="flex gap-4 py-4 border-b border-slate-100">
+                  <div className="flex gap-4 pb-4">
                     <CalendarIcon className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
                     <div className="flex flex-col">
                       <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Date</span>
@@ -805,7 +807,7 @@ export default function Calendar() {
                   
                   {/* TIME ROW */}
                   {finalTimeDisplay && (
-                    <div className="flex gap-4 py-4 border-b border-slate-100">
+                    <div className="flex gap-4 pb-4">
                       <Clock className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
                       <div className="flex flex-col">
                         <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Time</span>
@@ -817,7 +819,7 @@ export default function Calendar() {
 
                   {/* LOCATION ROW */}
                   {modalLocation && (
-                    <div className="flex gap-4 py-4 border-b border-slate-100">
+                    <div className="flex gap-4 pb-4">
                       <MapPin className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
                       <div className="flex flex-col">
                         <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Location</span>
@@ -828,7 +830,7 @@ export default function Calendar() {
 
                   {/* DESCRIPTION ROW */}
                   {modalDescription && (
-                    <div className="flex gap-4 py-4 border-b border-slate-100 last:border-0">
+                    <div className="flex gap-4 pb-4">
                       <FileText className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
                       <div className="flex flex-col">
                         <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Description</span>
@@ -838,7 +840,7 @@ export default function Calendar() {
                   )}
                 </div>
 
-                <div className="flex justify-end pt-4 mt-2">
+                <div className="flex justify-end pt-4 mt-2 border-t border-slate-100">
                   <Button variant="outline" onClick={() => setSelectedEvent(null)} className="font-semibold px-6 rounded-lg border-slate-300 text-slate-700 hover:bg-slate-50">
                     Close
                   </Button>
