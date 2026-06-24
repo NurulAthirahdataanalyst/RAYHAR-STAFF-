@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Users, Clock, AlertCircle, Building2, Calendar, Download, ChevronDown } from "lucide-react";
+import { ExportDropdown } from "@/components/shared/ExportDropdown";
+import { exportToCSV } from "@/utils/export";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -223,8 +225,10 @@ export default function TeamAttendance() {
                 </button>
               </div>
 
-              {/* Export Button */}
-              <ExportDropdown onExportCSV={() => console.log('Export CSV')} onExportPDF={() => console.log('Export PDF')} />
+              <ExportDropdown 
+                onExportCSV={() => exportToCSV(filteredList, 'Team_Attendance')} 
+                onExportPDF={() => window.print()} 
+              />
 
               {/* Search */}
               <div className="relative w-full sm:w-64 shrink-0">

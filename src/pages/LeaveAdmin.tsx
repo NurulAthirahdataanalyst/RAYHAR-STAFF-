@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
+import { exportToCSV } from "@/utils/export";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -329,7 +330,10 @@ export default function LeaveAdmin() {
               </SelectContent>
             </Select>
 
-            <ExportDropdown onExportCSV={() => console.log('Export CSV')} onExportPDF={() => console.log('Export PDF')} />
+            <ExportDropdown 
+              onExportCSV={() => exportToCSV(filteredRequests, 'Leave_Requests')} 
+              onExportPDF={() => window.print()} 
+            />
 
             <Select value={activeTab} onValueChange={(val: any) => setActiveTab(val)}>
               <SelectTrigger className="w-[140px] h-9 text-xs font-medium rounded-md bg-transparent">

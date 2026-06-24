@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
+import { exportToCSV } from "@/utils/export";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -154,7 +155,10 @@ export default function Role() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <ExportDropdown onExportCSV={() => console.log('Export CSV')} onExportPDF={() => console.log('Export PDF')} />
+          <ExportDropdown 
+            onExportCSV={() => exportToCSV(roles, 'Roles_List')} 
+            onExportPDF={() => window.print()} 
+          />
           <Button onClick={() => setIsAddModalOpen(true)} className="gap-2 bg-[#7B0099] hover:bg-[#60007A] text-white shadow-sm">
             <Plus className="w-4 h-4" />
             Add Roles
