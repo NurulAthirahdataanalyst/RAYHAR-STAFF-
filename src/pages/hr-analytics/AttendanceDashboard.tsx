@@ -89,6 +89,19 @@ interface Department {
   employee_count: number;
 }
 
+const parseThreshold = (thresholdStr: string) => {
+  const match = thresholdStr.match(/(\d+):(\d+)(?:\s*(AM|PM))?/i);
+  if (!match) return { hour: 9, minute: 0 };
+  let hour = parseInt(match[1], 10);
+  const minute = parseInt(match[2], 10);
+  const ampm = match[3];
+  if (ampm) {
+    if (ampm.toUpperCase() === "PM" && hour < 12) hour += 12;
+    if (ampm.toUpperCase() === "AM" && hour === 12) hour = 0;
+  }
+  return { hour, minute };
+};
+
 export default function AttendanceDashboard() {
   const { role, userBranch, userDepartment } = useRole();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -968,20 +981,31 @@ export default function AttendanceDashboard() {
                     </th>
                     <th className="px-6 py-4">Employee</th>
                     <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4">Check In</th>
-                    <th className="px-6 py-4">Check Out</th>
-                    <th className="px-6 py-4">Break</th>
+                    <th className="px-6 py-4">Time In</th>
+                    <th className="px-6 py-4">Time Out</th>
                     <th className="px-6 py-4">Late</th>
-                    <th className="px-6 py-4">Production Hours</th>
+                    <th className="px-6 py-4">Working Hours</th>
                     <th className="px-6 py-4 w-10"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {filteredDailyAttendance.length > 0 ? (
                     filteredDailyAttendance.slice((currentPage - 1) * parseInt(limit), currentPage * parseInt(limit)).map((record) => {
+                      const clockInDate = record.clock_in ? new Date(record.clock_in) : null;
+                      let isLate = false;
+                      let lateMinStr = "0 Min";
+                      if (clockInDate) {
+                        const { hour: threshHour, minute: threshMin } = parseThreshold(workStartTime);
+                        const thresholdDate = new Date(clockInDate);
+                        thresholdDate.setHours(threshHour, threshMin, 0, 0);
+                        const diffMs = clockInDate.getTime() - thresholdDate.getTime();
+                        if (diffMs > 0) {
+                          isLate = true;
+                          lateMinStr = `${Math.floor(diffMs / 60000)} Min`;
+                        }
+                      }
+
                       let status = record.time_out ? "Clocked Out" : "Present";
-                      const clockInHour = record.clock_in ? new Date(record.clock_in).getHours() : 0;
-                      const isLate = clockInHour >= 9;
                       if (isLate && !record.time_out) {
                         status = "Late";
                       }
@@ -1008,7 +1032,7 @@ export default function AttendanceDashboard() {
                               </div>
                               <div>
                                 <span className="font-semibold text-gray-800 block text-xs">{record.full_name}</span>
-                                <span className="text-[10px] text-gray-400 capitalize">{((record as any).role || "").replace(/_/g, ' ')}</span>
+                                <span className="text-[10px] text-gray-400 capitalize">{((record as any).role || "").replace(/_/g, ' ')} • {record.branch}</span>
                               </div>
                             </div>
                           </td>
@@ -1020,8 +1044,7 @@ export default function AttendanceDashboard() {
                           </td>
                           <td className="px-6 py-4 text-xs text-gray-600 font-medium">{formatAttendanceTime(record.clock_in)}</td>
                           <td className="px-6 py-4 text-xs text-gray-600 font-medium">{record.clock_out ? formatAttendanceTime(record.clock_out) : "--:--"}</td>
-                          <td className="px-6 py-4 text-xs text-gray-500 font-medium">30 Min</td>
-                          <td className="px-6 py-4 text-xs text-gray-500 font-medium">{isLate ? "32 Min" : "0 Min"}</td>
+                          <td className="px-6 py-4 text-xs text-gray-500 font-medium">{lateMinStr}</td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${isGoodHrs ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                               {workHrsStr === '--' ? '0.00 Hrs' : workHrsStr.replace('h', '.').replace('m', '') + ' Hrs'}
@@ -1039,7 +1062,7 @@ export default function AttendanceDashboard() {
                     })
                   ) : (
                     <tr>
-                      <td colSpan={9} className="px-6 py-20 text-center text-xs font-bold text-gray-400 uppercase tracking-wider italic">
+                      <td colSpan={8} className="px-6 py-20 text-center text-xs font-bold text-gray-400 uppercase tracking-wider italic">
                         No logs registered on this date
                       </td>
                     </tr>
