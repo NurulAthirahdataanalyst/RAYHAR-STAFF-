@@ -8,6 +8,8 @@ import {
   FilePlus2,
   FileSearch,
   FileCheck,
+  FileText,
+  CheckSquare,
   Users, 
   Building2, 
   BarChart3, 
@@ -141,7 +143,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     { title: "Employee Directory", icon: Users, path: "/employees", roles: HOD_BL_ROLES },
   ];
 
-  const menuItems: MenuItem[] = [
+  // ── Standard sidebar (employee, branch_officer, hr_admin, MD, finance) ───
+  const menuItems = [
     { title: "Main Navigation", isSection: true, roles: ALL_ROLES },
     { title: "Dashboard", icon: LayoutDashboard, path: "/", roles: ALL_ROLES },
     { title: "Calendar", icon: Calendar, path: "/calendar", roles: ALL_ROLES },
