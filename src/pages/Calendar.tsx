@@ -344,40 +344,51 @@ export default function Calendar() {
               </div>
 
               {isAddCategoryOpen && (
-                <div className="mt-4 p-3 bg-muted/30 rounded-lg border border-border space-y-3 animate-in fade-in zoom-in-95 duration-200">
-                  <input
-                    type="text"
-                    placeholder="Category Name"
-                    className="w-full bg-background border border-border rounded-md px-3 py-1.5 text-sm"
-                    value={newCategoryName}
-                    onChange={e => setNewCategoryName(e.target.value)}
-                    autoFocus
-                  />
-                  <div className="flex justify-between items-center">
-                    <div className="flex gap-1.5">
+                <div className="mt-4 p-4 bg-muted/30 rounded-xl border border-border space-y-4 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Category Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Project Launch"
+                      className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                      value={newCategoryName}
+                      onChange={e => setNewCategoryName(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Label Color</label>
+                    <div className="flex flex-wrap gap-2">
                       {Object.keys(CATEGORY_COLORS).map(color => (
                         <div 
                           key={color}
                           onClick={() => setNewCategoryColor(color)}
-                          className={`w-4 h-4 rounded-full cursor-pointer ${color} ${newCategoryColor === color ? 'ring-2 ring-offset-1 ring-foreground/50' : ''}`}
+                          className={`w-6 h-6 rounded-full cursor-pointer transition-transform hover:scale-110 ${color} ${newCategoryColor === color ? 'ring-2 ring-offset-2 ring-slate-800 dark:ring-slate-300 shadow-sm' : 'opacity-80 hover:opacity-100'}`}
                         />
                       ))}
                     </div>
-                    <div className="flex gap-2">
-                      <button onClick={() => setIsAddCategoryOpen(false)} className="text-xs font-semibold text-muted-foreground hover:text-foreground">Cancel</button>
-                      <button 
-                        onClick={() => {
-                          if (newCategoryName.trim()) {
-                            setCustomCategories([...customCategories, { id: `custom-${Date.now()}`, name: newCategoryName.trim(), color: newCategoryColor }]);
-                            setIsAddCategoryOpen(false);
-                            setNewCategoryName("");
-                          }
-                        }}
-                        className="text-xs font-semibold text-[#7B0099] hover:text-[#5a0070]"
-                      >
-                        Add
-                      </button>
-                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-3 border-t border-border/60">
+                    <button 
+                      onClick={() => setIsAddCategoryOpen(false)} 
+                      className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground rounded-md transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={() => {
+                        if (newCategoryName.trim()) {
+                          setCustomCategories([...customCategories, { id: `custom-${Date.now()}`, name: newCategoryName.trim(), color: newCategoryColor }]);
+                          setIsAddCategoryOpen(false);
+                          setNewCategoryName("");
+                        }
+                      }}
+                      className="px-4 py-1.5 text-xs font-bold bg-[#ff5b37] text-white rounded-md shadow-sm hover:bg-[#e04526] transition-colors"
+                    >
+                      Add Category
+                    </button>
                   </div>
                 </div>
               )}
@@ -551,7 +562,7 @@ export default function Calendar() {
                       />
                     </div>
                     {!isAllDay && (
-                      <div className="relative w-32">
+                      <div className="relative w-[150px]">
                         <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <input
                           type="time"
@@ -578,7 +589,7 @@ export default function Calendar() {
                       />
                     </div>
                     {!isAllDay && (
-                      <div className="relative w-32">
+                      <div className="relative w-[150px]">
                         <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <input
                           type="time"
