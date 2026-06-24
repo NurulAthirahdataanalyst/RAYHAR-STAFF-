@@ -164,8 +164,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       path: "/leave",
       roles: ALL_ROLES,
       children: [
-        { title: "Leave Application", icon: CalendarDays, path: "/leave", roles: ALL_ROLES },
-        { title: "My Leave Requests", icon: FileText, path: "/leave/requests", roles: ALL_ROLES },
+        { title: "Leave Application", icon: CalendarDays, path: "/leave/apply", roles: ALL_ROLES },
+        { title: "My Leave Requests", icon: FileText, path: "/leave/forms", roles: ALL_ROLES },
         { title: "Team Leave Requests", icon: Users, path: "/leave/team", roles: ["hr_admin", "manager", "hod", "branch_leader"] },
         { title: "Leave Approval", icon: CheckSquare, path: "/leave/approval", roles: ["hr_admin", "manager", "hod", "branch_leader"] },
       ],
