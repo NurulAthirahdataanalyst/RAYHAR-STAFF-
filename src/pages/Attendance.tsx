@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ExportDropdown } from "@/components/shared/ExportDropdown";
 
 const formatAttendanceTime = (value: unknown) => {
   if (!value) return "--:--";
@@ -1073,25 +1074,7 @@ export default function Attendance() {
               </div>
               
               {/* Export */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white text-[11px] font-black rounded-md shadow-md active:scale-95 transition-all">
-                    <Download className="w-3 h-3" />
-                    <span>Export</span>
-                    <ChevronDown className="w-3 h-3 opacity-80" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="rounded-xl border border-border p-1">
-                  <DropdownMenuItem onClick={handleExportPDF} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase text-muted-foreground cursor-pointer focus:bg-muted">
-                    <FileText className="w-3.5 h-3.5 text-red-500" />
-                    <span>Export PDF</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExportCSV} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase text-muted-foreground cursor-pointer focus:bg-muted">
-                    <FileSpreadsheet className="w-3.5 h-3.5 text-green-600" />
-                    <span>Export CSV</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <ExportDropdown onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} />
             </div>
           </CardHeader>
 

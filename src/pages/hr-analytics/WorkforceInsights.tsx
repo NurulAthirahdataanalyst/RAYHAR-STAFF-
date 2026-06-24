@@ -1,5 +1,6 @@
 import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect } from "react";
+import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, Users, UserCheck, CalendarDays, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight } from "lucide-react";
@@ -89,15 +90,7 @@ export default function WorkforceInsights() {
                 {[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Select>
-              <SelectTrigger className="w-[110px] rounded-md h-9 text-sm bg-primary text-primary-foreground border-none font-medium">
-                <Download className="w-4 h-4 mr-2" /> Export
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pdf">PDF Report</SelectItem>
-                <SelectItem value="excel">Excel Data</SelectItem>
-              </SelectContent>
-            </Select>
+            <ExportDropdown onExportCSV={() => console.log('Export CSV')} onExportPDF={() => console.log('Export PDF')} />
         </div>
 
         {/* 1. Team Overview (Top KPI Cards) */}

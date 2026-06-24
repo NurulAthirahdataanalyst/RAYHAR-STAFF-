@@ -6,6 +6,7 @@ import { Loader2, Download, Search, Clock, FileText } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ExportDropdown } from "@/components/shared/ExportDropdown";
 
 export default function AttendanceReports() {
   const [loading, setLoading] = useState(true);
@@ -64,10 +65,7 @@ export default function AttendanceReports() {
               onChange={(e) => setDate(e.target.value)}
               className="w-40 bg-white"
             />
-            <Button onClick={handleExportCSV} variant="outline" className="flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              Export CSV
-            </Button>
+            <ExportDropdown onExportCSV={handleExportCSV} />
           </div>
         </div>
 

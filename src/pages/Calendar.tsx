@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, addMonths, subMonths } from "date-fns";
+import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "@/config/api";
@@ -254,9 +255,7 @@ export default function Calendar() {
             <span>{format(gridStartDate, "MM/dd/yyyy")} - {format(gridEndDate, "MM/dd/yyyy")}</span>
             <ChevronDown className="w-4 h-4 text-muted-foreground ml-2" />
           </div>
-          <Button variant="outline" className="gap-2 bg-background border-border font-bold">
-            <Download className="w-4 h-4" /> Export <ChevronDown className="w-3 h-3 ml-1" />
-          </Button>
+          <ExportDropdown onExportCSV={() => console.log('Export CSV')} onExportPDF={() => console.log('Export PDF')} />
           <Button 
             onClick={() => {
               setStartDate(format(selectedDate, "yyyy-MM-dd"));

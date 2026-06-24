@@ -13,17 +13,13 @@ import {
   LineChart, Line, Legend, Cell, PieChart as RechartsPieChart, Pie
 } from "recharts";
 
+
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { API_BASE_URL } from "../../config/api";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
+import { ExportDropdown } from "@/components/shared/ExportDropdown";
 
 const fallbackMonthlyData = [
   { month: "Jan", attendance: 94, leave_request: 18 },
@@ -766,25 +762,7 @@ export default function AttendanceDashboard() {
                 </Button>
               </div>
               
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-lg px-3 flex items-center gap-1.5 shadow-sm text-xs font-medium">
-                    <Download className="w-4 h-4 text-gray-500" />
-                    <span>Export</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="rounded-lg shadow-lg border border-gray-200 bg-white z-50">
-                  <DropdownMenuItem onClick={handleExport} className="text-xs font-medium text-gray-700 hover:bg-gray-50 px-3 py-2 cursor-pointer flex items-center gap-2">
-                    <FileSpreadsheet className="w-4 h-4 text-green-600" />
-                    <span>Export CSV</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExportPDF} className="text-xs font-medium text-gray-700 hover:bg-gray-50 px-3 py-2 cursor-pointer flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-red-500" />
-                    <span>Print PDF</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
             </div>
           </div>
 

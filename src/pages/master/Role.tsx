@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -153,10 +154,7 @@ export default function Role() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Button variant="outline" className="gap-2 bg-white text-gray-700 shadow-sm">
-            <FileDown className="w-4 h-4" />
-            Export
-          </Button>
+          <ExportDropdown onExportCSV={() => console.log('Export CSV')} onExportPDF={() => console.log('Export PDF')} />
           <Button onClick={() => setIsAddModalOpen(true)} className="gap-2 bg-[#7B0099] hover:bg-[#60007A] text-white shadow-sm">
             <Plus className="w-4 h-4" />
             Add Roles

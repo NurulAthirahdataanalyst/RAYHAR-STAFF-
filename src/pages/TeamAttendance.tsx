@@ -224,11 +224,7 @@ export default function TeamAttendance() {
               </div>
 
               {/* Export Button */}
-              <Button size="sm" className="bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white border-0 h-9 rounded-md px-4 flex items-center gap-2 shadow-sm text-xs font-bold">
-                <Download className="w-4 h-4" />
-                <span>Export</span>
-                <ChevronDown className="w-3.5 h-3.5 ml-1" />
-              </Button>
+              <ExportDropdown onExportCSV={() => console.log('Export CSV')} onExportPDF={() => console.log('Export PDF')} />
 
               {/* Search */}
               <div className="relative w-full sm:w-64 shrink-0">

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -328,10 +329,7 @@ export default function LeaveAdmin() {
               </SelectContent>
             </Select>
 
-            <Button variant="outline" className="h-9 text-xs font-semibold rounded-md gap-2 border-border/50 hover:bg-muted/40 transition-colors">
-              <Download className="w-3.5 h-3.5" />
-              Export
-            </Button>
+            <ExportDropdown onExportCSV={() => console.log('Export CSV')} onExportPDF={() => console.log('Export PDF')} />
 
             <Select value={activeTab} onValueChange={(val: any) => setActiveTab(val)}>
               <SelectTrigger className="w-[140px] h-9 text-xs font-medium rounded-md bg-transparent">

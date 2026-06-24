@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "../config/api";
+import { ExportDropdown } from "@/components/shared/ExportDropdown";
 
 const BRANCH_NAMES: Record<string, string> = {
   HQ: "Rayhar HQ",
@@ -357,10 +358,7 @@ export default function Employees() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-3 mb-2 mt-2">
           {/* For HOD/Branch Leader: Staff Directory text is removed as requested, replaced with Export and KPI on the right */}
           <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4 w-full sm:w-auto">
-            <Button onClick={handleExportCSV} variant="outline" className="flex items-center gap-2 h-10 border-border/60 shadow-sm font-bold text-xs">
-              <Download className="w-4 h-4" />
-              Export CSV
-            </Button>
+            <ExportDropdown onExportCSV={handleExportCSV} />
             <Card className="border-border shadow-sm m-0">
               <CardContent className="p-3 sm:p-4 flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">

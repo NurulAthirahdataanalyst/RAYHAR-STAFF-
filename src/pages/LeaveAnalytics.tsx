@@ -15,6 +15,7 @@ import {
   Award, Users, Download, RefreshCw, ChevronDown, FileText, FileSpreadsheet,
 } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
+import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -462,25 +463,7 @@ export default function LeaveAnalytics() {
                 <RefreshCw className="w-3.5 h-3.5" />
                 Refresh
               </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-md shadow-orange-500/10 active:scale-95">
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Export</span>
-                    <ChevronDown className="w-3.5 h-3.5 opacity-80" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="rounded-xl border border-border bg-background p-1 shadow-lg min-w-[150px]">
-                  <DropdownMenuItem onClick={handleExportPDF} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
-                    <FileText className="w-3.5 h-3.5 text-red-500" />
-                    <span>Export as PDF</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExport} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer focus:bg-muted">
-                    <FileSpreadsheet className="w-3.5 h-3.5 text-green-600" />
-                    <span>Export as Excel</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
             </div>
           </div>
 

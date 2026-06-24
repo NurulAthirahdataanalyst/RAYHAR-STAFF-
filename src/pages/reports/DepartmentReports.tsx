@@ -7,6 +7,7 @@ import { Loader2, Download, Search, Building2, Users } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ExportDropdown } from "@/components/shared/ExportDropdown";
 
 export default function DepartmentReports() {
   const { role, userBranch, userDepartment } = useRole();
@@ -83,10 +84,7 @@ export default function DepartmentReports() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col md:flex-row justify-end items-start md:items-center mb-6 gap-4">
           <div className="flex flex-wrap gap-2">
-            <Button onClick={handleExportCSV} variant="outline" className="flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              Export CSV
-            </Button>
+            <ExportDropdown onExportCSV={handleExportCSV} />
           </div>
         </div>
 
