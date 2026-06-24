@@ -670,27 +670,70 @@ export default function Calendar() {
         const modalTime = timeLine ? timeLine.replace('Time: ', '') : '';
         const modalLocation = locationLine ? locationLine.replace('Location: ', '') : '';
 
-        // Helper to format date + time
-        const formatDateTime = (dtStr: string) => {
-          if (!dtStr) return '';
-          const parts = dtStr.split(' ');
-          if (parts.length >= 2) {
-            const d = new Date(parts[0]);
-            if (!isNaN(d.getTime())) {
-              const timePart = parts.slice(1).join(' ');
-              if (timePart === 'All Day') return `${format(d, "dd MMM yyyy")}`;
-              return `${format(d, "dd MMM yyyy")} ${timePart}`;
+        // Helper to format duration
+        let durationDisplay: string | null = null;
+        let finalTimeDisplay = modalTime || '';
+        let finalDateDisplay = format(new Date(selectedEvent.date), "dd MMM yyyy (EEEE)");
+
+        try {
+          if (modalStarts && modalEnds) {
+            const startParts = modalStarts.split(' ');
+            const endParts = modalEnds.split(' ');
+            if (startParts[0] === endParts[0]) {
+              finalDateDisplay = format(new Date(startParts[0]), "dd MMM yyyy (EEEE)");
+              if (startParts[1] === 'All' && startParts[2] === 'Day') {
+                finalTimeDisplay = 'All Day';
+              } else {
+                const st = format(new Date(`2000-01-01T${startParts[1]}`), "hh:mm a");
+                const et = format(new Date(`2000-01-01T${endParts[1]}`), "hh:mm a");
+                finalTimeDisplay = `${st} - ${et}`;
+                const startMins = parseInt(startParts[1].split(':')[0]) * 60 + parseInt(startParts[1].split(':')[1]);
+                const endMins = parseInt(endParts[1].split(':')[0]) * 60 + parseInt(endParts[1].split(':')[1]);
+                let diff = endMins - startMins;
+                if (diff < 0) diff += 24 * 60;
+                const h = Math.floor(diff / 60);
+                const m = diff % 60;
+                if (h > 0 && m > 0) durationDisplay = `${h} hour${h > 1 ? 's' : ''} ${m} min`;
+                else if (h > 0) durationDisplay = `${h} hour${h > 1 ? 's' : ''}`;
+                else if (m > 0) durationDisplay = `${m} min`;
+              }
+            } else {
+              finalDateDisplay = `${format(new Date(startParts[0]), "dd MMM yyyy")} - ${format(new Date(endParts[0]), "dd MMM yyyy")}`;
+              if (startParts[1] !== 'All') {
+                 const st = format(new Date(`2000-01-01T${startParts[1]}`), "hh:mm a");
+                 const et = format(new Date(`2000-01-01T${endParts[1]}`), "hh:mm a");
+                 finalTimeDisplay = `${st} - ${et}`;
+              } else {
+                 finalTimeDisplay = 'All Day';
+              }
+            }
+          } else if (modalTime) {
+            const match = modalTime.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+            if (match) {
+               const st = format(new Date(`2000-01-01T${match[1]}`), "hh:mm a");
+               const et = format(new Date(`2000-01-01T${match[2]}`), "hh:mm a");
+               finalTimeDisplay = `${st} - ${et}`;
+               const startMins = parseInt(match[1].split(':')[0]) * 60 + parseInt(match[1].split(':')[1]);
+               const endMins = parseInt(match[2].split(':')[0]) * 60 + parseInt(match[2].split(':')[1]);
+               let diff = endMins - startMins;
+               if (diff < 0) diff += 24 * 60;
+               const h = Math.floor(diff / 60);
+               const m = diff % 60;
+               if (h > 0 && m > 0) durationDisplay = `${h} hour${h > 1 ? 's' : ''} ${m} min`;
+               else if (h > 0) durationDisplay = `${h} hour${h > 1 ? 's' : ''}`;
+               else if (m > 0) durationDisplay = `${m} min`;
             }
           }
-          return dtStr;
-        };
+        } catch(e) {
+          // ignore parsing errors
+        }
 
         const renderLocation = (text: string) => {
           const urlRegex = /(https?:\/\/[^\s]+)/g;
           const parts = text.split(urlRegex);
           return parts.map((part, i) => {
             if (part.match(urlRegex)) {
-              return <a key={i} href={part} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline font-medium">{part}</a>;
+              return <a key={i} href={part} target="_blank" rel="noreferrer" className="text-[#7B0099] hover:underline font-medium">{part}</a>;
             }
             return <span key={i}>{part}</span>;
           });
@@ -702,87 +745,75 @@ export default function Calendar() {
         if (customCat) categoryName = customCat.name;
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm animate-in fade-in" onClick={() => setSelectedEvent(null)}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in" onClick={() => setSelectedEvent(null)}>
             <div 
-              className="w-full max-w-sm rounded-xl shadow-xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200 bg-white"
+              className="w-full max-w-[420px] rounded-2xl shadow-2xl border border-border overflow-hidden animate-in zoom-in-95 duration-200 bg-white"
               onClick={e => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white text-slate-900">
-                <h3 className="font-semibold text-lg">Event Details</h3>
+              <div className="flex items-center justify-between p-5 border-b border-slate-100">
+                <h3 className="font-bold text-lg text-slate-900 tracking-tight">Event Details</h3>
                 <button 
                   onClick={() => setSelectedEvent(null)} 
                   className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-              <div className="p-5 space-y-4 bg-white">
-                <div className="space-y-1">
-                  <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-slate-100 text-slate-800 mb-1">
+              <div className="p-6">
+                <div className="mb-6">
+                  <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold bg-[#7B0099]/10 text-[#7B0099] mb-3">
                     {categoryName}
                   </span>
-                  <h3 className="text-xl font-bold text-slate-900 leading-tight">{modalEventName}</h3>
+                  <h3 className="text-2xl font-extrabold text-slate-900 leading-tight">{modalEventName}</h3>
                 </div>
 
-                <div className="space-y-3 pt-1">
-                  {modalStarts && modalEnds ? (
-                    <>
-                      <div className="flex items-start gap-3">
-                        <span className="text-lg leading-none">📅</span>
-                        <div className="flex flex-col -mt-0.5">
-                          <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Starts</span>
-                          <span className="text-sm text-slate-900 font-medium mt-0.5">{formatDateTime(modalStarts)}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <span className="text-lg leading-none">🏁</span>
-                        <div className="flex flex-col -mt-0.5">
-                          <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Ends</span>
-                          <span className="text-sm text-slate-900 font-medium mt-0.5">{formatDateTime(modalEnds)}</span>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex items-start gap-3">
-                        <span className="text-lg leading-none">📅</span>
-                        <div className="flex flex-col -mt-0.5">
-                          <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Event Date</span>
-                          <span className="text-sm text-slate-900 font-medium mt-0.5">{format(new Date(selectedEvent.date), "dd MMM yyyy")}</span>
-                        </div>
-                      </div>
-                      {modalTime && (
-                        <div className="flex items-start gap-3">
-                          <span className="text-lg leading-none">🕒</span>
-                          <div className="flex flex-col -mt-0.5">
-                            <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Time</span>
-                            <span className="text-sm text-slate-900 font-medium mt-0.5">{modalTime}</span>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  )}
-                  {modalLocation && (
-                    <div className="flex items-start gap-3">
-                      <span className="text-lg leading-none">📍</span>
-                      <div className="flex flex-col -mt-0.5">
-                        <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Event Location</span>
-                        <div className="text-sm text-slate-900 font-medium mt-0.5">{renderLocation(modalLocation)}</div>
+                <div className="flex flex-col">
+                  {/* DATE ROW */}
+                  <div className="flex gap-4 py-4 border-b border-slate-100">
+                    <CalendarIcon className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
+                    <div className="flex flex-col">
+                      <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Date</span>
+                      <span className="text-[15px] text-slate-900 font-semibold">{finalDateDisplay}</span>
+                    </div>
+                  </div>
+                  
+                  {/* TIME ROW */}
+                  {finalTimeDisplay && (
+                    <div className="flex gap-4 py-4 border-b border-slate-100">
+                      <Clock className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
+                      <div className="flex flex-col">
+                        <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Time</span>
+                        <span className="text-[15px] text-slate-900 font-semibold">{finalTimeDisplay}</span>
+                        {durationDisplay && <span className="text-[13px] text-slate-500 font-medium mt-0.5">({durationDisplay})</span>}
                       </div>
                     </div>
                   )}
+
+                  {/* LOCATION ROW */}
+                  {modalLocation && (
+                    <div className="flex gap-4 py-4 border-b border-slate-100">
+                      <MapPin className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
+                      <div className="flex flex-col">
+                        <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Location</span>
+                        <div className="text-[15px] text-slate-900 font-semibold">{renderLocation(modalLocation)}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DESCRIPTION ROW */}
                   {modalDescription && (
-                    <div className="flex items-start gap-3">
-                      <span className="text-lg leading-none">👤</span>
-                      <div className="flex flex-col -mt-0.5">
-                        <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Description</span>
-                        <span className="text-sm text-slate-900 font-medium mt-0.5 whitespace-pre-wrap">{modalDescription}</span>
+                    <div className="flex gap-4 py-4 border-b border-slate-100 last:border-0">
+                      <FileText className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
+                      <div className="flex flex-col">
+                        <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Description</span>
+                        <span className="text-[15px] text-slate-800 font-medium whitespace-pre-wrap leading-relaxed">{modalDescription}</span>
                       </div>
                     </div>
                   )}
                 </div>
-                <div className="flex justify-end pt-2 mt-2 border-t border-slate-100">
-                  <Button variant="outline" onClick={() => setSelectedEvent(null)} className="font-semibold px-6 border-slate-300 text-slate-700 hover:bg-slate-50">
+
+                <div className="flex justify-end pt-4 mt-2">
+                  <Button variant="outline" onClick={() => setSelectedEvent(null)} className="font-semibold px-6 rounded-lg border-slate-300 text-slate-700 hover:bg-slate-50">
                     Close
                   </Button>
                 </div>
