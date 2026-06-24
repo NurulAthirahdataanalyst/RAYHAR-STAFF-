@@ -317,9 +317,21 @@ export default function Calendar() {
                   <div 
                     key={cat.id}
                     onClick={() => setActiveFilter(activeFilter === cat.id ? null : cat.id)}
-                    className={`flex items-center gap-3 px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === cat.id ? 'bg-muted border border-border' : 'hover:bg-muted/50'}`}
+                    className={`group flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === cat.id ? 'bg-muted border border-border' : 'hover:bg-muted/50'}`}
                   >
-                    <span className={`w-3 h-3 rounded-full ${cat.color}`} /> {cat.name}
+                    <div className="flex items-center gap-3">
+                      <span className={`w-3 h-3 rounded-full ${cat.color}`} /> {cat.name}
+                    </div>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCustomCategories(customCategories.filter(c => c.id !== cat.id));
+                        if (activeFilter === cat.id) setActiveFilter(null);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded text-muted-foreground hover:text-red-500 transition-all"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 ))}
               </div>
