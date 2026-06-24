@@ -944,6 +944,14 @@ export default function Calendar() {
         // Fallback for missing custom category
         if (selectedEvent.type.startsWith('custom-') && !customCat) categoryName = 'Note';
 
+        let tagColorClass = "bg-[#7B0099]/10 text-[#7B0099]";
+        if (selectedEvent.type === 'meeting') tagColorClass = "bg-blue-500/10 text-blue-700";
+        else if (selectedEvent.type === 'reminder') tagColorClass = "bg-red-500/10 text-red-700";
+        else if (selectedEvent.type === 'note') tagColorClass = "bg-yellow-500/10 text-yellow-700";
+        else if (customCat && CATEGORY_COLORS[customCat.color]) {
+          tagColorClass = CATEGORY_COLORS[customCat.color].replace(/border-l-2 border-\S+ /, '');
+        }
+
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in" onClick={() => setSelectedEvent(null)}>
             <div 
@@ -953,7 +961,7 @@ export default function Calendar() {
               <div className="flex items-center justify-between p-5 border-b border-slate-100">
                 <div className="flex items-center gap-3">
                   <h3 className="font-bold text-lg text-slate-900 tracking-tight">Event Details</h3>
-                  <span className="inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-bold bg-[#7B0099]/10 text-[#7B0099]">
+                  <span className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-bold ${tagColorClass}`}>
                     {categoryName}
                   </span>
                 </div>
