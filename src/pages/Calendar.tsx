@@ -637,7 +637,7 @@ export default function Calendar() {
                   <div className="flex items-start gap-3">
                     <span className="text-lg leading-none">📅</span>
                     <div className="flex flex-col -mt-0.5">
-                      <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Date</span>
+                      <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Event Date</span>
                       <span className="text-sm text-slate-900 font-medium mt-0.5">{format(new Date(selectedEvent.date), "dd MMM yyyy")}</span>
                     </div>
                   </div>
@@ -654,26 +654,21 @@ export default function Calendar() {
                     <div className="flex items-start gap-3">
                       <span className="text-lg leading-none">📍</span>
                       <div className="flex flex-col -mt-0.5">
-                        <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Location</span>
+                        <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Event Location</span>
                         <span className="text-sm text-slate-900 font-medium mt-0.5">{modalLocation}</span>
                       </div>
                     </div>
                   )}
-                  <div className="flex items-start gap-3">
-                    <span className="text-lg leading-none">👤</span>
-                    <div className="flex flex-col -mt-0.5">
-                      <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Organizer</span>
-                      <span className="text-sm text-slate-900 font-medium mt-0.5">{user?.name || "You"}</span>
+                  {modalDescription && (
+                    <div className="flex items-start gap-3">
+                      <span className="text-lg leading-none">👤</span>
+                      <div className="flex flex-col -mt-0.5">
+                        <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Description</span>
+                        <span className="text-sm text-slate-900 font-medium mt-0.5 whitespace-pre-wrap">{modalDescription}</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
-
-                {modalDescription && (
-                  <div className="pt-4 border-t border-slate-100">
-                    <h4 className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">Description</h4>
-                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{modalDescription}</p>
-                  </div>
-                )}
                 
                 <div className="flex justify-end pt-2 mt-4 border-t border-slate-100">
                   <Button variant="outline" onClick={() => setSelectedEvent(null)} className="font-semibold px-6 border-slate-300 text-slate-700 hover:bg-slate-50 mt-4">
