@@ -369,7 +369,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(resolvedRole) && (
                       <div 
                         onClick={() => navigate("/leave/admin")}
-                        className="cursor-pointer group relative flex flex-col items-center justify-center w-11 h-11 rounded-xl bg-[#7B0099] hover:bg-[#7B0099]/90 text-white shadow-sm transition-all shrink-0"
+                        className="cursor-pointer group relative flex flex-col items-center justify-center w-9 h-9 rounded-xl bg-[#7B0099] hover:bg-[#7B0099]/90 text-white shadow-sm transition-all shrink-0"
                       >
                         <ClipboardCheck className="w-5 h-5" />
                         {pendingApprovals > 0 && (
