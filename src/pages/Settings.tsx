@@ -1,4 +1,5 @@
 import { useRole } from "@/contexts/RoleContext";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,10 @@ interface Department {
 export default function SettingsPage() {
   const { role } = useRole();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"system" | "staff" | "branch" | "department">("system");
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  const initialTab = (searchParams.get("tab") as "system" | "staff" | "branch" | "department") || "system";
+  const [activeTab, setActiveTab] = useState<"system" | "staff" | "branch" | "department">(initialTab);
   
   // States
   const [branches, setBranches] = useState<Branch[]>([]);
