@@ -89,6 +89,20 @@ export default function Calendar() {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryColor, setNewCategoryColor] = useState("bg-blue-500");
   const [categoryToDelete, setCategoryToDelete] = useState<CustomCategory | null>(null);
+  
+  const [deletedDefaultCategories, setDeletedDefaultCategories] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('calendarDeletedDefaults');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error(e);
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('calendarDeletedDefaults', JSON.stringify(deletedDefaultCategories));
+  }, [deletedDefaultCategories]);
 
   const [loading, setLoading] = useState(true);
 
@@ -318,46 +332,111 @@ export default function Calendar() {
               </div>
               <p className="text-xs text-muted-foreground mb-4">Click to filter, or add an event to calendar</p>
               <div className="space-y-3">
-                <div 
-                  onClick={() => setActiveFilter(activeFilter === 'note' ? null : 'note')}
-                  className={`flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'note' ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/30' : 'bg-blue-500/5 text-blue-700 dark:text-blue-400 hover:bg-blue-500/10'}`}>
-                  <div className="flex items-center gap-3">
-                    <span className="w-3 h-3 rounded-full bg-blue-500 border border-blue-600/20" /> Notes
+                {!deletedDefaultCategories.includes('note') && (
+                  <div 
+                    onClick={() => setActiveFilter(activeFilter === 'note' ? null : 'note')}
+                    className={`group flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'note' ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/30' : 'bg-blue-500/5 text-blue-700 dark:text-blue-400 hover:bg-blue-500/10'}`}>
+                    <div className="flex items-center gap-3">
+                      <span className="w-3 h-3 rounded-full bg-blue-500 border border-blue-600/20" /> Notes
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {activeFilter === 'note' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCategoryToDelete({ id: 'note', name: 'Notes', color: 'bg-blue-500' });
+                        }}
+                        className={`p-1 rounded transition-all ${activeFilter === 'note' ? 'text-blue-700/60 hover:text-red-500 hover:bg-blue-500/10' : 'opacity-0 group-hover:opacity-100 text-blue-700/60 hover:text-red-500 hover:bg-blue-500/10'}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  {activeFilter === 'note' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
-                </div>
-                <div 
-                  onClick={() => setActiveFilter(activeFilter === 'reminder' ? null : 'reminder')}
-                  className={`flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'reminder' ? 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border border-yellow-500/30' : 'bg-yellow-500/5 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-500/10'}`}>
-                  <div className="flex items-center gap-3">
-                    <span className="w-3 h-3 rounded-full bg-yellow-500 border border-yellow-600/20" /> Reminders
+                )}
+                {!deletedDefaultCategories.includes('reminder') && (
+                  <div 
+                    onClick={() => setActiveFilter(activeFilter === 'reminder' ? null : 'reminder')}
+                    className={`group flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'reminder' ? 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border border-yellow-500/30' : 'bg-yellow-500/5 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-500/10'}`}>
+                    <div className="flex items-center gap-3">
+                      <span className="w-3 h-3 rounded-full bg-yellow-500 border border-yellow-600/20" /> Reminders
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {activeFilter === 'reminder' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCategoryToDelete({ id: 'reminder', name: 'Reminders', color: 'bg-yellow-500' });
+                        }}
+                        className={`p-1 rounded transition-all ${activeFilter === 'reminder' ? 'text-yellow-700/60 hover:text-red-500 hover:bg-yellow-500/10' : 'opacity-0 group-hover:opacity-100 text-yellow-700/60 hover:text-red-500 hover:bg-yellow-500/10'}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  {activeFilter === 'reminder' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
-                </div>
-                <div 
-                  onClick={() => setActiveFilter(activeFilter === 'meeting' ? null : 'meeting')}
-                  className={`flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'meeting' ? 'bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/30' : 'bg-green-500/5 text-green-700 dark:text-green-400 hover:bg-green-500/10'}`}>
-                  <div className="flex items-center gap-3">
-                    <span className="w-3 h-3 rounded-full bg-green-500 border border-green-600/20" /> Meetings
+                )}
+                {!deletedDefaultCategories.includes('meeting') && (
+                  <div 
+                    onClick={() => setActiveFilter(activeFilter === 'meeting' ? null : 'meeting')}
+                    className={`group flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'meeting' ? 'bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/30' : 'bg-green-500/5 text-green-700 dark:text-green-400 hover:bg-green-500/10'}`}>
+                    <div className="flex items-center gap-3">
+                      <span className="w-3 h-3 rounded-full bg-green-500 border border-green-600/20" /> Meetings
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {activeFilter === 'meeting' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCategoryToDelete({ id: 'meeting', name: 'Meetings', color: 'bg-green-500' });
+                        }}
+                        className={`p-1 rounded transition-all ${activeFilter === 'meeting' ? 'text-green-700/60 hover:text-red-500 hover:bg-green-500/10' : 'opacity-0 group-hover:opacity-100 text-green-700/60 hover:text-red-500 hover:bg-green-500/10'}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  {activeFilter === 'meeting' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
-                </div>
-                <div 
-                  onClick={() => setActiveFilter(activeFilter === 'holiday' ? null : 'holiday')}
-                  className={`flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'holiday' ? 'bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/30' : 'bg-red-500/5 text-red-700 dark:text-red-400 hover:bg-red-500/10'}`}>
-                  <div className="flex items-center gap-3">
-                    <span className="w-3 h-3 rounded-full bg-red-500 border border-red-600/20" /> Holidays
+                )}
+                {!deletedDefaultCategories.includes('holiday') && (
+                  <div 
+                    onClick={() => setActiveFilter(activeFilter === 'holiday' ? null : 'holiday')}
+                    className={`group flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'holiday' ? 'bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/30' : 'bg-red-500/5 text-red-700 dark:text-red-400 hover:bg-red-500/10'}`}>
+                    <div className="flex items-center gap-3">
+                      <span className="w-3 h-3 rounded-full bg-red-500 border border-red-600/20" /> Holidays
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {activeFilter === 'holiday' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCategoryToDelete({ id: 'holiday', name: 'Holidays', color: 'bg-red-500' });
+                        }}
+                        className={`p-1 rounded transition-all ${activeFilter === 'holiday' ? 'text-red-700/60 hover:text-red-500 hover:bg-red-500/10' : 'opacity-0 group-hover:opacity-100 text-red-700/60 hover:text-red-500 hover:bg-red-500/10'}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  {activeFilter === 'holiday' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
-                </div>
-                <div 
-                  onClick={() => setActiveFilter(activeFilter === 'attendance' ? null : 'attendance')}
-                  className={`flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'attendance' ? 'bg-[#7B0099]/20 text-[#7B0099] dark:text-[#a000c7] border border-[#7B0099]/30' : 'bg-[#7B0099]/5 text-[#7B0099] dark:text-[#a000c7] hover:bg-[#7B0099]/10'}`}>
-                  <div className="flex items-center gap-3">
-                    <span className="w-3 h-3 rounded-full bg-[#7B0099] border border-[#7B0099]/20" /> Attendance
+                )}
+                {!deletedDefaultCategories.includes('attendance') && (
+                  <div 
+                    onClick={() => setActiveFilter(activeFilter === 'attendance' ? null : 'attendance')}
+                    className={`group flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'attendance' ? 'bg-[#7B0099]/20 text-[#7B0099] dark:text-[#a000c7] border border-[#7B0099]/30' : 'bg-[#7B0099]/5 text-[#7B0099] dark:text-[#a000c7] hover:bg-[#7B0099]/10'}`}>
+                    <div className="flex items-center gap-3">
+                      <span className="w-3 h-3 rounded-full bg-[#7B0099] border border-[#7B0099]/20" /> Attendance
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {activeFilter === 'attendance' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCategoryToDelete({ id: 'attendance', name: 'Attendance', color: 'bg-[#7B0099]' });
+                        }}
+                        className={`p-1 rounded transition-all ${activeFilter === 'attendance' ? 'text-[#7B0099]/60 hover:text-red-500 hover:bg-[#7B0099]/10' : 'opacity-0 group-hover:opacity-100 text-[#7B0099]/60 hover:text-red-500 hover:bg-[#7B0099]/10'}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  {activeFilter === 'attendance' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
-                </div>
+                )}
                 {customCategories.map(cat => (
                   <div 
                     key={cat.id}
@@ -893,7 +972,11 @@ export default function Calendar() {
                     setNotes(notes.map(note => note.type === categoryToDelete.id ? { ...note, type: 'note' } : note));
                     
                     // Remove category from state
-                    setCustomCategories(customCategories.filter(c => c.id !== categoryToDelete.id));
+                    if (['note', 'reminder', 'meeting', 'holiday', 'attendance'].includes(categoryToDelete.id)) {
+                      setDeletedDefaultCategories([...deletedDefaultCategories, categoryToDelete.id]);
+                    } else {
+                      setCustomCategories(customCategories.filter(c => c.id !== categoryToDelete.id));
+                    }
                     
                     // Reset active filter if deleting currently active category
                     if (activeFilter === categoryToDelete.id) {
