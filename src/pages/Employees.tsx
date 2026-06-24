@@ -11,7 +11,8 @@ import {
   FileText, 
   Users,
   X,
-  PhoneCall
+  PhoneCall,
+  Download
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -200,6 +201,31 @@ export default function Employees() {
     return a.name.localeCompare(b.name);
   });
 
+  const handleExportCSV = () => {
+    const csvContent = [
+      ["Name", "Email", "Position", "Branch", "Status"],
+      ...filtered.map((emp) => [
+        `"${emp.name}"`,
+        `"${emp.email}"`,
+        `"${emp.position.replace('_', ' ')}"`,
+        `"${emp.branch}"`,
+        `"${emp.status}"`,
+      ])
+    ]
+      .map(e => e.join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Employee_Directory_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   useEffect(() => {
     setCurrentPage(1);
   }, [search, selectedBranch, selectedPosition, selectedStatus]);
@@ -309,15 +335,15 @@ export default function Employees() {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-responsive-xl font-bold font-heading text-foreground">Staff Directory</h1>
-          <p className="text-responsive-sm text-muted-foreground mt-1">
-            {role === "hr_admin" ? "Manage employees across all branches" : `View employees in ${userBranch}`}
-          </p>
-        </div>
-        
-        {role === "hr_admin" && (
+      {["hr_admin", "managing_director", "finance_manager"].includes(role) ? (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-responsive-xl font-bold font-heading text-foreground">Staff Directory</h1>
+            <p className="text-responsive-sm text-muted-foreground mt-1">
+              Manage employees across all branches
+            </p>
+          </div>
+          
           <Button 
             onClick={() => setIsAddModalOpen(true)}
             className="bg-[#7B0099] hover:bg-[#5e0080] text-white font-bold gap-2 whitespace-nowrap touch-target self-start sm:self-auto"
@@ -325,8 +351,31 @@ export default function Employees() {
             <Users className="w-4 h-4" />
             Add Staff
           </Button>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-3 mb-2 mt-2">
+          {/* For HOD/Branch Leader: Staff Directory text is removed as requested, replaced with Export and KPI on the right */}
+          <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4 w-full sm:w-auto">
+            <Button onClick={handleExportCSV} variant="outline" className="flex items-center gap-2 h-10 border-border/60 shadow-sm font-bold text-xs">
+              <Download className="w-4 h-4" />
+              Export CSV
+            </Button>
+            <Card className="border-border shadow-sm m-0">
+              <CardContent className="p-3 sm:p-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Employees</p>
+                  <h3 className="text-2xl font-bold mt-0.5 text-green-600 dark:text-green-400 leading-none">
+                    {filtered.length}
+                  </h3>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-card/50 backdrop-blur-sm p-3 rounded-2xl border border-border/50">
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full sm:w-auto flex-1">
