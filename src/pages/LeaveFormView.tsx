@@ -91,8 +91,6 @@ const statusVariant = (status: string) => {
   }
 };
 
-type FormTabFilter = "pending" | "approved" | "rejected" | "history";
-
 export default function LeaveFormView() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -100,25 +98,6 @@ export default function LeaveFormView() {
   const [forms, setForms] = useState<LeaveForm[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedForm, setSelectedForm] = useState<LeaveForm | null>(null);
-  const [activeTab, setActiveTab] = useState<FormTabFilter>("pending");
-
-  // Filter forms based on active tab
-  const filteredForms = forms.filter((form) => {
-    switch (activeTab) {
-      case "pending":
-        return form.status.startsWith("Pending");
-      case "approved":
-        return form.status === "Approved";
-      case "rejected":
-        return form.status === "Rejected";
-      case "history":
-        return true; // Show all
-    }
-  });
-
-  const pendingCount = forms.filter((f) => f.status.startsWith("Pending")).length;
-  const approvedCount = forms.filter((f) => f.status === "Approved").length;
-  const rejectedCount = forms.filter((f) => f.status === "Rejected").length;
 
   useEffect(() => {
     void fetchForms();
@@ -190,151 +169,150 @@ export default function LeaveFormView() {
       const match = forms.find((f) => f.id === Number(leaveId));
       if (match) {
         setSelectedForm(match);
-        // Switch tab to match the status
-        if (match.status === "Approved") {
-          setActiveTab("approved");
-        } else if (match.status === "Rejected") {
-          setActiveTab("rejected");
-        } else if (match.status.startsWith("Pending")) {
-          setActiveTab("pending");
-        }
       }
     }
   }, [searchParams, forms]);
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-[#7B0099]/10 dark:bg-[#7B0099]/20 rounded-xl text-[#7B0099] dark:text-purple-400">
-            <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-          <div>
-            <h1 className="text-responsive-xl font-black text-foreground tracking-tight uppercase">My Leave Registry</h1>
-            <p className="text-responsive-sm text-muted-foreground font-medium italic">
-              Registry of your submitted leave application forms
-            </p>
-          </div>
-        </div>
-        <Button
-          onClick={() => navigate("/leave/apply")}
-          className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-6 py-5 shadow-lg shadow-[#7B0099]/20 transition-all active:scale-95"
-        >
-          <FileText className="w-4 h-4" />
-          New Application
-        </Button>
-      </div>
-
-      {/* Form List */}
       <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
-        <CardHeader className="border-b border-border/50 pb-0 px-4 sm:px-6">
-          <div className="flex items-center justify-between mb-4">
+        <CardHeader className="border-b border-border/50 pb-4 px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="space-y-1">
               <CardTitle className="text-base sm:text-lg font-black text-foreground">Submitted Forms</CardTitle>
               <CardDescription className="text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-60">
                 Track your leave application status
               </CardDescription>
             </div>
-            <Badge variant="outline" className="font-black text-[10px] px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none">
-              {filteredForms.length} {activeTab === "pending" ? "PENDING" : activeTab === "approved" ? "APPROVED" : activeTab === "rejected" ? "REJECTED" : "TOTAL"}
-            </Badge>
-          </div>
-          {/* Tab Navigation */}
-          <div className="flex gap-0 border-b-0">
-            {([
-              { key: "pending" as FormTabFilter, label: "Pending", count: pendingCount },
-              { key: "approved" as FormTabFilter, label: "Approved", count: approvedCount },
-              { key: "rejected" as FormTabFilter, label: "Rejected", count: rejectedCount },
-              { key: "history" as FormTabFilter, label: "History", count: forms.length },
-            ]).map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveTab(tab.key)}
-                className={`relative px-4 sm:px-6 py-3 text-[11px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${activeTab === tab.key
-                    ? "text-[#7B0099]"
-                    : "text-muted-foreground hover:text-foreground"
-                  }`}
+            <div className="flex items-center gap-3">
+              <Badge variant="outline" className="font-black text-[10px] px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none">
+                {forms.length} TOTAL
+              </Badge>
+              <Button
+                onClick={() => navigate("/leave/apply")}
+                className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-4 shadow-sm transition-all active:scale-95"
               >
-                {tab.label}
-                {tab.count > 0 && (
-                  <span className={`ml-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-full transition-colors duration-300 ${activeTab === tab.key
-                      ? "bg-[#7B0099] text-white"
-                      : "bg-muted text-muted-foreground"
-                    }`}>
-                    {tab.count}
-                  </span>
-                )}
-                {/* Animated underline */}
-                {activeTab === tab.key && (
-                  <span className="absolute bottom-0 left-2 right-2 h-[3px] bg-[#7B0099] rounded-full animate-in fade-in slide-in-from-bottom-1 duration-300" />
-                )}
-              </button>
-            ))}
+                <FileText className="w-3.5 h-3.5" />
+                New Application
+              </Button>
+            </div>
           </div>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6">
+        <CardContent className="p-0 sm:p-0">
           {loading ? (
             <div className="flex flex-col items-center justify-center p-12 gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Syncing History...</p>
             </div>
-          ) : filteredForms.length > 0 ? (
-            <div className="grid grid-cols-1 gap-3">
-              {filteredForms.map((form) => (
-                <div
-                  key={form.id}
-                  className="group relative rounded-[20px] border border-border/50 bg-card/50 p-4 sm:p-5 hover:bg-[#7B0099]/5 hover:border-[#7B0099]/30 transition-all duration-300 cursor-pointer touch-target"
-                  onClick={() => setSelectedForm(form)}
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-start gap-4 min-w-0">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-[14px] sm:rounded-2xl bg-[#7B0099]/10 flex items-center justify-center text-[#7B0099] group-hover:scale-110 transition-transform duration-300">
-                        <FileText className="h-5 w-5 sm:h-6 sm:w-6" />
-                      </div>
-                      <div className="min-w-0 space-y-1">
-                        <p className="text-sm font-black text-foreground truncate group-hover:text-[#7B0099] transition-colors">
-                          {form.formFileName}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                          <span className="text-[#7B0099]/80">{leaveTypeLabels[form.type]}</span>
-                          <span className="opacity-30">•</span>
-                          <span>{form.appliedAt.slice(0, 10)}</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-[10px] font-bold text-muted-foreground mt-1 bg-muted/40 w-fit px-2 py-0.5 rounded-lg">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3 opacity-50" />
-                            {form.from} → {form.to}
-                          </span>
-                          <span className="text-foreground font-black">
-                            {form.days} DAYS
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      <Badge
-                        className={`text-[10px] font-black px-2.5 py-1 h-auto shadow-sm whitespace-nowrap ${form.status === "Approved" ? "bg-emerald-500 text-white" :
-                            form.status === "Rejected" ? "bg-rose-600 text-white" :
-                              form.status === "Pending Finance" ? "bg-orange-500 text-white" :
-                                form.status === "Pending MD" ? "bg-blue-600 text-white" :
-                                  form.status === "Pending HOD" ? "bg-violet-500 text-white" :
-                                    form.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
-                                      "bg-amber-500 text-white"
-                          }`}
+          ) : forms.length > 0 ? (
+            <>
+              {/* Desktop Table */}
+              <div className="overflow-x-auto hidden sm:block">
+                <Table>
+                  <TableHeader className="bg-muted/30">
+                    <TableRow>
+                      <TableHead className="px-6 py-4 text-foreground uppercase text-[10px] font-black tracking-widest whitespace-nowrap">Leave Type</TableHead>
+                      <TableHead className="px-6 py-4 text-foreground uppercase text-[10px] font-black tracking-widest whitespace-nowrap">From</TableHead>
+                      <TableHead className="px-6 py-4 text-foreground uppercase text-[10px] font-black tracking-widest whitespace-nowrap">To</TableHead>
+                      <TableHead className="px-6 py-4 text-foreground uppercase text-[10px] font-black tracking-widest text-center whitespace-nowrap">Days</TableHead>
+                      <TableHead className="px-6 py-4 text-foreground uppercase text-[10px] font-black tracking-widest text-center whitespace-nowrap">Status</TableHead>
+                      <TableHead className="px-6 py-4 text-right whitespace-nowrap"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="divide-y divide-border/50">
+                    {forms.map((form) => (
+                      <TableRow 
+                        key={form.id} 
+                        className="hover:bg-[#7B0099]/5 transition-colors group cursor-pointer"
+                        onClick={() => setSelectedForm(form)}
                       >
-                        {form.status.replace('Pending ', '').toUpperCase()}
-                      </Badge>
-                      <div className="p-1.5 rounded-full bg-[#7B0099]/5 text-[#7B0099] opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block">
-                        <Eye className="w-3.5 h-3.5" />
+                        <TableCell className="px-6 py-4">
+                          <div className="flex flex-col">
+                            <span className="font-black text-[#7B0099] dark:text-purple-400">{leaveTypeLabels[form.type]}</span>
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">{form.appliedAt.slice(0, 10)}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-muted-foreground font-bold">{form.from}</TableCell>
+                        <TableCell className="px-6 py-4 text-muted-foreground font-bold">{form.to}</TableCell>
+                        <TableCell className="px-6 py-4 text-center font-black text-foreground">{form.days}</TableCell>
+                        <TableCell className="px-6 py-4 text-center">
+                          <Badge
+                            className={`text-[10px] font-black px-2.5 py-1 h-auto shadow-sm whitespace-nowrap ${
+                              form.status === "Approved" ? "bg-emerald-500 text-white hover:bg-emerald-600" :
+                              form.status === "Rejected" ? "bg-rose-600 text-white hover:bg-rose-700" :
+                              form.status === "Pending Finance" ? "bg-orange-500 text-white hover:bg-orange-600" :
+                              form.status === "Pending MD" ? "bg-blue-600 text-white hover:bg-blue-700" :
+                              form.status === "Pending HOD" ? "bg-violet-500 text-white hover:bg-violet-600" :
+                              form.status === "Pending Branch Leader" ? "bg-violet-500 text-white hover:bg-violet-600" :
+                              "bg-amber-500 text-white hover:bg-amber-600"
+                            }`}
+                          >
+                            {form.status.replace('Pending ', '').toUpperCase()}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-right">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-[#7B0099] hover:bg-[#7B0099]/10">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="grid grid-cols-1 gap-3 p-4 sm:hidden">
+                {forms.map((form) => (
+                  <div
+                    key={form.id}
+                    className="group relative rounded-[20px] border border-border/50 bg-card/50 p-4 hover:bg-[#7B0099]/5 hover:border-[#7B0099]/30 transition-all duration-300 cursor-pointer touch-target"
+                    onClick={() => setSelectedForm(form)}
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-[14px] bg-[#7B0099]/10 flex items-center justify-center text-[#7B0099] group-hover:scale-110 transition-transform duration-300 shrink-0">
+                          <FileText className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0 space-y-1">
+                          <p className="text-sm font-black text-foreground truncate group-hover:text-[#7B0099] transition-colors">
+                            {leaveTypeLabels[form.type]}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                            <span>{form.appliedAt.slice(0, 10)}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground mt-1 bg-muted/40 w-fit px-2 py-0.5 rounded-lg">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3 opacity-50" />
+                              {form.from} → {form.to}
+                            </span>
+                            <span className="text-foreground font-black">
+                              {form.days} DAYS
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+                        <Badge
+                          className={`text-[9px] font-black px-2 py-1 h-auto shadow-sm whitespace-nowrap ${
+                            form.status === "Approved" ? "bg-emerald-500 text-white" :
+                            form.status === "Rejected" ? "bg-rose-600 text-white" :
+                            form.status === "Pending Finance" ? "bg-orange-500 text-white" :
+                            form.status === "Pending MD" ? "bg-blue-600 text-white" :
+                            form.status === "Pending HOD" ? "bg-violet-500 text-white" :
+                            form.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
+                            "bg-amber-500 text-white"
+                          }`}
+                        >
+                          {form.status.replace('Pending ', '').toUpperCase()}
+                        </Badge>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           ) : (
             <div className="py-20 text-center flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-500">
               <div className="w-20 h-20 rounded-[32px] bg-muted/30 flex items-center justify-center border-2 border-dashed border-border/50 group hover:border-[#7B0099]/30 transition-colors">
@@ -342,21 +320,19 @@ export default function LeaveFormView() {
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-black text-foreground uppercase tracking-widest">
-                  {activeTab === "pending" ? "No Pending Applications" : activeTab === "approved" ? "No Approved Applications" : activeTab === "rejected" ? "No Rejected Applications" : "No Leave Registry Found"}
+                  No Leave Registry Found
                 </p>
                 <p className="text-[10px] font-medium text-muted-foreground italic">
-                  {activeTab === "pending" ? "All your applications have been processed" : activeTab === "approved" ? "No applications approved yet" : activeTab === "rejected" ? "No applications rejected" : "You haven't submitted any leave applications yet"}
+                  You haven't submitted any leave applications yet
                 </p>
               </div>
-              {activeTab === "history" && (
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/leave/apply")}
-                  className="mt-2 rounded-xl border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 font-black text-[10px] uppercase tracking-widest"
-                >
-                  Start New Application
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                onClick={() => navigate("/leave/apply")}
+                className="mt-2 rounded-xl border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 font-black text-[10px] uppercase tracking-widest"
+              >
+                Start New Application
+              </Button>
             </div>
           )}
         </CardContent>

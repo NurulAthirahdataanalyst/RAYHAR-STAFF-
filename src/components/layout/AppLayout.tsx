@@ -326,7 +326,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </button>
 
               {/* Scrollable Panel content */}
-              <div className="flex-1 w-full overflow-y-auto overflow-x-hidden scrollbar-none flex flex-col gap-3 items-center lg:items-stretch py-1 px-2 -mx-2">
+              <div className="flex-1 w-full overflow-y-auto scrollbar-none flex flex-col gap-4 py-2 px-3">
                 {!sidebarCollapsed ? (
                   <>
                     {/* ═══════ PENDING APPROVALS ═══════ */}
