@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle2, Clock3, FileText, Plus, XCircle, Calendar } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
@@ -203,49 +204,49 @@ export default function LeaveOverview() {
         <CardContent className="p-0">
           {/* Desktop Table */}
           <div className="overflow-x-auto hidden sm:block">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-muted/30 text-foreground uppercase text-[10px] font-black tracking-widest">
-                <tr>
-                  <th className="px-5 py-3.5">Leave Type</th>
-                  <th className="px-5 py-3.5">From</th>
-                  <th className="px-5 py-3.5">To</th>
-                  <th className="px-5 py-3.5 text-center">Days</th>
-                  <th className="px-5 py-3.5 text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/50">
+            <Table>
+              <TableHeader className="bg-muted/30">
+                <TableRow>
+                  <TableHead className="px-5 py-3.5 text-foreground uppercase text-[10px] font-black tracking-widest whitespace-nowrap">Leave Type</TableHead>
+                  <TableHead className="px-5 py-3.5 text-foreground uppercase text-[10px] font-black tracking-widest whitespace-nowrap">From</TableHead>
+                  <TableHead className="px-5 py-3.5 text-foreground uppercase text-[10px] font-black tracking-widest whitespace-nowrap">To</TableHead>
+                  <TableHead className="px-5 py-3.5 text-foreground uppercase text-[10px] font-black tracking-widest text-center whitespace-nowrap">Days</TableHead>
+                  <TableHead className="px-5 py-3.5 text-foreground uppercase text-[10px] font-black tracking-widest text-center whitespace-nowrap">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-border/50">
                 {filteredLeaveRequests.length > 0 ? (
                   filteredLeaveRequests.map((req, i) => (
-                    <tr key={i} className="hover:bg-[#7B0099]/5 transition-colors group">
-                      <td className="px-5 py-3.5 font-black text-[#7B0099] dark:text-purple-400">{leaveTypeLabels[req.type]}</td>
-                      <td className="px-5 py-3.5 text-muted-foreground font-bold">{req.from}</td>
-                      <td className="px-5 py-3.5 text-muted-foreground font-bold">{req.to}</td>
-                      <td className="px-5 py-3.5 text-center font-black text-foreground">{req.days}</td>
-                      <td className="px-5 py-3.5 text-center">
+                    <TableRow key={i} className="hover:bg-[#7B0099]/5 transition-colors group">
+                      <TableCell className="px-5 py-3.5 font-black text-[#7B0099] dark:text-purple-400">{leaveTypeLabels[req.type]}</TableCell>
+                      <TableCell className="px-5 py-3.5 text-muted-foreground font-bold">{req.from}</TableCell>
+                      <TableCell className="px-5 py-3.5 text-muted-foreground font-bold">{req.to}</TableCell>
+                      <TableCell className="px-5 py-3.5 text-center font-black text-foreground">{req.days}</TableCell>
+                      <TableCell className="px-5 py-3.5 text-center">
                         <Badge
                           className={`text-[11px] font-black px-3 py-1 h-auto shadow-sm whitespace-nowrap ${
-                            req.status === "Approved" ? "bg-emerald-500 text-white" :
-                            req.status === "Rejected" ? "bg-rose-600 text-white" :
-                            req.status === "Pending Finance" ? "bg-orange-500 text-white" :
-                            req.status === "Pending MD" ? "bg-blue-600 text-white" :
-                            req.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
-                            "bg-amber-500 text-white"
+                            req.status === "Approved" ? "bg-emerald-500 text-white hover:bg-emerald-600" :
+                            req.status === "Rejected" ? "bg-rose-600 text-white hover:bg-rose-700" :
+                            req.status === "Pending Finance" ? "bg-orange-500 text-white hover:bg-orange-600" :
+                            req.status === "Pending MD" ? "bg-blue-600 text-white hover:bg-blue-700" :
+                            req.status === "Pending Branch Leader" ? "bg-violet-500 text-white hover:bg-violet-600" :
+                            "bg-amber-500 text-white hover:bg-amber-600"
                           }`}
                         >
                           {req.status.toUpperCase()}
                         </Badge>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))
                 ) : (
-                  <tr>
-                    <td colSpan={5} className="px-5 py-10 text-center text-xs font-black text-muted-foreground uppercase tracking-widest italic opacity-30">
+                  <TableRow>
+                    <TableCell colSpan={5} className="px-5 py-10 text-center text-xs font-black text-muted-foreground uppercase tracking-widest italic opacity-30">
                       No leave applications found in registry
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
 
           {/* Mobile Card View */}

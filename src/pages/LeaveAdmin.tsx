@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
@@ -355,23 +356,23 @@ export default function LeaveAdmin() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left whitespace-nowrap">
-                <thead className="bg-muted/20 text-muted-foreground text-xs font-bold border-b border-border/40">
-                  <tr>
-                    <th className="px-5 py-4 font-semibold">Employee</th>
-                    <th className="px-5 py-4 font-semibold">Leave Type</th>
-                    <th className="px-5 py-4 font-semibold">From</th>
-                    <th className="px-5 py-4 font-semibold">To</th>
-                    <th className="px-5 py-4 font-semibold">No of Days</th>
-                    <th className="px-5 py-4 font-semibold">Status</th>
-                    {canApprove && <th className="px-5 py-4 font-semibold text-right">Actions</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/40">
+              <Table className="whitespace-nowrap">
+                <TableHeader className="bg-muted/20 border-b border-border/40">
+                  <TableRow>
+                    <TableHead className="px-5 py-4 font-semibold text-muted-foreground">Employee</TableHead>
+                    <TableHead className="px-5 py-4 font-semibold text-muted-foreground">Leave Type</TableHead>
+                    <TableHead className="px-5 py-4 font-semibold text-muted-foreground">From</TableHead>
+                    <TableHead className="px-5 py-4 font-semibold text-muted-foreground">To</TableHead>
+                    <TableHead className="px-5 py-4 font-semibold text-muted-foreground">No of Days</TableHead>
+                    <TableHead className="px-5 py-4 font-semibold text-muted-foreground">Status</TableHead>
+                    {canApprove && <TableHead className="px-5 py-4 font-semibold text-muted-foreground text-right">Actions</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-border/40">
                   {filteredRequests.length > 0 ? (
                     filteredRequests.map((req) => (
-                      <tr key={req.id} className="hover:bg-muted/30 transition-colors group">
-                        <td className="px-5 py-3.5">
+                      <TableRow key={req.id} className="hover:bg-muted/30 transition-colors group">
+                        <TableCell className="px-5 py-3.5">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-[#7B0099]/10 text-[#7B0099] flex items-center justify-center text-xs font-bold shrink-0">
                               {req.employee.charAt(0).toUpperCase()}
@@ -387,35 +388,35 @@ export default function LeaveAdmin() {
                               <span className="text-[11px] text-muted-foreground mt-0.5">{req.branch}</span>
                             </div>
                           </div>
-                        </td>
-                        <td className="px-5 py-3.5">
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
                           <span className="text-[13px] font-medium text-foreground flex items-center gap-1.5">
                             {req.type}
                             {req.reason && <Info className="w-3.5 h-3.5 text-muted-foreground opacity-50" />}
                           </span>
-                        </td>
-                        <td className="px-5 py-3.5 text-[13px] font-medium text-muted-foreground">
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5 text-[13px] font-medium text-muted-foreground">
                           {req.from}
-                        </td>
-                        <td className="px-5 py-3.5 text-[13px] font-medium text-muted-foreground">
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5 text-[13px] font-medium text-muted-foreground">
                           {req.to}
-                        </td>
-                        <td className="px-5 py-3.5">
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
                           <Badge variant="secondary" className="bg-muted/50 font-medium text-foreground rounded-md px-2 py-0.5">
                             {req.days} {req.days > 1 ? 'Days' : 'Day'}
                           </Badge>
-                        </td>
-                        <td className="px-5 py-3.5">
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${
-                            req.status === "Approved" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
-                            req.status === "Rejected" ? "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" :
-                            "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                            req.status === "Approved" ? "bg-emerald-100/50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
+                            req.status === "Rejected" ? "bg-rose-100/50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" :
+                            "bg-amber-100/50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                           }`}>
                             {req.status === "Approved" || req.status === "Rejected" ? req.status : "Pending"}
                           </span>
-                        </td>
+                        </TableCell>
                         {canApprove && (
-                          <td className="px-5 py-3.5 text-right">
+                          <TableCell className="px-5 py-3.5 text-right">
                             {((req.status.startsWith("Pending HOD") && role === "head_of_department") ||
                               (req.status === "Pending Branch Leader" && role === "branch_leader") ||
                               (req.status === "Pending Finance" && role === "finance_manager") ||
@@ -428,7 +429,7 @@ export default function LeaveAdmin() {
                                   onClick={() => handleAction(req.id, "approve", req.status)}
                                   title="Approve"
                                 >
-                                  <Check className="w-4 h-4" />
+                                  <Check className="h-4 w-4" />
                                 </Button>
                                 <Button
                                   size="sm"
@@ -437,27 +438,26 @@ export default function LeaveAdmin() {
                                   onClick={() => handleAction(req.id, "reject", req.status)}
                                   title="Reject"
                                 >
-                                  <X className="w-4 h-4" />
+                                  <X className="h-4 w-4" />
                                 </Button>
                               </div>
                             ) : (
-                              <span className="text-[11px] font-medium text-muted-foreground italic">
-                                Processed
-                              </span>
+                              <span className="text-[11px] text-muted-foreground/60 font-medium italic">No Action</span>
                             )}
-                          </td>
+                          </TableCell>
                         )}
-                      </tr>
+                      </TableRow>
                     ))
                   ) : (
-                    <tr>
-                      <td colSpan={canApprove ? 7 : 6} className="px-5 py-12 text-center text-muted-foreground text-sm">
-                        No leaves found for the selected filters.
-                      </td>
-                    </tr>
+                    <TableRow>
+                      <TableCell colSpan={canApprove ? 7 : 6} className="py-12 text-center">
+                        <FileText className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
+                        <p className="text-muted-foreground font-medium">No leave requests found</p>
+                      </TableCell>
+                    </TableRow>
                   )}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>
@@ -550,24 +550,24 @@ export default function LeaveAdmin() {
                       <div className="space-y-3">
                         <p className="text-[9px] font-black uppercase text-blue-600 opacity-80 tracking-widest px-1">Butiran Cuti Ganti</p>
                         <div className="border border-blue-500/20 rounded-[20px] overflow-hidden bg-blue-500/5">
-                          <table className="w-full text-left text-[10px]">
-                            <thead>
-                              <tr className="bg-blue-500/10 text-blue-700 font-black uppercase border-b border-blue-500/20">
-                                <th className="py-2.5 px-4">Tarikh Cuti</th>
-                                <th className="py-2.5 px-4">Tarikh/Hari Cuti Ganti</th>
-                                <th className="py-2.5 px-4 text-right">Jam Bekerja</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-blue-500/10 font-bold text-foreground/80">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="bg-blue-500/10 hover:bg-blue-500/10 border-b border-blue-500/20">
+                                <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh Cuti</TableHead>
+                                <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh/Hari Cuti Ganti</TableHead>
+                                <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase text-right">Jam Bekerja</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody className="divide-y divide-blue-500/10 font-bold text-foreground/80">
                               {rows.map((row, idx) => (
-                                <tr key={idx}>
-                                  <td className="py-2 px-4">{row.tarikh || "-"}</td>
-                                  <td className="py-2 px-4">{row.hari || "-"}</td>
-                                  <td className="py-2 px-4 text-right">{row.jam || 0} Jam</td>
-                                </tr>
+                                <TableRow key={idx} className="hover:bg-blue-500/5">
+                                  <TableCell className="py-2 px-4">{row.tarikh || "-"}</TableCell>
+                                  <TableCell className="py-2 px-4">{row.hari || "-"}</TableCell>
+                                  <TableCell className="py-2 px-4 text-right">{row.jam || 0} Jam</TableCell>
+                                </TableRow>
                               ))}
-                            </tbody>
-                          </table>
+                            </TableBody>
+                          </Table>
                         </div>
                       </div>
                     );

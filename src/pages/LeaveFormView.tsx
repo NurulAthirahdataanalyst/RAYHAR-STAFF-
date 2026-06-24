@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -445,24 +446,24 @@ export default function LeaveFormView() {
                       <div className="space-y-3">
                         <p className="text-[9px] font-black uppercase text-blue-600 opacity-80 tracking-widest px-1">Butiran Cuti Ganti</p>
                         <div className="border border-blue-500/20 rounded-[20px] overflow-hidden bg-blue-500/5">
-                          <table className="w-full text-left text-[10px]">
-                            <thead>
-                              <tr className="bg-blue-500/10 text-blue-700 font-black uppercase border-b border-blue-500/20">
-                                <th className="py-2.5 px-4">Tarikh Cuti</th>
-                                <th className="py-2.5 px-4">Tarikh/Hari Cuti Ganti</th>
-                                <th className="py-2.5 px-4 text-right">Jam Bekerja</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-blue-500/10 font-bold text-foreground/80">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="bg-blue-500/10 hover:bg-blue-500/10 border-b border-blue-500/20">
+                                <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh Cuti</TableHead>
+                                <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh/Hari Cuti Ganti</TableHead>
+                                <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase text-right">Jam Bekerja</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody className="divide-y divide-blue-500/10 font-bold text-foreground/80">
                               {rows.map((row, idx) => (
-                                <tr key={idx}>
-                                  <td className="py-2 px-4">{row.tarikh || "-"}</td>
-                                  <td className="py-2 px-4">{row.hari || "-"}</td>
-                                  <td className="py-2 px-4 text-right">{row.jam || 0} Jam</td>
-                                </tr>
+                                <TableRow key={idx} className="hover:bg-blue-500/5">
+                                  <TableCell className="py-2 px-4">{row.tarikh || "-"}</TableCell>
+                                  <TableCell className="py-2 px-4">{row.hari || "-"}</TableCell>
+                                  <TableCell className="py-2 px-4 text-right">{row.jam || 0} Jam</TableCell>
+                                </TableRow>
                               ))}
-                            </tbody>
-                          </table>
+                            </TableBody>
+                          </Table>
                         </div>
                       </div>
                     );

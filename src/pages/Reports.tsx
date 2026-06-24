@@ -15,6 +15,7 @@ import LeaveAnalytics from "./LeaveAnalytics";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { API_BASE_URL } from "../config/api";
 import {
   DropdownMenu,

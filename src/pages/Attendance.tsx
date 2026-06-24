@@ -10,6 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const formatAttendanceTime = (value: unknown) => {
   if (!value) return "--:--";
@@ -1094,62 +1095,62 @@ export default function Attendance() {
           </div>
 
           {/* Table Container */}
-          <div className="w-full overflow-x-auto rounded-2xl border border-border/50">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead>
-                <tr className="bg-muted/50 border-b border-border/50">
-                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Date</th>
-                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Check In</th>
-                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Status</th>
-                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Check Out</th>
-                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Break</th>
-                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">Late</th>
-                  <th className="px-4 py-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap text-right">Production Hours</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/40">
+          <div className="w-full overflow-x-auto rounded-2xl border border-border/50 bg-card">
+            <Table className="min-w-[800px]">
+              <TableHeader className="bg-muted/50 border-b border-border/50">
+                <TableRow>
+                  <TableHead className="px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">Date</TableHead>
+                  <TableHead className="px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">Check In</TableHead>
+                  <TableHead className="px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">Status</TableHead>
+                  <TableHead className="px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">Check Out</TableHead>
+                  <TableHead className="px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">Break</TableHead>
+                  <TableHead className="px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">Late</TableHead>
+                  <TableHead className="px-4 py-3 font-medium text-muted-foreground whitespace-nowrap text-right pr-6">Production Hours</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-border/40">
                 {fetchingHistory && historyLogs.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="py-12 text-center">
+                  <TableRow>
+                    <TableCell colSpan={7} className="py-12 text-center">
                       <Loader2 className="w-6 h-6 animate-spin text-[#7B0099] mx-auto mb-2" />
-                      <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Loading Data...</p>
-                    </td>
-                  </tr>
+                      <p className="text-sm font-medium text-muted-foreground">Loading Data...</p>
+                    </TableCell>
+                  </TableRow>
                 ) : displayedLogs.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="py-12 text-center">
+                  <TableRow>
+                    <TableCell colSpan={7} className="py-12 text-center">
                        <Clock className="w-8 h-8 opacity-20 mx-auto mb-2" />
-                       <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">No logs found</p>
-                    </td>
-                  </tr>
+                       <p className="text-sm font-medium text-muted-foreground">No logs found</p>
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   displayedLogs.slice(0, visibleLogsCount).map((log, index) => {
                     const clockInDate = new Date(log.clock_in);
                     const dateStr = clockInDate.toLocaleString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' });
                     
-                    let statusBadge = "bg-muted text-muted-foreground";
-                    if (log.status === "ON TIME") statusBadge = "bg-purple-100 text-[#7B0099] border-purple-200 dark:bg-purple-900/30 dark:text-purple-400";
-                    if (log.status === "LATE") statusBadge = "bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-400";
+                    let statusBadge = "bg-muted/5 text-muted-foreground border-muted";
+                    if (log.status === "ON TIME") statusBadge = "bg-purple-100/50 text-[#7B0099] border-[#7B0099]/20 dark:bg-purple-900/20 dark:text-purple-400";
+                    if (log.status === "LATE") statusBadge = "bg-rose-100/50 text-rose-700 border-rose-200/50 dark:bg-rose-900/20 dark:text-rose-400";
 
                     return (
-                      <tr key={log.attendance_id || index} className="hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-3 text-xs font-bold text-foreground whitespace-nowrap">{dateStr}</td>
-                        <td className="px-4 py-3 text-xs font-bold text-foreground font-mono">{formatAttendanceTime(log.clock_in)}</td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className={`px-2.5 py-1 text-[9px] font-black tracking-widest rounded-full uppercase border ${statusBadge}`}>
+                      <TableRow key={log.attendance_id || index} className="hover:bg-muted/30 transition-colors">
+                        <TableCell className="px-4 py-3 font-medium text-foreground whitespace-nowrap">{dateStr}</TableCell>
+                        <TableCell className="px-4 py-3 font-medium text-foreground">{formatAttendanceTime(log.clock_in)}</TableCell>
+                        <TableCell className="px-4 py-3 whitespace-nowrap">
+                          <span className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-semibold rounded-full border ${statusBadge}`}>
                             {log.status}
                           </span>
-                        </td>
-                        <td className="px-4 py-3 text-xs font-bold text-foreground font-mono">{log.clock_out ? formatAttendanceTime(log.clock_out) : "--:--"}</td>
-                        <td className="px-4 py-3 text-xs font-bold text-muted-foreground">--</td>
-                        <td className="px-4 py-3 text-xs font-bold text-rose-600">{log.is_late ? "Yes" : "--"}</td>
-                        <td className="px-4 py-3 text-xs font-black text-emerald-600 font-mono text-right">{log.duration}</td>
-                      </tr>
+                        </TableCell>
+                        <TableCell className="px-4 py-3 font-medium text-foreground">{log.clock_out ? formatAttendanceTime(log.clock_out) : "--:--"}</TableCell>
+                        <TableCell className="px-4 py-3 font-medium text-muted-foreground">--</TableCell>
+                        <TableCell className="px-4 py-3 font-medium text-rose-600">{log.is_late ? "Yes" : "--"}</TableCell>
+                        <TableCell className="px-4 py-3 font-bold text-emerald-600 text-right pr-6">{log.duration}</TableCell>
+                      </TableRow>
                     );
                   })
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
 
           {/* Load More Button */}

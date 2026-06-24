@@ -326,12 +326,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </button>
 
               {/* Scrollable Panel content */}
-              <div className="flex-1 w-full overflow-y-auto overflow-x-visible scrollbar-none flex flex-col gap-3 items-center lg:items-stretch py-1 pr-0.5">
+              <div className="flex-1 w-full overflow-y-auto overflow-x-hidden scrollbar-none flex flex-col gap-3 items-center lg:items-stretch py-1 px-2 -mx-2">
                 {!sidebarCollapsed ? (
                   <>
                     {/* ═══════ PENDING APPROVALS ═══════ */}
                     {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(resolvedRole) && (
-                      <div className="bg-[#7B0099] p-3.5 rounded-[20px] shadow-lg text-white relative overflow-hidden group w-full transition-all duration-500">
+                      <div className="shrink-0 bg-[#7B0099] p-3.5 rounded-[20px] shadow-lg text-white relative overflow-hidden group w-full transition-all duration-500">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
                         
                         <div className="flex items-center justify-between mb-3">

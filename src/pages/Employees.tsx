@@ -1,6 +1,7 @@
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { 
   Search, 
@@ -447,24 +448,24 @@ export default function Employees() {
             <>
               {/* Desktop Table View */}
               <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-muted/30 text-foreground border-b border-border">
-                      <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Staff Member</th>
-                      <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Position</th>
-                      <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Branch</th>
-                      <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/50">
+                <Table>
+                  <TableHeader className="bg-muted/30">
+                    <TableRow>
+                      <TableHead className="py-4 px-6 font-medium text-muted-foreground whitespace-nowrap">Staff Member</TableHead>
+                      <TableHead className="py-4 px-6 font-medium text-muted-foreground whitespace-nowrap">Position</TableHead>
+                      <TableHead className="py-4 px-6 font-medium text-muted-foreground whitespace-nowrap">Branch</TableHead>
+                      <TableHead className="py-4 px-6 font-medium text-muted-foreground whitespace-nowrap">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="divide-y divide-border/50">
                     {currentItems.length > 0 ? (
                       currentItems.map((emp) => (
-                        <tr 
+                        <TableRow 
                           key={emp.id} 
                           className="hover:bg-[#7B0099]/5 transition-colors cursor-pointer group"
                           onClick={() => handleEmployeeClick(emp)}
                         >
-                          <td className="py-4 px-6">
+                          <TableCell className="py-4 px-6">
                             <div className="flex items-center gap-4">
                               <div className="w-10 h-10 rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-xs font-black text-[#7B0099] group-hover:scale-110 transition-transform">
                                 {emp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
@@ -474,12 +475,12 @@ export default function Employees() {
                                 <p className="text-[10px] text-muted-foreground truncate font-medium">{emp.email}</p>
                               </div>
                             </div>
-                          </td>
-                          <td className="py-4 px-6">
+                          </TableCell>
+                          <TableCell className="py-4 px-6">
                             <span className="text-xs font-bold text-muted-foreground capitalize">{emp.position.replace('_', ' ')}</span>
-                          </td>
-                          <td className="py-4 px-6 text-xs font-bold text-muted-foreground">{emp.branch}</td>
-                           <td className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
+                          </TableCell>
+                          <TableCell className="py-4 px-6 text-xs font-bold text-muted-foreground">{emp.branch}</TableCell>
+                          <TableCell className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-2">
                               <Badge variant={emp.status === "Active" ? "default" : "secondary"} className={`text-[10px] font-black px-3 ${emp.status === 'Active' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}>
                                 {emp.status}
@@ -499,16 +500,16 @@ export default function Employees() {
                                 </Button>
                               )}
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))
                     ) : (
-                      <tr>
-                        <td colSpan={4} className="py-12 text-center text-muted-foreground italic font-medium">No employees found matching your search.</td>
-                      </tr>
+                      <TableRow>
+                        <TableCell colSpan={4} className="py-12 text-center text-muted-foreground italic font-medium">No employees found matching your search.</TableCell>
+                      </TableRow>
                     )}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
 
               {/* Mobile Card View */}
@@ -822,24 +823,24 @@ export default function Employees() {
                             <div className="space-y-3">
                               <p className="text-[10px] uppercase font-bold text-blue-600 tracking-wider">Butiran Cuti Ganti</p>
                               <div className="border border-blue-100 rounded-xl overflow-hidden bg-blue-50/30">
-                                <table className="w-full text-left text-xs">
-                                  <thead>
-                                    <tr className="bg-blue-100/50 text-blue-700 font-bold uppercase border-b border-blue-100">
-                                      <th className="py-2.5 px-4 text-[10px]">Tarikh Cuti</th>
-                                      <th className="py-2.5 px-4 text-[10px]">Tarikh/Hari Cuti Ganti</th>
-                                      <th className="py-2.5 px-4 text-right text-[10px]">Jam Bekerja</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody className="divide-y divide-blue-100 font-medium text-slate-800">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow className="bg-blue-100/50 hover:bg-blue-100/50 border-b border-blue-100">
+                                      <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh Cuti</TableHead>
+                                      <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh/Hari Cuti Ganti</TableHead>
+                                      <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase text-right">Jam Bekerja</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody className="divide-y divide-blue-100 font-medium text-slate-800">
                                     {rows.map((row, idx) => (
-                                      <tr key={idx}>
-                                        <td className="py-2 px-4">{row.tarikh || "-"}</td>
-                                        <td className="py-2 px-4">{row.hari || "-"}</td>
-                                        <td className="py-2 px-4 text-right">{row.jam || 0} Jam</td>
-                                      </tr>
+                                      <TableRow key={idx} className="hover:bg-blue-50/50">
+                                        <TableCell className="py-2 px-4">{row.tarikh || "-"}</TableCell>
+                                        <TableCell className="py-2 px-4">{row.hari || "-"}</TableCell>
+                                        <TableCell className="py-2 px-4 text-right">{row.jam || 0} Jam</TableCell>
+                                      </TableRow>
                                     ))}
-                                  </tbody>
-                                </table>
+                                  </TableBody>
+                                </Table>
                               </div>
                             </div>
                           );
