@@ -734,12 +734,12 @@ export default function AttendanceDashboard() {
                 <div className="flex items-center gap-2">
                   <h2 className="text-[15px] font-black text-gray-800 uppercase tracking-wide">Live Attendance Status</h2>
                   {liveConnected ? (
-                    <span className="flex items-center gap-1.5 bg-red-500 text-white border border-red-400 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm shadow-red-500/20">
+                    <span className="flex items-center gap-1.5 bg-red-500 text-white border border-red-400 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-widest shadow-sm shadow-red-500/20">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                       LIVE
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 bg-gray-200 text-gray-600 border border-gray-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
+                    <span className="flex items-center gap-1 bg-gray-200 text-gray-600 border border-gray-300 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-widest">
                       <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
                       Connecting…
                     </span>
@@ -808,7 +808,7 @@ export default function AttendanceDashboard() {
               <div className="relative z-10 mt-[-20px]">
                 <div className="flex items-end gap-3">
                   <span className="text-[40px] leading-none font-black text-blue-700 tracking-tight">{liveStats.present}</span>
-                  <span className="bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-1.5 shadow-sm">
+                  <span className="bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest mb-1.5 shadow-sm">
                     Active Personnel
                   </span>
                 </div>
@@ -836,7 +836,7 @@ export default function AttendanceDashboard() {
               <div className="relative z-10 mt-[-20px]">
                 <div className="flex items-end gap-3">
                   <span className="text-[40px] leading-none font-black text-amber-600 tracking-tight">{liveStats.late}</span>
-                  <span className="bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-1.5 shadow-sm">
+                  <span className="bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest mb-1.5 shadow-sm">
                     Post Threshold
                   </span>
                 </div>
@@ -864,7 +864,7 @@ export default function AttendanceDashboard() {
               <div className="relative z-10 mt-[-20px]">
                 <div className="flex items-end gap-3">
                   <span className="text-[40px] leading-none font-black text-red-600 tracking-tight">{liveStats.absent}</span>
-                  <span className="bg-red-100 text-red-700 border border-red-200 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-1.5 shadow-sm">
+                  <span className="bg-red-100 text-red-700 border border-red-200 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest mb-1.5 shadow-sm">
                     Not Synced
                   </span>
                 </div>
@@ -890,7 +890,7 @@ export default function AttendanceDashboard() {
                   <span className="text-[40px] leading-none font-black text-emerald-700 tracking-tight">
                     {liveStats.total > 0 ? Math.round((liveStats.present / liveStats.total) * 100) : 0}%
                   </span>
-                  <span className="bg-emerald-100 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1 mb-1.5 shadow-sm">
+                  <span className="bg-emerald-100 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest flex items-center gap-1 mb-1.5 shadow-sm">
                     <span className="text-[10px]">▲</span> Target Met
                   </span>
                 </div>
@@ -907,7 +907,7 @@ export default function AttendanceDashboard() {
               <div className="flex items-center gap-3">
                 <span className="text-xs font-black text-gray-700 uppercase tracking-widest">Employee Status</span>
                 {liveFilter !== 'all' && (
-                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize shadow-sm ${
+                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md capitalize shadow-sm ${
                     liveFilter === 'present' ? 'bg-green-100 text-green-700' :
                     liveFilter === 'late' ? 'bg-amber-100 text-amber-700' :
                     liveFilter === 'absent' ? 'bg-red-100 text-red-700' :
@@ -969,7 +969,7 @@ export default function AttendanceDashboard() {
                                 <p className="text-[10px] font-medium text-gray-400">{emp.clock_out ? `Out: ${emp.clock_out}` : 'Still in'}</p>
                               </div>
                             )}
-                            <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border shadow-sm uppercase tracking-wider ${statusConfig.badge}`}>
+                            <span className={`text-[10px] font-black px-2.5 py-1 rounded-md border shadow-sm uppercase tracking-wider ${statusConfig.badge}`}>
                               {statusConfig.label}
                             </span>
                           </div>
@@ -1122,7 +1122,7 @@ export default function AttendanceDashboard() {
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-[#7B0099]/10 text-[#7B0099] font-bold flex items-center justify-center text-xs uppercase shadow-sm">
+                              <div className="w-8 h-8 rounded-md bg-[#7B0099]/10 text-[#7B0099] font-bold flex items-center justify-center text-xs uppercase shadow-sm">
                                 {record.full_name.charAt(0)}
                               </div>
                               <div>
@@ -1132,7 +1132,7 @@ export default function AttendanceDashboard() {
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${statusClass}`}>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium ${statusClass}`}>
                               <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${status === 'Present' ? 'bg-green-500' : status === 'Late' ? 'bg-amber-500' : 'bg-gray-400'}`} />
                               {status}
                             </span>

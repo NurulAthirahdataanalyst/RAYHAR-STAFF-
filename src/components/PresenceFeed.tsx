@@ -435,7 +435,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
                       </div>
                       
                       {emp.is_leave_submission && (
-                        <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 bg-purple-500/10 rounded-full px-2.5 py-0.5 border border-purple-500/25">
+                        <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 bg-purple-500/10 rounded-md px-2.5 py-0.5 border border-purple-500/25">
                           {emp.leave_type} ({emp.days} {emp.days === 1 ? "day" : "days"})
                         </span>
                       )}

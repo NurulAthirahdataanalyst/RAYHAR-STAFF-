@@ -765,7 +765,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                   </div>
                 </div>
                 <div className="mt-1">
-                   <span className={`whitespace-nowrap text-[10px] font-bold px-3 py-1 rounded-full ${overallScore >= 90 ? 'bg-emerald-500/10 text-emerald-600' : overallScore >= 75 ? 'bg-amber-500/10 text-amber-600' : 'bg-rose-500/10 text-rose-600'}`}>
+                   <span className={`whitespace-nowrap text-[10px] font-bold px-3 py-1 rounded-md ${overallScore >= 90 ? 'bg-emerald-500/10 text-emerald-600' : overallScore >= 75 ? 'bg-amber-500/10 text-amber-600' : 'bg-rose-500/10 text-rose-600'}`}>
                      {overallScore >= 90 ? 'Excellent' : overallScore >= 75 ? 'Good' : 'Needs Work'}
                    </span>
                 </div>

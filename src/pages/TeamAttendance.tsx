@@ -179,52 +179,52 @@ export default function TeamAttendance() {
                   onChange={(e) => setSelectedDate(e.target.value)}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
-                <Button variant="outline" size="sm" className="bg-gray-50 border-gray-200 text-gray-900 hover:bg-gray-100 h-9 rounded-full px-4 flex items-center gap-2 shadow-sm text-xs font-bold pointer-events-none">
+                <Button variant="outline" size="sm" className="bg-gray-50 border-gray-200 text-gray-900 hover:bg-gray-100 h-9 rounded-md px-4 flex items-center gap-2 shadow-sm text-xs font-bold pointer-events-none">
                   <span>{`${new Date(selectedDate).getDate()}/${(new Date(selectedDate).getMonth() + 1).toString().padStart(2, '0')}/${new Date(selectedDate).getFullYear()}`}</span>
                   <Calendar className="w-4 h-4 text-gray-600" />
                 </Button>
               </div>
 
               {/* Day / Month Toggle */}
-              <div className="flex items-center bg-gray-50 border border-gray-200 rounded-full p-1 shadow-sm">
+              <div className="flex items-center bg-gray-50 border border-gray-200 rounded-md p-1 shadow-sm">
                 <button 
                   onClick={() => setDateViewMode('DAY')}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${dateViewMode === 'DAY' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${dateViewMode === 'DAY' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}
                 >
                   DAY
                 </button>
                 <button 
                   onClick={() => setDateViewMode('MONTH')}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${dateViewMode === 'MONTH' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${dateViewMode === 'MONTH' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}
                 >
                   MONTH
                 </button>
               </div>
 
               {/* Status Toggle */}
-              <div className="flex items-center bg-gray-50 border border-gray-200 rounded-full p-1 shadow-sm overflow-x-auto">
+              <div className="flex items-center bg-gray-50 border border-gray-200 rounded-md p-1 shadow-sm overflow-x-auto">
                 <button 
                   onClick={() => setStatusFilter('ALL')}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'ALL' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'ALL' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}
                 >
                   ALL
                 </button>
                 <button 
                   onClick={() => setStatusFilter('ON TIME')}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'ON TIME' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'ON TIME' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}
                 >
                   ON TIME
                 </button>
                 <button 
                   onClick={() => setStatusFilter('LATE')}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'LATE' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'LATE' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}
                 >
                   LATE
                 </button>
               </div>
 
               {/* Export Button */}
-              <Button size="sm" className="bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white border-0 h-9 rounded-full px-4 flex items-center gap-2 shadow-sm text-xs font-bold">
+              <Button size="sm" className="bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white border-0 h-9 rounded-md px-4 flex items-center gap-2 shadow-sm text-xs font-bold">
                 <Download className="w-4 h-4" />
                 <span>Export</span>
                 <ChevronDown className="w-3.5 h-3.5 ml-1" />

@@ -147,7 +147,7 @@ export default function DepartmentDetails() {
         </Card>
 
         <Card className="rounded-[25px] border-primary/30 shadow-md bg-primary/5 relative overflow-hidden">
-          <div className="absolute right-0 top-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-2xl" />
+          <div className="absolute right-0 top-0 w-32 h-32 bg-primary/10 rounded-md -mr-16 -mt-16 blur-2xl" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-bold text-primary uppercase tracking-wider flex items-center justify-between">
               Head of Department
@@ -239,7 +239,7 @@ export default function DepartmentDetails() {
                   <tr key={emp.user_id} className="hover:bg-muted/10 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xs">
+                        <div className="w-8 h-8 rounded-md bg-primary/10 text-primary flex items-center justify-center font-black text-xs">
                           {emp.full_name.charAt(0)}
                         </div>
                         <div>
@@ -249,7 +249,7 @@ export default function DepartmentDetails() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold ${
                         emp.role === 'head_of_department' 
                           ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
                           : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'

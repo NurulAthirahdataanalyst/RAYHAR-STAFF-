@@ -563,7 +563,7 @@ export default function LeaveAnalytics() {
             {/* Active filter count badge */}
             {(selectedMonth !== "all" || selectedBranch !== "All Branches" || selectedType !== "All Types" || selectedStatus !== "All") && (
               <Badge
-                className="bg-[#7B0099] text-white font-black text-[9px] px-2.5 py-1 rounded-full cursor-pointer hover:bg-[#5e0080] transition-colors"
+                className="bg-[#7B0099] text-white font-black text-[9px] px-2.5 py-1 rounded-md cursor-pointer hover:bg-[#5e0080] transition-colors"
                 onClick={() => {
                   setSelectedMonth("all");
                   setSelectedBranch("All Branches");
@@ -930,7 +930,7 @@ export default function LeaveAnalytics() {
               { label: "Pending",  value: pending,   color: "bg-amber-500 text-white"   },
             ].map(s => (
               <div key={s.label} className="flex items-center gap-2">
-                <Badge className={`${s.color} font-black text-[10px] px-3 py-1 rounded-full shadow-sm`}>
+                <Badge className={`${s.color} font-black text-[10px] px-3 py-1 rounded-md shadow-sm`}>
                   {s.value}
                 </Badge>
                 <span className="text-[10px] font-black text-muted-foreground uppercase">{s.label}</span>

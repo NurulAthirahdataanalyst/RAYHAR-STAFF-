@@ -386,7 +386,7 @@ export default function SettingsPage() {
       </div>
 
       {/* HORIZONTAL NAVIGATION TABS - PILL REDESIGN */}
-      <div className="inline-flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] p-1.5 rounded-2xl md:rounded-full shadow-lg overflow-x-auto gap-2 scrollbar-none items-center w-full lg:w-fit max-w-full border border-[#7B0099]/20 relative z-10">
+      <div className="inline-flex bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] p-1.5 rounded-2xl md:rounded-md shadow-lg overflow-x-auto gap-2 scrollbar-none items-center w-full lg:w-fit max-w-full border border-[#7B0099]/20 relative z-10">
         {[
           { id: "system", label: "System Configuration", icon: SlidersHorizontal },
           { id: "staff", label: "Personnel Management", icon: UserPlus },
@@ -399,7 +399,7 @@ export default function SettingsPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 py-2.5 px-6 font-black text-[10px] uppercase tracking-widest whitespace-nowrap rounded-full transition-all duration-300 ${
+              className={`flex items-center gap-2 py-2.5 px-6 font-black text-[10px] uppercase tracking-widest whitespace-nowrap rounded-md transition-all duration-300 ${
                 isActive 
                   ? "bg-white text-[#7B0099] border-b-[3px] border-[#d4b0eb] shadow-md active:translate-y-[1px] active:border-b-[1px]" 
                   : "text-white/80 hover:text-white hover:bg-white/10"
@@ -432,7 +432,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 {hasUnsavedChanges && (
-                  <span className="px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[9px] font-black uppercase tracking-widest rounded-full border border-amber-500/20 animate-pulse">
+                  <span className="px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[9px] font-black uppercase tracking-widest rounded-md border border-amber-500/20 animate-pulse">
                     Pending Updates
                   </span>
                 )}
@@ -461,7 +461,7 @@ export default function SettingsPage() {
                       setIsAlertsEnabled(!isAlertsEnabled);
                       toast.success(`SSE Alerts toggled ${!isAlertsEnabled ? 'ON' : 'OFF'}`);
                     }}
-                    className={`w-12 h-6 flex items-center rounded-full p-1 transition-all shrink-0 ${isAlertsEnabled ? 'bg-[#7B0099]' : 'bg-muted-foreground/30'}`}
+                    className={`w-12 h-6 flex items-center rounded-md p-1 transition-all shrink-0 ${isAlertsEnabled ? 'bg-[#7B0099]' : 'bg-muted-foreground/30'}`}
                   >
                     <div className={`bg-white w-4.5 h-4.5 rounded-full shadow-md transform transition-all ${isAlertsEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
                   </button>
@@ -502,7 +502,7 @@ export default function SettingsPage() {
                         setIsSchedulingEnabled(!isSchedulingEnabled);
                         toast.success(`Weekly Report Schedule toggled ${!isSchedulingEnabled ? 'ON' : 'OFF'}`);
                       }}
-                      className={`w-12 h-6 flex items-center rounded-full p-1 transition-all ${isSchedulingEnabled ? 'bg-[#7B0099]' : 'bg-muted-foreground/30'}`}
+                      className={`w-12 h-6 flex items-center rounded-md p-1 transition-all ${isSchedulingEnabled ? 'bg-[#7B0099]' : 'bg-muted-foreground/30'}`}
                     >
                       <div className={`bg-white w-4.5 h-4.5 rounded-full shadow-md transform transition-all ${isSchedulingEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
                     </button>
@@ -848,7 +848,7 @@ export default function SettingsPage() {
                     <button 
                       type="button"
                       onClick={() => setIsDeptActive(!isDeptActive)}
-                      className={`w-12 h-6 flex items-center rounded-full p-1 transition-all ${isDeptActive ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}
+                      className={`w-12 h-6 flex items-center rounded-md p-1 transition-all ${isDeptActive ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}
                     >
                       <div className={`bg-white w-4.5 h-4.5 rounded-full shadow-md transform transition-all ${isDeptActive ? 'translate-x-6' : 'translate-x-0'}`} />
                     </button>
@@ -979,7 +979,7 @@ export default function SettingsPage() {
                     "System role determines feature access level."
                   ].map((rule, idx) => (
                     <div key={idx} className="flex gap-3">
-                      <div className="w-4 h-4 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0 mt-0.5">
+                      <div className="w-4 h-4 rounded-md bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0 mt-0.5">
                         <CheckCircle2 className="w-3 h-3" />
                       </div>
                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider leading-normal">{rule}</p>
@@ -995,7 +995,7 @@ export default function SettingsPage() {
                   {deptStats.map((dept) => (
                     <div key={dept.name} className="flex items-center justify-between p-3 bg-muted/20 border border-border/30 rounded-xl">
                       <span className="text-[10px] font-black text-foreground uppercase tracking-wider">{dept.name}</span>
-                      <span className="text-[9px] font-black bg-[#7B0099]/10 text-[#7B0099] px-2 py-0.5 rounded-full">{dept.employee_count} Staff</span>
+                      <span className="text-[9px] font-black bg-[#7B0099]/10 text-[#7B0099] px-2 py-0.5 rounded-md">{dept.employee_count} Staff</span>
                     </div>
                   ))}
                 </div>
@@ -1049,7 +1049,7 @@ export default function SettingsPage() {
                         <span className="text-[10px] font-black text-foreground uppercase tracking-wider">{cluster.name}</span>
                         <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">{cluster.code}</span>
                       </div>
-                      <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${cluster.color}`}>
+                      <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border ${cluster.color}`}>
                         {cluster.status}
                       </span>
                     </div>
@@ -1083,7 +1083,7 @@ export default function SettingsPage() {
                         <span className="text-[10px] font-black text-foreground uppercase tracking-wider">{dept.name}</span>
                         <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest font-bold">Registered HQ</span>
                       </div>
-                      <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full border border-emerald-500/20">
+                      <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md border border-emerald-500/20">
                         Active
                       </span>
                     </div>
@@ -1122,7 +1122,7 @@ export default function SettingsPage() {
                     "Assigned manager must be a Full-Time employee."
                   ].map((policy, idx) => (
                     <div key={idx} className="flex gap-2.5">
-                      <div className="w-4 h-4 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0 mt-0.5">
+                      <div className="w-4 h-4 rounded-md bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0 mt-0.5">
                         <CheckCircle2 className="w-3 h-3" />
                       </div>
                       <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider leading-normal">{policy}</p>

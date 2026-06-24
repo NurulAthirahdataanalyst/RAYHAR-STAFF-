@@ -252,12 +252,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
 
             <div className="flex items-center gap-2">
-              <button onClick={() => window.location.reload()} className="p-1.5 rounded-full hover:bg-white/10 transition-colors">
+              <button onClick={() => window.location.reload()} className="p-1.5 rounded-md hover:bg-white/10 transition-colors">
                 <RefreshCw className="w-4 h-4 text-white/80" />
               </button>
               <button 
                 onClick={toggleTheme} 
-                className="p-1.5 rounded-full hover:bg-white/10 transition-colors text-white/80 flex items-center justify-center"
+                className="p-1.5 rounded-md hover:bg-white/10 transition-colors text-white/80 flex items-center justify-center"
                 title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
               >
                 {theme === "light" ? (
@@ -319,7 +319,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               {/* Floating Toggle Button on Left Boundary */}
               <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="absolute -left-3.5 top-28 z-40 flex h-7 w-7 items-center justify-center rounded-full bg-[#7B0099] text-white shadow-md hover:scale-110 active:scale-95 transition-transform border border-white/20"
+                className="absolute -left-3.5 top-28 z-40 flex h-7 w-7 items-center justify-center rounded-md bg-[#7B0099] text-white shadow-md hover:scale-110 active:scale-95 transition-transform border border-white/20"
                 aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
                 <ChevronLeft className={`h-4 w-4 transition-transform duration-500 ${sidebarCollapsed ? "rotate-180" : ""}`} />
@@ -332,7 +332,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     {/* ═══════ PENDING APPROVALS ═══════ */}
                     {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(resolvedRole) && (
                       <div className="shrink-0 bg-[#7B0099] p-3.5 rounded-[20px] shadow-lg text-white relative overflow-hidden group w-full transition-all duration-500">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-md -mr-8 -mt-8 transition-transform group-hover:scale-110" />
                         
                         <div className="flex items-center justify-between mb-3">
                           <div>
@@ -344,7 +344,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                             </p>
                           </div>
                           
-                          <div className="h-8 min-w-[32px] px-2.5 rounded-full bg-white/20 text-white flex items-center justify-center font-black text-xs border border-white/10 shrink-0 shadow-sm">
+                          <div className="h-8 min-w-[32px] px-2.5 rounded-md bg-white/20 text-white flex items-center justify-center font-black text-xs border border-white/10 shrink-0 shadow-sm">
                             {pendingApprovals}
                           </div>
                         </div>
@@ -373,7 +373,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       >
                         <ClipboardCheck className="w-5 h-5" />
                         {pendingApprovals > 0 && (
-                          <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white border border-white dark:border-slate-900 shadow-sm">
+                          <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-[18px] items-center justify-center rounded-md bg-red-500 px-1 text-[9px] font-black text-white border border-white dark:border-slate-900 shadow-sm">
                             {pendingApprovals}
                           </span>
                         )}

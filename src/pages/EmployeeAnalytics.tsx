@@ -738,7 +738,7 @@ export default function EmployeeAnalytics() {
                     { label: "At Risk",    value: teamMetrics.filter(m => m.badge === "AT RISK").length,   color: "bg-rose-500 text-white"    },
                   ].map(s => (
                     <div key={s.label} className="flex items-center gap-2">
-                      <Badge className={`${s.color} font-black text-[10px] px-3 py-1 rounded-full`}>{s.value}</Badge>
+                      <Badge className={`${s.color} font-black text-[10px] px-3 py-1 rounded-md`}>{s.value}</Badge>
                       <span className="text-[10px] font-black text-muted-foreground uppercase">{s.label}</span>
                     </div>
                   ))}

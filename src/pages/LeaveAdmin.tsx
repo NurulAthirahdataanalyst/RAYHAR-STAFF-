@@ -374,7 +374,7 @@ export default function LeaveAdmin() {
                       <TableRow key={req.id} className="hover:bg-muted/30 transition-colors group">
                         <TableCell className="px-5 py-3.5">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-[#7B0099]/10 text-[#7B0099] flex items-center justify-center text-xs font-bold shrink-0">
+                            <div className="w-8 h-8 rounded-md bg-[#7B0099]/10 text-[#7B0099] flex items-center justify-center text-xs font-bold shrink-0">
                               {req.employee.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex flex-col">
@@ -649,7 +649,7 @@ export default function LeaveAdmin() {
                             <div className="ml-6 flex-1 bg-muted/30 rounded-[16px] p-3 border border-border/40">
                               <div className="flex items-center justify-between gap-2 mb-1">
                                 <div className="flex items-center gap-2">
-                                  <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
+                                  <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md ${history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
                                     {history.status}
                                   </span>
                                   <span className="text-[10px] font-black text-foreground/70">

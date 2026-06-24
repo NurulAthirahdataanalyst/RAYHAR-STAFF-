@@ -807,7 +807,7 @@ export default function Attendance() {
                 </button>
               </div>
 
-              <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-xs font-bold mb-3 sm:mb-4 bg-muted/30 dark:bg-muted/50 py-1.5 px-4 rounded-full w-full border border-border/50">
+              <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-xs font-bold mb-3 sm:mb-4 bg-muted/30 dark:bg-muted/50 py-1.5 px-4 rounded-md w-full border border-border/50">
                 {activeSession ? (
                   <>
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -1021,7 +1021,7 @@ export default function Attendance() {
                     onChange={(e) => {
                       if (e.target.value) setSelectedDate(e.target.value);
                     }}
-                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-full shadow-sm outline-none cursor-pointer uppercase tracking-widest"
+                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest"
                   />
                 ) : (
                   <input
@@ -1032,16 +1032,16 @@ export default function Attendance() {
                         setSelectedDate(`${e.target.value}-01`);
                       }
                     }}
-                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-full shadow-sm outline-none cursor-pointer uppercase tracking-widest"
+                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest"
                   />
                 )}
               </div>
 
               {/* View Tabs */}
-              <div className="flex bg-muted/40 p-1 rounded-full border border-border/40">
+              <div className="flex bg-muted/40 p-1 rounded-md border border-border/40">
                 <button
                   onClick={() => setViewMode("day")}
-                  className={`px-4 py-1.5 text-[10px] font-black tracking-wider rounded-full transition-all uppercase ${
+                  className={`px-4 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
                     viewMode === "day" ? "bg-[#7B0099] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -1049,7 +1049,7 @@ export default function Attendance() {
                 </button>
                 <button
                   onClick={() => setViewMode("month")}
-                  className={`px-4 py-1.5 text-[10px] font-black tracking-wider rounded-full transition-all uppercase ${
+                  className={`px-4 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
                     viewMode === "month" ? "bg-[#7B0099] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -1058,12 +1058,12 @@ export default function Attendance() {
               </div>
 
               {/* Status Filter */}
-              <div className="flex bg-muted/40 p-1 rounded-full border border-border/40">
+              <div className="flex bg-muted/40 p-1 rounded-md border border-border/40">
                 {(["ALL", "ON TIME", "LATE"] as const).map((status) => (
                   <button
                     key={status}
                     onClick={() => setStatusFilter(status)}
-                    className={`px-3 py-1.5 text-[10px] font-black tracking-wider rounded-full transition-all uppercase ${
+                    className={`px-3 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
                       statusFilter === status ? "bg-[#7B0099] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
@@ -1075,7 +1075,7 @@ export default function Attendance() {
               {/* Export */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white text-[11px] font-black rounded-full shadow-md active:scale-95 transition-all">
+                  <button className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white text-[11px] font-black rounded-md shadow-md active:scale-95 transition-all">
                     <Download className="w-3 h-3" />
                     <span>Export</span>
                     <ChevronDown className="w-3 h-3 opacity-80" />
@@ -1139,7 +1139,7 @@ export default function Attendance() {
                         <TableCell className="py-4 pl-6 font-medium text-foreground whitespace-nowrap">{dateStr}</TableCell>
                         <TableCell className="font-medium text-foreground">{formatAttendanceTime(log.clock_in)}</TableCell>
                         <TableCell className="whitespace-nowrap">
-                          <span className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-semibold rounded-full border ${statusBadge}`}>
+                          <span className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-semibold rounded-md border ${statusBadge}`}>
                             {log.status}
                           </span>
                         </TableCell>
@@ -1161,7 +1161,7 @@ export default function Attendance() {
             <div className="flex justify-center py-4 border-t border-border/50 bg-muted/10">
               <button 
                 onClick={() => setVisibleLogsCount(prev => prev + 10)}
-                className="px-6 py-2.5 bg-background hover:bg-muted text-foreground text-[11px] font-black rounded-full shadow-sm uppercase tracking-widest transition-all active:scale-95 border border-border"
+                className="px-6 py-2.5 bg-background hover:bg-muted text-foreground text-[11px] font-black rounded-md shadow-sm uppercase tracking-widest transition-all active:scale-95 border border-border"
               >
                 Load More Rows
               </button>

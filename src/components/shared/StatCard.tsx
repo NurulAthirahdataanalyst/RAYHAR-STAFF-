@@ -72,7 +72,7 @@ export default function StatCard({
           {(subtitle || trend) && (
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               {trend && (
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
                   trend.positive ? 'bg-emerald-55 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400'
                 }`}>
                   {trend.positive ? "↑" : "↓"} {trend.value}

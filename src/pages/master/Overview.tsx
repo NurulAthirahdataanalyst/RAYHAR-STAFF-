@@ -193,7 +193,7 @@ export default function MasterOverview() {
                   <span className="text-[10px] font-black text-pink-700 dark:text-pink-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Branches</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-pink-600 dark:text-pink-400">{totalBranches}</span>
-                    <span className="text-[9px] font-black text-pink-700 dark:text-pink-300 bg-pink-500/10 dark:bg-pink-500/20 border border-pink-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">Active Branches</span>
+                    <span className="text-[9px] font-black text-pink-700 dark:text-pink-300 bg-pink-500/10 dark:bg-pink-500/20 border border-pink-500/20 rounded-md px-2 py-0.5 whitespace-nowrap">Active Branches</span>
                   </div>
                   <p className="text-[9px] text-pink-800/60 dark:text-pink-400/60 font-semibold uppercase tracking-wider">Regional Offices & Outlets</p>
                 </div>
@@ -211,7 +211,7 @@ export default function MasterOverview() {
                   <span className="text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Departments</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-blue-600 dark:text-blue-400">{totalDepartments}</span>
-                    <span className="text-[9px] font-black text-blue-700 dark:text-blue-300 bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">Active Units</span>
+                    <span className="text-[9px] font-black text-blue-700 dark:text-blue-300 bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/20 rounded-md px-2 py-0.5 whitespace-nowrap">Active Units</span>
                   </div>
                   <p className="text-[9px] text-blue-800/60 dark:text-blue-400/60 font-semibold uppercase tracking-wider">Organizational Segments</p>
                 </div>
@@ -229,7 +229,7 @@ export default function MasterOverview() {
                   <span className="text-[10px] font-black text-purple-700 dark:text-purple-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Total Staff / Users</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-[#7B0099] dark:text-purple-400">{totalUsers}</span>
-                    <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">{activeUsers} Active</span>
+                    <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 rounded-md px-2 py-0.5 whitespace-nowrap">{activeUsers} Active</span>
                   </div>
                   <p className="text-[9px] text-purple-800/60 dark:text-purple-400/60 font-semibold uppercase tracking-wider">Access Licenses Provisioned</p>
                 </div>
@@ -247,7 +247,7 @@ export default function MasterOverview() {
                   <span className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Leadership Coverage</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-amber-600 dark:text-amber-400">{hodCoveragePct}%</span>
-                    <span className="text-[9px] font-black text-amber-700 dark:text-amber-300 bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">{departmentsWithHOD} depts with HOD</span>
+                    <span className="text-[9px] font-black text-amber-700 dark:text-amber-300 bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/20 rounded-md px-2 py-0.5 whitespace-nowrap">{departmentsWithHOD} depts with HOD</span>
                   </div>
                   <p className="text-[9px] text-amber-800/60 dark:text-amber-400/60 font-semibold uppercase tracking-wider">HOD mapping efficiency</p>
                 </div>
@@ -265,7 +265,7 @@ export default function MasterOverview() {
                   <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest block whitespace-normal break-words leading-tight">Directory Integrity</span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">100%</span>
-                    <span className="text-[9px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 rounded-full px-2 py-0.5 whitespace-nowrap">Healthy</span>
+                    <span className="text-[9px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 rounded-md px-2 py-0.5 whitespace-nowrap">Healthy</span>
                   </div>
                   <p className="text-[9px] text-emerald-800/60 dark:text-emerald-400/60 font-semibold uppercase tracking-wider">Zero unresolved references</p>
                 </div>

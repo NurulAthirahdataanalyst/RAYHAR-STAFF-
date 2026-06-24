@@ -191,7 +191,7 @@ export default function WorkforceInsights() {
                   <CardTitle className="text-base font-bold text-slate-800">Team Availability</CardTitle>
                   <CardDescription className="text-xs text-slate-500 mt-0.5">Real-time status for the current shift</CardDescription>
                 </div>
-                <span className="bg-indigo-100 text-indigo-700 text-[10px] font-semibold px-2 py-0.5 rounded-full">Live</span>
+                <span className="bg-indigo-100 text-indigo-700 text-[10px] font-semibold px-2 py-0.5 rounded-md">Live</span>
               </div>
             </CardHeader>
             <CardContent className="p-4 flex-1 flex flex-col">

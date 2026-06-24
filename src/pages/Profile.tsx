@@ -105,7 +105,7 @@ const Profile = () => {
 
           {/* Security & Password Reset Card */}
           <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] p-5 sm:p-6 relative overflow-hidden">
-            <div className="absolute right-0 top-0 w-24 h-24 bg-primary/10 rounded-full -mr-8 -mt-8 blur-2xl animate-pulse" />
+            <div className="absolute right-0 top-0 w-24 h-24 bg-primary/10 rounded-md -mr-8 -mt-8 blur-2xl animate-pulse" />
             <div className="flex items-center gap-3 mb-3 relative z-10">
               <div className="p-2 bg-primary/10 rounded-xl text-primary">
                 <Lock className="w-4 h-4 sm:w-5 sm:h-5" />

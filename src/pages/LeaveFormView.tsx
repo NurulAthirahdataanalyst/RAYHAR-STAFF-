@@ -245,7 +245,7 @@ export default function LeaveFormView() {
               >
                 {tab.label}
                 {tab.count > 0 && (
-                  <span className={`ml-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-full transition-colors duration-300 ${activeTab === tab.key
+                  <span className={`ml-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-md transition-colors duration-300 ${activeTab === tab.key
                       ? "bg-[#7B0099] text-white"
                       : "bg-muted text-muted-foreground"
                     }`}>
@@ -583,7 +583,7 @@ export default function LeaveFormView() {
                             <div className="ml-6 flex-1 bg-muted/30 rounded-[16px] p-3 border border-border/40">
                               <div className="flex items-center justify-between gap-2 mb-1">
                                 <div className="flex items-center gap-2">
-                                  <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
+                                  <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md ${history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
                                     {history.status}
                                   </span>
                                   <span className="text-[10px] font-black text-foreground/70">

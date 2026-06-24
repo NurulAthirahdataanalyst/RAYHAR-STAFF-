@@ -296,7 +296,7 @@ export default function Calendar() {
                   head_cell: "text-muted-foreground rounded-md w-9 font-bold text-[11px] uppercase",
                   row: "flex w-full mt-2 justify-between",
                   cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-[#ff5b37]/10 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                  day: "h-9 w-9 p-0 font-medium aria-selected:opacity-100 hover:bg-muted rounded-full transition-all",
+                  day: "h-9 w-9 p-0 font-medium aria-selected:opacity-100 hover:bg-muted rounded-md transition-all",
                   day_selected: "bg-[#ff5b37] text-white hover:bg-[#e04526] hover:text-white focus:bg-[#ff5b37] focus:text-white",
                   day_today: "bg-[#7B0099]/10 text-[#7B0099] font-bold",
                   day_outside: "text-muted-foreground opacity-50",
@@ -316,7 +316,7 @@ export default function Calendar() {
                   {activeFilter && (
                     <button 
                       onClick={() => setActiveFilter(null)}
-                      className="text-[10px] uppercase tracking-wider font-bold text-[#7B0099] bg-[#7B0099]/10 hover:bg-[#7B0099]/20 px-2 py-0.5 rounded-full transition-colors"
+                      className="text-[10px] uppercase tracking-wider font-bold text-[#7B0099] bg-[#7B0099]/10 hover:bg-[#7B0099]/20 px-2 py-0.5 rounded-md transition-colors"
                     >
                       Show All
                     </button>
@@ -613,7 +613,7 @@ export default function Calendar() {
                           {title}
                           <button 
                             onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id); }}
-                            className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 bg-white dark:bg-black rounded-full"
+                            className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 bg-white dark:bg-black rounded-md"
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
@@ -870,7 +870,7 @@ export default function Calendar() {
               <div className="flex items-center justify-between p-5 border-b border-slate-100">
                 <div className="flex items-center gap-3">
                   <h3 className="font-bold text-lg text-slate-900 tracking-tight">Event Details</h3>
-                  <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-[#7B0099]/10 text-[#7B0099]">
+                  <span className="inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-bold bg-[#7B0099]/10 text-[#7B0099]">
                     {categoryName}
                   </span>
                 </div>

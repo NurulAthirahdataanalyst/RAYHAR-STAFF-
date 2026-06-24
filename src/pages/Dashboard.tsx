@@ -441,7 +441,7 @@ export default function Dashboard() {
                     >
                       {/* Top: Avatar + Info */}
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-[#7B0099]/10 flex items-center justify-center text-base font-black text-[#7B0099] group-hover:scale-110 transition-transform shrink-0">
+                        <div className="w-12 h-12 rounded-md bg-[#7B0099]/10 flex items-center justify-center text-base font-black text-[#7B0099] group-hover:scale-110 transition-transform shrink-0">
                           {emp.full_name?.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                         </div>
                         <div className="min-w-0">
@@ -455,7 +455,7 @@ export default function Dashboard() {
                       </div>
                       {/* Bottom: Badge + Branch */}
                       <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border/40">
-                        <Badge className={`${typeInfo.color} text-white text-[10px] font-black px-2.5 py-0.5 h-auto border-none rounded-full`}>
+                        <Badge className={`${typeInfo.color} text-white text-[10px] font-black px-2.5 py-0.5 h-auto border-none rounded-md`}>
                           {typeInfo.short}
                         </Badge>
                         <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
