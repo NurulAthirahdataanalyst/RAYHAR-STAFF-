@@ -226,7 +226,8 @@ export default function Calendar() {
           </Button>
           <Button 
             onClick={() => {
-              setEventDate(format(selectedDate, "yyyy-MM-dd"));
+              setStartDate(format(selectedDate, "yyyy-MM-dd"));
+              setEndDate(format(selectedDate, "yyyy-MM-dd"));
               setIsAddEventModalOpen(true);
             }}
             className="bg-[#ff5b37] hover:bg-[#e04526] text-white gap-2 font-bold px-6 shadow-sm shadow-[#ff5b37]/20"
