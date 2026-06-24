@@ -60,6 +60,7 @@ export default function Calendar() {
   
   // New Event Form State
   const [eventName, setEventName] = useState("");
+  const [isAllDay, setIsAllDay] = useState(false);
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [startTime, setStartTime] = useState("09:00");
@@ -129,11 +130,16 @@ export default function Calendar() {
 
     // Construct the note text based on form fields
     let finalNoteText = eventName;
-    if (startDate || startTime || endDate || endTime) {
+    if (startDate || endDate) {
       if (startDate && endDate) {
-        finalNoteText += `\nStarts: ${startDate} ${startTime}`;
-        finalNoteText += `\nEnds: ${endDate} ${endTime}`;
-      } else if (startTime || endTime) {
+        if (isAllDay) {
+          finalNoteText += `\nStarts: ${startDate} All Day`;
+          finalNoteText += `\nEnds: ${endDate} All Day`;
+        } else {
+          finalNoteText += `\nStarts: ${startDate} ${startTime}`;
+          finalNoteText += `\nEnds: ${endDate} ${endTime}`;
+        }
+      } else if (!isAllDay && (startTime || endTime)) {
         finalNoteText += `\nTime: ${startTime} - ${endTime}`;
       }
     }
@@ -519,6 +525,17 @@ export default function Calendar() {
                 />
               </div>
 
+              <div className="flex items-center gap-2">
+                <input 
+                  type="checkbox" 
+                  id="allDay" 
+                  checked={isAllDay} 
+                  onChange={e => setIsAllDay(e.target.checked)} 
+                  className="rounded border-border text-[#ff5b37] focus:ring-[#ff5b37] w-4 h-4 cursor-pointer"
+                />
+                <label htmlFor="allDay" className="text-sm font-semibold text-slate-700 cursor-pointer select-none">All day</label>
+              </div>
+
               <div className="space-y-3">
                 <div className="flex items-center gap-4">
                   <label className="w-16 text-xs font-bold text-muted-foreground uppercase tracking-wider">Starts</label>
@@ -533,15 +550,17 @@ export default function Calendar() {
                         onChange={e => setStartDate(e.target.value)}
                       />
                     </div>
-                    <div className="relative w-32">
-                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <input
-                        type="time"
-                        className="w-full bg-background border border-border rounded-xl pl-9 pr-2 py-2 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
-                        value={startTime}
-                        onChange={e => setStartTime(e.target.value)}
-                      />
-                    </div>
+                    {!isAllDay && (
+                      <div className="relative w-32">
+                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <input
+                          type="time"
+                          className="w-full bg-background border border-border rounded-xl pl-9 pr-2 py-2 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                          value={startTime}
+                          onChange={e => setStartTime(e.target.value)}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -558,15 +577,17 @@ export default function Calendar() {
                         onChange={e => setEndDate(e.target.value)}
                       />
                     </div>
-                    <div className="relative w-32">
-                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <input
-                        type="time"
-                        className="w-full bg-background border border-border rounded-xl pl-9 pr-2 py-2 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
-                        value={endTime}
-                        onChange={e => setEndTime(e.target.value)}
-                      />
-                    </div>
+                    {!isAllDay && (
+                      <div className="relative w-32">
+                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <input
+                          type="time"
+                          className="w-full bg-background border border-border rounded-xl pl-9 pr-2 py-2 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                          value={endTime}
+                          onChange={e => setEndTime(e.target.value)}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -598,13 +619,13 @@ export default function Calendar() {
               <div className="flex items-center gap-4 pt-4 border-t border-border/60">
                 <div className="flex-1">
                   <select 
+                    className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm font-semibold text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
                     value={eventType}
                     onChange={e => setEventType(e.target.value)}
-                    className="w-full bg-muted/50 border border-border rounded-xl px-3 py-2.5 text-sm font-bold text-foreground focus:outline-none"
                   >
-                    <option value="reminder">Reminder (Yellow)</option>
-                    <option value="note">Note (Blue)</option>
-                    <option value="meeting">Meeting (Green)</option>
+                    <option value="reminder">Reminder</option>
+                    <option value="note">Note</option>
+                    <option value="meeting">Meeting</option>
                     {customCategories.map(cat => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
@@ -645,10 +666,23 @@ export default function Calendar() {
           if (parts.length >= 2) {
             const d = new Date(parts[0]);
             if (!isNaN(d.getTime())) {
-              return `${format(d, "dd MMM yyyy")} ${parts.slice(1).join(' ')}`;
+              const timePart = parts.slice(1).join(' ');
+              if (timePart === 'All Day') return `${format(d, "dd MMM yyyy")}`;
+              return `${format(d, "dd MMM yyyy")} ${timePart}`;
             }
           }
           return dtStr;
+        };
+
+        const renderLocation = (text: string) => {
+          const urlRegex = /(https?:\/\/[^\s]+)/g;
+          const parts = text.split(urlRegex);
+          return parts.map((part, i) => {
+            if (part.match(urlRegex)) {
+              return <a key={i} href={part} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline font-medium">{part}</a>;
+            }
+            return <span key={i}>{part}</span>;
+          });
         };
 
         // Find category name
@@ -671,8 +705,7 @@ export default function Calendar() {
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              
-              <div className="p-6 space-y-5 bg-white">
+              <div className="p-5 space-y-4 bg-white">
                 <div className="space-y-1">
                   <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-slate-100 text-slate-800 mb-1">
                     {categoryName}
@@ -680,7 +713,7 @@ export default function Calendar() {
                   <h3 className="text-xl font-bold text-slate-900 leading-tight">{modalEventName}</h3>
                 </div>
 
-                <div className="space-y-4 pt-2">
+                <div className="space-y-3 pt-1">
                   {modalStarts && modalEnds ? (
                     <>
                       <div className="flex items-start gap-3">
@@ -723,7 +756,7 @@ export default function Calendar() {
                       <span className="text-lg leading-none">📍</span>
                       <div className="flex flex-col -mt-0.5">
                         <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Event Location</span>
-                        <span className="text-sm text-slate-900 font-medium mt-0.5">{modalLocation}</span>
+                        <div className="text-sm text-slate-900 font-medium mt-0.5">{renderLocation(modalLocation)}</div>
                       </div>
                     </div>
                   )}
@@ -737,9 +770,8 @@ export default function Calendar() {
                     </div>
                   )}
                 </div>
-                
-                <div className="flex justify-end pt-2 mt-4 border-t border-slate-100">
-                  <Button variant="outline" onClick={() => setSelectedEvent(null)} className="font-semibold px-6 border-slate-300 text-slate-700 hover:bg-slate-50 mt-4">
+                <div className="flex justify-end pt-2 mt-2 border-t border-slate-100">
+                  <Button variant="outline" onClick={() => setSelectedEvent(null)} className="font-semibold px-6 border-slate-300 text-slate-700 hover:bg-slate-50">
                     Close
                   </Button>
                 </div>
