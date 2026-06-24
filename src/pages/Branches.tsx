@@ -3,8 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ArrowLeft, Building2, CalendarCheck, Clock, Loader2, MapPin, TrendingUp, Users, FileText, PhoneCall, X, Trash2, LayoutGrid, List } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ArrowLeft, Building2, CalendarCheck, Clock, Loader2, MapPin, TrendingUp, Users, FileText, PhoneCall, X, Trash2, LayoutGrid, List, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../config/api";
 import { toast } from "sonner";
 import { getCleanReason } from "@/lib/leaveStorage";
@@ -53,6 +55,7 @@ type BranchEmployee = {
 };
 
 export default function Branches() {
+  const navigate = useNavigate();
   const [selectedBranch, setSelectedBranch] = useState<any | null>(null);
   const [employees, setEmployees] = useState<BranchEmployee[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
@@ -97,11 +100,56 @@ export default function Branches() {
     } catch (err) {}
   };
 
+  useEffect(() => {
+    if (allBranches.length > 0) {
+      const fetchBranchStats = async () => {
+        try {
+          const params = new URLSearchParams({
+            startDate: new Date().toISOString().split("T")[0],
+            endDate: new Date().toISOString().split("T")[0],
+          });
+          const response = await fetch(`${API_BASE_URL}/api/analytics/branch-stats?${params}`);
+          const data = await response.json();
+          if (data.success) setBranchStats(data.data);
+        } catch (err) {
+          console.error("Error fetching branch stats", err);
+        }
+      };
+      fetchBranchStats();
+    }
+  }, [allBranches]);
+
+  useEffect(() => {
+    if (selectedBranch && selectedBranch.code) {
+      const fetchEmployees = async () => {
+        setLoading(true);
+        try {
+          const params = new URLSearchParams({ branch: selectedBranch.code });
+          const response = await fetch(`${API_BASE_URL}/api/employees/branch-stats?${params}`);
+          const data = await response.json();
+          if (data.success) {
+            setEmployees(data.employees || []);
+          }
+        } catch (err) {
+          toast.error("Failed to fetch branch employees");
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchEmployees();
+    }
+  }, [selectedBranch]);
+
   const handleDeleteBranch = async (e: React.MouseEvent, code: string) => {
     e.stopPropagation();
+    if (code === "HQ") {
+      toast.error("Cannot delete default Rayhar HQ branch");
+      return;
+    }
     if (!window.confirm(`Are you sure you want to delete branch ${code}?`)) return;
+    
     try {
-      const res = await fetch(`${API_BASE_URL}/api/branches/${code}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE_URL}/api/branches/${encodeURIComponent(code)}`, { method: "DELETE" });
       const data = await res.json();
       if (data.success) {
         toast.success("Branch deleted successfully");
@@ -525,90 +573,114 @@ export default function Branches() {
               })}
             </div>
           ) : (
-            <div className="overflow-x-auto bg-card/60 backdrop-blur-md rounded-[24px] border border-border/40 shadow-sm">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-muted/30 text-foreground border-b border-border">
-                    <th className="text-left py-4 px-3 sm:px-4 text-[10px] font-black uppercase tracking-[0.2em]">Branch Name</th>
-                    <th className="text-center py-4 px-1 sm:px-2 text-[10px] font-black uppercase tracking-[0.2em]">Present</th>
-                    <th className="text-center py-4 px-1 sm:px-2 text-[10px] font-black uppercase tracking-[0.2em]">Leave</th>
-                    <th className="text-center py-4 px-1 sm:px-2 text-[10px] font-black uppercase tracking-[0.2em]">Absent</th>
-                    <th className="text-center py-4 px-1 sm:px-2 text-[10px] font-black uppercase tracking-[0.2em]">Staff</th>
-                    <th className="text-center py-4 px-1 sm:px-2 text-[10px] font-black uppercase tracking-[0.2em]">Attendance</th>
-                    <th className="text-left py-4 px-2 sm:px-4 text-[10px] font-black uppercase tracking-[0.2em]">Leader</th>
-                    <th className="text-right py-4 px-3 sm:px-4 text-[10px] font-black uppercase tracking-[0.2em]">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/50">
-                  {allBranches.map((branch) => {
-                    const stat = branchStats.find((s) => s.branch === branch.code);
-                    const totalEmployees = stat ? stat.total_employees : 0;
-                    const presentToday = stat ? stat.present_today : 0;
-                    const onLeave = stat ? stat.on_leave : 0;
-                    const absent = Math.max(0, totalEmployees - presentToday - onLeave);
-                    const attendanceRate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
-                    const staticInfo = branches.find(b => b.code === branch.code);
-                    const location = (branch.location && branch.location !== "Rayhar Branch" && branch.location !== "RAYHAR BRANCH" && branch.location !== "")
-                      ? branch.location
-                      : (staticInfo?.location || "Rayhar Branch");
-                    const leader = branch.leader_name || staticInfo?.leader || "Branch Leader";
+            <Card className="border-border shadow-sm overflow-hidden bg-card/60 backdrop-blur-md">
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-muted/30">
+                      <TableRow>
+                        <TableHead className="py-4 pl-6">Branch Name</TableHead>
+                        <TableHead className="text-center">Present</TableHead>
+                        <TableHead className="text-center">Leave</TableHead>
+                        <TableHead className="text-center">Absent</TableHead>
+                        <TableHead className="text-center">Staff</TableHead>
+                        <TableHead className="text-center">Attendance</TableHead>
+                        <TableHead>Leader</TableHead>
+                        <TableHead className="text-right pr-6">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {allBranches.map((branch) => {
+                        const stat = branchStats.find((s) => s.branch === branch.code);
+                        const totalEmployees = stat ? stat.total_employees : 0;
+                        const presentToday = stat ? stat.present_today : 0;
+                        const onLeave = stat ? stat.on_leave : 0;
+                        const absent = Math.max(0, totalEmployees - presentToday - onLeave);
+                        const attendanceRate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
+                        const staticInfo = branches.find(b => b.code === branch.code);
+                        const location = (branch.location && branch.location !== "Rayhar Branch" && branch.location !== "RAYHAR BRANCH" && branch.location !== "")
+                          ? branch.location
+                          : (staticInfo?.location || "Rayhar Branch");
+                        const leader = branch.leader_name || staticInfo?.leader || "Branch Leader";
 
-                    return (
-                      <tr
-                        key={branch.code}
-                        className="cursor-pointer transition-colors group hover:bg-[#7B0099]/5"
-                        onClick={() => setSelectedBranch({...branch, location, leader, employees: totalEmployees, attendance: attendanceRate})}
-                      >
-                        <td className="py-4 px-3 sm:px-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-[11px] font-black text-[#7B0099] group-hover:scale-110 transition-transform">
-                              <Building2 className="w-4.5 h-4.5" />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-bold text-foreground group-hover:text-[#7B0099] transition-colors flex items-center gap-2">
-                                {branch.name}
-                                <Badge variant="outline" className="font-mono text-[9px] h-4 px-1.5 bg-muted/20 border-border/50">{branch.code}</Badge>
-                              </p>
-                              <p className="text-[10px] text-muted-foreground truncate font-medium uppercase tracking-widest">{location}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-1 sm:px-2 text-center">
-                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
-                            {presentToday}
-                          </span>
-                        </td>
-                        <td className="py-4 px-1 sm:px-2 text-center">
-                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs">
-                            {onLeave}
-                          </span>
-                        </td>
-                        <td className="py-4 px-1 sm:px-2 text-center">
-                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold text-xs">
-                            {absent}
-                          </span>
-                        </td>
-                        <td className="py-4 px-1 sm:px-2 text-center font-bold text-foreground text-xs">{totalEmployees}</td>
-                        <td className="py-4 px-1 sm:px-2 text-center font-bold text-[#7B0099] text-xs">{attendanceRate}%</td>
-                        <td className="py-4 px-2 sm:px-4 text-left">
-                          <p className="text-xs font-bold text-foreground/80 truncate max-w-[150px]">{leader}</p>
-                        </td>
-                        <td className="py-4 px-3 sm:px-4 text-right" onClick={(e) => e.stopPropagation()}>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="w-7 h-7 hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground"
-                            onClick={(e) => handleDeleteBranch(e, branch.code)}
+                        return (
+                          <TableRow
+                            key={branch.code}
+                            className="cursor-pointer hover:bg-muted/50 transition-colors group"
+                            onClick={() => setSelectedBranch({...branch, location, leader, employees: totalEmployees, attendance: attendanceRate})}
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                            <TableCell className="py-4 pl-6 font-medium">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                  <Building2 className="w-4 h-4" />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-medium text-foreground flex items-center gap-2">
+                                    {branch.name}
+                                    <Badge variant="outline" className="font-mono text-[9px] h-4 px-1.5 bg-muted/20 border-border/50">{branch.code}</Badge>
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground truncate uppercase tracking-widest">{location}</p>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center font-bold">
+                              {presentToday > 0 ? (
+                                <Badge variant="outline" className="bg-emerald-500/5 text-emerald-600 border-emerald-500/20">
+                                  {presentToday}
+                                </Badge>
+                              ) : (
+                                <span className="text-sm font-medium text-muted-foreground">0</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-center font-bold">
+                              {onLeave > 0 ? (
+                                <Badge variant="outline" className="bg-amber-500/5 text-amber-600 border-amber-500/20">
+                                  {onLeave}
+                                </Badge>
+                              ) : (
+                                <span className="text-sm font-medium text-muted-foreground">0</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-center font-bold">
+                              {absent > 0 ? (
+                                <Badge variant="outline" className="bg-rose-500/5 text-rose-600 border-rose-500/20">
+                                  {absent}
+                                </Badge>
+                              ) : (
+                                <span className="text-sm font-medium text-muted-foreground">0</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-center font-bold">
+                              {totalEmployees}
+                            </TableCell>
+                            <TableCell className="text-center font-bold">
+                              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+                                {attendanceRate}%
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-sm italic text-muted-foreground truncate block max-w-[150px]">
+                                {leader}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right pr-6" onClick={(e) => e.stopPropagation()}>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="w-8 h-8 shrink-0 hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={(e) => handleDeleteBranch(e, branch.code)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </div>
       )}
