@@ -60,7 +60,8 @@ export default function Calendar() {
   
   // New Event Form State
   const [eventName, setEventName] = useState("");
-  const [eventDate, setEventDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
   const [eventLocation, setEventLocation] = useState("");
@@ -128,8 +129,13 @@ export default function Calendar() {
 
     // Construct the note text based on form fields
     let finalNoteText = eventName;
-    if (startTime || endTime) {
-      finalNoteText += `\nTime: ${startTime} - ${endTime}`;
+    if (startDate || startTime || endDate || endTime) {
+      if (startDate && endDate) {
+        finalNoteText += `\nStarts: ${startDate} ${startTime}`;
+        finalNoteText += `\nEnds: ${endDate} ${endTime}`;
+      } else if (startTime || endTime) {
+        finalNoteText += `\nTime: ${startTime} - ${endTime}`;
+      }
     }
     if (eventLocation) {
       finalNoteText += `\nLocation: ${eventLocation}`;
@@ -148,7 +154,7 @@ export default function Calendar() {
         },
         body: JSON.stringify({
           userId: currentUserId,
-          date: eventDate,
+          date: startDate,
           note_text: finalNoteText,
           type: eventType
         })
@@ -500,43 +506,54 @@ export default function Calendar() {
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Event Date</label>
-                <div className="relative">
-                  <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    type="date"
-                    required
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
-                    value={eventDate}
-                    onChange={e => setEventDate(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Start Time</label>
-                  <div className="relative">
-                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input
-                      type="time"
-                      className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
-                      value={startTime}
-                      onChange={e => setStartTime(e.target.value)}
-                    />
+              <div className="space-y-3">
+                <div className="flex items-center gap-4">
+                  <label className="w-16 text-xs font-bold text-muted-foreground uppercase tracking-wider">Starts</label>
+                  <div className="flex-1 flex gap-2">
+                    <div className="relative flex-1">
+                      <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <input
+                        type="date"
+                        required
+                        className="w-full bg-background border border-border rounded-xl pl-9 pr-2 py-2 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                        value={startDate}
+                        onChange={e => setStartDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="relative w-32">
+                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <input
+                        type="time"
+                        className="w-full bg-background border border-border rounded-xl pl-9 pr-2 py-2 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                        value={startTime}
+                        onChange={e => setStartTime(e.target.value)}
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">End Time</label>
-                  <div className="relative">
-                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input
-                      type="time"
-                      className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
-                      value={endTime}
-                      onChange={e => setEndTime(e.target.value)}
-                    />
+
+                <div className="flex items-center gap-4">
+                  <label className="w-16 text-xs font-bold text-muted-foreground uppercase tracking-wider">Ends</label>
+                  <div className="flex-1 flex gap-2">
+                    <div className="relative flex-1">
+                      <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <input
+                        type="date"
+                        required
+                        className="w-full bg-background border border-border rounded-xl pl-9 pr-2 py-2 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                        value={endDate}
+                        onChange={e => setEndDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="relative w-32">
+                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <input
+                        type="time"
+                        className="w-full bg-background border border-border rounded-xl pl-9 pr-2 py-2 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                        value={endTime}
+                        onChange={e => setEndTime(e.target.value)}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -596,13 +613,30 @@ export default function Calendar() {
       {selectedEvent && (() => {
         const lines = selectedEvent.note_text.split('\n');
         const modalEventName = lines[0];
+        const startsLine = lines.find(l => l.startsWith('Starts: '));
+        const endsLine = lines.find(l => l.startsWith('Ends: '));
         const timeLine = lines.find(l => l.startsWith('Time: '));
         const locationLine = lines.find(l => l.startsWith('Location: '));
-        const descStartIndex = lines.findIndex((l, i) => i > 0 && !l.startsWith('Time: ') && !l.startsWith('Location: ') && l.trim() !== '');
+        const descStartIndex = lines.findIndex((l, i) => i > 0 && !l.startsWith('Starts: ') && !l.startsWith('Ends: ') && !l.startsWith('Time: ') && !l.startsWith('Location: ') && l.trim() !== '');
         const modalDescription = descStartIndex !== -1 ? lines.slice(descStartIndex).join('\n').trim() : '';
 
+        const modalStarts = startsLine ? startsLine.replace('Starts: ', '') : '';
+        const modalEnds = endsLine ? endsLine.replace('Ends: ', '') : '';
         const modalTime = timeLine ? timeLine.replace('Time: ', '') : '';
         const modalLocation = locationLine ? locationLine.replace('Location: ', '') : '';
+
+        // Helper to format date + time
+        const formatDateTime = (dtStr: string) => {
+          if (!dtStr) return '';
+          const parts = dtStr.split(' ');
+          if (parts.length >= 2) {
+            const d = new Date(parts[0]);
+            if (!isNaN(d.getTime())) {
+              return `${format(d, "dd MMM yyyy")} ${parts.slice(1).join(' ')}`;
+            }
+          }
+          return dtStr;
+        };
 
         // Find category name
         let categoryName = selectedEvent.type.charAt(0).toUpperCase() + selectedEvent.type.slice(1);
@@ -634,21 +668,42 @@ export default function Calendar() {
                 </div>
 
                 <div className="space-y-4 pt-2">
-                  <div className="flex items-start gap-3">
-                    <span className="text-lg leading-none">📅</span>
-                    <div className="flex flex-col -mt-0.5">
-                      <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Event Date</span>
-                      <span className="text-sm text-slate-900 font-medium mt-0.5">{format(new Date(selectedEvent.date), "dd MMM yyyy")}</span>
-                    </div>
-                  </div>
-                  {modalTime && (
-                    <div className="flex items-start gap-3">
-                      <span className="text-lg leading-none">🕒</span>
-                      <div className="flex flex-col -mt-0.5">
-                        <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Time</span>
-                        <span className="text-sm text-slate-900 font-medium mt-0.5">{modalTime}</span>
+                  {modalStarts && modalEnds ? (
+                    <>
+                      <div className="flex items-start gap-3">
+                        <span className="text-lg leading-none">📅</span>
+                        <div className="flex flex-col -mt-0.5">
+                          <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Starts</span>
+                          <span className="text-sm text-slate-900 font-medium mt-0.5">{formatDateTime(modalStarts)}</span>
+                        </div>
                       </div>
-                    </div>
+                      <div className="flex items-start gap-3">
+                        <span className="text-lg leading-none">🏁</span>
+                        <div className="flex flex-col -mt-0.5">
+                          <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Ends</span>
+                          <span className="text-sm text-slate-900 font-medium mt-0.5">{formatDateTime(modalEnds)}</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-start gap-3">
+                        <span className="text-lg leading-none">📅</span>
+                        <div className="flex flex-col -mt-0.5">
+                          <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Event Date</span>
+                          <span className="text-sm text-slate-900 font-medium mt-0.5">{format(new Date(selectedEvent.date), "dd MMM yyyy")}</span>
+                        </div>
+                      </div>
+                      {modalTime && (
+                        <div className="flex items-start gap-3">
+                          <span className="text-lg leading-none">🕒</span>
+                          <div className="flex flex-col -mt-0.5">
+                            <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Time</span>
+                            <span className="text-sm text-slate-900 font-medium mt-0.5">{modalTime}</span>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                   {modalLocation && (
                     <div className="flex items-start gap-3">
