@@ -249,11 +249,11 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         {/* Mobile or Expanded Desktop view: show logo (and toggle on right for desktop) */}
         {(!isCollapsed || isMobile) ? (
           <div className="flex items-center justify-between w-full h-full gap-2">
-            <Link to="/" className="flex items-center justify-start h-full max-w-[70%] animate-in fade-in duration-300" onClick={isMobile ? onMobileClose : undefined}>
+            <Link to="/" className="flex items-center justify-start h-full animate-in fade-in duration-300" onClick={isMobile ? onMobileClose : undefined}>
               <img 
                 src={rayharLogo} 
                 alt="Rayhar Group" 
-                className="h-[65%] w-auto object-contain filter brightness-110" 
+                className="h-[80%] max-h-[50px] w-auto object-contain" 
               />
             </Link>
             
