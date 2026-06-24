@@ -552,21 +552,19 @@ export default function Calendar() {
                   <label className="w-16 text-xs font-bold text-muted-foreground uppercase tracking-wider">Starts</label>
                   <div className="flex-1 flex gap-2">
                     <div className="relative flex-1">
-                      <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <input
                         type="date"
                         required
-                        className="w-full bg-background border border-border rounded-xl pl-9 pr-2 py-2 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                        className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
                         value={startDate}
                         onChange={e => setStartDate(e.target.value)}
                       />
                     </div>
                     {!isAllDay && (
                       <div className="relative flex-1">
-                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <input
                           type="time"
-                          className="w-full bg-background border border-border rounded-xl pl-9 pr-2 py-2 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                          className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
                           value={startTime}
                           onChange={e => setStartTime(e.target.value)}
                         />
@@ -579,21 +577,19 @@ export default function Calendar() {
                   <label className="w-16 text-xs font-bold text-muted-foreground uppercase tracking-wider">Ends</label>
                   <div className="flex-1 flex gap-2">
                     <div className="relative flex-1">
-                      <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <input
                         type="date"
                         required
-                        className="w-full bg-background border border-border rounded-xl pl-9 pr-2 py-2 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                        className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
                         value={endDate}
                         onChange={e => setEndDate(e.target.value)}
                       />
                     </div>
                     {!isAllDay && (
                       <div className="relative flex-1">
-                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <input
                           type="time"
-                          className="w-full bg-background border border-border rounded-xl pl-9 pr-2 py-2 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                          className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
                           value={endTime}
                           onChange={e => setEndTime(e.target.value)}
                         />
