@@ -285,7 +285,17 @@ export default function Calendar() {
           <Card className="border-border/50 bg-card overflow-hidden rounded-[16px] shadow-sm">
             <div className="p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-foreground">Event Categories</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-foreground">Event Categories</h3>
+                  {activeFilter && (
+                    <button 
+                      onClick={() => setActiveFilter(null)}
+                      className="text-[10px] uppercase tracking-wider font-bold text-[#7B0099] bg-[#7B0099]/10 hover:bg-[#7B0099]/20 px-2 py-0.5 rounded-full transition-colors"
+                    >
+                      Show All
+                    </button>
+                  )}
+                </div>
                 <button 
                   onClick={() => setIsAddCategoryOpen(true)}
                   className="w-6 h-6 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
@@ -298,28 +308,43 @@ export default function Calendar() {
               <div className="space-y-3">
                 <div 
                   onClick={() => setActiveFilter(activeFilter === 'note' ? null : 'note')}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'note' ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/30' : 'bg-blue-500/5 text-blue-700 dark:text-blue-400 hover:bg-blue-500/10'}`}>
-                  <span className="w-3 h-3 rounded-full bg-blue-500 border border-blue-600/20" /> Notes
+                  className={`flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'note' ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/30' : 'bg-blue-500/5 text-blue-700 dark:text-blue-400 hover:bg-blue-500/10'}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="w-3 h-3 rounded-full bg-blue-500 border border-blue-600/20" /> Notes
+                  </div>
+                  {activeFilter === 'note' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
                 </div>
                 <div 
                   onClick={() => setActiveFilter(activeFilter === 'reminder' ? null : 'reminder')}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'reminder' ? 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border border-yellow-500/30' : 'bg-yellow-500/5 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-500/10'}`}>
-                  <span className="w-3 h-3 rounded-full bg-yellow-500 border border-yellow-600/20" /> Reminders
+                  className={`flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'reminder' ? 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border border-yellow-500/30' : 'bg-yellow-500/5 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-500/10'}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="w-3 h-3 rounded-full bg-yellow-500 border border-yellow-600/20" /> Reminders
+                  </div>
+                  {activeFilter === 'reminder' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
                 </div>
                 <div 
                   onClick={() => setActiveFilter(activeFilter === 'meeting' ? null : 'meeting')}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'meeting' ? 'bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/30' : 'bg-green-500/5 text-green-700 dark:text-green-400 hover:bg-green-500/10'}`}>
-                  <span className="w-3 h-3 rounded-full bg-green-500 border border-green-600/20" /> Meetings
+                  className={`flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'meeting' ? 'bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/30' : 'bg-green-500/5 text-green-700 dark:text-green-400 hover:bg-green-500/10'}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="w-3 h-3 rounded-full bg-green-500 border border-green-600/20" /> Meetings
+                  </div>
+                  {activeFilter === 'meeting' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
                 </div>
                 <div 
                   onClick={() => setActiveFilter(activeFilter === 'holiday' ? null : 'holiday')}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'holiday' ? 'bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/30' : 'bg-red-500/5 text-red-700 dark:text-red-400 hover:bg-red-500/10'}`}>
-                  <span className="w-3 h-3 rounded-full bg-red-500 border border-red-600/20" /> Holidays
+                  className={`flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'holiday' ? 'bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/30' : 'bg-red-500/5 text-red-700 dark:text-red-400 hover:bg-red-500/10'}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="w-3 h-3 rounded-full bg-red-500 border border-red-600/20" /> Holidays
+                  </div>
+                  {activeFilter === 'holiday' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
                 </div>
                 <div 
                   onClick={() => setActiveFilter(activeFilter === 'attendance' ? null : 'attendance')}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'attendance' ? 'bg-[#7B0099]/20 text-[#7B0099] dark:text-[#a000c7] border border-[#7B0099]/30' : 'bg-[#7B0099]/5 text-[#7B0099] dark:text-[#a000c7] hover:bg-[#7B0099]/10'}`}>
-                  <span className="w-3 h-3 rounded-full bg-[#7B0099] border border-[#7B0099]/20" /> Attendance
+                  className={`flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'attendance' ? 'bg-[#7B0099]/20 text-[#7B0099] dark:text-[#a000c7] border border-[#7B0099]/30' : 'bg-[#7B0099]/5 text-[#7B0099] dark:text-[#a000c7] hover:bg-[#7B0099]/10'}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="w-3 h-3 rounded-full bg-[#7B0099] border border-[#7B0099]/20" /> Attendance
+                  </div>
+                  {activeFilter === 'attendance' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
                 </div>
                 {customCategories.map(cat => (
                   <div 
@@ -330,15 +355,18 @@ export default function Calendar() {
                     <div className="flex items-center gap-3">
                       <span className={`w-3 h-3 rounded-full ${cat.color}`} /> {cat.name}
                     </div>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setCategoryToDelete(cat);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded text-muted-foreground hover:text-red-500 transition-all"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      {activeFilter === cat.id && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCategoryToDelete(cat);
+                        }}
+                        className={`p-1 rounded transition-all ${activeFilter === cat.id ? 'text-muted-foreground hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/10' : 'opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/10'}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
