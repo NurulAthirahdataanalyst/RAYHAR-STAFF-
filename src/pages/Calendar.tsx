@@ -341,10 +341,7 @@ export default function Calendar() {
           Calendar
         </h1>
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <div className="bg-background border border-border rounded-lg px-4 py-2 flex items-center justify-between text-sm font-medium min-w-[220px]">
-            <span>{format(gridStartDate, "MM/dd/yyyy")} - {format(gridEndDate, "MM/dd/yyyy")}</span>
-            <ChevronDown className="w-4 h-4 text-muted-foreground ml-2" />
-          </div>
+
           <ExportDropdown 
             onExportCSV={handleExportCalendar} 
             onExportPDF={() => window.print()} 
