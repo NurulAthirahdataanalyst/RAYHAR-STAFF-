@@ -333,7 +333,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                   className={`group relative flex items-center gap-3.5 transition-all duration-300 touch-target ${
                     isCollapsed && !isMobile 
                       ? "justify-center px-0 w-11 h-11 mx-auto rounded-xl" 
-                      : "px-5 py-3 rounded-r-2xl mr-4"
+                      : "px-4 py-2.5 rounded-r-2xl mr-4"
                   } ${
                     isActive
                       ? "bg-[#7B0099]/15 text-white font-semibold border-l-4 border-[#7B0099]"
