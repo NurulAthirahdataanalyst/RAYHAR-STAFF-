@@ -614,12 +614,6 @@ export default function Calendar() {
                           className={`px-2 py-1 rounded-[4px] text-[11px] font-bold truncate shadow-sm relative group cursor-pointer hover:brightness-95 ${colorClass}`}
                         >
                           {title}
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id); }}
-                            className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 bg-white dark:bg-black rounded-md"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
                         </div>
                       )
                     })}
@@ -934,7 +928,19 @@ export default function Calendar() {
                   )}
                 </div>
 
-                <div className="flex justify-end pt-4 mt-2 border-t border-slate-100">
+                <div className="flex justify-end gap-3 pt-4 mt-2 border-t border-slate-100">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      if (confirm('Are you sure you want to delete this event?')) {
+                        handleDeleteNote(selectedEvent.id);
+                        setSelectedEvent(null);
+                      }
+                    }} 
+                    className="font-semibold px-6 rounded-lg border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                  >
+                    Delete
+                  </Button>
                   <Button variant="outline" onClick={() => setSelectedEvent(null)} className="font-semibold px-6 rounded-lg border-slate-300 text-slate-700 hover:bg-slate-50">
                     Close
                   </Button>
