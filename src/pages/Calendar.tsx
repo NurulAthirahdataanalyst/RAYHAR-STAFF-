@@ -76,6 +76,7 @@ export default function Calendar() {
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryColor, setNewCategoryColor] = useState("bg-blue-500");
+  const [categoryToDelete, setCategoryToDelete] = useState<CustomCategory | null>(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -332,12 +333,11 @@ export default function Calendar() {
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
-                        setCustomCategories(customCategories.filter(c => c.id !== cat.id));
-                        if (activeFilter === cat.id) setActiveFilter(null);
+                        setCategoryToDelete(cat);
                       }}
                       className="opacity-0 group-hover:opacity-100 p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded text-muted-foreground hover:text-red-500 transition-all"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 ))}
@@ -739,6 +739,8 @@ export default function Calendar() {
         let categoryName = selectedEvent.type.charAt(0).toUpperCase() + selectedEvent.type.slice(1);
         const customCat = customCategories.find(c => c.id === selectedEvent.type);
         if (customCat) categoryName = customCat.name;
+        // Fallback for missing custom category
+        if (selectedEvent.type.startsWith('custom-') && !customCat) categoryName = 'Note';
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in" onClick={() => setSelectedEvent(null)}>
@@ -818,6 +820,56 @@ export default function Calendar() {
           </div>
         );
       })()}
+
+      {/* Delete Category Confirmation Modal */}
+      {categoryToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in" onClick={() => setCategoryToDelete(null)}>
+          <div 
+            className="w-full max-w-sm rounded-2xl shadow-xl border border-border bg-white overflow-hidden animate-in zoom-in-95 duration-200"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
+                <Trash2 className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Delete Category?</h3>
+              <p className="text-sm text-slate-500 mb-6">
+                Are you sure you want to delete <span className="font-bold text-slate-700">"{categoryToDelete.name}"</span>? Any existing events assigned to this category will be changed to "Notes".
+              </p>
+              <div className="flex gap-3 justify-end">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCategoryToDelete(null)}
+                  className="font-semibold"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={() => {
+                    // Update notes state to move events to 'note' category
+                    setNotes(notes.map(note => note.type === categoryToDelete.id ? { ...note, type: 'note' } : note));
+                    
+                    // Remove category from state
+                    setCustomCategories(customCategories.filter(c => c.id !== categoryToDelete.id));
+                    
+                    // Reset active filter if deleting currently active category
+                    if (activeFilter === categoryToDelete.id) {
+                      setActiveFilter(null);
+                    }
+                    
+                    setCategoryToDelete(null);
+                    toast.success("Category deleted");
+                  }}
+                  className="font-semibold bg-red-600 hover:bg-red-700"
+                >
+                  Delete
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
