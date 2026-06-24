@@ -125,7 +125,7 @@ export default function AttendanceDashboard() {
   }>>([]);
   const [liveLastUpdated, setLiveLastUpdated] = useState<string | null>(null);
   const [liveConnected, setLiveConnected] = useState(false);
-  const [liveFilter, setLiveFilter] = useState<'all' | 'present' | 'late' | 'absent' | 'onLeave'>('all');
+
   const liveEsRef = useRef<EventSource | null>(null);
 
   // Attendance & Punctuality State
@@ -769,13 +769,8 @@ export default function AttendanceDashboard() {
           {/* 4 Stat Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 p-5 md:p-6 bg-transparent">
             {/* Present */}
-            <button
-              onClick={() => setLiveFilter(liveFilter === 'present' ? 'all' : 'present')}
-              className={`relative overflow-hidden p-5 flex flex-col gap-3 text-left transition-all duration-300 rounded-2xl border-y border-r border-l-4 ${
-                liveFilter === 'present' 
-                ? 'bg-blue-50/80 border-r-blue-200 border-y-blue-200 border-l-blue-600 shadow-md ring-2 ring-blue-500/20 scale-[1.02]' 
-                : 'bg-[#F2F7FE] border-r-blue-100 border-y-blue-100 border-l-blue-600 hover:shadow-md hover:bg-blue-50/80'
-              }`}
+            <div
+              className="relative overflow-hidden p-5 flex flex-col gap-3 text-left rounded-2xl border-y border-r border-l-4 bg-[#F2F7FE] border-r-blue-100 border-y-blue-100 border-l-blue-600"
             >
               <div className="flex justify-between items-start w-full relative z-10">
                 <span className="text-[11px] font-black text-blue-800 uppercase tracking-widest mt-1">Present Today</span>
@@ -794,16 +789,11 @@ export default function AttendanceDashboard() {
                   Arrived and Clocked In
                 </p>
               </div>
-            </button>
+            </div>
 
             {/* Late */}
-            <button
-              onClick={() => setLiveFilter(liveFilter === 'late' ? 'all' : 'late')}
-              className={`relative overflow-hidden p-5 flex flex-col gap-3 text-left transition-all duration-300 rounded-2xl border-y border-r border-l-4 ${
-                liveFilter === 'late' 
-                ? 'bg-amber-50/80 border-r-amber-200 border-y-amber-200 border-l-amber-500 shadow-md ring-2 ring-amber-500/20 scale-[1.02]' 
-                : 'bg-[#FFFDF4] border-r-amber-100 border-y-amber-100 border-l-amber-500 hover:shadow-md hover:bg-amber-50/80'
-              }`}
+            <div
+              className="relative overflow-hidden p-5 flex flex-col gap-3 text-left rounded-2xl border-y border-r border-l-4 bg-[#FFFDF4] border-r-amber-100 border-y-amber-100 border-l-amber-500"
             >
               <div className="flex justify-between items-start w-full relative z-10">
                 <span className="text-[11px] font-black text-amber-800 uppercase tracking-widest mt-1">Late Today</span>
@@ -822,16 +812,11 @@ export default function AttendanceDashboard() {
                   Post {workStartTime} Window
                 </p>
               </div>
-            </button>
+            </div>
 
             {/* Absent */}
-            <button
-              onClick={() => setLiveFilter(liveFilter === 'absent' ? 'all' : 'absent')}
-              className={`relative overflow-hidden p-5 flex flex-col gap-3 text-left transition-all duration-300 rounded-2xl border-y border-r border-l-4 ${
-                liveFilter === 'absent' 
-                ? 'bg-red-50/80 border-r-red-200 border-y-red-200 border-l-red-500 shadow-md ring-2 ring-red-500/20 scale-[1.02]' 
-                : 'bg-[#FFF6F6] border-r-red-100 border-y-red-100 border-l-red-500 hover:shadow-md hover:bg-red-50/80'
-              }`}
+            <div
+              className="relative overflow-hidden p-5 flex flex-col gap-3 text-left rounded-2xl border-y border-r border-l-4 bg-[#FFF6F6] border-r-red-100 border-y-red-100 border-l-red-500"
             >
               <div className="flex justify-between items-start w-full relative z-10">
                 <span className="text-[11px] font-black text-red-800 uppercase tracking-widest mt-1">Absent Today</span>
@@ -850,12 +835,11 @@ export default function AttendanceDashboard() {
                   Not Clocked In Today
                 </p>
               </div>
-            </button>
+            </div>
 
             {/* Attendance Rate */}
-            <button
-              onClick={() => setLiveFilter('all')}
-              className="relative overflow-hidden p-5 flex flex-col gap-3 text-left transition-all duration-300 rounded-2xl border-y border-r border-l-4 bg-[#F2FBF5] border-r-emerald-100 border-y-emerald-100 border-l-emerald-500 hover:shadow-md hover:bg-emerald-50/80"
+            <div
+              className="relative overflow-hidden p-5 flex flex-col gap-3 text-left rounded-2xl border-y border-r border-l-4 bg-[#F2FBF5] border-r-emerald-100 border-y-emerald-100 border-l-emerald-500"
             >
               <div className="flex justify-between items-start w-full relative z-10">
                 <span className="text-[11px] font-black text-emerald-800 uppercase tracking-widest mt-1">Attendance Rate</span>
@@ -876,87 +860,6 @@ export default function AttendanceDashboard() {
                   Excluding Active Leaves
                 </p>
               </div>
-            </button>
-          </div>
-
-          {/* Employee List */}
-          <div className="border-t border-white/60 bg-white/50 backdrop-blur-md">
-            <div className="px-6 py-4 flex items-center justify-between bg-slate-50/50">
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-black text-gray-700 uppercase tracking-widest">Employee Status</span>
-                {liveFilter !== 'all' && (
-                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md capitalize shadow-sm ${
-                    liveFilter === 'present' ? 'bg-green-100 text-green-700' :
-                    liveFilter === 'late' ? 'bg-amber-100 text-amber-700' :
-                    liveFilter === 'absent' ? 'bg-red-100 text-red-700' :
-                    'bg-blue-100 text-blue-700'
-                  }`}>
-                    {liveFilter === 'onLeave' ? 'On Leave' : liveFilter}
-                  </span>
-                )}
-              </div>
-              {liveFilter !== 'all' && (
-                <button onClick={() => setLiveFilter('all')} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 transition-colors">Clear filter ✕</button>
-              )}
-            </div>
-
-            <div className="max-h-[320px] overflow-y-auto">
-              {(() => {
-                const filtered = liveFilter === 'all' ? liveEmployees : liveEmployees.filter(e => e.status === liveFilter);
-                if (filtered.length === 0) {
-                  return (
-                    <div className="flex flex-col items-center justify-center py-10 text-center">
-                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-                        <Users className="w-5 h-5 text-gray-300" />
-                      </div>
-                      <p className="text-xs font-semibold text-gray-400">No employees in this category</p>
-                      <p className="text-[10px] text-gray-300 mt-1">Data updates every 30 seconds</p>
-                    </div>
-                  );
-                }
-                return (
-                  <div className="divide-y divide-gray-50">
-                    {filtered.map((emp) => {
-                      const statusConfig = {
-                        present: { dot: 'bg-green-500', badge: 'bg-green-50 text-green-700 border-green-200', label: 'Present' },
-                        late:    { dot: 'bg-amber-500',  badge: 'bg-amber-50 text-amber-700 border-amber-200', label: 'Late' },
-                        absent:  { dot: 'bg-red-500',    badge: 'bg-red-50 text-red-700 border-red-200',   label: 'Absent' },
-                        onLeave: { dot: 'bg-blue-500',   badge: 'bg-blue-50 text-blue-700 border-blue-200',  label: 'On Leave' },
-                      }[emp.status] || { dot: 'bg-gray-400', badge: 'bg-gray-50 text-gray-600 border-gray-200', label: emp.status };
-
-                      return (
-                        <div key={emp.user_id} className="flex items-center gap-4 px-6 py-4 hover:bg-white/80 transition-colors border-b border-gray-50 last:border-0 group">
-                          <div className="relative flex-shrink-0">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 shadow-sm text-gray-600 font-black flex items-center justify-center text-sm uppercase group-hover:scale-105 transition-transform">
-                              {emp.full_name.charAt(0)}
-                            </div>
-                            <span className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm ${statusConfig.dot}`} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-gray-800 truncate">{emp.full_name}</p>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">{emp.department}</p>
-                              <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                              <p className="text-[11px] text-gray-400">{emp.branch}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4 flex-shrink-0">
-                            {emp.clock_in && (
-                              <div className="text-right hidden sm:block">
-                                <p className="text-xs font-black text-gray-800">{emp.clock_in}</p>
-                                <p className="text-[10px] font-medium text-gray-400">{emp.clock_out ? `Out: ${emp.clock_out}` : 'Still in'}</p>
-                              </div>
-                            )}
-                            <span className={`text-[10px] font-black px-2.5 py-1 rounded-md border shadow-sm uppercase tracking-wider ${statusConfig.badge}`}>
-                              {statusConfig.label}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
             </div>
           </div>
         </CardContent>
