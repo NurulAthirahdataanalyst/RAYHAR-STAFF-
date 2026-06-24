@@ -562,7 +562,7 @@ export default function Calendar() {
                       />
                     </div>
                     {!isAllDay && (
-                      <div className="relative w-[150px]">
+                      <div className="relative flex-1">
                         <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <input
                           type="time"
@@ -589,7 +589,7 @@ export default function Calendar() {
                       />
                     </div>
                     {!isAllDay && (
-                      <div className="relative w-[150px]">
+                      <div className="relative flex-1">
                         <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <input
                           type="time"
