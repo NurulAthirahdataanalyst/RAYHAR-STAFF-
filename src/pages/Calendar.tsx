@@ -72,7 +72,19 @@ export default function Calendar() {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   // Custom Categories State
-  const [customCategories, setCustomCategories] = useState<CustomCategory[]>([]);
+  const [customCategories, setCustomCategories] = useState<CustomCategory[]>(() => {
+    try {
+      const saved = localStorage.getItem('calendarCustomCategories');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error(e);
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('calendarCustomCategories', JSON.stringify(customCategories));
+  }, [customCategories]);
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryColor, setNewCategoryColor] = useState("bg-blue-500");
