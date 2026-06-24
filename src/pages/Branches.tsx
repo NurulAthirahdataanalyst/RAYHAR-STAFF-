@@ -529,14 +529,14 @@ export default function Branches() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-muted/30 text-foreground border-b border-border">
-                    <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Branch Name</th>
-                    <th className="text-center py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Present</th>
-                    <th className="text-center py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Leave</th>
-                    <th className="text-center py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Absent</th>
-                    <th className="text-center py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Staff</th>
-                    <th className="text-center py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Attendance</th>
-                    <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Leader</th>
-                    <th className="text-right py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Action</th>
+                    <th className="text-left py-4 px-3 sm:px-4 text-[10px] font-black uppercase tracking-[0.2em]">Branch Name</th>
+                    <th className="text-center py-4 px-1 sm:px-2 text-[10px] font-black uppercase tracking-[0.2em]">Present</th>
+                    <th className="text-center py-4 px-1 sm:px-2 text-[10px] font-black uppercase tracking-[0.2em]">Leave</th>
+                    <th className="text-center py-4 px-1 sm:px-2 text-[10px] font-black uppercase tracking-[0.2em]">Absent</th>
+                    <th className="text-center py-4 px-1 sm:px-2 text-[10px] font-black uppercase tracking-[0.2em]">Staff</th>
+                    <th className="text-center py-4 px-1 sm:px-2 text-[10px] font-black uppercase tracking-[0.2em]">Attendance</th>
+                    <th className="text-left py-4 px-2 sm:px-4 text-[10px] font-black uppercase tracking-[0.2em]">Leader</th>
+                    <th className="text-right py-4 px-3 sm:px-4 text-[10px] font-black uppercase tracking-[0.2em]">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
@@ -559,7 +559,7 @@ export default function Branches() {
                         className="cursor-pointer transition-colors group hover:bg-[#7B0099]/5"
                         onClick={() => setSelectedBranch({...branch, location, leader, employees: totalEmployees, attendance: attendanceRate})}
                       >
-                        <td className="py-4 px-6">
+                        <td className="py-4 px-3 sm:px-4">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-[11px] font-black text-[#7B0099] group-hover:scale-110 transition-transform">
                               <Building2 className="w-4.5 h-4.5" />
@@ -573,27 +573,27 @@ export default function Branches() {
                             </div>
                           </div>
                         </td>
-                        <td className="py-4 px-6 text-center">
+                        <td className="py-4 px-1 sm:px-2 text-center">
                           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
                             {presentToday}
                           </span>
                         </td>
-                        <td className="py-4 px-6 text-center">
+                        <td className="py-4 px-1 sm:px-2 text-center">
                           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs">
                             {onLeave}
                           </span>
                         </td>
-                        <td className="py-4 px-6 text-center">
+                        <td className="py-4 px-1 sm:px-2 text-center">
                           <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold text-xs">
                             {absent}
                           </span>
                         </td>
-                        <td className="py-4 px-6 text-center font-bold text-foreground text-xs">{totalEmployees}</td>
-                        <td className="py-4 px-6 text-center font-bold text-[#7B0099] text-xs">{attendanceRate}%</td>
-                        <td className="py-4 px-6 text-left">
+                        <td className="py-4 px-1 sm:px-2 text-center font-bold text-foreground text-xs">{totalEmployees}</td>
+                        <td className="py-4 px-1 sm:px-2 text-center font-bold text-[#7B0099] text-xs">{attendanceRate}%</td>
+                        <td className="py-4 px-2 sm:px-4 text-left">
                           <p className="text-xs font-bold text-foreground/80 truncate max-w-[150px]">{leader}</p>
                         </td>
-                        <td className="py-4 px-6 text-right" onClick={(e) => e.stopPropagation()}>
+                        <td className="py-4 px-3 sm:px-4 text-right" onClick={(e) => e.stopPropagation()}>
                           <Button 
                             variant="ghost" 
                             size="icon" 
