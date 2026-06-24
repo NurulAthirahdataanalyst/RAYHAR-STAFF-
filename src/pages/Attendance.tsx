@@ -1153,6 +1153,7 @@ export default function Attendance() {
                 )}
               </TableBody>
             </Table>
+            </div>
           </CardContent>
 
           {/* Load More Button */}
