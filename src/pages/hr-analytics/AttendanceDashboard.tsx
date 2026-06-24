@@ -1032,7 +1032,7 @@ export default function AttendanceDashboard() {
                               </div>
                               <div>
                                 <span className="font-semibold text-gray-800 block text-xs">{record.full_name}</span>
-                                <span className="text-[10px] text-gray-400 capitalize">{((record as any).role || "").replace(/_/g, ' ')} • {record.branch}</span>
+                                <span className="text-[10px] text-gray-400 capitalize">{((record as any).role || "").replace(/_/g, ' ')} • {record.branch}{record.branch === "HQ" && record.department ? `, • ${record.department}` : ""}</span>
                               </div>
                             </div>
                           </td>
