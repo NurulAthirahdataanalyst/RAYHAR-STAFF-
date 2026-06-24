@@ -247,7 +247,9 @@ export default function Calendar() {
     const exportData: any[] = [];
 
     // Add holidays
-    holidays.forEach(holiday => {
+    holidays
+      .filter(holiday => isSameMonth(new Date(holiday.date), selectedDate))
+      .forEach(holiday => {
       exportData.push({
         'Event Title': holiday.name,
         'Start Date': format(new Date(holiday.date), "MM/dd/yyyy"),
@@ -261,7 +263,9 @@ export default function Calendar() {
     });
 
     // Add notes
-    notes.forEach(note => {
+    notes
+      .filter(note => isSameMonth(new Date(note.date), selectedDate))
+      .forEach(note => {
       const lines = note.note_text.split('\n');
       const title = lines[0];
       const startsLine = lines.find(l => l.startsWith('Starts: '));
