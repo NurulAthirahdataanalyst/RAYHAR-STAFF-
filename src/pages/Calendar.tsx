@@ -198,12 +198,12 @@ export default function Calendar() {
   // Calendar Grid Logic
   const monthStart = startOfMonth(selectedDate);
   const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart);
-  const endDate = endOfWeek(monthEnd);
+  const gridStartDate = startOfWeek(monthStart);
+  const gridEndDate = endOfWeek(monthEnd);
 
   const calendarDays = eachDayOfInterval({
-    start: startDate,
-    end: endDate
+    start: gridStartDate,
+    end: gridEndDate
   });
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -218,7 +218,7 @@ export default function Calendar() {
         </h1>
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <div className="bg-background border border-border rounded-lg px-4 py-2 flex items-center justify-between text-sm font-medium min-w-[220px]">
-            <span>{format(startDate, "MM/dd/yyyy")} - {format(endDate, "MM/dd/yyyy")}</span>
+            <span>{format(gridStartDate, "MM/dd/yyyy")} - {format(gridEndDate, "MM/dd/yyyy")}</span>
             <ChevronDown className="w-4 h-4 text-muted-foreground ml-2" />
           </div>
           <Button variant="outline" className="gap-2 bg-background border-border font-bold">
