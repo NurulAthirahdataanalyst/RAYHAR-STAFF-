@@ -92,7 +92,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
   // ── HOD / BRANCH LEADER sidebar ──────────────────────────────────────────
   const hodMenuItems = [
-    { title: "MAIN NAVIGATION", isSection: true, roles: HOD_BL_ROLES },
+    { title: "Main Navigation", isSection: true, roles: HOD_BL_ROLES },
     { title: "Dashboard", icon: LayoutDashboard, path: "/", roles: HOD_BL_ROLES },
     { title: "Calendar", icon: Calendar, path: "/calendar", roles: HOD_BL_ROLES },
     {
