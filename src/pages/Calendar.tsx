@@ -252,9 +252,9 @@ export default function Calendar() {
       .forEach(holiday => {
       exportData.push({
         'Event Title': holiday.name,
-        'Start Date': format(new Date(holiday.date), "MM/dd/yyyy"),
+        'Start Date': format(new Date(holiday.date), "dd/MM/yyyy"),
         'Start Time': 'All Day',
-        'End Date': format(new Date(holiday.date), "MM/dd/yyyy"),
+        'End Date': format(new Date(holiday.date), "dd/MM/yyyy"),
         'End Time': 'All Day',
         'Category': 'Holiday',
         'Location': '-',
@@ -275,8 +275,8 @@ export default function Calendar() {
       const descStartIndex = lines.findIndex((l, i) => i > 0 && !l.startsWith('Starts: ') && !l.startsWith('Ends: ') && !l.startsWith('Time: ') && !l.startsWith('Location: ') && l.trim() !== '');
       const description = descStartIndex !== -1 ? lines.slice(descStartIndex).join('\n').trim() : '-';
 
-      let startDate = format(new Date(note.date), "MM/dd/yyyy");
-      let endDate = format(new Date(note.date), "MM/dd/yyyy");
+      let startDate = format(new Date(note.date), "dd/MM/yyyy");
+      let endDate = format(new Date(note.date), "dd/MM/yyyy");
       let startTime = '-';
       let endTime = '-';
 
@@ -287,8 +287,8 @@ export default function Calendar() {
         const endParts = modalEnds.split(' ');
         
         try {
-          startDate = startParts[0] ? format(new Date(startParts[0]), "MM/dd/yyyy") : startDate;
-          endDate = endParts[0] ? format(new Date(endParts[0]), "MM/dd/yyyy") : endDate;
+          startDate = startParts[0] ? format(new Date(startParts[0]), "dd/MM/yyyy") : startDate;
+          endDate = endParts[0] ? format(new Date(endParts[0]), "dd/MM/yyyy") : endDate;
 
           if (startParts[1] === 'All' && startParts[2] === 'Day') {
             startTime = 'All Day';
