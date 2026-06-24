@@ -243,6 +243,91 @@ export default function Calendar() {
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+  const handleExportCalendar = () => {
+    const exportData: any[] = [];
+
+    // Add holidays
+    holidays.forEach(holiday => {
+      exportData.push({
+        'Event Title': holiday.name,
+        'Start Date': format(new Date(holiday.date), "MM/dd/yyyy"),
+        'Start Time': 'All Day',
+        'End Date': format(new Date(holiday.date), "MM/dd/yyyy"),
+        'End Time': 'All Day',
+        'Category': 'Holiday',
+        'Location': '-',
+        'Notes': '-'
+      });
+    });
+
+    // Add notes
+    notes.forEach(note => {
+      const lines = note.note_text.split('\n');
+      const title = lines[0];
+      const startsLine = lines.find(l => l.startsWith('Starts: '));
+      const endsLine = lines.find(l => l.startsWith('Ends: '));
+      const timeLine = lines.find(l => l.startsWith('Time: '));
+      const locationLine = lines.find(l => l.startsWith('Location: '));
+      const descStartIndex = lines.findIndex((l, i) => i > 0 && !l.startsWith('Starts: ') && !l.startsWith('Ends: ') && !l.startsWith('Time: ') && !l.startsWith('Location: ') && l.trim() !== '');
+      const description = descStartIndex !== -1 ? lines.slice(descStartIndex).join('\n').trim() : '-';
+
+      let startDate = format(new Date(note.date), "MM/dd/yyyy");
+      let endDate = format(new Date(note.date), "MM/dd/yyyy");
+      let startTime = '-';
+      let endTime = '-';
+
+      if (startsLine && endsLine) {
+        const modalStarts = startsLine.replace('Starts: ', '');
+        const modalEnds = endsLine.replace('Ends: ', '');
+        const startParts = modalStarts.split(' ');
+        const endParts = modalEnds.split(' ');
+        
+        try {
+          startDate = startParts[0] ? format(new Date(startParts[0]), "MM/dd/yyyy") : startDate;
+          endDate = endParts[0] ? format(new Date(endParts[0]), "MM/dd/yyyy") : endDate;
+
+          if (startParts[1] === 'All' && startParts[2] === 'Day') {
+            startTime = 'All Day';
+            endTime = 'All Day';
+          } else if (startParts[1] && endParts[1]) {
+            startTime = format(new Date(`2000-01-01T${startParts[1]}`), "hh:mm a");
+            endTime = format(new Date(`2000-01-01T${endParts[1]}`), "hh:mm a");
+          }
+        } catch(e) {}
+      } else if (timeLine) {
+        const modalTime = timeLine.replace('Time: ', '');
+        const match = modalTime.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+        if (match) {
+          try {
+            startTime = format(new Date(`2000-01-01T${match[1]}`), "hh:mm a");
+            endTime = format(new Date(`2000-01-01T${match[2]}`), "hh:mm a");
+          } catch(e) {}
+        } else {
+          startTime = modalTime;
+          endTime = modalTime;
+        }
+      }
+
+      let categoryName = note.type.charAt(0).toUpperCase() + note.type.slice(1);
+      const customCat = customCategories.find(c => c.id === note.type);
+      if (customCat) categoryName = customCat.name;
+      if (note.type.startsWith('custom-') && !customCat) categoryName = 'Note';
+
+      exportData.push({
+        'Event Title': title,
+        'Start Date': startDate,
+        'Start Time': startTime,
+        'End Date': endDate,
+        'End Time': endTime,
+        'Category': categoryName,
+        'Location': locationLine ? locationLine.replace('Location: ', '') : '-',
+        'Notes': description
+      });
+    });
+
+    exportToCSV(exportData, 'Calendar_Events');
+  };
+
   return (
     <div className="w-full min-h-screen pb-12">
       
@@ -257,7 +342,7 @@ export default function Calendar() {
             <ChevronDown className="w-4 h-4 text-muted-foreground ml-2" />
           </div>
           <ExportDropdown 
-            onExportCSV={() => exportToCSV(events, 'Calendar_Events')} 
+            onExportCSV={handleExportCalendar} 
             onExportPDF={() => window.print()} 
           />
           <Button 
