@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const formatAttendanceTime = (value: unknown) => {
   if (!value) return "--:--";
@@ -1001,12 +1002,12 @@ export default function Attendance() {
 
       {/* BOTTOM PANEL: Employee Attendance Data Table */}
       <div className="relative z-10 w-full max-w-7xl mx-auto pb-8">
-        <div className="bg-card dark:bg-card border border-border shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl p-5 sm:p-6 md:p-8 flex flex-col min-h-[400px]">
+        <Card className="border-border shadow-sm overflow-hidden bg-card/60 backdrop-blur-md min-h-[400px]">
           
           {/* Header Row */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/50 bg-muted/20 pb-4">
             <div>
-              <h2 className="text-lg sm:text-xl font-black text-foreground">Employee Attendance</h2>
+              <CardTitle className="text-lg font-bold">Employee Attendance</CardTitle>
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Detailed Log Records</p>
             </div>
             
@@ -1092,23 +1093,24 @@ export default function Attendance() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-          </div>
+          </CardHeader>
 
           {/* Table Container */}
-          <div className="w-full overflow-x-auto rounded-2xl border border-border/50 bg-card">
-            <Table className="min-w-[800px]">
-              <TableHeader className="bg-muted/50 border-b border-border/50">
-                <TableRow>
-                  <TableHead className="px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">Date</TableHead>
-                  <TableHead className="px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">Check In</TableHead>
-                  <TableHead className="px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">Status</TableHead>
-                  <TableHead className="px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">Check Out</TableHead>
-                  <TableHead className="px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">Break</TableHead>
-                  <TableHead className="px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">Late</TableHead>
-                  <TableHead className="px-4 py-3 font-medium text-muted-foreground whitespace-nowrap text-right pr-6">Production Hours</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="divide-y divide-border/40">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/30">
+                  <TableRow>
+                    <TableHead className="py-4 pl-6 font-medium">Date</TableHead>
+                    <TableHead className="font-medium">Check In</TableHead>
+                    <TableHead className="font-medium">Status</TableHead>
+                    <TableHead className="font-medium">Check Out</TableHead>
+                    <TableHead className="font-medium">Break</TableHead>
+                    <TableHead className="font-medium">Late</TableHead>
+                    <TableHead className="text-right pr-6 font-medium">Production Hours</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                 {fetchingHistory && historyLogs.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="py-12 text-center">
@@ -1133,39 +1135,39 @@ export default function Attendance() {
                     if (log.status === "LATE") statusBadge = "bg-rose-100/50 text-rose-700 border-rose-200/50 dark:bg-rose-900/20 dark:text-rose-400";
 
                     return (
-                      <TableRow key={log.attendance_id || index} className="hover:bg-muted/30 transition-colors">
-                        <TableCell className="px-4 py-3 font-medium text-foreground whitespace-nowrap">{dateStr}</TableCell>
-                        <TableCell className="px-4 py-3 font-medium text-foreground">{formatAttendanceTime(log.clock_in)}</TableCell>
-                        <TableCell className="px-4 py-3 whitespace-nowrap">
+                      <TableRow key={log.attendance_id || index} className="hover:bg-muted/50 transition-colors">
+                        <TableCell className="py-4 pl-6 font-medium text-foreground whitespace-nowrap">{dateStr}</TableCell>
+                        <TableCell className="font-medium text-foreground">{formatAttendanceTime(log.clock_in)}</TableCell>
+                        <TableCell className="whitespace-nowrap">
                           <span className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-semibold rounded-full border ${statusBadge}`}>
                             {log.status}
                           </span>
                         </TableCell>
-                        <TableCell className="px-4 py-3 font-medium text-foreground">{log.clock_out ? formatAttendanceTime(log.clock_out) : "--:--"}</TableCell>
-                        <TableCell className="px-4 py-3 font-medium text-muted-foreground">--</TableCell>
-                        <TableCell className="px-4 py-3 font-medium text-rose-600">{log.is_late ? "Yes" : "--"}</TableCell>
-                        <TableCell className="px-4 py-3 font-bold text-emerald-600 text-right pr-6">{log.duration}</TableCell>
+                        <TableCell className="font-medium text-foreground">{log.clock_out ? formatAttendanceTime(log.clock_out) : "--:--"}</TableCell>
+                        <TableCell className="font-medium text-muted-foreground">--</TableCell>
+                        <TableCell className="font-medium text-rose-600">{log.is_late ? "Yes" : "--"}</TableCell>
+                        <TableCell className="font-bold text-emerald-600 text-right pr-6">{log.duration}</TableCell>
                       </TableRow>
                     );
                   })
                 )}
               </TableBody>
             </Table>
-          </div>
+          </CardContent>
 
           {/* Load More Button */}
           {displayedLogs.length > visibleLogsCount && (
-            <div className="flex justify-center mt-6">
+            <div className="flex justify-center py-4 border-t border-border/50 bg-muted/10">
               <button 
                 onClick={() => setVisibleLogsCount(prev => prev + 10)}
-                className="px-6 py-2.5 bg-muted/50 hover:bg-muted text-foreground text-[11px] font-black rounded-full uppercase tracking-widest transition-all active:scale-95 border border-border"
+                className="px-6 py-2.5 bg-background hover:bg-muted text-foreground text-[11px] font-black rounded-full shadow-sm uppercase tracking-widest transition-all active:scale-95 border border-border"
               >
                 Load More Rows
               </button>
             </div>
           )}
 
-        </div>
+        </Card>
       </div>
     </div>
   );

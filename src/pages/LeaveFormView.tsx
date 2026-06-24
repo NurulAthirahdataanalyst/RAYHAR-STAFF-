@@ -91,6 +91,8 @@ const statusVariant = (status: string) => {
   }
 };
 
+type FormTabFilter = "pending" | "approved" | "rejected" | "history";
+
 export default function LeaveFormView() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -98,6 +100,25 @@ export default function LeaveFormView() {
   const [forms, setForms] = useState<LeaveForm[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedForm, setSelectedForm] = useState<LeaveForm | null>(null);
+  const [activeTab, setActiveTab] = useState<FormTabFilter>("pending");
+
+  // Filter forms based on active tab
+  const filteredForms = forms.filter((form) => {
+    switch (activeTab) {
+      case "pending":
+        return form.status.startsWith("Pending");
+      case "approved":
+        return form.status === "Approved";
+      case "rejected":
+        return form.status === "Rejected";
+      case "history":
+        return true; // Show all
+    }
+  });
+
+  const pendingCount = forms.filter((f) => f.status.startsWith("Pending")).length;
+  const approvedCount = forms.filter((f) => f.status === "Approved").length;
+  const rejectedCount = forms.filter((f) => f.status === "Rejected").length;
 
   useEffect(() => {
     void fetchForms();
@@ -169,6 +190,14 @@ export default function LeaveFormView() {
       const match = forms.find((f) => f.id === Number(leaveId));
       if (match) {
         setSelectedForm(match);
+        // Switch tab to match the status
+        if (match.status === "Approved") {
+          setActiveTab("approved");
+        } else if (match.status === "Rejected") {
+          setActiveTab("rejected");
+        } else if (match.status.startsWith("Pending")) {
+          setActiveTab("pending");
+        }
       }
     }
   }, [searchParams, forms]);
@@ -186,7 +215,7 @@ export default function LeaveFormView() {
             </div>
             <div className="flex items-center gap-3">
               <Badge variant="outline" className="font-black text-[10px] px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none">
-                {forms.length} TOTAL
+                {filteredForms.length} {activeTab === "pending" ? "PENDING" : activeTab === "approved" ? "APPROVED" : activeTab === "rejected" ? "REJECTED" : "TOTAL"}
               </Badge>
               <Button
                 onClick={() => navigate("/leave/apply")}
@@ -197,6 +226,39 @@ export default function LeaveFormView() {
               </Button>
             </div>
           </div>
+          {/* Tab Navigation */}
+          <div className="flex gap-0 border-b-0 pt-4 mt-2 border-t border-border/50">
+            {([
+              { key: "pending" as FormTabFilter, label: "Pending", count: pendingCount },
+              { key: "approved" as FormTabFilter, label: "Approved", count: approvedCount },
+              { key: "rejected" as FormTabFilter, label: "Rejected", count: rejectedCount },
+              { key: "history" as FormTabFilter, label: "History", count: forms.length },
+            ]).map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveTab(tab.key)}
+                className={`relative px-4 sm:px-6 py-3 text-[11px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${activeTab === tab.key
+                    ? "text-[#7B0099]"
+                    : "text-muted-foreground hover:text-foreground"
+                  }`}
+              >
+                {tab.label}
+                {tab.count > 0 && (
+                  <span className={`ml-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-full transition-colors duration-300 ${activeTab === tab.key
+                      ? "bg-[#7B0099] text-white"
+                      : "bg-muted text-muted-foreground"
+                    }`}>
+                    {tab.count}
+                  </span>
+                )}
+                {/* Animated underline */}
+                {activeTab === tab.key && (
+                  <span className="absolute bottom-0 left-2 right-2 h-[3px] bg-[#7B0099] rounded-full animate-in fade-in slide-in-from-bottom-1 duration-300" />
+                )}
+              </button>
+            ))}
+          </div>
         </CardHeader>
         <CardContent className="p-0 sm:p-0">
           {loading ? (
@@ -204,7 +266,7 @@ export default function LeaveFormView() {
               <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Syncing History...</p>
             </div>
-          ) : forms.length > 0 ? (
+          ) : filteredForms.length > 0 ? (
             <>
               {/* Desktop Table */}
               <div className="overflow-x-auto hidden sm:block">
@@ -220,7 +282,7 @@ export default function LeaveFormView() {
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-border/50">
-                    {forms.map((form) => (
+                    {filteredForms.map((form) => (
                       <TableRow 
                         key={form.id} 
                         className="hover:bg-[#7B0099]/5 transition-colors group cursor-pointer"
@@ -263,7 +325,7 @@ export default function LeaveFormView() {
 
               {/* Mobile Card View */}
               <div className="grid grid-cols-1 gap-3 p-4 sm:hidden">
-                {forms.map((form) => (
+                {filteredForms.map((form) => (
                   <div
                     key={form.id}
                     className="group relative rounded-[20px] border border-border/50 bg-card/50 p-4 hover:bg-[#7B0099]/5 hover:border-[#7B0099]/30 transition-all duration-300 cursor-pointer touch-target"
@@ -320,19 +382,21 @@ export default function LeaveFormView() {
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-black text-foreground uppercase tracking-widest">
-                  No Leave Registry Found
+                  {activeTab === "pending" ? "No Pending Applications" : activeTab === "approved" ? "No Approved Applications" : activeTab === "rejected" ? "No Rejected Applications" : "No Leave Registry Found"}
                 </p>
                 <p className="text-[10px] font-medium text-muted-foreground italic">
-                  You haven't submitted any leave applications yet
+                  {activeTab === "pending" ? "All your applications have been processed" : activeTab === "approved" ? "No applications approved yet" : activeTab === "rejected" ? "No applications rejected" : "You haven't submitted any leave applications yet"}
                 </p>
               </div>
-              <Button
-                variant="outline"
-                onClick={() => navigate("/leave/apply")}
-                className="mt-2 rounded-xl border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 font-black text-[10px] uppercase tracking-widest"
-              >
-                Start New Application
-              </Button>
+              {activeTab === "history" && (
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/leave/apply")}
+                  className="mt-2 rounded-xl border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 font-black text-[10px] uppercase tracking-widest"
+                >
+                  Start New Application
+                </Button>
+              )}
             </div>
           )}
         </CardContent>
