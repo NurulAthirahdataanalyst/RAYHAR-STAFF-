@@ -1,10 +1,44 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Building2, CalendarCheck, Clock, Loader2, MapPin, TrendingUp, Users, FileText, PhoneCall, X, Trash2, LayoutGrid, List, Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  ArrowLeft,
+  Building2,
+  CalendarCheck,
+  Clock,
+  Loader2,
+  MapPin,
+  TrendingUp,
+  Users,
+  FileText,
+  PhoneCall,
+  X,
+  Trash2,
+  LayoutGrid,
+  List,
+  Plus,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../config/api";
@@ -12,29 +46,139 @@ import { toast } from "sonner";
 import { getCleanReason } from "@/lib/leaveStorage";
 
 const branches = [
-  { code: "HQ", name: "Rayhar HQ", location: "Kemaman,Terengganu", leader: "Maria Santos" },
-  { code: "KMM", name: "Kemaman", location: "Kemaman,Terengganu", leader: "Maria Santos" },
-  { code: "CNH", name: "Cheneh", location: "Kemaman,Terengganu", leader: "Roberto Lim" },
-  { code: "KBG", name: "Kuala Berang", location: "Hulu Terengganu,Terengganu", leader: "David Chen" },
-  { code: "TGG", name: "Kuala Terengganu", location: "Kuala Terengganu,Terengganu", leader: "David Chen" },
-  { code: "DGN", name: "Dungun", location: "Dungun,Terengganu", leader: "Roberto Lim" },
-  { code: "JTH", name: "Jertih", location: "Besut,Terengganu", leader: "Roberto Lim" },
-  { code: "KBR", name: "Kota Bharu", location: "Kota Bharu,Kelantan", leader: "Roberto Lim" },
-  { code: "RMP", name: "Rompin", location: "Rompin,Pahang", leader: "Roberto Lim" },
-  { code: "MZM", name: "Muadzam Shah", location: "Muadzam Shah,Pahang", leader: "Roberto Lim" },
-  { code: "SHA", name: "Shah Alam", location: "Shah Alam,Selangor", leader: "Roberto Lim" },
-  { code: "BBB", name: "Bandar Baru Bangi", location: "Bandar Baru Bangi,Selangor", leader: "Roberto Lim" },
-  { code: "KUL", name: "Kuala Lumpur", location: "Kuala Lumpur,Wilayah Persekutuan", leader: "Roberto Lim" },
+  {
+    code: "HQ",
+    name: "Rayhar HQ",
+    location: "Kemaman,Terengganu",
+    leader: "Maria Santos",
+  },
+  {
+    code: "KMM",
+    name: "Kemaman",
+    location: "Kemaman,Terengganu",
+    leader: "Maria Santos",
+  },
+  {
+    code: "CNH",
+    name: "Cheneh",
+    location: "Kemaman,Terengganu",
+    leader: "Roberto Lim",
+  },
+  {
+    code: "KBG",
+    name: "Kuala Berang",
+    location: "Hulu Terengganu,Terengganu",
+    leader: "David Chen",
+  },
+  {
+    code: "TGG",
+    name: "Kuala Terengganu",
+    location: "Kuala Terengganu,Terengganu",
+    leader: "David Chen",
+  },
+  {
+    code: "DGN",
+    name: "Dungun",
+    location: "Dungun,Terengganu",
+    leader: "Roberto Lim",
+  },
+  {
+    code: "JTH",
+    name: "Jertih",
+    location: "Besut,Terengganu",
+    leader: "Roberto Lim",
+  },
+  {
+    code: "KBR",
+    name: "Kota Bharu",
+    location: "Kota Bharu,Kelantan",
+    leader: "Roberto Lim",
+  },
+  {
+    code: "RMP",
+    name: "Rompin",
+    location: "Rompin,Pahang",
+    leader: "Roberto Lim",
+  },
+  {
+    code: "MZM",
+    name: "Muadzam Shah",
+    location: "Muadzam Shah,Pahang",
+    leader: "Roberto Lim",
+  },
+  {
+    code: "SHA",
+    name: "Shah Alam",
+    location: "Shah Alam,Selangor",
+    leader: "Roberto Lim",
+  },
+  {
+    code: "BBB",
+    name: "Bandar Baru Bangi",
+    location: "Bandar Baru Bangi,Selangor",
+    leader: "Roberto Lim",
+  },
+  {
+    code: "KUL",
+    name: "Kuala Lumpur",
+    location: "Kuala Lumpur,Wilayah Persekutuan",
+    leader: "Roberto Lim",
+  },
   { code: "IPH", name: "Ipoh", location: "Ipoh,Perak", leader: "Roberto Lim" },
-  { code: "MJG", name: "Manjung", location: "Manjung,Perak", leader: "Roberto Lim" },
-  { code: "KKS", name: "Kuala Kangsar", location: "Kuala Kangsar,Perak", leader: "Roberto Lim" },
-  { code: "MLK", name: "Melaka", location: "Melaka,Melaka", leader: "Roberto Lim" },
-  { code: "AOR", name: "Alor Setar", location: "Alor Setar,Kedah", leader: "Roberto Lim" },
-  { code: "BTM", name: "Bertam", location: "Bertam,Pulau Pinang", leader: "Roberto Lim" },
-  { code: "SNS", name: "Seremban", location: "Seremban,Negeri Sembilan", leader: "Roberto Lim" },
-  { code: "BTP", name: "Batu Pahat", location: "Batu Pahat,Johor", leader: "Roberto Lim" },
-  { code: "JB", name: "Johor Bharu", location: "Johor Bharu,Johor", leader: "Roberto Lim" },
-  { code: "TWU", name: "Tawau", location: "Tawau,Sabah", leader: "Roberto Lim" },
+  {
+    code: "MJG",
+    name: "Manjung",
+    location: "Manjung,Perak",
+    leader: "Roberto Lim",
+  },
+  {
+    code: "KKS",
+    name: "Kuala Kangsar",
+    location: "Kuala Kangsar,Perak",
+    leader: "Roberto Lim",
+  },
+  {
+    code: "MLK",
+    name: "Melaka",
+    location: "Melaka,Melaka",
+    leader: "Roberto Lim",
+  },
+  {
+    code: "AOR",
+    name: "Alor Setar",
+    location: "Alor Setar,Kedah",
+    leader: "Roberto Lim",
+  },
+  {
+    code: "BTM",
+    name: "Bertam",
+    location: "Bertam,Pulau Pinang",
+    leader: "Roberto Lim",
+  },
+  {
+    code: "SNS",
+    name: "Seremban",
+    location: "Seremban,Negeri Sembilan",
+    leader: "Roberto Lim",
+  },
+  {
+    code: "BTP",
+    name: "Batu Pahat",
+    location: "Batu Pahat,Johor",
+    leader: "Roberto Lim",
+  },
+  {
+    code: "JB",
+    name: "Johor Bharu",
+    location: "Johor Bharu,Johor",
+    leader: "Roberto Lim",
+  },
+  {
+    code: "TWU",
+    name: "Tawau",
+    location: "Tawau,Sabah",
+    leader: "Roberto Lim",
+  },
 ];
 
 type BranchEmployee = {
@@ -60,7 +204,9 @@ export default function Branches() {
   const [employees, setEmployees] = useState<BranchEmployee[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [loading, setLoading] = useState(false);
-  const [viewLeaveStatus, setViewLeaveStatus] = useState<"Approved" | "Pending" | "Rejected" | null>(null);
+  const [viewLeaveStatus, setViewLeaveStatus] = useState<
+    "Approved" | "Pending" | "Rejected" | null
+  >(null);
   const [employeeLeaves, setEmployeeLeaves] = useState<any[]>([]);
   const [loadingLeaves, setLoadingLeaves] = useState(false);
   const [allBranches, setAllBranches] = useState<any[]>([]);
@@ -68,7 +214,9 @@ export default function Branches() {
   const [branchStats, setBranchStats] = useState<any[]>([]);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "line">(() => {
-    return (localStorage.getItem("branchesViewMode") as "grid" | "line") || "grid";
+    return (
+      (localStorage.getItem("branchesViewMode") as "grid" | "line") || "grid"
+    );
   });
 
   useEffect(() => {
@@ -108,7 +256,9 @@ export default function Branches() {
             startDate: new Date().toISOString().split("T")[0],
             endDate: new Date().toISOString().split("T")[0],
           });
-          const response = await fetch(`${API_BASE_URL}/api/analytics/branch-stats?${params}`);
+          const response = await fetch(
+            `${API_BASE_URL}/api/analytics/branch-stats?${params}`,
+          );
           const data = await response.json();
           if (data.success) setBranchStats(data.data);
         } catch (err) {
@@ -125,7 +275,9 @@ export default function Branches() {
         setLoading(true);
         try {
           const params = new URLSearchParams({ branch: selectedBranch.code });
-          const response = await fetch(`${API_BASE_URL}/api/branch-employees?${params}`);
+          const response = await fetch(
+            `${API_BASE_URL}/api/branch-employees?${params}`,
+          );
           const data = await response.json();
           if (data.success) {
             setEmployees(data.employees || []);
@@ -146,10 +298,14 @@ export default function Branches() {
       toast.error("Cannot delete default Rayhar HQ branch");
       return;
     }
-    if (!window.confirm(`Are you sure you want to delete branch ${code}?`)) return;
-    
+    if (!window.confirm(`Are you sure you want to delete branch ${code}?`))
+      return;
+
     try {
-      const res = await fetch(`${API_BASE_URL}/api/branches/${encodeURIComponent(code)}`, { method: "DELETE" });
+      const res = await fetch(
+        `${API_BASE_URL}/api/branches/${encodeURIComponent(code)}`,
+        { method: "DELETE" },
+      );
       const data = await res.json();
       if (data.success) {
         toast.success("Branch deleted successfully");
@@ -187,7 +343,9 @@ export default function Branches() {
       }
       setLoadingLeaves(true);
       try {
-        const response = await fetch(`${API_BASE_URL}/api/leave-requests?userId=${selectedEmployeeId}`);
+        const response = await fetch(
+          `${API_BASE_URL}/api/leave-requests?userId=${selectedEmployeeId}`,
+        );
         const data = await response.json();
         if (data.success) {
           setEmployeeLeaves(data.leaveRequests || []);
@@ -209,7 +367,9 @@ export default function Branches() {
     const fetchBranchEmployees = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${API_BASE_URL}/api/branch-employees?branch=${selectedBranch.code}`);
+        const response = await fetch(
+          `${API_BASE_URL}/api/branch-employees?branch=${selectedBranch.code}`,
+        );
         const data = await response.json();
         if (data.success) {
           setEmployees(data.employees);
@@ -231,7 +391,7 @@ export default function Branches() {
 
   const selectedEmployee = useMemo(
     () => employees.find((e) => e.user_id === selectedEmployeeId),
-    [employees, selectedEmployeeId]
+    [employees, selectedEmployeeId],
   );
 
   return (
@@ -247,12 +407,21 @@ export default function Branches() {
                 onClick={() => setSelectedBranch(null)}
               >
                 <ArrowLeft className="h-4 w-4" />
-                <span className="text-[10px] font-black uppercase tracking-widest">Back to branches</span>
+                <span className="text-[10px] font-black uppercase tracking-widest">
+                  Back to branches
+                </span>
               </Button>
-              <h1 className="text-responsive-xl font-black text-foreground tracking-tight truncate">{selectedBranch.name}</h1>
-              <p className="text-responsive-sm text-muted-foreground font-medium mt-1">Branch staff overview and analytics</p>
+              <h1 className="text-responsive-xl font-black text-foreground tracking-tight truncate">
+                {selectedBranch.name}
+              </h1>
+              <p className="text-responsive-sm text-muted-foreground font-medium mt-1">
+                Branch staff overview and analytics
+              </p>
             </div>
-            <Badge variant="outline" className="w-fit font-mono text-[10px] sm:text-xs bg-muted/30 border-border/60 px-3 py-1">
+            <Badge
+              variant="outline"
+              className="w-fit font-mono text-[10px] sm:text-xs bg-muted/30 border-border/60 px-3 py-1"
+            >
               {selectedBranch.code}
             </Badge>
           </div>
@@ -260,7 +429,9 @@ export default function Branches() {
           {loading ? (
             <div className="flex flex-col items-center justify-center p-20 gap-4 bg-card/60 backdrop-blur-md rounded-[32px] border border-border/50">
               <Loader2 className="h-10 w-10 animate-spin text-[#7B0099]" />
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Syncing Branch Data...</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">
+                Syncing Branch Data...
+              </p>
             </div>
           ) : (
             <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md rounded-[24px]">
@@ -269,10 +440,18 @@ export default function Branches() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-muted/30 text-foreground border-b border-border">
-                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Personnel</th>
-                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Leave Balance</th>
-                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Attendance</th>
-                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">Today</th>
+                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                          Personnel
+                        </th>
+                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                          Leave Balance
+                        </th>
+                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                          Attendance
+                        </th>
+                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                          Today
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/50">
@@ -281,7 +460,9 @@ export default function Branches() {
                           <tr
                             key={employee.user_id}
                             className={`cursor-pointer transition-colors group hover:bg-[#7B0099]/5 ${
-                              selectedEmployee?.user_id === employee.user_id ? "bg-[#7B0099]/10" : ""
+                              selectedEmployee?.user_id === employee.user_id
+                                ? "bg-[#7B0099]/10"
+                                : ""
                             }`}
                             onClick={() => {
                               setSelectedEmployeeId(employee.user_id);
@@ -291,22 +472,39 @@ export default function Branches() {
                             <td className="py-4 px-6">
                               <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-[11px] font-black text-[#7B0099] group-hover:scale-110 transition-transform">
-                                  {employee.full_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                                  {employee.full_name
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")
+                                    .slice(0, 2)
+                                    .toUpperCase()}
                                 </div>
                                 <div className="min-w-0">
-                                  <p className="font-bold text-foreground group-hover:text-[#7B0099] transition-colors">{employee.full_name}</p>
-                                  <p className="text-[10px] text-muted-foreground truncate font-medium uppercase tracking-widest">{employee.user_id}</p>
+                                  <p className="font-bold text-foreground group-hover:text-[#7B0099] transition-colors">
+                                    {employee.full_name}
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground truncate font-medium uppercase tracking-widest">
+                                    {employee.user_id}
+                                  </p>
                                 </div>
                               </div>
                             </td>
-                            <td className="py-4 px-6 font-bold text-foreground text-xs uppercase">{employee.annual_leave_balance} DAYS</td>
-                            <td className="py-4 px-6 font-bold text-muted-foreground text-xs">{employee.attendance_rate || 0}%</td>
+                            <td className="py-4 px-6 font-bold text-foreground text-xs uppercase">
+                              {employee.annual_leave_balance} DAYS
+                            </td>
+                            <td className="py-4 px-6 font-bold text-muted-foreground text-xs">
+                              {employee.attendance_rate || 0}%
+                            </td>
                             <td className="py-4 px-6">
-                              <Badge className={`text-[9px] font-black px-2.5 h-5 ${
-                                employee.today_status === "Present" ? "bg-emerald-500 text-white" :
-                                employee.today_status === "On Leave" ? "bg-amber-500 text-white" :
-                                "bg-rose-500 text-white"
-                              }`}>
+                              <Badge
+                                className={`text-[9px] font-black px-2.5 h-5 ${
+                                  employee.today_status === "Present"
+                                    ? "bg-emerald-500 text-white"
+                                    : employee.today_status === "On Leave"
+                                      ? "bg-amber-500 text-white"
+                                      : "bg-rose-500 text-white"
+                                }`}
+                              >
                                 {employee.today_status}
                               </Badge>
                             </td>
@@ -314,7 +512,12 @@ export default function Branches() {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={4} className="py-12 text-center text-muted-foreground italic font-medium">No personnel found in this branch.</td>
+                          <td
+                            colSpan={4}
+                            className="py-12 text-center text-muted-foreground italic font-medium"
+                          >
+                            No personnel found in this branch.
+                          </td>
                         </tr>
                       )}
                     </tbody>
@@ -333,16 +536,27 @@ export default function Branches() {
                         }}
                       >
                         <div className="w-12 h-12 rounded-2xl bg-[#7B0099]/10 flex items-center justify-center text-sm font-black text-[#7B0099] shrink-0">
-                          {employee.full_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                          {employee.full_name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .slice(0, 2)
+                            .toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2 mb-1">
-                            <p className="font-black text-sm text-foreground truncate">{employee.full_name}</p>
-                            <Badge className={`text-[9px] font-black h-5 shrink-0 ${
-                              employee.today_status === "Present" ? "bg-emerald-500" :
-                              employee.today_status === "On Leave" ? "bg-amber-500" :
-                              "bg-rose-500"
-                            }`}>
+                            <p className="font-black text-sm text-foreground truncate">
+                              {employee.full_name}
+                            </p>
+                            <Badge
+                              className={`text-[9px] font-black h-5 shrink-0 ${
+                                employee.today_status === "Present"
+                                  ? "bg-emerald-500"
+                                  : employee.today_status === "On Leave"
+                                    ? "bg-amber-500"
+                                    : "bg-rose-500"
+                              }`}
+                            >
                               {employee.today_status}
                             </Badge>
                           </div>
@@ -355,7 +569,9 @@ export default function Branches() {
                       </div>
                     ))
                   ) : (
-                    <div className="py-12 text-center text-muted-foreground italic font-medium p-6">No personnel found.</div>
+                    <div className="py-12 text-center text-muted-foreground italic font-medium p-6">
+                      No personnel found.
+                    </div>
                   )}
                 </div>
               </CardContent>
@@ -365,8 +581,12 @@ export default function Branches() {
           <Dialog open={isStatsOpen} onOpenChange={setIsStatsOpen}>
             <DialogContent className="sm:max-w-[800px] w-[95vw] max-h-[90vh] overflow-y-auto border border-border/50 shadow-2xl rounded-[10px] safe-area-bottom p-6 duration-300">
               <DialogHeader className="pb-6 border-b border-border/50">
-                <DialogTitle className="text-xl font-black text-foreground tracking-tight">Staff Analytics</DialogTitle>
-                <DialogDescription className="sr-only">View and analyze staff attendance and leave metrics.</DialogDescription>
+                <DialogTitle className="text-xl font-black text-foreground tracking-tight">
+                  Staff Analytics
+                </DialogTitle>
+                <DialogDescription className="sr-only">
+                  View and analyze staff attendance and leave metrics.
+                </DialogDescription>
               </DialogHeader>
               <div className="py-4 space-y-4">
                 {selectedEmployee ? (
@@ -377,57 +597,105 @@ export default function Branches() {
                           {selectedEmployee.full_name.charAt(0)}
                         </div>
                         <div className="min-w-0">
-                          <h2 className="text-xl font-black text-foreground leading-tight truncate">{selectedEmployee.full_name}</h2>
-                          <p className="text-[10px] font-black text-muted-foreground mt-1 uppercase tracking-widest">{selectedEmployee.user_id}</p>
-                          <Badge variant="secondary" className="mt-2 text-[10px] uppercase font-black bg-[#7B0099]/10 text-[#7B0099] border-none px-2">{selectedEmployee.role.replace(/_/g, ' ')}</Badge>
+                          <h2 className="text-xl font-black text-foreground leading-tight truncate">
+                            {selectedEmployee.full_name}
+                          </h2>
+                          <p className="text-[10px] font-black text-muted-foreground mt-1 uppercase tracking-widest">
+                            {selectedEmployee.user_id}
+                          </p>
+                          <Badge
+                            variant="secondary"
+                            className="mt-2 text-[10px] uppercase font-black bg-[#7B0099]/10 text-[#7B0099] border-none px-2"
+                          >
+                            {selectedEmployee.role.replace(/_/g, " ")}
+                          </Badge>
                         </div>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="rounded-[20px] border border-border/50 p-4 bg-card/50 hover:border-[#7B0099]/30 transition-colors group">
                         <CalendarCheck className="mb-2 h-4 w-4 text-[#7B0099] group-hover:scale-110 transition-transform" />
-                        <p className="text-2xl font-black text-foreground">{selectedEmployee.annual_leave_balance}</p>
-                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">Days Left</p>
+                        <p className="text-2xl font-black text-foreground">
+                          {selectedEmployee.annual_leave_balance}
+                        </p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">
+                          Days Left
+                        </p>
                       </div>
                       <div className="rounded-[20px] border border-border/50 p-4 bg-card/50 hover:border-emerald-500/30 transition-colors group">
                         <TrendingUp className="mb-2 h-4 w-4 text-emerald-500 group-hover:scale-110 transition-transform" />
-                        <p className="text-2xl font-black text-foreground">{selectedEmployee.attendance_rate || 0}%</p>
-                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">Attendance</p>
+                        <p className="text-2xl font-black text-foreground">
+                          {selectedEmployee.attendance_rate || 0}%
+                        </p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">
+                          Attendance
+                        </p>
                       </div>
                       <div className="rounded-[20px] border border-border/50 p-4 bg-card/50 hover:border-amber-500/30 transition-colors group">
                         <Clock className="mb-2 h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
-                        <p className="text-2xl font-black text-foreground">{selectedEmployee.pending_leaves}</p>
-                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">Pending</p>
+                        <p className="text-2xl font-black text-foreground">
+                          {selectedEmployee.pending_leaves}
+                        </p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">
+                          Pending
+                        </p>
                       </div>
                       <div className="rounded-[20px] border border-border/50 p-4 bg-card/50 hover:border-purple-500/30 transition-colors group">
                         <FileText className="mb-2 h-4 w-4 text-purple-500 group-hover:scale-110 transition-transform" />
-                        <p className="text-2xl font-black text-foreground">{selectedEmployee.mc_leaves || 0}</p>
-                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">Total MC</p>
+                        <p className="text-2xl font-black text-foreground">
+                          {selectedEmployee.mc_leaves || 0}
+                        </p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">
+                          Total MC
+                        </p>
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-1">Review Leave Records</p>
+                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-1">
+                        Review Leave Records
+                      </p>
                       <div className="grid grid-cols-1 gap-2">
-                        <button className="flex items-center justify-between w-full rounded-[16px] bg-emerald-500/10 p-4 hover:bg-emerald-500/20 transition-all border border-emerald-500/20 group touch-target" onClick={() => setViewLeaveStatus("Approved")}>
+                        <button
+                          className="flex items-center justify-between w-full rounded-[16px] bg-emerald-500/10 p-4 hover:bg-emerald-500/20 transition-all border border-emerald-500/20 group touch-target"
+                          onClick={() => setViewLeaveStatus("Approved")}
+                        >
                           <div className="flex items-center gap-3">
                             <FileText className="w-5 h-5 text-emerald-600 group-hover:scale-110 transition-transform" />
-                            <span className="font-black text-emerald-700 text-sm">Approved Leaves</span>
+                            <span className="font-black text-emerald-700 text-sm">
+                              Approved Leaves
+                            </span>
                           </div>
-                          <Badge className="bg-emerald-500 text-white font-black">{selectedEmployee.approved_leaves}</Badge>
+                          <Badge className="bg-emerald-500 text-white font-black">
+                            {selectedEmployee.approved_leaves}
+                          </Badge>
                         </button>
-                        <button className="flex items-center justify-between w-full rounded-[16px] bg-amber-500/10 p-4 hover:bg-amber-500/20 transition-all border border-amber-500/20 group touch-target" onClick={() => setViewLeaveStatus("Pending")}>
+                        <button
+                          className="flex items-center justify-between w-full rounded-[16px] bg-amber-500/10 p-4 hover:bg-amber-500/20 transition-all border border-amber-500/20 group touch-target"
+                          onClick={() => setViewLeaveStatus("Pending")}
+                        >
                           <div className="flex items-center gap-3">
                             <Clock className="w-5 h-5 text-amber-600 group-hover:scale-110 transition-transform" />
-                            <span className="font-black text-amber-700 text-sm">Pending Approvals</span>
+                            <span className="font-black text-amber-700 text-sm">
+                              Pending Approvals
+                            </span>
                           </div>
-                          <Badge className="bg-amber-500 text-white font-black">{selectedEmployee.pending_leaves}</Badge>
+                          <Badge className="bg-amber-500 text-white font-black">
+                            {selectedEmployee.pending_leaves}
+                          </Badge>
                         </button>
-                        <button className="flex items-center justify-between w-full rounded-[16px] bg-rose-500/10 p-4 hover:bg-rose-500/20 transition-all border border-rose-500/20 group touch-target" onClick={() => setViewLeaveStatus("Rejected")}>
+                        <button
+                          className="flex items-center justify-between w-full rounded-[16px] bg-rose-500/10 p-4 hover:bg-rose-500/20 transition-all border border-rose-500/20 group touch-target"
+                          onClick={() => setViewLeaveStatus("Rejected")}
+                        >
                           <div className="flex items-center gap-3">
                             <X className="w-5 h-5 text-rose-600 group-hover:scale-110 transition-transform" />
-                            <span className="font-black text-rose-700 text-sm">Rejected Leaves</span>
+                            <span className="font-black text-rose-700 text-sm">
+                              Rejected Leaves
+                            </span>
                           </div>
-                          <Badge className="bg-rose-500 text-white font-black">{selectedEmployee.rejected_leaves}</Badge>
+                          <Badge className="bg-rose-500 text-white font-black">
+                            {selectedEmployee.rejected_leaves}
+                          </Badge>
                         </button>
                       </div>
                     </div>
@@ -435,7 +703,9 @@ export default function Branches() {
                 ) : (
                   <div className="flex flex-col items-center justify-center py-20 text-muted-foreground opacity-40">
                     <Users className="w-16 h-16 mb-4" />
-                    <p className="text-xs font-black uppercase tracking-widest">Select staff to view</p>
+                    <p className="text-xs font-black uppercase tracking-widest">
+                      Select staff to view
+                    </p>
                   </div>
                 )}
               </div>
@@ -447,14 +717,24 @@ export default function Branches() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-responsive-2xl font-black text-foreground tracking-tight">Branches Overview</h1>
+                <h1 className="text-responsive-2xl font-black text-foreground tracking-tight">
+                  Branches Overview
+                </h1>
                 {!loadingBranches && (
-                  <Badge variant="outline" className="px-3 py-1 text-xs font-bold bg-muted/30 border-border/60 flex items-center justify-center rounded-md h-fit">
-                    Total <span className="ml-2 flex items-center justify-center bg-[#7B0099] text-white rounded-md h-5 min-w-[20px] px-1.5 text-[10px] leading-none shrink-0">{allBranches.length}</span>
+                  <Badge
+                    variant="outline"
+                    className="px-3 py-1 text-xs font-bold bg-muted/30 border-border/60 flex items-center justify-center rounded-md h-fit"
+                  >
+                    Total{" "}
+                    <span className="ml-2 flex items-center justify-center bg-[#7B0099] text-white rounded-md h-5 min-w-[20px] px-1.5 text-[10px] leading-none shrink-0">
+                      {allBranches.length}
+                    </span>
                   </Badge>
                 )}
               </div>
-              <p className="text-responsive-sm text-muted-foreground font-medium mt-1">Real-time status across all locations</p>
+              <p className="text-responsive-sm text-muted-foreground font-medium mt-1">
+                Real-time status across all locations
+              </p>
             </div>
 
             {!loadingBranches && (
@@ -491,7 +771,9 @@ export default function Branches() {
           {loadingBranches ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3 bg-card/60 backdrop-blur-md rounded-[32px] border border-border/50">
               <Loader2 className="h-10 w-10 animate-spin text-[#7B0099]" />
-              <p className="text-xs font-black uppercase tracking-widest text-muted-foreground animate-pulse">Scanning Network...</p>
+              <p className="text-xs font-black uppercase tracking-widest text-muted-foreground animate-pulse">
+                Scanning Network...
+              </p>
             </div>
           ) : viewMode === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -500,16 +782,39 @@ export default function Branches() {
                 const totalEmployees = stat ? stat.total_employees : 0;
                 const presentToday = stat ? stat.present_today : 0;
                 const onLeave = stat ? stat.on_leave : 0;
-                const absent = Math.max(0, totalEmployees - presentToday - onLeave);
-                const attendanceRate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
-                const staticInfo = branches.find(b => b.code === branch.code);
-                const location = (branch.location && branch.location !== "Rayhar Branch" && branch.location !== "RAYHAR BRANCH" && branch.location !== "")
-                  ? branch.location
-                  : (staticInfo?.location || "Rayhar Branch");
-                const leader = branch.leader_name || staticInfo?.leader || "Branch Leader";
+                const absent = Math.max(
+                  0,
+                  totalEmployees - presentToday - onLeave,
+                );
+                const attendanceRate =
+                  totalEmployees > 0
+                    ? Math.round((presentToday / totalEmployees) * 100)
+                    : 0;
+                const staticInfo = branches.find((b) => b.code === branch.code);
+                const location =
+                  branch.location &&
+                  branch.location !== "Rayhar Branch" &&
+                  branch.location !== "RAYHAR BRANCH" &&
+                  branch.location !== ""
+                    ? branch.location
+                    : staticInfo?.location || "Rayhar Branch";
+                const leader =
+                  branch.leader_name || staticInfo?.leader || "Branch Leader";
 
                 return (
-                  <Card key={branch.code} className="cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all border-none shadow-sm bg-card/80 backdrop-blur-md overflow-hidden group rounded-[24px]" onClick={() => setSelectedBranch({...branch, location, leader, employees: totalEmployees, attendance: attendanceRate})}>
+                  <Card
+                    key={branch.code}
+                    className="cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all border-none shadow-sm bg-card/80 backdrop-blur-md overflow-hidden group rounded-[24px]"
+                    onClick={() =>
+                      setSelectedBranch({
+                        ...branch,
+                        location,
+                        leader,
+                        employees: totalEmployees,
+                        attendance: attendanceRate,
+                      })
+                    }
+                  >
                     <CardContent className="p-0">
                       <div className="p-6">
                         <div className="flex items-start justify-between gap-3">
@@ -518,7 +823,9 @@ export default function Branches() {
                               <Building2 className="w-6 h-6 text-muted-foreground group-hover:text-[#7B0099] transition-colors" />
                             </div>
                             <div className="min-w-0">
-                              <h3 className="font-black text-foreground text-lg leading-tight truncate group-hover:text-[#7B0099] transition-colors">{branch.name}</h3>
+                              <h3 className="font-black text-foreground text-lg leading-tight truncate group-hover:text-[#7B0099] transition-colors">
+                                {branch.name}
+                              </h3>
                               <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-widest truncate opacity-60">
                                 <MapPin className="w-3 h-3 shrink-0" />
                                 {location}
@@ -526,12 +833,19 @@ export default function Branches() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <Badge variant="outline" className="font-mono text-[9px] h-5 px-1.5 bg-muted/20 border-border/50">{branch.code}</Badge>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <Badge
+                              variant="outline"
+                              className="font-mono text-[9px] h-5 px-1.5 bg-muted/20 border-border/50"
+                            >
+                              {branch.code}
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               className="w-7 h-7 hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground"
-                              onClick={(e) => handleDeleteBranch(e, branch.code)}
+                              onClick={(e) =>
+                                handleDeleteBranch(e, branch.code)
+                              }
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </Button>
@@ -539,16 +853,28 @@ export default function Branches() {
                         </div>
                         <div className="grid grid-cols-3 gap-2 mt-6">
                           <div className="bg-emerald-500/10 rounded-[16px] p-3 border border-emerald-500/20 text-center">
-                            <p className="text-xl font-black text-emerald-600 dark:text-emerald-400 leading-none">{presentToday}</p>
-                            <p className="text-[9px] font-black text-emerald-600/70 dark:text-emerald-400/70 uppercase mt-1">Present</p>
+                            <p className="text-xl font-black text-emerald-600 dark:text-emerald-400 leading-none">
+                              {presentToday}
+                            </p>
+                            <p className="text-[9px] font-black text-emerald-600/70 dark:text-emerald-400/70 uppercase mt-1">
+                              Present
+                            </p>
                           </div>
                           <div className="bg-amber-500/10 rounded-[16px] p-3 border border-amber-500/20 text-center">
-                            <p className="text-xl font-black text-amber-600 dark:text-amber-400 leading-none">{onLeave}</p>
-                            <p className="text-[9px] font-black text-amber-600/70 dark:text-amber-400/70 uppercase mt-1">Leave</p>
+                            <p className="text-xl font-black text-amber-600 dark:text-amber-400 leading-none">
+                              {onLeave}
+                            </p>
+                            <p className="text-[9px] font-black text-amber-600/70 dark:text-amber-400/70 uppercase mt-1">
+                              Leave
+                            </p>
                           </div>
                           <div className="bg-rose-500/10 rounded-[16px] p-3 border border-rose-500/20 text-center">
-                            <p className="text-xl font-black text-rose-600 dark:text-rose-400 leading-none">{absent}</p>
-                            <p className="text-[9px] font-black text-rose-600/70 dark:text-rose-400/70 uppercase mt-1">Absent</p>
+                            <p className="text-xl font-black text-rose-600 dark:text-rose-400 leading-none">
+                              {absent}
+                            </p>
+                            <p className="text-[9px] font-black text-rose-600/70 dark:text-rose-400/70 uppercase mt-1">
+                              Absent
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -556,16 +882,26 @@ export default function Branches() {
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-1.5">
                             <Users className="w-3.5 h-3.5 text-muted-foreground opacity-50" />
-                            <span className="text-[11px] font-black text-foreground/70">{totalEmployees}</span>
+                            <span className="text-[11px] font-black text-foreground/70">
+                              {totalEmployees}
+                            </span>
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <TrendingUp className={`w-3.5 h-3.5 ${attendanceRate > 80 ? 'text-emerald-500' : 'text-amber-500'}`} />
-                            <span className="text-[11px] font-black text-foreground/70">{attendanceRate}%</span>
+                            <TrendingUp
+                              className={`w-3.5 h-3.5 ${attendanceRate > 80 ? "text-emerald-500" : "text-amber-500"}`}
+                            />
+                            <span className="text-[11px] font-black text-foreground/70">
+                              {attendanceRate}%
+                            </span>
                           </div>
                         </div>
                         <div className="text-right min-w-0 ml-4">
-                          <p className="text-[9px] font-black text-muted-foreground uppercase leading-none opacity-40">Leader</p>
-                          <p className="text-[10px] font-black text-foreground/80 mt-0.5 truncate">{leader}</p>
+                          <p className="text-[9px] font-black text-muted-foreground uppercase leading-none opacity-40">
+                            Leader
+                          </p>
+                          <p className="text-[10px] font-black text-foreground/80 mt-0.5 truncate">
+                            {leader}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -585,30 +921,59 @@ export default function Branches() {
                         <TableHead className="text-center">Leave</TableHead>
                         <TableHead className="text-center">Absent</TableHead>
                         <TableHead className="text-center">Staff</TableHead>
-                        <TableHead className="text-center">Attendance</TableHead>
+                        <TableHead className="text-center">
+                          Attendance
+                        </TableHead>
                         <TableHead>Leader</TableHead>
-                        <TableHead className="text-right pr-6">Action</TableHead>
+                        <TableHead className="text-right pr-6">
+                          Action
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {allBranches.map((branch) => {
-                        const stat = branchStats.find((s) => s.branch === branch.code);
+                        const stat = branchStats.find(
+                          (s) => s.branch === branch.code,
+                        );
                         const totalEmployees = stat ? stat.total_employees : 0;
                         const presentToday = stat ? stat.present_today : 0;
                         const onLeave = stat ? stat.on_leave : 0;
-                        const absent = Math.max(0, totalEmployees - presentToday - onLeave);
-                        const attendanceRate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
-                        const staticInfo = branches.find(b => b.code === branch.code);
-                        const location = (branch.location && branch.location !== "Rayhar Branch" && branch.location !== "RAYHAR BRANCH" && branch.location !== "")
-                          ? branch.location
-                          : (staticInfo?.location || "Rayhar Branch");
-                        const leader = branch.leader_name || staticInfo?.leader || "Branch Leader";
+                        const absent = Math.max(
+                          0,
+                          totalEmployees - presentToday - onLeave,
+                        );
+                        const attendanceRate =
+                          totalEmployees > 0
+                            ? Math.round((presentToday / totalEmployees) * 100)
+                            : 0;
+                        const staticInfo = branches.find(
+                          (b) => b.code === branch.code,
+                        );
+                        const location =
+                          branch.location &&
+                          branch.location !== "Rayhar Branch" &&
+                          branch.location !== "RAYHAR BRANCH" &&
+                          branch.location !== ""
+                            ? branch.location
+                            : staticInfo?.location || "Rayhar Branch";
+                        const leader =
+                          branch.leader_name ||
+                          staticInfo?.leader ||
+                          "Branch Leader";
 
                         return (
                           <TableRow
                             key={branch.code}
                             className="cursor-pointer hover:bg-muted/50 transition-colors group"
-                            onClick={() => setSelectedBranch({...branch, location, leader, employees: totalEmployees, attendance: attendanceRate})}
+                            onClick={() =>
+                              setSelectedBranch({
+                                ...branch,
+                                location,
+                                leader,
+                                employees: totalEmployees,
+                                attendance: attendanceRate,
+                              })
+                            }
                           >
                             <TableCell className="py-4 pl-6 font-medium">
                               <div className="flex items-center gap-3">
@@ -618,44 +983,69 @@ export default function Branches() {
                                 <div className="min-w-0">
                                   <p className="font-medium text-foreground flex items-center gap-2">
                                     {branch.name}
-                                    <Badge variant="outline" className="font-mono text-[9px] h-4 px-1.5 bg-muted/20 border-border/50">{branch.code}</Badge>
+                                    <Badge
+                                      variant="outline"
+                                      className="font-mono text-[9px] h-4 px-1.5 bg-muted/20 border-border/50"
+                                    >
+                                      {branch.code}
+                                    </Badge>
                                   </p>
-                                  <p className="text-[10px] text-muted-foreground truncate uppercase tracking-widest">{location}</p>
+                                  <p className="text-[10px] text-muted-foreground truncate uppercase tracking-widest">
+                                    {location}
+                                  </p>
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell className="text-center font-bold">
                               {presentToday > 0 ? (
-                                <Badge variant="outline" className="bg-emerald-500/5 text-emerald-600 border-emerald-500/20">
+                                <Badge
+                                  variant="outline"
+                                  className="bg-emerald-500/5 text-emerald-600 border-emerald-500/20"
+                                >
                                   {presentToday}
                                 </Badge>
                               ) : (
-                                <span className="text-sm font-medium text-muted-foreground">0</span>
+                                <span className="text-sm font-medium text-muted-foreground">
+                                  0
+                                </span>
                               )}
                             </TableCell>
                             <TableCell className="text-center font-bold">
                               {onLeave > 0 ? (
-                                <Badge variant="outline" className="bg-amber-500/5 text-amber-600 border-amber-500/20">
+                                <Badge
+                                  variant="outline"
+                                  className="bg-amber-500/5 text-amber-600 border-amber-500/20"
+                                >
                                   {onLeave}
                                 </Badge>
                               ) : (
-                                <span className="text-sm font-medium text-muted-foreground">0</span>
+                                <span className="text-sm font-medium text-muted-foreground">
+                                  0
+                                </span>
                               )}
                             </TableCell>
                             <TableCell className="text-center font-bold">
                               {absent > 0 ? (
-                                <Badge variant="outline" className="bg-rose-500/5 text-rose-600 border-rose-500/20">
+                                <Badge
+                                  variant="outline"
+                                  className="bg-rose-500/5 text-rose-600 border-rose-500/20"
+                                >
                                   {absent}
                                 </Badge>
                               ) : (
-                                <span className="text-sm font-medium text-muted-foreground">0</span>
+                                <span className="text-sm font-medium text-muted-foreground">
+                                  0
+                                </span>
                               )}
                             </TableCell>
                             <TableCell className="text-center font-bold">
                               {totalEmployees}
                             </TableCell>
                             <TableCell className="text-center font-bold">
-                              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+                              <Badge
+                                variant="outline"
+                                className="bg-primary/5 text-primary border-primary/20"
+                              >
                                 {attendanceRate}%
                               </Badge>
                             </TableCell>
@@ -664,12 +1054,17 @@ export default function Branches() {
                                 {leader}
                               </span>
                             </TableCell>
-                            <TableCell className="text-right pr-6" onClick={(e) => e.stopPropagation()}>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
+                            <TableCell
+                              className="text-right pr-6"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="w-8 h-8 shrink-0 hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={(e) => handleDeleteBranch(e, branch.code)}
+                                onClick={(e) =>
+                                  handleDeleteBranch(e, branch.code)
+                                }
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -687,7 +1082,10 @@ export default function Branches() {
       )}
 
       {/* LEAVE DETAILS DIALOG */}
-      <Dialog open={!!viewLeaveStatus} onOpenChange={(open) => !open && setViewLeaveStatus(null)}>
+      <Dialog
+        open={!!viewLeaveStatus}
+        onOpenChange={(open) => !open && setViewLeaveStatus(null)}
+      >
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 overflow-hidden safe-area-bottom">
           <div className="p-6 bg-gradient-to-br from-[#7B0099] to-[#a855f7] text-white">
             <DialogHeader>
@@ -705,54 +1103,96 @@ export default function Branches() {
             {loadingLeaves ? (
               <div className="flex flex-col items-center justify-center p-12 gap-3">
                 <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Fetching Forms...</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                  Fetching Forms...
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
-                {employeeLeaves.filter(req => {
+                {employeeLeaves.filter((req) => {
                   const status = (req.status || "").toLowerCase().trim();
-                  const viewStatus = (viewLeaveStatus || "").toLowerCase().trim();
-                  if (viewStatus === "pending") return status.includes("pending");
+                  const viewStatus = (viewLeaveStatus || "")
+                    .toLowerCase()
+                    .trim();
+                  if (viewStatus === "pending")
+                    return status.includes("pending");
                   return status === viewStatus;
                 }).length === 0 ? (
                   <div className="py-20 text-center flex flex-col items-center gap-3 opacity-30">
                     <FileText className="w-12 h-12" />
-                    <p className="text-sm font-black uppercase tracking-widest">No matching records found</p>
+                    <p className="text-sm font-black uppercase tracking-widest">
+                      No matching records found
+                    </p>
                   </div>
                 ) : (
                   employeeLeaves
-                    .filter(req => {
+                    .filter((req) => {
                       const status = (req.status || "").toLowerCase().trim();
-                      const viewStatus = (viewLeaveStatus || "").toLowerCase().trim();
-                      if (viewStatus === "pending") return status.includes("pending");
+                      const viewStatus = (viewLeaveStatus || "")
+                        .toLowerCase()
+                        .trim();
+                      if (viewStatus === "pending")
+                        return status.includes("pending");
                       return status === viewStatus;
                     })
-                    .map(req => {
-                      const fromStr = new Date(req.start_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                      const toStr = new Date(req.end_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    .map((req) => {
+                      const fromStr = new Date(
+                        req.start_date,
+                      ).toLocaleDateString("ms-MY", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      });
+                      const toStr = new Date(req.end_date).toLocaleDateString(
+                        "ms-MY",
+                        { day: "2-digit", month: "2-digit", year: "numeric" },
+                      );
                       return (
-                        <div key={req.leave_id} className="rounded-[24px] border border-border/50 p-5 sm:p-6 space-y-6 bg-card shadow-sm hover:shadow-md transition-all">
+                        <div
+                          key={req.leave_id}
+                          className="rounded-[24px] border border-border/50 p-5 sm:p-6 space-y-6 bg-card shadow-sm hover:shadow-md transition-all"
+                        >
                           <div className="text-center border-b-2 border-[#1A1C1E] pb-4">
-                            <h2 className="text-xl font-black tracking-tighter text-[#1A1C1E]">RAYHAR GROUP</h2>
-                            <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60">Staff Leave Application</p>
+                            <h2 className="text-xl font-black tracking-tighter text-[#1A1C1E]">
+                              RAYHAR GROUP
+                            </h2>
+                            <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60">
+                              Staff Leave Application
+                            </p>
                           </div>
 
                           <div className="grid grid-cols-2 gap-4 text-xs font-bold">
                             <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Staff Name</span>
-                              <p className="border-b pb-1 border-border/40 truncate">{selectedEmployee?.full_name}</p>
+                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">
+                                Staff Name
+                              </span>
+                              <p className="border-b pb-1 border-border/40 truncate">
+                                {selectedEmployee?.full_name}
+                              </p>
                             </div>
                             <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Branch</span>
-                              <p className="border-b pb-1 border-border/40">{selectedBranch?.code || "HQ"}</p>
+                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">
+                                Branch
+                              </span>
+                              <p className="border-b pb-1 border-border/40">
+                                {selectedBranch?.code || "HQ"}
+                              </p>
                             </div>
                             <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Type</span>
-                              <p className="border-b pb-1 border-border/40">{req.leave_type}</p>
+                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">
+                                Type
+                              </span>
+                              <p className="border-b pb-1 border-border/40">
+                                {req.leave_type}
+                              </p>
                             </div>
                             <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Status</span>
-                              <p className={`font-black uppercase ${req.status === "Rejected" ? "text-rose-600" : "text-[#7B0099]"}`}>
+                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">
+                                Status
+                              </span>
+                              <p
+                                className={`font-black uppercase ${req.status === "Rejected" ? "text-rose-600" : "text-[#7B0099]"}`}
+                              >
                                 {req.status}
                               </p>
                             </div>
@@ -760,51 +1200,80 @@ export default function Branches() {
 
                           <div className="grid grid-cols-3 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
                             <div className="text-center">
-                              <p className="text-[9px] uppercase font-black text-muted-foreground opacity-50 mb-1">From</p>
+                              <p className="text-[9px] uppercase font-black text-muted-foreground opacity-50 mb-1">
+                                From
+                              </p>
                               <p className="font-black text-sm">{fromStr}</p>
                             </div>
                             <div className="text-center">
-                              <p className="text-[9px] uppercase font-black text-muted-foreground opacity-50 mb-1">To</p>
+                              <p className="text-[9px] uppercase font-black text-muted-foreground opacity-50 mb-1">
+                                To
+                              </p>
                               <p className="font-black text-sm">{toStr}</p>
                             </div>
                             <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
-                              <p className="text-[9px] uppercase font-black text-[#7B0099]">Days</p>
-                              <p className="font-black text-lg text-[#7B0099] leading-none mt-0.5">{req.days}</p>
+                              <p className="text-[9px] uppercase font-black text-[#7B0099]">
+                                Days
+                              </p>
+                              <p className="font-black text-lg text-[#7B0099] leading-none mt-0.5">
+                                {req.days}
+                              </p>
                             </div>
                           </div>
 
                           <div className="space-y-2">
-                            <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50 tracking-widest">Reason / Purpose</p>
+                            <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50 tracking-widest">
+                              Reason / Purpose
+                            </p>
                             <p className="rounded-[16px] border border-border/40 p-4 italic text-foreground/80 bg-muted/20 text-xs leading-relaxed">
                               "{getCleanReason(req.reason) || "-"}"
                             </p>
                           </div>
 
-                          {(req.leave_type === "Sick Leave" || req.leave_type === "Cuti Sakit") && req.mc_file_url && (
-                            <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
-                              <div className="flex items-center gap-3">
-                                <FileText className="w-5 h-5 text-[#7B0099]" />
-                                <span className="text-xs font-black text-[#7B0099]">MC Attachment</span>
+                          {(req.leave_type === "Sick Leave" ||
+                            req.leave_type === "Cuti Sakit") &&
+                            req.mc_file_url && (
+                              <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
+                                <div className="flex items-center gap-3">
+                                  <FileText className="w-5 h-5 text-[#7B0099]" />
+                                  <span className="text-xs font-black text-[#7B0099]">
+                                    MC Attachment
+                                  </span>
+                                </div>
+                                <a
+                                  href={`${API_BASE_URL}${req.mc_file_url}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[10px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-3 py-2 rounded-lg hover:bg-[#5e0080] transition-colors"
+                                >
+                                  View File
+                                </a>
                               </div>
-                              <a href={`${API_BASE_URL}${req.mc_file_url}`} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-3 py-2 rounded-lg hover:bg-[#5e0080] transition-colors">
-                                View File
-                              </a>
-                            </div>
-                          )}
+                            )}
 
                           <div className="pt-4 border-t border-border/50 space-y-4">
                             <div className="flex items-center gap-2">
                               <PhoneCall className="w-4 h-4 text-rose-500" />
-                              <h3 className="text-[10px] font-black uppercase tracking-widest">Emergency Contact (Waris)</h3>
+                              <h3 className="text-[10px] font-black uppercase tracking-widest">
+                                Emergency Contact (Waris)
+                              </h3>
                             </div>
                             <div className="grid grid-cols-2 gap-4 bg-muted/20 p-4 rounded-[20px]">
                               <div className="space-y-1">
-                                <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Name</span>
-                                <p className="text-[11px] font-bold truncate">{req.waris_nama || "-"}</p>
+                                <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">
+                                  Name
+                                </span>
+                                <p className="text-[11px] font-bold truncate">
+                                  {req.waris_nama || "-"}
+                                </p>
                               </div>
                               <div className="space-y-1">
-                                <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Phone</span>
-                                <p className="text-[11px] font-black text-[#7B0099]">{req.waris_phone || "-"}</p>
+                                <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">
+                                  Phone
+                                </span>
+                                <p className="text-[11px] font-black text-[#7B0099]">
+                                  {req.waris_phone || "-"}
+                                </p>
                               </div>
                             </div>
                           </div>
