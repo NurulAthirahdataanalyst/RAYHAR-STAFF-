@@ -579,121 +579,131 @@ export default function Branches() {
           )}
 
           <Dialog open={isStatsOpen} onOpenChange={setIsStatsOpen}>
-            <DialogContent className="sm:max-w-[800px] w-[95vw] max-h-[90vh] overflow-y-auto border border-border/50 shadow-2xl rounded-[10px] safe-area-bottom p-6 duration-300">
-              <DialogHeader className="pb-6 border-b border-border/50">
-                <DialogTitle className="text-xl font-black text-foreground tracking-tight">
+            <DialogContent className="sm:max-w-[800px] w-[95vw] max-h-[90vh] overflow-y-auto border border-border/50 shadow-2xl rounded-[16px] safe-area-bottom p-5 duration-300">
+              <DialogHeader className="pb-3 border-b border-border/50">
+                <DialogTitle className="text-lg font-black text-foreground tracking-tight">
                   Staff Analytics
                 </DialogTitle>
                 <DialogDescription className="sr-only">
                   View and analyze staff attendance and leave metrics.
                 </DialogDescription>
               </DialogHeader>
-              <div className="py-4 space-y-4">
+              <div className="py-2 space-y-3">
                 {selectedEmployee ? (
                   <>
-                    <div className="bg-muted/30 p-6 rounded-[24px] border border-border/50">
+                    <div className="bg-muted/30 p-4 sm:p-5 rounded-[20px] border border-border/50">
                       <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-[20px] bg-gradient-to-br from-[#7B0099] to-[#a855f7] flex items-center justify-center text-white text-2xl font-black shadow-lg">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-[16px] bg-gradient-to-br from-[#7B0099] to-[#a855f7] flex items-center justify-center text-white text-xl font-black shadow-lg shrink-0">
                           {selectedEmployee.full_name.charAt(0)}
                         </div>
-                        <div className="min-w-0">
-                          <h2 className="text-xl font-black text-foreground leading-tight truncate">
+                        <div className="min-w-0 flex-1">
+                          <h2 className="text-lg sm:text-xl font-black text-foreground leading-tight truncate">
                             {selectedEmployee.full_name}
                           </h2>
-                          <p className="text-[10px] font-black text-muted-foreground mt-1 uppercase tracking-widest">
+                          <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground mt-0.5 uppercase tracking-widest">
                             {selectedEmployee.user_id}
                           </p>
-                          <Badge
-                            variant="secondary"
-                            className="mt-2 text-[10px] uppercase font-black bg-[#7B0099]/10 text-[#7B0099] border-none px-2"
-                          >
-                            {selectedEmployee.role.replace(/_/g, " ")}
-                          </Badge>
+                          <div className="mt-2 flex items-center gap-2 flex-wrap">
+                            <Badge
+                              variant="secondary"
+                              className="text-[9px] uppercase font-black bg-[#7B0099]/10 text-[#7B0099] border-none px-2 py-0.5"
+                            >
+                              {selectedEmployee.role.replace(/_/g, " ")}
+                            </Badge>
+                            <span className="text-[10px] text-muted-foreground/40 font-black">•</span>
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest truncate max-w-[120px]">
+                              {selectedBranch?.name || "BRANCH"}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground/40 font-black">•</span>
+                            <span className="text-[10px] font-semibold text-muted-foreground truncate max-w-[150px]">
+                              {selectedEmployee.email}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-[20px] border border-border/50 p-4 bg-card/50 hover:border-[#7B0099]/30 transition-colors group">
-                        <CalendarCheck className="mb-2 h-4 w-4 text-[#7B0099] group-hover:scale-110 transition-transform" />
-                        <p className="text-2xl font-black text-foreground">
+                      <div className="rounded-[16px] border border-border/50 p-3 sm:p-4 bg-card/50 hover:border-[#7B0099]/30 transition-colors group">
+                        <CalendarCheck className="mb-1.5 h-4 w-4 text-[#7B0099] group-hover:scale-110 transition-transform" />
+                        <p className="text-xl sm:text-2xl font-black text-foreground">
                           {selectedEmployee.annual_leave_balance}
                         </p>
-                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">
+                        <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">
                           Days Left
                         </p>
                       </div>
-                      <div className="rounded-[20px] border border-border/50 p-4 bg-card/50 hover:border-emerald-500/30 transition-colors group">
-                        <TrendingUp className="mb-2 h-4 w-4 text-emerald-500 group-hover:scale-110 transition-transform" />
-                        <p className="text-2xl font-black text-foreground">
+                      <div className="rounded-[16px] border border-border/50 p-3 sm:p-4 bg-card/50 hover:border-emerald-500/30 transition-colors group">
+                        <TrendingUp className="mb-1.5 h-4 w-4 text-emerald-500 group-hover:scale-110 transition-transform" />
+                        <p className="text-xl sm:text-2xl font-black text-foreground">
                           {selectedEmployee.attendance_rate || 0}%
                         </p>
-                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">
+                        <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">
                           Attendance
                         </p>
                       </div>
-                      <div className="rounded-[20px] border border-border/50 p-4 bg-card/50 hover:border-amber-500/30 transition-colors group">
-                        <Clock className="mb-2 h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
-                        <p className="text-2xl font-black text-foreground">
+                      <div className="rounded-[16px] border border-border/50 p-3 sm:p-4 bg-card/50 hover:border-amber-500/30 transition-colors group">
+                        <Clock className="mb-1.5 h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
+                        <p className="text-xl sm:text-2xl font-black text-foreground">
                           {selectedEmployee.pending_leaves}
                         </p>
-                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">
+                        <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">
                           Pending
                         </p>
                       </div>
-                      <div className="rounded-[20px] border border-border/50 p-4 bg-card/50 hover:border-purple-500/30 transition-colors group">
-                        <FileText className="mb-2 h-4 w-4 text-purple-500 group-hover:scale-110 transition-transform" />
-                        <p className="text-2xl font-black text-foreground">
+                      <div className="rounded-[16px] border border-border/50 p-3 sm:p-4 bg-card/50 hover:border-purple-500/30 transition-colors group">
+                        <FileText className="mb-1.5 h-4 w-4 text-purple-500 group-hover:scale-110 transition-transform" />
+                        <p className="text-xl sm:text-2xl font-black text-foreground">
                           {selectedEmployee.mc_leaves || 0}
                         </p>
-                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">
+                        <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">
                           Total MC
                         </p>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-1">
+                    <div className="space-y-1.5">
+                      <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-1">
                         Review Leave Records
                       </p>
                       <div className="grid grid-cols-1 gap-2">
                         <button
-                          className="flex items-center justify-between w-full rounded-[16px] bg-emerald-500/10 p-4 hover:bg-emerald-500/20 transition-all border border-emerald-500/20 group touch-target"
+                          className="flex items-center justify-between w-full rounded-[14px] bg-emerald-500/10 p-3 hover:bg-emerald-500/20 transition-all border border-emerald-500/20 group touch-target"
                           onClick={() => setViewLeaveStatus("Approved")}
                         >
                           <div className="flex items-center gap-3">
-                            <FileText className="w-5 h-5 text-emerald-600 group-hover:scale-110 transition-transform" />
-                            <span className="font-black text-emerald-700 text-sm">
+                            <FileText className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
+                            <span className="font-black text-emerald-700 text-xs sm:text-sm">
                               Approved Leaves
                             </span>
                           </div>
-                          <Badge className="bg-emerald-500 text-white font-black">
+                          <Badge className="bg-emerald-500 text-white font-black text-[10px]">
                             {selectedEmployee.approved_leaves}
                           </Badge>
                         </button>
                         <button
-                          className="flex items-center justify-between w-full rounded-[16px] bg-amber-500/10 p-4 hover:bg-amber-500/20 transition-all border border-amber-500/20 group touch-target"
+                          className="flex items-center justify-between w-full rounded-[14px] bg-amber-500/10 p-3 hover:bg-amber-500/20 transition-all border border-amber-500/20 group touch-target"
                           onClick={() => setViewLeaveStatus("Pending")}
                         >
                           <div className="flex items-center gap-3">
-                            <Clock className="w-5 h-5 text-amber-600 group-hover:scale-110 transition-transform" />
-                            <span className="font-black text-amber-700 text-sm">
+                            <Clock className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
+                            <span className="font-black text-amber-700 text-xs sm:text-sm">
                               Pending Approvals
                             </span>
                           </div>
-                          <Badge className="bg-amber-500 text-white font-black">
+                          <Badge className="bg-amber-500 text-white font-black text-[10px]">
                             {selectedEmployee.pending_leaves}
                           </Badge>
                         </button>
                         <button
-                          className="flex items-center justify-between w-full rounded-[16px] bg-rose-500/10 p-4 hover:bg-rose-500/20 transition-all border border-rose-500/20 group touch-target"
+                          className="flex items-center justify-between w-full rounded-[14px] bg-rose-500/10 p-3 hover:bg-rose-500/20 transition-all border border-rose-500/20 group touch-target"
                           onClick={() => setViewLeaveStatus("Rejected")}
                         >
                           <div className="flex items-center gap-3">
-                            <X className="w-5 h-5 text-rose-600 group-hover:scale-110 transition-transform" />
-                            <span className="font-black text-rose-700 text-sm">
+                            <X className="w-4 h-4 text-rose-600 group-hover:scale-110 transition-transform" />
+                            <span className="font-black text-rose-700 text-xs sm:text-sm">
                               Rejected Leaves
                             </span>
                           </div>
-                          <Badge className="bg-rose-500 text-white font-black">
+                          <Badge className="bg-rose-500 text-white font-black text-[10px]">
                             {selectedEmployee.rejected_leaves}
                           </Badge>
                         </button>
