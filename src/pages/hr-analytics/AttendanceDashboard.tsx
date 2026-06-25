@@ -727,14 +727,13 @@ export default function AttendanceDashboard() {
   }));
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 py-6">
-
+    <div className="space-y-4 animate-in fade-in duration-500 max-w-[1600px] w-full mx-auto px-4 py-4">
 
       {/* ── LIVE PRESENCE PANEL ─────────────────────────────────────────── */}
-      <Card className="border border-white/60 bg-white/40 backdrop-blur-2xl rounded-3xl shadow-xl shadow-purple-900/5 overflow-hidden ring-1 ring-black/5">
+      <Card className="border border-white/60 bg-white/40 backdrop-blur-2xl rounded-xl shadow-md overflow-hidden ring-1 ring-black/5">
         <CardContent className="p-0">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-6 md:px-8 pt-6 pb-5 border-b border-white/60 bg-white/30 backdrop-blur-md">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 md:px-6 pt-4 pb-3 border-b border-white/60 bg-white/30 backdrop-blur-md">
             <div className="flex items-center gap-4">
               <div className="p-2.5 bg-gradient-to-br from-[#800A7A] to-[#a855f7] rounded-xl shadow-md">
                 <Activity className="w-5 h-5 text-white" />
@@ -780,10 +779,10 @@ export default function AttendanceDashboard() {
           </div>
 
           {/* 4 Stat Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 p-5 md:p-6 bg-transparent">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 p-4 md:p-5 bg-transparent">
             {/* Present */}
             <div
-              className="relative overflow-hidden p-5 flex flex-col gap-3 text-left rounded-2xl border-y border-r border-l-4 bg-[#F2F7FE] border-r-blue-100 border-y-blue-100 border-l-blue-600"
+              className="relative overflow-hidden p-4 flex flex-col gap-2 text-left rounded-lg border-y border-r border-l-4 bg-[#F2F7FE] border-r-blue-100 border-y-blue-100 border-l-blue-600"
             >
               <div className="flex justify-between items-start w-full relative z-10">
                 <span className="text-[11px] font-black text-blue-800 uppercase tracking-widest mt-1">Present Today</span>
@@ -791,10 +790,10 @@ export default function AttendanceDashboard() {
                   <Users className="w-5 h-5 text-blue-600" />
                 </div>
               </div>
-              <div className="relative z-10 mt-[-20px]">
-                <div className="flex items-end gap-3">
-                  <span className="text-[40px] leading-none font-black text-blue-700 tracking-tight">{liveStats.present}</span>
-                  <span className="bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest mb-1.5 shadow-sm">
+              <div className="relative z-10 mt-[-16px]">
+                <div className="flex items-end gap-2">
+                  <span className="text-3xl leading-none font-black text-blue-700 tracking-tight">{liveStats.present}</span>
+                  <span className="bg-blue-100 text-blue-700 border border-blue-200 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mb-1 shadow-sm">
                     Active Personnel
                   </span>
                 </div>
@@ -806,7 +805,7 @@ export default function AttendanceDashboard() {
 
             {/* Late */}
             <div
-              className="relative overflow-hidden p-5 flex flex-col gap-3 text-left rounded-2xl border-y border-r border-l-4 bg-[#FFFDF4] border-r-amber-100 border-y-amber-100 border-l-amber-500"
+              className="relative overflow-hidden p-4 flex flex-col gap-2 text-left rounded-lg border-y border-r border-l-4 bg-[#FFFDF4] border-r-amber-100 border-y-amber-100 border-l-amber-500"
             >
               <div className="flex justify-between items-start w-full relative z-10">
                 <span className="text-[11px] font-black text-amber-800 uppercase tracking-widest mt-1">Late Today</span>
@@ -814,10 +813,10 @@ export default function AttendanceDashboard() {
                   <Clock className="w-5 h-5 text-amber-600" />
                 </div>
               </div>
-              <div className="relative z-10 mt-[-20px]">
-                <div className="flex items-end gap-3">
-                  <span className="text-[40px] leading-none font-black text-amber-600 tracking-tight">{liveStats.late}</span>
-                  <span className="bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest mb-1.5 shadow-sm">
+              <div className="relative z-10 mt-[-16px]">
+                <div className="flex items-end gap-2">
+                  <span className="text-3xl leading-none font-black text-amber-600 tracking-tight">{liveStats.late}</span>
+                  <span className="bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mb-1 shadow-sm">
                     Post Threshold
                   </span>
                 </div>
@@ -829,7 +828,7 @@ export default function AttendanceDashboard() {
 
             {/* Absent */}
             <div
-              className="relative overflow-hidden p-5 flex flex-col gap-3 text-left rounded-2xl border-y border-r border-l-4 bg-[#FFF6F6] border-r-red-100 border-y-red-100 border-l-red-500"
+              className="relative overflow-hidden p-4 flex flex-col gap-2 text-left rounded-lg border-y border-r border-l-4 bg-[#FFF6F6] border-r-red-100 border-y-red-100 border-l-red-500"
             >
               <div className="flex justify-between items-start w-full relative z-10">
                 <span className="text-[11px] font-black text-red-800 uppercase tracking-widest mt-1">Absent Today</span>
@@ -837,10 +836,10 @@ export default function AttendanceDashboard() {
                   <AlertCircle className="w-5 h-5 text-red-600" />
                 </div>
               </div>
-              <div className="relative z-10 mt-[-20px]">
-                <div className="flex items-end gap-3">
-                  <span className="text-[40px] leading-none font-black text-red-600 tracking-tight">{liveStats.absent}</span>
-                  <span className="bg-red-100 text-red-700 border border-red-200 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest mb-1.5 shadow-sm">
+              <div className="relative z-10 mt-[-16px]">
+                <div className="flex items-end gap-2">
+                  <span className="text-3xl leading-none font-black text-red-600 tracking-tight">{liveStats.absent}</span>
+                  <span className="bg-red-100 text-red-700 border border-red-200 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mb-1 shadow-sm">
                     Not Synced
                   </span>
                 </div>
@@ -852,7 +851,7 @@ export default function AttendanceDashboard() {
 
             {/* Attendance Rate */}
             <div
-              className="relative overflow-hidden p-5 flex flex-col gap-3 text-left rounded-2xl border-y border-r border-l-4 bg-[#F2FBF5] border-r-emerald-100 border-y-emerald-100 border-l-emerald-500"
+              className="relative overflow-hidden p-4 flex flex-col gap-2 text-left rounded-lg border-y border-r border-l-4 bg-[#F2FBF5] border-r-emerald-100 border-y-emerald-100 border-l-emerald-500"
             >
               <div className="flex justify-between items-start w-full relative z-10">
                 <span className="text-[11px] font-black text-emerald-800 uppercase tracking-widest mt-1">Attendance Rate</span>
@@ -860,12 +859,12 @@ export default function AttendanceDashboard() {
                   <TrendingUp className="w-5 h-5 text-emerald-600" />
                 </div>
               </div>
-              <div className="relative z-10 mt-[-20px]">
-                <div className="flex items-end gap-3">
-                  <span className="text-[40px] leading-none font-black text-emerald-700 tracking-tight">
+              <div className="relative z-10 mt-[-16px]">
+                <div className="flex items-end gap-2">
+                  <span className="text-3xl leading-none font-black text-emerald-700 tracking-tight">
                     {liveStats.total > 0 ? Math.round((liveStats.present / liveStats.total) * 100) : 0}%
                   </span>
-                  <span className="bg-emerald-100 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest flex items-center gap-1 mb-1.5 shadow-sm">
+                  <span className="bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest flex items-center gap-1 mb-1 shadow-sm">
                     <span className="text-[10px]">▲</span> Target Met
                   </span>
                 </div>
@@ -879,8 +878,8 @@ export default function AttendanceDashboard() {
       </Card>
 
       {/* ADMIN ATTENDANCE TABLE */}
-      <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-100">
+      <Card className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-gray-100">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <h2 className="text-base font-bold text-gray-800">Admin Attendance</h2>
@@ -893,16 +892,16 @@ export default function AttendanceDashboard() {
                   type="date" 
                   value={selectedDate} 
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="pl-3 pr-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#7B0099] h-9 shadow-sm"
+                  className="pl-3 pr-3 py-1.5 text-xs font-medium border border-gray-200 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#7B0099] h-8 shadow-sm"
                 />
               </div>
 
               {/* Department Filter */}
               <Select value={selectedDepartmentFilter} onValueChange={setSelectedDepartmentFilter}>
-                <SelectTrigger className="w-[130px] h-9 text-xs font-medium rounded-lg border-gray-200 bg-white text-gray-700 shadow-sm">
+                <SelectTrigger className="w-[130px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
                   <SelectValue placeholder="Department" />
                 </SelectTrigger>
-                <SelectContent className="rounded-lg">
+                <SelectContent className="rounded-md">
                   <SelectItem value="all">All Departments</SelectItem>
                   {departments.map((dept, idx) => (
                     <SelectItem key={idx} value={dept}>{dept}</SelectItem>
@@ -912,10 +911,10 @@ export default function AttendanceDashboard() {
 
               {/* Status Filter */}
               <Select value={selectedStatusFilter} onValueChange={setSelectedStatusFilter}>
-                <SelectTrigger className="w-[120px] h-9 text-xs font-medium rounded-lg border-gray-200 bg-white text-gray-700 shadow-sm">
+                <SelectTrigger className="w-[120px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
                   <SelectValue placeholder="Select Status" />
                 </SelectTrigger>
-                <SelectContent className="rounded-lg">
+                <SelectContent className="rounded-md">
                   <SelectItem value="all">Select Status</SelectItem>
                   <SelectItem value="present">Present</SelectItem>
                   <SelectItem value="late">Late</SelectItem>
@@ -925,10 +924,10 @@ export default function AttendanceDashboard() {
 
               {/* Sort By */}
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[140px] h-9 text-xs font-medium rounded-lg border-gray-200 bg-white text-gray-700 shadow-sm">
+                <SelectTrigger className="w-[140px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
                   <SelectValue placeholder="Sort By" />
                 </SelectTrigger>
-                <SelectContent className="rounded-lg">
+                <SelectContent className="rounded-md">
                   <SelectItem value="last7">Sort By : Last 7 Days</SelectItem>
                   <SelectItem value="name">Sort By : Name</SelectItem>
                 </SelectContent>
@@ -936,14 +935,14 @@ export default function AttendanceDashboard() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">Row Per Page</span>
+              <span className="text-[11px] text-gray-500">Row Per Page</span>
               <Select value={limit} onValueChange={setLimit}>
-                <SelectTrigger className="w-[70px] h-8 text-xs font-semibold rounded-lg border-gray-200 bg-white text-gray-700 shadow-sm">
+                <SelectTrigger className="w-[60px] h-7 text-[11px] font-semibold rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
                   <SelectValue placeholder="10" />
                 </SelectTrigger>
-                <SelectContent className="rounded-lg">
+                <SelectContent className="rounded-md">
                   <SelectItem value="10">10</SelectItem>
                   <SelectItem value="20">20</SelectItem>
                   <SelectItem value="50">50</SelectItem>
@@ -953,13 +952,13 @@ export default function AttendanceDashboard() {
             </div>
 
             <div className="relative w-full sm:w-[220px]">
-              <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+              <Search className="absolute left-3 top-2 h-3 w-3 text-gray-400" />
               <input 
                 type="text"
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 pr-4 py-1.5 w-full text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#7B0099] h-9 shadow-sm"
+                className="pl-8 pr-3 py-1 w-full text-[11px] border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#7B0099] h-7 shadow-sm"
               />
             </div>
           </div>
@@ -974,18 +973,18 @@ export default function AttendanceDashboard() {
           ) : (
             <div className="relative overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50/80 text-gray-500 uppercase text-[10px] font-bold tracking-wider border-b border-gray-100">
+                <thead className="bg-gray-50/80 text-gray-500 uppercase text-[9px] font-bold tracking-wider border-b border-gray-100">
                   <tr>
-                    <th className="px-6 py-4 w-4">
+                    <th className="px-4 py-2 w-4">
                       <input type="checkbox" className="rounded border-gray-300 text-[#7B0099] focus:ring-[#7B0099]" />
                     </th>
-                    <th className="px-6 py-4">Employee</th>
-                    <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4">Time In</th>
-                    <th className="px-6 py-4">Time Out</th>
-                    <th className="px-6 py-4">Late</th>
-                    <th className="px-6 py-4">Working Hours</th>
-                    <th className="px-6 py-4 w-10"></th>
+                    <th className="px-4 py-2">Employee</th>
+                    <th className="px-4 py-2">Status</th>
+                    <th className="px-4 py-2">Time In</th>
+                    <th className="px-4 py-2">Time Out</th>
+                    <th className="px-4 py-2">Late</th>
+                    <th className="px-4 py-2">Working Hours</th>
+                    <th className="px-4 py-2 w-8"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -1022,11 +1021,11 @@ export default function AttendanceDashboard() {
 
                       return (
                         <tr key={record.user_id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="px-6 py-4">
+                          <td className="px-4 py-2">
                             <input type="checkbox" className="rounded border-gray-300 text-[#7B0099] focus:ring-[#7B0099]" />
                           </td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
+                          <td className="px-4 py-2">
+                            <div className="flex items-center gap-2">
                               <div className="w-8 h-8 rounded-md bg-[#7B0099]/10 text-[#7B0099] font-bold flex items-center justify-center text-xs uppercase shadow-sm">
                                 {record.full_name.charAt(0)}
                               </div>
@@ -1036,21 +1035,21 @@ export default function AttendanceDashboard() {
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium ${statusClass}`}>
-                              <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${status === 'Present' ? 'bg-green-500' : status === 'Late' ? 'bg-amber-500' : 'bg-gray-400'}`} />
+                          <td className="px-4 py-2">
+                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium ${statusClass}`}>
+                              <span className={`w-1 h-1 rounded-full mr-1 ${status === 'Present' ? 'bg-green-500' : status === 'Late' ? 'bg-amber-500' : 'bg-gray-400'}`} />
                               {status}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-xs text-gray-600 font-medium">{formatAttendanceTime(record.clock_in)}</td>
-                          <td className="px-6 py-4 text-xs text-gray-600 font-medium">{record.clock_out ? formatAttendanceTime(record.clock_out) : "--:--"}</td>
-                          <td className="px-6 py-4 text-xs text-gray-500 font-medium">{lateMinStr}</td>
-                          <td className="px-6 py-4">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${isGoodHrs ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{formatAttendanceTime(record.clock_in)}</td>
+                          <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{record.clock_out ? formatAttendanceTime(record.clock_out) : "--:--"}</td>
+                          <td className="px-4 py-2 text-[11px] text-gray-500 font-medium">{lateMinStr}</td>
+                          <td className="px-4 py-2">
+                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold ${isGoodHrs ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                               {workHrsStr === '--' ? '0.00 Hrs' : workHrsStr.replace('h', '.').replace('m', '') + ' Hrs'}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-right">
+                          <td className="px-4 py-2 text-right">
                             <button className="text-gray-400 hover:text-gray-600 p-1">
                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
@@ -1062,7 +1061,7 @@ export default function AttendanceDashboard() {
                     })
                   ) : (
                     <tr>
-                      <td colSpan={8} className="px-6 py-20 text-center text-xs font-bold text-gray-400 uppercase tracking-wider italic">
+                      <td colSpan={8} className="px-4 py-10 text-center text-xs font-bold text-gray-400 uppercase tracking-wider italic">
                         No logs registered on this date
                       </td>
                     </tr>
@@ -1073,8 +1072,8 @@ export default function AttendanceDashboard() {
           )}
           
           {filteredDailyAttendance.length > parseInt(limit) && !loadingDaily && (
-            <div className="flex justify-between items-center px-6 py-4 border-t border-gray-100 bg-gray-50/50">
-              <span className="text-xs text-gray-500">
+            <div className="flex justify-between items-center px-4 py-3 border-t border-gray-100 bg-gray-50/50">
+              <span className="text-[11px] text-gray-500">
                 Showing {((currentPage - 1) * parseInt(limit)) + 1} to {Math.min(currentPage * parseInt(limit), filteredDailyAttendance.length)} of {filteredDailyAttendance.length} entries
               </span>
               <div className="flex items-center gap-1.5">
@@ -1083,7 +1082,7 @@ export default function AttendanceDashboard() {
                   disabled={currentPage === 1}
                   variant="outline"
                   size="sm"
-                  className="h-8 rounded-lg text-xs font-medium border-gray-200 bg-white"
+                  className="h-7 rounded-md text-[11px] font-medium border-gray-200 bg-white"
                 >
                   Previous
                 </Button>
@@ -1093,7 +1092,7 @@ export default function AttendanceDashboard() {
                     onClick={() => setCurrentPage(i + 1)}
                     variant={currentPage === i + 1 ? "default" : "outline"}
                     size="sm"
-                    className={`h-8 w-8 rounded-lg text-xs font-medium ${currentPage === i + 1 ? 'bg-[#7B0099] hover:bg-[#5e0080] text-white border-[#7B0099]' : 'border-gray-200 bg-white'}`}
+                    className={`h-7 w-7 rounded-md text-[11px] font-medium ${currentPage === i + 1 ? 'bg-[#7B0099] hover:bg-[#5e0080] text-white border-[#7B0099]' : 'border-gray-200 bg-white'}`}
                   >
                     {i + 1}
                   </Button>
@@ -1103,7 +1102,7 @@ export default function AttendanceDashboard() {
                   disabled={currentPage === Math.ceil(filteredDailyAttendance.length / parseInt(limit))}
                   variant="outline"
                   size="sm"
-                  className="h-8 rounded-lg text-xs font-medium border-gray-200 bg-white"
+                  className="h-7 rounded-md text-[11px] font-medium border-gray-200 bg-white"
                 >
                   Next
                 </Button>
@@ -1114,9 +1113,9 @@ export default function AttendanceDashboard() {
       </Card>
       
       {/* HISTORICAL CHARTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border border-gray-200 bg-white rounded-xl shadow-sm overflow-hidden">
-          <CardHeader className="pb-2 border-b border-gray-100 flex flex-row items-center gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card className="border border-gray-200 bg-white rounded-lg shadow-sm overflow-hidden">
+          <CardHeader className="pb-2 pt-4 px-4 border-b border-gray-100 flex flex-row items-center gap-2">
             <div className="p-2 bg-[#7B0099]/10 rounded-lg">
               <TrendingUp className="w-4 h-4 text-[#7B0099]" />
             </div>
@@ -1124,8 +1123,8 @@ export default function AttendanceDashboard() {
               <CardTitle className="text-sm font-bold text-gray-800 uppercase">Monthly Attendance Growth</CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="pt-6">
-            <ResponsiveContainer width="100%" height={260}>
+          <CardContent className="pt-4 px-2 pb-2">
+            <ResponsiveContainer width="100%" height={200}>
               <LineChart data={monthlyData.length > 0 ? monthlyData : fallbackMonthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.03)" vertical={false} />
                 <XAxis dataKey="month" tick={{ fontSize: 10, fontWeight: 600, fill: '#64748B' }} axisLine={false} tickLine={false} />
@@ -1137,25 +1136,95 @@ export default function AttendanceDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border border-gray-200 bg-white rounded-xl shadow-sm overflow-hidden">
-          <CardHeader className="pb-2 border-b border-gray-100 flex flex-row items-center gap-3">
-            <div className="p-2 bg-[#7B0099]/10 rounded-lg">
-              <History className="w-4 h-4 text-[#7B0099]" />
-            </div>
+        <Card className="border border-gray-200 bg-white rounded-lg shadow-sm overflow-hidden flex flex-col">
+          <CardHeader className="pb-4 pt-4 px-5 border-b border-gray-100 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-sm font-bold text-gray-800 uppercase">Absence Volume Pattern</CardTitle>
+              <CardTitle className="text-[15px] font-bold text-[#1e293b]">Attendance Overview</CardTitle>
             </div>
+            <Button variant="outline" size="sm" className="h-8 text-xs px-3 border-gray-200 bg-white text-gray-700 shadow-sm flex items-center gap-2 rounded-md">
+              <Calendar className="w-3.5 h-3.5 text-gray-500" />
+              <span>Today</span>
+            </Button>
           </CardHeader>
-          <CardContent className="pt-6">
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={monthlyData.length > 0 ? monthlyData : fallbackMonthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.03)" vertical={false} />
-                <XAxis dataKey="month" tick={{ fontSize: 10, fontWeight: 600, fill: '#64748B' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fontWeight: 600, fill: '#64748B' }} axisLine={false} tickLine={false} />
-                <Tooltip />
-                <Bar dataKey="leave_request" fill="#7B0099" radius={[4, 4, 0, 0]} name="Approved Leaves" barSize={25} />
-              </BarChart>
-            </ResponsiveContainer>
+          <CardContent className="pt-6 px-5 pb-5 flex-1 flex flex-col">
+            
+            {/* Gauge Chart Area */}
+            <div className="relative h-[160px] w-full flex items-center justify-center mb-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsPieChart>
+                  <Pie
+                    data={[
+                      { name: 'Late', value: liveStats.late || 21, color: '#114b5f' },
+                      { name: 'Present', value: (liveStats.present || 59) - (liveStats.late || 0) > 0 ? (liveStats.present || 59) - (liveStats.late || 0) : 59, color: '#06d6a0' },
+                      { name: 'Permission', value: liveStats.onLeave || 2, color: '#ffd166' },
+                      { name: 'Absent', value: liveStats.absent || 15, color: '#ef476f' },
+                    ]}
+                    cx="50%"
+                    cy="100%"
+                    startAngle={180}
+                    endAngle={0}
+                    innerRadius="65%"
+                    outerRadius="100%"
+                    paddingAngle={2}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {[
+                      { name: 'Late', value: liveStats.late || 21, color: '#114b5f' },
+                      { name: 'Present', value: (liveStats.present || 59) - (liveStats.late || 0) > 0 ? (liveStats.present || 59) - (liveStats.late || 0) : 59, color: '#06d6a0' },
+                      { name: 'Permission', value: liveStats.onLeave || 2, color: '#ffd166' },
+                      { name: 'Absent', value: liveStats.absent || 15, color: '#ef476f' },
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </RechartsPieChart>
+              </ResponsiveContainer>
+              <div className="absolute top-[65%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center flex flex-col items-center">
+                <span className="text-[11px] text-gray-500 font-medium">Total Attendance</span>
+                <span className="text-3xl font-black text-[#1e293b]">{liveStats.total || 120}</span>
+              </div>
+            </div>
+
+            {/* Status Legend */}
+            <div className="mt-4 flex-1">
+              <h4 className="text-[13px] font-bold text-[#1e293b] mb-3">Status</h4>
+              <div className="space-y-2.5">
+                {[
+                  { label: 'Present', value: liveStats.total ? Math.round((((liveStats.present || 0) - (liveStats.late || 0)) / liveStats.total) * 100) : 59, color: '#06d6a0' },
+                  { label: 'Late', value: liveStats.total ? Math.round(((liveStats.late || 0) / liveStats.total) * 100) : 21, color: '#114b5f' },
+                  { label: 'Permission', value: liveStats.total ? Math.round(((liveStats.onLeave || 0) / liveStats.total) * 100) : 2, color: '#ffd166' },
+                  { label: 'Absent', value: liveStats.total ? Math.round(((liveStats.absent || 0) / liveStats.total) * 100) : 15, color: '#ef476f' }
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                      <span className="text-xs text-gray-500">{item.label}</span>
+                    </div>
+                    <span className="text-xs font-bold text-[#1e293b]">{item.value}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Total Absentees Footer */}
+            <div className="mt-6 bg-[#f8fafc] rounded-lg p-3 flex items-center justify-between border border-gray-100">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-medium text-gray-600">Total Absenties</span>
+                <div className="flex -space-x-2">
+                  <div className="w-6 h-6 rounded-full border border-white bg-blue-100 flex items-center justify-center text-[8px] font-bold text-blue-700">JS</div>
+                  <div className="w-6 h-6 rounded-full border border-white bg-green-100 flex items-center justify-center text-[8px] font-bold text-green-700">AK</div>
+                  <div className="w-6 h-6 rounded-full border border-white bg-purple-100 flex items-center justify-center text-[8px] font-bold text-purple-700">MR</div>
+                  <div className="w-6 h-6 rounded-full border border-white bg-[#ef476f] flex items-center justify-center text-[9px] font-bold text-white shadow-sm">
+                    +{liveStats.absent > 3 ? liveStats.absent - 3 : 1}
+                  </div>
+                </div>
+              </div>
+              <button className="text-xs font-medium text-[#f97316] hover:text-[#ea580c] transition-colors">
+                View Details
+              </button>
+            </div>
+
           </CardContent>
         </Card>
       </div>
