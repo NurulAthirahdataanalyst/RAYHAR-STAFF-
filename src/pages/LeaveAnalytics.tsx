@@ -855,7 +855,7 @@ export default function LeaveAnalytics() {
       </Card>
 
       {/* ── Row 2: Pie Chart + Approval Status ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 items-start">
         {/* Pie Chart */}
         <Card className="lg:col-span-2 border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
           <CardHeader className="pb-0 border-b border-border/40">
@@ -880,7 +880,7 @@ export default function LeaveAnalytics() {
               </div>
             ) : (
               <>
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height={180}>
                   <PieChart>
                     <Pie
                       data={typeDistribution}
@@ -986,7 +986,7 @@ export default function LeaveAnalytics() {
               </div>
             ) : (
               <>
-                <ResponsiveContainer width="100%" height={200}>
+                <ResponsiveContainer width="100%" height={180}>
                   <BarChart
                     data={approvalByType}
                     margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
@@ -1108,7 +1108,7 @@ export default function LeaveAnalytics() {
       </div>
 
       {/* ── Row 3: Leave Balance Usage + Monthly Trend ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 items-start">
         {/* Leave Balance Usage */}
         <Card className="lg:col-span-2 border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
           <CardHeader className="pb-0 border-b border-border/40">
@@ -1230,7 +1230,7 @@ export default function LeaveAnalytics() {
               </div>
             ) : (
               <>
-                <ResponsiveContainer width="100%" height={200}>
+                <ResponsiveContainer width="100%" height={180}>
                   <BarChart
                     data={monthlyTrend}
                     margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
