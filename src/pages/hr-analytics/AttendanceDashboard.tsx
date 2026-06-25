@@ -1044,10 +1044,10 @@ export default function AttendanceDashboard() {
       </Card>
       
       {/* HISTORICAL CHARTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         
         {/* Monthly Attendance Trend */}
-        <Card className="border border-gray-200 bg-white rounded-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden lg:col-span-7 flex flex-col">
+        <Card className="border border-gray-200 bg-white rounded-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden lg:col-span-7 flex flex-col h-fit">
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-gray-700" />
@@ -1055,7 +1055,7 @@ export default function AttendanceDashboard() {
             </div>
             <p className="text-[12px] text-gray-500 pl-7">Attendance rate over the last 6 months.</p>
           </CardHeader>
-          <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col">
+          <CardContent className="pt-6 px-6 pb-6">
             <div className="flex items-center gap-6 mb-6">
               <div className="flex flex-col">
                 <span className="text-[13px] font-medium text-gray-500 mb-1">Average Attendance</span>
@@ -1068,7 +1068,7 @@ export default function AttendanceDashboard() {
                 <span className="text-[12px] text-gray-500 mt-1">vs Last Month</span>
               </div>
             </div>
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height={180}>
               <LineChart data={monthlyData.length > 0 ? monthlyData : fallbackMonthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
                 <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#6B7280' }} axisLine={false} tickLine={false} />
