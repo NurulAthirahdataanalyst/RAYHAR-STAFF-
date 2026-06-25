@@ -155,7 +155,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   let totalWorkingDaysPassed = 0;
   
   // Also collect data for Calendar Heatmap
-  const heatmapData: Record<number, 'Present' | 'Late' | 'Absent' | 'Leave'> = {};
+  const heatmapData: Record<number, 'Present (On Time)' | 'Present (Late)' | 'Absent' | 'On Leave'> = {};
 
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(parseInt(year), parseInt(month) - 1, d);
@@ -184,13 +184,15 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       });
       
       if (logsOnDay.length > 0) {
-        if (logsOnDay.some(l => l.is_late)) {
-          heatmapData[d] = 'Late';
+        const att = logsOnDay[0];
+        const isLateLog = att.is_late === 1 || att.is_late === true;
+        if (isLateLog) {
+          heatmapData[d] = 'Present (Late)';
         } else {
-          heatmapData[d] = 'Present';
+          heatmapData[d] = 'Present (On Time)';
         }
       } else if (hasLeave) {
-        heatmapData[d] = 'Leave';
+        heatmapData[d] = 'On Leave';
         leaveDaysCount++;
       } else if (isPastOrToday) {
         absentDays++;
@@ -499,9 +501,9 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
               <div className="space-y-2.5">
                 {[
-                  { label: "Present", value: presentDays - lateArrivals, color: "bg-emerald-500" },
-                  { label: "Late", value: lateArrivals, color: "bg-amber-400" },
-                  { label: "Leave", value: leaveDaysCount, color: "bg-blue-500" },
+                  { label: "Present (On Time)", value: presentDays - lateArrivals, color: "bg-emerald-500" },
+                  { label: "Present (Late)", value: lateArrivals, color: "bg-amber-400" },
+                  { label: "On Leave", value: leaveDaysCount, color: "bg-blue-500" },
                   { label: "Absent", value: absentDays, color: "bg-rose-500" }
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
@@ -615,10 +617,10 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                   let textColor = cell.isCurrent ? "text-foreground" : "text-muted-foreground/30";
                   
                   if (cell.isCurrent) {
-                    if (status === 'Present') bgColor = "bg-emerald-500 text-white";
-                    else if (status === 'Late') bgColor = "bg-amber-400 text-white";
+                    if (status === 'Present (On Time)') bgColor = "bg-emerald-500 text-white";
+                    else if (status === 'Present (Late)') bgColor = "bg-amber-400 text-white";
                     else if (status === 'Absent') bgColor = "bg-rose-500 text-white";
-                    else if (status === 'Leave') bgColor = "bg-blue-500 text-white";
+                    else if (status === 'On Leave') bgColor = "bg-blue-500 text-white";
                     else if (isWeekend) bgColor = "bg-muted/30"; // weekend empty
                   }
                   
@@ -635,9 +637,9 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
              </div>
              
              <div className="flex flex-wrap items-center justify-center gap-3 mt-auto pt-4 border-t border-border/40">
-                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /><span className="text-[9px] font-bold text-muted-foreground">Present</span></div>
-                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-amber-400" /><span className="text-[9px] font-bold text-muted-foreground">Late</span></div>
-                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-blue-500" /><span className="text-[9px] font-bold text-muted-foreground">Leave</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /><span className="text-[9px] font-bold text-muted-foreground">Present (On Time)</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-amber-400" /><span className="text-[9px] font-bold text-muted-foreground">Present (Late)</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-blue-500" /><span className="text-[9px] font-bold text-muted-foreground">On Leave</span></div>
                 <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-rose-500" /><span className="text-[9px] font-bold text-muted-foreground">Absent</span></div>
                 <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-muted/30" /><span className="text-[9px] font-bold text-muted-foreground">Weekend</span></div>
              </div>

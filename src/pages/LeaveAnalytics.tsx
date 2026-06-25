@@ -855,9 +855,9 @@ export default function LeaveAnalytics() {
       </Card>
 
       {/* ── Row 2: Pie Chart + Approval Status ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
         {/* Pie Chart */}
-        <Card className="lg:col-span-2 border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
+        <Card className="lg:col-span-2 border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col h-fit">
           <CardHeader className="pb-0 border-b border-border/40">
             <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
               <div className="p-2 bg-[#7B0099]/10 rounded-xl">
@@ -1206,9 +1206,9 @@ export default function LeaveAnalytics() {
           </CardContent>
         </Card>
 
-        {/* Monthly Trend */}
-        <Card className="lg:col-span-3 border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
-          <CardHeader className="pb-0 border-b border-border/40">
+        {/* Approvals trend chart */}
+        <Card className="lg:col-span-3 border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col h-fit">
+          <CardHeader className="pb-0 border-b border-gray-100 bg-white">
             <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
               <div className="p-2 bg-[#7B0099]/10 rounded-xl">
                 <TrendingUp className="w-4 h-4 text-[#7B0099]" />
@@ -1324,7 +1324,7 @@ export default function LeaveAnalytics() {
       </div>
 
       {/* ── Status Summary Strip ── */}
-      <Card className="border-none shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] overflow-hidden">
+      <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden">
         <CardContent className="p-5">
           <div className="flex flex-wrap items-center gap-4 sm:gap-8">
             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">
@@ -1374,8 +1374,8 @@ export default function LeaveAnalytics() {
       </Card>
 
       {/* ── Workforce Health Overview ── */}
-      <Card className="border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden mt-6">
-        <CardHeader className="pb-0 border-b border-border/40">
+      <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden">
+        <CardHeader className="pb-0 border-b border-gray-100 bg-white">
           <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
             <div className="p-2 bg-indigo-500/10 rounded-xl">
               <CheckCircle2 className="w-4 h-4 text-indigo-500" />

@@ -408,14 +408,32 @@ export default function AttendanceDashboard() {
       return;
     }
 
-    const headers = ["Employee Name", "Branch", "Time In", "Time Out", "Status"];
-    const rows = dailyAttendance.map(r => [
-      r.full_name,
-      r.branch,
-      formatAttendanceTime(r.clock_in),
-      r.clock_out ? formatAttendanceTime(r.clock_out) : "--:--",
-      r.time_out ? "Clocked Out" : "Active"
-    ]);
+    const headers = ["Employee Name", "Branch", "Time In", "Time Out", "Attendance Status", "Work Status"];
+    const rows = dailyAttendance.map(r => {
+      let isLate = false;
+      if (r.clock_in) {
+        const { hour: threshHour, minute: threshMin } = parseThreshold(workStartTime);
+        const klTimeIn = new Date(new Date(r.clock_in).getTime() + 8 * 60 * 60 * 1000);
+        isLate = klTimeIn.getUTCHours() > threshHour || (klTimeIn.getUTCHours() === threshHour && klTimeIn.getUTCMinutes() > threshMin);
+      }
+      const attStatus = r.clock_in ? (isLate ? "Present (Late)" : "Present (On Time)") : "Absent";
+      
+      let workStatus = "Checked In";
+      if (r.clock_out) {
+         const workHrsStr = calculateWorkingHours(r.clock_in, r.clock_out);
+         const workHrsNum = parseFloat(workHrsStr.replace('h', '.').replace('m', '')) || 0;
+         workStatus = workHrsNum >= 8.0 ? "Clocked Out" : "Clocked Out Early";
+      }
+
+      return [
+        r.full_name,
+        r.branch,
+        formatAttendanceTime(r.clock_in),
+        r.clock_out ? formatAttendanceTime(r.clock_out) : "--:--",
+        attStatus,
+        workStatus
+      ];
+    });
 
     const csvContent = [
       headers.join(","),
@@ -453,15 +471,30 @@ export default function AttendanceDashboard() {
     const rowsHtml = dailyAttendance.map(r => {
       const timeIn = formatAttendanceTime(r.clock_in);
       const timeOut = r.clock_out ? formatAttendanceTime(r.clock_out) : "--:--";
-      const status = r.time_out ? "Clocked Out" : "Active";
-      const badgeClass = r.time_out ? "badge-ontime" : "badge-remote";
+      
+      let isLate = false;
+      if (r.clock_in) {
+        const { hour: threshHour, minute: threshMin } = parseThreshold(workStartTime);
+        const klTimeIn = new Date(new Date(r.clock_in).getTime() + 8 * 60 * 60 * 1000);
+        isLate = klTimeIn.getUTCHours() > threshHour || (klTimeIn.getUTCHours() === threshHour && klTimeIn.getUTCMinutes() > threshMin);
+      }
+      const attStatus = r.clock_in ? (isLate ? "Present (Late)" : "Present (On Time)") : "Absent";
+      
+      let workStatus = "Checked In";
+      if (r.clock_out) {
+         const workHrsStr = calculateWorkingHours(r.clock_in, r.clock_out);
+         const workHrsNum = parseFloat(workHrsStr.replace('h', '.').replace('m', '')) || 0;
+         workStatus = workHrsNum >= 8.0 ? "Clocked Out" : "Clocked Out Early";
+      }
+
+      const badgeClass = attStatus.includes("On Time") ? "badge-ontime" : attStatus.includes("Late") ? "badge-late" : "badge-absent";
       return `
         <tr>
           <td>${r.full_name}</td>
           <td>${r.branch}</td>
           <td>${timeIn}</td>
           <td>${timeOut}</td>
-          <td><span class="badge ${badgeClass}">${status}</span></td>
+          <td><span class="badge ${badgeClass}">${attStatus}</span> <span class="badge ${workStatus.includes('Early') ? 'badge-late' : 'badge-remote'}">${workStatus}</span></td>
         </tr>
       `;
     }).join("");
@@ -727,13 +760,13 @@ export default function AttendanceDashboard() {
   }));
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-500 max-w-[1600px] w-full mx-auto px-4 py-4">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-6">
 
       {/* ── LIVE PRESENCE PANEL ─────────────────────────────────────────── */}
-      <Card className="border border-white/60 bg-white/40 backdrop-blur-2xl rounded-xl shadow-md overflow-hidden ring-1 ring-black/5">
+      <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden ring-1 ring-black/5">
         <CardContent className="p-0">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 md:px-6 pt-4 pb-3 border-b border-white/60 bg-white/30 backdrop-blur-md">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 md:px-6 pt-4 pb-3 border-b border-gray-100 bg-white">
             <div className="flex items-center gap-4">
               <div className="p-2.5 bg-gradient-to-br from-[#800A7A] to-[#a855f7] rounded-xl shadow-md">
                 <Activity className="w-5 h-5 text-white" />
@@ -779,23 +812,29 @@ export default function AttendanceDashboard() {
           </div>
 
           {/* Dense KPI Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 md:p-6 bg-gray-50/50">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 md:p-6 bg-gray-50/50">
             <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-              <span className="text-[13px] font-medium text-gray-500 mb-1">Present</span>
+              <span className="text-[13px] font-medium text-gray-500 mb-1">Total Present</span>
               <span className="text-[32px] font-bold text-gray-900 leading-none">
                 {liveStats.total > 0 ? Math.round((liveStats.present / liveStats.total) * 100) : 0}%
+              </span>
+            </div>
+            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+              <span className="text-[13px] font-medium text-gray-500 mb-1">Present (On Time)</span>
+              <span className="text-[32px] font-bold text-gray-900 leading-none">
+                {liveStats.total > 0 ? Math.round(((liveStats.present - liveStats.late) / liveStats.total) * 100) : 0}%
+              </span>
+            </div>
+            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+              <span className="text-[13px] font-medium text-gray-500 mb-1">Present (Late)</span>
+              <span className="text-[32px] font-bold text-gray-900 leading-none">
+                {liveStats.total > 0 ? Math.round((liveStats.late / liveStats.total) * 100) : 0}%
               </span>
             </div>
             <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
               <span className="text-[13px] font-medium text-gray-500 mb-1">Absent</span>
               <span className="text-[32px] font-bold text-gray-900 leading-none">
                 {liveStats.total > 0 ? Math.round((liveStats.absent / liveStats.total) * 100) : 0}%
-              </span>
-            </div>
-            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-              <span className="text-[13px] font-medium text-gray-500 mb-1">Late</span>
-              <span className="text-[32px] font-bold text-gray-900 leading-none">
-                {liveStats.total > 0 ? Math.round((liveStats.late / liveStats.total) * 100) : 0}%
               </span>
             </div>
             <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
@@ -808,13 +847,17 @@ export default function AttendanceDashboard() {
         </CardContent>
       </Card>
 
-      {/* ADMIN ATTENDANCE TABLE */}
-      <Card className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-100">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
-              <h2 className="text-base font-bold text-gray-800">Admin Attendance</h2>
-            </div>
+      {/* FILTER BAR SECTION */}
+      <Card className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+        <div className="p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
+              <Filter className="w-4 h-4 text-gray-500" /> Analytics Filters
+            </h2>
+            <p className="text-[10px] text-gray-400 font-medium ml-6 mt-0.5 uppercase tracking-widest">
+              {filteredDailyAttendance.length} Records Found
+            </p>
+          </div>
             
             <div className="flex flex-wrap items-center gap-3">
               {/* Date Filter */}
@@ -865,8 +908,14 @@ export default function AttendanceDashboard() {
               </Select>
             </div>
           </div>
+        </div>
+      </Card>
 
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
+      {/* ADMIN ATTENDANCE TABLE */}
+      <Card className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h2 className="text-base font-bold text-gray-800">Admin Attendance</h2>
+          <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <span className="text-[11px] text-gray-500">Row Per Page</span>
               <Select value={limit} onValueChange={setLimit}>
@@ -879,7 +928,6 @@ export default function AttendanceDashboard() {
                   <SelectItem value="50">50</SelectItem>
                 </SelectContent>
               </Select>
-              <span className="text-xs text-gray-500">Entries</span>
             </div>
 
             <div className="relative w-full sm:w-[220px]">
@@ -935,20 +983,31 @@ export default function AttendanceDashboard() {
                         }
                       }
 
-                      let status = record.time_out ? "Clocked Out" : "Present";
-                      if (isLate && !record.time_out) {
-                        status = "Late";
-                      }
-                      
-                      const statusClass = status === "Present" 
-                        ? "bg-green-50 text-green-700 border border-green-100"
-                        : status === "Late"
-                        ? "bg-amber-50 text-amber-700 border border-amber-100"
-                        : "bg-gray-50 text-gray-600 border border-gray-100";
-
                       const workHrsStr = calculateWorkingHours(record.clock_in, record.clock_out);
                       const workHrsNum = parseFloat(workHrsStr.replace('h', '.').replace('m', '')) || 0;
                       const isGoodHrs = workHrsNum >= 8.0;
+
+                      let attStatus = "Absent";
+                      if (record.clock_in) {
+                        attStatus = isLate ? "Present (Late)" : "Present (On Time)";
+                      }
+                      
+                      let workStatus = "Checked In";
+                      if (record.clock_out) {
+                        workStatus = isGoodHrs ? "Clocked Out" : "Clocked Out Early";
+                      }
+                      
+                      const attStatusClass = attStatus === "Present (On Time)" 
+                        ? "bg-green-50 text-green-700 border border-green-100"
+                        : attStatus === "Present (Late)"
+                        ? "bg-amber-50 text-amber-700 border border-amber-100"
+                        : "bg-red-50 text-red-700 border border-red-100";
+
+                      const workStatusClass = workStatus === "Checked In"
+                        ? "bg-blue-50 text-blue-700 border border-blue-100"
+                        : workStatus === "Clocked Out Early"
+                        ? "bg-rose-50 text-rose-700 border border-rose-100"
+                        : "bg-gray-50 text-gray-700 border border-gray-100";
 
                       return (
                         <tr key={record.user_id} className="hover:bg-gray-50/50 transition-colors">
@@ -967,10 +1026,17 @@ export default function AttendanceDashboard() {
                             </div>
                           </td>
                           <td className="px-4 py-2">
-                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium ${statusClass}`}>
-                              <span className={`w-1 h-1 rounded-full mr-1 ${status === 'Present' ? 'bg-green-500' : status === 'Late' ? 'bg-amber-500' : 'bg-gray-400'}`} />
-                              {status}
-                            </span>
+                            <div className="flex flex-col gap-1 items-start">
+                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium ${attStatusClass}`}>
+                                <span className={`w-1 h-1 rounded-full mr-1 ${attStatus === 'Present (On Time)' ? 'bg-green-500' : attStatus === 'Present (Late)' ? 'bg-amber-500' : 'bg-red-500'}`} />
+                                {attStatus}
+                              </span>
+                              {record.clock_in && (
+                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium ${workStatusClass}`}>
+                                  {workStatus}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{formatAttendanceTime(record.clock_in)}</td>
                           <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{record.clock_out ? formatAttendanceTime(record.clock_out) : "--:--"}</td>
@@ -1047,7 +1113,7 @@ export default function AttendanceDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         
         {/* Monthly Attendance Trend */}
-        <Card className="border border-gray-200 bg-white rounded-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden lg:col-span-7 flex flex-col h-fit">
+        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden lg:col-span-7 flex flex-col h-fit">
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-gray-700" />
@@ -1092,7 +1158,7 @@ export default function AttendanceDashboard() {
         </Card>
 
         {/* Attendance Overview */}
-        <Card className="border border-gray-200 bg-white rounded-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden lg:col-span-5 flex flex-col">
+        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden lg:col-span-5 flex flex-col h-fit">
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 flex flex-row items-start justify-between">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
@@ -1110,22 +1176,26 @@ export default function AttendanceDashboard() {
           <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col">
             
             {/* KPI micro-header */}
-            <div className="grid grid-cols-4 gap-2 mb-6 border-b border-gray-100 pb-4">
+            <div className="grid grid-cols-5 gap-2 mb-6 border-b border-gray-100 pb-4">
               <div className="flex flex-col items-center">
-                <span className="text-[11px] font-medium text-gray-500 uppercase">Total</span>
-                <span className="text-[18px] font-bold text-gray-900">{liveStats.total || 15}</span>
+                <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Total<br/>Employees</span>
+                <span className="text-[18px] font-bold text-gray-900">{liveStats.total || 0}</span>
               </div>
               <div className="flex flex-col items-center">
-                <span className="text-[11px] font-medium text-gray-500 uppercase">Present</span>
-                <span className="text-[18px] font-bold text-gray-900">{(liveStats.present || 59) - (liveStats.late || 0) || 1}</span>
+                <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Total<br/>Present</span>
+                <span className="text-[18px] font-bold text-gray-900">{liveStats.present || 0}</span>
               </div>
               <div className="flex flex-col items-center">
-                <span className="text-[11px] font-medium text-gray-500 uppercase">Absent</span>
-                <span className="text-[18px] font-bold text-gray-900">{liveStats.absent || 14}</span>
+                <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Present<br/>(On Time)</span>
+                <span className="text-[18px] font-bold text-gray-900">{Math.max(0, (liveStats.present || 0) - (liveStats.late || 0))}</span>
               </div>
               <div className="flex flex-col items-center">
-                <span className="text-[11px] font-medium text-gray-500 uppercase">Late</span>
+                <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Present<br/>(Late)</span>
                 <span className="text-[18px] font-bold text-gray-900">{liveStats.late || 0}</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Absent<br/>&nbsp;</span>
+                <span className="text-[18px] font-bold text-gray-900">{liveStats.absent || 0}</span>
               </div>
             </div>
 
@@ -1133,56 +1203,72 @@ export default function AttendanceDashboard() {
             <div className="flex flex-col gap-6">
               
               {/* Top: Donut Chart & Breakdown */}
-              <div className="flex flex-row items-center gap-6">
-                <div className="relative h-[140px] w-[140px] shrink-0">
+              <div className="flex flex-row items-center gap-8">
+                <div className="relative h-[160px] w-[160px] shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <RechartsPieChart>
                       <Pie
                         data={[
-                          { name: 'Late', value: liveStats.late || 0, color: '#F59E0B' },
-                          { name: 'Present', value: (liveStats.present || 59) - (liveStats.late || 0) || 1, color: '#10B981' },
-                          { name: 'Permission', value: liveStats.onLeave || 0, color: '#3B82F6' },
-                          { name: 'Absent', value: liveStats.absent || 14, color: '#EF4444' },
+                          { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#10B981' },
+                          { name: 'Present (Late)', value: liveStats.late || 0, color: '#F59E0B' },
+                          { name: 'On Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
+                          { name: 'Absent', value: liveStats.absent || 0, color: '#EF4444' },
                         ]}
                         cx="50%"
                         cy="50%"
-                        innerRadius="75%"
-                        outerRadius="100%"
-                        paddingAngle={2}
+                        innerRadius={50}
+                        outerRadius={75}
+                        paddingAngle={3}
                         dataKey="value"
                         stroke="none"
-                        cornerRadius={4}
+                        cornerRadius={6}
                       >
                         {[
-                          { name: 'Late', value: liveStats.late || 0, color: '#F59E0B' },
-                          { name: 'Present', value: (liveStats.present || 59) - (liveStats.late || 0) || 1, color: '#10B981' },
-                          { name: 'Permission', value: liveStats.onLeave || 0, color: '#3B82F6' },
-                          { name: 'Absent', value: liveStats.absent || 14, color: '#EF4444' },
+                          { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#10B981' },
+                          { name: 'Present (Late)', value: liveStats.late || 0, color: '#F59E0B' },
+                          { name: 'On Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
+                          { name: 'Absent', value: liveStats.absent || 0, color: '#EF4444' },
                         ].map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
+                      <Tooltip
+                        contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" }}
+                        itemStyle={{ fontWeight: "bold", fontSize: "12px" }}
+                      />
                     </RechartsPieChart>
                   </ResponsiveContainer>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-[28px] font-bold text-gray-900 leading-none">{liveStats.total || 15}</span>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-[32px] font-black text-gray-900 leading-none">{liveStats.total || 0}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">Total</span>
                   </div>
                 </div>
 
                 {/* Status Legend */}
-                <div className="flex-1 flex flex-col justify-center space-y-4">
+                <div className="flex-1 flex flex-col justify-center space-y-3">
                   {[
-                    { label: 'Present', value: liveStats.total ? Math.round((((liveStats.present || 0) - (liveStats.late || 0)) / liveStats.total) * 100) : 7, color: '#10B981' },
-                    { label: 'Absent', value: liveStats.total ? Math.round(((liveStats.absent || 0) / liveStats.total) * 100) : 93, color: '#EF4444' },
-                    { label: 'Late', value: liveStats.total ? Math.round(((liveStats.late || 0) / liveStats.total) * 100) : 0, color: '#F59E0B' }
-                  ].map((item, idx) => (
-                    <div key={idx} className="flex flex-col gap-1">
-                      <div className="flex justify-between items-center text-[12px] font-medium text-gray-700">
-                        <span>{item.label}</span>
-                        <span className="font-bold">{item.value}%</span>
+                    { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#10B981' },
+                    { name: 'Present (Late)', value: liveStats.late || 0, color: '#F59E0B' },
+                    { name: 'On Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
+                    { name: 'Absent', value: liveStats.absent || 0, color: '#EF4444' },
+                  ].map((entry, idx) => (
+                    <div key={idx} className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div
+                          className="w-3 h-3 rounded-full shrink-0 shadow-sm"
+                          style={{ backgroundColor: entry.color }}
+                        />
+                        <span className="text-[12px] font-bold text-gray-700 truncate">
+                          {entry.name}
+                        </span>
                       </div>
-                      <div className="w-full bg-gray-100 rounded-full h-1.5">
-                        <div className="h-1.5 rounded-full transition-all duration-500" style={{ width: `${item.value}%`, backgroundColor: item.color }} />
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-[13px] font-black text-gray-900">
+                          {entry.value}
+                        </span>
+                        <span className="text-[11px] font-bold text-gray-400 min-w-[32px] text-right">
+                          ({liveStats.total > 0 ? Math.round((entry.value / liveStats.total) * 100) : 0}%)
+                        </span>
                       </div>
                     </div>
                   ))}

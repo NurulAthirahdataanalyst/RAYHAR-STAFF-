@@ -888,7 +888,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
       type: 'presence_update',
       timestamp: new Date().toISOString(),
       stats: {
-        present: presentList.length,
+        present: presentList.length + lateList.length,
         late: lateList.length,
         absent: absentCount,
         onLeave: leaveRows.length,
@@ -2400,11 +2400,28 @@ app.get("/api/dashboard-stats", async (req, res) => {
     if (todayRows.length > 0) {
       const record = todayRows[0];
       clockInTime = record.clock_in_time || "--:--";
+      
+      let isLate = false;
+      if (record.clock_in) {
+        const lateTimeStr = getLateThresholdTime();
+        const [lateH, lateM] = lateTimeStr.split(':').map(Number);
+        const klTimeIn = new Date(new Date(record.clock_in).getTime() + 8 * 60 * 60 * 1000);
+        const clockInHour = klTimeIn.getUTCHours();
+        const clockInMinute = klTimeIn.getUTCMinutes();
+        isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
+      }
+
       if (record.clock_in && record.clock_out === null) {
-        todayStatus = "Present";
+        todayStatus = isLate ? "Present (Late)" : "Present (On Time)";
         todayStatusTime = clockInTime;
       } else if (record.clock_out) {
-        todayStatus = "Clocked Out";
+        // Evaluate work hours for early clock out
+        let isEarly = false;
+        const diffMs = new Date(record.clock_out).getTime() - new Date(record.clock_in).getTime();
+        const workHrsNum = diffMs / (1000 * 60 * 60);
+        if (workHrsNum < 8.0) isEarly = true;
+
+        todayStatus = isEarly ? "Clocked Out Early" : "Clocked Out";
         clockOutTime = record.clock_out_time || "--:--";
         todayStatusTime = clockOutTime;
       }

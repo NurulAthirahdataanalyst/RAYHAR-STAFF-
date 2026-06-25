@@ -265,8 +265,8 @@ export default function Dashboard() {
     );
   }
 
-  const isPresent = stats.todayStatus === "Present";
-  const isClockedOut = stats.todayStatus === "Clocked Out";
+  const isPresent = stats.todayStatus.includes("Present");
+  const isClockedOut = stats.todayStatus.includes("Clocked Out");
   const isOnLeave = stats.todayStatus === "On Leave";
   const todayStatusSubtitle = isPresent
     ? `Clock in: ${stats.todayStatusTime || stats.clockInTime}`

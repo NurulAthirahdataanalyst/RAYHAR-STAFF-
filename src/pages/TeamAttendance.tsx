@@ -87,7 +87,7 @@ export default function TeamAttendance() {
     
     let statusLabel = "Absent";
     if (att) {
-       statusLabel = att.is_late ? "Late" : "Present";
+       statusLabel = att.is_late ? "Present (Late)" : "Present (On Time)";
     }
 
     return {
@@ -105,9 +105,9 @@ export default function TeamAttendance() {
   );
 
   if (statusFilter === "ON TIME") {
-    filteredList = filteredList.filter(e => e.status === "Present");
+    filteredList = filteredList.filter(e => e.status === "Present (On Time)");
   } else if (statusFilter === "LATE") {
-    filteredList = filteredList.filter(e => e.status === "Late");
+    filteredList = filteredList.filter(e => e.status === "Present (Late)");
   }
 
   return (
@@ -273,8 +273,8 @@ export default function TeamAttendance() {
                         <TableCell>{emp.time_out}</TableCell>
                         <TableCell className="font-medium text-gray-700">{emp.workingHours}</TableCell>
                         <TableCell>
-                          <Badge variant={emp.status === "Present" ? "default" : (emp.status === "Late" ? "secondary" : "destructive")} 
-                                 className={`${emp.status === "Present" ? "bg-green-500 hover:bg-green-600" : ""} ${emp.status === "Late" ? "bg-amber-500 hover:bg-amber-600 text-white" : ""}`}>
+                          <Badge variant={emp.status === "Present (On Time)" ? "default" : (emp.status === "Present (Late)" ? "secondary" : "destructive")} 
+                                 className={`${emp.status === "Present (On Time)" ? "bg-green-500 hover:bg-green-600" : ""} ${emp.status === "Present (Late)" ? "bg-amber-500 hover:bg-amber-600 text-white" : ""}`}>
                             {emp.status}
                           </Badge>
                         </TableCell>
