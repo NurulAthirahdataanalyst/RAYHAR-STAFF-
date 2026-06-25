@@ -97,35 +97,48 @@ const renderCustomLabel = ({ cx, cy, midAngle, outerRadius, percent, name }: any
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 function StatCard({
-  label, value, sub, icon: Icon, accent, loading,
+  label, value, sub, icon: Icon, badgeText,
+  bgClass, borderClass, textClass, iconBgClass, badgeBgClass, loading
 }: {
   label: string; value: string | number; sub?: string;
-  icon: React.ElementType; accent: string; loading: boolean;
+  icon: React.ElementType; badgeText?: string;
+  bgClass: string; borderClass: string; textClass: string; iconBgClass: string; badgeBgClass: string;
+  loading: boolean;
 }) {
   return (
-    <Card className="relative overflow-hidden border border-border/60 shadow-[0_10px_28px_rgba(0,0,0,0.05)] bg-white/90 dark:bg-card/75 rounded-[22px]">
-      <div className={`absolute left-0 top-0 bottom-0 w-1 ${accent}`} />
-      <CardContent className="p-4 sm:p-5 pl-5 sm:pl-5">
-        <div className="flex items-center justify-between gap-3">
+    <Card className={`relative overflow-hidden border-0 shadow-[0_8px_24px_rgba(0,0,0,0.02)] ${bgClass} rounded-[20px]`}>
+      <div className={`absolute left-0 top-0 bottom-0 w-[5px] ${borderClass}`} />
+      <CardContent className="p-4 sm:p-5 pl-5 sm:pl-6">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-muted-foreground">{label}</p>
+            <p className={`text-[10px] font-black uppercase tracking-[0.05em] ${textClass}`}>{label}</p>
             {loading ? (
-              <div className="mt-2 h-7 w-16 bg-muted/50 rounded-lg animate-pulse" />
+              <div className="mt-2 h-7 w-16 bg-black/10 rounded-lg animate-pulse" />
             ) : (
-              <p className={`mt-2 font-black text-foreground leading-none ${
-                typeof value === "string" && value.length > 12
-                  ? "text-base sm:text-lg leading-tight"
-                  : "text-2xl sm:text-[28px]"
+              <p className={`mt-1.5 font-black leading-none ${textClass} ${
+                typeof value === "string" && value.length > 15
+                  ? "text-xl sm:text-2xl leading-tight"
+                  : "text-[28px] sm:text-[32px] tracking-tight"
               }`}>
                 {value}
               </p>
             )}
-            {sub && !loading && (
-              <p className="mt-1.5 text-[10px] font-semibold text-muted-foreground truncate">{sub}</p>
+            
+            {(badgeText || sub) && (
+              <div className="mt-3.5 space-y-1.5">
+                {badgeText && (
+                  <Badge variant="outline" className={`font-bold uppercase text-[9px] px-2 py-0.5 border-none ${badgeBgClass} ${textClass}`}>
+                    {badgeText}
+                  </Badge>
+                )}
+                {sub && !loading && (
+                  <p className="text-[9px] font-bold text-muted-foreground/80 uppercase tracking-widest truncate">{sub}</p>
+                )}
+              </div>
             )}
           </div>
-          <div className={`h-11 w-11 rounded-2xl shrink-0 flex items-center justify-center ${accent}`}>
-            <Icon className="w-4 h-4" />
+          <div className={`h-10 w-10 sm:h-11 sm:w-11 rounded-[14px] shrink-0 flex items-center justify-center ${iconBgClass} ${textClass}`}>
+            <Icon className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
           </div>
         </div>
       </CardContent>
@@ -440,7 +453,7 @@ export default function LeaveAnalytics() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 py-6">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-6">
       
       {/* ── MAIN PRESENCE PANEL ─────────────────────────────────────────── */}
       <Card className="border border-white/60 bg-white/40 dark:bg-card/40 backdrop-blur-2xl rounded-3xl shadow-xl shadow-purple-900/5 overflow-hidden ring-1 ring-black/5">
@@ -575,9 +588,14 @@ export default function LeaveAnalytics() {
         <StatCard
           label="Total Applications"
           value={total}
+          badgeText="Active Leaves"
           sub={`${totalDays} total days`}
           icon={FileBarChart2}
-          accent="bg-[#7B0099]/10 text-[#7B0099]"
+          bgClass="bg-pink-50/50 dark:bg-pink-950/20"
+          borderClass="bg-pink-500"
+          textClass="text-pink-600 dark:text-pink-400"
+          iconBgClass="bg-pink-100 dark:bg-pink-900/40"
+          badgeBgClass="bg-pink-100/80 dark:bg-pink-900/60"
           loading={loading}
         />
         <StatCard
