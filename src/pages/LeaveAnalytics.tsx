@@ -845,37 +845,52 @@ export default function LeaveAnalytics() {
               <StatCard
                 label="Approved"
                 value={approved}
+                badgeText="Total Approved"
                 sub={
                   total > 0
                     ? `${Math.round((approved / total) * 100)}% approval rate`
                     : "No data"
                 }
                 icon={CheckCircle2}
-                accent="bg-emerald-500/10 text-emerald-600"
+                bgClass="bg-blue-50/50 dark:bg-blue-950/20"
+                borderClass="bg-blue-500"
+                textClass="text-blue-600 dark:text-blue-400"
+                iconBgClass="bg-blue-100 dark:bg-blue-900/40"
+                badgeBgClass="bg-blue-100/80 dark:bg-blue-900/60"
                 loading={loading}
               />
               <StatCard
                 label="Rejected"
                 value={rejected}
+                badgeText="Declined"
                 sub={
                   total > 0
                     ? `${Math.round((rejected / total) * 100)}% rejection rate`
                     : "No data"
                 }
                 icon={XCircle}
-                accent="bg-rose-500/10 text-rose-600"
+                bgClass="bg-purple-50/50 dark:bg-purple-950/20"
+                borderClass="bg-purple-500"
+                textClass="text-purple-600 dark:text-purple-400"
+                iconBgClass="bg-purple-100 dark:bg-purple-900/40"
+                badgeBgClass="bg-purple-100/80 dark:bg-purple-900/60"
                 loading={loading}
               />
               <StatCard
                 label="Most Common Type"
                 value={loading ? "—" : mostCommonType}
+                badgeText="Trending"
                 sub={
                   typeDistribution[0]
                     ? `${typeDistribution[0].value} applications`
                     : ""
                 }
                 icon={Award}
-                accent="bg-amber-500/10 text-amber-600"
+                bgClass="bg-emerald-50/50 dark:bg-emerald-950/20"
+                borderClass="bg-emerald-500"
+                textClass="text-emerald-700 dark:text-emerald-400"
+                iconBgClass="bg-emerald-100 dark:bg-emerald-900/40"
+                badgeBgClass="bg-emerald-100/80 dark:bg-emerald-900/60"
                 loading={loading}
               />
             </div>
