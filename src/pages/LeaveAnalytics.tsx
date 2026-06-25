@@ -47,6 +47,7 @@ import {
   ChevronDown,
   FileText,
   FileSpreadsheet,
+  CalendarCheck,
 } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
@@ -649,841 +650,786 @@ export default function LeaveAnalytics() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-6">
-      {/* ── MAIN PRESENCE PANEL ─────────────────────────────────────────── */}
-      <Card className="border border-white/60 bg-white/40 dark:bg-card/40 backdrop-blur-2xl rounded-3xl shadow-xl shadow-purple-900/5 overflow-hidden ring-1 ring-black/5">
+      {/* ── LIVE PRESENCE PANEL ─────────────────────────────────────────── */}
+      <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden ring-1 ring-black/5">
         <CardContent className="p-0">
-          {/* Action Buttons - Portaled to PageHeader */}
-          {portalTarget &&
-            createPortal(
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => void fetchData()}
-                  className="gap-2 bg-white border-border text-muted-foreground hover:text-foreground rounded-xl font-black text-[10px] uppercase tracking-widest px-4 py-2 shadow-sm"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  Refresh
-                </Button>
-                <ExportDropdown
-                  onExportCSV={handleExport}
-                  onExportPDF={handleExportPDF}
-                />
-              </div>,
-              portalTarget,
-            )}
-
-          <div className="p-6 md:p-8 space-y-6">
-            {/* ── Filter Bar ── */}
-            <Card className="border border-border/40 shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.16)] bg-white/90 dark:bg-card/85 backdrop-blur-md rounded-[22px] overflow-hidden">
-              <CardContent className="p-3.5 sm:p-4">
-                <div className="flex items-center gap-2.5 w-full overflow-x-auto scrollbar-none pb-0.5">
-                  <div className="flex items-center gap-2 shrink-0">
-                    <div className="p-1.5 bg-[#7B0099]/10 rounded-lg">
-                      <Filter className="w-3.5 h-3.5 text-[#7B0099]" />
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground whitespace-nowrap">
-                      Filter By:
-                    </span>
-                  </div>
-
-                  {/* Year */}
-                  <Select value={selectedYear} onValueChange={setSelectedYear}>
-                    <SelectTrigger className="w-[90px] h-9 text-[10px] font-black uppercase tracking-widest rounded-xl border-border/50 bg-muted/40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      {YEARS.map((y) => (
-                        <SelectItem
-                          key={y}
-                          value={y}
-                          className="text-[10px] font-black uppercase tracking-widest"
-                        >
-                          {y}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Month */}
-                  <Select
-                    value={selectedMonth}
-                    onValueChange={setSelectedMonth}
-                  >
-                    <SelectTrigger className="w-[130px] h-9 text-[10px] font-black uppercase tracking-widest rounded-xl border-border/50 bg-muted/40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      {MONTHS.map((m) => (
-                        <SelectItem
-                          key={m.value}
-                          value={m.value}
-                          className="text-[10px] font-black uppercase tracking-widest"
-                        >
-                          {m.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Branch */}
-                  <Select
-                    value={selectedBranch}
-                    onValueChange={setSelectedBranch}
-                  >
-                    <SelectTrigger className="w-[140px] h-9 text-[10px] font-black uppercase tracking-widest rounded-xl border-border/50 bg-muted/40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl max-h-60">
-                      {BRANCHES.map((b) => (
-                        <SelectItem
-                          key={b}
-                          value={b}
-                          className="text-[10px] font-black uppercase tracking-widest"
-                        >
-                          {b}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Leave Type */}
-                  <Select value={selectedType} onValueChange={setSelectedType}>
-                    <SelectTrigger className="w-[180px] h-9 text-[10px] font-black uppercase tracking-widest rounded-xl border-border/50 bg-muted/40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      <SelectItem
-                        value="All Types"
-                        className="text-[10px] font-black uppercase tracking-widest"
-                      >
-                        All Types
-                      </SelectItem>
-                      {LEAVE_TYPES.map((t) => (
-                        <SelectItem
-                          key={t}
-                          value={t}
-                          className="text-[10px] font-black uppercase tracking-widest"
-                        >
-                          {t}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Status */}
-                  <Select
-                    value={selectedStatus}
-                    onValueChange={setSelectedStatus}
-                  >
-                    <SelectTrigger className="w-[130px] h-9 text-[10px] font-black uppercase tracking-widest rounded-xl border-border/50 bg-muted/40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      {["All", "Approved", "Rejected", "Pending"].map((s) => (
-                        <SelectItem
-                          key={s}
-                          value={s}
-                          className="text-[10px] font-black uppercase tracking-widest"
-                        >
-                          {s}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Active filter count badge */}
-                  {(selectedMonth !== "all" ||
-                    selectedBranch !== "All Branches" ||
-                    selectedType !== "All Types" ||
-                    selectedStatus !== "All") && (
-                    <Badge
-                      className="bg-[#7B0099] text-white font-black text-[9px] px-2.5 py-1 rounded-md cursor-pointer hover:bg-[#5e0080] transition-colors"
-                      onClick={() => {
-                        setSelectedMonth("all");
-                        setSelectedBranch("All Branches");
-                        setSelectedType("All Types");
-                        setSelectedStatus("All");
-                      }}
-                    >
-                      Clear Filters ×
-                    </Badge>
-                  )}
-
-                  <div className="ml-auto flex items-center gap-2">
-                    {lastFetched && (
-                      <span className="text-[9px] font-bold text-muted-foreground/50 whitespace-nowrap">
-                        Updated: {lastFetched.toLocaleTimeString("en-MY")}
-                      </span>
-                    )}
-                    <Badge
-                      variant="outline"
-                      className="font-black text-[10px] px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none whitespace-nowrap"
-                    >
-                      {loading ? "Loading..." : `${filtered.length} Records`}
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* ── Summary Cards ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
-              <StatCard
-                label="Total Applications"
-                value={total}
-                badgeText="Active Leaves"
-                sub={`${totalDays} total days`}
-                icon={FileBarChart2}
-                bgClass="bg-pink-50/50 dark:bg-pink-950/20"
-                borderClass="bg-pink-500"
-                textClass="text-pink-600 dark:text-pink-400"
-                iconBgClass="bg-pink-100 dark:bg-pink-900/40"
-                badgeBgClass="bg-pink-100/80 dark:bg-pink-900/60"
-                loading={loading}
-              />
-              <StatCard
-                label="Approved"
-                value={approved}
-                badgeText="Total Approved"
-                sub={
-                  total > 0
-                    ? `${Math.round((approved / total) * 100)}% approval rate`
-                    : "No data"
-                }
-                icon={CheckCircle2}
-                bgClass="bg-blue-50/50 dark:bg-blue-950/20"
-                borderClass="bg-blue-500"
-                textClass="text-blue-600 dark:text-blue-400"
-                iconBgClass="bg-blue-100 dark:bg-blue-900/40"
-                badgeBgClass="bg-blue-100/80 dark:bg-blue-900/60"
-                loading={loading}
-              />
-              <StatCard
-                label="Rejected"
-                value={rejected}
-                badgeText="Declined"
-                sub={
-                  total > 0
-                    ? `${Math.round((rejected / total) * 100)}% rejection rate`
-                    : "No data"
-                }
-                icon={XCircle}
-                bgClass="bg-purple-50/50 dark:bg-purple-950/20"
-                borderClass="bg-purple-500"
-                textClass="text-purple-600 dark:text-purple-400"
-                iconBgClass="bg-purple-100 dark:bg-purple-900/40"
-                badgeBgClass="bg-purple-100/80 dark:bg-purple-900/60"
-                loading={loading}
-              />
-              <StatCard
-                label="Most Common Type"
-                value={loading ? "—" : mostCommonType}
-                badgeText="Trending"
-                sub={
-                  typeDistribution[0]
-                    ? `${typeDistribution[0].value} applications`
-                    : ""
-                }
-                icon={Award}
-                bgClass="bg-emerald-50/50 dark:bg-emerald-950/20"
-                borderClass="bg-emerald-500"
-                textClass="text-emerald-700 dark:text-emerald-400"
-                iconBgClass="bg-emerald-100 dark:bg-emerald-900/40"
-                badgeBgClass="bg-emerald-100/80 dark:bg-emerald-900/60"
-                loading={loading}
-              />
-            </div>
-
-            {/* ── Row 2: Pie Chart + Approval Status ── */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
-              {/* Pie Chart */}
-              <Card className="lg:col-span-2 border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
-                <CardHeader className="pb-0 border-b border-border/40">
-                  <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-                    <div className="p-2 bg-[#7B0099]/10 rounded-xl">
-                      <PieChartIcon className="w-4 h-4 text-[#7B0099]" />
-                    </div>
-                    Leave Type Distribution
-                  </CardTitle>
-                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
-                    Breakdown by leave category
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  {loading ? (
-                    <div className="h-[260px] flex items-center justify-center">
-                      <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-8 h-8" />
-                    </div>
-                  ) : typeDistribution.length === 0 ? (
-                    <div className="h-[260px] flex items-center justify-center text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-30">
-                      No data for selection
-                    </div>
-                  ) : (
-                    <>
-                      <ResponsiveContainer width="100%" height={220}>
-                        <PieChart>
-                          <Pie
-                            data={typeDistribution}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={55}
-                            outerRadius={90}
-                            paddingAngle={3}
-                            dataKey="value"
-                            labelLine={false}
-                            label={renderCustomLabel}
-                            animationBegin={0}
-                            animationDuration={1200}
-                          >
-                            {typeDistribution.map((entry, idx) => (
-                              <Cell
-                                key={`cell-${idx}`}
-                                fill={
-                                  PIE_COLORS[entry.name] ||
-                                  FALLBACK_COLORS[idx % FALLBACK_COLORS.length]
-                                }
-                              />
-                            ))}
-                          </Pie>
-                          <Tooltip
-                            contentStyle={tooltipStyle}
-                            formatter={(value: number, name: string) => [
-                              `${value} applications`,
-                              name,
-                            ]}
-                            labelStyle={{ display: "none" }}
-                            itemStyle={{ fontWeight: 900, fontSize: 11 }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-
-                      {/* Legend */}
-                      <div className="mt-3 space-y-2">
-                        {typeDistribution.map((entry, idx) => (
-                          <div
-                            key={entry.name}
-                            className="flex items-center justify-between gap-2"
-                          >
-                            <div className="flex items-center gap-2 min-w-0">
-                              <div
-                                className="w-2.5 h-2.5 rounded-full shrink-0"
-                                style={{
-                                  backgroundColor:
-                                    PIE_COLORS[entry.name] ||
-                                    FALLBACK_COLORS[
-                                      idx % FALLBACK_COLORS.length
-                                    ],
-                                }}
-                              />
-                              <span className="text-[10px] font-bold text-muted-foreground truncate">
-                                {entry.name}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span className="text-[10px] font-black text-foreground">
-                                {entry.value}
-                              </span>
-                              <span className="text-[9px] font-bold text-muted-foreground/50">
-                                (
-                                {total > 0
-                                  ? Math.round((entry.value / total) * 100)
-                                  : 0}
-                                %)
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <p className="text-[10px] font-bold text-foreground/70 italic text-center mt-3">
-                        {typeDistribution.length > 0
-                          ? `${typeDistribution[0].name} accounts for ${total > 0 ? Math.round((typeDistribution[0].value / total) * 100) : 0}% of all applications.`
-                          : "No leave requests found."}
-                      </p>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Approved vs Rejected per Leave Type Bar Chart */}
-              <Card className="lg:col-span-3 border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
-                <CardHeader className="pb-0 border-b border-border/40">
-                  <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-                    <div className="p-2 bg-emerald-500/10 rounded-xl">
-                      <TrendingUp className="w-4 h-4 text-emerald-500" />
-                    </div>
-                    Approved vs Rejected
-                  </CardTitle>
-                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground/70 ml-11 italic">
-                    By leave type — current filter
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  {loading ? (
-                    <div className="h-[200px] flex items-center justify-center">
-                      <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-8 h-8" />
-                    </div>
-                  ) : approvalByType.length === 0 ? (
-                    <div className="h-[200px] flex items-center justify-center text-[10px] font-black text-foreground/50 uppercase tracking-widest">
-                      No data for selection
-                    </div>
-                  ) : (
-                    <>
-                      <ResponsiveContainer width="100%" height={200}>
-                        <BarChart
-                          data={approvalByType}
-                          margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
-                        >
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="rgba(123,0,153,0.05)"
-                            vertical={false}
-                          />
-                          <XAxis
-                            dataKey="type"
-                            tick={{
-                              fontSize: 9,
-                              fontWeight: 900,
-                              fill: "hsl(var(--foreground))",
-                              opacity: 0.8,
-                            }}
-                            axisLine={false}
-                            tickLine={false}
-                            interval={0}
-                            angle={-18}
-                            textAnchor="end"
-                          />
-                          <YAxis
-                            tick={{
-                              fontSize: 9,
-                              fontWeight: 900,
-                              fill: "hsl(var(--foreground))",
-                              opacity: 0.8,
-                            }}
-                            axisLine={false}
-                            tickLine={false}
-                            allowDecimals={false}
-                          />
-                          <Tooltip
-                            contentStyle={tooltipStyle}
-                            labelStyle={{
-                              fontWeight: 900,
-                              fontSize: 10,
-                              textTransform: "uppercase",
-                              marginBottom: 4,
-                            }}
-                            itemStyle={{ fontWeight: 900, fontSize: 11 }}
-                          />
-                          <Legend
-                            wrapperStyle={{
-                              fontSize: "9px",
-                              fontWeight: 900,
-                              textTransform: "uppercase",
-                              paddingTop: 8,
-                            }}
-                            iconType="circle"
-                          />
-                          <Bar
-                            dataKey="approved"
-                            name="Approved"
-                            fill="#10b981"
-                            radius={[6, 6, 0, 0]}
-                            barSize={20}
-                            animationDuration={1200}
-                          >
-                            <LabelList
-                              dataKey="approved"
-                              position="top"
-                              style={{
-                                fontSize: 9,
-                                fontWeight: 900,
-                                fill: "#10b981",
-                              }}
-                            />
-                          </Bar>
-                          <Bar
-                            dataKey="rejected"
-                            name="Rejected"
-                            fill="#ef4444"
-                            radius={[6, 6, 0, 0]}
-                            barSize={20}
-                            animationDuration={1400}
-                          >
-                            <LabelList
-                              dataKey="rejected"
-                              position="top"
-                              style={{
-                                fontSize: 9,
-                                fontWeight: 900,
-                                fill: "#ef4444",
-                              }}
-                            />
-                          </Bar>
-                          <Bar
-                            dataKey="pending"
-                            name="Pending"
-                            fill="#f59e0b"
-                            radius={[6, 6, 0, 0]}
-                            barSize={20}
-                            animationDuration={1600}
-                          >
-                            <LabelList
-                              dataKey="pending"
-                              position="top"
-                              style={{
-                                fontSize: 9,
-                                fontWeight: 900,
-                                fill: "#f59e0b",
-                              }}
-                            />
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                      <p className="text-[10px] font-bold text-foreground/70 italic text-center mt-2">
-                        {total > 0
-                          ? `${Math.round((approved / total) * 100)}% of leave requests this month were approved.`
-                          : "No leave requests found."}
-                      </p>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* ── Row 3: Leave Balance Usage + Monthly Trend ── */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
-              {/* Leave Balance Usage */}
-              <Card className="lg:col-span-2 border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
-                <CardHeader className="pb-0 border-b border-border/40">
-                  <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-                    <div className="p-2 bg-blue-500/10 rounded-xl">
-                      <Users className="w-4 h-4 text-blue-500" />
-                    </div>
-                    Leave Balance Usage
-                  </CardTitle>
-                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
-                    Estimated quota consumption
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-6 space-y-5">
-                  {loading ? (
-                    <div className="h-[200px] flex items-center justify-center">
-                      <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-8 h-8" />
-                    </div>
-                  ) : (
-                    <>
-                      {/* Big number */}
-                      <div className="text-center py-4">
-                        <div className="text-5xl font-black text-[#7B0099] leading-none">
-                          {balancePct}%
-                        </div>
-                        <div className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mt-1">
-                          Quota Used
-                        </div>
-                      </div>
-
-                      {/* Progress bar */}
-                      <div className="space-y-2">
-                        <div className="h-3 w-full rounded-full bg-muted/40 overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-1000"
-                            style={{
-                              width: `${balancePct}%`,
-                              background:
-                                balancePct >= 80
-                                  ? "linear-gradient(90deg, #ef4444, #dc2626)"
-                                  : balancePct >= 50
-                                    ? "linear-gradient(90deg, #f59e0b, #d97706)"
-                                    : "linear-gradient(90deg, #7B0099, #a855f7)",
-                            }}
-                          />
-                        </div>
-                        <div className="flex justify-between text-[9px] font-black text-muted-foreground uppercase">
-                          <span>0 days</span>
-                          <span>{totalQuota} days total</span>
-                        </div>
-                      </div>
-
-                      {/* Stats */}
-                      <div className="grid grid-cols-2 gap-3">
-                        {[
-                          {
-                            label: "Employees",
-                            value: uniqueEmployees,
-                            color: "text-foreground",
-                          },
-                          {
-                            label: "Days Approved",
-                            value: approvedDays,
-                            color: "text-[#7B0099]",
-                          },
-                          {
-                            label: "Total Quota",
-                            value: totalQuota,
-                            color: "text-blue-600",
-                          },
-                          {
-                            label: "Balance Est.",
-                            value: Math.max(0, totalQuota - approvedDays),
-                            color: "text-emerald-600",
-                          },
-                        ].map((s) => (
-                          <div
-                            key={s.label}
-                            className="bg-muted/20 p-3 rounded-2xl space-y-0.5"
-                          >
-                            <p className="text-[8px] font-black text-muted-foreground uppercase opacity-60">
-                              {s.label}
-                            </p>
-                            <p className={`text-base font-black ${s.color}`}>
-                              {s.value}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                      <p className="text-[9px] font-bold text-muted-foreground/50 italic text-center">
-                        * Estimated based on 14-day annual quota per employee
-                      </p>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Monthly Trend */}
-              <Card className="lg:col-span-3 border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
-                <CardHeader className="pb-0 border-b border-border/40">
-                  <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-                    <div className="p-2 bg-[#7B0099]/10 rounded-xl">
-                      <TrendingUp className="w-4 h-4 text-[#7B0099]" />
-                    </div>
-                    Monthly Leave Trend
-                  </CardTitle>
-                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground/70 ml-11 italic">
-                    Total applications over time
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  {loading ? (
-                    <div className="h-[200px] flex items-center justify-center">
-                      <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-8 h-8" />
-                    </div>
-                  ) : monthlyTrend.length === 0 ? (
-                    <div className="h-[200px] flex items-center justify-center text-[10px] font-black text-foreground/50 uppercase tracking-widest">
-                      No data for selection
-                    </div>
-                  ) : (
-                    <>
-                      <ResponsiveContainer width="100%" height={200}>
-                        <BarChart
-                          data={monthlyTrend}
-                          margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                        >
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="rgba(123,0,153,0.05)"
-                            vertical={false}
-                          />
-                          <XAxis
-                            dataKey="month"
-                            tick={{
-                              fontSize: 9,
-                              fontWeight: 900,
-                              fill: "hsl(var(--foreground))",
-                              opacity: 0.8,
-                            }}
-                            axisLine={false}
-                            tickLine={false}
-                          />
-                          <YAxis
-                            tick={{
-                              fontSize: 9,
-                              fontWeight: 900,
-                              fill: "hsl(var(--foreground))",
-                              opacity: 0.8,
-                            }}
-                            axisLine={false}
-                            tickLine={false}
-                            allowDecimals={false}
-                          />
-                          <Tooltip
-                            contentStyle={tooltipStyle}
-                            labelStyle={{
-                              fontWeight: 900,
-                              fontSize: 10,
-                              textTransform: "uppercase",
-                              marginBottom: 4,
-                            }}
-                            itemStyle={{ fontWeight: 900, fontSize: 11 }}
-                          />
-                          <Legend
-                            wrapperStyle={{
-                              fontSize: "9px",
-                              fontWeight: 900,
-                              textTransform: "uppercase",
-                              paddingTop: 8,
-                            }}
-                            iconType="circle"
-                          />
-                          <Bar
-                            dataKey="total"
-                            name="Total"
-                            fill="#7B0099"
-                            radius={[6, 6, 0, 0]}
-                            barSize={18}
-                            animationDuration={1000}
-                          />
-                          <Bar
-                            dataKey="approved"
-                            name="Approved"
-                            fill="#10b981"
-                            radius={[6, 6, 0, 0]}
-                            barSize={18}
-                            animationDuration={1200}
-                          />
-                          <Bar
-                            dataKey="rejected"
-                            name="Rejected"
-                            fill="#ef4444"
-                            radius={[6, 6, 0, 0]}
-                            barSize={18}
-                            animationDuration={1400}
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                      <p className="text-[10px] font-bold text-foreground/70 italic text-center mt-2">
-                        Trend analysis: Applications are highest in{" "}
-                        {monthlyTrend.length > 0
-                          ? monthlyTrend.reduce(
-                              (max, obj) => (obj.total > max.total ? obj : max),
-                              monthlyTrend[0],
-                            ).month
-                          : "N/A"}
-                        .
-                      </p>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* ── Status Summary Strip ── */}
-            <Card className="border-none shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] overflow-hidden">
-              <CardContent className="p-5">
-                <div className="flex flex-wrap items-center gap-4 sm:gap-8">
-                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">
-                    Status Summary:
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 md:px-6 pt-4 pb-3 border-b border-gray-100 bg-white">
+            <div className="flex items-center gap-4">
+              <div className="p-2.5 bg-gradient-to-br from-[#800A7A] to-[#a855f7] rounded-xl shadow-md">
+                <CalendarCheck className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-[15px] font-black text-gray-800 uppercase tracking-wide">
+                    Live Leave Analytics
+                  </h2>
+                  <span className="flex items-center gap-1.5 bg-purple-500 text-white border border-purple-400 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-widest shadow-sm shadow-purple-500/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                    LIVE
                   </span>
-                  {[
-                    {
-                      label: "Total",
-                      value: total,
-                      color: "bg-[#7B0099] text-white",
-                    },
-                    {
-                      label: "Approved",
-                      value: approved,
-                      color: "bg-emerald-500 text-white",
-                    },
-                    {
-                      label: "Rejected",
-                      value: rejected,
-                      color: "bg-rose-500 text-white",
-                    },
-                    {
-                      label: "Pending",
-                      value: pending,
-                      color: "bg-amber-500 text-white",
-                    },
-                  ].map((s) => (
-                    <div key={s.label} className="flex items-center gap-2">
-                      <Badge
-                        className={`${s.color} font-black text-[10px] px-3 py-1 rounded-md shadow-sm`}
-                      >
-                        {s.value}
-                      </Badge>
-                      <span className="text-[10px] font-black text-muted-foreground uppercase">
-                        {s.label}
-                      </span>
+                </div>
+                <p className="text-xs text-gray-500 font-medium mt-1">
+                  {lastFetched
+                    ? `Updated ${lastFetched.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true })}`
+                    : `Analyzing ${filtered.length} active leaves`}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void fetchData()}
+                className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-lg px-3 flex items-center gap-1.5 shadow-sm text-xs font-medium"
+              >
+                <RefreshCw className="w-4 h-4 text-gray-500" />
+                <span>Refresh</span>
+              </Button>
+              <ExportDropdown
+                onExportCSV={handleExport}
+                onExportPDF={handleExportPDF}
+              />
+            </div>
+          </div>
+
+          {/* Dense KPI Row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 md:p-6 bg-gray-50/50">
+            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+              <span className="text-[13px] font-medium text-gray-500 mb-1">
+                Total Applications
+              </span>
+              <span className="text-[32px] font-bold text-gray-900 leading-none">
+                {loading ? "—" : total}
+              </span>
+              <span className="text-[11px] text-gray-400 mt-2 font-medium">
+                {totalDays} total days
+              </span>
+            </div>
+            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+              <span className="text-[13px] font-medium text-gray-500 mb-1">
+                Approved
+              </span>
+              <span className="text-[32px] font-bold text-gray-900 leading-none">
+                {loading ? "—" : approved}
+              </span>
+              <span className="text-[11px] text-gray-400 mt-2 font-medium">
+                {total > 0
+                  ? `${Math.round((approved / total) * 100)}% approval rate`
+                  : "No data"}
+              </span>
+            </div>
+            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+              <span className="text-[13px] font-medium text-gray-500 mb-1">
+                Rejected
+              </span>
+              <span className="text-[32px] font-bold text-gray-900 leading-none">
+                {loading ? "—" : rejected}
+              </span>
+              <span className="text-[11px] text-gray-400 mt-2 font-medium">
+                {total > 0
+                  ? `${Math.round((rejected / total) * 100)}% rejection rate`
+                  : "No data"}
+              </span>
+            </div>
+            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+              <span className="text-[13px] font-medium text-gray-500 mb-1">
+                Most Common Type
+              </span>
+              <span className="text-[20px] font-bold text-gray-900 leading-tight mt-1 mb-auto truncate">
+                {loading ? "—" : mostCommonType}
+              </span>
+              <span className="text-[11px] text-gray-400 mt-2 font-medium">
+                {typeDistribution[0]
+                  ? `${typeDistribution[0].value} applications`
+                  : "No data"}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* FILTER BAR SECTION */}
+      <Card className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+        <div className="p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
+              <Filter className="w-4 h-4 text-gray-500" /> Analytics Filters
+            </h2>
+            <p className="text-[10px] text-gray-400 font-medium ml-6 mt-0.5 uppercase tracking-widest">
+              {filtered.length} Records Found
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Year */}
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-[90px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-md">
+                {YEARS.map((y) => (
+                  <SelectItem key={y} value={y}>
+                    {y}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Month */}
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-[120px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-md">
+                {MONTHS.map((m) => (
+                  <SelectItem key={m.value} value={m.value}>
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Branch */}
+            <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+              <SelectTrigger className="w-[130px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-md max-h-60">
+                {BRANCHES.map((b) => (
+                  <SelectItem key={b} value={b}>
+                    {b}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Leave Type */}
+            <Select value={selectedType} onValueChange={setSelectedType}>
+              <SelectTrigger className="w-[160px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-md">
+                <SelectItem value="All Types">All Types</SelectItem>
+                {LEAVE_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Status */}
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="w-[110px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-md">
+                {["All", "Approved", "Rejected", "Pending"].map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Active filter count badge */}
+            {(selectedMonth !== "all" ||
+              selectedBranch !== "All Branches" ||
+              selectedType !== "All Types" ||
+              selectedStatus !== "All") && (
+              <Badge
+                className="bg-gray-100 text-gray-600 font-medium text-[10px] px-2.5 py-1 rounded-md cursor-pointer hover:bg-gray-200 transition-colors ml-1"
+                onClick={() => {
+                  setSelectedMonth("all");
+                  setSelectedBranch("All Branches");
+                  setSelectedType("All Types");
+                  setSelectedStatus("All");
+                }}
+              >
+                Clear ×
+              </Badge>
+            )}
+          </div>
+        </div>
+      </Card>
+
+      {/* ── Row 2: Pie Chart + Approval Status ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+        {/* Pie Chart */}
+        <Card className="lg:col-span-2 border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
+          <CardHeader className="pb-0 border-b border-border/40">
+            <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+              <div className="p-2 bg-[#7B0099]/10 rounded-xl">
+                <PieChartIcon className="w-4 h-4 text-[#7B0099]" />
+              </div>
+              Leave Type Distribution
+            </CardTitle>
+            <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
+              Breakdown by leave category
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {loading ? (
+              <div className="h-[260px] flex items-center justify-center">
+                <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-8 h-8" />
+              </div>
+            ) : typeDistribution.length === 0 ? (
+              <div className="h-[260px] flex items-center justify-center text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-30">
+                No data for selection
+              </div>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie
+                      data={typeDistribution}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={90}
+                      paddingAngle={3}
+                      dataKey="value"
+                      labelLine={false}
+                      label={renderCustomLabel}
+                      animationBegin={0}
+                      animationDuration={1200}
+                    >
+                      {typeDistribution.map((entry, idx) => (
+                        <Cell
+                          key={`cell-${idx}`}
+                          fill={
+                            PIE_COLORS[entry.name] ||
+                            FALLBACK_COLORS[idx % FALLBACK_COLORS.length]
+                          }
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={tooltipStyle}
+                      formatter={(value: number, name: string) => [
+                        `${value} applications`,
+                        name,
+                      ]}
+                      labelStyle={{ display: "none" }}
+                      itemStyle={{ fontWeight: 900, fontSize: 11 }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+
+                {/* Legend */}
+                <div className="mt-3 space-y-2">
+                  {typeDistribution.map((entry, idx) => (
+                    <div
+                      key={entry.name}
+                      className="flex items-center justify-between gap-2"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{
+                            backgroundColor:
+                              PIE_COLORS[entry.name] ||
+                              FALLBACK_COLORS[idx % FALLBACK_COLORS.length],
+                          }}
+                        />
+                        <span className="text-[10px] font-bold text-muted-foreground truncate">
+                          {entry.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-[10px] font-black text-foreground">
+                          {entry.value}
+                        </span>
+                        <span className="text-[9px] font-bold text-muted-foreground/50">
+                          (
+                          {total > 0
+                            ? Math.round((entry.value / total) * 100)
+                            : 0}
+                          %)
+                        </span>
+                      </div>
                     </div>
                   ))}
-                  {!loading && total > 0 && (
-                    <div className="ml-auto text-[9px] font-black text-muted-foreground/50 italic">
-                      Approval rate: {Math.round((approved / total) * 100)}% ·
-                      Rejection rate: {Math.round((rejected / total) * 100)}%
-                    </div>
-                  )}
                 </div>
-              </CardContent>
-            </Card>
+                <p className="text-[10px] font-bold text-foreground/70 italic text-center mt-3">
+                  {typeDistribution.length > 0
+                    ? `${typeDistribution[0].name} accounts for ${total > 0 ? Math.round((typeDistribution[0].value / total) * 100) : 0}% of all applications.`
+                    : "No leave requests found."}
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
 
-            {/* ── Workforce Health Overview ── */}
-            <Card className="border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden mt-6">
-              <CardHeader className="pb-0 border-b border-border/40">
-                <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-                  <div className="p-2 bg-indigo-500/10 rounded-xl">
-                    <CheckCircle2 className="w-4 h-4 text-indigo-500" />
-                  </div>
-                  Workforce Health Overview
-                </CardTitle>
-                <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground/70 ml-11 italic">
-                  Automated workforce analysis
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-muted/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">
-                      Attendance Stability
-                    </p>
-                    <p
-                      className={`text-lg font-black uppercase ${attendanceStats.attendanceRate >= 90 ? "text-emerald-500" : attendanceStats.attendanceRate >= 80 ? "text-amber-500" : "text-rose-500"}`}
+        {/* Approved vs Rejected per Leave Type Bar Chart */}
+        <Card className="lg:col-span-3 border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
+          <CardHeader className="pb-0 border-b border-border/40">
+            <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+              <div className="p-2 bg-emerald-500/10 rounded-xl">
+                <TrendingUp className="w-4 h-4 text-emerald-500" />
+              </div>
+              Approved vs Rejected
+            </CardTitle>
+            <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground/70 ml-11 italic">
+              By leave type — current filter
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {loading ? (
+              <div className="h-[200px] flex items-center justify-center">
+                <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-8 h-8" />
+              </div>
+            ) : approvalByType.length === 0 ? (
+              <div className="h-[200px] flex items-center justify-center text-[10px] font-black text-foreground/50 uppercase tracking-widest">
+                No data for selection
+              </div>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart
+                    data={approvalByType}
+                    margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="rgba(123,0,153,0.05)"
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="type"
+                      tick={{
+                        fontSize: 9,
+                        fontWeight: 900,
+                        fill: "hsl(var(--foreground))",
+                        opacity: 0.8,
+                      }}
+                      axisLine={false}
+                      tickLine={false}
+                      interval={0}
+                      angle={-18}
+                      textAnchor="end"
+                    />
+                    <YAxis
+                      tick={{
+                        fontSize: 9,
+                        fontWeight: 900,
+                        fill: "hsl(var(--foreground))",
+                        opacity: 0.8,
+                      }}
+                      axisLine={false}
+                      tickLine={false}
+                      allowDecimals={false}
+                    />
+                    <Tooltip
+                      contentStyle={tooltipStyle}
+                      labelStyle={{
+                        fontWeight: 900,
+                        fontSize: 10,
+                        textTransform: "uppercase",
+                        marginBottom: 4,
+                      }}
+                      itemStyle={{ fontWeight: 900, fontSize: 11 }}
+                    />
+                    <Legend
+                      wrapperStyle={{
+                        fontSize: "9px",
+                        fontWeight: 900,
+                        textTransform: "uppercase",
+                        paddingTop: 8,
+                      }}
+                      iconType="circle"
+                    />
+                    <Bar
+                      dataKey="approved"
+                      name="Approved"
+                      fill="#10b981"
+                      radius={[6, 6, 0, 0]}
+                      barSize={20}
+                      animationDuration={1200}
                     >
-                      {attendanceStats.attendanceRate >= 90
-                        ? "Excellent"
-                        : attendanceStats.attendanceRate >= 80
-                          ? "Good"
-                          : "Needs Review"}
-                    </p>
-                  </div>
-                  <div className="bg-muted/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">
-                      Leave Risk
-                    </p>
-                    <p
-                      className={`text-lg font-black uppercase ${balancePct < 30 ? "text-emerald-500" : balancePct < 70 ? "text-amber-500" : "text-rose-500"}`}
+                      <LabelList
+                        dataKey="approved"
+                        position="top"
+                        style={{
+                          fontSize: 9,
+                          fontWeight: 900,
+                          fill: "#10b981",
+                        }}
+                      />
+                    </Bar>
+                    <Bar
+                      dataKey="rejected"
+                      name="Rejected"
+                      fill="#ef4444"
+                      radius={[6, 6, 0, 0]}
+                      barSize={20}
+                      animationDuration={1400}
                     >
-                      {balancePct < 30
-                        ? "Low"
-                        : balancePct < 70
-                          ? "Medium"
-                          : "High"}
-                    </p>
-                  </div>
-                  <div className="bg-muted/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">
-                      Approval Efficiency
-                    </p>
-                    <p
-                      className={`text-lg font-black uppercase ${pending === 0 ? "text-emerald-500" : pending < 5 ? "text-amber-500" : "text-rose-500"}`}
+                      <LabelList
+                        dataKey="rejected"
+                        position="top"
+                        style={{
+                          fontSize: 9,
+                          fontWeight: 900,
+                          fill: "#ef4444",
+                        }}
+                      />
+                    </Bar>
+                    <Bar
+                      dataKey="pending"
+                      name="Pending"
+                      fill="#f59e0b"
+                      radius={[6, 6, 0, 0]}
+                      barSize={20}
+                      animationDuration={1600}
                     >
-                      {pending === 0
-                        ? "Excellent"
-                        : pending < 5
-                          ? "Good"
-                          : "Backlog"}
-                    </p>
+                      <LabelList
+                        dataKey="pending"
+                        position="top"
+                        style={{
+                          fontSize: 9,
+                          fontWeight: 900,
+                          fill: "#f59e0b",
+                        }}
+                      />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+                <p className="text-[10px] font-bold text-foreground/70 italic text-center mt-2">
+                  {total > 0
+                    ? `${Math.round((approved / total) * 100)}% of leave requests this month were approved.`
+                    : "No leave requests found."}
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── Row 3: Leave Balance Usage + Monthly Trend ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+        {/* Leave Balance Usage */}
+        <Card className="lg:col-span-2 border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
+          <CardHeader className="pb-0 border-b border-border/40">
+            <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+              <div className="p-2 bg-blue-500/10 rounded-xl">
+                <Users className="w-4 h-4 text-blue-500" />
+              </div>
+              Leave Balance Usage
+            </CardTitle>
+            <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
+              Estimated quota consumption
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-5">
+            {loading ? (
+              <div className="h-[200px] flex items-center justify-center">
+                <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-8 h-8" />
+              </div>
+            ) : (
+              <>
+                {/* Big number */}
+                <div className="text-center py-4">
+                  <div className="text-5xl font-black text-[#7B0099] leading-none">
+                    {balancePct}%
                   </div>
-                  <div className="bg-muted/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">
-                      Branch Coverage
-                    </p>
-                    <p className="text-lg font-black uppercase text-blue-500">
-                      Stable
-                    </p>
+                  <div className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mt-1">
+                    Quota Used
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+
+                {/* Progress bar */}
+                <div className="space-y-2">
+                  <div className="h-3 w-full rounded-full bg-muted/40 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-1000"
+                      style={{
+                        width: `${balancePct}%`,
+                        background:
+                          balancePct >= 80
+                            ? "linear-gradient(90deg, #ef4444, #dc2626)"
+                            : balancePct >= 50
+                              ? "linear-gradient(90deg, #f59e0b, #d97706)"
+                              : "linear-gradient(90deg, #7B0099, #a855f7)",
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[9px] font-black text-muted-foreground uppercase">
+                    <span>0 days</span>
+                    <span>{totalQuota} days total</span>
+                  </div>
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    {
+                      label: "Employees",
+                      value: uniqueEmployees,
+                      color: "text-foreground",
+                    },
+                    {
+                      label: "Days Approved",
+                      value: approvedDays,
+                      color: "text-[#7B0099]",
+                    },
+                    {
+                      label: "Total Quota",
+                      value: totalQuota,
+                      color: "text-blue-600",
+                    },
+                    {
+                      label: "Balance Est.",
+                      value: Math.max(0, totalQuota - approvedDays),
+                      color: "text-emerald-600",
+                    },
+                  ].map((s) => (
+                    <div
+                      key={s.label}
+                      className="bg-muted/20 p-3 rounded-2xl space-y-0.5"
+                    >
+                      <p className="text-[8px] font-black text-muted-foreground uppercase opacity-60">
+                        {s.label}
+                      </p>
+                      <p className={`text-base font-black ${s.color}`}>
+                        {s.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[9px] font-bold text-muted-foreground/50 italic text-center">
+                  * Estimated based on 14-day annual quota per employee
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Monthly Trend */}
+        <Card className="lg:col-span-3 border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
+          <CardHeader className="pb-0 border-b border-border/40">
+            <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+              <div className="p-2 bg-[#7B0099]/10 rounded-xl">
+                <TrendingUp className="w-4 h-4 text-[#7B0099]" />
+              </div>
+              Monthly Leave Trend
+            </CardTitle>
+            <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground/70 ml-11 italic">
+              Total applications over time
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {loading ? (
+              <div className="h-[200px] flex items-center justify-center">
+                <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-8 h-8" />
+              </div>
+            ) : monthlyTrend.length === 0 ? (
+              <div className="h-[200px] flex items-center justify-center text-[10px] font-black text-foreground/50 uppercase tracking-widest">
+                No data for selection
+              </div>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart
+                    data={monthlyTrend}
+                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="rgba(123,0,153,0.05)"
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="month"
+                      tick={{
+                        fontSize: 9,
+                        fontWeight: 900,
+                        fill: "hsl(var(--foreground))",
+                        opacity: 0.8,
+                      }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{
+                        fontSize: 9,
+                        fontWeight: 900,
+                        fill: "hsl(var(--foreground))",
+                        opacity: 0.8,
+                      }}
+                      axisLine={false}
+                      tickLine={false}
+                      allowDecimals={false}
+                    />
+                    <Tooltip
+                      contentStyle={tooltipStyle}
+                      labelStyle={{
+                        fontWeight: 900,
+                        fontSize: 10,
+                        textTransform: "uppercase",
+                        marginBottom: 4,
+                      }}
+                      itemStyle={{ fontWeight: 900, fontSize: 11 }}
+                    />
+                    <Legend
+                      wrapperStyle={{
+                        fontSize: "9px",
+                        fontWeight: 900,
+                        textTransform: "uppercase",
+                        paddingTop: 8,
+                      }}
+                      iconType="circle"
+                    />
+                    <Bar
+                      dataKey="total"
+                      name="Total"
+                      fill="#7B0099"
+                      radius={[6, 6, 0, 0]}
+                      barSize={18}
+                      animationDuration={1000}
+                    />
+                    <Bar
+                      dataKey="approved"
+                      name="Approved"
+                      fill="#10b981"
+                      radius={[6, 6, 0, 0]}
+                      barSize={18}
+                      animationDuration={1200}
+                    />
+                    <Bar
+                      dataKey="rejected"
+                      name="Rejected"
+                      fill="#ef4444"
+                      radius={[6, 6, 0, 0]}
+                      barSize={18}
+                      animationDuration={1400}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+                <p className="text-[10px] font-bold text-foreground/70 italic text-center mt-2">
+                  Trend analysis: Applications are highest in{" "}
+                  {monthlyTrend.length > 0
+                    ? monthlyTrend.reduce(
+                        (max, obj) => (obj.total > max.total ? obj : max),
+                        monthlyTrend[0],
+                      ).month
+                    : "N/A"}
+                  .
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── Status Summary Strip ── */}
+      <Card className="border-none shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] overflow-hidden">
+        <CardContent className="p-5">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-8">
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+              Status Summary:
+            </span>
+            {[
+              {
+                label: "Total",
+                value: total,
+                color: "bg-[#7B0099] text-white",
+              },
+              {
+                label: "Approved",
+                value: approved,
+                color: "bg-emerald-500 text-white",
+              },
+              {
+                label: "Rejected",
+                value: rejected,
+                color: "bg-rose-500 text-white",
+              },
+              {
+                label: "Pending",
+                value: pending,
+                color: "bg-amber-500 text-white",
+              },
+            ].map((s) => (
+              <div key={s.label} className="flex items-center gap-2">
+                <Badge
+                  className={`${s.color} font-black text-[10px] px-3 py-1 rounded-md shadow-sm`}
+                >
+                  {s.value}
+                </Badge>
+                <span className="text-[10px] font-black text-muted-foreground uppercase">
+                  {s.label}
+                </span>
+              </div>
+            ))}
+            {!loading && total > 0 && (
+              <div className="ml-auto text-[9px] font-black text-muted-foreground/50 italic">
+                Approval rate: {Math.round((approved / total) * 100)}% ·
+                Rejection rate: {Math.round((rejected / total) * 100)}%
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Workforce Health Overview ── */}
+      <Card className="border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden mt-6">
+        <CardHeader className="pb-0 border-b border-border/40">
+          <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+            <div className="p-2 bg-indigo-500/10 rounded-xl">
+              <CheckCircle2 className="w-4 h-4 text-indigo-500" />
+            </div>
+            Workforce Health Overview
+          </CardTitle>
+          <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground/70 ml-11 italic">
+            Automated workforce analysis
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-muted/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">
+                Attendance Stability
+              </p>
+              <p
+                className={`text-lg font-black uppercase ${attendanceStats.attendanceRate >= 90 ? "text-emerald-500" : attendanceStats.attendanceRate >= 80 ? "text-amber-500" : "text-rose-500"}`}
+              >
+                {attendanceStats.attendanceRate >= 90
+                  ? "Excellent"
+                  : attendanceStats.attendanceRate >= 80
+                    ? "Good"
+                    : "Needs Review"}
+              </p>
+            </div>
+            <div className="bg-muted/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">
+                Leave Risk
+              </p>
+              <p
+                className={`text-lg font-black uppercase ${balancePct < 30 ? "text-emerald-500" : balancePct < 70 ? "text-amber-500" : "text-rose-500"}`}
+              >
+                {balancePct < 30 ? "Low" : balancePct < 70 ? "Medium" : "High"}
+              </p>
+            </div>
+            <div className="bg-muted/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">
+                Approval Efficiency
+              </p>
+              <p
+                className={`text-lg font-black uppercase ${pending === 0 ? "text-emerald-500" : pending < 5 ? "text-amber-500" : "text-rose-500"}`}
+              >
+                {pending === 0 ? "Excellent" : pending < 5 ? "Good" : "Backlog"}
+              </p>
+            </div>
+            <div className="bg-muted/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">
+                Branch Coverage
+              </p>
+              <p className="text-lg font-black uppercase text-blue-500">
+                Stable
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
