@@ -362,11 +362,12 @@ export default function Branches() {
             </Card>
           )}
 
-          <Sheet open={isStatsOpen} onOpenChange={setIsStatsOpen}>
-            <SheetContent className="sm:max-w-md w-full overflow-y-auto border-none shadow-2xl safe-area-bottom">
-              <SheetHeader className="pb-6 border-b border-border/50 pt-4">
-                <SheetTitle className="text-xl font-black text-foreground tracking-tight">Staff Analytics</SheetTitle>
-              </SheetHeader>
+          <Dialog open={isStatsOpen} onOpenChange={setIsStatsOpen}>
+            <DialogContent className="sm:max-w-[800px] w-[95vw] max-h-[90vh] overflow-y-auto border border-border/50 shadow-2xl rounded-[10px] safe-area-bottom p-6 duration-300">
+              <DialogHeader className="pb-6 border-b border-border/50">
+                <DialogTitle className="text-xl font-black text-foreground tracking-tight">Staff Analytics</DialogTitle>
+                <DialogDescription className="sr-only">View and analyze staff attendance and leave metrics.</DialogDescription>
+              </DialogHeader>
               <div className="py-4 space-y-4">
                 {selectedEmployee ? (
                   <>
@@ -438,8 +439,8 @@ export default function Branches() {
                   </div>
                 )}
               </div>
-            </SheetContent>
-          </Sheet>
+            </DialogContent>
+          </Dialog>
         </div>
       ) : (
         <div className="space-y-4 sm:space-y-6">
