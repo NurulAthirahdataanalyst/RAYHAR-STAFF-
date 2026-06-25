@@ -581,7 +581,9 @@ export default function Branches() {
           <Dialog open={isStatsOpen} onOpenChange={setIsStatsOpen}>
             <DialogContent className="max-w-2xl w-full overflow-y-auto max-h-[90vh]">
               <DialogHeader className="pb-4 border-b border-border/50">
-                <DialogTitle className="text-xl font-black text-foreground">Staff Profile</DialogTitle>
+                <DialogTitle className="text-xl font-black text-foreground">
+                  Staff Profile
+                </DialogTitle>
                 <DialogDescription className="sr-only">
                   View and analyze staff attendance and leave metrics.
                 </DialogDescription>
@@ -595,28 +597,51 @@ export default function Branches() {
                         <div className="w-24 h-24 rounded-2xl bg-[#7B0099] flex items-center justify-center text-white text-4xl font-black shadow-xl mb-4">
                           {selectedEmployee.full_name.charAt(0)}
                         </div>
-                        <h2 className="text-xl font-black text-foreground leading-tight">{selectedEmployee.full_name}</h2>
-                        <p className="text-sm font-bold text-[#7B0099] mt-1">{selectedEmployee.email}</p>
-                        <Badge variant="secondary" className="mt-4 text-[10px] uppercase font-black px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none">
+                        <h2 className="text-xl font-black text-foreground leading-tight">
+                          {selectedEmployee.full_name}
+                        </h2>
+                        <p className="text-sm font-bold text-[#7B0099] mt-1">
+                          {selectedEmployee.email}
+                        </p>
+                        <Badge
+                          variant="secondary"
+                          className="mt-4 text-[10px] uppercase font-black px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none"
+                        >
                           {selectedEmployee.role.replace(/_/g, " ")}
                         </Badge>
-                        
+
                         <div className="mt-6 pt-6 border-t border-border/50 w-full space-y-3">
                           <div className="flex justify-between items-center text-xs">
-                            <span className="font-bold text-muted-foreground uppercase tracking-widest">User ID</span>
-                            <span className="font-black text-foreground">{selectedEmployee.user_id}</span>
+                            <span className="font-bold text-muted-foreground uppercase tracking-widest">
+                              User ID
+                            </span>
+                            <span className="font-black text-foreground">
+                              {selectedEmployee.user_id}
+                            </span>
                           </div>
                           <div className="flex justify-between items-center text-xs">
-                            <span className="font-bold text-muted-foreground uppercase tracking-widest">Branch</span>
-                            <span className="font-black text-foreground">{selectedBranch?.name || "BRANCH"}</span>
+                            <span className="font-bold text-muted-foreground uppercase tracking-widest">
+                              Branch
+                            </span>
+                            <span className="font-black text-foreground">
+                              {selectedBranch?.name || "BRANCH"}
+                            </span>
                           </div>
                           <div className="flex justify-between items-center text-xs">
-                            <span className="font-bold text-muted-foreground uppercase tracking-widest">Department</span>
-                            <span className="font-black text-foreground">Haji Umrah (BHU)</span>
+                            <span className="font-bold text-muted-foreground uppercase tracking-widest">
+                              Department
+                            </span>
+                            <span className="font-black text-foreground">
+                              Haji Umrah (BHU)
+                            </span>
                           </div>
                           <div className="flex justify-between items-center text-xs">
-                            <span className="font-bold text-muted-foreground uppercase tracking-widest">Status</span>
-                            <Badge className={`text-white font-black text-[9px] h-5 ${selectedEmployee.status === 'Active' ? 'bg-emerald-500' : 'bg-rose-500'}`}>
+                            <span className="font-bold text-muted-foreground uppercase tracking-widest">
+                              Status
+                            </span>
+                            <Badge
+                              className={`text-white font-black text-[9px] h-5 ${selectedEmployee.status === "Active" ? "bg-emerald-500" : "bg-rose-500"}`}
+                            >
                               {selectedEmployee.status || "Active"}
                             </Badge>
                           </div>
@@ -625,46 +650,74 @@ export default function Branches() {
 
                       {/* Right Column: Stats */}
                       <div className="space-y-4">
-                        <p className="text-xs font-black text-muted-foreground uppercase tracking-widest px-1">Performance & Leave</p>
+                        <p className="text-xs font-black text-muted-foreground uppercase tracking-widest px-1">
+                          Performance & Leave
+                        </p>
                         <div className="grid grid-cols-2 gap-3">
                           <div className="rounded-[16px] border border-border/50 p-4 bg-card/50 hover:border-[#7B0099]/30 transition-colors group">
                             <CalendarCheck className="mb-2 h-4 w-4 text-[#7B0099] group-hover:scale-110 transition-transform" />
-                            <p className="text-2xl font-black text-foreground">{selectedEmployee.annual_leave_balance}</p>
-                            <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Annual Left</p>
+                            <p className="text-2xl font-black text-foreground">
+                              {selectedEmployee.annual_leave_balance}
+                            </p>
+                            <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                              Annual Left
+                            </p>
                           </div>
                           <div className="rounded-[16px] border border-border/50 p-4 bg-card/50 hover:border-emerald-500/30 transition-colors group">
                             <TrendingUp className="mb-2 h-4 w-4 text-emerald-500 group-hover:scale-110 transition-transform" />
-                            <p className="text-2xl font-black text-foreground">{selectedEmployee.attendance_rate || 0}%</p>
-                            <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Attendance</p>
+                            <p className="text-2xl font-black text-foreground">
+                              {selectedEmployee.attendance_rate || 0}%
+                            </p>
+                            <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                              Attendance
+                            </p>
                           </div>
                           <div className="rounded-[16px] border border-border/50 p-4 bg-card/50 hover:border-amber-500/30 transition-colors group">
                             <Clock className="mb-2 h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
-                            <p className="text-2xl font-black text-foreground">{selectedEmployee.pending_leaves}</p>
-                            <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Pending</p>
+                            <p className="text-2xl font-black text-foreground">
+                              {selectedEmployee.pending_leaves}
+                            </p>
+                            <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                              Pending
+                            </p>
                           </div>
                           <div className="rounded-[16px] border border-border/50 p-4 bg-card/50 hover:border-purple-500/30 transition-colors group">
                             <FileText className="mb-2 h-4 w-4 text-purple-500 group-hover:scale-110 transition-transform" />
-                            <p className="text-2xl font-black text-foreground">{selectedEmployee.mc_leaves || 0}</p>
-                            <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Total MC</p>
+                            <p className="text-2xl font-black text-foreground">
+                              {selectedEmployee.mc_leaves || 0}
+                            </p>
+                            <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                              Total MC
+                            </p>
                           </div>
                         </div>
 
                         <div className="space-y-2 mt-4">
-                          <p className="text-xs font-black text-muted-foreground uppercase tracking-widest px-1">Quick Links</p>
+                          <p className="text-xs font-black text-muted-foreground uppercase tracking-widest px-1">
+                            Quick Links
+                          </p>
                           <div className="grid grid-cols-1 gap-2">
-                            <button 
-                              className="flex items-center justify-between w-full rounded-[14px] bg-emerald-500/10 px-4 py-3 hover:bg-emerald-500/20 transition-all border border-emerald-500/20 group touch-target" 
+                            <button
+                              className="flex items-center justify-between w-full rounded-[14px] bg-emerald-500/10 px-4 py-3 hover:bg-emerald-500/20 transition-all border border-emerald-500/20 group touch-target"
                               onClick={() => setViewLeaveStatus("Approved")}
                             >
-                              <span className="text-xs font-black text-emerald-700">Approved Leaves</span>
-                              <Badge className="bg-emerald-500 text-white font-black h-5 text-[10px] group-hover:scale-110 transition-transform">{selectedEmployee.approved_leaves}</Badge>
+                              <span className="text-xs font-black text-emerald-700">
+                                Approved Leaves
+                              </span>
+                              <Badge className="bg-emerald-500 text-white font-black h-5 text-[10px] group-hover:scale-110 transition-transform">
+                                {selectedEmployee.approved_leaves}
+                              </Badge>
                             </button>
-                            <button 
-                              className="flex items-center justify-between w-full rounded-[14px] bg-amber-500/10 px-4 py-3 hover:bg-amber-500/20 transition-all border border-amber-500/20 group touch-target" 
+                            <button
+                              className="flex items-center justify-between w-full rounded-[14px] bg-amber-500/10 px-4 py-3 hover:bg-amber-500/20 transition-all border border-amber-500/20 group touch-target"
                               onClick={() => setViewLeaveStatus("Pending")}
                             >
-                              <span className="text-xs font-black text-amber-700">Pending Approvals</span>
-                              <Badge className="bg-amber-500 text-white font-black h-5 text-[10px] group-hover:scale-110 transition-transform">{selectedEmployee.pending_leaves}</Badge>
+                              <span className="text-xs font-black text-amber-700">
+                                Pending Approvals
+                              </span>
+                              <Badge className="bg-amber-500 text-white font-black h-5 text-[10px] group-hover:scale-110 transition-transform">
+                                {selectedEmployee.pending_leaves}
+                              </Badge>
                             </button>
                           </div>
                         </div>
