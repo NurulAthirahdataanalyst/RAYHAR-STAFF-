@@ -908,7 +908,6 @@ export default function AttendanceDashboard() {
               </Select>
             </div>
           </div>
-        </div>
       </Card>
 
       {/* ADMIN ATTENDANCE TABLE */}
