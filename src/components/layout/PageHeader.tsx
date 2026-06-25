@@ -81,40 +81,43 @@ export default function PageHeader() {
     str.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 
   return (
-    <div className="w-full pb-4 border-b border-gray-200 dark:border-white/10 mb-2 mt-2">
-      <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 tracking-tight">
-        {title}
-      </h1>
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-gray-500 mt-1 flex-wrap">
-        {crumbs.map((crumb, index) => {
-          const isLast = index === crumbs.length - 1;
-          return (
-            <span key={index} className="flex items-center gap-2">
-              {isLast ? (
-                <span className="text-gray-800 dark:text-gray-200 font-medium">
-                  {toTitleCase(crumb.label)}
-                </span>
-              ) : (
-                <span
-                  onClick={crumb.path ? () => navigate(crumb.path!) : undefined}
-                  className={`transition-colors ${
-                    crumb.path
-                      ? "hover:underline cursor-pointer"
-                      : ""
-                  }`}
-                >
-                  {toTitleCase(crumb.label)}
-                </span>
-              )}
-              {!isLast && (
-                <span className="text-gray-400 select-none">
-                  &gt;
-                </span>
-              )}
-            </span>
-          );
-        })}
-      </nav>
+    <div className="w-full pb-4 border-b border-gray-200 dark:border-white/10 mb-2 mt-2 flex justify-between items-start">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 tracking-tight">
+          {title}
+        </h1>
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-gray-500 mt-1 flex-wrap">
+          {crumbs.map((crumb, index) => {
+            const isLast = index === crumbs.length - 1;
+            return (
+              <span key={index} className="flex items-center gap-2">
+                {isLast ? (
+                  <span className="text-gray-800 dark:text-gray-200 font-medium">
+                    {toTitleCase(crumb.label)}
+                  </span>
+                ) : (
+                  <span
+                    onClick={crumb.path ? () => navigate(crumb.path!) : undefined}
+                    className={`transition-colors ${
+                      crumb.path
+                        ? "hover:underline cursor-pointer"
+                        : ""
+                    }`}
+                  >
+                    {toTitleCase(crumb.label)}
+                  </span>
+                )}
+                {!isLast && (
+                  <span className="text-gray-400 select-none">
+                    &gt;
+                  </span>
+                )}
+              </span>
+            );
+          })}
+        </nav>
+      </div>
+      <div id="page-header-actions" className="flex items-center gap-2"></div>
     </div>
   );
 }

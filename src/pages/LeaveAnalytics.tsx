@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -136,6 +137,14 @@ function StatCard({
 export default function LeaveAnalytics() {
   const { role, userBranch, userDepartment } = useRole();
   const navigate = useNavigate();
+
+  // State to hold portal target
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    // Locate the portal target in the PageHeader after mount
+    setPortalTarget(document.getElementById("page-header-actions"));
+  }, []);
 
   // Redirect non-hr_admin roles
   useEffect(() => {
@@ -437,35 +446,24 @@ export default function LeaveAnalytics() {
       <Card className="border border-white/60 bg-white/40 dark:bg-card/40 backdrop-blur-2xl rounded-3xl shadow-xl shadow-purple-900/5 overflow-hidden ring-1 ring-black/5">
         <CardContent className="p-0">
           
-          {/* ── Page Header ── */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-6 md:px-8 pt-6 pb-5 border-b border-white/60 dark:border-white/10 bg-white/30 dark:bg-black/20 backdrop-blur-md">
-            <div className="flex items-center gap-4">
-              <div className="p-2.5 bg-gradient-to-br from-[#800A7A] to-[#a855f7] rounded-xl shadow-md">
-                <PieChartIcon className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight uppercase flex items-center gap-2">
-                  Leave Monitoring
-                </h1>
-                <p className="text-xs text-muted-foreground font-medium flex items-center gap-2 italic">
-                  Leave Summary Analytics · HR Admin View
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 self-start sm:self-auto">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => void fetchData()}
-                className="gap-2 bg-white/50 border-border text-muted-foreground hover:text-foreground rounded-xl font-black text-[10px] uppercase tracking-widest px-4 py-2"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                Refresh
-              </Button>
-              <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
-            </div>
-          </div>
+          {/* Action Buttons - Portaled to PageHeader */}
+          {portalTarget && 
+            createPortal(
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void fetchData()}
+                  className="gap-2 bg-white border-border text-muted-foreground hover:text-foreground rounded-xl font-black text-[10px] uppercase tracking-widest px-4 py-2 shadow-sm"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Refresh
+                </Button>
+                <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
+              </div>,
+              portalTarget
+            )
+          }
 
           <div className="p-6 md:p-8 space-y-6">
 
