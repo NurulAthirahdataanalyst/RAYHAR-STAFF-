@@ -125,7 +125,7 @@ export default function Branches() {
         setLoading(true);
         try {
           const params = new URLSearchParams({ branch: selectedBranch.code });
-          const response = await fetch(`${API_BASE_URL}/api/employees/branch-stats?${params}`);
+          const response = await fetch(`${API_BASE_URL}/api/branch-employees?${params}`);
           const data = await response.json();
           if (data.success) {
             setEmployees(data.employees || []);
