@@ -82,19 +82,19 @@ const LEAVE_TYPES = [
 ];
 
 const PIE_COLORS: Record<string, string> = {
-  "Annual/Emergency Leave": "#7B0099",
-  "Sick Leave": "#ec4899",
-  "Replacement Leave": "#10b981",
-  "Unpaid Leave": "#f59e0b",
+  "Annual/Emergency Leave": "#3B82F6", // Blue
+  "Sick Leave": "#10B981", // Emerald
+  "Replacement Leave": "#F59E0B", // Amber
+  "Unpaid Leave": "#EF4444", // Red
 };
 
 const FALLBACK_COLORS = [
-  "#7B0099",
-  "#3b82f6",
-  "#10b981",
-  "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
+  "#3B82F6",
+  "#10B981",
+  "#F59E0B",
+  "#EF4444",
+  "#8B5CF6",
+  "#64748B",
 ];
 
 const MONTHS = [
@@ -575,13 +575,13 @@ export default function LeaveAnalytics() {
           <title>Rayhar Staff Leave Report - ${periodName}</title>
           <style>
             body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; padding: 40px; }
-            h1 { color: #7B0099; margin-bottom: 5px; font-size: 24px; font-weight: 800; }
+            h1 { color: #3B82F6; margin-bottom: 5px; font-size: 24px; font-weight: 800; }
             h2 { color: #64748b; font-size: 13px; margin-top: 0; font-weight: 600; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px; }
             .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; padding: 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
             .meta-item { font-size: 13px; }
             .meta-item strong { color: #475569; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th { background: #7B0099; color: white; text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+            th { background: #3B82F6; color: white; text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
             td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
             tr:nth-child(even) td { background: #f8fafc; }
             .badge { padding: 4px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; display: inline-block; }
@@ -600,7 +600,7 @@ export default function LeaveAnalytics() {
               <h1 style="margin: 0; font-size: 28px; letter-spacing: -0.5px;">RAYHAR GROUP</h1>
               <h2 style="margin: 2px 0 24px 0; font-size: 13px; font-weight: 700; color: #64748b;">Staff Leave Summary Report</h2>
             </div>
-            <button onclick="window.print();" style="background: #7B0099; color: white; border: none; padding: 10px 20px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: 12px; transition: background 0.2s;">PRINT REPORT</button>
+            <button onclick="window.print();" style="background: #3B82F6; color: white; border: none; padding: 10px 20px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: 12px; transition: background 0.2s;">PRINT REPORT</button>
           </div>
           
           <div class="meta-grid">
@@ -854,14 +854,16 @@ export default function LeaveAnalytics() {
         </div>
       </Card>
 
-      {/* ── Row 2: Pie Chart + Approval Status ── */}
+            {/* ── Main Charts Grid ── */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-        {/* Pie Chart */}
-        <Card className="lg:col-span-2 border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col h-fit">
-          <CardHeader className="pb-0 border-b border-border/40">
+        {/* Left Column */}
+        <div className="lg:col-span-2 flex flex-col gap-6">
+          {/* Pie Chart */}
+        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col h-fit">
+          <CardHeader className="pb-0 border-b border-gray-100 bg-white">
             <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-              <div className="p-2 bg-[#7B0099]/10 rounded-xl">
-                <PieChartIcon className="w-4 h-4 text-[#7B0099]" />
+              <div className="p-2 bg-[#3B82F6]/10 rounded-xl">
+                <PieChartIcon className="w-4 h-4 text-[#3B82F6]" />
               </div>
               Leave Type Distribution
             </CardTitle>
@@ -872,7 +874,7 @@ export default function LeaveAnalytics() {
           <CardContent className="pt-6">
             {loading ? (
               <div className="h-[260px] flex items-center justify-center">
-                <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-8 h-8" />
+                <Loader2 className="animate-spin text-[#3B82F6] opacity-40 w-8 h-8" />
               </div>
             ) : typeDistribution.length === 0 ? (
               <div className="h-[260px] flex items-center justify-center text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-30">
@@ -962,9 +964,109 @@ export default function LeaveAnalytics() {
           </CardContent>
         </Card>
 
-        {/* Approved vs Rejected per Leave Type Bar Chart */}
-        <Card className="lg:col-span-3 border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
-          <CardHeader className="pb-0 border-b border-border/40">
+          {/* Leave Balance Usage */}
+        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden">
+          <CardHeader className="pb-0 border-b border-gray-100 bg-white">
+            <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+              <div className="p-2 bg-blue-500/10 rounded-xl">
+                <Users className="w-4 h-4 text-blue-500" />
+              </div>
+              Leave Balance Usage
+            </CardTitle>
+            <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
+              Estimated quota consumption
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-5">
+            {loading ? (
+              <div className="h-[200px] flex items-center justify-center">
+                <Loader2 className="animate-spin text-[#3B82F6] opacity-40 w-8 h-8" />
+              </div>
+            ) : (
+              <>
+                {/* Big number */}
+                <div className="text-center py-4">
+                  <div className="text-5xl font-black text-[#3B82F6] leading-none">
+                    {balancePct}%
+                  </div>
+                  <div className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mt-1">
+                    Quota Used
+                  </div>
+                </div>
+
+                {/* Progress bar */}
+                <div className="space-y-2">
+                  <div className="h-3 w-full rounded-full bg-muted/40 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-1000"
+                      style={{
+                        width: `${balancePct}%`,
+                        background:
+                          balancePct >= 80
+                            ? "linear-gradient(90deg, #ef4444, #dc2626)"
+                            : balancePct >= 50
+                              ? "linear-gradient(90deg, #f59e0b, #d97706)"
+                              : "linear-gradient(90deg, #3B82F6, #a855f7)",
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[9px] font-black text-muted-foreground uppercase">
+                    <span>0 days</span>
+                    <span>{totalQuota} days total</span>
+                  </div>
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    {
+                      label: "Employees",
+                      value: uniqueEmployees,
+                      color: "text-foreground",
+                    },
+                    {
+                      label: "Days Approved",
+                      value: approvedDays,
+                      color: "text-[#3B82F6]",
+                    },
+                    {
+                      label: "Total Quota",
+                      value: totalQuota,
+                      color: "text-blue-600",
+                    },
+                    {
+                      label: "Balance Est.",
+                      value: Math.max(0, totalQuota - approvedDays),
+                      color: "text-emerald-600",
+                    },
+                  ].map((s) => (
+                    <div
+                      key={s.label}
+                      className="bg-muted/20 p-3 rounded-2xl space-y-0.5"
+                    >
+                      <p className="text-[8px] font-black text-muted-foreground uppercase opacity-60">
+                        {s.label}
+                      </p>
+                      <p className={`text-base font-black ${s.color}`}>
+                        {s.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[9px] font-bold text-muted-foreground/50 italic text-center">
+                  * Estimated based on 14-day annual quota per employee
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+        </div>
+
+        {/* Right Column */}
+        <div className="lg:col-span-3 flex flex-col gap-6">
+          {/* Approved vs Rejected per Leave Type Bar Chart */}
+        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden">
+          <CardHeader className="pb-0 border-b border-gray-100 bg-white">
             <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
               <div className="p-2 bg-emerald-500/10 rounded-xl">
                 <TrendingUp className="w-4 h-4 text-emerald-500" />
@@ -978,7 +1080,7 @@ export default function LeaveAnalytics() {
           <CardContent className="pt-6">
             {loading ? (
               <div className="h-[200px] flex items-center justify-center">
-                <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-8 h-8" />
+                <Loader2 className="animate-spin text-[#3B82F6] opacity-40 w-8 h-8" />
               </div>
             ) : approvalByType.length === 0 ? (
               <div className="h-[200px] flex items-center justify-center text-[10px] font-black text-foreground/50 uppercase tracking-widest">
@@ -1105,113 +1207,13 @@ export default function LeaveAnalytics() {
             )}
           </CardContent>
         </Card>
-      </div>
 
-      {/* ── Row 3: Leave Balance Usage + Monthly Trend ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 items-start">
-        {/* Leave Balance Usage */}
-        <Card className="lg:col-span-2 border-none shadow-[0_15px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
-          <CardHeader className="pb-0 border-b border-border/40">
-            <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-              <div className="p-2 bg-blue-500/10 rounded-xl">
-                <Users className="w-4 h-4 text-blue-500" />
-              </div>
-              Leave Balance Usage
-            </CardTitle>
-            <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 italic">
-              Estimated quota consumption
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-5">
-            {loading ? (
-              <div className="h-[200px] flex items-center justify-center">
-                <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-8 h-8" />
-              </div>
-            ) : (
-              <>
-                {/* Big number */}
-                <div className="text-center py-4">
-                  <div className="text-5xl font-black text-[#7B0099] leading-none">
-                    {balancePct}%
-                  </div>
-                  <div className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mt-1">
-                    Quota Used
-                  </div>
-                </div>
-
-                {/* Progress bar */}
-                <div className="space-y-2">
-                  <div className="h-3 w-full rounded-full bg-muted/40 overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-1000"
-                      style={{
-                        width: `${balancePct}%`,
-                        background:
-                          balancePct >= 80
-                            ? "linear-gradient(90deg, #ef4444, #dc2626)"
-                            : balancePct >= 50
-                              ? "linear-gradient(90deg, #f59e0b, #d97706)"
-                              : "linear-gradient(90deg, #7B0099, #a855f7)",
-                      }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-[9px] font-black text-muted-foreground uppercase">
-                    <span>0 days</span>
-                    <span>{totalQuota} days total</span>
-                  </div>
-                </div>
-
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    {
-                      label: "Employees",
-                      value: uniqueEmployees,
-                      color: "text-foreground",
-                    },
-                    {
-                      label: "Days Approved",
-                      value: approvedDays,
-                      color: "text-[#7B0099]",
-                    },
-                    {
-                      label: "Total Quota",
-                      value: totalQuota,
-                      color: "text-blue-600",
-                    },
-                    {
-                      label: "Balance Est.",
-                      value: Math.max(0, totalQuota - approvedDays),
-                      color: "text-emerald-600",
-                    },
-                  ].map((s) => (
-                    <div
-                      key={s.label}
-                      className="bg-muted/20 p-3 rounded-2xl space-y-0.5"
-                    >
-                      <p className="text-[8px] font-black text-muted-foreground uppercase opacity-60">
-                        {s.label}
-                      </p>
-                      <p className={`text-base font-black ${s.color}`}>
-                        {s.value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-[9px] font-bold text-muted-foreground/50 italic text-center">
-                  * Estimated based on 14-day annual quota per employee
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Approvals trend chart */}
-        <Card className="lg:col-span-3 border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col h-fit">
+          {/* Approvals trend chart */}
+        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col h-fit">
           <CardHeader className="pb-0 border-b border-gray-100 bg-white">
             <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-              <div className="p-2 bg-[#7B0099]/10 rounded-xl">
-                <TrendingUp className="w-4 h-4 text-[#7B0099]" />
+              <div className="p-2 bg-[#3B82F6]/10 rounded-xl">
+                <TrendingUp className="w-4 h-4 text-[#3B82F6]" />
               </div>
               Monthly Leave Trend
             </CardTitle>
@@ -1222,7 +1224,7 @@ export default function LeaveAnalytics() {
           <CardContent className="pt-6">
             {loading ? (
               <div className="h-[200px] flex items-center justify-center">
-                <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-8 h-8" />
+                <Loader2 className="animate-spin text-[#3B82F6] opacity-40 w-8 h-8" />
               </div>
             ) : monthlyTrend.length === 0 ? (
               <div className="h-[200px] flex items-center justify-center text-[10px] font-black text-foreground/50 uppercase tracking-widest">
@@ -1284,7 +1286,7 @@ export default function LeaveAnalytics() {
                     <Bar
                       dataKey="total"
                       name="Total"
-                      fill="#7B0099"
+                      fill="#3B82F6"
                       radius={[6, 6, 0, 0]}
                       barSize={18}
                       animationDuration={1000}
@@ -1321,6 +1323,7 @@ export default function LeaveAnalytics() {
             )}
           </CardContent>
         </Card>
+        </div>
       </div>
 
       {/* ── Status Summary Strip ── */}
@@ -1334,7 +1337,7 @@ export default function LeaveAnalytics() {
               {
                 label: "Total",
                 value: total,
-                color: "bg-[#7B0099] text-white",
+                color: "bg-[#3B82F6] text-white",
               },
               {
                 label: "Approved",
