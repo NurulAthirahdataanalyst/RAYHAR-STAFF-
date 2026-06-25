@@ -778,100 +778,31 @@ export default function AttendanceDashboard() {
             </div>
           </div>
 
-          {/* 4 Stat Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 p-4 md:p-5 bg-transparent">
-            {/* Present */}
-            <div
-              className="relative overflow-hidden p-4 flex flex-col gap-2 text-left rounded-lg border-y border-r border-l-4 bg-[#F2F7FE] border-r-blue-100 border-y-blue-100 border-l-blue-600"
-            >
-              <div className="flex justify-between items-start w-full relative z-10">
-                <span className="text-[11px] font-black text-blue-800 uppercase tracking-widest mt-1">Present Today</span>
-                <div className="w-10 h-10 rounded-[14px] bg-blue-100/60 flex items-center justify-center shrink-0">
-                  <Users className="w-5 h-5 text-blue-600" />
-                </div>
-              </div>
-              <div className="relative z-10 mt-[-16px]">
-                <div className="flex items-end gap-2">
-                  <span className="text-3xl leading-none font-black text-blue-700 tracking-tight">{liveStats.present}</span>
-                  <span className="bg-blue-100 text-blue-700 border border-blue-200 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mb-1 shadow-sm">
-                    Active Personnel
-                  </span>
-                </div>
-                <p className="text-[10px] font-black text-blue-500/80 uppercase tracking-widest mt-3">
-                  Arrived and Clocked In
-                </p>
-              </div>
+          {/* Dense KPI Row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 md:p-6 bg-gray-50/50">
+            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+              <span className="text-[13px] font-medium text-gray-500 mb-1">Present</span>
+              <span className="text-[32px] font-bold text-gray-900 leading-none">
+                {liveStats.total > 0 ? Math.round((liveStats.present / liveStats.total) * 100) : 0}%
+              </span>
             </div>
-
-            {/* Late */}
-            <div
-              className="relative overflow-hidden p-4 flex flex-col gap-2 text-left rounded-lg border-y border-r border-l-4 bg-[#FFFDF4] border-r-amber-100 border-y-amber-100 border-l-amber-500"
-            >
-              <div className="flex justify-between items-start w-full relative z-10">
-                <span className="text-[11px] font-black text-amber-800 uppercase tracking-widest mt-1">Late Today</span>
-                <div className="w-10 h-10 rounded-[14px] bg-amber-100/60 flex items-center justify-center shrink-0">
-                  <Clock className="w-5 h-5 text-amber-600" />
-                </div>
-              </div>
-              <div className="relative z-10 mt-[-16px]">
-                <div className="flex items-end gap-2">
-                  <span className="text-3xl leading-none font-black text-amber-600 tracking-tight">{liveStats.late}</span>
-                  <span className="bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mb-1 shadow-sm">
-                    Post Threshold
-                  </span>
-                </div>
-                <p className="text-[10px] font-black text-amber-500/80 uppercase tracking-widest mt-3">
-                  Post {workStartTime} Window
-                </p>
-              </div>
+            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+              <span className="text-[13px] font-medium text-gray-500 mb-1">Absent</span>
+              <span className="text-[32px] font-bold text-gray-900 leading-none">
+                {liveStats.total > 0 ? Math.round((liveStats.absent / liveStats.total) * 100) : 0}%
+              </span>
             </div>
-
-            {/* Absent */}
-            <div
-              className="relative overflow-hidden p-4 flex flex-col gap-2 text-left rounded-lg border-y border-r border-l-4 bg-[#FFF6F6] border-r-red-100 border-y-red-100 border-l-red-500"
-            >
-              <div className="flex justify-between items-start w-full relative z-10">
-                <span className="text-[11px] font-black text-red-800 uppercase tracking-widest mt-1">Absent Today</span>
-                <div className="w-10 h-10 rounded-[14px] bg-red-100/60 flex items-center justify-center shrink-0">
-                  <AlertCircle className="w-5 h-5 text-red-600" />
-                </div>
-              </div>
-              <div className="relative z-10 mt-[-16px]">
-                <div className="flex items-end gap-2">
-                  <span className="text-3xl leading-none font-black text-red-600 tracking-tight">{liveStats.absent}</span>
-                  <span className="bg-red-100 text-red-700 border border-red-200 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mb-1 shadow-sm">
-                    Not Synced
-                  </span>
-                </div>
-                <p className="text-[10px] font-black text-red-500/80 uppercase tracking-widest mt-3">
-                  Not Clocked In Today
-                </p>
-              </div>
+            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+              <span className="text-[13px] font-medium text-gray-500 mb-1">Late</span>
+              <span className="text-[32px] font-bold text-gray-900 leading-none">
+                {liveStats.total > 0 ? Math.round((liveStats.late / liveStats.total) * 100) : 0}%
+              </span>
             </div>
-
-            {/* Attendance Rate */}
-            <div
-              className="relative overflow-hidden p-4 flex flex-col gap-2 text-left rounded-lg border-y border-r border-l-4 bg-[#F2FBF5] border-r-emerald-100 border-y-emerald-100 border-l-emerald-500"
-            >
-              <div className="flex justify-between items-start w-full relative z-10">
-                <span className="text-[11px] font-black text-emerald-800 uppercase tracking-widest mt-1">Attendance Rate</span>
-                <div className="w-10 h-10 rounded-[14px] bg-emerald-100/60 flex items-center justify-center shrink-0">
-                  <TrendingUp className="w-5 h-5 text-emerald-600" />
-                </div>
-              </div>
-              <div className="relative z-10 mt-[-16px]">
-                <div className="flex items-end gap-2">
-                  <span className="text-3xl leading-none font-black text-emerald-700 tracking-tight">
-                    {liveStats.total > 0 ? Math.round((liveStats.present / liveStats.total) * 100) : 0}%
-                  </span>
-                  <span className="bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest flex items-center gap-1 mb-1 shadow-sm">
-                    <span className="text-[10px]">▲</span> Target Met
-                  </span>
-                </div>
-                <p className="text-[10px] font-black text-emerald-600/80 uppercase tracking-widest mt-3">
-                  Excluding Active Leaves
-                </p>
-              </div>
+            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+              <span className="text-[13px] font-medium text-gray-500 mb-1">Leave</span>
+              <span className="text-[32px] font-bold text-gray-900 leading-none">
+                {liveStats.total > 0 ? Math.round((liveStats.onLeave / liveStats.total) * 100) : 0}%
+              </span>
             </div>
           </div>
         </CardContent>
@@ -1113,63 +1044,109 @@ export default function AttendanceDashboard() {
       </Card>
       
       {/* HISTORICAL CHARTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card className="border border-gray-200 bg-white rounded-lg shadow-sm overflow-hidden">
-          <CardHeader className="pb-2 pt-4 px-4 border-b border-gray-100 flex flex-row items-center gap-2">
-            <div className="p-2 bg-[#7B0099]/10 rounded-lg">
-              <TrendingUp className="w-4 h-4 text-[#7B0099]" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        
+        {/* Monthly Attendance Trend */}
+        <Card className="border border-gray-200 bg-white rounded-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden lg:col-span-7 flex flex-col">
+          <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-gray-700" />
+              <CardTitle className="text-[16px] font-semibold text-gray-900">Monthly Attendance Trend</CardTitle>
             </div>
-            <div>
-              <CardTitle className="text-sm font-bold text-gray-800 uppercase">Monthly Attendance Growth</CardTitle>
-            </div>
+            <p className="text-[12px] text-gray-500 pl-7">Attendance rate over the last 6 months.</p>
           </CardHeader>
-          <CardContent className="pt-4 px-2 pb-2">
-            <ResponsiveContainer width="100%" height={200}>
+          <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col">
+            <div className="flex items-center gap-6 mb-6">
+              <div className="flex flex-col">
+                <span className="text-[13px] font-medium text-gray-500 mb-1">Average Attendance</span>
+                <span className="text-[32px] font-bold text-gray-900 leading-none">95%</span>
+              </div>
+              <div className="flex flex-col justify-end pb-1">
+                <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 font-medium px-2 py-0.5 rounded text-[12px]">
+                  <TrendingUp className="w-3 h-3" /> +2.1%
+                </span>
+                <span className="text-[12px] text-gray-500 mt-1">vs Last Month</span>
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={220}>
               <LineChart data={monthlyData.length > 0 ? monthlyData : fallbackMonthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.03)" vertical={false} />
-                <XAxis dataKey="month" tick={{ fontSize: 10, fontWeight: 600, fill: '#64748B' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fontWeight: 600, fill: '#64748B' }} domain={[0, 100]} axisLine={false} tickLine={false} />
-                <Tooltip />
-                <Line type="monotone" dataKey="attendance" stroke="#7B0099" strokeWidth={3} dot={{ r: 4, fill: '#7B0099', strokeWidth: 2, stroke: '#fff' }} name="Attendance Rate (%)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 12, fill: '#6B7280' }} domain={[0, 100]} axisLine={false} tickLine={false} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #E5E7EB', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                  itemStyle={{ color: '#111827', fontWeight: 600 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="attendance" 
+                  stroke="#0F4C5C" 
+                  strokeWidth={3} 
+                  dot={{ r: 4, fill: '#0F4C5C', strokeWidth: 2, stroke: '#fff' }} 
+                  activeDot={{ r: 6, fill: '#10B981', strokeWidth: 0 }}
+                  name="Attendance Rate (%)" 
+                />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card className="border border-gray-200 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-2">
-          <CardHeader className="pb-4 pt-6 px-6 sm:px-8 border-b border-gray-100 flex flex-row items-start justify-between">
+        {/* Attendance Overview */}
+        <Card className="border border-gray-200 bg-white rounded-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden lg:col-span-5 flex flex-col">
+          <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 flex flex-row items-start justify-between">
             <div className="flex flex-col gap-1">
-              <CardTitle className="text-xl sm:text-2xl font-bold text-[#0f172a]">Attendance Overview</CardTitle>
-              <p className="text-[13px] text-gray-500 font-medium">Track and monitor attendance statistics for today</p>
+              <div className="flex items-center gap-2">
+                <PieChart className="w-5 h-5 text-gray-700" />
+                <CardTitle className="text-[16px] font-semibold text-gray-900">Attendance Overview</CardTitle>
+              </div>
+              <p className="text-[12px] text-gray-500 pl-7">Track and monitor attendance statistics for today.</p>
             </div>
-            <Button variant="outline" size="sm" className="h-9 text-[13px] px-3 border-gray-200 bg-white text-gray-700 shadow-sm flex items-center gap-2 rounded-lg">
-              <Calendar className="w-4 h-4 text-gray-500" />
+            <Button variant="outline" size="sm" className="h-8 text-[12px] px-3 border-gray-200 bg-white text-gray-700 shadow-[0_1px_2px_rgba(0,0,0,0.04)] flex items-center gap-1.5 rounded-md">
+              <Calendar className="w-3.5 h-3.5 text-gray-500" />
               <span>Today</span>
-              <ChevronDown className="w-3.5 h-3.5 text-gray-400 ml-1" />
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
             </Button>
           </CardHeader>
-          <CardContent className="pt-6 px-6 sm:px-8 pb-6 flex-1 flex flex-col">
+          <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col">
             
+            {/* KPI micro-header */}
+            <div className="grid grid-cols-4 gap-2 mb-6 border-b border-gray-100 pb-4">
+              <div className="flex flex-col items-center">
+                <span className="text-[11px] font-medium text-gray-500 uppercase">Total</span>
+                <span className="text-[18px] font-bold text-gray-900">{liveStats.total || 15}</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-[11px] font-medium text-gray-500 uppercase">Present</span>
+                <span className="text-[18px] font-bold text-gray-900">{(liveStats.present || 59) - (liveStats.late || 0) || 1}</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-[11px] font-medium text-gray-500 uppercase">Absent</span>
+                <span className="text-[18px] font-bold text-gray-900">{liveStats.absent || 14}</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-[11px] font-medium text-gray-500 uppercase">Late</span>
+                <span className="text-[18px] font-bold text-gray-900">{liveStats.late || 0}</span>
+              </div>
+            </div>
+
             {/* Main Content Box */}
-            <div className="border border-gray-200 rounded-xl overflow-hidden flex flex-col md:flex-row">
+            <div className="flex flex-col gap-6">
               
-              {/* Left Column: Gauge Chart */}
-              <div className="flex-1 md:border-r border-b md:border-b-0 border-gray-200 p-6 flex flex-col items-center justify-center bg-gray-50/30">
-                <div className="relative h-[220px] w-full flex items-center justify-center">
+              {/* Top: Donut Chart & Breakdown */}
+              <div className="flex flex-row items-center gap-6">
+                <div className="relative h-[140px] w-[140px] shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <RechartsPieChart>
                       <Pie
                         data={[
-                          { name: 'Late', value: liveStats.late || 21, color: '#0F4C5C' },
-                          { name: 'Present', value: (liveStats.present || 59) - (liveStats.late || 0) > 0 ? (liveStats.present || 59) - (liveStats.late || 0) : 59, color: '#10B981' },
-                          { name: 'Permission', value: liveStats.onLeave || 2, color: '#F59E0B' },
-                          { name: 'Absent', value: liveStats.absent || 15, color: '#EF4444' },
+                          { name: 'Late', value: liveStats.late || 0, color: '#F59E0B' },
+                          { name: 'Present', value: (liveStats.present || 59) - (liveStats.late || 0) || 1, color: '#10B981' },
+                          { name: 'Permission', value: liveStats.onLeave || 0, color: '#3B82F6' },
+                          { name: 'Absent', value: liveStats.absent || 14, color: '#EF4444' },
                         ]}
                         cx="50%"
-                        cy="100%"
-                        startAngle={180}
-                        endAngle={0}
-                        innerRadius="68%"
+                        cy="50%"
+                        innerRadius="75%"
                         outerRadius="100%"
                         paddingAngle={2}
                         dataKey="value"
@@ -1177,90 +1154,61 @@ export default function AttendanceDashboard() {
                         cornerRadius={4}
                       >
                         {[
-                          { name: 'Late', value: liveStats.late || 21, color: '#0F4C5C' },
-                          { name: 'Present', value: (liveStats.present || 59) - (liveStats.late || 0) > 0 ? (liveStats.present || 59) - (liveStats.late || 0) : 59, color: '#10B981' },
-                          { name: 'Permission', value: liveStats.onLeave || 2, color: '#F59E0B' },
-                          { name: 'Absent', value: liveStats.absent || 15, color: '#EF4444' },
+                          { name: 'Late', value: liveStats.late || 0, color: '#F59E0B' },
+                          { name: 'Present', value: (liveStats.present || 59) - (liveStats.late || 0) || 1, color: '#10B981' },
+                          { name: 'Permission', value: liveStats.onLeave || 0, color: '#3B82F6' },
+                          { name: 'Absent', value: liveStats.absent || 14, color: '#EF4444' },
                         ].map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
                     </RechartsPieChart>
                   </ResponsiveContainer>
-                  <div className="absolute top-[70%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center flex flex-col items-center">
-                    <span className="text-[13px] text-gray-500 font-medium mb-1">Total Attendance</span>
-                    <span className="text-5xl font-black text-[#0f172a]">{liveStats.total || 15}</span>
-                    <span className="text-[13px] text-gray-500 font-medium mt-1">Employees</span>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-[28px] font-bold text-gray-900 leading-none">{liveStats.total || 15}</span>
                   </div>
                 </div>
-                <div className="text-center mt-6 text-[13px]">
-                  <span className="text-[#10B981] font-bold flex items-center justify-center gap-1">
-                    <TrendingUp className="w-3.5 h-3.5" /> 7% present today
-                  </span> 
-                  <span className="text-gray-400 ml-2">| vs Yesterday</span>
-                </div>
-              </div>
 
-              {/* Right Column: Status Legend */}
-              <div className="flex-1 p-6 sm:p-8 flex flex-col justify-center bg-white">
-                <h3 className="text-[15px] font-bold text-[#0f172a] mb-6">Attendance Status</h3>
-                <div className="space-y-6">
+                {/* Status Legend */}
+                <div className="flex-1 flex flex-col justify-center space-y-4">
                   {[
-                    { label: 'Present', count: (liveStats.present || 0) - (liveStats.late || 0) || 1, value: liveStats.total ? Math.round((((liveStats.present || 0) - (liveStats.late || 0)) / liveStats.total) * 100) : 7, color: '#10B981' },
-                    { label: 'Late', count: liveStats.late || 0, value: liveStats.total ? Math.round(((liveStats.late || 0) / liveStats.total) * 100) : 0, color: '#0F4C5C' },
-                    { label: 'Permission', count: liveStats.onLeave || 0, value: liveStats.total ? Math.round(((liveStats.onLeave || 0) / liveStats.total) * 100) : 0, color: '#F59E0B' },
-                    { label: 'Absent', count: liveStats.absent || 14, value: liveStats.total ? Math.round(((liveStats.absent || 0) / liveStats.total) * 100) : 93, color: '#EF4444' }
+                    { label: 'Present', value: liveStats.total ? Math.round((((liveStats.present || 0) - (liveStats.late || 0)) / liveStats.total) * 100) : 7, color: '#10B981' },
+                    { label: 'Absent', value: liveStats.total ? Math.round(((liveStats.absent || 0) / liveStats.total) * 100) : 93, color: '#EF4444' },
+                    { label: 'Late', value: liveStats.total ? Math.round(((liveStats.late || 0) / liveStats.total) * 100) : 0, color: '#F59E0B' }
                   ].map((item, idx) => (
-                    <div key={idx} className="flex flex-col">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
-                          <span className="text-[14px] text-gray-700 font-medium">{item.label}</span>
-                        </div>
-                        <div className="flex items-center gap-8">
-                          <span className="text-[14px] text-gray-800 font-medium">{item.count}</span>
-                          <span className="text-[14px] font-bold w-8 text-right" style={{ color: item.color }}>{item.value}%</span>
-                        </div>
+                    <div key={idx} className="flex flex-col gap-1">
+                      <div className="flex justify-between items-center text-[12px] font-medium text-gray-700">
+                        <span>{item.label}</span>
+                        <span className="font-bold">{item.value}%</span>
                       </div>
-                      <div className="w-full bg-gray-100 rounded-full h-1.5 ml-7" style={{ width: 'calc(100% - 28px)' }}>
+                      <div className="w-full bg-gray-100 rounded-full h-1.5">
                         <div className="h-1.5 rounded-full transition-all duration-500" style={{ width: `${item.value}%`, backgroundColor: item.color }} />
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-            </div>
 
-            {/* Total Absentees Footer Block */}
-            <div className="mt-6 border border-gray-200 rounded-xl p-4 sm:p-5 flex items-center justify-between bg-white shadow-sm">
-              <div className="flex flex-col gap-2">
-                <span className="text-[14px] font-bold text-[#0f172a]">Total Absentees</span>
-                <div className="flex -space-x-2">
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-700">JS</div>
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-green-100 flex items-center justify-center text-[10px] font-bold text-green-700">AK</div>
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-purple-100 flex items-center justify-center text-[10px] font-bold text-purple-700">MF</div>
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-[#ef476f] flex items-center justify-center text-[10px] font-bold text-white shadow-sm">
-                    +{liveStats.absent > 3 ? liveStats.absent - 3 : 11}
+              {/* Anomaly Insight Section */}
+              {((liveStats.absent || 14) / (liveStats.total || 15)) > 0.2 && (
+                <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 flex flex-col gap-2">
+                  <div className="flex items-center gap-2 text-amber-800">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span className="text-[13px] font-semibold">Attendance dropped {Math.round(((liveStats.absent || 14)/(liveStats.total || 15))*100)}% this month.</span>
+                  </div>
+                  <p className="text-[12px] text-amber-700 pl-6">
+                    Primary cause:<br />
+                    <span className="font-medium text-amber-900">{liveStats.absent || 14} employees currently absent.</span>
+                  </p>
+                  <div className="pl-6 pt-1">
+                    <button className="text-[12px] font-semibold text-amber-700 hover:text-amber-900 flex items-center gap-1">
+                      View Employees <ChevronDown className="w-3 h-3 -rotate-90" />
+                    </button>
                   </div>
                 </div>
-              </div>
-              <Button variant="outline" className="text-[#f97316] border-[#fdba74] hover:bg-[#fff7ed] hover:text-[#ea580c] transition-colors rounded-lg font-bold text-[13px] h-10 px-4">
-                <FileText className="w-4 h-4 mr-2" /> View Full Details
-              </Button>
-            </div>
+              )}
 
-            {/* Footer Line */}
-            <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100 text-xs text-gray-400 font-medium">
-              <div className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Data is updated in real-time</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span>Last updated: May 29, 2025 09:30 AM</span>
-                <RefreshCw className="w-3.5 h-3.5 ml-1" />
-              </div>
             </div>
-
           </CardContent>
         </Card>
       </div>
