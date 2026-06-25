@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Download, FileBarChart, Loader2, Users, TrendingUp, History, Calendar, Filter, 
-  Activity, Clock, AlertCircle, Sparkles, Plus, Check, Trash2, Building2, UserPlus, 
+  Activity, Clock, AlertCircle, Sparkles, Plus, Check, CheckCircle2, Trash2, Building2, UserPlus, 
   Settings2, RefreshCw, BarChart2, PieChart, Info, ShieldAlert, MapPin, ChevronDown, FileText, FileSpreadsheet, Search
 } from "lucide-react";
 import { 
@@ -1136,93 +1136,129 @@ export default function AttendanceDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border border-gray-200 bg-white rounded-lg shadow-sm overflow-hidden flex flex-col">
-          <CardHeader className="pb-4 pt-4 px-5 border-b border-gray-100 flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-[15px] font-bold text-[#1e293b]">Attendance Overview</CardTitle>
+        <Card className="border border-gray-200 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col lg:col-span-2">
+          <CardHeader className="pb-4 pt-6 px-6 sm:px-8 border-b border-gray-100 flex flex-row items-start justify-between">
+            <div className="flex flex-col gap-1">
+              <CardTitle className="text-xl sm:text-2xl font-bold text-[#0f172a]">Attendance Overview</CardTitle>
+              <p className="text-[13px] text-gray-500 font-medium">Track and monitor attendance statistics for today</p>
             </div>
-            <Button variant="outline" size="sm" className="h-8 text-xs px-3 border-gray-200 bg-white text-gray-700 shadow-sm flex items-center gap-2 rounded-md">
-              <Calendar className="w-3.5 h-3.5 text-gray-500" />
+            <Button variant="outline" size="sm" className="h-9 text-[13px] px-3 border-gray-200 bg-white text-gray-700 shadow-sm flex items-center gap-2 rounded-lg">
+              <Calendar className="w-4 h-4 text-gray-500" />
               <span>Today</span>
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400 ml-1" />
             </Button>
           </CardHeader>
-          <CardContent className="pt-6 px-5 pb-5 flex-1 flex flex-col">
+          <CardContent className="pt-6 px-6 sm:px-8 pb-6 flex-1 flex flex-col">
             
-            {/* Gauge Chart Area */}
-            <div className="relative h-[160px] w-full flex items-center justify-center mb-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsPieChart>
-                  <Pie
-                    data={[
-                      { name: 'Late', value: liveStats.late || 21, color: '#114b5f' },
-                      { name: 'Present', value: (liveStats.present || 59) - (liveStats.late || 0) > 0 ? (liveStats.present || 59) - (liveStats.late || 0) : 59, color: '#06d6a0' },
-                      { name: 'Permission', value: liveStats.onLeave || 2, color: '#ffd166' },
-                      { name: 'Absent', value: liveStats.absent || 15, color: '#ef476f' },
-                    ]}
-                    cx="50%"
-                    cy="100%"
-                    startAngle={180}
-                    endAngle={0}
-                    innerRadius="65%"
-                    outerRadius="100%"
-                    paddingAngle={2}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {[
-                      { name: 'Late', value: liveStats.late || 21, color: '#114b5f' },
-                      { name: 'Present', value: (liveStats.present || 59) - (liveStats.late || 0) > 0 ? (liveStats.present || 59) - (liveStats.late || 0) : 59, color: '#06d6a0' },
-                      { name: 'Permission', value: liveStats.onLeave || 2, color: '#ffd166' },
-                      { name: 'Absent', value: liveStats.absent || 15, color: '#ef476f' },
-                    ].map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                </RechartsPieChart>
-              </ResponsiveContainer>
-              <div className="absolute top-[65%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center flex flex-col items-center">
-                <span className="text-[11px] text-gray-500 font-medium">Total Attendance</span>
-                <span className="text-3xl font-black text-[#1e293b]">{liveStats.total || 120}</span>
-              </div>
-            </div>
-
-            {/* Status Legend */}
-            <div className="mt-4 flex-1">
-              <h4 className="text-[13px] font-bold text-[#1e293b] mb-3">Status</h4>
-              <div className="space-y-2.5">
-                {[
-                  { label: 'Present', value: liveStats.total ? Math.round((((liveStats.present || 0) - (liveStats.late || 0)) / liveStats.total) * 100) : 59, color: '#06d6a0' },
-                  { label: 'Late', value: liveStats.total ? Math.round(((liveStats.late || 0) / liveStats.total) * 100) : 21, color: '#114b5f' },
-                  { label: 'Permission', value: liveStats.total ? Math.round(((liveStats.onLeave || 0) / liveStats.total) * 100) : 2, color: '#ffd166' },
-                  { label: 'Absent', value: liveStats.total ? Math.round(((liveStats.absent || 0) / liveStats.total) * 100) : 15, color: '#ef476f' }
-                ].map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                      <span className="text-xs text-gray-500">{item.label}</span>
-                    </div>
-                    <span className="text-xs font-bold text-[#1e293b]">{item.value}%</span>
+            {/* Main Content Box */}
+            <div className="border border-gray-200 rounded-xl overflow-hidden flex flex-col md:flex-row">
+              
+              {/* Left Column: Gauge Chart */}
+              <div className="flex-1 md:border-r border-b md:border-b-0 border-gray-200 p-6 flex flex-col items-center justify-center bg-gray-50/30">
+                <div className="relative h-[220px] w-full flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsPieChart>
+                      <Pie
+                        data={[
+                          { name: 'Late', value: liveStats.late || 21, color: '#0F4C5C' },
+                          { name: 'Present', value: (liveStats.present || 59) - (liveStats.late || 0) > 0 ? (liveStats.present || 59) - (liveStats.late || 0) : 59, color: '#10B981' },
+                          { name: 'Permission', value: liveStats.onLeave || 2, color: '#F59E0B' },
+                          { name: 'Absent', value: liveStats.absent || 15, color: '#EF4444' },
+                        ]}
+                        cx="50%"
+                        cy="100%"
+                        startAngle={180}
+                        endAngle={0}
+                        innerRadius="68%"
+                        outerRadius="100%"
+                        paddingAngle={2}
+                        dataKey="value"
+                        stroke="none"
+                        cornerRadius={4}
+                      >
+                        {[
+                          { name: 'Late', value: liveStats.late || 21, color: '#0F4C5C' },
+                          { name: 'Present', value: (liveStats.present || 59) - (liveStats.late || 0) > 0 ? (liveStats.present || 59) - (liveStats.late || 0) : 59, color: '#10B981' },
+                          { name: 'Permission', value: liveStats.onLeave || 2, color: '#F59E0B' },
+                          { name: 'Absent', value: liveStats.absent || 15, color: '#EF4444' },
+                        ].map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                    </RechartsPieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute top-[70%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center flex flex-col items-center">
+                    <span className="text-[13px] text-gray-500 font-medium mb-1">Total Attendance</span>
+                    <span className="text-5xl font-black text-[#0f172a]">{liveStats.total || 15}</span>
+                    <span className="text-[13px] text-gray-500 font-medium mt-1">Employees</span>
                   </div>
-                ))}
+                </div>
+                <div className="text-center mt-6 text-[13px]">
+                  <span className="text-[#10B981] font-bold flex items-center justify-center gap-1">
+                    <TrendingUp className="w-3.5 h-3.5" /> 7% present today
+                  </span> 
+                  <span className="text-gray-400 ml-2">| vs Yesterday</span>
+                </div>
+              </div>
+
+              {/* Right Column: Status Legend */}
+              <div className="flex-1 p-6 sm:p-8 flex flex-col justify-center bg-white">
+                <h3 className="text-[15px] font-bold text-[#0f172a] mb-6">Attendance Status</h3>
+                <div className="space-y-6">
+                  {[
+                    { label: 'Present', count: (liveStats.present || 0) - (liveStats.late || 0) || 1, value: liveStats.total ? Math.round((((liveStats.present || 0) - (liveStats.late || 0)) / liveStats.total) * 100) : 7, color: '#10B981' },
+                    { label: 'Late', count: liveStats.late || 0, value: liveStats.total ? Math.round(((liveStats.late || 0) / liveStats.total) * 100) : 0, color: '#0F4C5C' },
+                    { label: 'Permission', count: liveStats.onLeave || 0, value: liveStats.total ? Math.round(((liveStats.onLeave || 0) / liveStats.total) * 100) : 0, color: '#F59E0B' },
+                    { label: 'Absent', count: liveStats.absent || 14, value: liveStats.total ? Math.round(((liveStats.absent || 0) / liveStats.total) * 100) : 93, color: '#EF4444' }
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex flex-col">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
+                          <span className="text-[14px] text-gray-700 font-medium">{item.label}</span>
+                        </div>
+                        <div className="flex items-center gap-8">
+                          <span className="text-[14px] text-gray-800 font-medium">{item.count}</span>
+                          <span className="text-[14px] font-bold w-8 text-right" style={{ color: item.color }}>{item.value}%</span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-1.5 ml-7" style={{ width: 'calc(100% - 28px)' }}>
+                        <div className="h-1.5 rounded-full transition-all duration-500" style={{ width: `${item.value}%`, backgroundColor: item.color }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Total Absentees Footer */}
-            <div className="mt-6 bg-[#f8fafc] rounded-lg p-3 flex items-center justify-between border border-gray-100">
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-medium text-gray-600">Total Absenties</span>
+            {/* Total Absentees Footer Block */}
+            <div className="mt-6 border border-gray-200 rounded-xl p-4 sm:p-5 flex items-center justify-between bg-white shadow-sm">
+              <div className="flex flex-col gap-2">
+                <span className="text-[14px] font-bold text-[#0f172a]">Total Absentees</span>
                 <div className="flex -space-x-2">
-                  <div className="w-6 h-6 rounded-full border border-white bg-blue-100 flex items-center justify-center text-[8px] font-bold text-blue-700">JS</div>
-                  <div className="w-6 h-6 rounded-full border border-white bg-green-100 flex items-center justify-center text-[8px] font-bold text-green-700">AK</div>
-                  <div className="w-6 h-6 rounded-full border border-white bg-purple-100 flex items-center justify-center text-[8px] font-bold text-purple-700">MR</div>
-                  <div className="w-6 h-6 rounded-full border border-white bg-[#ef476f] flex items-center justify-center text-[9px] font-bold text-white shadow-sm">
-                    +{liveStats.absent > 3 ? liveStats.absent - 3 : 1}
+                  <div className="w-8 h-8 rounded-full border-2 border-white bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-700">JS</div>
+                  <div className="w-8 h-8 rounded-full border-2 border-white bg-green-100 flex items-center justify-center text-[10px] font-bold text-green-700">AK</div>
+                  <div className="w-8 h-8 rounded-full border-2 border-white bg-purple-100 flex items-center justify-center text-[10px] font-bold text-purple-700">MF</div>
+                  <div className="w-8 h-8 rounded-full border-2 border-white bg-[#ef476f] flex items-center justify-center text-[10px] font-bold text-white shadow-sm">
+                    +{liveStats.absent > 3 ? liveStats.absent - 3 : 11}
                   </div>
                 </div>
               </div>
-              <button className="text-xs font-medium text-[#f97316] hover:text-[#ea580c] transition-colors">
-                View Details
-              </button>
+              <Button variant="outline" className="text-[#f97316] border-[#fdba74] hover:bg-[#fff7ed] hover:text-[#ea580c] transition-colors rounded-lg font-bold text-[13px] h-10 px-4">
+                <FileText className="w-4 h-4 mr-2" /> View Full Details
+              </Button>
+            </div>
+
+            {/* Footer Line */}
+            <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100 text-xs text-gray-400 font-medium">
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Data is updated in real-time</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span>Last updated: May 29, 2025 09:30 AM</span>
+                <RefreshCw className="w-3.5 h-3.5 ml-1" />
+              </div>
             </div>
 
           </CardContent>
