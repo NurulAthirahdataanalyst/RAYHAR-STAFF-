@@ -671,7 +671,7 @@ export default function AttendanceDashboard() {
     .sort((a, b) => b.rate - a.rate)
     .map(d => ({
        ...d,
-       fill: d.rate >= 90 ? '#22C55E' : d.rate >= 75 ? '#F59E0B' : '#EF4444'
+       fill: d.rate >= 90 ? '#16A34A' : d.rate >= 75 ? '#EAB308' : '#DC2626'
     }));
 
   // Calculate live values
@@ -718,7 +718,7 @@ export default function AttendanceDashboard() {
     return filteredDailyAttendance.flatMap(record => {
       const list = [];
       if ((record as any).is_late) {
-        list.push({ id: `${record.user_id}-late`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'LATE', title: 'Late Checked', desc: `Late Arrival today at ${formatAttendanceTime(record.clock_in)}`, color: '#F59E0B' });
+        list.push({ id: `${record.user_id}-late`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'LATE', title: 'Late Checked', desc: `Late Arrival today at ${formatAttendanceTime(record.clock_in)}`, color: '#EAB308' });
       }
       if ((record as any).is_early_leaver) {
         list.push({ id: `${record.user_id}-early`, user_id: record.user_id, full_name: record.full_name, branch: record.branch, type: 'EARLY LEAVE', title: 'Early Leave', desc: `Clocked out early at ${formatAttendanceTime(record.clock_out)}`, color: '#F43F5E' });
@@ -1148,7 +1148,7 @@ export default function AttendanceDashboard() {
                   stroke="#0F4C5C" 
                   strokeWidth={3} 
                   dot={{ r: 4, fill: '#0F4C5C', strokeWidth: 2, stroke: '#fff' }} 
-                  activeDot={{ r: 6, fill: '#10B981', strokeWidth: 0 }}
+                  activeDot={{ r: 6, fill: '#16A34A', strokeWidth: 0 }}
                   name="Attendance Rate (%)" 
                 />
               </LineChart>
@@ -1208,10 +1208,10 @@ export default function AttendanceDashboard() {
                     <RechartsPieChart>
                       <Pie
                         data={[
-                          { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#10B981' },
-                          { name: 'Present (Late)', value: liveStats.late || 0, color: '#F59E0B' },
+                          { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
+                          { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
                           { name: 'On Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
-                          { name: 'Absent', value: liveStats.absent || 0, color: '#EF4444' },
+                          { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
                         ]}
                         cx="50%"
                         cy="50%"
@@ -1223,10 +1223,10 @@ export default function AttendanceDashboard() {
                         cornerRadius={6}
                       >
                         {[
-                          { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#10B981' },
-                          { name: 'Present (Late)', value: liveStats.late || 0, color: '#F59E0B' },
+                          { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
+                          { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
                           { name: 'On Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
-                          { name: 'Absent', value: liveStats.absent || 0, color: '#EF4444' },
+                          { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
                         ].map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
@@ -1246,10 +1246,10 @@ export default function AttendanceDashboard() {
                 {/* Status Legend */}
                 <div className="flex-1 flex flex-col justify-center space-y-3">
                   {[
-                    { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#10B981' },
-                    { name: 'Present (Late)', value: liveStats.late || 0, color: '#F59E0B' },
+                    { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
+                    { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
                     { name: 'On Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
-                    { name: 'Absent', value: liveStats.absent || 0, color: '#EF4444' },
+                    { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
                   ].map((entry, idx) => (
                     <div key={idx} className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5 min-w-0">

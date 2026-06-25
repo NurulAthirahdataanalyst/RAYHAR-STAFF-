@@ -48,6 +48,11 @@ import {
   FileText,
   FileSpreadsheet,
   CalendarCheck,
+  BriefcaseMedical,
+  Umbrella,
+  AlertCircle,
+  MoreHorizontal,
+  ArrowRight,
 } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
@@ -83,19 +88,61 @@ const LEAVE_TYPES = [
 
 const PIE_COLORS: Record<string, string> = {
   "Annual/Emergency Leave": "#3B82F6", // Blue
-  "Sick Leave": "#10B981", // Emerald
-  "Replacement Leave": "#F59E0B", // Amber
-  "Unpaid Leave": "#EF4444", // Red
+  "Sick Leave": "#16A34A", // Emerald
+  "Replacement Leave": "#EAB308", // Amber
+  "Unpaid Leave": "#DC2626", // Red
 };
 
 const FALLBACK_COLORS = [
   "#3B82F6",
-  "#10B981",
-  "#F59E0B",
-  "#EF4444",
+  "#16A34A",
+  "#EAB308",
+  "#DC2626",
   "#8B5CF6",
   "#64748B",
 ];
+
+const leaveTypeStyles: Record<
+  string,
+  { color: string; barColor: string; bgColor: string; icon: any; label: string }
+> = {
+  "Sick Leave": {
+    color: "text-[#16A34A]",
+    barColor: "bg-[#16A34A]",
+    bgColor: "bg-[#16A34A]/10",
+    icon: BriefcaseMedical,
+    label: "Medical Leave",
+  },
+  "Annual/Emergency Leave": {
+    color: "text-[#3B82F6]",
+    barColor: "bg-[#3B82F6]",
+    bgColor: "bg-[#3B82F6]/10",
+    icon: Umbrella,
+    label: "Annual Vacation",
+  },
+  "Replacement Leave": {
+    color: "text-[#EAB308]",
+    barColor: "bg-[#EAB308]",
+    bgColor: "bg-[#EAB308]/10",
+    icon: RefreshCw,
+    label: "Replacement Leave",
+  },
+  "Unpaid Leave": {
+    color: "text-[#DC2626]",
+    barColor: "bg-[#DC2626]",
+    bgColor: "bg-[#DC2626]/10",
+    icon: AlertCircle,
+    label: "Unpaid Leave",
+  },
+};
+
+const fallbackStyle = {
+  color: "text-[#64748B]",
+  barColor: "bg-[#64748B]",
+  bgColor: "bg-[#64748B]/10",
+  icon: MoreHorizontal,
+  label: "Other Leave",
+};
 
 const MONTHS = [
   { value: "all", label: "All Months" },
@@ -1003,9 +1050,9 @@ export default function LeaveAnalytics() {
                         width: `${balancePct}%`,
                         background:
                           balancePct >= 80
-                            ? "linear-gradient(90deg, #ef4444, #dc2626)"
+                            ? "linear-gradient(90deg, #DC2626, #dc2626)"
                             : balancePct >= 50
-                              ? "linear-gradient(90deg, #f59e0b, #d97706)"
+                              ? "linear-gradient(90deg, #EAB308, #d97706)"
                               : "linear-gradient(90deg, #3B82F6, #a855f7)",
                       }}
                     />
@@ -1064,149 +1111,222 @@ export default function LeaveAnalytics() {
 
         {/* Right Column */}
         <div className="lg:col-span-3 flex flex-col gap-6">
-          {/* Approved vs Rejected per Leave Type Bar Chart */}
-        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden">
-          <CardHeader className="pb-0 border-b border-gray-100 bg-white">
-            <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-              <div className="p-2 bg-emerald-500/10 rounded-xl">
-                <TrendingUp className="w-4 h-4 text-emerald-500" />
-              </div>
-              Approved vs Rejected
-            </CardTitle>
-            <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground/70 ml-11 italic">
-              By leave type — current filter
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            {loading ? (
-              <div className="h-[200px] flex items-center justify-center">
-                <Loader2 className="animate-spin text-[#3B82F6] opacity-40 w-8 h-8" />
-              </div>
-            ) : approvalByType.length === 0 ? (
-              <div className="h-[200px] flex items-center justify-center text-[10px] font-black text-foreground/50 uppercase tracking-widest">
-                No data for selection
-              </div>
-            ) : (
-              <>
-                <ResponsiveContainer width="100%" height={180}>
-                  <BarChart
-                    data={approvalByType}
-                    margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="rgba(123,0,153,0.05)"
-                      vertical={false}
-                    />
-                    <XAxis
-                      dataKey="type"
-                      tick={{
-                        fontSize: 9,
-                        fontWeight: 900,
-                        fill: "hsl(var(--foreground))",
-                        opacity: 0.8,
-                      }}
-                      axisLine={false}
-                      tickLine={false}
-                      interval={0}
-                      angle={-18}
-                      textAnchor="end"
-                    />
-                    <YAxis
-                      tick={{
-                        fontSize: 9,
-                        fontWeight: 900,
-                        fill: "hsl(var(--foreground))",
-                        opacity: 0.8,
-                      }}
-                      axisLine={false}
-                      tickLine={false}
-                      allowDecimals={false}
-                    />
-                    <Tooltip
-                      contentStyle={tooltipStyle}
-                      labelStyle={{
-                        fontWeight: 900,
-                        fontSize: 10,
-                        textTransform: "uppercase",
-                        marginBottom: 4,
-                      }}
-                      itemStyle={{ fontWeight: 900, fontSize: 11 }}
-                    />
-                    <Legend
-                      wrapperStyle={{
-                        fontSize: "9px",
-                        fontWeight: 900,
-                        textTransform: "uppercase",
-                        paddingTop: 8,
-                      }}
-                      iconType="circle"
-                    />
-                    <Bar
-                      dataKey="approved"
-                      name="Approved"
-                      fill="#10b981"
-                      radius={[6, 6, 0, 0]}
-                      barSize={20}
-                      animationDuration={1200}
-                    >
-                      <LabelList
-                        dataKey="approved"
-                        position="top"
-                        style={{
-                          fontSize: 9,
-                          fontWeight: 900,
-                          fill: "#10b981",
-                        }}
-                      />
-                    </Bar>
-                    <Bar
-                      dataKey="rejected"
-                      name="Rejected"
-                      fill="#ef4444"
-                      radius={[6, 6, 0, 0]}
-                      barSize={20}
-                      animationDuration={1400}
-                    >
-                      <LabelList
-                        dataKey="rejected"
-                        position="top"
-                        style={{
-                          fontSize: 9,
-                          fontWeight: 900,
-                          fill: "#ef4444",
-                        }}
-                      />
-                    </Bar>
-                    <Bar
-                      dataKey="pending"
-                      name="Pending"
-                      fill="#f59e0b"
-                      radius={[6, 6, 0, 0]}
-                      barSize={20}
-                      animationDuration={1600}
-                    >
-                      <LabelList
-                        dataKey="pending"
-                        position="top"
-                        style={{
-                          fontSize: 9,
-                          fontWeight: 900,
-                          fill: "#f59e0b",
-                        }}
-                      />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-                <p className="text-[10px] font-bold text-foreground/70 italic text-center mt-2">
-                  {total > 0
-                    ? `${Math.round((approved / total) * 100)}% of leave requests this month were approved.`
-                    : "No leave requests found."}
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
+          {/* Top Row Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Approved vs Rejected per Leave Type Bar Chart */}
+            <Card className="md:col-span-2 border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col justify-between">
+              <CardHeader className="pb-0 border-b border-gray-100 bg-white">
+                <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+                  <div className="p-2 bg-[#16A34A]/10 rounded-xl">
+                    <TrendingUp className="w-4 h-4 text-[#16A34A]" />
+                  </div>
+                  Approved vs Rejected
+                </CardTitle>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground/70 ml-11 italic">
+                  By leave type — current filter
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6 flex-1 flex flex-col justify-between">
+                {loading ? (
+                  <div className="h-[200px] flex items-center justify-center">
+                    <Loader2 className="animate-spin text-[#3B82F6] opacity-40 w-8 h-8" />
+                  </div>
+                ) : approvalByType.length === 0 ? (
+                  <div className="h-[200px] flex items-center justify-center text-[10px] font-black text-foreground/50 uppercase tracking-widest">
+                    No data for selection
+                  </div>
+                ) : (
+                  <>
+                    <ResponsiveContainer width="100%" height={180}>
+                      <BarChart
+                        data={approvalByType}
+                        margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
+                      >
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke="rgba(123,0,153,0.05)"
+                          vertical={false}
+                        />
+                        <XAxis
+                          dataKey="type"
+                          tick={{
+                            fontSize: 9,
+                            fontWeight: 900,
+                            fill: "hsl(var(--foreground))",
+                            opacity: 0.8,
+                          }}
+                          axisLine={false}
+                          tickLine={false}
+                          interval={0}
+                          angle={-18}
+                          textAnchor="end"
+                        />
+                        <YAxis
+                          tick={{
+                            fontSize: 9,
+                            fontWeight: 900,
+                            fill: "hsl(var(--foreground))",
+                            opacity: 0.8,
+                          }}
+                          axisLine={false}
+                          tickLine={false}
+                          allowDecimals={false}
+                        />
+                        <Tooltip
+                          contentStyle={tooltipStyle}
+                          labelStyle={{
+                            fontWeight: 900,
+                            fontSize: 10,
+                            textTransform: "uppercase",
+                            marginBottom: 4,
+                          }}
+                          itemStyle={{ fontWeight: 900, fontSize: 11 }}
+                        />
+                        <Legend
+                          wrapperStyle={{
+                            fontSize: "9px",
+                            fontWeight: 900,
+                            textTransform: "uppercase",
+                            paddingTop: 8,
+                          }}
+                          iconType="circle"
+                        />
+                        <Bar
+                          dataKey="approved"
+                          name="Approved"
+                          fill="#16A34A"
+                          radius={[6, 6, 0, 0]}
+                          barSize={20}
+                          animationDuration={1200}
+                        >
+                          <LabelList
+                            dataKey="approved"
+                            position="top"
+                            style={{
+                              fontSize: 9,
+                              fontWeight: 900,
+                              fill: "#16A34A",
+                            }}
+                          />
+                        </Bar>
+                        <Bar
+                          dataKey="rejected"
+                          name="Rejected"
+                          fill="#DC2626"
+                          radius={[6, 6, 0, 0]}
+                          barSize={20}
+                          animationDuration={1400}
+                        >
+                          <LabelList
+                            dataKey="rejected"
+                            position="top"
+                            style={{
+                              fontSize: 9,
+                              fontWeight: 900,
+                              fill: "#DC2626",
+                            }}
+                          />
+                        </Bar>
+                        <Bar
+                          dataKey="pending"
+                          name="Pending"
+                          fill="#EAB308"
+                          radius={[6, 6, 0, 0]}
+                          barSize={20}
+                          animationDuration={1600}
+                        >
+                          <LabelList
+                            dataKey="pending"
+                            position="top"
+                            style={{
+                              fontSize: 9,
+                              fontWeight: 900,
+                              fill: "#EAB308",
+                            }}
+                          />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                    <p className="text-[10px] font-bold text-foreground/70 italic text-center mt-2">
+                      {total > 0
+                        ? `${Math.round((approved / total) * 100)}% of leave requests this month were approved.`
+                        : "No leave requests found."}
+                    </p>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Top Leave Reasons Card */}
+            <Card className="md:col-span-1 border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col justify-between">
+              <CardHeader className="pb-0 border-b border-gray-100 bg-white">
+                <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+                  <div className="p-2 bg-[#3B82F6]/10 rounded-xl">
+                    <FileBarChart2 className="w-4 h-4 text-[#3B82F6]" />
+                  </div>
+                  Top Leave Reasons
+                </CardTitle>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground/70 ml-11 italic">
+                  Most requested categories
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6 flex-1 flex flex-col justify-between">
+                {loading ? (
+                  <div className="h-[200px] flex items-center justify-center">
+                    <Loader2 className="animate-spin text-[#3B82F6] opacity-40 w-8 h-8" />
+                  </div>
+                ) : typeDistribution.length === 0 ? (
+                  <div className="h-[200px] flex items-center justify-center text-[10px] font-black text-foreground/50 uppercase tracking-widest">
+                    No data for selection
+                  </div>
+                ) : (
+                  <div className="flex flex-col justify-between h-full min-h-[220px]">
+                    <div className="space-y-4">
+                      {typeDistribution.slice(0, 4).map((entry, idx) => {
+                        const style = leaveTypeStyles[entry.name] || fallbackStyle;
+                        const pct = total > 0 ? Math.round((entry.value / total) * 100) : 0;
+                        const IconComponent = style.icon;
+
+                        return (
+                          <div key={entry.name} className="space-y-1">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className={`p-1.5 ${style.bgColor} rounded-lg shrink-0`}>
+                                  <IconComponent className={`w-3.5 h-3.5 ${style.color}`} />
+                                </div>
+                                <span className="text-[11px] font-bold text-gray-700 truncate">
+                                  {style.label}
+                                </span>
+                              </div>
+                              <span className={`text-[11px] font-black shrink-0 ${style.color}`}>
+                                {pct}%
+                              </span>
+                            </div>
+                            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${style.barColor}`}
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="pt-3 border-t border-gray-100 mt-2">
+                      <button
+                        onClick={() => navigate("/reports/leave")}
+                        className="text-[10px] font-black text-[#3B82F6] hover:text-[#2563EB] flex items-center gap-1.5 transition-colors uppercase tracking-wider"
+                      >
+                        View Detailed Breakdown
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Approvals trend chart */}
         <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col h-fit">
@@ -1294,7 +1414,7 @@ export default function LeaveAnalytics() {
                     <Bar
                       dataKey="approved"
                       name="Approved"
-                      fill="#10b981"
+                      fill="#16A34A"
                       radius={[6, 6, 0, 0]}
                       barSize={18}
                       animationDuration={1200}
@@ -1302,7 +1422,7 @@ export default function LeaveAnalytics() {
                     <Bar
                       dataKey="rejected"
                       name="Rejected"
-                      fill="#ef4444"
+                      fill="#DC2626"
                       radius={[6, 6, 0, 0]}
                       barSize={18}
                       animationDuration={1400}

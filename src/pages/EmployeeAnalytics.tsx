@@ -656,8 +656,8 @@ export default function EmployeeAnalytics() {
                       <Tooltip contentStyle={tooltipStyle}
                         formatter={(v: number) => [`${v}h`, "OT Hours"]}
                         labelStyle={{ fontWeight: 900, fontSize: 10 }} />
-                      <Bar dataKey="overtime" name="OT Hours" fill="#f59e0b" radius={[6, 6, 0, 0]} barSize={20} animationDuration={1200}>
-                        <LabelList dataKey="overtime" position="top" style={{ fontSize: 8, fontWeight: 900, fill: "#f59e0b" }}
+                      <Bar dataKey="overtime" name="OT Hours" fill="#EAB308" radius={[6, 6, 0, 0]} barSize={20} animationDuration={1200}>
+                        <LabelList dataKey="overtime" position="top" style={{ fontSize: 8, fontWeight: 900, fill: "#EAB308" }}
                           formatter={(v: number) => `${v}h`} />
                       </Bar>
                     </BarChart>

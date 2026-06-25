@@ -16,7 +16,7 @@ interface EmployeeAnalyticsViewProps {
   leaveRequests: any[];
 }
 
-const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
+const COLORS = ['#16A34A', '#3b82f6', '#EAB308', '#DC2626', '#8b5cf6'];
 
 const getLocalDateString = (dVal: any) => {
   if (!dVal) return "";
@@ -240,9 +240,9 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   const monthEmg = mLeaves.filter(l => ['Kecemasan', 'Emergency'].includes(l.leave_type)).length;
   
   const monthPieData = [
-    { name: 'Annual Leave', value: monthAnn, color: "#10b981" },
-    { name: 'Sick Leave', value: monthSck, color: "#f59e0b" },
-    { name: 'Emergency Leave', value: monthEmg, color: "#ef4444" },
+    { name: 'Annual Leave', value: monthAnn, color: "#16A34A" },
+    { name: 'Sick Leave', value: monthSck, color: "#EAB308" },
+    { name: 'Emergency Leave', value: monthEmg, color: "#DC2626" },
   ].filter(d => d.value > 0);
 
   // Clock in analysis (New logic)
