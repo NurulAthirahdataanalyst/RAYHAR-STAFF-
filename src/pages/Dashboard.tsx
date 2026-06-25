@@ -274,7 +274,7 @@ export default function Dashboard() {
       ? `Clock out: ${stats.todayStatusTime || stats.clockOutTime}`
       : isOnLeave
         ? "Enjoy your leave!"
-        : "Not clocked in today";
+        : `Clock in: ${stats.clockInTime || "--:--"}`;
 
   return (
     <div className="space-y-3 animate-in fade-in duration-500">
