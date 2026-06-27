@@ -645,7 +645,29 @@ export default function Calendar() {
               const isCurrentMonth = isSameMonth(day, selectedDate);
               const dayStr = format(day, 'yyyy-MM-dd');
               
-              const dayNotes = notes.filter(n => n.date.startsWith(dayStr) && (!activeFilter || activeFilter === n.type));
+              const isNoteActiveOnDate = (note: PersonalNote, targetDateStr: string) => {
+                const noteDate = note.date.split('T')[0];
+                const lines = note.note_text.split('\n');
+                const startsLine = lines.find(l => l.startsWith('Starts: '));
+                const endsLine = lines.find(l => l.startsWith('Ends: '));
+                
+                let start = noteDate;
+                let end = noteDate;
+                
+                if (startsLine && endsLine) {
+                  const modalStarts = startsLine.replace('Starts: ', '');
+                  const modalEnds = endsLine.replace('Ends: ', '');
+                  const startParts = modalStarts.split(' ');
+                  const endParts = modalEnds.split(' ');
+                  
+                  if (startParts[0]) start = startParts[0];
+                  if (endParts[0]) end = endParts[0];
+                }
+                
+                return targetDateStr >= start && targetDateStr <= end;
+              };
+
+              const dayNotes = notes.filter(n => isNoteActiveOnDate(n, dayStr) && (!activeFilter || activeFilter === n.type));
               const dayHolidays = holidays.filter(h => h.date === dayStr && (!activeFilter || activeFilter === 'holiday'));
               const dayAttendance = attendance.filter(a => a.clock_in && format(new Date(a.clock_in), 'yyyy-MM-dd') === dayStr && (!activeFilter || activeFilter === 'attendance'));
               
