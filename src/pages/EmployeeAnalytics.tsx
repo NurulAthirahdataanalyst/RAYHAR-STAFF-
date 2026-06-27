@@ -75,7 +75,16 @@ function parseHours(duration: string): number {
   return 0;
 }
 
-function computeMetrics(logs: AttendanceLog[], leaveCount: number, userId: string, name: string, branch: string, dept: string): EmployeeMetrics {
+function computeMetrics(
+  logs: AttendanceLog[],
+  leaveCount: number,
+  userId: string,
+  name: string,
+  branch: string,
+  dept: string,
+  isAllMonths?: boolean,
+  selectedYear?: number
+): EmployeeMetrics {
   const total     = logs.length;
   const lateDays  = logs.filter(l => l.is_late || l.status === "LATE").length;
   const onTime    = total - lateDays;
@@ -91,8 +100,17 @@ function computeMetrics(logs: AttendanceLog[], leaveCount: number, userId: strin
   });
   const avgWork = total > 0 ? Math.round((totalHrs / total) * 10) / 10 : 0;
 
-  // Absenteeism: rough estimate — assume 22 working days/month, absent = 22 - actual days
-  const WORKING_DAYS = 22;
+  // Absenteeism: rough estimate
+  let monthsCount = 1;
+  if (isAllMonths && selectedYear) {
+    const currentYear = new Date().getFullYear();
+    if (selectedYear === currentYear) {
+      monthsCount = new Date().getMonth() + 1;
+    } else {
+      monthsCount = 12;
+    }
+  }
+  const WORKING_DAYS = 22 * monthsCount;
   const absent = Math.max(0, WORKING_DAYS - total);
   const absenteeism = Math.round((absent / WORKING_DAYS) * 100);
 
@@ -206,6 +224,7 @@ const MONTHS = [
   { value: "7", label: "July" },    { value: "8", label: "August" },
   { value: "9", label: "September" },{ value: "10", label: "October" },
   { value: "11", label: "November" },{ value: "12", label: "December" },
+  { value: "all", label: "All Month" },
 ];
 const YEARS = ["2027", "2026", "2025", "2024"];
 
@@ -294,8 +313,8 @@ export default function EmployeeAnalytics() {
   const myMetrics = useMemo(() => {
     if (!userId || myLogs.length === 0) return null;
     const approvedLeaves = leaveRequests.filter(l => l.status === "Approved").length;
-    return computeMetrics(myLogs, approvedLeaves, userId, userName, userBranch, userDepartment || "");
-  }, [myLogs, leaveRequests, userId, userName, userBranch, userDepartment]);
+    return computeMetrics(myLogs, approvedLeaves, userId, userName, userBranch, userDepartment || "", selectedMonth === "all", parseInt(selectedYear));
+  }, [myLogs, leaveRequests, userId, userName, userBranch, userDepartment, selectedMonth, selectedYear]);
 
   // ── Fetch team (admin only) ───────────────────────────────────────────────
   useEffect(() => {
@@ -328,10 +347,11 @@ export default function EmployeeAnalytics() {
           const leaves = lData.success ? lData.leaveRequests.filter((l: any) => {
             if (l.status !== "Approved") return false;
             const d = new Date(l.start_date);
-            return d.getMonth() === selectedMonthIndex && d.getFullYear() === parseInt(selectedYear);
+            const matchesMonth = selectedMonth === "all" || d.getMonth() === selectedMonthIndex;
+            return matchesMonth && d.getFullYear() === parseInt(selectedYear);
           }).length : 0;
           
-          metrics.push(computeMetrics(logs, leaves, emp.user_id, emp.full_name, emp.branch, emp.department || ""));
+          metrics.push(computeMetrics(logs, leaves, emp.user_id, emp.full_name, emp.branch, emp.department || "", selectedMonth === "all", parseInt(selectedYear)));
         } catch { /* skip */ }
       }));
       setTeamMetrics(metrics.sort((a, b) => b.punctualityScore - a.punctualityScore));

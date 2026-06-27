@@ -45,10 +45,17 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       })
       .catch(console.error);
       
-    // Fetch last month's logs for Attendance Rate comparison
-    const prevMonthDate = new Date(parseInt(year), parseInt(month) - 2, 1);
-    const prevM = String(prevMonthDate.getMonth() + 1).padStart(2, '0');
-    const prevY = String(prevMonthDate.getFullYear());
+    // Fetch last month/year's logs for Attendance Rate comparison
+    let prevM = "";
+    let prevY = "";
+    if (month === "all") {
+      prevM = "all";
+      prevY = String(parseInt(year) - 1);
+    } else {
+      const prevMonthDate = new Date(parseInt(year), parseInt(month) - 2, 1);
+      prevM = String(prevMonthDate.getMonth() + 1).padStart(2, '0');
+      prevY = String(prevMonthDate.getFullYear());
+    }
     
     fetch(`${API_BASE_URL}/api/attendance/history?userId=${userId}&month=${prevM}&year=${prevY}`)
       .then(res => res.json())
@@ -149,7 +156,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   const presentDays = myLogs.length;
   const lateArrivals = myLogs.filter(l => l.is_late || l.status === "LATE").length;
   
-  const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
+  let daysInMonth = 0;
   let absentDays = 0;
   let leaveDaysCount = 0;
   let totalWorkingDaysPassed = 0;
@@ -157,46 +164,94 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   // Also collect data for Calendar Heatmap
   const heatmapData: Record<number, 'Present (On Time)' | 'Present (Late)' | 'Absent' | 'On Leave'> = {};
 
-  for (let d = 1; d <= daysInMonth; d++) {
-    const date = new Date(parseInt(year), parseInt(month) - 1, d);
-    const dayOfWeek = date.getDay();
-    const isPastOrToday = date <= new Date() || parseInt(month) !== (new Date().getMonth() + 1);
-    
-    // Friday & Saturday are off days for the first week (days 1-7), Friday only for remaining weeks
-    const isWeekendDay = (dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7);
-    
-    if (!isWeekendDay) { // Working day
-      if (isPastOrToday) totalWorkingDaysPassed++;
-      
-      const dateStr = `${year}-${month.padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-      const logsOnDay = myLogs.filter(l => {
-        if (!l.clock_in) return false;
-        const clockDate = new Date(l.clock_in);
-        const y = clockDate.getFullYear();
-        const m = String(clockDate.getMonth() + 1).padStart(2, '0');
-        const day = String(clockDate.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}` === dateStr;
-      });
-      const hasLeave = approvedLeaves.some(l => {
-        const startStr = getLocalDateString(l.start_date);
-        const endStr = getLocalDateString(l.end_date);
-        return dateStr >= startStr && dateStr <= endStr;
-      });
-      
-      if (logsOnDay.length > 0) {
-        const att = logsOnDay[0];
-        const isLateLog = att.is_late === 1 || att.is_late === true;
-        if (isLateLog) {
-          heatmapData[d] = 'Present (Late)';
-        } else {
-          heatmapData[d] = 'Present (On Time)';
+  if (month === "all") {
+    const targetYear = parseInt(year);
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+    const maxMonth = (targetYear === currentYear) ? currentMonth : 12;
+
+    for (let m = 1; m <= maxMonth; m++) {
+      const daysInThisMonth = new Date(targetYear, m, 0).getDate();
+      daysInMonth += daysInThisMonth;
+
+      for (let d = 1; d <= daysInThisMonth; d++) {
+        const date = new Date(targetYear, m - 1, d);
+        const dayOfWeek = date.getDay();
+        const isPastOrToday = date <= new Date();
+
+        // Friday & Saturday are off days for the first week (days 1-7), Friday only for remaining weeks
+        const isWeekendDay = (dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7);
+
+        if (!isWeekendDay) {
+          if (isPastOrToday) totalWorkingDaysPassed++;
+
+          const dateStr = `${targetYear}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+          const logsOnDay = myLogs.filter(l => {
+            if (!l.clock_in) return false;
+            const clockDate = new Date(l.clock_in);
+            const y = clockDate.getFullYear();
+            const mo = String(clockDate.getMonth() + 1).padStart(2, '0');
+            const day = String(clockDate.getDate()).padStart(2, '0');
+            return `${y}-${mo}-${day}` === dateStr;
+          });
+          const hasLeave = approvedLeaves.some(l => {
+            const startStr = getLocalDateString(l.start_date);
+            const endStr = getLocalDateString(l.end_date);
+            return dateStr >= startStr && dateStr <= endStr;
+          });
+
+          if (logsOnDay.length > 0) {
+            // Present
+          } else if (hasLeave) {
+            leaveDaysCount++;
+          } else if (isPastOrToday) {
+            absentDays++;
+          }
         }
-      } else if (hasLeave) {
-        heatmapData[d] = 'On Leave';
-        leaveDaysCount++;
-      } else if (isPastOrToday) {
-        absentDays++;
-        heatmapData[d] = 'Absent';
+      }
+    }
+  } else {
+    daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(parseInt(year), parseInt(month) - 1, d);
+      const dayOfWeek = date.getDay();
+      const isPastOrToday = date <= new Date() || parseInt(month) !== (new Date().getMonth() + 1);
+      
+      const isWeekendDay = (dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7);
+      
+      if (!isWeekendDay) { // Working day
+        if (isPastOrToday) totalWorkingDaysPassed++;
+        
+        const dateStr = `${year}-${month.padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const logsOnDay = myLogs.filter(l => {
+          if (!l.clock_in) return false;
+          const clockDate = new Date(l.clock_in);
+          const y = clockDate.getFullYear();
+          const m = String(clockDate.getMonth() + 1).padStart(2, '0');
+          const day = String(clockDate.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}` === dateStr;
+        });
+        const hasLeave = approvedLeaves.some(l => {
+          const startStr = getLocalDateString(l.start_date);
+          const endStr = getLocalDateString(l.end_date);
+          return dateStr >= startStr && dateStr <= endStr;
+        });
+        
+        if (logsOnDay.length > 0) {
+          const att = logsOnDay[0];
+          const isLateLog = att.is_late === 1 || att.is_late === true;
+          if (isLateLog) {
+            heatmapData[d] = 'Present (Late)';
+          } else {
+            heatmapData[d] = 'Present (On Time)';
+          }
+        } else if (hasLeave) {
+          heatmapData[d] = 'On Leave';
+          leaveDaysCount++;
+        } else if (isPastOrToday) {
+          absentDays++;
+          heatmapData[d] = 'Absent';
+        }
       }
     }
   }
@@ -209,16 +264,28 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   
   const attendanceRate = calcRate(presentDays - lateArrivals, lateArrivals, totalWorkingDaysPassed);
   
-  // Last month rate
+  // Last month/year rate
   let prevWorkingDaysPassed = 0;
-  const prevMonthDate = new Date(parseInt(year), parseInt(month) - 2, 1);
-  const prevDaysInMonth = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth() + 1, 0).getDate();
-  for (let d = 1; d <= prevDaysInMonth; d++) {
-     const date = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth(), d);
-     const dayOfWeek = date.getDay();
-     // Friday & Saturday are off days for the first week (days 1-7), Friday only for remaining weeks
-     const isWeekendDay = (dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7);
-     if (date <= new Date() && !isWeekendDay) prevWorkingDaysPassed++;
+  if (month === "all") {
+    const prevYearInt = parseInt(year) - 1;
+    for (let m = 1; m <= 12; m++) {
+      const prevDaysInMonth = new Date(prevYearInt, m, 0).getDate();
+      for (let d = 1; d <= prevDaysInMonth; d++) {
+         const date = new Date(prevYearInt, m - 1, d);
+         const dayOfWeek = date.getDay();
+         const isWeekendDay = (dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7);
+         if (!isWeekendDay) prevWorkingDaysPassed++;
+      }
+    }
+  } else {
+    const prevMonthDate = new Date(parseInt(year), parseInt(month) - 2, 1);
+    const prevDaysInMonth = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth() + 1, 0).getDate();
+    for (let d = 1; d <= prevDaysInMonth; d++) {
+       const date = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth(), d);
+       const dayOfWeek = date.getDay();
+       const isWeekendDay = (dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7);
+       if (date <= new Date() && !isWeekendDay) prevWorkingDaysPassed++;
+    }
   }
   const prevPresentDays = lastMonthLogs.length;
   const prevLateArrivals = lastMonthLogs.filter(l => l.is_late || l.status === "LATE").length;
@@ -227,12 +294,15 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   const rateDiff = attendanceRate - prevAttendanceRate;
 
   // Leave Utilization
-  const selectedMonthIndex = parseInt(month) - 1;
-  const monthNameFull = new Date(parseInt(year), selectedMonthIndex).toLocaleString('default', { month: 'long' }).toUpperCase();
+  const selectedMonthIndex = month === "all" ? 0 : parseInt(month) - 1;
+  const monthNameFull = month === "all" ? "ALL MONTHS" : new Date(parseInt(year), selectedMonthIndex).toLocaleString('default', { month: 'long' }).toUpperCase();
   const mLeaves = approvedLeaves.filter(l => {
     const startStr = getLocalDateString(l.start_date);
     if (!startStr) return false;
     const [y, m] = startStr.split("-");
+    if (month === "all") {
+      return parseInt(y) === parseInt(year);
+    }
     return parseInt(y) === parseInt(year) && parseInt(m) === (selectedMonthIndex + 1);
   });
   const monthAnn = mLeaves.filter(l => ['Cuti Tahunan', 'Annual/Emergency Leave'].includes(l.leave_type)).length;
@@ -281,16 +351,22 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
        const bucket = `${String(hr).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
        timeBuckets[bucket] = (timeBuckets[bucket] || 0) + 1;
        
+       const logMonthStr = klTime.toLocaleString('default', { month: 'short' });
        trendData.push({
          day: klTime.getUTCDate(), // day of month
-         dayStr: `${klTime.getUTCDate()} ${monthNameFull.slice(0,3)}`,
+         timestamp: klTime.getTime(),
+         dayStr: month === "all" ? `${klTime.getUTCDate()} ${logMonthStr}` : `${klTime.getUTCDate()} ${monthNameFull.slice(0,3)}`,
          timeValue: klTime.getUTCHours() + (klTime.getUTCMinutes() / 60) // decimal hours for charting
        });
     }
   });
   
-  // Sort trendData by day
-  trendData.sort((a, b) => a.day - b.day);
+  // Sort trendData
+  if (month === "all") {
+    trendData.sort((a, b) => a.timestamp - b.timestamp);
+  } else {
+    trendData.sort((a, b) => a.day - b.day);
+  }
 
   const formatTime = (tStr: string) => {
     if (!tStr || tStr === "23:59:59" || tStr === "00:00:00") return "--:--";
@@ -346,26 +422,29 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   const overallScore = scoreAttendance + scorePunctuality + scoreAbsence + scoreLeave;
 
   // Heatmap Calendar Generator (Sunday start)
-  const firstDay = new Date(parseInt(year), parseInt(month) - 1, 1).getDay();
-  // offset for Sunday start is just firstDay (0=Sun, 1=Mon, etc.)
-  const offset = firstDay; 
-  
-  // Previous month days to fill empty slots
-  const heatmapPrevDaysInMonth = new Date(parseInt(year), parseInt(month) - 1, 0).getDate();
-  const calendarDays = [];
-  
-  // Add previous month faded days
-  for(let i = offset - 1; i >= 0; i--) {
-      calendarDays.push({ day: heatmapPrevDaysInMonth - i, isCurrent: false });
-  }
-  // Add current month days
-  for(let i = 1; i <= daysInMonth; i++) {
-      calendarDays.push({ day: i, isCurrent: true });
-  }
-  // Add next month faded days to complete the grid (up to 42 cells total)
-  const remainingCells = 42 - calendarDays.length;
-  for(let i = 1; i <= remainingCells; i++) {
-      calendarDays.push({ day: i, isCurrent: false });
+  let calendarDays: any[] = [];
+  let firstDay = 0;
+  let offset = 0;
+  let heatmapPrevDaysInMonth = 0;
+
+  if (month !== "all") {
+    firstDay = new Date(parseInt(year), parseInt(month) - 1, 1).getDay();
+    offset = firstDay; 
+    heatmapPrevDaysInMonth = new Date(parseInt(year), parseInt(month) - 1, 0).getDate();
+    
+    // Add previous month faded days
+    for(let i = offset - 1; i >= 0; i--) {
+        calendarDays.push({ day: heatmapPrevDaysInMonth - i, isCurrent: false });
+    }
+    // Add current month days
+    for(let i = 1; i <= daysInMonth; i++) {
+        calendarDays.push({ day: i, isCurrent: true });
+    }
+    // Add next month faded days to complete the grid (up to 42 cells total)
+    const remainingCells = 42 - calendarDays.length;
+    for(let i = 1; i <= remainingCells; i++) {
+        calendarDays.push({ day: i, isCurrent: false });
+    }
   }
 
   return (
@@ -391,11 +470,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                   <>
                     {rateDiff > 0 ? <ArrowUpRight className="w-3 h-3 text-emerald-500" /> : <ArrowDownRight className="w-3 h-3 text-rose-500" />}
                     <span className={`text-[10px] font-bold ${rateDiff > 0 ? "text-emerald-500" : "text-rose-500"}`}>
-                      {Math.abs(rateDiff)}% from last month
+                      {Math.abs(rateDiff)}% {month === "all" ? "from last year" : "from last month"}
                     </span>
                   </>
                 ) : (
-                  <span className="text-[10px] font-medium text-muted-foreground">-- from last month</span>
+                  <span className="text-[10px] font-medium text-muted-foreground">-- {month === "all" ? "from last year" : "from last month"}</span>
                 )}
               </div>
             </div>
@@ -553,7 +632,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             {monthPieData.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50 my-auto">
                 <Briefcase className="w-10 h-10 mb-2 text-muted-foreground" />
-                <p className="text-sm font-bold text-muted-foreground">No leaves applied this month</p>
+                <p className="text-sm font-bold text-muted-foreground">{month === "all" ? "No leaves applied this year" : "No leaves applied this month"}</p>
               </div>
             ) : (
               <div className="flex-1 flex items-center justify-center my-auto">
@@ -600,49 +679,62 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground">ATTENDANCE CALENDAR ({monthNameFull} {year})</h3>
              </div>
              
-             <div className="grid grid-cols-7 gap-1 mb-2 text-center">
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
-                   <div key={i} className="text-[9px] font-black text-muted-foreground uppercase">{day}</div>
-                ))}
-             </div>
-             
-             <div className="grid grid-cols-7 gap-1 sm:gap-1.5 flex-1 content-start">
-                {calendarDays.map((cell, i) => {
-                  
-                  // Friday & Saturday are off days for the first week (days 1-7), Friday only for remaining weeks
-                  const isWeekend = (i % 7 === 5) || (i % 7 === 6 && cell.day <= 7);
-                  let status = cell.isCurrent ? heatmapData[cell.day] : null;
-                  
-                  let bgColor = "bg-transparent";
-                  let textColor = cell.isCurrent ? "text-foreground" : "text-muted-foreground/30";
-                  
-                  if (cell.isCurrent) {
-                    if (status === 'Present (On Time)') bgColor = "bg-emerald-500 text-white";
-                    else if (status === 'Present (Late)') bgColor = "bg-amber-400 text-white";
-                    else if (status === 'Absent') bgColor = "bg-rose-500 text-white";
-                    else if (status === 'On Leave') bgColor = "bg-blue-500 text-white";
-                    else if (isWeekend) bgColor = "bg-muted/30"; // weekend empty
-                  }
-                  
-                  return (
-                    <div 
-                      key={i} 
-                      className={`aspect-square rounded-[6px] flex items-center justify-center text-[10px] font-bold ${bgColor} ${textColor} ${status ? 'hover:scale-110 cursor-default transition-all shadow-sm' : ''}`}
-                      title={status ? `${cell.day} ${monthNameFull}: ${status}` : ''}
-                    >
-                      {cell.day}
-                    </div>
-                  );
-                })}
-             </div>
-             
-             <div className="flex flex-wrap items-center justify-center gap-3 mt-auto pt-4 border-t border-border/40">
-                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /><span className="text-[9px] font-bold text-muted-foreground">Present (On Time)</span></div>
-                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-amber-400" /><span className="text-[9px] font-bold text-muted-foreground">Present (Late)</span></div>
-                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-blue-500" /><span className="text-[9px] font-bold text-muted-foreground">On Leave</span></div>
-                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-rose-500" /><span className="text-[9px] font-bold text-muted-foreground">Absent</span></div>
-                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-muted/30" /><span className="text-[9px] font-bold text-muted-foreground">Weekend</span></div>
-             </div>
+             {month === "all" ? (
+               <div className="flex-1 flex flex-col items-center justify-center text-center py-10">
+                 <CalendarCheck2 className="w-12 h-12 text-muted-foreground mb-3 opacity-50" />
+                 <p className="text-xs font-bold text-muted-foreground max-w-[200px]">
+                   Daily calendar view is not available for all months combined.
+                 </p>
+                 <p className="text-[10px] text-muted-foreground/60 mt-1 max-w-[220px]">
+                   Please select a specific month from the dropdown at the top to view the daily attendance grid.
+                 </p>
+               </div>
+             ) : (
+               <>
+                 <div className="grid grid-cols-7 gap-1 mb-2 text-center">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
+                       <div key={i} className="text-[9px] font-black text-muted-foreground uppercase">{day}</div>
+                    ))}
+                 </div>
+                 
+                 <div className="grid grid-cols-7 gap-1 sm:gap-1.5 flex-1 content-start">
+                    {calendarDays.map((cell, i) => {
+                      // Friday & Saturday are off days for the first week (days 1-7), Friday only for remaining weeks
+                      const isWeekend = (i % 7 === 5) || (i % 7 === 6 && cell.day <= 7);
+                      let status = cell.isCurrent ? heatmapData[cell.day] : null;
+                      
+                      let bgColor = "bg-transparent";
+                      let textColor = cell.isCurrent ? "text-foreground" : "text-muted-foreground/30";
+                      
+                      if (cell.isCurrent) {
+                        if (status === 'Present (On Time)') bgColor = "bg-emerald-500 text-white";
+                        else if (status === 'Present (Late)') bgColor = "bg-amber-400 text-white";
+                        else if (status === 'Absent') bgColor = "bg-rose-500 text-white";
+                        else if (status === 'On Leave') bgColor = "bg-blue-500 text-white";
+                        else if (isWeekend) bgColor = "bg-muted/30"; // weekend empty
+                      }
+                      
+                      return (
+                        <div 
+                          key={i} 
+                          className={`aspect-square rounded-[6px] flex items-center justify-center text-[10px] font-bold ${bgColor} ${textColor} ${status ? 'hover:scale-110 cursor-default transition-all shadow-sm' : ''}`}
+                          title={status ? `${cell.day} ${monthNameFull}: ${status}` : ''}
+                        >
+                          {cell.day}
+                        </div>
+                      );
+                    })}
+                 </div>
+                 
+                 <div className="flex flex-wrap items-center justify-center gap-3 mt-auto pt-4 border-t border-border/40">
+                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /><span className="text-[9px] font-bold text-muted-foreground">Present (On Time)</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-amber-400" /><span className="text-[9px] font-bold text-muted-foreground">Present (Late)</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-blue-500" /><span className="text-[9px] font-bold text-muted-foreground">On Leave</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-rose-500" /><span className="text-[9px] font-bold text-muted-foreground">Absent</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-muted/30" /><span className="text-[9px] font-bold text-muted-foreground">Weekend</span></div>
+                 </div>
+               </>
+             )}
           </CardContent>
         </Card>
       </div>

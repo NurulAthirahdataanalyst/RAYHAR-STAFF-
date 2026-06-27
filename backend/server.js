@@ -2168,28 +2168,49 @@ app.get("/api/attendance/history", async (req, res) => {
     return res.status(400).json({ success: false, error: "Missing userId" });
   }
 
-  const requestedMonth = parseInt(month) || (new Date().getMonth() + 1);
+  const isAllMonth = month === 'all';
   const requestedYear = parseInt(year) || new Date().getFullYear();
+  let query = '';
+  let params = [];
 
   try {
-    const [rows] = await pool.query(
-      `
-      SELECT 
-        attendance_id,
-        user_id,
-        clock_in,
-        clock_out,
-        TO_CHAR((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
-        TO_CHAR((clock_out AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
-        DATE(clock_in) AS date
-      FROM attendances
-      WHERE user_id = ?
-      AND EXTRACT(MONTH FROM clock_in) = ?
-      AND EXTRACT(YEAR FROM clock_in) = ?
-      ORDER BY clock_in DESC
-      `,
-      [userId, requestedMonth, requestedYear]
-    );
+    if (isAllMonth) {
+      query = `
+        SELECT 
+          attendance_id,
+          user_id,
+          clock_in,
+          clock_out,
+          TO_CHAR((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
+          TO_CHAR((clock_out AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
+          DATE(clock_in) AS date
+        FROM attendances
+        WHERE user_id = ?
+        AND EXTRACT(YEAR FROM clock_in) = ?
+        ORDER BY clock_in DESC
+      `;
+      params = [userId, requestedYear];
+    } else {
+      const requestedMonth = parseInt(month) || (new Date().getMonth() + 1);
+      query = `
+        SELECT 
+          attendance_id,
+          user_id,
+          clock_in,
+          clock_out,
+          TO_CHAR((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
+          TO_CHAR((clock_out AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
+          DATE(clock_in) AS date
+        FROM attendances
+        WHERE user_id = ?
+        AND EXTRACT(MONTH FROM clock_in) = ?
+        AND EXTRACT(YEAR FROM clock_in) = ?
+        ORDER BY clock_in DESC
+      `;
+      params = [userId, requestedMonth, requestedYear];
+    }
+
+    const [rows] = await pool.query(query, params);
 
     // Calculate late arrival detection, working duration, simulated location, and status badges
     const formattedHistory = rows.map((row) => {
@@ -2661,6 +2682,7 @@ app.get("/api/reports/total-leave-requests", async (req, res) => {
 // ===============================
 app.get("/api/reports/employee-rank", async (req, res) => {
   const userId = req.query.userId;
+  const isAllMonth = req.query.month === 'all';
   const requestedMonth = parseInt(req.query.month) || (new Date().getMonth() + 1);
   const requestedYear = parseInt(req.query.year) || new Date().getFullYear();
 
@@ -2671,22 +2693,27 @@ app.get("/api/reports/employee-rank", async (req, res) => {
   try {
     const lateTimeStr = getLateThresholdTime();
     
-    // Fetch all active employees attendance for the month
-    const [rows] = await pool.query(
-      `
+    let query = `
       SELECT 
         a.user_id,
         COUNT(a.attendance_id) AS total_days,
         SUM(CASE WHEN ((a.clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END) AS late_days
       FROM attendances a
       JOIN profiles p ON p.user_id = a.user_id
-      WHERE EXTRACT(MONTH FROM a.clock_in) = ?
-        AND EXTRACT(YEAR FROM a.clock_in) = ?
+      WHERE EXTRACT(YEAR FROM a.clock_in) = ?
         AND p.status = 'Active'
-      GROUP BY a.user_id
-      `,
-      [lateTimeStr, requestedMonth, requestedYear]
-    );
+    `;
+    let params = [lateTimeStr, requestedYear];
+
+    if (!isAllMonth) {
+      query += ` AND EXTRACT(MONTH FROM a.clock_in) = ?`;
+      params = [lateTimeStr, requestedMonth, requestedYear];
+    }
+
+    query += ` GROUP BY a.user_id`;
+
+    // Fetch all active employees attendance for the month/year
+    const [rows] = await pool.query(query, params);
 
     const rankings = rows.map(row => {
       const total = parseInt(row.total_days);
