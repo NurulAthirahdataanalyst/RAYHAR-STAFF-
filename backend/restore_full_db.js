@@ -272,6 +272,22 @@ async function runRestore() {
       console.log(`  ✅ Done.`);
     }
 
+    // Sync table sequences to avoid duplicate key violations on new auto-increment inserts
+    console.log("⚡ Syncing primary key sequences...");
+    const seqQueries = [
+      "SELECT setval('departments_id_seq', COALESCE((SELECT MAX(id) FROM departments), 0) + 1, false)",
+      "SELECT setval('user_role_id_seq', COALESCE((SELECT MAX(id) FROM user_role), 0) + 1, false)",
+      "SELECT setval('attendances_attendance_id_seq', COALESCE((SELECT MAX(attendance_id) FROM attendances), 0) + 1, false)",
+      "SELECT setval('leave_requests_leave_id_seq', COALESCE((SELECT MAX(leave_id) FROM leave_requests), 0) + 1, false)",
+      "SELECT setval('leave_approvals_id_seq', COALESCE((SELECT MAX(id) FROM leave_approvals), 0) + 1, false)",
+      "SELECT setval('personal_notes_id_seq', COALESCE((SELECT MAX(id) FROM personal_notes), 0) + 1, false)",
+      "SELECT setval('hod_history_id_seq', COALESCE((SELECT MAX(id) FROM hod_history), 0) + 1, false)",
+      "SELECT setval('notifications_id_seq', COALESCE((SELECT MAX(id) FROM notifications), 0) + 1, false)"
+    ];
+    for (const q of seqQueries) {
+      await client.query(q);
+    }
+
     await client.query('COMMIT');
     console.log(`\n🎉 Database schema recreated and data successfully restored!\n`);
   } catch (err) {
