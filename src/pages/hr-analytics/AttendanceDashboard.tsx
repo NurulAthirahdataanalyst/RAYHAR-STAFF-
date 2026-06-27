@@ -182,6 +182,7 @@ export default function AttendanceDashboard() {
   // Leave Utilization State
   const [leaveUtilization, setLeaveUtilization] = useState<any>(null);
   const [loadingLeave, setLoadingLeave] = useState(false);
+  const [hoveredSlice, setHoveredSlice] = useState<any>(null);
 
   // Settings config values (Dynamic fetch with static fallback)
   const [workStartTime, setWorkStartTime] = useState("09:00 AM");
@@ -1221,6 +1222,8 @@ export default function AttendanceDashboard() {
                         dataKey="value"
                         stroke="none"
                         cornerRadius={6}
+                        onMouseEnter={(entry) => setHoveredSlice(entry)}
+                        onMouseLeave={() => setHoveredSlice(null)}
                       >
                         {[
                           { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
@@ -1231,15 +1234,15 @@ export default function AttendanceDashboard() {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip
-                        contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" }}
-                        itemStyle={{ fontWeight: "bold", fontSize: "12px" }}
-                      />
                     </RechartsPieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-[32px] font-black text-gray-900 leading-none">{liveStats.total || 0}</span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">Total</span>
+                    <span className="text-[28px] font-black text-gray-900 leading-none">
+                      {hoveredSlice ? hoveredSlice.value : (liveStats.total || 0)}
+                    </span>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 mt-1 text-center max-w-[90px] truncate">
+                      {hoveredSlice ? hoveredSlice.name : "Total"}
+                    </span>
                   </div>
                 </div>
 
