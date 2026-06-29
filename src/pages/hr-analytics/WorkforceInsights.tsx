@@ -553,7 +553,7 @@ export default function WorkforceInsights() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
 
           {/* Card 1: Clock-In/Out — LIVE SSE */}
-          <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
+          <Card style={{ boxShadow: '0 0 0 1.5px #10b981, 0 4px 32px 0 rgba(16,185,129,0.18)', borderTop: '3px solid #10b981' }} className={`rounded-xl bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-slate-800">Clock-In/Out</h3>
@@ -608,7 +608,7 @@ export default function WorkforceInsights() {
           </Card>
 
           {/* Card 2: Late — LIVE SSE */}
-          <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
+          <Card style={{ boxShadow: '0 0 0 1.5px #ef4444, 0 4px 32px 0 rgba(239,68,68,0.18)', borderTop: '3px solid #ef4444' }} className={`rounded-xl bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-slate-800">Late</h3>
@@ -666,7 +666,7 @@ export default function WorkforceInsights() {
           </Card>
 
           {/* Card 3: Pending Approvals — LIVE SSE */}
-          <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
+          <Card style={{ boxShadow: '0 0 0 1.5px #f59e0b, 0 4px 32px 0 rgba(245,158,11,0.18)', borderTop: '3px solid #f59e0b' }} className={`rounded-xl bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-slate-800">Pending Approvals</h3>
@@ -732,7 +732,7 @@ export default function WorkforceInsights() {
           </Card>
 
           {/* Card 4: Upcoming Outstation */}
-          <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
+          <Card style={{ boxShadow: '0 0 0 1.5px #7B0099, 0 4px 32px 0 rgba(123,0,153,0.18)', borderTop: '3px solid #7B0099' }} className={`rounded-xl bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <h3 className="text-sm font-bold text-slate-800">Upcoming Outstation</h3>
               <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-150 rounded text-slate-505 flex items-center gap-1">
