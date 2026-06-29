@@ -457,6 +457,237 @@ export default function WorkforceInsights() {
           </Card>
 
         </div>
+
+        {/* NEW BOTTOM SECTION: 3 KPI CARDS */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+          
+          {/* Card 1: Clock-In/Out */}
+          <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+              <h3 className="text-sm font-bold text-slate-800">Clock-In/Out</h3>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">All Departments</span>
+                <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-150 rounded text-slate-505 flex items-center gap-1">
+                  <CalendarDays className="w-3 h-3" /> Today
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex-1 space-y-3">
+              {/* Daniel Esbella */}
+              <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors border border-transparent">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                    DE
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">Daniel Esbella</p>
+                    <p className="text-[10px] text-slate-400 font-medium">UI/UX Designer</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500 text-white">09:15</span>
+                </div>
+              </div>
+
+              {/* Doglas Martini */}
+              <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors border border-transparent">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-pink-100 text-pink-700 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                    DM
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">Doglas Martini</p>
+                    <p className="text-[10px] text-slate-400 font-medium">Project Manager</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500 text-white">09:36</span>
+                </div>
+              </div>
+
+              {/* Brian Villalobos (Expanded) */}
+              <div className="p-2 bg-slate-50/50 border border-slate-100 rounded-lg space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                      BV
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-800">Brian Villalobos</p>
+                      <p className="text-[10px] text-slate-400 font-medium">PHP Developer</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500 text-white">09:15</span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-[9px] font-medium text-slate-500">
+                  <div>
+                    <span className="flex items-center gap-1 text-slate-400 mb-0.5"><span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Clock In</span>
+                    <span className="font-bold text-slate-700 text-xs">10:30 AM</span>
+                  </div>
+                  <div>
+                    <span className="flex items-center gap-1 text-slate-400 mb-0.5"><span className="w-1.5 h-1.5 rounded-full bg-red-500" /> Clock Out</span>
+                    <span className="font-bold text-slate-700 text-xs">09:45 AM</span>
+                  </div>
+                  <div>
+                    <span className="flex items-center gap-1 text-slate-400 mb-0.5"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Production</span>
+                    <span className="font-bold text-slate-700 text-xs">09:21 Hrs</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <Button variant="outline" className="w-full mt-4 h-9 bg-white hover:bg-slate-50 text-slate-700 font-semibold border-slate-200">
+              View All Attendance
+            </Button>
+          </Card>
+
+          {/* Card 2: Late */}
+          <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+              <h3 className="text-sm font-bold text-slate-800">Late</h3>
+              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-150 rounded text-slate-500 flex items-center gap-1">
+                <CalendarDays className="w-3 h-3" /> Today
+              </span>
+            </div>
+            
+            <div className="flex-1 space-y-3">
+              {/* Anthony Lewis */}
+              <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors border border-transparent">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                    AL
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-xs font-bold text-slate-800">Anthony Lewis</p>
+                      <span className="px-1.5 py-0.5 text-[8px] font-bold rounded bg-red-500 text-white">30 Min</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-medium">Marketing Head</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500 text-white">08:35</span>
+                </div>
+              </div>
+
+              {/* Nathirah Rahman */}
+              <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors border border-transparent">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                    NR
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-xs font-bold text-slate-800">Nathirah Rahman</p>
+                      <span className="px-1.5 py-0.5 text-[8px] font-bold rounded bg-red-500 text-white">15 Min</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-medium">HR Admin</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500 text-white">09:15</span>
+                </div>
+              </div>
+
+              {/* Ahmad Faiz */}
+              <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors border border-transparent">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                    AF
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-xs font-bold text-slate-800">Ahmad Faiz</p>
+                      <span className="px-1.5 py-0.5 text-[8px] font-bold rounded bg-red-500 text-white">119 Min</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-medium">Branch Leader</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500 text-white">11:59</span>
+                </div>
+              </div>
+            </div>
+            
+            <Button variant="outline" className="w-full mt-4 h-9 bg-white hover:bg-slate-50 text-slate-700 font-semibold border-slate-200">
+              View All Attendance
+            </Button>
+          </Card>
+
+          {/* Card 3: Upcoming Outstation */}
+          <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+              <h3 className="text-sm font-bold text-slate-800">Upcoming Outstation</h3>
+              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-150 rounded text-slate-500 flex items-center gap-1">
+                <CalendarDays className="w-3 h-3" /> Today
+              </span>
+            </div>
+            
+            <div className="flex-1 space-y-4">
+              {/* Kuala Lumpur Site Visit */}
+              <div className="border-l-4 border-orange-500 pl-3 py-1 space-y-2">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">Kuala Lumpur Site Visit</p>
+                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">12:00 PM - 01:50 PM</p>
+                  </div>
+                  <div className="flex -space-x-1.5">
+                    <div className="w-5 h-5 rounded-full bg-slate-200 border border-white text-[8px] font-bold flex items-center justify-center">A</div>
+                    <div className="w-5 h-5 rounded-full bg-slate-300 border border-white text-[8px] font-bold flex items-center justify-center">B</div>
+                    <div className="w-5 h-5 rounded-full bg-slate-400 border border-white text-[8px] font-bold flex items-center justify-center">C</div>
+                    <div className="w-5 h-5 rounded-full bg-indigo-500 border border-white text-[8px] font-bold text-white flex items-center justify-center">+9</div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 bg-white text-slate-600 rounded flex items-center gap-1">
+                    <CalendarDays className="w-3 h-3" /> Add to Calendar
+                  </Button>
+                  <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 bg-white text-slate-600 rounded">
+                    Join Now
+                  </Button>
+                </div>
+              </div>
+
+              {/* Penang Branch Audit */}
+              <div className="border-l-4 border-cyan-500 pl-3 py-1 space-y-2">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">Penang Branch Audit</p>
+                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">03:00 PM - 04:00 PM</p>
+                  </div>
+                  <div className="flex -space-x-1.5">
+                    <div className="w-5 h-5 rounded-full bg-slate-200 border border-white text-[8px] font-bold flex items-center justify-center">X</div>
+                    <div className="w-5 h-5 rounded-full bg-slate-300 border border-white text-[8px] font-bold flex items-center justify-center">Y</div>
+                    <div className="w-5 h-5 rounded-full bg-indigo-500 border border-white text-[8px] font-bold text-white flex items-center justify-center">+4</div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 bg-white text-slate-600 rounded flex items-center gap-1">
+                    <CalendarDays className="w-3 h-3" /> Add to Calendar
+                  </Button>
+                  <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 bg-white text-slate-600 rounded">
+                    Join Now
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            <button className="text-xs font-semibold text-[#7B0099] hover:text-[#5c0073] text-center mt-4 flex items-center justify-center gap-1 w-full pt-2 border-t border-slate-100">
+              View All <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </Card>
+
+        </div>
       </div>
   );
 }
