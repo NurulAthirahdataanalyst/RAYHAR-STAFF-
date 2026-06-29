@@ -1044,7 +1044,10 @@ export default function AttendanceDashboard() {
                         const diffMs = clockInDate.getTime() - thresholdDate.getTime();
                         if (diffMs > 0) {
                           isLate = true;
-                          lateMinStr = `${Math.floor(diffMs / 60000)} Min`;
+                          const totalMin = Math.floor(diffMs / 60000);
+                          const h = Math.floor(totalMin / 60);
+                          const m = (totalMin % 60).toString().padStart(2, '0');
+                          lateMinStr = `${h} H ${m} Min`;
                         }
                       }
 

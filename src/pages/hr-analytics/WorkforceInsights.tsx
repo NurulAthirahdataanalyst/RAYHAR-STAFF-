@@ -674,7 +674,9 @@ export default function WorkforceInsights() {
                     <div>
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{emp.full_name}</p>
-                        <span className="px-1.5 py-0.5 text-[8px] font-bold rounded bg-red-500 text-white">{emp.late_minutes} Min</span>
+                        <span className="px-1.5 py-0.5 text-[8px] font-bold rounded bg-red-500 text-white">
+                          {Math.floor(emp.late_minutes / 60)} H {(emp.late_minutes % 60).toString().padStart(2, '0')} Min
+                        </span>
                       </div>
                       <p className="text-[10px] text-slate-400 font-medium">{emp.department !== '—' ? emp.department : emp.branch}</p>
                     </div>
