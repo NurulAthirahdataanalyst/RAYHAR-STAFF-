@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Loader2, Users, UserCheck, CalendarDays, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight, ChevronDown, Wifi, WifiOff } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 
 const COLORS = ['#4f46e5', '#eab308', '#94a3b8', '#DC2626']; // Present, Late, On Leave, Absent
@@ -59,6 +60,9 @@ export default function WorkforceInsights() {
   const [data, setData] = useState<any>(null);
   const [month, setMonth] = useState((new Date().getMonth() + 1).toString().padStart(2, '0'));
   const [year, setYear] = useState(new Date().getFullYear().toString());
+  const [viewMode, setViewMode] = useState<'day' | 'month'>('month');
+
+  const displayDate = `${new Date(0, parseInt(month) - 1).toLocaleString('en', { month: 'long' }).toUpperCase()}, ${year}`;
 
   // ── SSE Live Feed State ──────────────────────────────────
   const [clockInOut, setClockInOut] = useState<LiveEmp[]>([]);
@@ -184,25 +188,53 @@ export default function WorkforceInsights() {
         
         {/* Header Controls */}
         <div className="flex flex-wrap items-center justify-end w-full gap-3 pb-2 pt-2">
-            <Select value={month} onValueChange={setMonth}>
-              <SelectTrigger className="w-[120px] rounded-md h-9 text-sm">
-                <SelectValue placeholder="Month" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({length: 12}, (_, i) => {
-                  const m = (i + 1).toString().padStart(2, '0');
-                  return <SelectItem key={m} value={m}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</SelectItem>
-                })}
-              </SelectContent>
-            </Select>
-            <Select value={year} onValueChange={setYear}>
-              <SelectTrigger className="w-[100px] rounded-md h-9 text-sm">
-                <SelectValue placeholder="Year" />
-              </SelectTrigger>
-              <SelectContent>
-                {[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-3">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="h-10 px-5 text-sm font-bold text-slate-800 bg-slate-50 border-slate-200 hover:bg-slate-100 uppercase tracking-widest rounded-lg flex items-center gap-3">
+                    {displayDate} <CalendarDays className="w-4 h-4 text-slate-600" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3" align="end">
+                  <div className="flex gap-2">
+                    <Select value={month} onValueChange={setMonth}>
+                      <SelectTrigger className="w-[120px] rounded-md h-9 text-sm">
+                        <SelectValue placeholder="Month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({length: 12}, (_, i) => {
+                          const m = (i + 1).toString().padStart(2, '0');
+                          return <SelectItem key={m} value={m}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</SelectItem>
+                        })}
+                      </SelectContent>
+                    </Select>
+                    <Select value={year} onValueChange={setYear}>
+                      <SelectTrigger className="w-[100px] rounded-md h-9 text-sm">
+                        <SelectValue placeholder="Year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              <div className="flex items-center bg-slate-50 rounded-lg p-1 border border-slate-100">
+                <button 
+                  className={`h-8 px-5 text-[11px] font-bold tracking-widest rounded-md transition-all ${viewMode === 'day' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                  onClick={() => setViewMode('day')}
+                >
+                  DAY
+                </button>
+                <button 
+                  className={`h-8 px-5 text-[11px] font-bold tracking-widest rounded-md transition-all ${viewMode === 'month' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                  onClick={() => setViewMode('month')}
+                >
+                  MONTH
+                </button>
+              </div>
+            </div>
             <ExportDropdown 
               onExportCSV={() => exportToCSV(data.departmentMetrics || [], 'Workforce_Insights')} 
               onExportPDF={() => window.print()} 
