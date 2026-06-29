@@ -9,6 +9,7 @@ import { Loader2, Users, UserCheck, CalendarDays, Clock, FileCheck, CheckCircle2
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 
 const COLORS = ['#4f46e5', '#eab308', '#94a3b8', '#DC2626']; // Present, Late, On Leave, Absent
@@ -67,7 +68,15 @@ export default function WorkforceInsights() {
     ? `${day}/${month}/${year}` 
     : `${new Date(0, parseInt(month) - 1).toLocaleString('en', { month: 'long' }).toUpperCase()}, ${year}`;
 
-  const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
+  const selectedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setDay(date.getDate().toString().padStart(2, '0'));
+      setMonth((date.getMonth() + 1).toString().padStart(2, '0'));
+      setYear(date.getFullYear().toString());
+    }
+  };
 
   // ── SSE Live Feed State ──────────────────────────────────
   const [clockInOut, setClockInOut] = useState<LiveEmp[]>([]);
@@ -202,37 +211,13 @@ export default function WorkforceInsights() {
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-3" align="end">
                   {viewMode === 'day' ? (
-                    <div className="flex gap-2">
-                      <Select value={day} onValueChange={setDay}>
-                        <SelectTrigger className="w-[80px] rounded-md h-9 text-sm">
-                          <SelectValue placeholder="Day" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({length: daysInMonth}, (_, i) => {
-                            const d = (i + 1).toString().padStart(2, '0');
-                            return <SelectItem key={d} value={d}>{d}</SelectItem>
-                          })}
-                        </SelectContent>
-                      </Select>
-                      <Select value={month} onValueChange={setMonth}>
-                        <SelectTrigger className="w-[120px] rounded-md h-9 text-sm">
-                          <SelectValue placeholder="Month" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({length: 12}, (_, i) => {
-                            const m = (i + 1).toString().padStart(2, '0');
-                            return <SelectItem key={m} value={m}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</SelectItem>
-                          })}
-                        </SelectContent>
-                      </Select>
-                      <Select value={year} onValueChange={setYear}>
-                        <SelectTrigger className="w-[100px] rounded-md h-9 text-sm">
-                          <SelectValue placeholder="Year" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+                    <div className="p-1">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={handleDateSelect}
+                        initialFocus
+                      />
                     </div>
                   ) : (
                     <div className="w-[260px] flex flex-col gap-3">
