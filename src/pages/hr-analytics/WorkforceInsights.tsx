@@ -698,7 +698,7 @@ export default function WorkforceInsights() {
                       <p className="text-[10px] font-semibold">No clock-ins yet today</p>
                     </div>
                   )}
-                  {allClockIns.slice(0, 6).map((emp) => (
+                  {allClockIns.map((emp) => (
                     <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
                       <div className="flex items-center gap-2.5">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
@@ -762,7 +762,7 @@ export default function WorkforceInsights() {
                   <p className="text-[10px] font-semibold">No late arrivals today!</p>
                 </div>
               )}
-              {lateList.slice(0, 5).map((emp) => (
+              {lateList.map((emp) => (
                 <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
                   <div className="flex items-center gap-2.5">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
@@ -822,7 +822,7 @@ export default function WorkforceInsights() {
                   <p className="text-[10px] font-semibold">No absentees today!</p>
                 </div>
               )}
-              {absentList.slice(0, 5).map((emp) => (
+              {absentList.map((emp) => (
                 <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
                   <div className="flex items-center gap-2.5">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
