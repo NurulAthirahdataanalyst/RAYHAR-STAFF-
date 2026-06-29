@@ -95,6 +95,9 @@ export default function WorkforceInsights() {
       branch: userBranch || "",
       department: userDepartment || "",
     });
+    if (viewMode === 'day') {
+      params.append('date', `${year}-${month}-${day}`);
+    }
     const es = new EventSource(`${API_BASE_URL}/api/workforce/live-feed?${params}`);
     es.onopen = () => setFeedConnected(true);
     es.onmessage = (e) => {
@@ -111,7 +114,7 @@ export default function WorkforceInsights() {
     };
     es.onerror = () => setFeedConnected(false);
     return () => es.close();
-  }, [role, userBranch, userDepartment, isAdminRole]);
+  }, [role, userBranch, userDepartment, isAdminRole, month, year, day, viewMode]);
 
   const handleApproveLeave = async (id: number) => {
     setPendingApprovalsList(prev => prev.filter(item => item.id !== id));
@@ -145,6 +148,9 @@ export default function WorkforceInsights() {
         month: month,
         year: year
       });
+      if (viewMode === 'day') {
+        params.append('date', `${year}-${month}-${day}`);
+      }
       const res = await fetch(`${API_BASE_URL}/api/reports/workforce-insights?${params}`);
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
@@ -163,7 +169,7 @@ export default function WorkforceInsights() {
     }
   };
 
-  useEffect(() => { fetchInsights(); }, [role, userBranch, userDepartment, month, year]);
+  useEffect(() => { fetchInsights(); }, [role, userBranch, userDepartment, month, year, day, viewMode]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">Error: {error}. The backend may still be deploying.</div>;

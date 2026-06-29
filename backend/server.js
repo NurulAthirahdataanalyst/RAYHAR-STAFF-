@@ -1043,8 +1043,7 @@ app.get("/api/presence/live-stats", async (req, res) => {
 // ============================================================
 let workforceFeedClients = [];
 
-async function getWorkforceLiveFeed(role, branch, department) {
-  const dateStr = new Date().toISOString().split('T')[0];
+async function getWorkforceLiveFeed(dateStr, role, branch, department) {
   const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
 
   let filterP = "";
@@ -1190,11 +1189,12 @@ app.get("/api/workforce/live-feed", async (req, res) => {
 
   res.write(": connected\n\n");
 
-  const { role, branch, department } = req.query;
+  const { date, role, branch, department } = req.query;
+  const targetDate = date ? date.toString() : new Date().toISOString().split('T')[0];
 
   // Send initial snapshot
   try {
-    const snapshot = await getWorkforceLiveFeed(role, branch, department);
+    const snapshot = await getWorkforceLiveFeed(targetDate, role, branch, department);
     res.write(`data: ${JSON.stringify(snapshot)}\n\n`);
   } catch (e) {
     console.error("workforce live-feed initial send error:", e);
@@ -1203,7 +1203,7 @@ app.get("/api/workforce/live-feed", async (req, res) => {
   // Refresh every 30 seconds
   const interval = setInterval(async () => {
     try {
-      const data = await getWorkforceLiveFeed(role, branch, department);
+      const data = await getWorkforceLiveFeed(targetDate, role, branch, department);
       res.write(`data: ${JSON.stringify(data)}\n\n`);
     } catch (e) {
       console.error("workforce live-feed interval error:", e);
@@ -3196,6 +3196,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     const requestedYear = parseInt(req.query.year) || new Date().getFullYear();
     // In Malaysia timezone for accurate 'today'
     const todayStr = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"})).toISOString().split('T')[0];
+    const targetDateStr = req.query.date ? req.query.date : todayStr;
     const lateTimeStr = getLateThresholdTime();
 
     let profileFilter = "";
@@ -3237,7 +3238,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0]; // Quick offset for Malaysia
       
       if (isLate) totalLateArrivals++;
-      if (dateStr === todayStr) {
+      if (dateStr === targetDateStr) {
         presentToday++;
         if (isLate) lateToday++;
       }
@@ -3276,7 +3277,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       const start = new Date(startObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
       const end = new Date(endObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
       
-      if (todayStr >= start && todayStr <= end && lr.status === 'Approved') {
+      if (targetDateStr >= start && targetDateStr <= end && lr.status === 'Approved') {
         onLeaveToday++;
       }
     });
