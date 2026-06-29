@@ -472,7 +472,8 @@ export default function WorkforceInsights() {
         </div>
 
         {/* NEW BOTTOM SECTION: 4 KPI CARDS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        {role === "hr_admin" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           
           {/* Card 1: Clock-In/Out */}
           <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
@@ -755,7 +756,8 @@ export default function WorkforceInsights() {
             </button>
           </Card>
 
-        </div>
+          </div>
+        )}
       </div>
   );
 }
