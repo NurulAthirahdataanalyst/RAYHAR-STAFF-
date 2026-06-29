@@ -60,9 +60,14 @@ export default function WorkforceInsights() {
   const [data, setData] = useState<any>(null);
   const [month, setMonth] = useState((new Date().getMonth() + 1).toString().padStart(2, '0'));
   const [year, setYear] = useState(new Date().getFullYear().toString());
+  const [day, setDay] = useState(new Date().getDate().toString().padStart(2, '0'));
   const [viewMode, setViewMode] = useState<'day' | 'month'>('month');
 
-  const displayDate = `${new Date(0, parseInt(month) - 1).toLocaleString('en', { month: 'long' }).toUpperCase()}, ${year}`;
+  const displayDate = viewMode === 'day' 
+    ? `${day}/${month}/${year}` 
+    : `${new Date(0, parseInt(month) - 1).toLocaleString('en', { month: 'long' }).toUpperCase()}, ${year}`;
+
+  const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
 
   // ── SSE Live Feed State ──────────────────────────────────
   const [clockInOut, setClockInOut] = useState<LiveEmp[]>([]);
@@ -197,6 +202,19 @@ export default function WorkforceInsights() {
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-3" align="end">
                   <div className="flex gap-2">
+                    {viewMode === 'day' && (
+                      <Select value={day} onValueChange={setDay}>
+                        <SelectTrigger className="w-[80px] rounded-md h-9 text-sm">
+                          <SelectValue placeholder="Day" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({length: daysInMonth}, (_, i) => {
+                            const d = (i + 1).toString().padStart(2, '0');
+                            return <SelectItem key={d} value={d}>{d}</SelectItem>
+                          })}
+                        </SelectContent>
+                      </Select>
+                    )}
                     <Select value={month} onValueChange={setMonth}>
                       <SelectTrigger className="w-[120px] rounded-md h-9 text-sm">
                         <SelectValue placeholder="Month" />
