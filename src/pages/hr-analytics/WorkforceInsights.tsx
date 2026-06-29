@@ -24,6 +24,19 @@ export default function WorkforceInsights() {
   const [data, setData] = useState<any>(null);
   const [month, setMonth] = useState((new Date().getMonth() + 1).toString().padStart(2, '0'));
   const [year, setYear] = useState(new Date().getFullYear().toString());
+  const [pendingApprovalsList, setPendingApprovalsList] = useState([
+    { id: 1, name: "Hendrita Merkel", initials: "HM", dates: "Jan 10 - Jan 16", days: "4 days", reason: "Family trip", avatarColor: "bg-purple-150 text-purple-700 bg-purple-100" },
+    { id: 2, name: "Michael Brown", initials: "MB", dates: "Jan 3 - Jan 9", days: "2 days", reason: "Medical appointment", avatarColor: "bg-blue-100 text-blue-700" },
+    { id: 3, name: "Daniel Martinez", initials: "DM", dates: "Jan 17 - Jan 23", days: "2 days", reason: "Personal Work", avatarColor: "bg-emerald-100 text-emerald-700" }
+  ]);
+
+  const handleApproveLeave = (id: number, name: string) => {
+    setPendingApprovalsList(prev => prev.filter(item => item.id !== id));
+  };
+
+  const handleDeclineLeave = (id: number, name: string) => {
+    setPendingApprovalsList(prev => prev.filter(item => item.id !== id));
+  };
 
   const fetchInsights = async () => {
     setLoading(true);
@@ -458,8 +471,8 @@ export default function WorkforceInsights() {
 
         </div>
 
-        {/* NEW BOTTOM SECTION: 3 KPI CARDS */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        {/* NEW BOTTOM SECTION: 4 KPI CARDS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           
           {/* Card 1: Clock-In/Out */}
           <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
@@ -624,11 +637,66 @@ export default function WorkforceInsights() {
             </Button>
           </Card>
 
-          {/* Card 3: Upcoming Outstation */}
+          {/* Card 3: Pending Approvals */}
+          <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+              <h3 className="text-sm font-bold text-slate-800">Pending Approvals</h3>
+              <Button 
+                onClick={() => navigate("/leave/admin?tab=pending")}
+                variant="outline" 
+                className="h-7 px-2.5 text-[10px] font-bold border-slate-200 bg-white text-slate-600 rounded"
+              >
+                View All
+              </Button>
+            </div>
+            
+            <div className="flex-1 space-y-3">
+              {pendingApprovalsList.length > 0 ? (
+                pendingApprovalsList.map((item) => (
+                  <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-all gap-3">
+                    <div className="flex items-start gap-2.5">
+                      <div className={`w-8 h-8 rounded-full ${item.avatarColor} flex items-center justify-center font-bold text-xs uppercase shadow-sm shrink-0 mt-0.5`}>
+                        {item.initials}
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-800 leading-tight">{item.name}</p>
+                        <p className="text-[10px] text-slate-500 font-medium mt-1 flex items-center gap-1.5">
+                          <CalendarDays className="w-3 h-3 text-slate-400" /> {item.dates} <span className="text-slate-300">|</span> <span className="text-[#ff5b37] font-semibold">{item.days}</span>
+                        </p>
+                        <p className="text-[10px] text-slate-400 font-medium mt-0.5">Reason: {item.reason}</p>
+                      </div>
+                    </div>
+                    <div className="flex sm:flex-col gap-1.5 self-end sm:self-center shrink-0">
+                      <button 
+                        onClick={() => handleApproveLeave(item.id, item.name)}
+                        className="px-3 py-1 text-[10px] font-bold rounded bg-[#ff5b37] hover:bg-[#e04f2e] text-white transition-colors"
+                      >
+                        Approve
+                      </button>
+                      <button 
+                        onClick={() => handleDeclineLeave(item.id, item.name)}
+                        className="px-3 py-1 text-[10px] font-bold rounded border border-[#ff5b37] text-[#ff5b37] hover:bg-[#ff5b37]/5 transition-colors"
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center p-8 text-slate-400">
+                  <CheckCircle2 className="w-8 h-8 text-emerald-500 opacity-60 mb-2" />
+                  <p className="text-xs font-bold uppercase tracking-wider">All caught up!</p>
+                  <p className="text-[10px] mt-0.5">No pending approvals remaining.</p>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Card 4: Upcoming Outstation */}
           <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <h3 className="text-sm font-bold text-slate-800">Upcoming Outstation</h3>
-              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-150 rounded text-slate-500 flex items-center gap-1">
+              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-150 rounded text-slate-505 flex items-center gap-1">
                 <CalendarDays className="w-3 h-3" /> Today
               </span>
             </div>
