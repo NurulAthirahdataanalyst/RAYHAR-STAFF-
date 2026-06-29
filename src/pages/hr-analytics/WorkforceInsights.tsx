@@ -201,8 +201,8 @@ export default function WorkforceInsights() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-3" align="end">
-                  <div className="flex gap-2">
-                    {viewMode === 'day' && (
+                  {viewMode === 'day' ? (
+                    <div className="flex gap-2">
                       <Select value={day} onValueChange={setDay}>
                         <SelectTrigger className="w-[80px] rounded-md h-9 text-sm">
                           <SelectValue placeholder="Day" />
@@ -214,27 +214,83 @@ export default function WorkforceInsights() {
                           })}
                         </SelectContent>
                       </Select>
-                    )}
-                    <Select value={month} onValueChange={setMonth}>
-                      <SelectTrigger className="w-[120px] rounded-md h-9 text-sm">
-                        <SelectValue placeholder="Month" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Array.from({length: 12}, (_, i) => {
-                          const m = (i + 1).toString().padStart(2, '0');
-                          return <SelectItem key={m} value={m}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</SelectItem>
+                      <Select value={month} onValueChange={setMonth}>
+                        <SelectTrigger className="w-[120px] rounded-md h-9 text-sm">
+                          <SelectValue placeholder="Month" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({length: 12}, (_, i) => {
+                            const m = (i + 1).toString().padStart(2, '0');
+                            return <SelectItem key={m} value={m}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</SelectItem>
+                          })}
+                        </SelectContent>
+                      </Select>
+                      <Select value={year} onValueChange={setYear}>
+                        <SelectTrigger className="w-[100px] rounded-md h-9 text-sm">
+                          <SelectValue placeholder="Year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : (
+                    <div className="w-[260px] flex flex-col gap-3">
+                      {/* Year Input/Display */}
+                      <div className="bg-slate-100 rounded-sm">
+                        <Select value={year} onValueChange={setYear}>
+                          <SelectTrigger className="w-full bg-transparent border-none shadow-none h-9 text-sm focus:ring-0">
+                            <SelectValue placeholder="Year" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Month Grid */}
+                      <div className="grid grid-cols-4 gap-1">
+                        {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, i) => {
+                          const mValue = (i + 1).toString().padStart(2, '0');
+                          const isSelected = month === mValue;
+                          return (
+                            <button
+                              key={m}
+                              onClick={() => setMonth(mValue)}
+                              className={`py-1.5 px-1 text-sm text-center transition-colors ${
+                                isSelected 
+                                  ? 'bg-[#5f6368] text-white border-[2px] border-[#202124]' 
+                                  : 'text-slate-700 hover:bg-slate-100 border-[2px] border-transparent'
+                              }`}
+                            >
+                              {m}
+                            </button>
+                          );
                         })}
-                      </SelectContent>
-                    </Select>
-                    <Select value={year} onValueChange={setYear}>
-                      <SelectTrigger className="w-[100px] rounded-md h-9 text-sm">
-                        <SelectValue placeholder="Year" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                      </div>
+
+                      {/* Footer Actions */}
+                      <div className="flex items-center justify-between pt-1">
+                        <button 
+                          className="text-sm text-sky-500 hover:underline"
+                          onClick={() => {
+                            setMonth((new Date().getMonth() + 1).toString().padStart(2, '0'));
+                          }}
+                        >
+                          Clear
+                        </button>
+                        <button 
+                          className="text-sm text-sky-500 hover:underline"
+                          onClick={() => {
+                            setMonth((new Date().getMonth() + 1).toString().padStart(2, '0'));
+                            setYear(new Date().getFullYear().toString());
+                          }}
+                        >
+                          This month
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </PopoverContent>
               </Popover>
 
