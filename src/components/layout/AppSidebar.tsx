@@ -55,6 +55,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   useEffect(() => {
     localStorage.setItem("appSidebarCollapsed", String(isCollapsed));
   }, [isCollapsed]);
+  const [isHovered, setIsHovered] = useState(false);
+  const effectiveCollapsed = isCollapsed && !isHovered;
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
 
   // Close mobile drawer on route change
@@ -244,10 +246,10 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   const sidebarContent = (isMobile: boolean) => (
     <>
       <div className={`relative shrink-0 flex items-center justify-center border-b border-purple-950/20 dark:border-b-white/5 overflow-hidden transition-all ${
-        isCollapsed && !isMobile ? "h-20" : "h-20 px-3"
+        effectiveCollapsed && !isMobile ? "h-20" : "h-20 px-3"
       }`}>
         {/* Mobile or Expanded Desktop view: show logo (and toggle on right for desktop) */}
-        {(!isCollapsed || isMobile) ? (
+        {(!effectiveCollapsed || isMobile) ? (
           <div className="flex items-center justify-between w-full h-full gap-2">
             <Link to="/" className="flex items-center justify-start h-full animate-in fade-in duration-300" onClick={isMobile ? onMobileClose : undefined}>
               <img 
@@ -293,14 +295,14 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       </div>
 
       {/* MENU */}
-      <div className={`flex-1 scrollbar-none pt-6 pb-4 border-r border-sidebar-border ${isCollapsed && !isMobile ? "overflow-visible" : "overflow-y-auto"}`}>
-        <nav className={`space-y-1 mt-2 ${isCollapsed && !isMobile ? "px-2" : "px-0 sm:px-0"}`}>
+      <div className={`flex-1 scrollbar-none pt-6 pb-4 border-r border-sidebar-border ${effectiveCollapsed && !isMobile ? "overflow-visible" : "overflow-y-auto"}`}>
+        <nav className={`space-y-1 mt-2 ${effectiveCollapsed && !isMobile ? "px-2" : "px-0 sm:px-0"}`}>
           {filteredItems.map((item, index) => {
             if (item.isSection) {
-              if (isCollapsed && !isMobile) return <div key={item.title} className="h-4"></div>;
+              if (effectiveCollapsed && !isMobile) return <div key={item.title} className="h-4"></div>;
               return (
                 <div key={item.title} className={`px-5 mb-1.5 ${index > 0 ? "mt-6" : ""}`}>
-                  <span className="text-[12px] font-bold capitalize tracking-wider text-sidebar-foreground/40">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-sidebar-foreground/35">
                     {item.title}
                   </span>
                 </div>
@@ -326,18 +328,18 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                     if (isMobile && !hasChildren) {
                       onMobileClose();
                     }
-                    if (hasChildren && !isCollapsed) {
+                    if (hasChildren && !effectiveCollapsed) {
                       setExpandedMenus(prev => prev[item.title] ? {} : { [item.title]: true });
                     }
                   }}
                   className={`group relative flex items-center gap-3.5 transition-all duration-300 touch-target ${
-                    isCollapsed && !isMobile 
+                    effectiveCollapsed && !isMobile 
                       ? "justify-center px-0 w-11 h-11 mx-auto rounded-xl" 
-                      : "px-4 py-2.5 rounded-r-2xl mr-4"
+                      : "px-4 py-2 rounded-r-2xl mr-4"
                   } ${
                     isActive
-                      ? "bg-[#7B0099]/15 text-white font-semibold border-l-4 border-[#7B0099]"
-                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white border-l-4 border-transparent"
+                      ? "bg-[#7B0099]/10 text-white font-semibold border-l-[3px] border-[#7B0099]"
+                      : "text-sidebar-foreground/70 hover:bg-white/[0.02] hover:text-white border-l-[3px] border-transparent"
                   }`}
                 >
                   {ItemIcon && (
@@ -349,8 +351,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                       }`}
                     />
                   )}
-                  {(!isCollapsed || isMobile) && (
-                    <span className={`text-[14px] tracking-wide whitespace-nowrap truncate animate-in fade-in slide-in-from-left-2 duration-300 ${
+                  {(!effectiveCollapsed || isMobile) && (
+                    <span className={`text-[13px] tracking-wide whitespace-nowrap truncate animate-in fade-in slide-in-from-left-2 duration-300 ${
                       isActive 
                         ? "text-white font-semibold" 
                         : "text-sidebar-foreground/80 group-hover:text-white font-medium"
@@ -360,7 +362,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                   )}
 
                   {/* Collapse/Expand chevron indicator */}
-                  {hasChildren && (!isCollapsed || isMobile) && (
+                  {hasChildren && (!effectiveCollapsed || isMobile) && (
                     <button
                       type="button"
                       onClick={(e) => {
@@ -377,18 +379,17 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                 </Link>
 
                 {/* Submenu for Expanded State (Desktop or Mobile) */}
-                {hasChildren && isMenuExpanded && (!isCollapsed || isMobile) && (
+                {hasChildren && isMenuExpanded && (!effectiveCollapsed || isMobile) && (
                   <div className="relative pl-[2.25rem] pr-6 py-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
                     <div className="absolute left-[1.1rem] top-0 bottom-4 w-px bg-sidebar-border"></div>
                     {visibleChildren.map((child) => {
                       const isChildActive = location.pathname === child.path;
-                      const ChildIcon = child.icon as LucideIcon;
                       return (
                         <Link
                           key={child.title}
                           to={child.path}
                           onClick={isMobile ? onMobileClose : undefined}
-                          className={`group relative flex items-center gap-3 rounded-[14px] px-4 py-2.5 text-[13px] transition-all duration-300 touch-target ${
+                          className={`group relative flex items-center gap-3 rounded-[14px] px-4 py-2 text-[13px] transition-all duration-300 touch-target ${
                             isChildActive
                               ? "bg-white/5 font-semibold text-white"
                               : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white"
@@ -403,7 +404,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                 )}
 
                 {/* Submenu Popover Card for Collapsed State */}
-                {hasChildren && isCollapsed && !isMobile && (
+                {hasChildren && effectiveCollapsed && !isMobile && (
                   <div className="absolute left-full top-0 ml-3 z-50 hidden group-hover/menu-item:block min-w-[200px] bg-sidebar border border-sidebar-border rounded-[18px] p-2 shadow-[0_8px_30px_rgba(123,0,153,0.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200">
                     {/* Category Header */}
                     <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/50 border-b border-white/5 mb-2">
@@ -413,12 +414,11 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                     <div className="space-y-1">
                       {visibleChildren.map((child) => {
                         const isChildActive = location.pathname === child.path;
-                        const ChildIcon = child.icon as LucideIcon;
                         return (
                           <Link
                             key={child.title}
                             to={child.path}
-                            className={`flex items-center gap-3 rounded-[14px] px-3 py-2.5 text-[13px] transition-all duration-200 ${
+                            className={`flex items-center gap-3 rounded-[14px] px-3 py-2 text-[13px] transition-all duration-200 ${
                               isChildActive
                                 ? "bg-white/10 font-semibold text-white"
                                 : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white"
@@ -433,7 +433,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                 )}
 
                 {/* Tooltip Popover Card for Collapsed State (No Children) */}
-                {!hasChildren && isCollapsed && !isMobile && (
+                {!hasChildren && effectiveCollapsed && !isMobile && (
                   <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 hidden group-hover/menu-item:block bg-sidebar border border-sidebar-border rounded-[12px] px-3.5 py-2 shadow-[0_8px_25px_rgba(123,0,153,0.08)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200">
                     <span className="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 whitespace-nowrap">
                       {item.title}
@@ -451,9 +451,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         <Button
           variant="ghost"
           onClick={toggleTheme}
-          title={isCollapsed && !isMobile ? `Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode` : ""}
+          title={effectiveCollapsed && !isMobile ? `Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode` : ""}
           className={`group flex w-full justify-start gap-2.5 rounded-[16px] px-2.5 sm:px-2.5 py-2.5 text-sidebar-foreground/85 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground touch-target ${
-            isCollapsed && !isMobile ? "justify-center px-0 w-11 h-11 mx-auto" : ""
+            effectiveCollapsed && !isMobile ? "justify-center px-0 w-11 h-11 mx-auto" : ""
           }`}
         >
           {theme === "light" ? (
@@ -461,7 +461,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           ) : (
             <Sun className="h-5 w-5 shrink-0" />
           )}
-          {(!isCollapsed || isMobile) && (
+          {(!effectiveCollapsed || isMobile) && (
             <span className="text-sm font-bold whitespace-nowrap animate-in fade-in duration-300">
               {theme === "light" ? "Dark Mode" : "Light Mode"}
             </span>
@@ -471,13 +471,13 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         <Button
           variant="ghost"
           onClick={() => signOut()}
-          title={isCollapsed && !isMobile ? "Sign Out" : ""}
+          title={effectiveCollapsed && !isMobile ? "Sign Out" : ""}
           className={`group flex w-full justify-start gap-3 rounded-[16px] px-3 sm:px-3 py-3 text-sidebar-foreground/85 transition-all hover:bg-red-500/10 dark:hover:bg-red-950/20 hover:text-red-600 dark:hover:text-red-400 touch-target ${
-            isCollapsed && !isMobile ? "justify-center px-0 w-11 h-11 mx-auto" : ""
+            effectiveCollapsed && !isMobile ? "justify-center px-0 w-11 h-11 mx-auto" : ""
           }`}
         >
           <LogOut className="h-5 w-5 shrink-0 transition-transform group-hover:-translate-x-1" />
-          {(!isCollapsed || isMobile) && <span className="text-sm font-bold whitespace-nowrap animate-in fade-in duration-300">Sign Out</span>}
+          {(!effectiveCollapsed || isMobile) && <span className="text-sm font-bold whitespace-nowrap animate-in fade-in duration-300">Sign Out</span>}
         </Button>
       </div>
     </>
@@ -487,13 +487,17 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     <>
       {/* ═══════ DESKTOP SIDEBAR spacer ═══════ */}
       <div className={`hidden lg:block shrink-0 transition-all duration-300 ease-in-out ${
-        isCollapsed ? "w-16" : "w-64"
+        isCollapsed ? "w-16" : "w-[230px]"
       }`} />
 
       {/* ═══════ DESKTOP SIDEBAR (fixed on desktop) ═══════ */}
-      <aside className={`hidden lg:flex fixed top-0 left-0 z-40 h-screen flex-col bg-sidebar transition-all duration-300 ease-in-out ${
-        isCollapsed ? "w-16" : "w-64"
-      }`}>
+      <aside 
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`hidden lg:flex fixed top-0 left-0 z-40 h-screen flex-col bg-sidebar transition-all duration-300 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.15)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.4)] border-r border-sidebar-border/60 ${
+          effectiveCollapsed ? "w-16" : "w-[230px]"
+        }`}
+      >
         {sidebarContent(false)}
       </aside>
 
