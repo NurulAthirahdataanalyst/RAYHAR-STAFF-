@@ -1084,6 +1084,12 @@ async function getWorkforceLiveFeed(role, branch, department) {
     if (!clockMap[row.user_id]) clockMap[row.user_id] = row;
   }
 
+  // Get all active profiles to determine absentees
+  const [allProfiles] = await pool.query(
+    `SELECT user_id, full_name, branch, department, role FROM profiles WHERE status = 'Active' ${filterP}`,
+    paramsBase
+  );
+
   const [lhStr, lmStr] = lateTimeStr.split(':');
   const lh = parseInt(lhStr), lm = parseInt(lmStr);
 
@@ -1117,6 +1123,21 @@ async function getWorkforceLiveFeed(role, branch, department) {
     };
     if (isLate) lateList.push(emp);
     else clockInOut.push(emp);
+  }
+
+  const absentList = [];
+  for (const p of allProfiles) {
+    if (!onLeaveIds.has(p.user_id) && !clockMap[p.user_id]) {
+      const initials = (p.full_name || '??').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+      absentList.push({
+        user_id: p.user_id,
+        full_name: p.full_name,
+        initials,
+        branch: p.branch || 'HQ',
+        department: p.department || '—',
+        role: p.role || ''
+      });
+    }
   }
 
   // Pending approvals — role-filtered
@@ -1155,6 +1176,7 @@ async function getWorkforceLiveFeed(role, branch, department) {
     timestamp: new Date().toISOString(),
     clockInOut,
     lateList,
+    absentList,
     pendingApprovals
   };
 }

@@ -63,6 +63,7 @@ export default function WorkforceInsights() {
   // ── SSE Live Feed State ──────────────────────────────────
   const [clockInOut, setClockInOut] = useState<LiveEmp[]>([]);
   const [lateList, setLateList] = useState<LiveEmp[]>([]);
+  const [absentList, setAbsentList] = useState<LiveEmp[]>([]);
   const [pendingApprovalsList, setPendingApprovalsList] = useState<PendingItem[]>([]);
   const [feedConnected, setFeedConnected] = useState(false);
 
@@ -84,6 +85,7 @@ export default function WorkforceInsights() {
         if (d.type === 'workforce_feed') {
           setClockInOut(d.clockInOut || []);
           setLateList(d.lateList || []);
+          setAbsentList(d.absentList || []);
           setPendingApprovalsList(d.pendingApprovals || []);
           setFeedConnected(true);
         }
@@ -561,9 +563,10 @@ export default function WorkforceInsights() {
 
         </div>
 
-        {/* BOTTOM SECTION: 4 LIVE CARDS */}
+        {/* BOTTOM SECTION: LIVE CARDS */}
         {isAdminRole && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
 
           {/* Card 1: Clock-In/Out — LIVE SSE */}
           <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
@@ -605,8 +608,8 @@ export default function WorkforceInsights() {
                           {emp.initials}
                         </div>
                         <div>
-                          <div className="flex items-center gap-1.5">
-                            <p className="text-xs font-bold text-slate-800 leading-tight">{emp.full_name}</p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{emp.full_name}</p>
                             {emp.is_late && (
                               <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
                             )}
@@ -669,8 +672,8 @@ export default function WorkforceInsights() {
                       {emp.initials}
                     </div>
                     <div>
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-xs font-bold text-slate-800">{emp.full_name}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{emp.full_name}</p>
                         <span className="px-1.5 py-0.5 text-[8px] font-bold rounded bg-red-500 text-white">{emp.late_minutes} Min</span>
                       </div>
                       <p className="text-[10px] text-slate-400 font-medium">{emp.department !== '—' ? emp.department : emp.branch}</p>
@@ -693,7 +696,68 @@ export default function WorkforceInsights() {
             </Button>
           </Card>
 
-          {/* Card 3: Pending Approvals — LIVE SSE */}
+          {/* Card 3: Absent — LIVE SSE */}
+          <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-800">Absent</h3>
+                {feedConnected
+                  ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
+                  : <span className="text-[8px] text-slate-400 font-bold uppercase">Connecting…</span>}
+              </div>
+              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-200 rounded text-slate-500 flex items-center gap-1">
+                <CalendarDays className="w-3 h-3" /> Today
+              </span>
+            </div>
+
+            <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto pr-0.5">
+              {absentList.length === 0 && !feedConnected && (
+                <div className="flex flex-col items-center justify-center py-8 text-slate-300">
+                  <Loader2 className="w-5 h-5 animate-spin mb-2" />
+                  <p className="text-[10px] font-medium">Loading live data…</p>
+                </div>
+              )}
+              {absentList.length === 0 && feedConnected && (
+                <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                  <CheckCircle2 className="w-6 h-6 text-emerald-500 opacity-60 mb-1" />
+                  <p className="text-[10px] font-semibold">No absentees today!</p>
+                </div>
+              )}
+              {absentList.slice(0, 5).map((emp) => (
+                <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
+                      {emp.initials}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{emp.full_name}</p>
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-medium">{emp.department !== '—' ? emp.department : emp.branch}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <XCircle className="w-3.5 h-3.5 text-red-400" />
+                    <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-red-500 text-white">Absent</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Button
+              variant="outline"
+              onClick={() => navigate('/hr-analytics/attendance')}
+              className="w-full mt-4 h-9 bg-white hover:bg-slate-50 text-slate-700 font-semibold border-slate-200"
+            >
+              View All Attendance
+            </Button>
+          </Card>
+
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+
+          {/* Card 4: Pending Approvals — LIVE SSE */}
           <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div className="flex items-center gap-2">
@@ -823,6 +887,7 @@ export default function WorkforceInsights() {
           </Card>
 
           </div>
+          </>
         )}
       </div>
   );
