@@ -1111,7 +1111,7 @@ export default function AttendanceDashboard() {
                           <td className="px-4 py-2 text-[11px] text-gray-500 font-medium">{lateMinStr}</td>
                           <td className="px-4 py-2">
                             <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold ${isGoodHrs ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                              {workHrsStr === '--' ? '0.00 Hrs' : workHrsStr.replace('h', '.').replace('m', '') + ' Hrs'}
+                              {workHrsStr === '--' ? '0 H 00 Min' : `${workHrsStr.split('h ')[0]} H ${workHrsStr.split('h ')[1].replace('m', '').padStart(2, '0')} Min`}
                             </span>
                           </td>
                           <td className="px-4 py-2 text-right">
