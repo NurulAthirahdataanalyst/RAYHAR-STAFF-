@@ -12,6 +12,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   LineChart, Line, Legend, Cell, PieChart as RechartsPieChart, Pie
 } from "recharts";
+import { useLocation } from "react-router-dom";
 
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
@@ -104,12 +105,24 @@ const parseThreshold = (thresholdStr: string) => {
 
 export default function AttendanceDashboard() {
   const { role, userBranch, userDepartment } = useRole();
+  const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("presenceSidebarCollapsed") === "true";
     }
     return false;
   });
+
+  useEffect(() => {
+    if (location.hash) {
+      const element = document.getElementById(location.hash.substring(1));
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      }
+    }
+  }, [location.hash]);
 
   useEffect(() => {
     const handleSidebarChange = () => {
@@ -964,7 +977,7 @@ export default function AttendanceDashboard() {
       </Card>
 
       {/* ADMIN ATTENDANCE TABLE */}
-      <Card className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+      <Card id="admin-attendance" className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden mb-6 scroll-mt-24">
         <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h2 className="text-base font-bold text-gray-800">Admin Attendance</h2>
           <div className="flex items-center gap-3">
@@ -1162,7 +1175,7 @@ export default function AttendanceDashboard() {
       </Card>
 
       {/* EMPLOYEE ABSENTEEISM TABLE */}
-      <Card className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+      <Card id="employee-absenteeism" className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden mb-6 scroll-mt-24">
         <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <h2 className="text-base font-bold text-gray-800">Employee Absenteeism</h2>

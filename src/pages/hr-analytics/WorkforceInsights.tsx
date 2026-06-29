@@ -631,7 +631,7 @@ export default function WorkforceInsights() {
 
             <Button
               variant="outline"
-              onClick={() => navigate('/hr-analytics/attendance')}
+              onClick={() => navigate('/hr-analytics/attendance#admin-attendance')}
               className="w-full mt-4 h-9 bg-white hover:bg-slate-50 text-slate-700 font-semibold border-slate-200"
             >
               View All Attendance
@@ -689,7 +689,7 @@ export default function WorkforceInsights() {
 
             <Button
               variant="outline"
-              onClick={() => navigate('/hr-analytics/attendance')}
+              onClick={() => navigate('/hr-analytics/attendance#admin-attendance')}
               className="w-full mt-4 h-9 bg-white hover:bg-slate-50 text-slate-700 font-semibold border-slate-200"
             >
               View All Attendance
@@ -746,7 +746,7 @@ export default function WorkforceInsights() {
 
             <Button
               variant="outline"
-              onClick={() => navigate('/hr-analytics/attendance')}
+              onClick={() => navigate('/hr-analytics/attendance#employee-absenteeism')}
               className="w-full mt-4 h-9 bg-white hover:bg-slate-50 text-slate-700 font-semibold border-slate-200"
             >
               View All Attendance
