@@ -325,7 +325,7 @@ export default function WorkforceInsights() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           
           {/* 2. Attendance Overview */}
-          <Card className={`col-span-1 lg:col-span-2 rounded-lg shadow-sm border-slate-200 flex flex-col ${cardHoverEffect}`}>
+          <Card className={`col-span-1 lg:col-span-2 rounded-xl shadow-sm border-slate-200 bg-white flex flex-col ${cardHoverEffect}`}>
             <CardHeader className="p-5 border-b border-slate-100 pb-4">
               <CardTitle className="text-base font-bold text-slate-800">Attendance Overview</CardTitle>
             </CardHeader>
@@ -358,7 +358,7 @@ export default function WorkforceInsights() {
             </CardContent>
           </Card>
 
-          <Card className={`col-span-1 rounded-lg shadow-sm border-slate-200 flex flex-col ${cardHoverEffect}`}>
+          <Card className={`col-span-1 rounded-xl shadow-sm border-slate-200 bg-white flex flex-col ${cardHoverEffect}`}>
             <CardHeader className="p-4 border-b border-slate-100 pb-3">
               <div className="flex flex-row items-start justify-between">
                 <div>
@@ -438,7 +438,7 @@ export default function WorkforceInsights() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* 3. Leave Monitoring */}
-          <Card className={`col-span-1 rounded-lg shadow-sm border-slate-200 ${cardHoverEffect}`}>
+          <Card className={`col-span-1 rounded-xl shadow-sm border-slate-200 bg-white ${cardHoverEffect}`}>
             <CardHeader className="p-5 border-b border-slate-100 pb-4">
               <CardTitle className="text-base font-bold text-slate-800">Leave Monitoring</CardTitle>
             </CardHeader>
@@ -505,7 +505,7 @@ export default function WorkforceInsights() {
           </Card>
 
           {/* 6. Employee Performance Attendance Ranking */}
-          <Card className={`col-span-1 lg:col-span-2 rounded-lg shadow-sm border-slate-200 ${cardHoverEffect}`}>
+          <Card className={`col-span-1 lg:col-span-2 rounded-xl shadow-sm border-slate-200 bg-white ${cardHoverEffect}`}>
             <CardHeader className="p-5 border-b border-slate-100 pb-4">
               <CardTitle className="text-base font-bold text-slate-800">Employee Performance & Attendance</CardTitle>
             </CardHeader>
