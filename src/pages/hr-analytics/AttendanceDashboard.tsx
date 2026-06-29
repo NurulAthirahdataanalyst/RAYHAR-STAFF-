@@ -721,6 +721,7 @@ export default function AttendanceDashboard() {
           (selectedStatusFilter === "clocked_out" && status === "Clocked Out");
           
         return matchesBranch && matchesDept && matchesSearch && matchesStatus;
+      })
   }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, searchTerm, selectedStatusFilter]);
 
   const filteredAbsentEmployees = useMemo(() => {
