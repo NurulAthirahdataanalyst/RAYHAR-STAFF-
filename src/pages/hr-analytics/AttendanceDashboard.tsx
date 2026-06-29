@@ -144,6 +144,8 @@ export default function AttendanceDashboard() {
   // Attendance & Punctuality State
   const [dailyAttendance, setDailyAttendance] = useState<AttendanceRecord[]>([]);
   const [loadingDaily, setLoadingDaily] = useState(false);
+  const [absentEmployees, setAbsentEmployees] = useState<any[]>([]);
+  const [loadingAbsent, setLoadingAbsent] = useState(false);
   const [attendanceStats, setAttendanceStats] = useState({
     presentToday: 0,
     lateArrivals: 0,
@@ -248,16 +250,23 @@ export default function AttendanceDashboard() {
   // Fetch Attendance Data
   const fetchDailyAttendance = async () => {
     setLoadingDaily(true);
+    setLoadingAbsent(true);
     try {
-      const [resDaily, resStats] = await Promise.all([
+      const [resDaily, resStats, resAbsent] = await Promise.all([
         fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${selectedDate}&role=${role || ""}&branch=${userBranch || ""}&department=${userDepartment || ""}`),
-        fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=${role || ""}&branch=${userBranch || "All"}&department=${userDepartment || "All"}&date=${selectedDate}`)
+        fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=${role || ""}&branch=${userBranch || "All"}&department=${userDepartment || "All"}&date=${selectedDate}`),
+        fetch(`${API_BASE_URL}/api/reports/absent-employees?date=${selectedDate}&role=${role || ""}&branch=${userBranch || ""}&department=${userDepartment || ""}`)
       ]);
       const data = await resDaily.json();
       const statsData = await resStats.json();
+      const absentData = await resAbsent.json();
 
       if (data.success) {
         setDailyAttendance(data.report);
+      }
+
+      if (absentData.success) {
+        setAbsentEmployees(absentData.report);
       }
 
       if (statsData.success && statsData.stats) {
@@ -280,6 +289,7 @@ export default function AttendanceDashboard() {
       console.error("Error fetching daily attendance & stats:", error);
     } finally {
       setLoadingDaily(false);
+      setLoadingAbsent(false);
     }
   };
 
@@ -1104,6 +1114,74 @@ export default function AttendanceDashboard() {
                   Next
                 </Button>
               </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* EMPLOYEE ABSENTEEISM TABLE */}
+      <Card className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h2 className="text-base font-bold text-gray-800">Employee Absenteeism</h2>
+          <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-red-50 text-red-600 border border-red-100">
+            {absentEmployees.length} Absent Today
+          </span>
+        </div>
+
+        <CardContent className="p-0">
+          {loadingAbsent ? (
+            <div className="flex flex-col items-center justify-center p-12 gap-4">
+              <Loader2 className="h-6 w-6 animate-spin text-[#7B0099] opacity-40" />
+              <p className="text-xs font-medium text-gray-500 animate-pulse">Checking absent employees...</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/70 border-b border-gray-150 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 py-3">Employee</th>
+                    <th className="px-4 py-3">Branch</th>
+                    <th className="px-4 py-3">Department</th>
+                    <th className="px-4 py-3">Role</th>
+                    <th className="px-4 py-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-700">
+                  {absentEmployees.length > 0 ? (
+                    absentEmployees.map((emp) => (
+                      <tr key={emp.user_id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                              {emp.full_name.charAt(0)}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold text-gray-900 leading-tight">{emp.full_name}</span>
+                              <span className="text-[10px] text-gray-400 font-medium mt-0.5">{emp.user_id}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 text-gray-600">{emp.branch || "HQ"}</td>
+                        <td className="px-4 py-3.5 text-gray-600">{emp.department || "—"}</td>
+                        <td className="px-4 py-3.5 text-gray-600 capitalize">
+                          {emp.role.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <span className="px-2.5 py-1 text-[10px] font-bold rounded-full bg-red-50 text-red-600 border border-red-100">
+                            Absent
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-10 text-center text-xs font-bold text-gray-400 uppercase tracking-wider italic">
+                        All hands on deck! No employees are absent today.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           )}
         </CardContent>
