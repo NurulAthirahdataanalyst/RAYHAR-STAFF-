@@ -1158,39 +1158,40 @@ export default function AttendanceDashboard() {
               <p className="text-xs font-medium text-gray-500 animate-pulse">Checking absent employees...</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-50/70 border-b border-gray-150 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                    <th className="px-4 py-3">Employee</th>
-                    <th className="px-4 py-3">Branch</th>
-                    <th className="px-4 py-3">Department</th>
-                    <th className="px-4 py-3">Role</th>
-                    <th className="px-4 py-3">Status</th>
+            <div className="relative overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-gray-50/80 text-gray-500 uppercase text-[9px] font-bold tracking-wider border-b border-gray-100">
+                  <tr>
+                    <th className="px-4 py-2">Employee</th>
+                    <th className="px-4 py-2">Branch</th>
+                    <th className="px-4 py-2">Department</th>
+                    <th className="px-4 py-2">Role</th>
+                    <th className="px-4 py-2">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-700">
+                <tbody className="divide-y divide-gray-100">
                   {filteredAbsentEmployees.length > 0 ? (
                     filteredAbsentEmployees.map((emp) => (
                       <tr key={emp.user_id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-4 py-3.5">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                        <td className="px-4 py-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-md bg-red-500/10 text-red-600 font-bold flex items-center justify-center text-xs uppercase shadow-sm">
                               {emp.full_name.charAt(0)}
                             </div>
-                            <div className="flex flex-col">
-                              <span className="text-xs font-bold text-gray-900 leading-tight">{emp.full_name}</span>
-                              <span className="text-[10px] text-gray-400 font-medium mt-0.5">{emp.user_id}</span>
+                            <div>
+                              <span className="font-semibold text-gray-800 block text-xs">{emp.full_name}</span>
+                              <span className="text-[10px] text-gray-400 mt-0.5 block">{emp.user_id}</span>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3.5 text-gray-600">{emp.branch || "HQ"}</td>
-                        <td className="px-4 py-3.5 text-gray-600">{emp.department || "—"}</td>
-                        <td className="px-4 py-3.5 text-gray-600 capitalize">
+                        <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{emp.branch || "HQ"}</td>
+                        <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{emp.department || "—"}</td>
+                        <td className="px-4 py-2 text-[11px] text-gray-600 font-medium capitalize">
                           {emp.role.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                         </td>
-                        <td className="px-4 py-3.5">
-                          <span className="px-2.5 py-1 text-[10px] font-bold rounded-full bg-red-50 text-red-600 border border-red-100">
+                        <td className="px-4 py-2">
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-red-50 text-red-700 border border-red-100">
+                            <span className="w-1 h-1 rounded-full mr-1 bg-red-500" />
                             Absent
                           </span>
                         </td>
