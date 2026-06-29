@@ -18,6 +18,7 @@ const cardHoverEffect = "transition-all duration-300 hover:shadow-[0_0_15px_rgba
 
 export default function WorkforceInsights() {
   const { role, userBranch, userDepartment } = useRole();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<any>(null);
@@ -192,7 +193,7 @@ export default function WorkforceInsights() {
                     { name: 'Unassigned', value: 11 }
                   ]} 
                   layout="vertical"
-                  margin={{ top: 0, right: 10, left: -20, bottom: 0 }}
+                  margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
                 >
                   <XAxis type="number" hide />
                   <YAxis 
@@ -201,7 +202,7 @@ export default function WorkforceInsights() {
                     tick={{ fontSize: 9, fill: '#64748b', fontWeight: 'bold' }} 
                     axisLine={false} 
                     tickLine={false} 
-                    width={70}
+                    width={130}
                   />
                   <Bar dataKey="value" fill="#ff5b37" radius={[0, 4, 4, 0]} barSize={6} />
                 </BarChart>
@@ -340,7 +341,10 @@ export default function WorkforceInsights() {
             </CardHeader>
             <CardContent className="p-4 sm:p-5">
               <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-xl transition-all duration-300 cursor-pointer group">
+                <div 
+                  onClick={() => navigate("/leave/admin?tab=pending")}
+                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-xl transition-all duration-300 cursor-pointer group"
+                >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-lg bg-yellow-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
                       <Clock className="w-5 h-5 text-yellow-600" />
@@ -356,7 +360,10 @@ export default function WorkforceInsights() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-xl transition-all duration-300 cursor-pointer group">
+                <div 
+                  onClick={() => navigate("/leave/admin?tab=approved")}
+                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-xl transition-all duration-300 cursor-pointer group"
+                >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-lg bg-emerald-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
                       <FileCheck className="w-5 h-5 text-emerald-600" />
@@ -372,7 +379,10 @@ export default function WorkforceInsights() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-xl transition-all duration-300 cursor-pointer group">
+                <div 
+                  onClick={() => navigate("/leave/admin?tab=approved")}
+                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-xl transition-all duration-300 cursor-pointer group"
+                >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-lg bg-blue-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
                       <Users className="w-5 h-5 text-blue-600" />
