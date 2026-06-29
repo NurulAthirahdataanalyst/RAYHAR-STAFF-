@@ -163,12 +163,15 @@ export default function AttendanceDashboard() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [selectedBranchFilter, setSelectedBranchFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [absentSearchTerm, setAbsentSearchTerm] = useState("");
   const [selectedDepartmentFilter, setSelectedDepartmentFilter] = useState("all");
 
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("last7");
   const [currentPage, setCurrentPage] = useState(1);
   const [anomaliesCurrentPage, setAnomaliesCurrentPage] = useState(1);
+  const [absentCurrentPage, setAbsentCurrentPage] = useState(1);
+  const [absentLimit, setAbsentLimit] = useState("10");
 
   useEffect(() => {
     setCurrentPage(1);
@@ -177,6 +180,10 @@ export default function AttendanceDashboard() {
   useEffect(() => {
     setAnomaliesCurrentPage(1);
   }, [anomaliesLimit, selectedBranchFilter, selectedDate]);
+
+  useEffect(() => {
+    setAbsentCurrentPage(1);
+  }, [absentLimit, selectedBranchFilter, selectedDate, absentSearchTerm]);
 
   const liveTimeRange = "today";
   const [liveRegion, setLiveRegion] = useState("all");
@@ -710,15 +717,26 @@ export default function AttendanceDashboard() {
         const matchesDept = selectedDepartmentFilter === "all" || r.department === selectedDepartmentFilter;
         const matchesSearch = r.full_name.toLowerCase().includes(searchTerm.toLowerCase()) || r.user_id.toLowerCase().includes(searchTerm.toLowerCase());
         
-        let status = r.time_out ? "Clocked Out" : "Present";
-        if (r.clock_in && new Date(r.clock_in).getHours() >= 9) { // Simple late check
-          status = "Late";
+        let isLate = false;
+        if (r.clock_in) {
+          const { hour: threshHour, minute: threshMin } = parseThreshold(workStartTime);
+          const thresholdDate = new Date(r.clock_in);
+          thresholdDate.setHours(threshHour, threshMin, 0, 0);
+          if (new Date(r.clock_in).getTime() > thresholdDate.getTime()) {
+            isLate = true;
+          }
         }
+        
+        let attStatus = "Absent";
+        if (r.clock_in) {
+          attStatus = isLate ? "Present (Late)" : "Present (On Time)";
+        }
+
         const matchesStatus = selectedStatusFilter === "all" || 
-          (selectedStatusFilter === "present" && status === "Present") ||
-          (selectedStatusFilter === "late" && status === "Late") ||
-          (selectedStatusFilter === "absent" && status === "Absent") ||
-          (selectedStatusFilter === "clocked_out" && status === "Clocked Out");
+          (selectedStatusFilter === "present_on_time" && attStatus === "Present (On Time)") ||
+          (selectedStatusFilter === "present_late" && attStatus === "Present (Late)") ||
+          (selectedStatusFilter === "absent" && attStatus === "Absent") ||
+          (selectedStatusFilter === "clocked_out" && r.time_out != null);
           
         return matchesBranch && matchesDept && matchesSearch && matchesStatus;
       })
@@ -728,9 +746,9 @@ export default function AttendanceDashboard() {
     return absentEmployees.filter((r) => {
       const matchesBranch = selectedBranchFilter === "all" || r.branch === selectedBranchFilter;
       const matchesDept = selectedDepartmentFilter === "all" || r.department === selectedDepartmentFilter;
-      const matchesSearch = searchTerm === "" || 
-        r.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.user_id?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = absentSearchTerm === "" || 
+        r.full_name?.toLowerCase().includes(absentSearchTerm.toLowerCase()) ||
+        r.user_id?.toLowerCase().includes(absentSearchTerm.toLowerCase());
       return matchesBranch && matchesDept && matchesSearch;
     });
   }, [absentEmployees, selectedBranchFilter, selectedDepartmentFilter, searchTerm]);
@@ -925,8 +943,8 @@ export default function AttendanceDashboard() {
                 </SelectTrigger>
                 <SelectContent className="rounded-md">
                   <SelectItem value="all">Select Status</SelectItem>
-                  <SelectItem value="present">Present</SelectItem>
-                  <SelectItem value="late">Late</SelectItem>
+                  <SelectItem value="present_on_time">Present (On Time)</SelectItem>
+                  <SelectItem value="present_late">Present (Late)</SelectItem>
                   <SelectItem value="clocked_out">Clocked Out</SelectItem>
                 </SelectContent>
               </Select>
@@ -1146,10 +1164,39 @@ export default function AttendanceDashboard() {
       {/* EMPLOYEE ABSENTEEISM TABLE */}
       <Card className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden mb-6">
         <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <h2 className="text-base font-bold text-gray-800">Employee Absenteeism</h2>
-          <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-red-50 text-red-600 border border-red-100">
-            {filteredAbsentEmployees.length} Absent Today
-          </span>
+          <div className="flex items-center gap-3">
+            <h2 className="text-base font-bold text-gray-800">Employee Absenteeism</h2>
+            <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-red-50 text-red-600 border border-red-100">
+              {filteredAbsentEmployees.length} Absent Today
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-3 mt-3 sm:mt-0">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-gray-500">Row Per Page</span>
+              <Select value={absentLimit} onValueChange={setAbsentLimit}>
+                <SelectTrigger className="w-[60px] h-7 text-[11px] font-semibold rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+                  <SelectValue placeholder="10" />
+                </SelectTrigger>
+                <SelectContent className="rounded-md">
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="relative w-full sm:w-[220px]">
+              <Search className="absolute left-3 top-2 h-3 w-3 text-gray-400" />
+              <input 
+                type="text"
+                placeholder="Search..."
+                value={absentSearchTerm}
+                onChange={(e) => setAbsentSearchTerm(e.target.value)}
+                className="pl-8 pr-3 py-1 w-full text-[11px] border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#7B0099] h-7 shadow-sm"
+              />
+            </div>
+          </div>
         </div>
 
         <CardContent className="p-0">
@@ -1172,7 +1219,7 @@ export default function AttendanceDashboard() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {filteredAbsentEmployees.length > 0 ? (
-                    filteredAbsentEmployees.map((emp) => (
+                    filteredAbsentEmployees.slice((absentCurrentPage - 1) * parseInt(absentLimit), absentCurrentPage * parseInt(absentLimit)).map((emp) => (
                       <tr key={emp.user_id} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-4 py-2">
                           <div className="flex items-center gap-2">
