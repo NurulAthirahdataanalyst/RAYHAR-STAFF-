@@ -625,7 +625,6 @@ export default function WorkforceInsights() {
                 </div>
               );
             })()}
-            </div>
 
             <Button
               variant="outline"
