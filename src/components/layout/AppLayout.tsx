@@ -312,14 +312,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {/* Panel Sisi (Collapsible Sidebar - 30% or slim) */}
             {resolvedRole !== "employee" && (
               <aside 
-                className={`hidden lg:flex flex-col shrink-0 transition-all duration-500 ease-in-out relative border-l border-border/20 pl-2.5 py-1 sticky top-4 max-h-[calc(100vh-32px)] overflow-visible ${
-                  sidebarCollapsed ? "w-[64px]" : "w-[280px]"
+                className={`hidden lg:flex flex-col shrink-0 transition-all duration-500 ease-in-out py-1 sticky top-4 max-h-[calc(100vh-32px)] overflow-visible ${
+                  sidebarCollapsed 
+                    ? "w-[64px] relative border-l border-border/20 pl-2.5" 
+                    : "w-[280px] absolute right-0 z-40 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl shadow-[-10px_0_30px_rgba(0,0,0,0.1)] dark:shadow-[-10px_0_30px_rgba(0,0,0,0.5)] p-4 rounded-2xl border border-border/50 xl:relative xl:right-0 xl:bg-transparent xl:dark:bg-transparent xl:shadow-none xl:p-0 xl:rounded-none xl:border-none xl:border-l xl:border-border/20 xl:pl-2.5"
                 }`}
               >
               {/* Floating Toggle Button on Left Boundary */}
               <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="absolute -left-3.5 top-28 z-40 flex h-7 w-7 items-center justify-center rounded-md bg-[#7B0099] text-white shadow-md hover:scale-110 active:scale-95 transition-transform border border-white/20"
+                className={`absolute z-50 flex h-7 w-7 items-center justify-center rounded-md bg-[#7B0099] text-white shadow-md hover:scale-110 active:scale-95 transition-transform border border-white/20 ${
+                  sidebarCollapsed ? "-left-3.5 top-28" : "-left-3.5 top-28 xl:-left-3.5"
+                }`}
                 aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
                 <ChevronLeft className={`h-4 w-4 transition-transform duration-500 ${sidebarCollapsed ? "rotate-180" : ""}`} />

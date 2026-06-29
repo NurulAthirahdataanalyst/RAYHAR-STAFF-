@@ -431,7 +431,7 @@ export default function LeaveAdmin() {
                             req.status === "Rejected" ? "bg-rose-100/50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" :
                             "bg-amber-100/50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                           }`}>
-                            {req.status === "Approved" || req.status === "Rejected" ? req.status : "Pending"}
+                            {req.status === "Approved" || req.status === "Rejected" ? req.status : req.status}
                           </span>
                         </TableCell>
                         {canApprove && (
