@@ -302,7 +302,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
               if (effectiveCollapsed && !isMobile) return <div key={item.title} className="h-4"></div>;
               return (
                 <div key={item.title} className={`px-5 mb-1.5 ${index > 0 ? "mt-6" : ""}`}>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-sidebar-foreground/35">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-sidebar-foreground/60">
                     {item.title}
                   </span>
                 </div>
@@ -487,7 +487,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     <>
       {/* ═══════ DESKTOP SIDEBAR spacer ═══════ */}
       <div className={`hidden lg:block shrink-0 transition-all duration-300 ease-in-out ${
-        isCollapsed ? "w-16" : "w-[230px]"
+        isCollapsed ? "w-16" : "w-[260px]"
       }`} />
 
       {/* ═══════ DESKTOP SIDEBAR (fixed on desktop) ═══════ */}
@@ -495,7 +495,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={`hidden lg:flex fixed top-0 left-0 z-40 h-screen flex-col bg-sidebar transition-all duration-300 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.15)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.4)] border-r border-sidebar-border/60 ${
-          effectiveCollapsed ? "w-16" : "w-[230px]"
+          effectiveCollapsed ? "w-16" : "w-[260px]"
         }`}
       >
         {sidebarContent(false)}
