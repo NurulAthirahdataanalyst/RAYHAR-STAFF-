@@ -103,19 +103,19 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       path: "/attendance",
       roles: HOD_BL_ROLES,
       children: [
-        { title: "Overview", icon: Clock, path: "/attendance", roles: HOD_BL_ROLES },
+        { title: "Attendance Overview", icon: Clock, path: "/attendance", roles: HOD_BL_ROLES },
         { title: "Team Attendance", icon: Users, path: "/team-attendance", roles: HOD_BL_ROLES },
       ],
     },
     {
-      title: "Leaves",
+      title: "Leave Management",
       icon: CalendarDays,
       path: "/leave",
       roles: HOD_BL_ROLES,
       children: [
-        { title: "Apply Leave", icon: FilePlus2, path: "/leave/apply", roles: HOD_BL_ROLES },
-        { title: "My Requests", icon: FileSearch, path: "/leave/forms", roles: HOD_BL_ROLES },
-        { title: "Team Requests", icon: FileCheck, path: "/leave/team", roles: HOD_BL_ROLES },
+        { title: "Leave Application", icon: FilePlus2, path: "/leave/apply", roles: HOD_BL_ROLES },
+        { title: "My Leave Requests", icon: FileSearch, path: "/leave/forms", roles: HOD_BL_ROLES },
+        { title: "Team Leave Requests", icon: FileCheck, path: "/leave/team", roles: HOD_BL_ROLES },
         { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", roles: HOD_BL_ROLES },
       ],
     },
@@ -125,9 +125,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       path: "/hr-analytics/attendance",
       roles: HOD_BL_ROLES,
       children: [
-        { title: "Attendance", icon: BarChart3, path: "/hr-analytics/attendance", roles: HOD_BL_ROLES },
+        { title: "Attendance Analytics", icon: BarChart3, path: "/hr-analytics/attendance", roles: HOD_BL_ROLES },
         { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave", roles: HOD_BL_ROLES },
-        { title: "Insights", icon: PieChart, path: "/hr-analytics/workforce", roles: HOD_BL_ROLES },
+        { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce", roles: HOD_BL_ROLES },
       ],
     },
     {
@@ -136,13 +136,13 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       path: "/reports",
       roles: HOD_BL_ROLES,
       children: [
-        { title: "Attendance", icon: Clock, path: "/reports/attendance", roles: HOD_BL_ROLES },
-        { title: "Leaves", icon: CalendarDays, path: "/reports/leave", roles: HOD_BL_ROLES },
-        { title: "Departments", icon: Building2, path: "/reports/department", roles: HOD_BL_ROLES },
+        { title: "Attendance Reports", icon: Clock, path: "/reports/attendance", roles: HOD_BL_ROLES },
+        { title: "Leave Reports", icon: CalendarDays, path: "/reports/leave", roles: HOD_BL_ROLES },
+        { title: "Department Reports", icon: Building2, path: "/reports/department", roles: HOD_BL_ROLES },
       ],
     },
     { title: "Administration", isSection: true, roles: HOD_BL_ROLES },
-    { title: "Directory", icon: Users, path: "/employees", roles: HOD_BL_ROLES },
+    { title: "Employee Directory", icon: Users, path: "/employees", roles: HOD_BL_ROLES },
   ];
 
   // ── Standard sidebar (employee, branch_officer, hr_admin, MD, finance) ───
@@ -161,14 +161,14 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       ],
     },
     {
-      title: "Leaves",
+      title: "Leave Management",
       icon: CalendarDays,
       path: "/leave",
       roles: ALL_ROLES,
       children: [
-        { title: "Apply Leave", icon: CalendarDays, path: "/leave/apply", roles: ALL_ROLES },
-        { title: "My Requests", icon: FileText, path: "/leave/forms", roles: ALL_ROLES },
-        { title: "Team Requests", icon: Users, path: "/leave/team", roles: ["manager", "hod", "branch_leader"] },
+        { title: "Leave Application", icon: CalendarDays, path: "/leave/apply", roles: ALL_ROLES },
+        { title: "My Leave Requests", icon: FileText, path: "/leave/forms", roles: ALL_ROLES },
+        { title: "Team Leave Requests", icon: Users, path: "/leave/team", roles: ["manager", "hod", "branch_leader"] },
         { title: "Leave Approval", icon: CheckSquare, path: "/leave/approval", roles: ["manager", "hod", "branch_leader"] },
       ],
     },
@@ -176,32 +176,32 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
     { title: "HR Administration", isSection: true, roles: FULL_ADMIN_ROLES },
     {
-      title: "Leave Admin",
+      title: "Leave Administration",
       icon: ClipboardList,
       path: "/leave/admin",
       roles: FULL_ADMIN_ROLES,
     },
     {
-      title: "Employees",
+      title: "Employee Management",
       icon: Users,
       path: "/master",
       roles: FULL_ADMIN_ROLES,
       children: [
-        { title: "Directory", icon: Users, path: "/employees", roles: FULL_ADMIN_ROLES },
+        { title: "Employee Directory", icon: Users, path: "/employees", roles: FULL_ADMIN_ROLES },
         { title: "Department", icon: Building2, path: "/master/department", roles: ["hr_admin"] },
         { title: "Role", icon: Settings, path: "/master/role", roles: ["hr_admin"] },
       ],
     },
-    { title: "Branches", icon: Building2, path: "/branches", roles: FULL_ADMIN_ROLES },
+    { title: "Branch Management", icon: Building2, path: "/branches", roles: FULL_ADMIN_ROLES },
     {
-      title: "HR Analytics",
+      title: "Workforce Analytics",
       icon: PieChart,
       path: "/hr-analytics",
       roles: FULL_ADMIN_ROLES,
       children: [
-        { title: "Attendance", icon: BarChart3, path: "/hr-analytics/attendance", roles: FULL_ADMIN_ROLES },
-        { title: "Leaves", icon: BarChart3, path: "/hr-analytics/leave", roles: FULL_ADMIN_ROLES },
-        { title: "Insights", icon: PieChart, path: "/hr-analytics/workforce", roles: FULL_ADMIN_ROLES },
+        { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance", roles: FULL_ADMIN_ROLES },
+        { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave", roles: FULL_ADMIN_ROLES },
+        { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce", roles: FULL_ADMIN_ROLES },
       ]
     },
     {
@@ -210,9 +210,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       path: "/reports",
       roles: ALL_ROLES,
       children: [
-        { title: "Attendance", icon: FileSearch, path: "/reports/attendance", roles: FULL_ADMIN_ROLES },
-        { title: "Leaves", icon: FileSearch, path: "/reports/leave", roles: FULL_ADMIN_ROLES },
-        { title: "Departments", icon: Building2, path: "/reports/department", roles: FULL_ADMIN_ROLES },
+        { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance", roles: FULL_ADMIN_ROLES },
+        { title: "Leave Reports", icon: FileSearch, path: "/reports/leave", roles: FULL_ADMIN_ROLES },
+        { title: "Department Reports", icon: Building2, path: "/reports/department", roles: FULL_ADMIN_ROLES },
       ]
     },
     { title: "Settings", icon: Settings, path: "/settings", roles: ["hr_admin"] },
@@ -332,10 +332,10 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                       setExpandedMenus(prev => prev[item.title] ? {} : { [item.title]: true });
                     }
                   }}
-                  className={`group relative flex items-center gap-3.5 transition-all duration-300 touch-target ${
+                  className={`group relative flex items-center gap-2.5 transition-all duration-300 touch-target ${
                     effectiveCollapsed && !isMobile 
                       ? "justify-center px-0 w-11 h-11 mx-auto rounded-xl" 
-                      : "px-4 py-2 rounded-r-2xl mr-4"
+                      : "px-3.5 py-2 rounded-r-2xl mr-4"
                   } ${
                     isActive
                       ? "bg-[#7B0099]/10 text-white font-semibold border-l-[3px] border-[#7B0099]"
@@ -344,7 +344,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                 >
                   {ItemIcon && (
                     <ItemIcon
-                      className={`h-5 w-5 shrink-0 transition-colors ${
+                      className={`h-4 w-4 shrink-0 transition-colors ${
                         isActive 
                           ? "text-[#cda4ff]" 
                           : "text-sidebar-foreground/60 group-hover:text-white"
@@ -352,10 +352,10 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                     />
                   )}
                   {(!effectiveCollapsed || isMobile) && (
-                    <span className={`text-[13px] tracking-wide whitespace-nowrap truncate animate-in fade-in slide-in-from-left-2 duration-300 ${
+                    <span className={`text-[11px] tracking-wide whitespace-nowrap truncate animate-in fade-in slide-in-from-left-2 duration-300 ${
                       isActive 
                         ? "text-white font-semibold" 
-                        : "text-sidebar-foreground/80 group-hover:text-white font-medium"
+                        : "text-sidebar-foreground/80 group-hover:text-white font-semibold"
                     }`}>
                       {item.title}
                     </span>
@@ -389,7 +389,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                           key={child.title}
                           to={child.path}
                           onClick={isMobile ? onMobileClose : undefined}
-                          className={`group relative flex items-center gap-3 rounded-[14px] px-4 py-2 text-[13px] transition-all duration-300 touch-target ${
+                          className={`group relative flex items-center gap-3 rounded-[14px] px-4 py-2 text-[11px] transition-all duration-300 touch-target ${
                             isChildActive
                               ? "bg-white/5 font-semibold text-white"
                               : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white"
@@ -418,7 +418,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                           <Link
                             key={child.title}
                             to={child.path}
-                            className={`flex items-center gap-3 rounded-[14px] px-3 py-2 text-[13px] transition-all duration-200 ${
+                            className={`flex items-center gap-3 rounded-[14px] px-3 py-2 text-[11px] transition-all duration-200 ${
                               isChildActive
                                 ? "bg-white/10 font-semibold text-white"
                                 : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white"
@@ -457,12 +457,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           }`}
         >
           {theme === "light" ? (
-            <Moon className="h-5 w-5 shrink-0" />
+            <Moon className="h-4 w-4 shrink-0" />
           ) : (
-            <Sun className="h-5 w-5 shrink-0" />
+            <Sun className="h-4 w-4 shrink-0" />
           )}
           {(!effectiveCollapsed || isMobile) && (
-            <span className="text-sm font-bold whitespace-nowrap animate-in fade-in duration-300">
+            <span className="text-xs font-bold whitespace-nowrap animate-in fade-in duration-300">
               {theme === "light" ? "Dark Mode" : "Light Mode"}
             </span>
           )}
@@ -476,8 +476,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
             effectiveCollapsed && !isMobile ? "justify-center px-0 w-11 h-11 mx-auto" : ""
           }`}
         >
-          <LogOut className="h-5 w-5 shrink-0 transition-transform group-hover:-translate-x-1" />
-          {(!effectiveCollapsed || isMobile) && <span className="text-sm font-bold whitespace-nowrap animate-in fade-in duration-300">Sign Out</span>}
+          <LogOut className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-1" />
+          {(!effectiveCollapsed || isMobile) && <span className="text-xs font-bold whitespace-nowrap animate-in fade-in duration-300">Sign Out</span>}
         </Button>
       </div>
     </>
