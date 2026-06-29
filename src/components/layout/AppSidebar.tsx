@@ -103,19 +103,19 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       path: "/attendance",
       roles: HOD_BL_ROLES,
       children: [
-        { title: "Attendance Overview", icon: Clock, path: "/attendance", roles: HOD_BL_ROLES },
+        { title: "Overview", icon: Clock, path: "/attendance", roles: HOD_BL_ROLES },
         { title: "Team Attendance", icon: Users, path: "/team-attendance", roles: HOD_BL_ROLES },
       ],
     },
     {
-      title: "Leave Management",
+      title: "Leaves",
       icon: CalendarDays,
       path: "/leave",
       roles: HOD_BL_ROLES,
       children: [
-        { title: "Leave Application", icon: FilePlus2, path: "/leave/apply", roles: HOD_BL_ROLES },
-        { title: "My Leave Requests", icon: FileSearch, path: "/leave/forms", roles: HOD_BL_ROLES },
-        { title: "Team Leave Requests", icon: FileCheck, path: "/leave/team", roles: HOD_BL_ROLES },
+        { title: "Apply Leave", icon: FilePlus2, path: "/leave/apply", roles: HOD_BL_ROLES },
+        { title: "My Requests", icon: FileSearch, path: "/leave/forms", roles: HOD_BL_ROLES },
+        { title: "Team Requests", icon: FileCheck, path: "/leave/team", roles: HOD_BL_ROLES },
         { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", roles: HOD_BL_ROLES },
       ],
     },
@@ -125,9 +125,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       path: "/hr-analytics/attendance",
       roles: HOD_BL_ROLES,
       children: [
-        { title: "Attendance Analytics", icon: BarChart3, path: "/hr-analytics/attendance", roles: HOD_BL_ROLES },
+        { title: "Attendance", icon: BarChart3, path: "/hr-analytics/attendance", roles: HOD_BL_ROLES },
         { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave", roles: HOD_BL_ROLES },
-        { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce", roles: HOD_BL_ROLES },
+        { title: "Insights", icon: PieChart, path: "/hr-analytics/workforce", roles: HOD_BL_ROLES },
       ],
     },
     {
@@ -136,13 +136,13 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       path: "/reports",
       roles: HOD_BL_ROLES,
       children: [
-        { title: "Attendance Reports", icon: Clock, path: "/reports/attendance", roles: HOD_BL_ROLES },
-        { title: "Leave Reports", icon: CalendarDays, path: "/reports/leave", roles: HOD_BL_ROLES },
-        { title: "Department Reports", icon: Building2, path: "/reports/department", roles: HOD_BL_ROLES },
+        { title: "Attendance", icon: Clock, path: "/reports/attendance", roles: HOD_BL_ROLES },
+        { title: "Leaves", icon: CalendarDays, path: "/reports/leave", roles: HOD_BL_ROLES },
+        { title: "Departments", icon: Building2, path: "/reports/department", roles: HOD_BL_ROLES },
       ],
     },
     { title: "Administration", isSection: true, roles: HOD_BL_ROLES },
-    { title: "Employee Directory", icon: Users, path: "/employees", roles: HOD_BL_ROLES },
+    { title: "Directory", icon: Users, path: "/employees", roles: HOD_BL_ROLES },
   ];
 
   // ── Standard sidebar (employee, branch_officer, hr_admin, MD, finance) ───
@@ -161,14 +161,14 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       ],
     },
     {
-      title: "Leave Management",
+      title: "Leaves",
       icon: CalendarDays,
       path: "/leave",
       roles: ALL_ROLES,
       children: [
-        { title: "Leave Application", icon: CalendarDays, path: "/leave/apply", roles: ALL_ROLES },
-        { title: "My Leave Requests", icon: FileText, path: "/leave/forms", roles: ALL_ROLES },
-        { title: "Team Leave Requests", icon: Users, path: "/leave/team", roles: ["manager", "hod", "branch_leader"] },
+        { title: "Apply Leave", icon: CalendarDays, path: "/leave/apply", roles: ALL_ROLES },
+        { title: "My Requests", icon: FileText, path: "/leave/forms", roles: ALL_ROLES },
+        { title: "Team Requests", icon: Users, path: "/leave/team", roles: ["manager", "hod", "branch_leader"] },
         { title: "Leave Approval", icon: CheckSquare, path: "/leave/approval", roles: ["manager", "hod", "branch_leader"] },
       ],
     },
@@ -176,32 +176,32 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
     { title: "HR Administration", isSection: true, roles: FULL_ADMIN_ROLES },
     {
-      title: "Leave Administration",
+      title: "Leave Admin",
       icon: ClipboardList,
       path: "/leave/admin",
       roles: FULL_ADMIN_ROLES,
     },
     {
-      title: "Employee Management",
+      title: "Employees",
       icon: Users,
       path: "/master",
       roles: FULL_ADMIN_ROLES,
       children: [
-        { title: "Employee Directory", icon: Users, path: "/employees", roles: FULL_ADMIN_ROLES },
+        { title: "Directory", icon: Users, path: "/employees", roles: FULL_ADMIN_ROLES },
         { title: "Department", icon: Building2, path: "/master/department", roles: ["hr_admin"] },
         { title: "Role", icon: Settings, path: "/master/role", roles: ["hr_admin"] },
       ],
     },
-    { title: "Branch Management", icon: Building2, path: "/branches", roles: FULL_ADMIN_ROLES },
+    { title: "Branches", icon: Building2, path: "/branches", roles: FULL_ADMIN_ROLES },
     {
-      title: "Workforce Analytics",
+      title: "HR Analytics",
       icon: PieChart,
       path: "/hr-analytics",
       roles: FULL_ADMIN_ROLES,
       children: [
-        { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance", roles: FULL_ADMIN_ROLES },
-        { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave", roles: FULL_ADMIN_ROLES },
-        { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce", roles: FULL_ADMIN_ROLES },
+        { title: "Attendance", icon: BarChart3, path: "/hr-analytics/attendance", roles: FULL_ADMIN_ROLES },
+        { title: "Leaves", icon: BarChart3, path: "/hr-analytics/leave", roles: FULL_ADMIN_ROLES },
+        { title: "Insights", icon: PieChart, path: "/hr-analytics/workforce", roles: FULL_ADMIN_ROLES },
       ]
     },
     {
@@ -210,9 +210,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       path: "/reports",
       roles: ALL_ROLES,
       children: [
-        { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance", roles: FULL_ADMIN_ROLES },
-        { title: "Leave Reports", icon: FileSearch, path: "/reports/leave", roles: FULL_ADMIN_ROLES },
-        { title: "Department Reports", icon: Building2, path: "/reports/department", roles: FULL_ADMIN_ROLES },
+        { title: "Attendance", icon: FileSearch, path: "/reports/attendance", roles: FULL_ADMIN_ROLES },
+        { title: "Leaves", icon: FileSearch, path: "/reports/leave", roles: FULL_ADMIN_ROLES },
+        { title: "Departments", icon: Building2, path: "/reports/department", roles: FULL_ADMIN_ROLES },
       ]
     },
     { title: "Settings", icon: Settings, path: "/settings", roles: ["hr_admin"] },
@@ -487,7 +487,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     <>
       {/* ═══════ DESKTOP SIDEBAR spacer ═══════ */}
       <div className={`hidden lg:block shrink-0 transition-all duration-300 ease-in-out ${
-        isCollapsed ? "w-16" : "w-[260px]"
+        isCollapsed ? "w-16" : "w-[210px]"
       }`} />
 
       {/* ═══════ DESKTOP SIDEBAR (fixed on desktop) ═══════ */}
@@ -495,7 +495,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={`hidden lg:flex fixed top-0 left-0 z-40 h-screen flex-col bg-sidebar transition-all duration-300 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.15)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.4)] border-r border-sidebar-border/60 ${
-          effectiveCollapsed ? "w-16" : "w-[260px]"
+          effectiveCollapsed ? "w-16" : "w-[210px]"
         }`}
       >
         {sidebarContent(false)}
