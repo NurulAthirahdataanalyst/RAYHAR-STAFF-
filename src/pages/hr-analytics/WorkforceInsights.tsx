@@ -669,7 +669,7 @@ export default function WorkforceInsights() {
                   : <span className="text-[8px] text-slate-400 font-bold uppercase">Connecting…</span>}
               </div>
               <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-200 rounded text-slate-500 flex items-center gap-1">
-                <CalendarDays className="w-3 h-3" /> Today
+                <CalendarDays className="w-3 h-3" /> {displayDate}
               </span>
             </div>
 
@@ -739,7 +739,7 @@ export default function WorkforceInsights() {
                   : <span className="text-[8px] text-slate-400 font-bold uppercase">Connecting…</span>}
               </div>
               <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-200 rounded text-slate-500 flex items-center gap-1">
-                <CalendarDays className="w-3 h-3" /> Today
+                <CalendarDays className="w-3 h-3" /> {displayDate}
               </span>
             </div>
 
@@ -799,7 +799,7 @@ export default function WorkforceInsights() {
                   : <span className="text-[8px] text-slate-400 font-bold uppercase">Connecting…</span>}
               </div>
               <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-200 rounded text-slate-500 flex items-center gap-1">
-                <CalendarDays className="w-3 h-3" /> Today
+                <CalendarDays className="w-3 h-3" /> {displayDate}
               </span>
             </div>
 
@@ -921,7 +921,7 @@ export default function WorkforceInsights() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <h3 className="text-sm font-bold text-slate-800">Upcoming Outstation</h3>
               <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-150 rounded text-slate-505 flex items-center gap-1">
-                <CalendarDays className="w-3 h-3" /> Today
+                <CalendarDays className="w-3 h-3" /> {displayDate}
               </span>
             </div>
             
