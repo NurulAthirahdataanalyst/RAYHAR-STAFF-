@@ -262,11 +262,11 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
             {/* Desktop Menu toggle button on the right */}
             {!isMobile && (
               <button
-                onClick={() => setIsCollapsed(true)}
+                onClick={() => setIsCollapsed(!isCollapsed)}
                 className="flex h-10 w-10 items-center justify-center text-white/85 hover:text-white hover:scale-110 active:scale-95 transition-all duration-300 shrink-0"
-                aria-label="Collapse sidebar"
+                aria-label={isCollapsed ? "Pin sidebar" : "Collapse sidebar"}
               >
-                <PanelLeftClose className="h-5 w-5" />
+                {isCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
               </button>
             )}
           </div>
