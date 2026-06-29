@@ -211,7 +211,7 @@ export default function WorkforceInsights() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 mb-6">
           
           {/* Column 1: Attendance Overview */}
-          <Card className={`col-span-1 xl:col-span-1 rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-6 justify-between ${cardHoverEffect}`}>
+          <Card className={`col-span-1 xl:col-span-1 rounded-lg shadow-sm border-slate-200 bg-white flex flex-col p-6 justify-between ${cardHoverEffect}`}>
             <div>
               <div className="w-12 h-12 rounded-full bg-[#ff5b37] flex items-center justify-center text-white shadow-sm mb-4">
                 <UserCheck className="w-6 h-6" />
@@ -229,7 +229,7 @@ export default function WorkforceInsights() {
           {/* Column 2 (middle): 2x2 Grid of KPIs */}
           <div className="col-span-1 xl:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* KPI 1: Total Headcount */}
-            <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
+            <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
               <CardContent className="p-5 flex items-center gap-4 h-full w-full">
                 <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                   <Users className="w-5 h-5 text-blue-600" />
@@ -242,7 +242,7 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* KPI 2: Active Employees */}
-            <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
+            <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
               <CardContent className="p-5 flex items-center gap-4 h-full w-full">
                 <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
                   <UserCheck className="w-5 h-5 text-emerald-600" />
@@ -255,7 +255,7 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* KPI 3: Attendance Rate */}
-            <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
+            <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
               <CardContent className="p-5 flex items-center gap-4 h-full w-full">
                 <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
                   <CheckCircle2 className="w-5 h-5 text-indigo-600" />
@@ -268,7 +268,7 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* KPI 4: On Leave Today */}
-            <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
+            <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
               <CardContent className="p-5 flex items-center gap-4 h-full w-full">
                 <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
                   <CalendarDays className="w-5 h-5 text-orange-600" />
@@ -282,7 +282,7 @@ export default function WorkforceInsights() {
           </div>
 
           {/* Column 3: Employees By Department */}
-          <Card className={`col-span-1 md:col-span-2 xl:col-span-2 rounded-xl shadow-sm border-slate-200 bg-white p-5 flex flex-col justify-between ${cardHoverEffect}`}>
+          <Card className={`col-span-1 md:col-span-2 xl:col-span-2 rounded-lg shadow-sm border-slate-200 bg-white p-5 flex flex-col justify-between ${cardHoverEffect}`}>
             <div className="flex items-center justify-between mb-3">
               <span className="text-[12px] font-bold text-slate-800">Employees By Department</span>
               <span className="text-[10px] bg-slate-50 border border-slate-150 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 font-semibold">
@@ -325,7 +325,7 @@ export default function WorkforceInsights() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           
           {/* 2. Attendance Overview */}
-          <Card className={`col-span-1 lg:col-span-2 rounded-xl shadow-sm border-slate-200 bg-white flex flex-col ${cardHoverEffect}`}>
+          <Card className={`col-span-1 lg:col-span-2 rounded-lg shadow-sm border-slate-200 bg-white flex flex-col ${cardHoverEffect}`}>
             <CardHeader className="p-5 border-b border-slate-100 pb-4">
               <CardTitle className="text-base font-bold text-slate-800">Attendance Overview</CardTitle>
             </CardHeader>
@@ -358,7 +358,7 @@ export default function WorkforceInsights() {
             </CardContent>
           </Card>
 
-          <Card className={`col-span-1 rounded-xl shadow-sm border-slate-200 bg-white flex flex-col ${cardHoverEffect}`}>
+          <Card className={`col-span-1 rounded-lg shadow-sm border-slate-200 bg-white flex flex-col ${cardHoverEffect}`}>
             <CardHeader className="p-4 border-b border-slate-100 pb-3">
               <div className="flex flex-row items-start justify-between">
                 <div>
@@ -438,7 +438,7 @@ export default function WorkforceInsights() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* 3. Leave Monitoring */}
-          <Card className={`col-span-1 rounded-xl shadow-sm border-slate-200 bg-white ${cardHoverEffect}`}>
+          <Card className={`col-span-1 rounded-lg shadow-sm border-slate-200 bg-white ${cardHoverEffect}`}>
             <CardHeader className="p-5 border-b border-slate-100 pb-4">
               <CardTitle className="text-base font-bold text-slate-800">Leave Monitoring</CardTitle>
             </CardHeader>
@@ -446,7 +446,7 @@ export default function WorkforceInsights() {
               <div className="flex flex-col gap-3">
                 <div 
                   onClick={() => navigate("/leave/admin?tab=pending")}
-                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-xl transition-all duration-300 cursor-pointer group"
+                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-lg bg-yellow-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
@@ -465,7 +465,7 @@ export default function WorkforceInsights() {
 
                 <div 
                   onClick={() => navigate("/leave/admin?tab=approved")}
-                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-xl transition-all duration-300 cursor-pointer group"
+                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-lg bg-emerald-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
@@ -484,7 +484,7 @@ export default function WorkforceInsights() {
 
                 <div 
                   onClick={() => navigate("/leave/admin?tab=approved")}
-                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-xl transition-all duration-300 cursor-pointer group"
+                  className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-lg bg-blue-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
@@ -505,7 +505,7 @@ export default function WorkforceInsights() {
           </Card>
 
           {/* 6. Employee Performance Attendance Ranking */}
-          <Card className={`col-span-1 lg:col-span-2 rounded-xl shadow-sm border-slate-200 bg-white ${cardHoverEffect}`}>
+          <Card className={`col-span-1 lg:col-span-2 rounded-lg shadow-sm border-slate-200 bg-white ${cardHoverEffect}`}>
             <CardHeader className="p-5 border-b border-slate-100 pb-4">
               <CardTitle className="text-base font-bold text-slate-800">Employee Performance & Attendance</CardTitle>
             </CardHeader>
@@ -566,7 +566,7 @@ export default function WorkforceInsights() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
 
           {/* Card 1: Clock-In/Out — LIVE SSE */}
-          <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
+          <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-slate-800">Clock-In/Out</h3>
@@ -636,7 +636,7 @@ export default function WorkforceInsights() {
           </Card>
 
           {/* Card 2: Late — LIVE SSE */}
-          <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
+          <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-slate-800">Late</h3>
@@ -694,7 +694,7 @@ export default function WorkforceInsights() {
           </Card>
 
           {/* Card 3: Pending Approvals — LIVE SSE */}
-          <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
+          <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-slate-800">Pending Approvals</h3>
@@ -726,7 +726,7 @@ export default function WorkforceInsights() {
                 </div>
               ) : (
                 pendingApprovalsList.map((item) => (
-                  <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-all gap-3">
+                  <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-slate-100 rounded-lg hover:bg-slate-50 transition-all gap-3">
                     <div className="flex items-start gap-2.5">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm shrink-0 mt-0.5 ${getAvatarColor(item.name)}`}>
                         {item.initials}
@@ -760,7 +760,7 @@ export default function WorkforceInsights() {
           </Card>
 
           {/* Card 4: Upcoming Outstation */}
-          <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
+          <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <h3 className="text-sm font-bold text-slate-800">Upcoming Outstation</h3>
               <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-150 rounded text-slate-505 flex items-center gap-1">
