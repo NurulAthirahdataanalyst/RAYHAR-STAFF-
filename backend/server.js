@@ -3017,8 +3017,18 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       lates: dailyMap[d].lates
     })).slice(-10); // Last 10 days with activity
 
+    // 7. Employees by Department
+    const [deptRows] = await pool.query(
+      `SELECT COALESCE(NULLIF(p.department, ''), 'Unassigned') as department, COUNT(*) as count 
+       FROM profiles p 
+       WHERE p.status = 'Active' ${profileFilter}
+       GROUP BY p.department`,
+      pFilterParams
+    );
+
     res.json({
       success: true,
+      departmentMetrics: deptRows.map(r => ({ name: r.department, value: parseInt(r.count || 0) })),
       topKpi: {
         totalHeadcount,
         activeEmployees,

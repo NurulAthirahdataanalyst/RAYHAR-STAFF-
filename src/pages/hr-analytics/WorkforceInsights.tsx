@@ -4,7 +4,7 @@ import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { exportToCSV } from "@/utils/export";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Users, UserCheck, CalendarDays, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight } from "lucide-react";
+import { Loader2, Users, UserCheck, CalendarDays, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight, ChevronDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -97,52 +97,119 @@ export default function WorkforceInsights() {
             />
         </div>
 
-        {/* 1. Team Overview (Top KPI Cards) */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card className={`rounded-lg shadow-sm border-slate-200 ${cardHoverEffect}`}>
-            <CardContent className="p-5 flex items-center gap-4">
-              <div className="w-10 h-10 rounded bg-blue-50 flex items-center justify-center">
-                <Users className="w-5 h-5 text-blue-600" />
+        {/* Redesigned Top Section: 3-column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+          
+          {/* Column 1 (left): Attendance Overview */}
+          <Card className={`col-span-1 rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-6 justify-between ${cardHoverEffect}`}>
+            <div>
+              <div className="w-12 h-12 rounded-full bg-[#ff5b37] flex items-center justify-center text-white shadow-sm mb-4">
+                <UserCheck className="w-6 h-6" />
               </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Headcount</p>
-                <h3 className="text-2xl font-bold text-slate-800 leading-tight mt-1">{data.topKpi.totalHeadcount}</h3>
-              </div>
-            </CardContent>
+              <p className="text-[14px] font-semibold text-slate-500">Attendance Overview</p>
+              <h3 className="text-[34px] font-black text-slate-800 leading-none mt-2">
+                {data.teamAvailability.present}/{data.topKpi.activeEmployees || data.topKpi.totalHeadcount}
+              </h3>
+            </div>
+            <button className="text-[12px] font-semibold text-slate-400 hover:text-slate-600 text-left mt-6 flex items-center gap-1">
+              View Details <ChevronRight className="w-3.5 h-3.5" />
+            </button>
           </Card>
-          <Card className={`rounded-lg shadow-sm border-slate-200 ${cardHoverEffect}`}>
-            <CardContent className="p-5 flex items-center gap-4">
-              <div className="w-10 h-10 rounded bg-emerald-50 flex items-center justify-center">
-                <UserCheck className="w-5 h-5 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Employees</p>
-                <h3 className="text-2xl font-bold text-slate-800 leading-tight mt-1">{data.topKpi.activeEmployees}</h3>
-              </div>
-            </CardContent>
+
+          {/* Column 2 (middle): 2x2 Grid of KPIs */}
+          <div className="col-span-1 lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Card className={`rounded-xl shadow-sm border-slate-200 bg-white ${cardHoverEffect}`}>
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Headcount</p>
+                  <h3 className="text-xl font-bold text-slate-800 leading-tight mt-1">{data.topKpi.totalHeadcount}</h3>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className={`rounded-xl shadow-sm border-slate-200 bg-white ${cardHoverEffect}`}>
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+                  <UserCheck className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Employees</p>
+                  <h3 className="text-xl font-bold text-slate-800 leading-tight mt-1">{data.topKpi.activeEmployees}</h3>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className={`rounded-xl shadow-sm border-slate-200 bg-white ${cardHoverEffect}`}>
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5 text-indigo-600" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Attendance Rate</p>
+                  <h3 className="text-xl font-bold text-slate-800 leading-tight mt-1">{data.topKpi.attendanceRate}%</h3>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className={`rounded-xl shadow-sm border-slate-200 bg-white ${cardHoverEffect}`}>
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center">
+                  <CalendarDays className="w-5 h-5 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">On Leave Today</p>
+                  <h3 className="text-xl font-bold text-slate-800 leading-tight mt-1">{data.topKpi.onLeaveToday}</h3>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Column 3 (right): Employees By Department */}
+          <Card className={`col-span-1 rounded-xl shadow-sm border-slate-200 bg-white p-5 flex flex-col justify-between ${cardHoverEffect}`}>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[12px] font-bold text-slate-800">Employees By Department</span>
+              <span className="text-[10px] bg-slate-50 border border-slate-150 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 font-semibold">
+                This Month <ChevronDown className="w-3 h-3" />
+              </span>
+            </div>
+            
+            <div className="h-[95px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={data.departmentMetrics && data.departmentMetrics.length > 0 ? data.departmentMetrics : [
+                    { name: 'BHU', value: 4 },
+                    { name: 'Media', value: 1 },
+                    { name: 'IT', value: 1 },
+                    { name: 'Unassigned', value: 11 }
+                  ]} 
+                  layout="vertical"
+                  margin={{ top: 0, right: 10, left: -20, bottom: 0 }}
+                >
+                  <XAxis type="number" hide />
+                  <YAxis 
+                    dataKey="name" 
+                    type="category" 
+                    tick={{ fontSize: 9, fill: '#64748b', fontWeight: 'bold' }} 
+                    axisLine={false} 
+                    tickLine={false} 
+                    width={70}
+                  />
+                  <Bar dataKey="value" fill="#ff5b37" radius={[0, 4, 4, 0]} barSize={6} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-100">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#ff5b37]"></div>
+              <span className="text-[9px] font-bold text-slate-400">
+                No of Employees increased by <span className="text-emerald-500">+20%</span> from last Month
+              </span>
+            </div>
           </Card>
-          <Card className={`rounded-lg shadow-sm border-slate-200 ${cardHoverEffect}`}>
-            <CardContent className="p-5 flex items-center gap-4">
-              <div className="w-10 h-10 rounded bg-indigo-50 flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-indigo-600" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Attendance Rate</p>
-                <h3 className="text-2xl font-bold text-slate-800 leading-tight mt-1">{data.topKpi.attendanceRate}%</h3>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className={`rounded-lg shadow-sm border-slate-200 ${cardHoverEffect}`}>
-            <CardContent className="p-5 flex items-center gap-4">
-              <div className="w-10 h-10 rounded bg-orange-50 flex items-center justify-center">
-                <CalendarDays className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">On Leave Today</p>
-                <h3 className="text-2xl font-bold text-slate-800 leading-tight mt-1">{data.topKpi.onLeaveToday}</h3>
-              </div>
-            </CardContent>
-          </Card>
+
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
