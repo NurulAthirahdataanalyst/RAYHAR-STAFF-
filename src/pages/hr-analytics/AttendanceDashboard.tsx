@@ -721,8 +721,18 @@ export default function AttendanceDashboard() {
           (selectedStatusFilter === "clocked_out" && status === "Clocked Out");
           
         return matchesBranch && matchesDept && matchesSearch && matchesStatus;
-      });
   }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, searchTerm, selectedStatusFilter]);
+
+  const filteredAbsentEmployees = useMemo(() => {
+    return absentEmployees.filter((r) => {
+      const matchesBranch = selectedBranchFilter === "all" || r.branch === selectedBranchFilter;
+      const matchesDept = selectedDepartmentFilter === "all" || r.department === selectedDepartmentFilter;
+      const matchesSearch = searchTerm === "" || 
+        r.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        r.user_id?.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesBranch && matchesDept && matchesSearch;
+    });
+  }, [absentEmployees, selectedBranchFilter, selectedDepartmentFilter, searchTerm]);
 
 
   const allAnomalies = useMemo(() => {
@@ -890,6 +900,19 @@ export default function AttendanceDashboard() {
                   <SelectItem value="all">All Departments</SelectItem>
                   {departments.map((dept, idx) => (
                     <SelectItem key={idx} value={dept}>{dept}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Branch Filter */}
+              <Select value={selectedBranchFilter} onValueChange={setSelectedBranchFilter}>
+                <SelectTrigger className="w-[120px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+                  <SelectValue placeholder="Branch" />
+                </SelectTrigger>
+                <SelectContent className="rounded-md">
+                  <SelectItem value="all">All Branch</SelectItem>
+                  {branches.map((b, idx) => (
+                    <SelectItem key={idx} value={b.code}>{b.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -1124,7 +1147,7 @@ export default function AttendanceDashboard() {
         <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h2 className="text-base font-bold text-gray-800">Employee Absenteeism</h2>
           <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-red-50 text-red-600 border border-red-100">
-            {absentEmployees.length} Absent Today
+            {filteredAbsentEmployees.length} Absent Today
           </span>
         </div>
 
@@ -1147,8 +1170,8 @@ export default function AttendanceDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-700">
-                  {absentEmployees.length > 0 ? (
-                    absentEmployees.map((emp) => (
+                  {filteredAbsentEmployees.length > 0 ? (
+                    filteredAbsentEmployees.map((emp) => (
                       <tr key={emp.user_id} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-3">
