@@ -160,6 +160,23 @@ export default function WorkforceInsights() {
   const availableToday = data.teamAvailability.present;
   const totalTeam = availableToday + data.teamAvailability.onLeave + data.teamAvailability.absent;
   const availabilityRate = totalTeam > 0 ? Math.round((availableToday / totalTeam) * 100) : 0;
+
+  const departmentChartData = (data.departmentMetrics || []).filter((d: any) => d.name && d.name.toLowerCase() !== 'unassigned');
+
+  const CustomDeptTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white border border-slate-200 rounded-md shadow-lg p-2 flex flex-col gap-1 min-w-[100px]">
+          <p className="text-[11px] font-bold text-slate-600 bg-slate-50 px-2 py-1 rounded-sm border-b border-slate-100">{label}</p>
+          <div className="flex items-center gap-1.5 px-2 py-1">
+            <div className="w-2 h-2 rounded-full bg-[#ff5b37]"></div>
+            <p className="text-[11px] text-slate-700">Employee: <span className="font-bold">{payload[0].value}</span></p>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
         
@@ -276,15 +293,11 @@ export default function WorkforceInsights() {
             <div className="h-[95px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart 
-                  data={data.departmentMetrics && data.departmentMetrics.length > 0 ? data.departmentMetrics : [
-                    { name: 'BHU', value: 4 },
-                    { name: 'Media', value: 1 },
-                    { name: 'IT', value: 1 },
-                    { name: 'Unassigned', value: 11 }
-                  ]} 
+                  data={departmentChartData} 
                   layout="vertical"
                   margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
                 >
+                  <RechartsTooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} content={<CustomDeptTooltip />} />
                   <XAxis type="number" hide />
                   <YAxis 
                     dataKey="name" 
@@ -553,7 +566,7 @@ export default function WorkforceInsights() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
 
           {/* Card 1: Clock-In/Out — LIVE SSE */}
-          <Card style={{ boxShadow: '0 0 0 1.5px #10b981, 0 4px 32px 0 rgba(16,185,129,0.18)', borderTop: '3px solid #10b981' }} className={`rounded-xl bg-white flex flex-col p-4 ${cardHoverEffect}`}>
+          <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-slate-800">Clock-In/Out</h3>
@@ -566,36 +579,52 @@ export default function WorkforceInsights() {
               </span>
             </div>
 
-            <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto pr-0.5">
-              {clockInOut.length === 0 && !feedConnected && (
-                <div className="flex flex-col items-center justify-center py-8 text-slate-300">
-                  <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                  <p className="text-[10px] font-medium">Loading live data…</p>
-                </div>
-              )}
-              {clockInOut.length === 0 && feedConnected && (
-                <div className="flex flex-col items-center justify-center py-8 text-slate-400">
-                  <Clock className="w-6 h-6 opacity-40 mb-1" />
-                  <p className="text-[10px] font-semibold">No clock-ins yet today</p>
-                </div>
-              )}
-              {clockInOut.slice(0, 5).map((emp) => (
-                <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
-                  <div className="flex items-center gap-2.5">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
-                      {emp.initials}
+            {/* allClockIns = on-time + late merged, sorted by clock_in */}
+            {(() => {
+              const allClockIns = [...clockInOut, ...lateList].sort((a, b) =>
+                (a.clock_in || '').localeCompare(b.clock_in || '')
+              );
+              return (
+                <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto pr-0.5">
+                  {allClockIns.length === 0 && !feedConnected && (
+                    <div className="flex flex-col items-center justify-center py-8 text-slate-300">
+                      <Loader2 className="w-5 h-5 animate-spin mb-2" />
+                      <p className="text-[10px] font-medium">Loading live data…</p>
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-800 leading-tight">{emp.full_name}</p>
-                      <p className="text-[10px] text-slate-400 font-medium">{emp.department !== '—' ? emp.department : emp.branch}</p>
+                  )}
+                  {allClockIns.length === 0 && feedConnected && (
+                    <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                      <Clock className="w-6 h-6 opacity-40 mb-1" />
+                      <p className="text-[10px] font-semibold">No clock-ins yet today</p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500 text-white">{emp.clock_in}</span>
-                  </div>
+                  )}
+                  {allClockIns.slice(0, 6).map((emp) => (
+                    <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
+                          {emp.initials}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-xs font-bold text-slate-800 leading-tight">{emp.full_name}</p>
+                            {emp.is_late && (
+                              <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-slate-400 font-medium">{emp.department !== '—' ? emp.department : emp.branch}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded text-white ${emp.is_late ? 'bg-orange-500' : 'bg-emerald-500'}`}>
+                          {emp.clock_in}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              );
+            })()}
             </div>
 
             <Button
@@ -608,7 +637,7 @@ export default function WorkforceInsights() {
           </Card>
 
           {/* Card 2: Late — LIVE SSE */}
-          <Card style={{ boxShadow: '0 0 0 1.5px #ef4444, 0 4px 32px 0 rgba(239,68,68,0.18)', borderTop: '3px solid #ef4444' }} className={`rounded-xl bg-white flex flex-col p-4 ${cardHoverEffect}`}>
+          <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-slate-800">Late</h3>
@@ -666,7 +695,7 @@ export default function WorkforceInsights() {
           </Card>
 
           {/* Card 3: Pending Approvals — LIVE SSE */}
-          <Card style={{ boxShadow: '0 0 0 1.5px #f59e0b, 0 4px 32px 0 rgba(245,158,11,0.18)', borderTop: '3px solid #f59e0b' }} className={`rounded-xl bg-white flex flex-col p-4 ${cardHoverEffect}`}>
+          <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-slate-800">Pending Approvals</h3>
@@ -732,7 +761,7 @@ export default function WorkforceInsights() {
           </Card>
 
           {/* Card 4: Upcoming Outstation */}
-          <Card style={{ boxShadow: '0 0 0 1.5px #7B0099, 0 4px 32px 0 rgba(123,0,153,0.18)', borderTop: '3px solid #7B0099' }} className={`rounded-xl bg-white flex flex-col p-4 ${cardHoverEffect}`}>
+          <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <h3 className="text-sm font-bold text-slate-800">Upcoming Outstation</h3>
               <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-150 rounded text-slate-505 flex items-center gap-1">
