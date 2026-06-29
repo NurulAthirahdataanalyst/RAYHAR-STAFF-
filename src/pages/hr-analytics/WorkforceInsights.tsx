@@ -472,7 +472,7 @@ export default function WorkforceInsights() {
         </div>
 
         {/* NEW BOTTOM SECTION: 4 KPI CARDS */}
-        {role === "hr_admin" && (
+        {["hr_admin", "managing_director", "finance_manager"].includes(role || "") && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           
           {/* Card 1: Clock-In/Out */}
