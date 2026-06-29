@@ -39,8 +39,8 @@ const pgPool = connectionString ? new Pool({
     if (parseInt(rows[0].count) === 0) {
       console.log("Inserting default roles...");
       const defaultRoles = [
-        "Admin", "HR Manager", "Recruitment Manager", "Payroll Manager", 
-        "Leave Manager", "Performance Manager", "Reports Analyst", "Employee", "Client"
+        'employee', 'branch_officer', 'branch_leader', 'head_of_department', 
+        'finance_manager', 'hr_admin', 'managing_director'
       ];
       
       for (const role of defaultRoles) {

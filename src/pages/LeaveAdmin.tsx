@@ -148,8 +148,21 @@ export default function LeaveAdmin() {
     void fetchRequests();
   }, [role, userBranch, userDepartment]);
 
-  // Auto-open a specific leave form when navigated with ?leaveId=xxx
+  // Handle URL query parameters (tab and leaveId)
   useEffect(() => {
+    let updated = false;
+    const newParams = new URLSearchParams(searchParams);
+
+    const tabParam = searchParams.get("tab");
+    if (tabParam) {
+      const cleanTab = tabParam.toLowerCase() as TabFilter;
+      if (["pending", "approved", "rejected", "history"].includes(cleanTab)) {
+        setActiveTab(cleanTab);
+        newParams.delete("tab");
+        updated = true;
+      }
+    }
+
     const leaveId = searchParams.get("leaveId");
     if (leaveId && requests.length > 0 && !selectedRequest) {
       const match = requests.find((r) => r.id === Number(leaveId));
@@ -164,9 +177,13 @@ export default function LeaveAdmin() {
           setActiveTab("history");
         }
         setSelectedRequest(match);
-        // Clear the param so it doesn't re-trigger
-        setSearchParams({}, { replace: true });
+        newParams.delete("leaveId");
+        updated = true;
       }
+    }
+
+    if (updated) {
+      setSearchParams(newParams, { replace: true });
     }
   }, [searchParams, requests, selectedRequest, setSearchParams]);
 

@@ -1,5 +1,6 @@
 import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { exportToCSV } from "@/utils/export";
 import { API_BASE_URL } from "@/config/api";
@@ -57,14 +58,15 @@ export default function WorkforceInsights() {
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">Error: {error}. The backend may still be deploying.</div>;
   if (!data) return <div className="min-h-screen flex items-center justify-center text-slate-500">No data available</div>;
 
+  const onTimeCount = Math.max(0, data.teamAvailability.present - data.teamAvailability.late);
   const donutData = [
-    { name: 'Present', value: data.teamAvailability.present },
+    { name: 'On Time', value: onTimeCount },
     { name: 'Late', value: data.teamAvailability.late },
     { name: 'On Leave', value: data.teamAvailability.onLeave },
     { name: 'Absent', value: data.teamAvailability.absent },
   ];
 
-  const availableToday = data.teamAvailability.present + data.teamAvailability.late;
+  const availableToday = data.teamAvailability.present;
   const totalTeam = availableToday + data.teamAvailability.onLeave + data.teamAvailability.absent;
   const availabilityRate = totalTeam > 0 ? Math.round((availableToday / totalTeam) * 100) : 0;
   return (
@@ -97,11 +99,11 @@ export default function WorkforceInsights() {
             />
         </div>
 
-        {/* Redesigned Top Section: 3-column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+        {/* Redesigned Top Section: 5-column layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 mb-6">
           
-          {/* Column 1 (left): Attendance Overview */}
-          <Card className={`col-span-1 rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-6 justify-between ${cardHoverEffect}`}>
+          {/* Column 1: Attendance Overview */}
+          <Card className={`col-span-1 xl:col-span-1 rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-6 justify-between ${cardHoverEffect}`}>
             <div>
               <div className="w-12 h-12 rounded-full bg-[#ff5b37] flex items-center justify-center text-white shadow-sm mb-4">
                 <UserCheck className="w-6 h-6" />
@@ -117,10 +119,11 @@ export default function WorkforceInsights() {
           </Card>
 
           {/* Column 2 (middle): 2x2 Grid of KPIs */}
-          <div className="col-span-1 lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Card className={`rounded-xl shadow-sm border-slate-200 bg-white ${cardHoverEffect}`}>
-              <CardContent className="p-5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+          <div className="col-span-1 xl:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* KPI 1: Total Headcount */}
+            <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
+              <CardContent className="p-5 flex items-center gap-4 h-full w-full">
+                <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                   <Users className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
@@ -130,9 +133,10 @@ export default function WorkforceInsights() {
               </CardContent>
             </Card>
 
-            <Card className={`rounded-xl shadow-sm border-slate-200 bg-white ${cardHoverEffect}`}>
-              <CardContent className="p-5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+            {/* KPI 2: Active Employees */}
+            <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
+              <CardContent className="p-5 flex items-center gap-4 h-full w-full">
+                <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
                   <UserCheck className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div>
@@ -142,9 +146,10 @@ export default function WorkforceInsights() {
               </CardContent>
             </Card>
 
-            <Card className={`rounded-xl shadow-sm border-slate-200 bg-white ${cardHoverEffect}`}>
-              <CardContent className="p-5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
+            {/* KPI 3: Attendance Rate */}
+            <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
+              <CardContent className="p-5 flex items-center gap-4 h-full w-full">
+                <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
                   <CheckCircle2 className="w-5 h-5 text-indigo-600" />
                 </div>
                 <div>
@@ -154,9 +159,10 @@ export default function WorkforceInsights() {
               </CardContent>
             </Card>
 
-            <Card className={`rounded-xl shadow-sm border-slate-200 bg-white ${cardHoverEffect}`}>
-              <CardContent className="p-5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center">
+            {/* KPI 4: On Leave Today */}
+            <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
+              <CardContent className="p-5 flex items-center gap-4 h-full w-full">
+                <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
                   <CalendarDays className="w-5 h-5 text-orange-600" />
                 </div>
                 <div>
@@ -167,8 +173,8 @@ export default function WorkforceInsights() {
             </Card>
           </div>
 
-          {/* Column 3 (right): Employees By Department */}
-          <Card className={`col-span-1 rounded-xl shadow-sm border-slate-200 bg-white p-5 flex flex-col justify-between ${cardHoverEffect}`}>
+          {/* Column 3: Employees By Department */}
+          <Card className={`col-span-1 md:col-span-2 xl:col-span-2 rounded-xl shadow-sm border-slate-200 bg-white p-5 flex flex-col justify-between ${cardHoverEffect}`}>
             <div className="flex items-center justify-between mb-3">
               <span className="text-[12px] font-bold text-slate-800">Employees By Department</span>
               <span className="text-[10px] bg-slate-50 border border-slate-150 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 font-semibold">

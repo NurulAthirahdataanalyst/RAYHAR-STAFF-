@@ -150,7 +150,19 @@ const upload = multer({ storage: storage });
 app.get("/api/roles", async (req, res) => {
   try {
     const result = await pgPool.query("SELECT * FROM roles ORDER BY created_at ASC");
-    res.json({ success: true, roles: result.rows });
+    const formattedRoles = result.rows.map(row => {
+      let displayName = row.name;
+      if (row.name === 'hr_admin') {
+        displayName = 'HR Admin';
+      } else if (row.name) {
+        displayName = row.name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+      }
+      return {
+        ...row,
+        name: displayName
+      };
+    });
+    res.json({ success: true, roles: formattedRoles });
   } catch (err) {
     console.error("Error fetching roles:", err);
     res.status(500).json({ success: false, error: "Database error fetching roles" });
@@ -727,6 +739,45 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       );
     `);
 
+    // Auto-migrate branches table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS branches (
+        code VARCHAR(50) PRIMARY KEY,
+        branch VARCHAR(50) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        location VARCHAR(255)
+      );
+    `);
+    console.log('✅ Auto-migration for branches completed.');
+
+    // Auto-migrate roles table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS roles (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE,
+        status VARCHAR(50) DEFAULT 'Active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    try {
+      const [roleCountRows] = await connection.query("SELECT COUNT(*) as count FROM roles");
+      if (parseInt(roleCountRows[0].count) === 0) {
+        console.log("Inserting default roles into database...");
+        const defaultRoles = [
+          'employee', 'branch_officer', 'branch_leader', 'head_of_department', 
+          'finance_manager', 'hr_admin', 'managing_director'
+        ];
+        for (const role of defaultRoles) {
+          await connection.query("INSERT INTO roles (name, status) VALUES (?, 'Active')", [role]);
+        }
+        console.log("✅ Default roles inserted.");
+      }
+    } catch (roleSeedErr) {
+      console.error("⚠️ Failed to seed default roles:", roleSeedErr.message);
+    }
+    console.log('✅ Auto-migration for roles completed.');
+
     // Load settings from db
     try {
        const [settingRows] = await connection.query('SELECT * FROM system_settings');
@@ -1055,9 +1106,9 @@ app.post("/api/signup", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await connection.query(
-      `INSERT INTO profiles (user_id, full_name, email, password, branch, department, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [userId, full_name, email, hashedPassword, branch, department || null, status || "Active"]
+      `INSERT INTO profiles (user_id, full_name, email, password, branch, department, status, role)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userId, full_name, email, hashedPassword, branch, department || null, status || "Active", role || 'employee']
     );
 
     await connection.query(
@@ -1233,7 +1284,7 @@ app.get("/api/leave-requests", async (req, res) => {
     }
 
     if (date) {
-      filters.push("DATE((lr.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur') = ?");
+      filters.push("DATE(lr.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?");
       params.push(date);
     }
 
@@ -1761,7 +1812,7 @@ app.get("/api/employees", async (req, res) => {
         INNER JOIN (
           SELECT user_id, MAX(attendance_id) AS latest_attendance_id
           FROM attendances
-          WHERE DATE((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur') = ${date ? '?::date' : 'CURRENT_DATE'}
+          WHERE DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = ${date ? '?::date' : 'CURRENT_DATE'}
           GROUP BY user_id
         ) latest ON latest.latest_attendance_id = a.attendance_id
       ) today ON today.user_id = p.user_id
@@ -1833,6 +1884,10 @@ app.post("/api/employees/status", async (req, res) => {
         "UPDATE user_role SET role = 'employee' WHERE user_id = ?",
         [user_id]
       );
+      await pool.query(
+        "UPDATE profiles SET role = 'employee' WHERE user_id = ?",
+        [user_id]
+      );
     }
 
     res.json({ success: true, message: `Employee status updated to ${status} successfully.` });
@@ -1876,6 +1931,10 @@ app.post("/api/departments/hod-transfer", async (req, res) => {
         "UPDATE user_role SET role = 'employee' WHERE user_id = ?",
         [previousHodId]
       );
+      await connection.query(
+        "UPDATE profiles SET role = 'employee' WHERE user_id = ?",
+        [previousHodId]
+      );
     }
 
     // 3. Promote the new user to 'head_of_department'
@@ -1884,7 +1943,7 @@ app.post("/api/departments/hod-transfer", async (req, res) => {
       [departmentName, newHodUserId]
     );
     await connection.query(
-      "UPDATE profiles SET department = ? WHERE user_id = ?",
+      "UPDATE profiles SET role = 'head_of_department', department = ? WHERE user_id = ?",
       [departmentName, newHodUserId]
     );
 
@@ -2181,8 +2240,8 @@ app.get("/api/attendance/history", async (req, res) => {
           user_id,
           clock_in,
           clock_out,
-          TO_CHAR((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
-          TO_CHAR((clock_out AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
+          TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
+          TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
           DATE(clock_in) AS date
         FROM attendances
         WHERE user_id = ?
@@ -2198,8 +2257,8 @@ app.get("/api/attendance/history", async (req, res) => {
           user_id,
           clock_in,
           clock_out,
-          TO_CHAR((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
-          TO_CHAR((clock_out AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
+          TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
+          TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
           DATE(clock_in) AS date
         FROM attendances
         WHERE user_id = ?
@@ -2357,7 +2416,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       const lateTimeStr = getLateThresholdTime();
       const [lateRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = ${dateCondition} AND ((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' 
+        `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = ${dateCondition} AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' 
          AND NOT EXISTS (
            SELECT 1 FROM leave_requests lr 
            WHERE lr.user_id = attendances.user_id AND lr.status = 'Approved' 
@@ -2407,7 +2466,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     // 1. TODAY ATTENDANCE STATUS
     const [todayRows] = await pool.query(
       `
-      SELECT clock_in, clock_out, TO_CHAR((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_in_time, TO_CHAR((clock_out AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_out_time
+      SELECT clock_in, clock_out, TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_in_time, TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_out_time
       FROM attendances WHERE user_id = ? AND DATE(clock_in) = CURRENT_DATE ORDER BY clock_in DESC LIMIT 1
       `,
       [userId]
@@ -2495,9 +2554,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
           'Attendance' AS action, 
           'Clocked In' AS status,
           clock_in as sort_time,
-          TO_CHAR((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time
+          TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time
         FROM attendances WHERE user_id = ? AND clock_in IS NOT NULL 
-          AND DATE((clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
+          AND DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
 
         UNION ALL
 
@@ -2505,9 +2564,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
           'Attendance' AS action, 
           'Clocked Out' AS status,
           clock_out as sort_time,
-          TO_CHAR((clock_out AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time
+          TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time
         FROM attendances WHERE user_id = ? AND clock_out IS NOT NULL 
-          AND DATE((clock_out AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
+          AND DATE(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
 
         UNION ALL
 
@@ -2515,9 +2574,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
           CASE WHEN type = 'reminder' THEN 'Reminder' ELSE 'Note' END AS action,
           CASE WHEN type = 'reminder' THEN 'Added Reminder' ELSE 'Added Note' END AS status,
           created_at as sort_time,
-          TO_CHAR((created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time
+          TO_CHAR(created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time
         FROM personal_notes WHERE user_id = ? 
-          AND DATE((created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
+          AND DATE(created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
       )
       SELECT act.action, act.status, act.time
       FROM activities act
@@ -2576,8 +2635,8 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         COALESCE(ur.role, 'employee') AS role,
         a.clock_in,
         a.clock_out,
-        TO_CHAR((a.clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
-        TO_CHAR((a.clock_out AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out
+        TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
+        TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out
       FROM profiles p
       JOIN attendances a ON p.user_id = a.user_id
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
@@ -2697,7 +2756,7 @@ app.get("/api/reports/employee-rank", async (req, res) => {
       SELECT 
         a.user_id,
         COUNT(a.attendance_id) AS total_days,
-        SUM(CASE WHEN ((a.clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END) AS late_days
+        SUM(CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END) AS late_days
       FROM attendances a
       JOIN profiles p ON p.user_id = a.user_id
       WHERE EXTRACT(YEAR FROM a.clock_in) = ?
@@ -2918,7 +2977,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     const [attRows] = await pool.query(
       `SELECT 
         a.user_id, p.full_name as name, a.clock_in, a.clock_out,
-        CASE WHEN ((a.clock_in AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END as is_late
+        CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END as is_late
        FROM attendances a
        JOIN profiles p ON p.user_id = a.user_id
        WHERE EXTRACT(MONTH FROM a.clock_in) = ? AND EXTRACT(YEAR FROM a.clock_in) = ? AND p.status = 'Active' ${profileFilter}`,
@@ -3159,6 +3218,11 @@ app.post("/api/branches", async (req, res) => {
     }
 
     const branchLocation = location ? location.trim() : 'RAYHAR BRANCH';
+
+    await pool.query(
+      "INSERT INTO branches (branch, code, name, location) VALUES (?, ?, ?, ?)",
+      [cleanCode, cleanCode, name.trim(), branchLocation]
+    );
 
     // Broadcast branch registration event via SSE
     broadcastPresenceUpdate({

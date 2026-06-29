@@ -28,11 +28,15 @@ const tablesInReverse = [
   'user_role',
   'departments',
   'profiles',
-  'system_settings'
+  'system_settings',
+  'branches',
+  'roles'
 ];
 
 // Correct order of dependencies to insert tables safely
 const tablesInOrder = [
+  'branches',
+  'roles',
   'system_settings',
   'departments',
   'profiles',

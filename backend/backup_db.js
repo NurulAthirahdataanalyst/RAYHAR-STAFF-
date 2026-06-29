@@ -18,6 +18,8 @@ const pool = new Pool({
 });
 
 const tablesToBackup = [
+  'branches',
+  'roles',
   'profiles',
   'departments',
   'user_role',

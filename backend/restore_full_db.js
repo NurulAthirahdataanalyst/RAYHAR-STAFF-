@@ -19,7 +19,7 @@ const pool = new Pool({
 
 const createTablesSQL = `
 -- Drop existing tables to ensure clean schema rebuild
-DROP TABLE IF EXISTS notifications, hod_history, leave_approvals, personal_notes, leave_requests, attendances, user_role, user_roles, departments, profiles, system_settings CASCADE;
+DROP TABLE IF EXISTS notifications, hod_history, leave_approvals, personal_notes, leave_requests, attendances, user_role, user_roles, departments, profiles, system_settings, branches, roles CASCADE;
 
 -- 1. system_settings
 CREATE TABLE system_settings (
@@ -27,7 +27,15 @@ CREATE TABLE system_settings (
   setting_value VARCHAR(255)
 );
 
--- 2. departments
+-- 2. branches
+CREATE TABLE branches (
+  code VARCHAR(50) PRIMARY KEY,
+  branch VARCHAR(50) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  location VARCHAR(255)
+);
+
+-- 3. departments
 CREATE TABLE departments (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
@@ -35,14 +43,14 @@ CREATE TABLE departments (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3. profiles
+-- 4. profiles
 CREATE TABLE profiles (
   user_id VARCHAR(100) PRIMARY KEY,
   full_name VARCHAR(255) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
   password VARCHAR(255) NOT NULL,
   status VARCHAR(50) DEFAULT 'Active',
-  branch VARCHAR(100),
+  branch VARCHAR(100) REFERENCES branches(code) ON DELETE SET NULL,
   phone VARCHAR(50),
   role VARCHAR(50) DEFAULT 'employee',
   department VARCHAR(100),
@@ -138,9 +146,19 @@ CREATE TABLE notifications (
   related_leave_id INTEGER,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 11. roles
+CREATE TABLE roles (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name VARCHAR(255) NOT NULL UNIQUE,
+  status VARCHAR(50) DEFAULT 'Active',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 `;
 
 const tablesInOrder = [
+  'branches',
+  'roles',
   'system_settings',
   'departments',
   'profiles',
