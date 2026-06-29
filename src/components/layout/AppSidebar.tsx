@@ -55,8 +55,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   useEffect(() => {
     localStorage.setItem("appSidebarCollapsed", String(isCollapsed));
   }, [isCollapsed]);
-  const [isHovered, setIsHovered] = useState(false);
-  const effectiveCollapsed = isCollapsed && !isHovered;
+  const effectiveCollapsed = isCollapsed;
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
 
   // Close mobile drawer on route change
@@ -407,7 +406,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                 {hasChildren && effectiveCollapsed && !isMobile && (
                   <div className="absolute left-full top-0 ml-3 z-50 hidden group-hover/menu-item:block min-w-[200px] bg-sidebar border border-sidebar-border rounded-[18px] p-2 shadow-[0_8px_30px_rgba(123,0,153,0.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200">
                     {/* Category Header */}
-                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/50 border-b border-white/5 mb-2">
+                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/60 border-b border-white/5 mb-2">
                       {item.title}
                     </div>
                     {/* Submenu Items */}
@@ -421,7 +420,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                             className={`flex items-center gap-3 rounded-[14px] px-3 py-2 text-[11px] transition-all duration-200 ${
                               isChildActive
                                 ? "bg-white/10 font-semibold text-white"
-                                : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white"
+                                : "text-white/70 hover:bg-white/5 hover:text-white"
                             }`}
                           >
                             <span className="whitespace-nowrap truncate">{child.title}</span>
@@ -435,7 +434,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                 {/* Tooltip Popover Card for Collapsed State (No Children) */}
                 {!hasChildren && effectiveCollapsed && !isMobile && (
                   <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 hidden group-hover/menu-item:block bg-sidebar border border-sidebar-border rounded-[12px] px-3.5 py-2 shadow-[0_8px_25px_rgba(123,0,153,0.08)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <span className="text-[11px] font-bold text-white whitespace-nowrap">
                       {item.title}
                     </span>
                   </div>
@@ -492,8 +491,6 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
       {/* ═══════ DESKTOP SIDEBAR (fixed on desktop) ═══════ */}
       <aside 
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         className={`hidden lg:flex fixed top-0 left-0 z-40 h-screen flex-col bg-sidebar transition-all duration-300 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.15)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.4)] border-r border-sidebar-border/60 ${
           effectiveCollapsed ? "w-16" : "w-[210px]"
         }`}
