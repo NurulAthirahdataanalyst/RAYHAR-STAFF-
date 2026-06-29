@@ -897,7 +897,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
     // All clock-ins today
     const clockParams = [dateStr, ...paramsTotal];
     const [clockRows] = await pool.query(
-      `SELECT a.user_id, p.full_name, p.branch, p.department, a.clock_in, a.clock_out
+      `SELECT a.user_id, p.full_name, p.branch, p.department, p.role, a.clock_in, a.clock_out
        FROM attendances a
        JOIN profiles p ON p.user_id = a.user_id
        WHERE DATE(a.clock_in) = ?
@@ -923,14 +923,15 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
       const [lhStr, lmStr] = lateTimeStr.split(':');
       const lh = parseInt(lhStr), lm = parseInt(lmStr);
       const isLate = hh > lh || (hh === lh && mm > lm);
+      const lateMinutes = isLate ? (hh * 60 + mm) - (lh * 60 + lm) : 0;
       const timeInFmt = klTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
       const timeOutFmt = row.clock_out
         ? new Date(new Date(row.clock_out).getTime() + 8 * 60 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
         : null;
 
-      const emp = { user_id: uid, full_name: row.full_name, branch: row.branch || 'HQ', department: row.department || '—', clock_in: timeInFmt, clock_out: timeOutFmt };
-      if (isLate) lateList.push({ ...emp, status: 'late' });
-      else presentList.push({ ...emp, status: 'present' });
+      const emp = { user_id: uid, full_name: row.full_name, branch: row.branch || 'HQ', department: row.department || '—', role: row.role || '', clock_in: timeInFmt, clock_out: timeOutFmt };
+      if (isLate) lateList.push({ ...emp, status: 'late', late_minutes: lateMinutes });
+      else presentList.push({ ...emp, status: 'present', late_minutes: 0 });
     }
 
     const absentCount = Math.max(0, total - Object.keys(clockMap).length - leaveRows.length);
@@ -1035,7 +1036,170 @@ app.get("/api/presence/live-stats", async (req, res) => {
   });
 });
 
-// HEALTH CHECK
+// ============================================================
+// WORKFORCE LIVE FEED SSE
+// Streams: clockInOut (present), late (with minutes), pendingApprovals
+// For: hr_admin, managing_director, finance_manager
+// ============================================================
+let workforceFeedClients = [];
+
+async function getWorkforceLiveFeed(role, branch, department) {
+  const dateStr = new Date().toISOString().split('T')[0];
+  const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
+
+  let filterP = "";
+  let paramsBase = [];
+  if (role === 'branch_leader' && branch && branch !== "All") {
+    filterP = " AND p.branch = ?";
+    paramsBase.push(branch);
+  } else if (role === 'head_of_department' && department && department !== "All") {
+    filterP = " AND p.department = ?";
+    paramsBase.push(department);
+  }
+
+  // Clock-ins today with role
+  const [clockRows] = await pool.query(
+    `SELECT a.user_id, p.full_name, p.branch, p.department, p.role, a.clock_in, a.clock_out
+     FROM attendances a
+     JOIN profiles p ON p.user_id = a.user_id
+     WHERE DATE(a.clock_in) = ?
+     AND p.status = 'Active' ${filterP}
+     ORDER BY a.clock_in ASC`,
+    [dateStr, ...paramsBase]
+  );
+
+  // On leave today
+  const [leaveRows] = await pool.query(
+    `SELECT DISTINCT lr.user_id FROM leave_requests lr
+     JOIN profiles p ON p.user_id = lr.user_id
+     WHERE lr.status = 'Approved' AND ? BETWEEN lr.start_date AND lr.end_date
+     AND p.status = 'Active' ${filterP}`,
+    [dateStr, ...paramsBase]
+  );
+  const onLeaveIds = new Set(leaveRows.map(r => r.user_id));
+
+  // Deduplicate by user_id (first clock-in per user)
+  const clockMap = {};
+  for (const row of clockRows) {
+    if (!clockMap[row.user_id]) clockMap[row.user_id] = row;
+  }
+
+  const [lhStr, lmStr] = lateTimeStr.split(':');
+  const lh = parseInt(lhStr), lm = parseInt(lmStr);
+
+  const clockInOut = [];
+  const lateList = [];
+
+  for (const [uid, row] of Object.entries(clockMap)) {
+    if (onLeaveIds.has(uid)) continue;
+    const klTime = new Date(new Date(row.clock_in).getTime() + 8 * 60 * 60 * 1000);
+    const hh = klTime.getUTCHours();
+    const mm = klTime.getUTCMinutes();
+    const isLate = hh > lh || (hh === lh && mm > lm);
+    const lateMinutes = isLate ? (hh * 60 + mm) - (lh * 60 + lm) : 0;
+    const timeInFmt = klTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const timeOutFmt = row.clock_out
+      ? new Date(new Date(row.clock_out).getTime() + 8 * 60 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+      : null;
+
+    const initials = (row.full_name || '??').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+    const emp = {
+      user_id: uid,
+      full_name: row.full_name,
+      initials,
+      branch: row.branch || 'HQ',
+      department: row.department || '—',
+      role: row.role || '',
+      clock_in: timeInFmt,
+      clock_out: timeOutFmt,
+      late_minutes: lateMinutes,
+      is_late: isLate
+    };
+    if (isLate) lateList.push(emp);
+    else clockInOut.push(emp);
+  }
+
+  // Pending approvals — role-filtered
+  let pendingFilters = ["lr.status IN ('Pending', 'Pending Finance', 'Pending MD', 'Pending HOD')"];
+  let pendingParams = [];
+  if (!['hr_admin', 'managing_director', 'finance_manager'].includes(role)) {
+    if (branch) { pendingFilters.push("p.branch = ?"); pendingParams.push(branch); }
+    if (department) { pendingFilters.push("p.department = ?"); pendingParams.push(department); }
+  }
+  const pendingWhere = pendingFilters.length ? `WHERE ${pendingFilters.join(' AND ')}` : '';
+  const [pendingRows] = await pool.query(
+    `SELECT lr.leave_id, lr.user_id, lr.leave_type, lr.start_date, lr.end_date, lr.days, lr.reason, lr.status,
+            p.full_name, p.branch, p.department
+     FROM leave_requests lr
+     JOIN profiles p ON p.user_id = lr.user_id
+     ${pendingWhere}
+     ORDER BY lr.created_at DESC
+     LIMIT 10`,
+    pendingParams
+  );
+
+  const pendingApprovals = pendingRows.map(r => ({
+    id: r.leave_id,
+    user_id: r.user_id,
+    name: r.full_name,
+    initials: (r.full_name || '??').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase(),
+    leave_type: r.leave_type,
+    dates: `${new Date(r.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(r.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+    days: `${r.days} day${r.days !== 1 ? 's' : ''}`,
+    reason: r.reason || '',
+    status: r.status
+  }));
+
+  return {
+    type: 'workforce_feed',
+    timestamp: new Date().toISOString(),
+    clockInOut,
+    lateList,
+    pendingApprovals
+  };
+}
+
+app.get("/api/workforce/live-feed", async (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.flushHeaders();
+
+  res.write(": connected\n\n");
+
+  const { role, branch, department } = req.query;
+
+  // Send initial snapshot
+  try {
+    const snapshot = await getWorkforceLiveFeed(role, branch, department);
+    res.write(`data: ${JSON.stringify(snapshot)}\n\n`);
+  } catch (e) {
+    console.error("workforce live-feed initial send error:", e);
+  }
+
+  // Refresh every 30 seconds
+  const interval = setInterval(async () => {
+    try {
+      const data = await getWorkforceLiveFeed(role, branch, department);
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    } catch (e) {
+      console.error("workforce live-feed interval error:", e);
+    }
+  }, 30000);
+
+  const clientEntry = { res, role, branch, department };
+  workforceFeedClients.push(clientEntry);
+  console.log(`🏢 Workforce-feed SSE client connected. Total: ${workforceFeedClients.length}`);
+
+  req.on("close", () => {
+    clearInterval(interval);
+    workforceFeedClients = workforceFeedClients.filter(c => c !== clientEntry);
+    console.log(`🏢 Workforce-feed SSE client disconnected. Total: ${workforceFeedClients.length}`);
+  });
+});
+
+
 app.get("/", (req, res) => {
   res.json({
     success: true,

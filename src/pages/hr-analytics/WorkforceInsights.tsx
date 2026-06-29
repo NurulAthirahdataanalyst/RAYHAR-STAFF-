@@ -1,20 +1,55 @@
 import { useRole } from "@/contexts/RoleContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { exportToCSV } from "@/utils/export";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Users, UserCheck, CalendarDays, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight, ChevronDown } from "lucide-react";
+import { Loader2, Users, UserCheck, CalendarDays, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight, ChevronDown, Wifi, WifiOff } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
 const COLORS = ['#4f46e5', '#eab308', '#94a3b8', '#DC2626']; // Present, Late, On Leave, Absent
 
-
-
 const cardHoverEffect = "transition-all duration-300 hover:shadow-[0_0_15px_rgba(123,0,153,0.15)] hover:border-[#7B0099]/30 hover:-translate-y-0.5";
+
+const AVATAR_COLORS = [
+  "bg-purple-100 text-purple-700",
+  "bg-blue-100 text-blue-700",
+  "bg-emerald-100 text-emerald-700",
+  "bg-pink-100 text-pink-700",
+  "bg-amber-100 text-amber-700",
+  "bg-cyan-100 text-cyan-700",
+  "bg-indigo-100 text-indigo-700",
+  "bg-rose-100 text-rose-700",
+];
+const getAvatarColor = (str: string) => AVATAR_COLORS[(str || '').charCodeAt(0) % AVATAR_COLORS.length];
+
+interface LiveEmp {
+  user_id: string;
+  full_name: string;
+  initials: string;
+  branch: string;
+  department: string;
+  role: string;
+  clock_in: string | null;
+  clock_out: string | null;
+  late_minutes: number;
+  is_late: boolean;
+}
+
+interface PendingItem {
+  id: number;
+  user_id: string;
+  name: string;
+  initials: string;
+  leave_type: string;
+  dates: string;
+  days: string;
+  reason: string;
+  status: string;
+}
 
 export default function WorkforceInsights() {
   const { role, userBranch, userDepartment } = useRole();
@@ -24,18 +59,60 @@ export default function WorkforceInsights() {
   const [data, setData] = useState<any>(null);
   const [month, setMonth] = useState((new Date().getMonth() + 1).toString().padStart(2, '0'));
   const [year, setYear] = useState(new Date().getFullYear().toString());
-  const [pendingApprovalsList, setPendingApprovalsList] = useState([
-    { id: 1, name: "Hendrita Merkel", initials: "HM", dates: "Jan 10 - Jan 16", days: "4 days", reason: "Family trip", avatarColor: "bg-purple-150 text-purple-700 bg-purple-100" },
-    { id: 2, name: "Michael Brown", initials: "MB", dates: "Jan 3 - Jan 9", days: "2 days", reason: "Medical appointment", avatarColor: "bg-blue-100 text-blue-700" },
-    { id: 3, name: "Daniel Martinez", initials: "DM", dates: "Jan 17 - Jan 23", days: "2 days", reason: "Personal Work", avatarColor: "bg-emerald-100 text-emerald-700" }
-  ]);
 
-  const handleApproveLeave = (id: number, name: string) => {
+  // ── SSE Live Feed State ──────────────────────────────────
+  const [clockInOut, setClockInOut] = useState<LiveEmp[]>([]);
+  const [lateList, setLateList] = useState<LiveEmp[]>([]);
+  const [pendingApprovalsList, setPendingApprovalsList] = useState<PendingItem[]>([]);
+  const [feedConnected, setFeedConnected] = useState(false);
+
+  const isAdminRole = ["hr_admin", "managing_director", "finance_manager"].includes(role || "");
+
+  // SSE connection for live feed
+  useEffect(() => {
+    if (!isAdminRole) return;
+    const params = new URLSearchParams({
+      role: role || "",
+      branch: userBranch || "",
+      department: userDepartment || "",
+    });
+    const es = new EventSource(`${API_BASE_URL}/api/workforce/live-feed?${params}`);
+    es.onopen = () => setFeedConnected(true);
+    es.onmessage = (e) => {
+      try {
+        const d = JSON.parse(e.data);
+        if (d.type === 'workforce_feed') {
+          setClockInOut(d.clockInOut || []);
+          setLateList(d.lateList || []);
+          setPendingApprovalsList(d.pendingApprovals || []);
+          setFeedConnected(true);
+        }
+      } catch {}
+    };
+    es.onerror = () => setFeedConnected(false);
+    return () => es.close();
+  }, [role, userBranch, userDepartment, isAdminRole]);
+
+  const handleApproveLeave = async (id: number) => {
     setPendingApprovalsList(prev => prev.filter(item => item.id !== id));
+    try {
+      await fetch(`${API_BASE_URL}/api/leave-requests/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'Approved', approver_id: null, approver_note: '' })
+      });
+    } catch (err) { console.error('Approve error:', err); }
   };
 
-  const handleDeclineLeave = (id: number, name: string) => {
+  const handleDeclineLeave = async (id: number) => {
     setPendingApprovalsList(prev => prev.filter(item => item.id !== id));
+    try {
+      await fetch(`${API_BASE_URL}/api/leave-requests/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'Rejected', approver_id: null, approver_note: '' })
+      });
+    } catch (err) { console.error('Decline error:', err); }
   };
 
   const fetchInsights = async () => {
@@ -471,192 +548,159 @@ export default function WorkforceInsights() {
 
         </div>
 
-        {/* NEW BOTTOM SECTION: 4 KPI CARDS */}
-        {["hr_admin", "managing_director", "finance_manager"].includes(role || "") && (
+        {/* BOTTOM SECTION: 4 LIVE CARDS */}
+        {isAdminRole && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-          
-          {/* Card 1: Clock-In/Out */}
+
+          {/* Card 1: Clock-In/Out — LIVE SSE */}
           <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
-              <h3 className="text-sm font-bold text-slate-800">Clock-In/Out</h3>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">All Departments</span>
-                <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-150 rounded text-slate-505 flex items-center gap-1">
-                  <CalendarDays className="w-3 h-3" /> Today
-                </span>
+                <h3 className="text-sm font-bold text-slate-800">Clock-In/Out</h3>
+                {feedConnected
+                  ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
+                  : <span className="text-[8px] text-slate-400 font-bold uppercase">Connecting…</span>}
               </div>
+              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-200 rounded text-slate-500 flex items-center gap-1">
+                <CalendarDays className="w-3 h-3" /> Today
+              </span>
             </div>
-            
-            <div className="flex-1 space-y-3">
-              {/* Daniel Esbella */}
-              <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors border border-transparent">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
-                    DE
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-800">Daniel Esbella</p>
-                    <p className="text-[10px] text-slate-400 font-medium">UI/UX Designer</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500 text-white">09:15</span>
-                </div>
-              </div>
 
-              {/* Doglas Martini */}
-              <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors border border-transparent">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-pink-100 text-pink-700 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
-                    DM
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-800">Doglas Martini</p>
-                    <p className="text-[10px] text-slate-400 font-medium">Project Manager</p>
-                  </div>
+            <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto pr-0.5">
+              {clockInOut.length === 0 && !feedConnected && (
+                <div className="flex flex-col items-center justify-center py-8 text-slate-300">
+                  <Loader2 className="w-5 h-5 animate-spin mb-2" />
+                  <p className="text-[10px] font-medium">Loading live data…</p>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500 text-white">09:36</span>
+              )}
+              {clockInOut.length === 0 && feedConnected && (
+                <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                  <Clock className="w-6 h-6 opacity-40 mb-1" />
+                  <p className="text-[10px] font-semibold">No clock-ins yet today</p>
                 </div>
-              </div>
-
-              {/* Brian Villalobos (Expanded) */}
-              <div className="p-2 bg-slate-50/50 border border-slate-100 rounded-lg space-y-2">
-                <div className="flex items-center justify-between">
+              )}
+              {clockInOut.slice(0, 5).map((emp) => (
+                <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
-                      BV
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
+                      {emp.initials}
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-800">Brian Villalobos</p>
-                      <p className="text-[10px] text-slate-400 font-medium">PHP Developer</p>
+                      <p className="text-xs font-bold text-slate-800 leading-tight">{emp.full_name}</p>
+                      <p className="text-[10px] text-slate-400 font-medium">{emp.department !== '—' ? emp.department : emp.branch}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500 text-white">09:15</span>
+                    <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500 text-white">{emp.clock_in}</span>
                   </div>
                 </div>
-                
-                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-[9px] font-medium text-slate-500">
-                  <div>
-                    <span className="flex items-center gap-1 text-slate-400 mb-0.5"><span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Clock In</span>
-                    <span className="font-bold text-slate-700 text-xs">10:30 AM</span>
-                  </div>
-                  <div>
-                    <span className="flex items-center gap-1 text-slate-400 mb-0.5"><span className="w-1.5 h-1.5 rounded-full bg-red-500" /> Clock Out</span>
-                    <span className="font-bold text-slate-700 text-xs">09:45 AM</span>
-                  </div>
-                  <div>
-                    <span className="flex items-center gap-1 text-slate-400 mb-0.5"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Production</span>
-                    <span className="font-bold text-slate-700 text-xs">09:21 Hrs</span>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
-            
-            <Button variant="outline" className="w-full mt-4 h-9 bg-white hover:bg-slate-50 text-slate-700 font-semibold border-slate-200">
+
+            <Button
+              variant="outline"
+              onClick={() => navigate('/hr-analytics/attendance')}
+              className="w-full mt-4 h-9 bg-white hover:bg-slate-50 text-slate-700 font-semibold border-slate-200"
+            >
               View All Attendance
             </Button>
           </Card>
 
-          {/* Card 2: Late */}
+          {/* Card 2: Late — LIVE SSE */}
           <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
-              <h3 className="text-sm font-bold text-slate-800">Late</h3>
-              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-150 rounded text-slate-500 flex items-center gap-1">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-800">Late</h3>
+                {feedConnected
+                  ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
+                  : <span className="text-[8px] text-slate-400 font-bold uppercase">Connecting…</span>}
+              </div>
+              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-200 rounded text-slate-500 flex items-center gap-1">
                 <CalendarDays className="w-3 h-3" /> Today
               </span>
             </div>
-            
-            <div className="flex-1 space-y-3">
-              {/* Anthony Lewis */}
-              <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors border border-transparent">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
-                    AL
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-xs font-bold text-slate-800">Anthony Lewis</p>
-                      <span className="px-1.5 py-0.5 text-[8px] font-bold rounded bg-red-500 text-white">30 Min</span>
-                    </div>
-                    <p className="text-[10px] text-slate-400 font-medium">Marketing Head</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500 text-white">08:35</span>
-                </div>
-              </div>
 
-              {/* Nathirah Rahman */}
-              <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors border border-transparent">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
-                    NR
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-xs font-bold text-slate-800">Nathirah Rahman</p>
-                      <span className="px-1.5 py-0.5 text-[8px] font-bold rounded bg-red-500 text-white">15 Min</span>
+            <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto pr-0.5">
+              {lateList.length === 0 && !feedConnected && (
+                <div className="flex flex-col items-center justify-center py-8 text-slate-300">
+                  <Loader2 className="w-5 h-5 animate-spin mb-2" />
+                  <p className="text-[10px] font-medium">Loading live data…</p>
+                </div>
+              )}
+              {lateList.length === 0 && feedConnected && (
+                <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                  <CheckCircle2 className="w-6 h-6 text-emerald-500 opacity-60 mb-1" />
+                  <p className="text-[10px] font-semibold">No late arrivals today!</p>
+                </div>
+              )}
+              {lateList.slice(0, 5).map((emp) => (
+                <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
+                      {emp.initials}
                     </div>
-                    <p className="text-[10px] text-slate-400 font-medium">HR Admin</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500 text-white">09:15</span>
-                </div>
-              </div>
-
-              {/* Ahmad Faiz */}
-              <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors border border-transparent">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
-                    AF
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-xs font-bold text-slate-800">Ahmad Faiz</p>
-                      <span className="px-1.5 py-0.5 text-[8px] font-bold rounded bg-red-500 text-white">119 Min</span>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-bold text-slate-800">{emp.full_name}</p>
+                        <span className="px-1.5 py-0.5 text-[8px] font-bold rounded bg-red-500 text-white">{emp.late_minutes} Min</span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-medium">{emp.department !== '—' ? emp.department : emp.branch}</p>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-medium">Branch Leader</p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500 text-white">{emp.clock_in}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500 text-white">11:59</span>
-                </div>
-              </div>
+              ))}
             </div>
-            
-            <Button variant="outline" className="w-full mt-4 h-9 bg-white hover:bg-slate-50 text-slate-700 font-semibold border-slate-200">
+
+            <Button
+              variant="outline"
+              onClick={() => navigate('/hr-analytics/attendance')}
+              className="w-full mt-4 h-9 bg-white hover:bg-slate-50 text-slate-700 font-semibold border-slate-200"
+            >
               View All Attendance
             </Button>
           </Card>
 
-          {/* Card 3: Pending Approvals */}
+          {/* Card 3: Pending Approvals — LIVE SSE */}
           <Card className={`rounded-xl shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
-              <h3 className="text-sm font-bold text-slate-800">Pending Approvals</h3>
-              <Button 
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-800">Pending Approvals</h3>
+                {pendingApprovalsList.length > 0 && (
+                  <span className="px-1.5 py-0.5 text-[8px] font-black bg-amber-500 text-white rounded">{pendingApprovalsList.length}</span>
+                )}
+              </div>
+              <Button
                 onClick={() => navigate("/leave/admin?tab=pending")}
-                variant="outline" 
+                variant="outline"
                 className="h-7 px-2.5 text-[10px] font-bold border-slate-200 bg-white text-slate-600 rounded"
               >
                 View All
               </Button>
             </div>
-            
-            <div className="flex-1 space-y-3">
-              {pendingApprovalsList.length > 0 ? (
+
+            <div className="flex-1 space-y-3 max-h-[300px] overflow-y-auto pr-0.5">
+              {pendingApprovalsList.length === 0 && !feedConnected && (
+                <div className="flex flex-col items-center justify-center py-8 text-slate-300">
+                  <Loader2 className="w-5 h-5 animate-spin mb-2" />
+                  <p className="text-[10px] font-medium">Loading…</p>
+                </div>
+              )}
+              {pendingApprovalsList.length === 0 && feedConnected ? (
+                <div className="h-full flex flex-col items-center justify-center text-center p-8 text-slate-400">
+                  <CheckCircle2 className="w-8 h-8 text-emerald-500 opacity-60 mb-2" />
+                  <p className="text-xs font-bold uppercase tracking-wider">All caught up!</p>
+                  <p className="text-[10px] mt-0.5">No pending approvals remaining.</p>
+                </div>
+              ) : (
                 pendingApprovalsList.map((item) => (
                   <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-all gap-3">
                     <div className="flex items-start gap-2.5">
-                      <div className={`w-8 h-8 rounded-full ${item.avatarColor} flex items-center justify-center font-bold text-xs uppercase shadow-sm shrink-0 mt-0.5`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm shrink-0 mt-0.5 ${getAvatarColor(item.name)}`}>
                         {item.initials}
                       </div>
                       <div>
@@ -668,14 +712,14 @@ export default function WorkforceInsights() {
                       </div>
                     </div>
                     <div className="flex sm:flex-col gap-1.5 self-end sm:self-center shrink-0">
-                      <button 
-                        onClick={() => handleApproveLeave(item.id, item.name)}
+                      <button
+                        onClick={() => handleApproveLeave(item.id)}
                         className="px-3 py-1 text-[10px] font-bold rounded bg-[#ff5b37] hover:bg-[#e04f2e] text-white transition-colors"
                       >
                         Approve
                       </button>
-                      <button 
-                        onClick={() => handleDeclineLeave(item.id, item.name)}
+                      <button
+                        onClick={() => handleDeclineLeave(item.id)}
                         className="px-3 py-1 text-[10px] font-bold rounded border border-[#ff5b37] text-[#ff5b37] hover:bg-[#ff5b37]/5 transition-colors"
                       >
                         Decline
@@ -683,12 +727,6 @@ export default function WorkforceInsights() {
                     </div>
                   </div>
                 ))
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center text-center p-8 text-slate-400">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-500 opacity-60 mb-2" />
-                  <p className="text-xs font-bold uppercase tracking-wider">All caught up!</p>
-                  <p className="text-[10px] mt-0.5">No pending approvals remaining.</p>
-                </div>
               )}
             </div>
           </Card>
