@@ -1018,11 +1018,11 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
   
   const rawBranchMetrics = data.branchMetrics || [];
   const regionMap: Record<string, string> = {
-    'Alor Setar': 'Northern', 'Bertam': 'Northern', 'Ipoh': 'Northern', 'Kuala Kangsar': 'Northern', 'Manjung': 'Northern',
-    'HQ': 'Central', 'Bandar Baru Bangi': 'Central', 'Shah Alam': 'Central', 'Kuala Lumpur': 'Central',
-    'Batu Pahat': 'Southern', 'Johor Bahru': 'Southern', 'Melaka': 'Southern', 'Seremban': 'Southern',
-    'Kemaman': 'East Coast', 'Cheneh': 'East Coast', 'Dungun': 'East Coast', 'Jertih': 'East Coast', 'Kuala Berang': 'East Coast', 'Kuala Terengganu': 'East Coast', 'Kota Bharu': 'East Coast', 'Muadzam Shah': 'East Coast', 'Rompin': 'East Coast',
-    'Tawau': 'East Malaysia'
+    'AOR': 'Northern', 'Alor Setar': 'Northern', 'BTM': 'Northern', 'Bertam': 'Northern', 'IPH': 'Northern', 'Ipoh': 'Northern', 'KKS': 'Northern', 'Kuala Kangsar': 'Northern', 'MJG': 'Northern', 'Manjung': 'Northern',
+    'HQ': 'Central', 'Rayhar HQ': 'Central', 'BBB': 'Central', 'Bandar Baru Bangi': 'Central', 'SHA': 'Central', 'Shah Alam': 'Central', 'KUL': 'Central', 'Kuala Lumpur': 'Central',
+    'BPT': 'Southern', 'Batu Pahat': 'Southern', 'JHB': 'Southern', 'Johor Bahru': 'Southern', 'MLK': 'Southern', 'Melaka': 'Southern', 'SNS': 'Southern', 'Seremban': 'Southern',
+    'KMM': 'East Coast', 'Kemaman': 'East Coast', 'CNH': 'East Coast', 'Cheneh': 'East Coast', 'DGN': 'East Coast', 'Dungun': 'East Coast', 'JTH': 'East Coast', 'Jertih': 'East Coast', 'KBG': 'East Coast', 'Kuala Berang': 'East Coast', 'TGG': 'East Coast', 'Kuala Terengganu': 'East Coast', 'KBR': 'East Coast', 'Kota Bharu': 'East Coast', 'MZM': 'East Coast', 'Muadzam Shah': 'East Coast', 'RMP': 'East Coast', 'Rompin': 'East Coast',
+    'TWU': 'East Malaysia', 'Tawau': 'East Malaysia', 'RRR': 'East Coast'
   };
   const regionOrder = ['Central', 'Northern', 'Southern', 'East Coast', 'East Malaysia'];
   
@@ -1465,3 +1465,4 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
     </div>
   )
 }
+

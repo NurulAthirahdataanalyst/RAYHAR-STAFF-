@@ -1,4 +1,4 @@
-const dotenv = require("dotenv");
+﻿const dotenv = require("dotenv");
 dotenv.config();
 
 const express = require("express");
@@ -10,7 +10,7 @@ const fs = require("fs");
 const { sendNotificationEmail } = require("./mailer");
 
 const jwtSecret = process.env.JWT_SECRET;
-console.log('🔐 JWT_SECRET loaded?', !!jwtSecret);
+console.log('ðŸ” JWT_SECRET loaded?', !!jwtSecret);
 if (!jwtSecret) {
   console.warn("WARNING: JWT_SECRET is not defined. Set JWT_SECRET in your backend environment variables.");
 }
@@ -236,7 +236,7 @@ async function ensureSupabaseBucketExists() {
   const https = require("https");
 
   if (!supabaseUrl || !supabaseKey) {
-    console.log("⚠️ Supabase credentials not found. Cloud storage backup is disabled.");
+    console.log("âš ï¸ Supabase credentials not found. Cloud storage backup is disabled.");
     return;
   }
 
@@ -268,24 +268,24 @@ async function ensureSupabaseBucketExists() {
       res.on("data", (chunk) => body += chunk);
       res.on("end", () => {
         if (res.statusCode === 200 || res.statusCode === 201) {
-          console.log("☁️ Successfully checked/created 'mc-attachments' bucket in Supabase Storage!");
+          console.log("â˜ï¸ Successfully checked/created 'mc-attachments' bucket in Supabase Storage!");
         } else {
           // Status 409 means bucket already exists, which is perfect and expected
           if (res.statusCode !== 409) {
-            console.log(`ℹ️ Supabase Bucket status: ${res.statusCode}.`);
+            console.log(`â„¹ï¸ Supabase Bucket status: ${res.statusCode}.`);
           }
         }
       });
     });
 
     req.on("error", (err) => {
-      console.error("❌ Error checking/creating Supabase Bucket:", err);
+      console.error("âŒ Error checking/creating Supabase Bucket:", err);
     });
 
     req.write(data);
     req.end();
   } catch (err) {
-    console.error("❌ Failed to verify Supabase Storage bucket:", err);
+    console.error("âŒ Failed to verify Supabase Storage bucket:", err);
   }
 }
 
@@ -320,21 +320,21 @@ async function uploadToSupabaseStorage(filePath, filename, mimeType) {
       res.on("data", (chunk) => body += chunk);
       res.on("end", () => {
         if (res.statusCode === 200 || res.statusCode === 201) {
-          console.log(`☁️ Successfully backed up ${filename} to Supabase Storage!`);
+          console.log(`â˜ï¸ Successfully backed up ${filename} to Supabase Storage!`);
         } else {
-          console.error(`❌ Supabase Storage upload failed with status ${res.statusCode}:`, body);
+          console.error(`âŒ Supabase Storage upload failed with status ${res.statusCode}:`, body);
         }
       });
     });
 
     req.on("error", (err) => {
-      console.error("❌ Error uploading to Supabase Storage:", err);
+      console.error("âŒ Error uploading to Supabase Storage:", err);
     });
 
     req.write(fileContent);
     req.end();
   } catch (err) {
-    console.error("❌ Failed to upload to Supabase Storage:", err);
+    console.error("âŒ Failed to upload to Supabase Storage:", err);
   }
 }
 
@@ -387,7 +387,7 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
     );
 
     if (rows.length === 0) {
-      console.error(`❌ Leave request ${leaveId} not found for PDF generation.`);
+      console.error(`âŒ Leave request ${leaveId} not found for PDF generation.`);
       return;
     }
 
@@ -559,13 +559,13 @@ async function generateAndSaveLeaveFormPDF(leaveId) {
       writeStream.on("error", reject);
     });
 
-    console.log(`📄 Generated PDF successfully locally: ${filePath}`);
+    console.log(`ðŸ“„ Generated PDF successfully locally: ${filePath}`);
 
     // Backup to Supabase Storage
     const supabaseStoragePath = `${folderName}/${filename}`;
     await uploadToSupabaseStorage(filePath, supabaseStoragePath, "application/pdf");
   } catch (err) {
-    console.error("❌ Error generating leave form PDF:", err);
+    console.error("âŒ Error generating leave form PDF:", err);
   }
 }
 
@@ -582,7 +582,7 @@ app.get(/^\/uploads\/(.+)$/, (req, res) => {
   if (supabaseUrl && fileSubpath) {
     const encodedSubpath = fileSubpath.split('/').map(segment => encodeURIComponent(segment)).join('/');
     const publicUrl = `${supabaseUrl}/storage/v1/object/public/mc-attachments/${encodedSubpath}`;
-    console.log(`↪️ File ${fileSubpath} not found locally. Redirecting to Supabase fallback: ${publicUrl}`);
+    console.log(`â†ªï¸ File ${fileSubpath} not found locally. Redirecting to Supabase fallback: ${publicUrl}`);
     return res.redirect(publicUrl);
   }
   res.status(404).send('Cannot GET /uploads/' + (fileSubpath || ''));
@@ -702,7 +702,7 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
   try {
     const connection = await pool.getConnection();
     const [rows] = await connection.query('SELECT NOW() as now');
-    console.log('✅ Connected to PostgreSQL successfully. Server time:', rows[0].now);
+    console.log('âœ… Connected to PostgreSQL successfully. Server time:', rows[0].now);
 
     // Auto-migrate personal_notes table
     await connection.query(`
@@ -722,14 +722,14 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       await connection.query("ALTER TABLE personal_notes DROP CONSTRAINT IF EXISTS fk_user");
       await connection.query("ALTER TABLE personal_notes DROP CONSTRAINT IF EXISTS personal_notes_user_id_fkey");
       await connection.query("ALTER TABLE personal_notes ALTER COLUMN user_id TYPE VARCHAR(100)");
-      console.log('🚀 Successfully verified/migrated personal_notes.user_id column type to VARCHAR(100).');
+      console.log('ðŸš€ Successfully verified/migrated personal_notes.user_id column type to VARCHAR(100).');
     } catch (colErr) {
-      console.error('⚠️ Personal notes migration warning:', colErr.message);
+      console.error('âš ï¸ Personal notes migration warning:', colErr.message);
     }
 
     // Create an index to make looking up notes by month faster
     await connection.query(`CREATE INDEX IF NOT EXISTS idx_personal_notes_user_date ON personal_notes(user_id, date);`);
-    console.log('✅ Auto-migration for personal_notes completed.');
+    console.log('âœ… Auto-migration for personal_notes completed.');
 
     // Auto-migrate system_settings table
     await connection.query(`
@@ -748,7 +748,7 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
         location VARCHAR(255)
       );
     `);
-    console.log('✅ Auto-migration for branches completed.');
+    console.log('âœ… Auto-migration for branches completed.');
 
     // Auto-migrate roles table
     await connection.query(`
@@ -771,12 +771,12 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
         for (const role of defaultRoles) {
           await connection.query("INSERT INTO roles (name, status) VALUES (?, 'Active')", [role]);
         }
-        console.log("✅ Default roles inserted.");
+        console.log("âœ… Default roles inserted.");
       }
     } catch (roleSeedErr) {
-      console.error("⚠️ Failed to seed default roles:", roleSeedErr.message);
+      console.error("âš ï¸ Failed to seed default roles:", roleSeedErr.message);
     }
-    console.log('✅ Auto-migration for roles completed.');
+    console.log('âœ… Auto-migration for roles completed.');
 
     // Load settings from db
     try {
@@ -784,7 +784,7 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
        for (const row of settingRows) {
           settingsCache[row.setting_key] = row.setting_value;
        }
-       console.log('✅ Settings loaded from DB:', settingsCache);
+       console.log('âœ… Settings loaded from DB:', settingsCache);
     } catch (e) {
        console.error('Error loading settings from DB', e);
     }
@@ -795,9 +795,9 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       await connection.query("ALTER TABLE profiles DROP COLUMN IF EXISTS telegram_chat_id");
       await connection.query("ALTER TABLE profiles DROP COLUMN IF EXISTS reset_token");
       await connection.query("ALTER TABLE profiles DROP COLUMN IF EXISTS reset_token_expires");
-      console.log('🚀 Successfully migrated: Removed telegram_chat_id, reset_token, and reset_token_expires from profiles table.');
+      console.log('ðŸš€ Successfully migrated: Removed telegram_chat_id, reset_token, and reset_token_expires from profiles table.');
     } catch (migErr) {
-      console.error('⚠️ Migration warning during cleanup of unused columns:', migErr.message);
+      console.error('âš ï¸ Migration warning during cleanup of unused columns:', migErr.message);
     }
 
     // Auto sanitization of database user_role table and profiles status column (fixes trailing carriage returns/newlines/spaces for all roles)
@@ -806,9 +806,9 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       await connection.query("UPDATE profiles SET status = TRIM(BOTH FROM REGEXP_REPLACE(status, '[\\r\\n\\s]+', '', 'g'))");
       // Auto-demote inactive users from leader/HOD roles to prevent them from staying assigned
       await connection.query("UPDATE user_role ur SET role = 'employee' FROM profiles p WHERE ur.user_id = p.user_id AND p.status = 'Inactive' AND ur.role IN ('branch_leader', 'head_of_department')");
-      console.log('🚀 Successfully sanitized database and demoted inactive users from leader/HOD roles.');
+      console.log('ðŸš€ Successfully sanitized database and demoted inactive users from leader/HOD roles.');
     } catch (sanErr) {
-      console.error('⚠️ Database sanitization/demotion warning:', sanErr.message);
+      console.error('âš ï¸ Database sanitization/demotion warning:', sanErr.message);
     }
 
     // Auto-update branch locations to be geographically accurate (Kemaman, Terengganu, Selangor, Johor, Perak, etc.) instead of generic "RAYHAR BRANCH"
@@ -841,14 +841,14 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       for (const b of correctBranches) {
         await connection.query("UPDATE branches SET location = ? WHERE code = ? AND (location IS NULL OR location = 'RAYHAR BRANCH' OR location = '')", [b.location, b.code]);
       }
-      console.log('🚀 Successfully updated correct geographical locations for all Rayhar branches in the database.');
+      console.log('ðŸš€ Successfully updated correct geographical locations for all Rayhar branches in the database.');
     } catch (branchLocErr) {
-      console.error('⚠️ Database branch location update warning:', branchLocErr.message);
+      console.error('âš ï¸ Database branch location update warning:', branchLocErr.message);
     }
 
     connection.release();
   } catch (error) {
-    console.error('❌ Error connecting to PostgreSQL:', error.message);
+    console.error('âŒ Error connecting to PostgreSQL:', error.message);
   }
 })();
 
@@ -929,7 +929,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
         ? new Date(new Date(row.clock_out).getTime() + 8 * 60 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
         : null;
 
-      const emp = { user_id: uid, full_name: row.full_name, branch: row.branch || 'HQ', department: row.department || '—', role: row.role || '', clock_in: timeInFmt, clock_out: timeOutFmt };
+      const emp = { user_id: uid, full_name: row.full_name, branch: row.branch || 'HQ', department: row.department || 'â€”', role: row.role || '', clock_in: timeInFmt, clock_out: timeOutFmt };
       if (isLate) lateList.push({ ...emp, status: 'late', late_minutes: lateMinutes });
       else presentList.push({ ...emp, status: 'present', late_minutes: 0 });
     }
@@ -949,7 +949,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
       employees: [
         ...presentList,
         ...lateList,
-        ...leaveRows.map(r => ({ user_id: r.user_id, full_name: r.full_name, branch: r.branch || 'HQ', department: r.department || '—', clock_in: null, clock_out: null, status: 'onLeave' }))
+        ...leaveRows.map(r => ({ user_id: r.user_id, full_name: r.full_name, branch: r.branch || 'HQ', department: r.department || 'â€”', clock_in: null, clock_out: null, status: 'onLeave' }))
       ]
     };
   } catch (err) {
@@ -959,7 +959,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
 }
 
 function broadcastPresenceUpdate(payload = { type: 'refresh' }) {
-  console.log(`📡 Broadcasting presence update to ${sseClients.length} clients...`);
+  console.log(`ðŸ“¡ Broadcasting presence update to ${sseClients.length} clients...`);
   sseClients.forEach((client) => {
     client.write(`data: ${JSON.stringify(payload)}\n\n`);
   });
@@ -985,15 +985,15 @@ app.get("/api/presence/stream", (req, res) => {
   res.flushHeaders();
 
   sseClients.push(res);
-  console.log(`🔌 SSE Client connected. Total: ${sseClients.length}`);
+  console.log(`ðŸ”Œ SSE Client connected. Total: ${sseClients.length}`);
 
   req.on("close", () => {
     sseClients = sseClients.filter((c) => c !== res);
-    console.log(`🔌 SSE Client disconnected. Total: ${sseClients.length}`);
+    console.log(`ðŸ”Œ SSE Client disconnected. Total: ${sseClients.length}`);
   });
 });
 
-// LIVE STATS SSE — streams enriched presence data (present/late/absent/on-leave counts + employee list)
+// LIVE STATS SSE â€” streams enriched presence data (present/late/absent/on-leave counts + employee list)
 app.get("/api/presence/live-stats", async (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
@@ -1027,12 +1027,12 @@ app.get("/api/presence/live-stats", async (req, res) => {
 
   const clientEntry = { res, role, branch, department };
   liveStatsClients.push(clientEntry);
-  console.log(`📊 Live-stats SSE client connected. Total: ${liveStatsClients.length}`);
+  console.log(`ðŸ“Š Live-stats SSE client connected. Total: ${liveStatsClients.length}`);
 
   req.on("close", () => {
     clearInterval(interval);
     liveStatsClients = liveStatsClients.filter(c => c !== clientEntry);
-    console.log(`📊 Live-stats SSE client disconnected. Total: ${liveStatsClients.length}`);
+    console.log(`ðŸ“Š Live-stats SSE client disconnected. Total: ${liveStatsClients.length}`);
   });
 });
 
@@ -1113,7 +1113,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
       full_name: row.full_name,
       initials,
       branch: row.branch || 'HQ',
-      department: row.department || '—',
+      department: row.department || 'â€”',
       role: row.role || '',
       clock_in: timeInFmt,
       clock_out: timeOutFmt,
@@ -1133,13 +1133,13 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
         full_name: p.full_name,
         initials,
         branch: p.branch || 'HQ',
-        department: p.department || '—',
+        department: p.department || 'â€”',
         role: p.role || ''
       });
     }
   }
 
-  // Pending approvals — role-filtered
+  // Pending approvals â€” role-filtered
   let pendingFilters = ["lr.status IN ('Pending', 'Pending Finance', 'Pending MD', 'Pending HOD')"];
   let pendingParams = [];
   if (!['hr_admin', 'managing_director', 'finance_manager'].includes(role)) {
@@ -1212,12 +1212,12 @@ app.get("/api/workforce/live-feed", async (req, res) => {
 
   const clientEntry = { res, role, branch, department };
   workforceFeedClients.push(clientEntry);
-  console.log(`🏢 Workforce-feed SSE client connected. Total: ${workforceFeedClients.length}`);
+  console.log(`ðŸ¢ Workforce-feed SSE client connected. Total: ${workforceFeedClients.length}`);
 
   req.on("close", () => {
     clearInterval(interval);
     workforceFeedClients = workforceFeedClients.filter(c => c !== clientEntry);
-    console.log(`🏢 Workforce-feed SSE client disconnected. Total: ${workforceFeedClients.length}`);
+    console.log(`ðŸ¢ Workforce-feed SSE client disconnected. Total: ${workforceFeedClients.length}`);
   });
 });
 
@@ -1281,7 +1281,7 @@ app.post("/api/signup", async (req, res) => {
       return res.status(409).json({ success: false, error: "Email already registered" });
     }
 
-    // Generate New E00x ID — PostgreSQL version
+    // Generate New E00x ID â€” PostgreSQL version
     const [maxRows] = await connection.query(
       "SELECT MAX(CAST(SUBSTRING(user_id, 2) AS INTEGER)) as max_id FROM profiles WHERE user_id LIKE 'E%'"
     );
@@ -1596,7 +1596,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
         const supabaseStoragePath = `${folderName}/${req.file.filename}`;
         uploadToSupabaseStorage(newFilePath, supabaseStoragePath, req.file.mimetype);
       } catch (fileErr) {
-        console.error("❌ Error organizing file into subfolder:", fileErr);
+        console.error("âŒ Error organizing file into subfolder:", fileErr);
         // Fallback: move to base uploadsDir
         const fallbackPath = path.join(uploadsDir, req.file.filename);
         try {
@@ -1604,7 +1604,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
           mc_file_url = `/uploads/${req.file.filename}`;
           uploadToSupabaseStorage(fallbackPath, req.file.filename, req.file.mimetype);
         } catch (fallbackErr) {
-          console.error("❌ Fallback move also failed:", fallbackErr);
+          console.error("âŒ Fallback move also failed:", fallbackErr);
         }
       }
     }
@@ -3319,6 +3319,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     })).slice(-10); // Last 10 days with activity
 
     // 7. Employees by Department
+        // 7. Employees by Department
     const [deptRows] = await pool.query(
       `SELECT p.department, COUNT(*) as count 
        FROM profiles p 
@@ -3336,6 +3337,34 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       pFilterParams
     );
 
+    // Real Branch Attendance Map
+    const branchAttendanceMap = {};
+    attRows.forEach(a => {
+      const b = a.branch || 'HQ';
+      if (!branchAttendanceMap[b]) branchAttendanceMap[b] = 0;
+      branchAttendanceMap[b]++;
+    });
+
+    // Real Leave Analytics
+    const [leaveRows] = await pool.query(
+      `SELECT lr.leave_type, COUNT(*) as count 
+       FROM leave_requests lr
+       JOIN profiles p ON p.user_id = lr.user_id
+       WHERE lr.status = 'APPROVED'
+       ${profileFilter}
+       GROUP BY lr.leave_type`,
+      pFilterParams
+    );
+    let realLeaveAnalytics = { annual: 0, medical: 0, emergency: 0, unpaid: 0 };
+    leaveRows.forEach(r => {
+      const type = String(r.leave_type || '').toLowerCase();
+      const count = parseInt(r.count) || 0;
+      if (type.includes('annual')) realLeaveAnalytics.annual += count;
+      else if (type.includes('medical') || type.includes('sick')) realLeaveAnalytics.medical += count;
+      else if (type.includes('emergency')) realLeaveAnalytics.emergency += count;
+      else realLeaveAnalytics.unpaid += count;
+    });
+
     res.json({
       success: true,
       departmentMetrics: deptRows.map(r => ({ name: r.department, value: parseInt(r.count || 0) })),
@@ -3346,25 +3375,25 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         leaveRequests: { current: 35, previous: 30 },
         outstation: { current: 15, previous: 11 }
       },
-      branchMetrics: branchRows.map(r => ({
-        name: r.branch, 
-        count: parseInt(r.count || 0), 
-        attendanceRate: 100 // We don't have historical branch attendance in this query easily, defaulting to 100 or can be calculated if needed.
-      })),
-      leaveAnalytics: {
-        annual: 45,
-        medical: 30,
-        emergency: 15,
-        unpaid: 10
-      },
+      branchMetrics: branchRows.map(r => {
+        const total = parseInt(r.count || 0);
+        const present = branchAttendanceMap[r.branch] || 0;
+        const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+        return {
+          name: r.branch, 
+          count: total, 
+          attendanceRate: Math.min(100, rate)
+        }
+      }),
+      leaveAnalytics: realLeaveAnalytics,
       outstationAnalytics: {
         completed: 25,
         upcoming: 8,
         cancelled: 2,
         popularRoutes: [
-          { route: 'KL → Penang', trips: 8 },
-          { route: 'KL → Johor', trips: 6 },
-          { route: 'KL → Sabah', trips: 4 }
+          { route: 'KL â†’ Penang', trips: 8 },
+          { route: 'KL â†’ Johor', trips: 6 },
+          { route: 'KL â†’ Sabah', trips: 4 }
         ]
       },
       workforceMovement: {
@@ -3377,7 +3406,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         { title: '4 Employees', description: 'Absent 3 Consecutive Days', type: 'critical' },
         { title: '2 Contracts', description: 'Expiring in 30 Days', type: 'warning' },
         { title: '7 Leave Requests', description: 'Awaiting Approval', type: 'info' },
-        { title: 'Attendance', description: '↑4% vs Last Month', type: 'success' }
+        { title: 'Attendance', description: 'â†‘4% vs Last Month', type: 'success' }
       ],
       topKpi: {
         totalHeadcount,
@@ -4077,3 +4106,4 @@ app.listen(PORT, "0.0.0.0", () => {
 // =================================================================
 // END OF FILE
 // =================================================================
+
