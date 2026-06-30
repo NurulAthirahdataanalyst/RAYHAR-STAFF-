@@ -3374,10 +3374,10 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         promotions: 1
       },
       hrAlerts: [
-        { title: '4 employees absent 3 consecutive days', description: 'Requires follow-up', type: 'warning' },
-        { title: '7 pending leave requests', description: 'Awaiting manager approval', type: 'info' },
-        { title: '2 contracts expiring this month', description: 'Review renewal status', type: 'warning' },
-        { title: 'Attendance improved by 4% compared to last month', description: 'Positive workforce trend', type: 'success' }
+        { title: '4 Employees', description: 'Absent 3 Consecutive Days', type: 'critical' },
+        { title: '2 Contracts', description: 'Expiring in 30 Days', type: 'warning' },
+        { title: '7 Leave Requests', description: 'Awaiting Approval', type: 'info' },
+        { title: 'Attendance', description: '↑4% vs Last Month', type: 'success' }
       ],
       topKpi: {
         totalHeadcount,
