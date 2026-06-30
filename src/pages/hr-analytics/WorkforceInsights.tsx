@@ -1251,7 +1251,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                </Select>
              </div>
              
-             <div className="space-y-4 flex-1 overflow-y-auto max-h-[220px] pr-2">
+             <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto max-h-[220px]' : 'overflow-y-visible'}`}>
                {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).map((branch: any, idx: number) => {
                  return (
                    <div key={idx} className="flex flex-col gap-1">

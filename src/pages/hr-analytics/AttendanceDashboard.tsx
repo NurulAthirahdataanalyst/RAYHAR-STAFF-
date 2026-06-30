@@ -1327,7 +1327,7 @@ export default function AttendanceDashboard() {
             </Select>
           </CardHeader>
           <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col justify-between">
-            <div className="space-y-4 flex-1 overflow-y-auto max-h-[220px] pr-2">
+            <div className={`space-y-4 flex-1 pr-2 ${liveBranchRanking.length > 5 ? 'overflow-y-auto max-h-[220px]' : 'overflow-y-visible'}`}>
               {liveBranchRanking.map((branch: any, idx: number) => {
                 return (
                   <div key={idx} className="flex flex-col gap-1">
