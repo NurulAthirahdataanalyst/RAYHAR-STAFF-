@@ -718,7 +718,10 @@ export default function WorkforceInsights() {
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <Clock className="w-3.5 h-3.5 text-slate-400" />
-                        <span className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded text-white ${emp.is_late ? 'bg-orange-500' : 'bg-emerald-500'}`}>
+                        <span 
+                          style={emp.is_late ? { backgroundColor: '#ffbf00' } : undefined}
+                          className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded text-white ${!emp.is_late ? 'bg-emerald-500' : ''}`}
+                        >
                           {emp.clock_in}
                         </span>
                       </div>
@@ -782,7 +785,12 @@ export default function WorkforceInsights() {
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500 text-white">{emp.clock_in}</span>
+                    <span 
+                      style={{ backgroundColor: '#ffbf00' }}
+                      className="whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded text-white"
+                    >
+                      {emp.clock_in}
+                    </span>
                   </div>
                 </div>
               ))}
