@@ -3218,7 +3218,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     // 2. Attendance & Lates
     const [attRows] = await pool.query(
       `SELECT 
-        a.user_id, p.full_name as name, a.clock_in, a.clock_out,
+        a.user_id, p.full_name as name, p.branch, a.clock_in, a.clock_out,
         CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END as is_late
        FROM attendances a
        JOIN profiles p ON p.user_id = a.user_id
@@ -3337,12 +3337,18 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       pFilterParams
     );
 
-    // Real Branch Attendance Map
+        // Real Branch Attendance Map for TODAY
     const branchAttendanceMap = {};
+    const todayStr = new Date(new Date().getTime() + 8*3600*1000).toISOString().split('T')[0];
+    
     attRows.forEach(a => {
-      const b = a.branch || 'HQ';
-      if (!branchAttendanceMap[b]) branchAttendanceMap[b] = 0;
-      branchAttendanceMap[b]++;
+      const dateObj = new Date(a.clock_in);
+      const rowDateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
+      if (rowDateStr === todayStr) {
+        const b = a.branch || 'HQ';
+        if (!branchAttendanceMap[b]) branchAttendanceMap[b] = 0;
+        branchAttendanceMap[b]++;
+      }
     });
 
     // Real Leave Analytics
@@ -4106,4 +4112,6 @@ app.listen(PORT, "0.0.0.0", () => {
 // =================================================================
 // END OF FILE
 // =================================================================
+
+
 
