@@ -693,11 +693,26 @@ export default function AttendanceDashboard() {
   };
 
   const liveBranchRanking = branchComparison
-    .map(b => ({
-      branch: b.branch,
-      rate: b.activeRate || 0,
-      region: branchRegions[b.branch] || "Unknown",
-    }))
+    .map(b => {
+      const branchEmployees = liveEmployees.filter(emp => emp.branch === b.branch);
+      const presentOnTime = branchEmployees.filter(emp => emp.status === 'present').length;
+      const presentLate = branchEmployees.filter(emp => emp.status === 'late').length;
+      const onLeave = branchEmployees.filter(emp => emp.status === 'onLeave').length;
+      const totalEmployees = b.totalEmployees || 0;
+      const absent = Math.max(0, totalEmployees - (presentOnTime + presentLate + onLeave));
+      const rate = totalEmployees > 0 ? Math.round(((presentOnTime + presentLate) / totalEmployees) * 100) : 0;
+
+      return {
+        branch: b.branch,
+        rate,
+        region: branchRegions[b.branch] || "Unknown",
+        totalEmployees,
+        presentOnTime,
+        presentLate,
+        onLeave,
+        absent
+      };
+    })
     .filter(b => liveRegion === "all" || b.region.toLowerCase().includes(liveRegion.toLowerCase()))
     .sort((a, b) => b.rate - a.rate)
     .map(d => ({
@@ -1301,8 +1316,6 @@ export default function AttendanceDashboard() {
           <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col justify-between">
             <div className="space-y-4 flex-1 overflow-y-auto max-h-[220px] pr-2">
               {liveBranchRanking.map((branch: any, idx: number) => {
-                const presentCount = Math.round(branch.totalEmployees * (branch.rate / 100));
-                const absentCount = branch.totalEmployees - presentCount;
                 return (
                   <div key={idx} className="flex flex-col gap-1">
                     <div className="flex justify-between items-end">
@@ -1314,9 +1327,14 @@ export default function AttendanceDashboard() {
                     </div>
                     <div className="w-full bg-slate-100 rounded-full h-2 relative group cursor-pointer">
                       <div className={`h-2 rounded-full ${branch.rate >= 90 ? 'bg-[#10b981]' : branch.rate >= 75 ? 'bg-[#f59e0b]' : 'bg-[#ef4444]'}`} style={{ width: `${Math.min(100, branch.rate)}%` }}></div>
-                      <div className="absolute left-1/2 -top-8 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-1.5 pointer-events-none z-10 w-max whitespace-nowrap">
-                        <p className="text-[9px] font-bold text-slate-800 mb-0.5">{branch.branch}</p>
-                        <p className="text-[9px] text-slate-600">Present: <span className="font-bold text-emerald-600">{presentCount}</span> | Absent: <span className="font-bold text-red-500">{absentCount}</span></p>
+                      <div className="absolute left-1/2 -top-20 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-2 pointer-events-none z-10 w-max whitespace-nowrap text-left">
+                        <p className="text-[10px] font-bold text-slate-800 mb-1 border-b pb-1">{branch.branch}</p>
+                        <div className="space-y-0.5 text-[9px] text-slate-600">
+                          <p className="flex justify-between gap-4">Present (On Time): <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
+                          <p className="flex justify-between gap-4">Present (Late): <span className="font-bold text-amber-500">{branch.presentLate}</span></p>
+                          <p className="flex justify-between gap-4">On Leave: <span className="font-bold text-blue-500">{branch.onLeave}</span></p>
+                          <p className="flex justify-between gap-4">Absent: <span className="font-bold text-red-500">{branch.absent}</span></p>
+                        </div>
                       </div>
                     </div>
                   </div>
