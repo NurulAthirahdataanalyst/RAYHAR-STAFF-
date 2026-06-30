@@ -3320,10 +3320,19 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
 
     // 7. Employees by Department
     const [deptRows] = await pool.query(
-      `SELECT COALESCE(NULLIF(p.department, ''), 'Unassigned') as department, COUNT(*) as count 
+      `SELECT p.department, COUNT(*) as count 
        FROM profiles p 
-       WHERE p.status = 'Active' ${profileFilter}
+       WHERE p.status = 'Active' AND p.department IS NOT NULL AND p.department != '' ${profileFilter}
        GROUP BY p.department`,
+      pFilterParams
+    );
+
+    // 8. Employees by Branch
+    const [branchRows] = await pool.query(
+      `SELECT p.branch, COUNT(*) as count 
+       FROM profiles p 
+       WHERE p.status = 'Active' AND p.branch IS NOT NULL AND p.branch != '' ${profileFilter}
+       GROUP BY p.branch`,
       pFilterParams
     );
 
@@ -3337,12 +3346,11 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         leaveRequests: { current: 35, previous: 30 },
         outstation: { current: 15, previous: 11 }
       },
-      branchMetrics: [
-        { name: 'Kuala Lumpur', count: 78, attendanceRate: 98 },
-        { name: 'Penang', count: 45, attendanceRate: 96 },
-        { name: 'Selangor', count: 42, attendanceRate: 94 },
-        { name: 'Terengganu', count: 35, attendanceRate: 87 }
-      ],
+      branchMetrics: branchRows.map(r => ({
+        name: r.branch, 
+        count: parseInt(r.count || 0), 
+        attendanceRate: 100 // We don't have historical branch attendance in this query easily, defaulting to 100 or can be calculated if needed.
+      })),
       leaveAnalytics: {
         annual: 45,
         medical: 30,
