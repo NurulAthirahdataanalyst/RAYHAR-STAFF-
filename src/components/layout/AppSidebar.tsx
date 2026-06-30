@@ -157,7 +157,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       roles: ALL_ROLES,
       children: [
         { title: "My Attendance", icon: Clock, path: "/attendance", roles: ALL_ROLES },
-        { title: "Timesheet", icon: ClipboardList, path: "/attendance/timesheet", roles: ALL_ROLES },
+        { title: "Timesheet", icon: ClipboardList, path: "/attendance/timesheet", roles: ALL_ROLES.filter(r => r !== "hr_admin") },
         { title: "Company Leave Calendar", icon: CalendarDays, path: "/attendance/company-leave", roles: ALL_ROLES },
       ],
     },
