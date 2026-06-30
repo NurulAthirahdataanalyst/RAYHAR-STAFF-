@@ -1325,12 +1325,12 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
              </div>
            </Card>
 
-           {/* Business Travel Summary */}
+           {/* Travel & Outstation Summary */}
            <Card className="p-4 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
                  <Plane className="w-4 h-4 text-slate-400" />
-                 <h3 className="text-sm font-bold text-[#1A1F36]">Business Travel Summary</h3>
+                 <h3 className="text-sm font-bold text-[#1A1F36]">Travel & Outstation Summary</h3>
                </div>
              </div>
              
@@ -1465,4 +1465,5 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
     </div>
   )
 }
+
 
