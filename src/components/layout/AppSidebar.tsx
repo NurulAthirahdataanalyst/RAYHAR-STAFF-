@@ -246,7 +246,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
 
   const sidebarContent = (isMobile: boolean) => (
     <>
-      <div className={`relative shrink-0 flex items-center justify-center border-b border-purple-950/20 dark:border-b-white/5 overflow-hidden transition-all ${
+      <div className={`relative shrink-0 flex items-center justify-center border-b border-purple-950/20 dark:border-b-white/5 overflow-hidden transition-all bg-gradient-to-r from-[#4A0066] to-[#7B0099] ${
         effectiveCollapsed && !isMobile ? "h-20" : "h-20 px-3"
       }`}>
         {/* Mobile or Expanded Desktop view: show logo (and toggle on right for desktop) */}
