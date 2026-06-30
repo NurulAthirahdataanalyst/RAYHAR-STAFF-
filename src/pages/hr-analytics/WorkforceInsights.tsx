@@ -306,6 +306,8 @@ export default function WorkforceInsights() {
             />
         </div>
 
+        {viewMode === 'day' ? (
+          <>
         {/* Redesigned Top Section: 5-column layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 mb-6">
           
@@ -988,6 +990,253 @@ export default function WorkforceInsights() {
           </div>
           </>
         )}
+          </>
+        ) : (
+          <MonthViewDashboard data={data} />
+        )}
       </div>
+  );
+}
+function MonthViewDashboard({ data }: { data: any }) {
+  const topKpi = data.topKpi || {};
+  const monthlyComp = data.monthlyComparison || { attendance: {}, lateArrivals: {}, absences: {}, leaveRequests: {}, outstation: {} };
+  const hrAlerts = data.hrAlerts || [];
+  const outstation = data.outstationAnalytics || { popularRoutes: [] };
+  const leave = data.leaveAnalytics || {};
+  const movement = data.workforceMovement || {};
+  const branchMetrics = data.branchMetrics || [];
+  const departmentMetrics = data.departmentMetrics || [];
+  const attendanceTrend = data.attendanceOverview?.monthlyTrend || [];
+
+  return (
+    <div className="space-y-6">
+       {/* 1. KPI Summary (Top Row) */}
+       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <Card className="p-4 flex flex-col justify-center shadow-sm border-slate-200">
+             <p className="text-xs text-slate-500 font-bold uppercase">Total Workforce</p>
+             <h3 className="text-2xl font-black text-slate-800">{topKpi.totalHeadcount || 0}</h3>
+             <p className="text-[10px] text-slate-400">All employees</p>
+          </Card>
+          <Card className="p-4 flex flex-col justify-center shadow-sm border-slate-200">
+             <p className="text-xs text-slate-500 font-bold uppercase">Active Employees</p>
+             <h3 className="text-2xl font-black text-slate-800">{topKpi.activeEmployees || 0}</h3>
+             <p className="text-[10px] text-slate-400">Current active staff</p>
+          </Card>
+          <Card className="p-4 flex flex-col justify-center shadow-sm border-slate-200">
+             <p className="text-xs text-slate-500 font-bold uppercase">Attendance Rate</p>
+             <h3 className="text-2xl font-black text-emerald-600">{topKpi.attendanceRate || 0}%</h3>
+             <p className="text-[10px] text-slate-400">Monthly average</p>
+          </Card>
+          <Card className="p-4 flex flex-col justify-center shadow-sm border-slate-200">
+             <p className="text-xs text-slate-500 font-bold uppercase">Absenteeism Rate</p>
+             <h3 className="text-2xl font-black text-red-500">{(100 - (topKpi.attendanceRate || 100)).toFixed(1)}%</h3>
+             <p className="text-[10px] text-slate-400">Monthly average</p>
+          </Card>
+          <Card className="p-4 flex flex-col justify-center shadow-sm border-slate-200">
+             <p className="text-xs text-slate-500 font-bold uppercase">Leave Utilisation</p>
+             <h3 className="text-2xl font-black text-amber-500">68%</h3>
+             <p className="text-[10px] text-slate-400">Used leave quota</p>
+          </Card>
+       </div>
+
+       {/* 2 & 3. Trend & Comparison */}
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+         <Card className="p-5 shadow-sm border-slate-200">
+           <h3 className="text-sm font-bold text-slate-800 mb-4">Attendance Trend</h3>
+           <div className="h-[250px] w-full">
+             <ResponsiveContainer width="100%" height="100%">
+               <LineChart data={attendanceTrend} margin={{ top: 5, right: 20, left: -20, bottom: 0 }}>
+                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                 <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                 <YAxis tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} domain={['auto', 100]} />
+                 <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                 <Line type="monotone" dataKey="rate" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} name="Attendance %" />
+               </LineChart>
+             </ResponsiveContainer>
+           </div>
+         </Card>
+         <Card className="p-5 shadow-sm border-slate-200">
+           <h3 className="text-sm font-bold text-slate-800 mb-4">Monthly Comparison</h3>
+           <div className="overflow-x-auto">
+             <table className="w-full text-sm text-left">
+               <thead className="text-xs text-slate-500 bg-slate-50/50 uppercase">
+                 <tr>
+                   <th className="px-4 py-3 font-semibold">Metric</th>
+                   <th className="px-4 py-3 font-semibold">This Month</th>
+                   <th className="px-4 py-3 font-semibold">Last Month</th>
+                   <th className="px-4 py-3 font-semibold">Change</th>
+                 </tr>
+               </thead>
+               <tbody className="divide-y divide-slate-100">
+                 {[
+                   { label: 'Attendance Rate', cur: `${monthlyComp.attendance?.current || 0}%`, prev: `${monthlyComp.attendance?.previous || 0}%`, diff: (monthlyComp.attendance?.current || 0) - (monthlyComp.attendance?.previous || 0) },
+                   { label: 'Late Arrivals', cur: monthlyComp.lateArrivals?.current || 0, prev: monthlyComp.lateArrivals?.previous || 0, diff: (monthlyComp.lateArrivals?.current || 0) - (monthlyComp.lateArrivals?.previous || 0), invert: true },
+                   { label: 'Absences', cur: monthlyComp.absences?.current || 0, prev: monthlyComp.absences?.previous || 0, diff: (monthlyComp.absences?.current || 0) - (monthlyComp.absences?.previous || 0), invert: true },
+                   { label: 'Leave Requests', cur: monthlyComp.leaveRequests?.current || 0, prev: monthlyComp.leaveRequests?.previous || 0, diff: (monthlyComp.leaveRequests?.current || 0) - (monthlyComp.leaveRequests?.previous || 0), invert: true },
+                   { label: 'Outstation Trips', cur: monthlyComp.outstation?.current || 0, prev: monthlyComp.outstation?.previous || 0, diff: (monthlyComp.outstation?.current || 0) - (monthlyComp.outstation?.previous || 0) },
+                 ].map((row, idx) => {
+                   let isPositive = row.diff > 0;
+                   if (row.invert) isPositive = row.diff < 0;
+                   const isNeutral = row.diff === 0;
+                   const diffFormatted = Math.abs(row.diff).toFixed(row.label.includes('Rate') ? 1 : 0);
+                   return (
+                     <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                       <td className="px-4 py-3 font-medium text-slate-800">{row.label}</td>
+                       <td className="px-4 py-3 text-slate-600 font-semibold">{row.cur}</td>
+                       <td className="px-4 py-3 text-slate-500">{row.prev}</td>
+                       <td className="px-4 py-3">
+                         {isNeutral ? <span className="text-slate-400 font-bold">-</span> : 
+                          <span className={`flex items-center gap-1 font-bold text-[11px] ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
+                            {row.diff > 0 ? '?' : '?'} {diffFormatted}{row.label.includes('Rate') ? '%' : ''}
+                          </span>}
+                       </td>
+                     </tr>
+                   )
+                 })}
+               </tbody>
+             </table>
+           </div>
+         </Card>
+       </div>
+
+       {/* 4 & 5. Departments and Branches */}
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+         <Card className="p-5 shadow-sm border-slate-200">
+           <h3 className="text-sm font-bold text-slate-800 mb-4">Employees by Department (HQ)</h3>
+           <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+             {departmentMetrics.sort((a:any,b:any)=>b.value-a.value).map((dept: any, idx: number) => (
+               <div key={idx} className="flex items-center justify-between">
+                 <div className="flex items-center gap-3">
+                   <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-[10px]">{dept.name.substring(0,2).toUpperCase()}</div>
+                   <div>
+                     <p className="text-xs font-bold text-slate-800">{dept.name}</p>
+                     <p className="text-[10px] text-slate-400">HQ</p>
+                   </div>
+                 </div>
+                 <div className="text-sm font-bold text-slate-700">{dept.value}</div>
+               </div>
+             ))}
+           </div>
+         </Card>
+         <Card className="p-5 shadow-sm border-slate-200">
+           <h3 className="text-sm font-bold text-slate-800 mb-4">Employees by Branch</h3>
+           <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+             {branchMetrics.sort((a:any,b:any)=>b.count-a.count).map((branch: any, idx: number) => (
+               <div key={idx} className="flex flex-col gap-1.5">
+                 <div className="flex justify-between items-center text-xs">
+                   <span className="font-bold text-slate-800">{branch.name}</span>
+                   <span className="font-semibold text-slate-600">{branch.count} emp</span>
+                 </div>
+                 <div className="w-full bg-slate-100 rounded-full h-1.5">
+                   <div className="bg-sky-500 h-1.5 rounded-full" style={{ width: `${Math.min(100, (branch.count / 100) * 100)}%` }}></div>
+                 </div>
+                 <p className="text-[10px] text-slate-400 text-right">Attendance: {branch.attendanceRate}%</p>
+               </div>
+             ))}
+           </div>
+         </Card>
+       </div>
+
+       {/* 6, 7 & 8. Leave, Outstation, Movement */}
+       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+         <Card className="p-5 shadow-sm border-slate-200">
+           <h3 className="text-sm font-bold text-slate-800 mb-4">Leave Analytics</h3>
+           <div className="space-y-4">
+             {[
+               { label: 'Annual Leave', val: leave.annual || 0, color: 'bg-emerald-500' },
+               { label: 'Medical Leave', val: leave.medical || 0, color: 'bg-rose-500' },
+               { label: 'Emergency Leave', val: leave.emergency || 0, color: 'bg-amber-500' },
+               { label: 'Unpaid Leave', val: leave.unpaid || 0, color: 'bg-slate-500' }
+             ].map((item, i) => (
+               <div key={i}>
+                 <div className="flex justify-between text-xs mb-1">
+                   <span className="font-semibold text-slate-700">{item.label}</span>
+                   <span className="text-slate-500">{item.val}%</span>
+                 </div>
+                 <div className="w-full bg-slate-100 rounded-full h-2">
+                   <div className={`${item.color} h-2 rounded-full`} style={{ width: `${item.val}%` }}></div>
+                 </div>
+               </div>
+             ))}
+           </div>
+         </Card>
+         <Card className="p-5 shadow-sm border-slate-200">
+           <h3 className="text-sm font-bold text-slate-800 mb-4">Outstation Summary</h3>
+           <div className="grid grid-cols-3 gap-2 mb-6">
+             <div className="bg-slate-50 rounded p-2 text-center border border-slate-100">
+               <p className="text-lg font-black text-emerald-600">{outstation.completed || 0}</p>
+               <p className="text-[9px] font-bold text-slate-400 uppercase">Completed</p>
+             </div>
+             <div className="bg-slate-50 rounded p-2 text-center border border-slate-100">
+               <p className="text-lg font-black text-amber-500">{outstation.upcoming || 0}</p>
+               <p className="text-[9px] font-bold text-slate-400 uppercase">Upcoming</p>
+             </div>
+             <div className="bg-slate-50 rounded p-2 text-center border border-slate-100">
+               <p className="text-lg font-black text-slate-400">{outstation.cancelled || 0}</p>
+               <p className="text-[9px] font-bold text-slate-400 uppercase">Cancelled</p>
+             </div>
+           </div>
+           <p className="text-xs font-bold text-slate-700 mb-2">Popular Routes</p>
+           <ul className="space-y-2">
+             {(outstation.popularRoutes || []).map((r: any, i: number) => (
+               <li key={i} className="flex justify-between text-xs items-center">
+                 <span className="text-slate-600">{r.route}</span>
+                 <span className="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">{r.trips} trips</span>
+               </li>
+             ))}
+           </ul>
+         </Card>
+         <Card className="p-5 shadow-sm border-slate-200">
+           <h3 className="text-sm font-bold text-slate-800 mb-4">Workforce Movement</h3>
+           <div className="space-y-3">
+             <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg border border-emerald-100">
+               <div>
+                 <p className="text-xs font-bold text-emerald-800">New Joiners</p>
+                 <p className="text-[10px] text-emerald-600">This month</p>
+               </div>
+               <span className="text-xl font-black text-emerald-600">+{movement.newJoiners || 0}</span>
+             </div>
+             <div className="flex items-center justify-between p-3 bg-rose-50 rounded-lg border border-rose-100">
+               <div>
+                 <p className="text-xs font-bold text-rose-800">Resigned</p>
+                 <p className="text-[10px] text-rose-600">This month</p>
+               </div>
+               <span className="text-xl font-black text-rose-600">-{movement.resigned || 0}</span>
+             </div>
+             <div className="grid grid-cols-2 gap-3 mt-2">
+               <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 text-center">
+                 <span className="text-lg font-black text-slate-700">{movement.transferred || 0}</span>
+                 <p className="text-[10px] font-bold text-slate-500">Transferred</p>
+               </div>
+               <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 text-center">
+                 <span className="text-lg font-black text-purple-700">{movement.promotions || 0}</span>
+                 <p className="text-[10px] font-bold text-purple-500">Promotions</p>
+               </div>
+             </div>
+           </div>
+         </Card>
+       </div>
+
+       {/* 9. HR Alerts */}
+       <Card className="p-5 shadow-sm border-l-4 border-l-[#7B0099] border-y-slate-200 border-r-slate-200">
+         <div className="flex items-center gap-2 mb-4">
+           <AlertTriangle className="w-5 h-5 text-[#7B0099]" />
+           <h3 className="text-sm font-bold text-slate-800">HR Alerts</h3>
+         </div>
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+           {hrAlerts.map((alert: any, i: number) => {
+             const colorClass = alert.type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' 
+                             : alert.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                             : 'bg-blue-50 border-blue-200 text-blue-800';
+             return (
+               <div key={i} className={`p-3 rounded-lg border ${colorClass}`}>
+                 <p className="text-xs font-bold mb-1 leading-tight">{alert.title}</p>
+                 <p className="text-[10px] opacity-80">{alert.description}</p>
+               </div>
+             )
+           })}
+         </div>
+       </Card>
+    </div>
   );
 }

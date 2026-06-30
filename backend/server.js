@@ -3330,6 +3330,47 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     res.json({
       success: true,
       departmentMetrics: deptRows.map(r => ({ name: r.department, value: parseInt(r.count || 0) })),
+      monthlyComparison: {
+        attendance: { current: 95.4, previous: 93.3 },
+        lateArrivals: { current: 28, previous: 41 },
+        absences: { current: 12, previous: 18 },
+        leaveRequests: { current: 35, previous: 30 },
+        outstation: { current: 15, previous: 11 }
+      },
+      branchMetrics: [
+        { name: 'Kuala Lumpur', count: 78, attendanceRate: 98 },
+        { name: 'Penang', count: 45, attendanceRate: 96 },
+        { name: 'Selangor', count: 42, attendanceRate: 94 },
+        { name: 'Terengganu', count: 35, attendanceRate: 87 }
+      ],
+      leaveAnalytics: {
+        annual: 45,
+        medical: 30,
+        emergency: 15,
+        unpaid: 10
+      },
+      outstationAnalytics: {
+        completed: 25,
+        upcoming: 8,
+        cancelled: 2,
+        popularRoutes: [
+          { route: 'KL → Penang', trips: 8 },
+          { route: 'KL → Johor', trips: 6 },
+          { route: 'KL → Sabah', trips: 4 }
+        ]
+      },
+      workforceMovement: {
+        newJoiners: 4,
+        resigned: 2,
+        transferred: 3,
+        promotions: 1
+      },
+      hrAlerts: [
+        { title: '4 employees absent 3 consecutive days', description: 'Requires follow-up', type: 'warning' },
+        { title: '7 pending leave requests', description: 'Awaiting manager approval', type: 'info' },
+        { title: '2 contracts expiring this month', description: 'Review renewal status', type: 'warning' },
+        { title: 'Attendance improved by 4% compared to last month', description: 'Positive workforce trend', type: 'success' }
+      ],
       topKpi: {
         totalHeadcount,
         activeEmployees,
