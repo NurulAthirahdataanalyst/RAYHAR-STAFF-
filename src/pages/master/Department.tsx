@@ -85,7 +85,12 @@ export default function Department() {
     if (deptName === "HQ General") {
         deptEmployees = employees.filter(e => e.branch === "HQ" && (!e.department || e.department === ""));
     } else {
-        deptEmployees = employees.filter(e => e.department === deptName);
+        deptEmployees = employees.filter(e => {
+          if (!e.department) return false;
+          const normEmpDept = e.department.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          const normDeptName = deptName.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          return normEmpDept === normDeptName || e.department === deptName;
+        });
     }
     
     return {

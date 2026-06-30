@@ -40,7 +40,12 @@ export default function DepartmentDetails() {
       const data = await response.json();
       if (data.success) {
         // Filter by the specific department
-        const deptStaff = data.employees.filter((e: any) => e.department === deptName);
+        const deptStaff = data.employees.filter((e: any) => {
+          if (!e.department || !deptName) return false;
+          const normEmpDept = e.department.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          const normDeptName = deptName.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          return normEmpDept === normDeptName || e.department === deptName;
+        });
         setEmployees(deptStaff);
       }
     } catch (error) {
