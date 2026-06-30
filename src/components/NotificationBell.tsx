@@ -70,12 +70,31 @@ export default function NotificationBell() {
     }
   };
 
-  const handleNotificationClick = (notif: Notification) => {
+  const handleNotificationClick = async (notif: Notification) => {
     if (!notif.is_read) {
       markAsRead(notif.id);
     }
     
     setIsOpen(false);
+    
+    if (notif.type === 'company_leave' && notif.related_leave_id) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/company-leaves`);
+        const data = await res.json();
+        if (data.success) {
+          const leave = data.leaves.find((l: any) => l.id === notif.related_leave_id);
+          if (leave && leave.start_date) {
+            const dateStr = leave.start_date.split('T')[0] || leave.start_date;
+            navigate(`/calendar?date=${dateStr}`);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Error navigating to company leave:", err);
+      }
+      navigate('/calendar');
+      return;
+    }
     
     const queryParam = notif.related_leave_id ? `?leaveId=${notif.related_leave_id}` : "";
     

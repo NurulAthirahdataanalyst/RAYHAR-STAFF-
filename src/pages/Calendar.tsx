@@ -5,6 +5,7 @@ import { exportToCSV } from "@/utils/export";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
+import { useLocation } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
 import { toast } from "sonner";
 import { 
@@ -67,6 +68,7 @@ export default function Calendar() {
   const { user } = useAuth();
   const { role } = useRole();
   const isHR = role === 'hr_admin';
+  const location = useLocation();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   
   const [notes, setNotes] = useState<PersonalNote[]>([]);
@@ -190,6 +192,17 @@ export default function Calendar() {
       fetchCalendarData();
     }
   }, [user]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const dateParam = params.get("date");
+    if (dateParam) {
+      const parsedDate = new Date(dateParam);
+      if (!isNaN(parsedDate.getTime())) {
+        setSelectedDate(parsedDate);
+      }
+    }
+  }, [location.search]);
 
   const handleAddEvent = async (e: React.FormEvent) => {
     e.preventDefault();
