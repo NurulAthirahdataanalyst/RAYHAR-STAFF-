@@ -1,4 +1,4 @@
-import { useRole } from "@/contexts/RoleContext";
+﻿import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
@@ -6,7 +6,7 @@ import { exportToCSV } from "@/utils/export";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, Users, UserCheck, CalendarDays, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight, ChevronDown, Wifi, WifiOff, TrendingUp, MapPin, Plane, FileText, AlertCircle } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector, AreaChart, Area } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -62,7 +62,7 @@ export default function WorkforceInsights() {
   const [month, setMonth] = useState((new Date().getMonth() + 1).toString().padStart(2, '0'));
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [day, setDay] = useState(new Date().getDate().toString().padStart(2, '0'));
-  const [viewMode, setViewMode] = useState<'day' | 'month'>('day');
+  const [viewMode, setViewMode] = useState<'day' | 'month'>('month');
 
   const displayDate = viewMode === 'day' 
     ? `${day}/${month}/${year}` 
@@ -1052,71 +1052,63 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
   return (
     <div className="space-y-8">
        {/* PRIMARY SECTION */}
-       <div>
-         <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Primary</h2>
-         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white rounded-[12px] group">
-               <div className="w-12 h-12 rounded-xl bg-[#F0F4FA] text-[#3B66A7] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
-                 <Users className="w-5 h-5" />
-               </div>
-               <div className="flex flex-col">
-                 <p className="text-[10px] text-[#8C98A4] font-bold uppercase tracking-widest mb-0.5">Total Headcount</p>
-                 <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.totalHeadcount || 0}</h3>
-               </div>
-            </Card>
-            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white rounded-[12px] group">
-               <div className="w-12 h-12 rounded-xl bg-[#EEF8F4] text-[#10B981] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
-                 <UserCheck className="w-5 h-5" />
-               </div>
-               <div className="flex flex-col">
-                 <p className="text-[10px] text-[#8C98A4] font-bold uppercase tracking-widest mb-0.5">Active Employees</p>
-                 <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.activeEmployees || 0}</h3>
-               </div>
-            </Card>
-            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white rounded-[12px] group relative">
-               {feedConnected && <span className="absolute top-3 right-3 flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>}
-               <div className="w-12 h-12 rounded-xl bg-[#F0F2FB] text-[#6366F1] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
-                 <CheckCircle2 className="w-5 h-5" />
-               </div>
-               <div className="flex flex-col">
-                 <p className="text-[10px] text-[#8C98A4] font-bold uppercase tracking-widest mb-0.5">Attendance Rate</p>
-                 <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.attendanceRate || 0}%</h3>
-               </div>
-            </Card>
-            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white rounded-[12px] group">
-               <div className="w-12 h-12 rounded-xl bg-[#FFF5EE] text-[#F59E0B] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
-                 <CalendarDays className="w-5 h-5" />
-               </div>
-               <div className="flex flex-col">
-                 <p className="text-[10px] text-[#8C98A4] font-bold uppercase tracking-widest mb-0.5">On Leave Today</p>
-                 <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.onLeaveToday || 0}</h3>
-               </div>
-            </Card>
-         </div>
+         <div>
+           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              {/* Total Headcount */}
+              <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white rounded-[12px] group">
+                 <div className="w-12 h-12 rounded-xl bg-[#F4F6FB] text-[#4A72B2] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+                   <Users className="w-5 h-5" />
+                 </div>
+                 <div className="flex flex-col">
+                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">Total Headcount</p>
+                   <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.totalHeadcount || 0}</h3>
+                 </div>
+              </Card>
 
-         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-           <Card className="p-5 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
-             <div className="flex justify-between items-center mb-4">
-               <div className="flex items-center gap-2">
-                 <TrendingUp className="w-4 h-4 text-slate-400" />
-                 <h3 className="text-sm font-bold text-[#1A1F36]">Attendance Trend</h3>
-               </div>
-             </div>
+              {/* Active Employees */}
+              <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white rounded-[12px] group">
+                 <div className="w-12 h-12 rounded-xl bg-[#EEF9F5] text-[#10B981] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+                   <UserCheck className="w-5 h-5" />
+                 </div>
+                 <div className="flex flex-col">
+                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">Active Employees</p>
+                   <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.activeEmployees || 0}</h3>
+                 </div>
+              </Card>
+
+              {/* Attendance Rate */}
+              <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white rounded-[12px] group relative">
+                 {feedConnected && <span className="absolute top-3 right-3 flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>}
+                 <div className="w-12 h-12 rounded-xl bg-[#F2F3FB] text-[#6366F1] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+                   <CheckCircle2 className="w-5 h-5" />
+                 </div>
+                 <div className="flex flex-col">
+                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">Attendance Rate</p>
+                   <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.attendanceRate || 0}%</h3>
+                 </div>
+              </Card>
+
+              {/* On Leave Today */}
+              <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white rounded-[12px] group">
+                 <div className="w-12 h-12 rounded-xl bg-[#FFF6EF] text-[#F59E0B] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+                   <CalendarDays className="w-5 h-5" />
+                 </div>
+                 <div className="flex flex-col">
+                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">On Leave Today</p>
+                   <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.onLeaveToday || 0}</h3>
+                 </div>
+              </Card>
+           </div>
+         </div>
              <div className="h-[250px] w-full flex-1">
                <ResponsiveContainer width="100%" height="100%">
-                 <AreaChart data={attendanceTrend} margin={{ top: 5, right: 20, left: -20, bottom: 0 }}>
-                   <defs>
-                     <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
-                       <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                       <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                     </linearGradient>
-                   </defs>
-                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f8fafc" />
-                   <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                   <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} domain={['auto', 100]} />
-                   <RechartsTooltip contentStyle={{ borderRadius: '12px', border: '1px solid #f1f5f9', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.05)' }} />
-                   <Area type="monotone" dataKey="rate" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorRate)" activeDot={{ r: 6, strokeWidth: 0, fill: '#10b981' }} name="Attendance %" />
-                 </AreaChart>
+                 <LineChart data={attendanceTrend} margin={{ top: 5, right: 20, left: -20, bottom: 0 }}>
+                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                   <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                   <YAxis tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} domain={['auto', 100]} />
+                   <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                   <Line type="monotone" dataKey="rate" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} name="Attendance %" />
+                 </LineChart>
                </ResponsiveContainer>
              </div>
              <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
@@ -1184,48 +1176,48 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
          {/* Row 1: 2 Columns */}
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
            {/* Department Workforce Distribution */}
-           <Card className="p-4 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
-             <div className="flex justify-between items-center mb-4">
-               <div className="flex items-center gap-2">
-                 <Building2 className="w-4 h-4 text-slate-400" />
-                 <h3 className="text-sm font-bold text-[#1A1F36]">Department Workforce Distribution</h3>
-               </div>
-               <div className="text-[10px] font-bold border border-slate-200 rounded px-2 py-1 flex items-center gap-1 text-slate-500 cursor-pointer hover:bg-slate-50">
-                 This Month <ChevronDown className="w-3 h-3" />
-               </div>
+           <Card className="p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col bg-white rounded-[16px]">
+             <div className="flex justify-between items-center mb-8">
+               <h3 className="text-[15px] font-bold text-[#1A1F36]">Employees By Department</h3>
+               <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+                 <SelectTrigger className="w-[110px] h-8 text-[11px] font-semibold border border-slate-200 bg-white shadow-sm focus:ring-0 text-[#1A1F36] rounded-md">
+                   <SelectValue placeholder="This Month" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="This Month" className="text-[11px] font-semibold">This Month</SelectItem>
+                 </SelectContent>
+               </Select>
              </div>
              
-             <div className="space-y-4 flex-1">
+             <div className="space-y-6 flex-1 pr-2">
                {topDepartments.map((dept: any, idx: number) => {
                  const maxVal = Math.max(...departmentMetrics.map((d:any)=>d.value));
                  const widthPercent = maxVal > 0 ? (dept.value / maxVal) * 100 : 0;
                  return (
-                   <div key={idx} className="flex items-center gap-3">
+                   <div key={idx} className="flex items-center gap-4">
                      <div className="w-1/3 text-right">
-                       <p className="text-[10px] font-bold text-[#3B66A7] truncate" title={dept.name}>{dept.name}</p>
+                       <span className="text-[12px] font-bold text-[#1A1F36] whitespace-nowrap overflow-hidden text-ellipsis">{dept.name}</span>
                      </div>
-                     <div className="flex-1 relative group flex items-center">
-                       <div className="h-2 rounded-full bg-[#FF5722] transition-all duration-300 cursor-pointer" style={{ width: `${Math.max(2, widthPercent)}%` }}></div>
-                       <div className="absolute left-1/2 -top-8 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-1.5 pointer-events-none z-10 w-max whitespace-nowrap">
-                         <p className="text-[9px] font-bold text-slate-800 mb-0.5">{dept.name}</p>
-                         <p className="text-[9px] text-slate-600 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#FF5722]"></span> Employee: <span className="font-bold">{dept.value}</span></p>
+                     <div className="flex-1 flex items-center gap-3">
+                       <div className="flex-1 h-2.5 bg-slate-50 rounded-full overflow-hidden">
+                         <div className="h-full bg-[#FF5722] rounded-full" style={{ width: `${Math.max(2, widthPercent)}%` }}></div>
                        </div>
                      </div>
                    </div>
                  );
                })}
+               {topDepartments.length === 0 && (
+                 <div className="text-center text-[#8C98A4] text-xs py-10 font-medium">No departments found.</div>
+               )}
              </div>
              
-             <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center">
-               <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1.5">
-                 <span className="w-1.5 h-1.5 rounded-full bg-[#FF5722]"></span>
-                 HQ operations represent {(departmentMetrics.reduce((sum:number,d:any)=>sum+d.value,0)/topKpi.totalHeadcount*100 || 0).toFixed(0)}% of workforce
+             <div className="mt-8 pt-4 border-t border-slate-100 flex items-center gap-2">
+               <div className="w-1.5 h-1.5 rounded-full bg-[#FF5722]"></div>
+               <p className="text-[11px] font-semibold text-[#8C98A4]">
+                 No of Employees increased by <span className="text-[#10B981] font-bold">+20%</span> from last Month
                </p>
-               <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">View All <ChevronRight className="w-3 h-3" /></button>
              </div>
-           </Card>
-
-           {/* Branch Workforce Distribution */}
+           </Card>{/* Branch Workforce Distribution */}
            <Card className="p-4 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">

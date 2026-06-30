@@ -1278,48 +1278,60 @@ export default function AttendanceDashboard() {
       {/* HISTORICAL CHARTS */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         
-        {/* Monthly Attendance Trend */}
+        {/* Branch Workforce Distribution */}
         <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden lg:col-span-7 flex flex-col h-fit">
-          <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 flex flex-col gap-1">
+          <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 flex flex-row items-center justify-between gap-1">
             <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-gray-700" />
-              <CardTitle className="text-[16px] font-semibold text-gray-900">Monthly Attendance Trend</CardTitle>
+              <MapPin className="w-5 h-5 text-gray-700" />
+              <CardTitle className="text-[16px] font-semibold text-gray-900">Branch Workforce Distribution</CardTitle>
             </div>
-            <p className="text-[12px] text-gray-500 pl-7">Attendance rate over the last 6 months.</p>
+            <Select value={liveRegion} onValueChange={setLiveRegion}>
+              <SelectTrigger className="w-[150px] h-8 text-[11px] font-bold border-gray-200 bg-white shadow-none focus:ring-0">
+                <SelectValue placeholder="All Regions" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="text-[11px] font-bold">All Regions</SelectItem>
+                <SelectItem value="East Coast / East Malaysia" className="text-[11px] font-bold">East Coast / East Malaysia</SelectItem>
+                <SelectItem value="North Malaysia" className="text-[11px] font-bold">North Malaysia</SelectItem>
+                <SelectItem value="Central / West Coast" className="text-[11px] font-bold">Central / West Coast</SelectItem>
+                <SelectItem value="South Malaysia" className="text-[11px] font-bold">South Malaysia</SelectItem>
+              </SelectContent>
+            </Select>
           </CardHeader>
-          <CardContent className="pt-6 px-6 pb-6">
-            <div className="flex items-center gap-6 mb-6">
-              <div className="flex flex-col">
-                <span className="text-[13px] font-medium text-gray-500 mb-1">Average Attendance</span>
-                <span className="text-[32px] font-bold text-gray-900 leading-none">95%</span>
-              </div>
-              <div className="flex flex-col justify-end pb-1">
-                <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 font-medium px-2 py-0.5 rounded text-[12px]">
-                  <TrendingUp className="w-3 h-3" /> +2.1%
-                </span>
-                <span className="text-[12px] text-gray-500 mt-1">vs Last Month</span>
-              </div>
+          <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col justify-between">
+            <div className="space-y-4 flex-1 overflow-y-auto max-h-[220px] pr-2">
+              {liveBranchRanking.map((branch: any, idx: number) => {
+                const presentCount = Math.round(branch.totalEmployees * (branch.rate / 100));
+                const absentCount = branch.totalEmployees - presentCount;
+                return (
+                  <div key={idx} className="flex flex-col gap-1">
+                    <div className="flex justify-between items-end">
+                      <div className="flex flex-col">
+                        <span className="text-[11px] font-bold text-[#1A1F36]">{branch.branch}</span>
+                        <span className="text-[9px] text-slate-400">{branch.totalEmployees} Employees</span>
+                      </div>
+                      <span className={`text-[10px] font-black ${branch.rate >= 90 ? 'text-emerald-500' : branch.rate >= 75 ? 'text-amber-500' : 'text-red-500'}`}>{branch.rate}%</span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-2 relative group cursor-pointer">
+                      <div className={`h-2 rounded-full ${branch.rate >= 90 ? 'bg-[#10b981]' : branch.rate >= 75 ? 'bg-[#f59e0b]' : 'bg-[#ef4444]'}`} style={{ width: `${Math.min(100, branch.rate)}%` }}></div>
+                      <div className="absolute left-1/2 -top-8 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-1.5 pointer-events-none z-10 w-max whitespace-nowrap">
+                        <p className="text-[9px] font-bold text-slate-800 mb-0.5">{branch.branch}</p>
+                        <p className="text-[9px] text-slate-600">Present: <span className="font-bold text-emerald-600">{presentCount}</span> | Absent: <span className="font-bold text-red-500">{absentCount}</span></p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              {liveBranchRanking.length === 0 && (
+                <div className="text-center text-slate-400 text-xs py-10 font-medium">No branches found in this region.</div>
+              )}
             </div>
-            <ResponsiveContainer width="100%" height={180}>
-              <LineChart data={monthlyData.length > 0 ? monthlyData : fallbackMonthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-                <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#6B7280' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 12, fill: '#6B7280' }} domain={[0, 100]} axisLine={false} tickLine={false} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #E5E7EB', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                  itemStyle={{ color: '#111827', fontWeight: 600 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="attendance" 
-                  stroke="#0F4C5C" 
-                  strokeWidth={3} 
-                  dot={{ r: 4, fill: '#0F4C5C', strokeWidth: 2, stroke: '#fff' }} 
-                  activeDot={{ r: 6, fill: '#16A34A', strokeWidth: 0 }}
-                  name="Attendance Rate (%)" 
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
+              <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                Showing {liveBranchRanking.length} locations
+              </p>
+            </div>
           </CardContent>
         </Card>
 
