@@ -125,6 +125,10 @@ const CompanyLeaveCalendar = () => {
       toast({ title: "Error", description: "Name, start date, and end date are required.", variant: "destructive" });
       return;
     }
+    if (formData.end_date < formData.start_date) {
+      toast({ title: "Invalid Date", description: "End date cannot be earlier than start date.", variant: "destructive" });
+      return;
+    }
     try {
       const url = editingId ? `${API_BASE_URL}/api/company-leaves/${editingId}` : `${API_BASE_URL}/api/company-leaves`;
       const method = editingId ? "PUT" : "POST";
@@ -281,18 +285,47 @@ const CompanyLeaveCalendar = () => {
                 <Input 
                   type="date" 
                   value={formData.start_date} 
-                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} 
+                  onChange={(e) => {
+                    const newStart = e.target.value;
+                    setFormData(prev => ({
+                      ...prev,
+                      start_date: newStart,
+                      // auto-correct end date if it would be before new start
+                      end_date: prev.end_date && prev.end_date < newStart ? newStart : prev.end_date
+                    }));
+                  }}
                 />
               </div>
               <div className="grid gap-2">
                 <Label>End Date</Label>
                 <Input 
-                  type="date" 
+                  type="date"
+                  min={formData.start_date || undefined}
                   value={formData.end_date} 
                   onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} 
                 />
               </div>
             </div>
+
+            {/* Total Days indicator */}
+            {formData.start_date && formData.end_date && formData.end_date >= formData.start_date && (() => {
+              const start = new Date(formData.start_date);
+              const end = new Date(formData.end_date);
+              const totalDays = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+              return (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+                  <span className="text-purple-600 dark:text-purple-400 text-lg">📅</span>
+                  <span className="text-sm font-semibold text-purple-700 dark:text-purple-300">
+                    Total Duration: <span className="text-base">{totalDays}</span> day{totalDays !== 1 ? 's' : ''}
+                  </span>
+                  {totalDays > 1 && (
+                    <span className="text-xs text-purple-500 dark:text-purple-400 ml-auto">
+                      {new Date(formData.start_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })} – {new Date(formData.end_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
