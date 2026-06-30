@@ -1322,6 +1322,8 @@ export default function LeaveAnalytics() {
                           allowDecimals={false}
                         />
                         <Tooltip
+                          trigger="item"
+                          cursor={false}
                           contentStyle={tooltipStyle}
                           labelStyle={{
                             fontWeight: 900,
@@ -1534,6 +1536,8 @@ export default function LeaveAnalytics() {
                       allowDecimals={false}
                     />
                     <Tooltip
+                      trigger="item"
+                      cursor={false}
                       contentStyle={tooltipStyle}
                       labelStyle={{
                         fontWeight: 900,
