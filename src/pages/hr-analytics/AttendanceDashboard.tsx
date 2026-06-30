@@ -866,71 +866,117 @@ export default function AttendanceDashboard() {
             </div>
           </div>
 
-          {/* Dense KPI Row */}
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 p-4 md:p-6 bg-gray-50/50">
-            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-              <span className="text-[13px] font-medium text-gray-500 mb-1">Total Present</span>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-[32px] font-bold text-gray-900 leading-none">
+          {/* Redesigned Standalone KPI Cards Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 p-4 md:p-6 bg-slate-50/50 border-t border-gray-100">
+            {/* Card 1: Present Today */}
+            <div className="bg-white border border-gray-200/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
+              <div>
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Present Today</span>
+                <div className="text-[32px] font-black text-[#7B0099] leading-none mt-2">
                   {liveStats.total > 0 ? Math.round((liveStats.present / liveStats.total) * 100) : 0}%
-                </span>
-                <span className="text-[12px] font-semibold text-gray-400">
-                  ({liveStats.present}/{liveStats.total})
-                </span>
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="w-full bg-slate-100 rounded-full h-1.5 mb-2">
+                  <div className="h-1.5 rounded-full bg-[#7B0099]" style={{ width: `${liveStats.total > 0 ? (liveStats.present / liveStats.total) * 100 : 0}%` }} />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] font-bold text-slate-400">
+                    {liveStats.present} / {liveStats.total} Employees
+                  </span>
+                  <span className="text-[9px] font-black text-emerald-500 flex items-center gap-0.5 mt-1">
+                    ↑ 5% vs Yesterday
+                  </span>
+                </div>
               </div>
             </div>
-            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-              <span className="text-[13px] font-medium text-gray-500 mb-1">Present (On Time)</span>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-[32px] font-bold text-gray-900 leading-none">
+
+            {/* Card 2: On Time */}
+            <div className="bg-white border border-gray-200/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
+              <div>
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">On Time</span>
+                <div className="text-[32px] font-black text-emerald-500 leading-none mt-2">
                   {liveStats.total > 0 ? Math.round(((liveStats.present - liveStats.late) / liveStats.total) * 100) : 0}%
-                </span>
-                <span className="text-[12px] font-semibold text-gray-400">
-                  ({Math.max(0, liveStats.present - liveStats.late)}/{liveStats.total})
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="w-full bg-slate-100 rounded-full h-1.5 mb-2">
+                  <div className="h-1.5 rounded-full bg-emerald-500" style={{ width: `${liveStats.total > 0 ? ((liveStats.present - liveStats.late) / liveStats.total) * 100 : 0}%` }} />
+                </div>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {Math.max(0, liveStats.present - liveStats.late)} / {liveStats.total} Employees
                 </span>
               </div>
             </div>
-            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-              <span className="text-[13px] font-medium text-gray-500 mb-1">Present (Late)</span>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-[32px] font-bold text-gray-900 leading-none">
+
+            {/* Card 3: Late */}
+            <div className="bg-white border border-gray-200/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
+              <div>
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Late</span>
+                <div className="text-[32px] font-black text-[#ffbf00] leading-none mt-2">
                   {liveStats.total > 0 ? Math.round((liveStats.late / liveStats.total) * 100) : 0}%
-                </span>
-                <span className="text-[12px] font-semibold text-gray-400">
-                  ({liveStats.late}/{liveStats.total})
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="w-full bg-slate-100 rounded-full h-1.5 mb-2">
+                  <div className="h-1.5 rounded-full bg-[#ffbf00]" style={{ width: `${liveStats.total > 0 ? (liveStats.late / liveStats.total) * 100 : 0}%` }} />
+                </div>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {liveStats.late} / {liveStats.total} {liveStats.late === 1 ? 'Employee' : 'Employees'}
                 </span>
               </div>
             </div>
-            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-              <span className="text-[13px] font-medium text-gray-500 mb-1">Absent</span>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-[32px] font-bold text-gray-900 leading-none">
+
+            {/* Card 4: Absent */}
+            <div className="bg-white border border-gray-200/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
+              <div>
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Absent</span>
+                <div className="text-[32px] font-black text-[#ef4444] leading-none mt-2">
                   {liveStats.total > 0 ? Math.round((liveStats.absent / liveStats.total) * 100) : 0}%
-                </span>
-                <span className="text-[12px] font-semibold text-gray-400">
-                  ({liveStats.absent}/{liveStats.total})
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="w-full bg-slate-100 rounded-full h-1.5 mb-2">
+                  <div className="h-1.5 rounded-full bg-[#ef4444]" style={{ width: `${liveStats.total > 0 ? (liveStats.absent / liveStats.total) * 100 : 0}%` }} />
+                </div>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {liveStats.absent} / {liveStats.total} {liveStats.absent === 1 ? 'Employee' : 'Employees'}
                 </span>
               </div>
             </div>
-            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-              <span className="text-[13px] font-medium text-gray-500 mb-1">Leave</span>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-[32px] font-bold text-gray-900 leading-none">
+
+            {/* Card 5: Leave */}
+            <div className="bg-white border border-gray-200/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
+              <div>
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Leave</span>
+                <div className="text-[32px] font-black text-[#3b82f6] leading-none mt-2">
                   {liveStats.total > 0 ? Math.round((liveStats.onLeave / liveStats.total) * 100) : 0}%
-                </span>
-                <span className="text-[12px] font-semibold text-gray-400">
-                  ({liveStats.onLeave}/{liveStats.total})
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="w-full bg-slate-100 rounded-full h-1.5 mb-2">
+                  <div className="h-1.5 rounded-full bg-[#3b82f6]" style={{ width: `${liveStats.total > 0 ? (liveStats.onLeave / liveStats.total) * 100 : 0}%` }} />
+                </div>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {liveStats.onLeave} / {liveStats.total} {liveStats.onLeave === 1 ? 'Employee' : 'Employees'}
                 </span>
               </div>
             </div>
-            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-              <span className="text-[13px] font-medium text-gray-500 mb-1">Company Leave</span>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-[32px] font-bold text-gray-900 leading-none">
+
+            {/* Card 6: Company Leave */}
+            <div className="bg-white border border-gray-200/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
+              <div>
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Company Leave</span>
+                <div className="text-[32px] font-black text-indigo-500 leading-none mt-2">
                   {liveStats.total > 0 ? Math.round(((liveStats.companyLeave || 0) / liveStats.total) * 100) : 0}%
-                </span>
-                <span className="text-[12px] font-semibold text-gray-400">
-                  ({liveStats.companyLeave || 0}/{liveStats.total})
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="w-full bg-slate-100 rounded-full h-1.5 mb-2">
+                  <div className="h-1.5 rounded-full bg-indigo-500" style={{ width: `${liveStats.total > 0 ? ((liveStats.companyLeave || 0) / liveStats.total) * 100 : 0}%` }} />
+                </div>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {liveStats.companyLeave || 0} / {liveStats.total} {(liveStats.companyLeave || 0) === 1 ? 'Employee' : 'Employees'}
                 </span>
               </div>
             </div>
