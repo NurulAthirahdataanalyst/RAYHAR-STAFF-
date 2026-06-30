@@ -1032,10 +1032,22 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
     : rawBranchMetrics.filter((b:any) => regionMap[b.name] === selectedRegion || (b.name==='HQ' && selectedRegion==='Central'));
 
   const departmentMetrics = data.departmentMetrics || [];
+  const topDepartments = [...departmentMetrics].sort((a:any,b:any)=>b.value-a.value).slice(0, 5);
+
   const attendanceTrend = data.attendanceOverview?.monthlyTrend || [];
 
   const leaveUtil = topKpi.leaveUtilization || Math.round(((leave.annual || 0) + (leave.medical || 0) + (leave.emergency || 0)) / 2) || 68;
   const totalLeaveEmployees = (leave.annual || 0) + (leave.medical || 0) + (leave.emergency || 0) + (leave.unpaid || 0);
+
+  const leaveData = [
+    { name: 'Annual', value: leave.annual || 0, color: '#10b981' }, // emerald-500
+    { name: 'Medical', value: leave.medical || 0, color: '#f43f5e' }, // rose-500
+    { name: 'Emergency', value: leave.emergency || 0, color: '#f59e0b' }, // amber-500
+    { name: 'Unpaid', value: leave.unpaid || 0, color: '#64748b' } // slate-500
+  ].filter(d => d.value > 0);
+  
+  // mock total count if not present
+  const totalLeaveCount = totalLeaveEmployees || 18; 
 
   return (
     <div className="space-y-8">
@@ -1161,10 +1173,13 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
 
        {/* SECONDARY SECTION */}
        <div>
-         <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Secondary</h2>
+         <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Workforce Analytics</h2>
+         
+         {/* Row 1: 2 Columns */}
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-           <Card className="p-5 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
-             <div className="flex justify-between items-center mb-6">
+           {/* Department Workforce Distribution */}
+           <Card className="p-4 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+             <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
                  <Building2 className="w-4 h-4 text-slate-400" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">Department Workforce Distribution</h3>
@@ -1174,20 +1189,20 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                </div>
              </div>
              
-             <div className="space-y-5 flex-1 pr-2">
-               {departmentMetrics.sort((a:any,b:any)=>b.value-a.value).map((dept: any, idx: number) => {
+             <div className="space-y-4 flex-1">
+               {topDepartments.map((dept: any, idx: number) => {
                  const maxVal = Math.max(...departmentMetrics.map((d:any)=>d.value));
                  const widthPercent = maxVal > 0 ? (dept.value / maxVal) * 100 : 0;
                  return (
-                   <div key={idx} className="flex items-center gap-4">
+                   <div key={idx} className="flex items-center gap-3">
                      <div className="w-1/3 text-right">
                        <p className="text-[10px] font-bold text-[#3B66A7] truncate" title={dept.name}>{dept.name}</p>
                      </div>
                      <div className="flex-1 relative group flex items-center">
                        <div className="h-2 rounded-full bg-[#FF5722] transition-all duration-300 cursor-pointer" style={{ width: `${Math.max(2, widthPercent)}%` }}></div>
-                       <div className="absolute left-1/2 -top-10 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-2 pointer-events-none z-10 w-max whitespace-nowrap">
-                         <p className="text-[10px] font-bold text-slate-800 mb-0.5">{dept.name}</p>
-                         <p className="text-[10px] text-slate-600 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#FF5722]"></span> Employee: <span className="font-bold">{dept.value}</span></p>
+                       <div className="absolute left-1/2 -top-8 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-1.5 pointer-events-none z-10 w-max whitespace-nowrap">
+                         <p className="text-[9px] font-bold text-slate-800 mb-0.5">{dept.name}</p>
+                         <p className="text-[9px] text-slate-600 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#FF5722]"></span> Employee: <span className="font-bold">{dept.value}</span></p>
                        </div>
                      </div>
                    </div>
@@ -1195,17 +1210,18 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                })}
              </div>
              
-             <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center">
+             <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center">
                <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1.5">
                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF5722]"></span>
                  HQ operations represent {(departmentMetrics.reduce((sum:number,d:any)=>sum+d.value,0)/topKpi.totalHeadcount*100 || 0).toFixed(0)}% of workforce
                </p>
-               <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">View Details <ChevronRight className="w-3 h-3" /></button>
+               <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">View All <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
 
-           <Card className="p-5 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
-             <div className="flex justify-between items-center mb-6">
+           {/* Branch Workforce Distribution */}
+           <Card className="p-4 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+             <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
                  <MapPin className="w-4 h-4 text-slate-400" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">Branch Workforce Distribution</h3>
@@ -1221,25 +1237,22 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                </Select>
              </div>
              
-             <div className="space-y-5 flex-1 pr-2 overflow-y-auto max-h-[300px]">
-               {filteredBranches.sort((a:any,b:any)=>b.count-a.count).map((branch: any, idx: number) => {
+             <div className="space-y-4 flex-1 overflow-y-auto max-h-[220px] pr-2">
+               {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).map((branch: any, idx: number) => {
                  return (
-                   <div key={idx} className="flex gap-4 items-center">
-                     <div className="w-1/3 text-right">
-                       <p className="text-[11px] font-bold text-[#1A1F36] truncate" title={branch.name}>{branch.name}</p>
-                       <p className="text-[9px] text-slate-400">{branch.count} Employees</p>
-                     </div>
-                     <div className="flex-1">
-                       <div className="flex justify-between text-[9px] font-bold mb-1">
-                         <span className="text-slate-400">Attendance</span>
-                         <span className={branch.attendanceRate >= 95 ? 'text-emerald-500' : 'text-amber-500'}>{branch.attendanceRate}%</span>
+                   <div key={idx} className="flex flex-col gap-1">
+                     <div className="flex justify-between items-end">
+                       <div className="flex flex-col">
+                         <span className="text-[11px] font-bold text-[#1A1F36]">{branch.name}</span>
+                         <span className="text-[9px] text-slate-400">{branch.count} Employees</span>
                        </div>
-                       <div className="w-full bg-slate-100 rounded-full h-1.5 mb-1 relative group cursor-pointer">
-                         <div className={`h-1.5 rounded-full ${branch.attendanceRate >= 95 ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${Math.min(100, branch.attendanceRate)}%` }}></div>
-                         <div className="absolute left-1/2 -top-10 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-2 pointer-events-none z-10 w-max whitespace-nowrap">
-                           <p className="text-[10px] font-bold text-slate-800 mb-0.5">{branch.name}</p>
-                           <p className="text-[10px] text-slate-600">Present: <span className="font-bold text-emerald-600">{Math.floor(branch.count * (branch.attendanceRate/100))}</span> | Late: <span className="font-bold text-amber-500">{branch.count - Math.floor(branch.count * (branch.attendanceRate/100))}</span></p>
-                         </div>
+                       <span className={`text-[10px] font-black ${branch.attendanceRate >= 95 ? 'text-emerald-500' : 'text-amber-500'}`}>{branch.attendanceRate}%</span>
+                     </div>
+                     <div className="w-full bg-slate-100 rounded-full h-2 relative group cursor-pointer">
+                       <div className={`h-2 rounded-full ${branch.attendanceRate >= 95 ? 'bg-[#10b981]' : 'bg-[#f59e0b]'}`} style={{ width: `${Math.min(100, branch.attendanceRate)}%` }}></div>
+                       <div className="absolute left-1/2 -top-8 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-1.5 pointer-events-none z-10 w-max whitespace-nowrap">
+                         <p className="text-[9px] font-bold text-slate-800 mb-0.5">{branch.name}</p>
+                         <p className="text-[9px] text-slate-600">Present: <span className="font-bold text-emerald-600">{Math.floor(branch.count * (branch.attendanceRate/100))}</span> | Late: <span className="font-bold text-amber-500">{branch.count - Math.floor(branch.count * (branch.attendanceRate/100))}</span></p>
                        </div>
                      </div>
                    </div>
@@ -1250,7 +1263,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                )}
              </div>
 
-             <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center">
+             <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center">
                <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1.5">
                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                  Showing {filteredBranches.length} locations
@@ -1258,87 +1271,140 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">See All <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
+         </div>
 
-           <Card className="p-5 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
-             <div className="flex justify-between items-center mb-6">
+         {/* Row 2: 3 Columns */}
+         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+           {/* Leave Distribution (Donut Chart) */}
+           <Card className="p-4 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+             <div className="flex justify-between items-center mb-2">
                <div className="flex items-center gap-2">
                  <FileText className="w-4 h-4 text-slate-400" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">Leave Distribution</h3>
                </div>
              </div>
-             <div className="space-y-5 flex-1">
-               {[
-                 { label: 'Annual Leave', val: leave.annual || 0, color: 'bg-emerald-500' },
-                 { label: 'Medical Leave', val: leave.medical || 0, color: 'bg-rose-500' },
-                 { label: 'Emergency Leave', val: leave.emergency || 0, color: 'bg-amber-500' },
-                 { label: 'Unpaid Leave', val: leave.unpaid || 0, color: 'bg-slate-500' }
-               ].map((item, i) => {
-                 const count = Math.round((item.val / 100) * totalLeaveEmployees) || Math.floor(Math.random() * 20) + 1; 
-                 return (
-                   <div key={i}>
-                     <div className="flex justify-between text-[11px] mb-1.5 items-end">
-                       <div>
-                         <span className="font-bold text-[#1A1F36] block">{item.label}</span>
-                         <span className="text-[9px] font-semibold text-slate-400">{count} employees</span>
-                       </div>
-                       <span className="font-black text-slate-700 text-sm">{item.val}%</span>
+             
+             <div className="flex items-center flex-1 h-[140px]">
+               <div className="w-[140px] h-[140px] relative">
+                 <ResponsiveContainer width="100%" height="100%">
+                   <PieChart>
+                     <Pie
+                       data={leaveData}
+                       innerRadius={45}
+                       outerRadius={65}
+                       paddingAngle={2}
+                       dataKey="value"
+                       stroke="none"
+                     >
+                       {leaveData.map((entry, index) => (
+                         <Cell key={`cell-${index}`} fill={entry.color} />
+                       ))}
+                     </Pie>
+                   </PieChart>
+                 </ResponsiveContainer>
+                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                   <span className="text-lg font-black text-slate-800 leading-none">{totalLeaveCount}</span>
+                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total</span>
+                 </div>
+               </div>
+               <div className="flex-1 pl-4 space-y-2">
+                 {leaveData.map((entry, idx) => (
+                   <div key={idx} className="flex justify-between items-center">
+                     <div className="flex items-center gap-1.5">
+                       <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }}></span>
+                       <span className="text-[10px] font-semibold text-slate-700">{entry.name}</span>
                      </div>
-                     <div className="w-full bg-slate-100 rounded-full h-2">
-                       <div className={`${item.color} h-2 rounded-full`} style={{ width: `${item.val}%` }}></div>
-                     </div>
+                     <span className="text-[10px] font-black text-slate-800">{entry.value}%</span>
                    </div>
-                 );
-               })}
+                 ))}
+               </div>
              </div>
-             <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
+
+             <div className="mt-3 pt-3 border-t border-slate-100 flex justify-end">
                <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">View Details <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
 
-           <Card className="p-5 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
-             <div className="flex justify-between items-center mb-6">
+           {/* Business Travel Summary */}
+           <Card className="p-4 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+             <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
                  <Plane className="w-4 h-4 text-slate-400" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">Business Travel Summary</h3>
                </div>
              </div>
              
-             <div className="grid grid-cols-3 gap-4 mb-8">
+             <div className="grid grid-cols-3 gap-2 mb-6">
                <div className="flex flex-col items-center">
-                 <span className="text-3xl font-black text-[#1A1F36]">{outstation.completed || 0}</span>
-                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Completed</span>
+                 <span className="text-2xl font-black text-[#1A1F36]">{outstation.completed || 0}</span>
+                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Completed</span>
                </div>
                <div className="flex flex-col items-center">
-                 <span className="text-3xl font-black text-[#1A1F36]">{outstation.upcoming || 0}</span>
-                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Upcoming</span>
+                 <span className="text-2xl font-black text-[#1A1F36]">{outstation.upcoming || 0}</span>
+                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Upcoming</span>
                </div>
                <div className="flex flex-col items-center">
-                 <span className="text-3xl font-black text-[#1A1F36]">{outstation.cancelled || 0}</span>
-                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cancelled</span>
+                 <span className="text-2xl font-black text-[#1A1F36]">{outstation.cancelled || 0}</span>
+                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Cancelled</span>
                </div>
              </div>
              
-             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Popular Routes</p>
-             <div className="space-y-4 flex-1">
+             <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2">Popular Routes</p>
+             <div className="space-y-3 flex-1 overflow-y-auto">
                {(outstation.popularRoutes || []).map((r: any, i: number) => {
                  const maxTrips = Math.max(...(outstation.popularRoutes||[]).map((pr:any)=>pr.trips));
                  const w = maxTrips > 0 ? (r.trips / maxTrips) * 100 : 0;
                  return (
-                   <div key={i} className="flex items-center gap-4">
+                   <div key={i} className="flex items-center gap-3">
                      <div className="w-1/3 text-right">
-                       <span className="text-[11px] font-bold text-[#3B66A7] truncate block" title={r.route}>{r.route}</span>
+                       <span className="text-[10px] font-bold text-[#3B66A7] truncate block" title={r.route}>{r.route}</span>
                      </div>
                      <div className="flex-1 flex items-center gap-2 relative group cursor-pointer">
                        <div className="h-1.5 bg-[#DBEAFE] rounded-full group-hover:bg-blue-300 transition-colors" style={{ width: `${Math.max(10, w)}%` }}></div>
-                       <span className="text-[11px] font-bold text-slate-700">{r.trips}</span>
+                       <span className="text-[10px] font-bold text-slate-700">{r.trips}</span>
                      </div>
                    </div>
                  );
                })}
              </div>
 
-             <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
+             <div className="mt-3 pt-3 border-t border-slate-100 flex justify-end">
                <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">Explore <ChevronRight className="w-3 h-3" /></button>
+             </div>
+           </Card>
+
+           {/* Workforce Movement */}
+           <Card className="p-4 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+             <div className="flex justify-between items-center mb-4">
+               <div className="flex items-center gap-2">
+                 <Users className="w-4 h-4 text-slate-400" />
+                 <h3 className="text-sm font-bold text-[#1A1F36]">Workforce Movement</h3>
+               </div>
+             </div>
+             
+             <div className="grid grid-cols-2 gap-3 flex-1">
+               <div className="flex flex-col justify-center items-center py-2 bg-[#DCFCE7] rounded-xl border border-emerald-100">
+                 <span className="text-2xl font-black text-emerald-700 mb-0.5">+{movement.newJoiners || 0}</span>
+                 <p className="text-[10px] font-bold text-emerald-900 uppercase tracking-wider">New Joiners</p>
+                 <p className="text-[8px] font-bold text-emerald-600 mt-0.5">This Month</p>
+               </div>
+               <div className="flex flex-col justify-center items-center py-2 bg-[#FEE2E2] rounded-xl border border-rose-100">
+                 <span className="text-2xl font-black text-rose-700 mb-0.5">-{movement.resigned || 0}</span>
+                 <p className="text-[10px] font-bold text-rose-900 uppercase tracking-wider">Resigned</p>
+                 <p className="text-[8px] font-bold text-rose-600 mt-0.5">This Month</p>
+               </div>
+               <div className="flex flex-col justify-center items-center py-2 bg-[#F8FAFC] rounded-xl border border-slate-200 text-center">
+                 <span className="text-xl font-black text-slate-700 mb-0.5">{movement.transferred || 0}</span>
+                 <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Transferred</p>
+               </div>
+               <div className="flex flex-col justify-center items-center py-2 bg-[#F3E8FF] rounded-xl border border-purple-200 text-center">
+                 <span className="text-xl font-black text-purple-700 mb-0.5">{movement.promotions || 0}</span>
+                 <p className="text-[9px] font-bold text-purple-500 uppercase tracking-wider">Promotions</p>
+               </div>
+             </div>
+
+             <div className="mt-3 pt-3 border-t border-slate-100 flex justify-end">
+               <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
          </div>
@@ -1346,51 +1412,17 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
 
        {/* SUPPORTING SECTION */}
        <div>
-         <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Supporting</h2>
-         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-           <Card className="p-5 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
-             <div className="flex justify-between items-center mb-6">
-               <div className="flex items-center gap-2">
-                 <Users className="w-4 h-4 text-slate-400" />
-                 <h3 className="text-sm font-bold text-[#1A1F36]">Workforce Movement</h3>
-               </div>
-             </div>
-             
-             <div className="grid grid-cols-2 gap-4 flex-1">
-               <div className="flex flex-col justify-center p-4 bg-[#DCFCE7] rounded-xl border border-emerald-100">
-                 <span className="text-3xl font-black text-emerald-700 mb-1">+{movement.newJoiners || 0}</span>
-                 <p className="text-[11px] font-bold text-emerald-900 uppercase tracking-wider">New Joiners</p>
-                 <p className="text-[9px] font-bold text-emerald-600 mt-0.5">This Month</p>
-               </div>
-               <div className="flex flex-col justify-center p-4 bg-[#FEE2E2] rounded-xl border border-rose-100">
-                 <span className="text-3xl font-black text-rose-700 mb-1">-{movement.resigned || 0}</span>
-                 <p className="text-[11px] font-bold text-rose-900 uppercase tracking-wider">Resigned</p>
-                 <p className="text-[9px] font-bold text-rose-600 mt-0.5">This Month</p>
-               </div>
-               <div className="flex flex-col justify-center p-4 bg-[#F8FAFC] rounded-xl border border-slate-200 text-center">
-                 <span className="text-2xl font-black text-slate-700 mb-1">{movement.transferred || 0}</span>
-                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Transferred</p>
-               </div>
-               <div className="flex flex-col justify-center p-4 bg-[#F3E8FF] rounded-xl border border-purple-200 text-center">
-                 <span className="text-2xl font-black text-purple-700 mb-1">{movement.promotions || 0}</span>
-                 <p className="text-[10px] font-bold text-purple-500 uppercase tracking-wider">Promotions</p>
-               </div>
-             </div>
-
-             <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
-               <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
-             </div>
-           </Card>
-
-           <Card className="p-5 shadow-sm border-l-4 border-l-[#7B0099] border-y-slate-200 border-r-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
-             <div className="flex justify-between items-center mb-6">
+         <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Notices</h2>
+         <div className="grid grid-cols-1 gap-6">
+           <Card className="p-4 shadow-sm border-l-4 border-l-[#7B0099] border-y-slate-200 border-r-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+             <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
                  <AlertCircle className="w-4 h-4 text-[#7B0099]" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">HR Alerts</h3>
                </div>
              </div>
              
-             <div className="space-y-3 flex-1 overflow-y-auto">
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
                {hrAlerts.map((alert: any, i: number) => {
                  let bgColor = 'bg-slate-50';
                  let borderColor = 'border-slate-200';
