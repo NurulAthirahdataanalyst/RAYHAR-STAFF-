@@ -4,6 +4,7 @@ import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { exportToCSV } from "@/utils/export";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/contexts/RoleContext";
 import { API_BASE_URL } from "@/config/api";
 import { toast } from "sonner";
 import { 
@@ -64,6 +65,8 @@ type CustomCategory = {
 
 export default function Calendar() {
   const { user } = useAuth();
+  const { role } = useRole();
+  const isHR = role === 'hr_admin';
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   
   const [notes, setNotes] = useState<PersonalNote[]>([]);
@@ -265,6 +268,23 @@ export default function Calendar() {
       }
     } catch (error) {
       toast.error("Failed to delete event");
+    }
+  };
+
+  const handleDeleteCompanyLeave = async (id: number) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/company-leaves/${id}`, {
+        method: "DELETE"
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Company leave deleted successfully");
+        fetchCalendarData();
+      } else {
+        toast.error(data.error || "Failed to delete company leave");
+      }
+    } catch (error) {
+      toast.error("Failed to delete company leave");
     }
   };
 
@@ -1270,8 +1290,25 @@ export default function Calendar() {
               </div>
             </div>
 
-            <div className="px-6 pb-5">
-              <Button onClick={() => setSelectedCompanyLeave(null)} className="w-full bg-green-600 hover:bg-green-700 text-white">
+            <div className="px-6 pb-5 flex gap-3">
+              {isHR && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    if (confirm('Are you sure you want to delete this company leave? This will affect attendance records.')) {
+                      handleDeleteCompanyLeave(selectedCompanyLeave.id);
+                      setSelectedCompanyLeave(null);
+                    }
+                  }} 
+                  className="flex-1 font-semibold border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                >
+                  Delete
+                </Button>
+              )}
+              <Button 
+                onClick={() => setSelectedCompanyLeave(null)} 
+                className={`font-semibold ${isHR ? 'flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300' : 'w-full bg-green-600 hover:bg-green-700 text-white'}`}
+              >
                 Close
               </Button>
             </div>
