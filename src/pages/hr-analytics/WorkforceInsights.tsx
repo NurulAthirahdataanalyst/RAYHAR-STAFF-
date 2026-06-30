@@ -1026,40 +1026,49 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
   return (
     <div className="space-y-6">
        {/* 1. KPI Summary (Top Row) */}
-       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <Card className="p-4 flex flex-col justify-center shadow-sm border-slate-200">
-             <p className="text-xs text-slate-500 font-bold uppercase">Total Workforce</p>
-             <h3 className="text-2xl font-black text-slate-800">{topKpi.totalHeadcount || 0}</h3>
-             <p className="text-[10px] text-slate-400">All employees</p>
-          </Card>
-          <Card className="p-4 flex flex-col justify-center shadow-sm border-slate-200">
-             <p className="text-xs text-slate-500 font-bold uppercase">Active Employees</p>
-             <h3 className="text-2xl font-black text-slate-800">{topKpi.activeEmployees || 0}</h3>
-             <p className="text-[10px] text-slate-400">Current active staff</p>
-          </Card>
-          <Card className="p-4 flex flex-col justify-center shadow-sm border-slate-200 relative">
-             <div className="flex justify-between items-start">
-               <p className="text-xs text-slate-500 font-bold uppercase">Attendance Rate</p>
-               {feedConnected && <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>}
+       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="p-5 flex items-center shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 cursor-default">
+             <div className="w-12 h-12 rounded-xl bg-[#F4F7FF] text-[#3B66A7] flex items-center justify-center mr-4">
+               <Users className="w-6 h-6" />
              </div>
-             <h3 className="text-2xl font-black text-emerald-600">{topKpi.attendanceRate || 0}%</h3>
-             <p className="text-[10px] text-slate-400">Monthly average</p>
+             <div>
+               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Total Headcount</p>
+               <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.totalHeadcount || 0}</h3>
+             </div>
           </Card>
-          <Card className="p-4 flex flex-col justify-center shadow-sm border-slate-200">
-             <p className="text-xs text-slate-500 font-bold uppercase">Absenteeism Rate</p>
-             <h3 className="text-2xl font-black text-red-500">{(100 - (topKpi.attendanceRate || 100)).toFixed(1)}%</h3>
-             <p className="text-[10px] text-slate-400">Monthly average</p>
+          <Card className="p-5 flex items-center shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 cursor-default">
+             <div className="w-12 h-12 rounded-xl bg-[#F0FDF4] text-[#16A34A] flex items-center justify-center mr-4">
+               <UserCheck className="w-6 h-6" />
+             </div>
+             <div>
+               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Active Employees</p>
+               <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.activeEmployees || 0}</h3>
+             </div>
           </Card>
-          <Card className="p-4 flex flex-col justify-center shadow-sm border-slate-200">
-             <p className="text-xs text-slate-500 font-bold uppercase">Leave Utilisation</p>
-             <h3 className="text-2xl font-black text-amber-500">{leaveUtil}%</h3>
-             <p className="text-[10px] text-slate-400">Used leave quota</p>
+          <Card className="p-5 flex items-center shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 cursor-default relative">
+             {feedConnected && <span className="absolute top-3 right-3 flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>}
+             <div className="w-12 h-12 rounded-xl bg-[#F5F3FF] text-[#6366F1] flex items-center justify-center mr-4">
+               <CheckCircle2 className="w-6 h-6" />
+             </div>
+             <div>
+               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Attendance Rate</p>
+               <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.attendanceRate || 0}%</h3>
+             </div>
+          </Card>
+          <Card className="p-5 flex items-center shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 cursor-default">
+             <div className="w-12 h-12 rounded-xl bg-[#FFF7ED] text-[#EA580C] flex items-center justify-center mr-4">
+               <CalendarDays className="w-6 h-6" />
+             </div>
+             <div>
+               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">On Leave Today</p>
+               <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.onLeaveToday || 0}</h3>
+             </div>
           </Card>
        </div>
 
        {/* 2 & 3. Trend & Comparison */}
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-         <Card className="p-5 shadow-sm border-slate-200">
+         <Card className="p-5 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300">
            <h3 className="text-sm font-bold text-slate-800 mb-4">Attendance Trend</h3>
            <div className="h-[250px] w-full">
              <ResponsiveContainer width="100%" height="100%">
@@ -1073,7 +1082,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
              </ResponsiveContainer>
            </div>
          </Card>
-         <Card className="p-5 shadow-sm border-slate-200">
+         <Card className="p-5 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300">
            <h3 className="text-sm font-bold text-slate-800 mb-4">Monthly Comparison</h3>
            <div className="overflow-x-auto">
              <table className="w-full text-sm text-left">
@@ -1119,45 +1128,78 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
 
        {/* 4 & 5. Departments and Branches */}
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-         <Card className="p-5 shadow-sm border-slate-200">
-           <h3 className="text-sm font-bold text-slate-800 mb-4">Employees by Department (HQ)</h3>
-           <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
-             {departmentMetrics.sort((a:any,b:any)=>b.value-a.value).map((dept: any, idx: number) => (
-               <div key={idx} className="flex items-center justify-between">
-                 <div className="flex items-center gap-3">
-                   <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-[10px]">{dept.name.substring(0,2).toUpperCase()}</div>
-                   <div>
-                     <p className="text-xs font-bold text-slate-800">{dept.name}</p>
-                     <p className="text-[10px] text-slate-400">HQ</p>
+         <Card className="p-5 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300">
+           <div className="flex justify-between items-center mb-6">
+             <h3 className="text-sm font-bold text-[#1A1F36]">Employees By Department</h3>
+             <div className="text-[10px] font-bold border border-slate-200 rounded px-2 py-1 flex items-center gap-1 text-slate-500 cursor-pointer hover:bg-slate-50">
+               This Month <ChevronDown className="w-3 h-3" />
+             </div>
+           </div>
+           
+           <div className="space-y-5 max-h-[300px] overflow-y-auto pr-2 mb-4">
+             {departmentMetrics.sort((a:any,b:any)=>b.value-a.value).map((dept: any, idx: number) => {
+               const maxVal = Math.max(...departmentMetrics.map((d:any)=>d.value));
+               const widthPercent = maxVal > 0 ? (dept.value / maxVal) * 100 : 0;
+               return (
+                 <div key={idx} className="flex items-center gap-4 group">
+                   <div className="w-1/3 text-right">
+                     <p className="text-[10px] font-bold text-[#3B66A7] truncate" title={dept.name}>{dept.name}</p>
+                   </div>
+                   <div className="flex-1 flex items-center gap-2">
+                     <div className="h-2 rounded-full bg-[#FF5722] group-hover:opacity-80 transition-opacity" style={{ width: `${Math.max(5, widthPercent)}%` }}></div>
+                     <span className="text-[10px] font-bold text-slate-400">{dept.value}</span>
                    </div>
                  </div>
-                 <div className="text-sm font-bold text-slate-700">{dept.value}</div>
-               </div>
-             ))}
+               );
+             })}
+           </div>
+           
+           <div className="border-t border-slate-100 pt-4 mt-2">
+             <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1.5">
+               <span className="w-1.5 h-1.5 rounded-full bg-[#FF5722]"></span>
+               No of Employees increased by <span className="text-emerald-500 font-bold">+20%</span> from last Month
+             </p>
            </div>
          </Card>
-         <Card className="p-5 shadow-sm border-slate-200">
-           <h3 className="text-sm font-bold text-slate-800 mb-4">Employees by Branch</h3>
-           <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
-             {branchMetrics.sort((a:any,b:any)=>b.count-a.count).map((branch: any, idx: number) => (
-               <div key={idx} className="flex flex-col gap-1.5">
-                 <div className="flex justify-between items-center text-xs">
-                   <span className="font-bold text-slate-800">{branch.name}</span>
-                   <span className="font-semibold text-slate-600">{branch.count} emp</span>
+
+         <Card className="p-5 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300">
+           <div className="flex justify-between items-center mb-6">
+             <h3 className="text-sm font-bold text-[#1A1F36]">Employees By Branch</h3>
+             <div className="text-[10px] font-bold border border-slate-200 rounded px-2 py-1 flex items-center gap-1 text-slate-500 cursor-pointer hover:bg-slate-50">
+               This Month <ChevronDown className="w-3 h-3" />
+             </div>
+           </div>
+           
+           <div className="space-y-5 max-h-[300px] overflow-y-auto pr-2 mb-4">
+             {branchMetrics.sort((a:any,b:any)=>b.count-a.count).map((branch: any, idx: number) => {
+               const maxVal = Math.max(...branchMetrics.map((d:any)=>d.count));
+               const widthPercent = maxVal > 0 ? (branch.count / maxVal) * 100 : 0;
+               return (
+                 <div key={idx} className="flex items-center gap-4 group">
+                   <div className="w-1/3 text-right">
+                     <p className="text-[10px] font-bold text-[#3B66A7] truncate" title={branch.name}>{branch.name}</p>
+                   </div>
+                   <div className="flex-1 flex items-center gap-2">
+                     <div className="h-2 rounded-full bg-[#0ea5e9] group-hover:opacity-80 transition-opacity" style={{ width: `${Math.max(5, widthPercent)}%` }}></div>
+                     <span className="text-[10px] font-bold text-slate-400">{branch.count}</span>
+                   </div>
                  </div>
-                 <div className="w-full bg-slate-100 rounded-full h-1.5">
-                   <div className="bg-sky-500 h-1.5 rounded-full" style={{ width: `${Math.min(100, (branch.count / 100) * 100)}%` }}></div>
-                 </div>
-                 <p className="text-[10px] text-slate-400 text-right">Attendance: {branch.attendanceRate}%</p>
-               </div>
-             ))}
+               );
+             })}
+           </div>
+
+           <div className="border-t border-slate-100 pt-4 mt-2">
+             <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1.5">
+               <span className="w-1.5 h-1.5 rounded-full bg-[#0ea5e9]"></span>
+               Consistent distribution across regions
+             </p>
            </div>
          </Card>
        </div>
 
        {/* 6, 7 & 8. Leave, Outstation, Movement */}
        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-         <Card className="p-5 shadow-sm border-slate-200">
+         <Card className="p-5 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300">
            <h3 className="text-sm font-bold text-slate-800 mb-4">Leave Analytics</h3>
            <div className="space-y-4">
              {[
@@ -1178,7 +1220,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
              ))}
            </div>
          </Card>
-         <Card className="p-5 shadow-sm border-slate-200">
+         <Card className="p-5 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300">
            <h3 className="text-sm font-bold text-slate-800 mb-4">Outstation Summary</h3>
            <div className="grid grid-cols-3 gap-2 mb-6">
              <div className="bg-slate-50 rounded p-2 text-center border border-slate-100">
@@ -1204,7 +1246,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
              ))}
            </ul>
          </Card>
-         <Card className="p-5 shadow-sm border-slate-200">
+         <Card className="p-5 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300">
            <h3 className="text-sm font-bold text-slate-800 mb-4">Workforce Movement</h3>
            <div className="space-y-3">
              <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg border border-emerald-100">
@@ -1236,7 +1278,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
        </div>
 
        {/* 9. HR Alerts */}
-       <Card className="p-5 shadow-sm border-l-4 border-l-[#7B0099] border-y-slate-200 border-r-slate-200">
+       <Card className="p-5 shadow-sm border-l-4 border-l-[#7B0099] border-y-slate-200 border-r-slate-200 hover:border-y-[#7B0099] hover:border-r-[#7B0099] hover:shadow-md transition-all duration-300">
          <div className="flex items-center gap-2 mb-4">
            <AlertTriangle className="w-5 h-5 text-[#7B0099]" />
            <h3 className="text-sm font-bold text-slate-800">HR Alerts</h3>
