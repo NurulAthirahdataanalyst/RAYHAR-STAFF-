@@ -38,6 +38,7 @@ import WorkforceInsights from "./pages/hr-analytics/WorkforceInsights";
 import AttendanceReports from "./pages/reports/AttendanceReports";
 import LeaveReports from "./pages/reports/LeaveReports";
 import DepartmentReports from "./pages/reports/DepartmentReports";
+import CompanyLeaveCalendar from "./pages/CompanyLeaveCalendar";
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
@@ -59,6 +60,7 @@ function ProtectedRoutes() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/attendance" element={<Attendance />} />
+          <Route path="/attendance/company-leave" element={<CompanyLeaveCalendar />} />
 
           {/* LEAVE SYSTEM FLOW */}
           {/* 1. Dashboard Cuti & Sejarah (Image 1 anda) */}

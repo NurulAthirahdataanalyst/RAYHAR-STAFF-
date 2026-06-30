@@ -143,8 +143,8 @@ export default function AttendanceDashboard() {
 
   // ── LIVE SSE PRESENCE STATE ──────────────────────────────────────────
   const [liveStats, setLiveStats] = useState<{
-    present: number; late: number; absent: number; onLeave: number; total: number;
-  }>({ present: 0, late: 0, absent: 0, onLeave: 0, total: 0 });
+    present: number; late: number; absent: number; onLeave: number; companyLeave: number; total: number;
+  }>({ present: 0, late: 0, absent: 0, onLeave: 0, companyLeave: 0, total: 0 });
   const [liveEmployees, setLiveEmployees] = useState<Array<{
     user_id: string; full_name: string; branch: string; department: string;
     clock_in: string | null; clock_out: string | null; status: string;
@@ -867,7 +867,7 @@ export default function AttendanceDashboard() {
           </div>
 
           {/* Dense KPI Row */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 md:p-6 bg-gray-50/50">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 p-4 md:p-6 bg-gray-50/50">
             <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
               <span className="text-[13px] font-medium text-gray-500 mb-1">Total Present</span>
               <div className="flex items-baseline gap-1.5">
@@ -920,6 +920,17 @@ export default function AttendanceDashboard() {
                 </span>
                 <span className="text-[12px] font-semibold text-gray-400">
                   ({liveStats.onLeave}/{liveStats.total})
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+              <span className="text-[13px] font-medium text-gray-500 mb-1">Company Leave</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-[32px] font-bold text-gray-900 leading-none">
+                  {liveStats.total > 0 ? Math.round(((liveStats.companyLeave || 0) / liveStats.total) * 100) : 0}%
+                </span>
+                <span className="text-[12px] font-semibold text-gray-400">
+                  ({liveStats.companyLeave || 0}/{liveStats.total})
                 </span>
               </div>
             </div>

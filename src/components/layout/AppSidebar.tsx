@@ -104,6 +104,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       children: [
         { title: "Attendance Overview", icon: Clock, path: "/attendance", roles: HOD_BL_ROLES },
         { title: "Team Attendance", icon: Users, path: "/team-attendance", roles: HOD_BL_ROLES },
+        { title: "Company Leave Calendar", icon: CalendarDays, path: "/attendance/company-leave", roles: HOD_BL_ROLES },
       ],
     },
     {
@@ -157,6 +158,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       children: [
         { title: "My Attendance", icon: Clock, path: "/attendance", roles: ALL_ROLES },
         { title: "Timesheet", icon: ClipboardList, path: "/attendance/timesheet", roles: ALL_ROLES },
+        { title: "Company Leave Calendar", icon: CalendarDays, path: "/attendance/company-leave", roles: ALL_ROLES },
       ],
     },
     {

@@ -760,6 +760,28 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       );
     `);
 
+    // Auto-migrate company_leave_calendar table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS company_leave_calendar (
+        id SERIAL PRIMARY KEY,
+        leave_name VARCHAR(255) NOT NULL,
+        leave_type VARCHAR(100) NOT NULL,
+        start_date DATE NOT NULL,
+        end_date DATE NOT NULL,
+        applies_to VARCHAR(100) NOT NULL,
+        branch_id VARCHAR(50),
+        department_id VARCHAR(100),
+        is_paid BOOLEAN DEFAULT TRUE,
+        attendance_required BOOLEAN DEFAULT FALSE,
+        status VARCHAR(50) DEFAULT 'Active',
+        remarks TEXT,
+        created_by VARCHAR(100),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Auto-migration for company_leave_calendar completed.');
+
     try {
       const [roleCountRows] = await connection.query("SELECT COUNT(*) as count FROM roles");
       if (parseInt(roleCountRows[0].count) === 0) {
@@ -875,11 +897,17 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
     }
 
     // Total active employees
-    const [totalRows] = await pool.query(
-      `SELECT COUNT(*) AS total FROM profiles p WHERE p.status = 'Active' ${filterP}`,
+    const [allProfiles] = await pool.query(
+      `SELECT user_id, full_name, branch, department, role FROM profiles WHERE status = 'Active' ${filterP}`,
       paramsTotal
     );
-    const total = parseInt(totalRows[0].total) || 0;
+    const total = allProfiles.length;
+
+    // Company leaves active today
+    const [companyLeaveRows] = await pool.query(
+      `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND ?::date BETWEEN start_date AND end_date`,
+      [dateStr]
+    );
 
     // On leave today
     const leaveParams = [dateStr, ...paramsTotal];
@@ -914,27 +942,65 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
 
     const presentList = [];
     const lateList = [];
+    const leaveList = [];
+    const companyLeaveList = [];
+    const absentList = [];
 
-    for (const [uid, row] of Object.entries(clockMap)) {
-      if (onLeaveIds.has(uid)) continue;
-      const klTime = new Date(new Date(row.clock_in).getTime() + 8 * 60 * 60 * 1000);
-      const hh = klTime.getUTCHours();
-      const mm = klTime.getUTCMinutes();
-      const [lhStr, lmStr] = lateTimeStr.split(':');
-      const lh = parseInt(lhStr), lm = parseInt(lmStr);
-      const isLate = hh > lh || (hh === lh && mm > lm);
-      const lateMinutes = isLate ? (hh * 60 + mm) - (lh * 60 + lm) : 0;
-      const timeInFmt = klTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-      const timeOutFmt = row.clock_out
-        ? new Date(new Date(row.clock_out).getTime() + 8 * 60 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
-        : null;
+    for (const p of allProfiles) {
+      const uid = p.user_id;
+      // 1. Clocked In
+      if (clockMap[uid]) {
+        const row = clockMap[uid];
+        const klTime = new Date(new Date(row.clock_in).getTime() + 8 * 60 * 60 * 1000);
+        const hh = klTime.getUTCHours();
+        const mm = klTime.getUTCMinutes();
+        const [lhStr, lmStr] = lateTimeStr.split(':');
+        const lh = parseInt(lhStr), lm = parseInt(lmStr);
+        const isLate = hh > lh || (hh === lh && mm > lm);
+        const lateMinutes = isLate ? (hh * 60 + mm) - (lh * 60 + lm) : 0;
+        const timeInFmt = klTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        const timeOutFmt = row.clock_out
+          ? new Date(new Date(row.clock_out).getTime() + 8 * 60 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+          : null;
 
-      const emp = { user_id: uid, full_name: row.full_name, branch: row.branch || 'HQ', department: row.department || 'â€”', role: row.role || '', clock_in: timeInFmt, clock_out: timeOutFmt };
-      if (isLate) lateList.push({ ...emp, status: 'late', late_minutes: lateMinutes });
-      else presentList.push({ ...emp, status: 'present', late_minutes: 0 });
+        const emp = { user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', role: p.role || '', clock_in: timeInFmt, clock_out: timeOutFmt };
+        if (isLate) lateList.push({ ...emp, status: 'late', late_minutes: lateMinutes });
+        else presentList.push({ ...emp, status: 'present', late_minutes: 0 });
+      }
+      // 2. On Approved Personal Leave
+      else if (onLeaveIds.has(uid)) {
+        leaveList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'onLeave' });
+      }
+      // 3. On Company Leave
+      else {
+        const matchingLeave = companyLeaveRows.find(cl => {
+          if (cl.applies_to === 'all') return true;
+          if (cl.applies_to === 'branch' && cl.branch_id === p.branch) return true;
+          if (cl.applies_to === 'department' && cl.department_id) {
+            const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            const normClDept = cl.department_id.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            return normEmpDept === normClDept || p.department === cl.department_id;
+          }
+          return false;
+        });
+
+        if (matchingLeave) {
+          companyLeaveList.push({
+            user_id: uid,
+            full_name: p.full_name,
+            branch: p.branch || 'HQ',
+            department: p.department || '—',
+            clock_in: null,
+            clock_out: null,
+            status: 'companyLeave',
+            leave_name: matchingLeave.leave_name
+          });
+        } else {
+          // 4. Absent
+          absentList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'absent' });
+        }
+      }
     }
-
-    const absentCount = Math.max(0, total - Object.keys(clockMap).length - leaveRows.length);
 
     return {
       type: 'presence_update',
@@ -942,14 +1008,17 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
       stats: {
         present: presentList.length + lateList.length,
         late: lateList.length,
-        absent: absentCount,
-        onLeave: leaveRows.length,
+        absent: absentList.length,
+        onLeave: leaveList.length,
+        companyLeave: companyLeaveList.length,
         total
       },
       employees: [
         ...presentList,
         ...lateList,
-        ...leaveRows.map(r => ({ user_id: r.user_id, full_name: r.full_name, branch: r.branch || 'HQ', department: r.department || 'â€”', clock_in: null, clock_out: null, status: 'onLeave' }))
+        ...leaveList,
+        ...companyLeaveList,
+        ...absentList
       ]
     };
   } catch (err) {
@@ -2639,12 +2708,57 @@ app.get("/api/dashboard-stats", async (req, res) => {
         queryParams
       );
 
+      // Company Leave calculation
+      const dateForCompanyLeave = queryDate || new Date().toISOString().split('T')[0];
+      const [companyLeaveDays] = await pool.query(
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND ?::date BETWEEN start_date AND end_date`,
+        [dateForCompanyLeave]
+      );
+
+      const [allActiveProfiles] = await pool.query(
+        `SELECT user_id, branch, department FROM profiles WHERE status = 'Active' ${profileFilter}`,
+        queryParams
+      );
+
+      const [clockedInRows] = await pool.query(
+        `SELECT DISTINCT user_id FROM attendances WHERE DATE(clock_in) = ${dateCondition} ${attendanceFilter}`,
+        presentParams
+      );
+      const clockedInSet = new Set(clockedInRows.map(r => r.user_id));
+
+      const [personalLeaveRows] = await pool.query(
+        `SELECT DISTINCT user_id FROM leave_requests WHERE status = 'Approved' AND ${dateCondition} BETWEEN start_date AND end_date ${attendanceFilter}`,
+        onLeaveParams
+      );
+      const personalLeaveSet = new Set(personalLeaveRows.map(r => r.user_id));
+
+      let companyLeaveCount = 0;
+      allActiveProfiles.forEach(p => {
+        const uid = p.user_id;
+        if (!clockedInSet.has(uid) && !personalLeaveSet.has(uid)) {
+          const matchesCompanyLeave = companyLeaveDays.some(cl => {
+            if (cl.applies_to === 'all') return true;
+            if (cl.applies_to === 'branch' && cl.branch_id === p.branch) return true;
+            if (cl.applies_to === 'department' && cl.department_id) {
+              const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+              const normClDept = cl.department_id.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+              return normEmpDept === normClDept || p.department === cl.department_id;
+            }
+            return false;
+          });
+          if (matchesCompanyLeave) {
+            companyLeaveCount++;
+          }
+        }
+      });
+
       adminStats = {
         totalEmployees: parseInt(employeeRows[0].total_employees || 0),
         presentToday: parseInt(presentRows[0].present_today || 0),
         onLeave: parseInt(onLeaveRows[0].on_leave || 0),
         lateArrivals: parseInt(lateRows[0].late_arrivals || 0),
         pendingApprovals: parseInt(pendingRows[0].pending_approvals || 0),
+        companyLeave: companyLeaveCount,
       };
       globalRecentActivities = recentRows;
     }
@@ -2801,7 +2915,7 @@ app.get("/api/reports/absent-employees", async (req, res) => {
 
   try {
     let profileFilter = "";
-    let queryParams = [queryDate, queryDate];
+    let queryParams = [queryDate, queryDate, queryDate];
 
     if (role === 'branch_leader' && branch && branch !== "All") {
       profileFilter = " AND p.branch = ?";
@@ -2833,6 +2947,23 @@ app.get("/api/reports/absent-employees", async (req, res) => {
         SELECT 1 FROM leave_requests lr 
         WHERE lr.user_id = p.user_id AND lr.status = 'Approved' 
         AND ?::date BETWEEN lr.start_date AND lr.end_date
+      )
+      -- 3. Not on company holiday today
+      AND NOT EXISTS (
+        SELECT 1 FROM company_leave_calendar cl
+        WHERE cl.status = 'Active'
+        AND ?::date BETWEEN cl.start_date AND cl.end_date
+        AND (
+          cl.applies_to = 'all'
+          OR (cl.applies_to = 'branch' AND cl.branch_id = p.branch)
+          OR (
+            cl.applies_to = 'department' 
+            AND (
+              cl.department_id = p.department 
+              OR LOWER(TRIM(REPLACE(LOWER(p.department), 'department', ''))) = LOWER(TRIM(REPLACE(LOWER(cl.department_id), 'department', '')))
+            )
+          )
+        )
       )
       ${profileFilter}
       ORDER BY p.full_name ASC
@@ -4093,6 +4224,98 @@ app.get("/api/holidays", (req, res) => {
     { date: "2026-12-25", name: "Christmas Day" }
   ];
   res.json({ success: true, holidays: malaysiaHolidays });
+});
+
+// ── COMPANY LEAVE CALENDAR ENDPOINTS ─────────────────────────────────────
+app.get("/api/company-leaves", async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT * FROM company_leave_calendar ORDER BY start_date DESC`
+    );
+    res.json({ success: true, leaves: rows });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post("/api/company-leaves", async (req, res) => {
+  const {
+    leave_name,
+    leave_type,
+    start_date,
+    end_date,
+    applies_to,
+    branch_id,
+    department_id,
+    is_paid,
+    attendance_required,
+    status,
+    remarks,
+    created_by
+  } = req.body;
+
+  try {
+    const [result] = await pool.query(
+      `INSERT INTO company_leave_calendar (
+        leave_name, leave_type, start_date, end_date, applies_to,
+        branch_id, department_id, is_paid, attendance_required, status,
+        remarks, created_by
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        leave_name, leave_type, start_date, end_date, applies_to,
+        branch_id || null, department_id || null, is_paid ?? true, attendance_required ?? false, status || 'Active',
+        remarks || '', created_by || 'HR'
+      ]
+    );
+    res.json({ success: true, id: result.insertId });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.put("/api/company-leaves/:id", async (req, res) => {
+  const { id } = req.params;
+  const {
+    leave_name,
+    leave_type,
+    start_date,
+    end_date,
+    applies_to,
+    branch_id,
+    department_id,
+    is_paid,
+    attendance_required,
+    status,
+    remarks
+  } = req.body;
+
+  try {
+    await pool.query(
+      `UPDATE company_leave_calendar SET
+        leave_name = ?, leave_type = ?, start_date = ?, end_date = ?, applies_to = ?,
+        branch_id = ?, department_id = ?, is_paid = ?, attendance_required = ?, status = ?,
+        remarks = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?`,
+      [
+        leave_name, leave_type, start_date, end_date, applies_to,
+        branch_id || null, department_id || null, is_paid ?? true, attendance_required ?? false, status || 'Active',
+        remarks || '', id
+      ]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete("/api/company-leaves/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query(`DELETE FROM company_leave_calendar WHERE id = ?`, [id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // ===============================
