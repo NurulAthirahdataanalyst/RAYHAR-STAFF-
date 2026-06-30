@@ -1,5 +1,6 @@
 import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Users, Clock, AlertCircle, Building2, Calendar, Download, ChevronDown } from "lucide-react";
@@ -20,6 +21,11 @@ export default function TeamAttendance() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [dateViewMode, setDateViewMode] = useState("DAY");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setPortalTarget(document.getElementById("page-header-actions"));
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -112,22 +118,22 @@ export default function TeamAttendance() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-col md:flex-row justify-end items-start md:items-center mb-6 gap-4">
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="outline" className="text-sm font-medium border-primary/20 bg-primary/5">
-              <Building2 className="w-4 h-4 mr-2 text-primary" />
-              {role === 'hr_admin' ? 'All Branches' : userBranch || 'HQ'}
+      {portalTarget && createPortal(
+        <div className="flex flex-wrap gap-2">
+          <Badge variant="outline" className="text-xs font-semibold border-primary/20 bg-primary/5 px-3 py-1.5 flex items-center shadow-sm">
+            <Building2 className="w-3.5 h-3.5 mr-1.5 text-primary" />
+            {role === 'hr_admin' ? 'All Branches' : userBranch || 'HQ'}
+          </Badge>
+          {role === 'head_of_department' && (
+            <Badge variant="outline" className="text-xs font-semibold border-primary/20 bg-primary/5 px-3 py-1.5 flex items-center shadow-sm">
+              <Users className="w-3.5 h-3.5 mr-1.5 text-primary" />
+              {userDepartment || 'All Departments'}
             </Badge>
-            {role === 'head_of_department' && (
-              <Badge variant="outline" className="text-sm font-medium border-primary/20 bg-primary/5">
-                <Users className="w-4 h-4 mr-2 text-primary" />
-                {userDepartment || 'All Departments'}
-              </Badge>
-            )}
-          </div>
-        </div>
-
+          )}
+        </div>,
+        portalTarget
+      )}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <Card className="border-border shadow-sm">
