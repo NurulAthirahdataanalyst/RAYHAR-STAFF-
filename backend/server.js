@@ -883,7 +883,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
 
     // On leave today
     const leaveParams = [dateStr, ...paramsTotal];
-    const [realLeaveRows] = await pool.query(
+    const [leaveRows] = await pool.query(
       `SELECT DISTINCT lr.user_id, p.full_name, p.branch, p.department
        FROM leave_requests lr
        JOIN profiles p ON p.user_id = lr.user_id
@@ -1068,7 +1068,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
   );
 
   // On leave today
-  const [realLeaveRows] = await pool.query(
+  const [leaveRows] = await pool.query(
     `SELECT DISTINCT lr.user_id FROM leave_requests lr
      JOIN profiles p ON p.user_id = lr.user_id
      WHERE lr.status = 'Approved' AND ? BETWEEN lr.start_date AND lr.end_date
@@ -1722,7 +1722,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
 
 
   try {
-    const [realLeaveRows] = await pool.query("SELECT status, user_id FROM leave_requests WHERE leave_id = ?", [leaveId]);
+    const [leaveRows] = await pool.query("SELECT status, user_id FROM leave_requests WHERE leave_id = ?", [leaveId]);
     if (leaveRows.length === 0) return res.status(404).json({ success: false, error: "Leave not found" });
     
     const currentStatus = leaveRows[0].status;
@@ -2305,7 +2305,7 @@ app.get("/api/attendance-status", async (req, res) => {
     return res.status(400).json({ success: false, error: "Missing empId" });
   }
   try {
-    const [realLeaveRows] = await pool.query(`
+    const [leaveRows] = await pool.query(`
       SELECT status FROM leave_requests 
       WHERE user_id = ? AND status = 'Approved' AND CURRENT_DATE BETWEEN start_date AND end_date
     `, [empId]);
@@ -2716,7 +2716,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const attendanceRate = totalDays > 0 ? Math.round((daysPresent / totalDays) * 100) : 0;
 
     // 3. PENDING LEAVES & LEAVE BALANCE
-    const [realLeaveRows] = await pool.query(
+    const [leaveRows] = await pool.query(
       `SELECT SUM(days) AS used_days FROM leave_requests 
        WHERE user_id = ? 
        AND status != 'Rejected' 
@@ -3120,7 +3120,7 @@ app.get("/api/reports/analytics", async (req, res) => {
       [requestedYear, ...pFilterParams]
     );
 
-    const [realLeaveRows] = await pool.query(
+    const [leaveRows] = await pool.query(
       `
       SELECT
         EXTRACT(MONTH FROM lr.start_date) as month_num,
@@ -3256,7 +3256,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     const absences = Math.max(0, possibleAttendances - attRows.length);
 
     // 3. Leave Stats
-    const [realLeaveRows] = await pool.query(
+    const [leaveRows] = await pool.query(
       `SELECT lr.status, lr.start_date, lr.end_date, p.full_name as name
        FROM leave_requests lr
        JOIN profiles p ON p.user_id = lr.user_id
@@ -3352,7 +3352,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     });
 
     // Real Leave Analytics
-    const [realLeaveRows] = await pool.query(
+    const [realLeaveAnalyticsRows] = await pool.query(
       `SELECT lr.leave_type, COUNT(*) as count 
        FROM leave_requests lr
        JOIN profiles p ON p.user_id = lr.user_id
@@ -3362,7 +3362,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       pFilterParams
     );
     let realLeaveAnalytics = { annual: 0, medical: 0, emergency: 0, unpaid: 0 };
-    realLeaveRows.forEach(r => {
+    realLeaveAnalyticsRows.forEach(r => {
       const type = String(r.leave_type || '').toLowerCase();
       const count = parseInt(r.count) || 0;
       if (type.includes('annual')) realLeaveAnalytics.annual += count;
@@ -4112,6 +4112,8 @@ app.listen(PORT, "0.0.0.0", () => {
 // =================================================================
 // END OF FILE
 // =================================================================
+
+
 
 
 
