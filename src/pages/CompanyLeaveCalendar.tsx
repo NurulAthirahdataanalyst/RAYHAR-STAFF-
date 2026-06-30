@@ -11,6 +11,7 @@ import { Calendar as CalendarIcon, Plus, Trash2, Edit2, ShieldAlert } from "luci
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { API_BASE_URL } from "@/config/api";
 
 interface CompanyLeave {
   id: number;
@@ -59,7 +60,7 @@ const CompanyLeaveCalendar = () => {
   const fetchLeaves = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/company-leaves");
+      const res = await fetch(`${API_BASE_URL}/api/company-leaves`);
       const data = await res.json();
       if (data.success) {
         setLeaves(data.leaves);
@@ -108,7 +109,7 @@ const CompanyLeaveCalendar = () => {
       return;
     }
     try {
-      const url = editingId ? `/api/company-leaves/${editingId}` : "/api/company-leaves";
+      const url = editingId ? `${API_BASE_URL}/api/company-leaves/${editingId}` : `${API_BASE_URL}/api/company-leaves`;
       const method = editingId ? "PUT" : "POST";
       
       const res = await fetch(url, {
@@ -132,7 +133,7 @@ const CompanyLeaveCalendar = () => {
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this company leave?")) return;
     try {
-      const res = await fetch(`/api/company-leaves/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE_URL}/api/company-leaves/${id}`, { method: "DELETE" });
       const data = await res.json();
       if (data.success) {
         toast({ title: "Success", description: "Deleted successfully." });
