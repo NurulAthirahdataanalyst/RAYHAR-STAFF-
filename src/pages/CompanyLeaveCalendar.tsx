@@ -74,11 +74,11 @@ const CompanyLeaveCalendar = () => {
       
       const bRes = await fetch(`${API_BASE_URL}/api/branches`);
       const bData = await bRes.json();
-      if (bData.success) setBranchesList(bData.data);
+      if (bData.success) setBranchesList(bData.branches);
       
       const dRes = await fetch(`${API_BASE_URL}/api/departments`);
       const dData = await dRes.json();
-      if (dData.success) setDepartmentsList(dData.data);
+      if (dData.success) setDepartmentsList(dData.departments);
       
     } catch (error) {
       toast({ title: "Error", description: "Failed to fetch data", variant: "destructive" });
@@ -334,28 +334,28 @@ const CompanyLeaveCalendar = () => {
                 </div>
                 <div className="border rounded-md max-h-48 overflow-y-auto p-2 bg-gray-50 dark:bg-gray-900">
                   {branchesList
-                    .filter(b => (b.branch + " " + b.name).toLowerCase().includes(branchSearch.toLowerCase()))
+                    .filter(b => (b.code + " " + b.name).toLowerCase().includes(branchSearch.toLowerCase()))
                     .map(b => {
                       const selected = (formData.branch_id || '').split(',').map(s => s.trim()).filter(Boolean);
-                      const isSelected = selected.includes(b.branch);
+                      const isSelected = selected.includes(b.code);
                       return (
-                        <div key={b.branch} className="flex items-center space-x-2 py-1.5 px-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
+                        <div key={b.code} className="flex items-center space-x-2 py-1.5 px-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
                           <Checkbox 
-                            id={`branch-${b.branch}`} 
+                            id={`branch-${b.code}`} 
                             checked={isSelected}
                             onCheckedChange={(checked) => {
                               let newSelected = [...selected];
-                              if (checked) newSelected.push(b.branch);
-                              else newSelected = newSelected.filter(s => s !== b.branch);
+                              if (checked) newSelected.push(b.code);
+                              else newSelected = newSelected.filter(s => s !== b.code);
                               setFormData({ ...formData, branch_id: newSelected.join(',') });
                             }}
                           />
-                          <Label htmlFor={`branch-${b.branch}`} className="cursor-pointer flex-1">{b.branch} - {b.name || b.branch_name}</Label>
+                          <Label htmlFor={`branch-${b.code}`} className="cursor-pointer flex-1">{b.code} — {b.name}</Label>
                         </div>
                       );
                     })
                   }
-                  {branchesList.length > 0 && branchesList.filter(b => (b.branch + " " + b.name).toLowerCase().includes(branchSearch.toLowerCase())).length === 0 && (
+                  {branchesList.length > 0 && branchesList.filter(b => (b.code + " " + b.name).toLowerCase().includes(branchSearch.toLowerCase())).length === 0 && (
                     <div className="text-sm text-gray-500 text-center py-4">No branches found</div>
                   )}
                 </div>
