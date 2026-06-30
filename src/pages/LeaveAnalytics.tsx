@@ -53,6 +53,8 @@ import {
   AlertCircle,
   MoreHorizontal,
   ArrowRight,
+  Calendar,
+  Sparkles,
 } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
@@ -469,6 +471,18 @@ export default function LeaveAnalytics() {
 
   const mostCommonType = typeDistribution[0]?.name ?? "N/A";
 
+  // Calculate applications submitted in the current real-world month
+  const thisMonthCount = useMemo(() => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    return records.filter((r) => {
+      if (!r.start_date) return false;
+      const d = new Date(r.start_date);
+      return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+    }).length;
+  }, [records]);
+
   // Approved vs rejected by leave type
   const approvalByType = useMemo(() => {
     const map: Record<
@@ -698,104 +712,239 @@ export default function LeaveAnalytics() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-6">
       {/* ── LIVE PRESENCE PANEL ─────────────────────────────────────────── */}
-      <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden ring-1 ring-black/5">
-        <CardContent className="p-0">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 md:px-6 pt-4 pb-3 border-b border-gray-100 bg-white">
-            <div className="flex items-center gap-4">
-              <div className="p-2.5 bg-gradient-to-br from-[#800A7A] to-[#a855f7] rounded-xl shadow-md">
-                <CalendarCheck className="w-5 h-5 text-white" />
+      {/* ── LIVE LEAVE OVERVIEW & QUICK INSIGHTS ─────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-6 items-stretch">
+        
+        {/* Section 1: Live Leave Overview (takes 8 cols) */}
+        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden ring-1 ring-black/5 lg:col-span-8 flex flex-col justify-between">
+          <CardContent className="p-0 flex-1 flex flex-col justify-between">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 md:px-6 pt-4 pb-3 border-b border-gray-100 bg-white">
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 bg-gradient-to-br from-[#800A7A] to-[#a855f7] rounded-xl shadow-md">
+                  <CalendarCheck className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-[15px] font-black text-gray-800 uppercase tracking-wide">
+                      Live Leave Overview
+                    </h2>
+                    <span className="flex items-center gap-1.5 bg-purple-500 text-white border border-purple-400 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-widest shadow-sm shadow-purple-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                      LIVE
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 font-medium mt-1">
+                    {lastFetched
+                      ? `Updated ${lastFetched.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true })}`
+                      : `Analyzing ${filtered.length} active leaves`}
+                  </p>
+                </div>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-[15px] font-black text-gray-800 uppercase tracking-wide">
-                    Live Leave Analytics
-                  </h2>
-                  <span className="flex items-center gap-1.5 bg-purple-500 text-white border border-purple-400 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-widest shadow-sm shadow-purple-500/20">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                    LIVE
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void fetchData()}
+                  className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-8 rounded-md px-3 flex items-center gap-1.5 shadow-sm text-xs font-medium"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 text-gray-500" />
+                  <span>Refresh</span>
+                </Button>
+                <ExportDropdown
+                  onExportCSV={handleExport}
+                  onExportPDF={handleExportPDF}
+                />
+              </div>
+            </div>
+
+            {/* KPI Cards inside Live Leave Overview */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 md:p-6 bg-slate-50/30 flex-1 border-t border-gray-100">
+              
+              {/* Card 1: Total Applications */}
+              <div className="bg-white border border-gray-200/60 rounded-xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex flex-col">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    Total Applications
+                  </span>
+                  <span className="text-[32px] font-black text-gray-900 leading-none mt-1">
+                    {loading ? "—" : total}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-400 mt-2">
+                    {totalDays} total days
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 font-medium mt-1">
-                  {lastFetched
-                    ? `Updated ${lastFetched.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true })}`
-                    : `Analyzing ${filtered.length} active leaves`}
-                </p>
+                <div className="p-2 bg-purple-50 rounded-lg text-purple-600 flex items-center justify-center shrink-0">
+                  <FileText className="w-5 h-5" />
+                </div>
               </div>
+
+              {/* Card 2: Approved */}
+              <div className="bg-white border border-gray-200/60 rounded-xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex flex-col">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    Approved
+                  </span>
+                  <span className="text-[32px] font-black text-gray-900 leading-none mt-1">
+                    {loading ? "—" : approved}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-400 mt-2">
+                    {total > 0
+                      ? `${Math.round((approved / total) * 100)}% approval rate`
+                      : "No data"}
+                  </span>
+                </div>
+                <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+              </div>
+
+              {/* Card 3: Rejected */}
+              <div className="bg-white border border-gray-200/60 rounded-xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex flex-col">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    Rejected
+                  </span>
+                  <span className="text-[32px] font-black text-gray-900 leading-none mt-1">
+                    {loading ? "—" : rejected}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-400 mt-2">
+                    {total > 0
+                      ? `${Math.round((rejected / total) * 100)}% rejection rate`
+                      : "No data"}
+                  </span>
+                </div>
+                <div className="p-2 bg-rose-50 rounded-lg text-rose-600 flex items-center justify-center shrink-0">
+                  <XCircle className="w-5 h-5" />
+                </div>
+              </div>
+
+              {/* Card 4: Most Common Type */}
+              <div className="bg-white border border-gray-200/60 rounded-xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                <div className="flex flex-col min-w-0 flex-1 pr-2">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    Most Common Type
+                  </span>
+                  <span className="text-[15px] font-black text-gray-900 leading-tight mt-2 mb-1 truncate" title={mostCommonType}>
+                    {loading ? "—" : mostCommonType}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-400 mt-1">
+                    {typeDistribution[0]
+                      ? `${typeDistribution[0].value} applications`
+                      : "No data"}
+                  </span>
+                </div>
+                <div className="p-2 bg-blue-50 rounded-lg text-blue-600 flex items-center justify-center shrink-0">
+                  <Calendar className="w-5 h-5" />
+                </div>
+              </div>
+
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section 2: Quick Insights (takes 4 cols - rightmost) */}
+        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden ring-1 ring-black/5 lg:col-span-4 flex flex-col justify-between">
+          <CardContent className="p-0 flex-1 flex flex-col justify-between">
+            {/* Header */}
+            <div className="flex items-center gap-3 px-4 md:px-6 pt-5 pb-[15px] border-b border-gray-100 bg-white h-[69px]">
+              <div className="p-1.5 bg-purple-50 text-purple-600 rounded-lg">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <h2 className="text-[15px] font-black text-gray-800 uppercase tracking-wide">
+                Quick Insights
+              </h2>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => void fetchData()}
-                className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-lg px-3 flex items-center gap-1.5 shadow-sm text-xs font-medium"
-              >
-                <RefreshCw className="w-4 h-4 text-gray-500" />
-                <span>Refresh</span>
-              </Button>
-              <ExportDropdown
-                onExportCSV={handleExport}
-                onExportPDF={handleExportPDF}
-              />
-            </div>
-          </div>
+            {/* Content: 4 Columns with Progress Bars */}
+            <div className="grid grid-cols-4 gap-3 p-4 md:p-6 bg-slate-50/30 flex-1 border-t border-gray-100 items-start">
+              
+              {/* Insight 1: Approval Rate */}
+              <div className="flex flex-col h-full justify-between">
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight">
+                    Approval Rate
+                  </span>
+                  <span className="text-lg font-black text-emerald-500 leading-none mt-2">
+                    {total > 0 ? `${Math.round((approved / total) * 100)}%` : "0%"}
+                  </span>
+                </div>
+                <div className="mt-4">
+                  <span className="text-[9px] font-medium text-slate-400 leading-none">
+                    {approved} approved
+                  </span>
+                  <div className="w-full bg-slate-100 rounded-full h-1 mt-2">
+                    <div className="h-1 rounded-full bg-emerald-500" style={{ width: `${total > 0 ? (approved / total) * 100 : 0}%` }} />
+                  </div>
+                </div>
+              </div>
 
-          {/* Dense KPI Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 md:p-6 bg-gray-50/50">
-            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-              <span className="text-[13px] font-medium text-gray-500 mb-1">
-                Total Applications
-              </span>
-              <span className="text-[32px] font-bold text-gray-900 leading-none">
-                {loading ? "—" : total}
-              </span>
-              <span className="text-[11px] text-gray-400 mt-2 font-medium">
-                {totalDays} total days
-              </span>
+              {/* Insight 2: Rejection Rate */}
+              <div className="flex flex-col h-full justify-between">
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight">
+                    Rejection Rate
+                  </span>
+                  <span className="text-lg font-black text-rose-500 leading-none mt-2">
+                    {total > 0 ? `${Math.round((rejected / total) * 100)}%` : "0%"}
+                  </span>
+                </div>
+                <div className="mt-4">
+                  <span className="text-[9px] font-medium text-slate-400 leading-none">
+                    {rejected} rejected
+                  </span>
+                  <div className="w-full bg-slate-100 rounded-full h-1 mt-2">
+                    <div className="h-1 rounded-full bg-rose-500" style={{ width: `${total > 0 ? (rejected / total) * 100 : 0}%` }} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Insight 3: Pending */}
+              <div className="flex flex-col h-full justify-between">
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight">
+                    Pending
+                  </span>
+                  <span className="text-lg font-black text-amber-500 leading-none mt-2">
+                    {pending}
+                  </span>
+                </div>
+                <div className="mt-4">
+                  <span className="text-[9px] font-medium text-slate-400 leading-none">
+                    {total > 0 ? `${Math.round((pending / total) * 100)}%` : "0%"} of total
+                  </span>
+                  <div className="w-full bg-slate-100 rounded-full h-1 mt-2">
+                    <div className="h-1 rounded-full bg-amber-500" style={{ width: `${total > 0 ? (pending / total) * 100 : 0}%` }} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Insight 4: This Month */}
+              <div className="flex flex-col h-full justify-between">
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight">
+                    This Month
+                  </span>
+                  <span className="text-lg font-black text-purple-600 leading-none mt-2">
+                    {thisMonthCount}
+                  </span>
+                </div>
+                <div className="mt-4">
+                  <span className="text-[9px] font-medium text-slate-400 leading-none">
+                    Applications
+                  </span>
+                  <div className="w-full bg-slate-100 rounded-full h-1 mt-2">
+                    <div className="h-1 rounded-full bg-purple-600" style={{ width: `${total > 0 ? Math.min(100, (thisMonthCount / total) * 100) : 0}%` }} />
+                  </div>
+                </div>
+              </div>
+
             </div>
-            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-              <span className="text-[13px] font-medium text-gray-500 mb-1">
-                Approved
-              </span>
-              <span className="text-[32px] font-bold text-gray-900 leading-none">
-                {loading ? "—" : approved}
-              </span>
-              <span className="text-[11px] text-gray-400 mt-2 font-medium">
-                {total > 0
-                  ? `${Math.round((approved / total) * 100)}% approval rate`
-                  : "No data"}
-              </span>
-            </div>
-            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-              <span className="text-[13px] font-medium text-gray-500 mb-1">
-                Rejected
-              </span>
-              <span className="text-[32px] font-bold text-gray-900 leading-none">
-                {loading ? "—" : rejected}
-              </span>
-              <span className="text-[11px] text-gray-400 mt-2 font-medium">
-                {total > 0
-                  ? `${Math.round((rejected / total) * 100)}% rejection rate`
-                  : "No data"}
-              </span>
-            </div>
-            <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-              <span className="text-[13px] font-medium text-gray-500 mb-1">
-                Most Common Type
-              </span>
-              <span className="text-[20px] font-bold text-gray-900 leading-tight mt-1 mb-auto truncate">
-                {loading ? "—" : mostCommonType}
-              </span>
-              <span className="text-[11px] text-gray-400 mt-2 font-medium">
-                {typeDistribution[0]
-                  ? `${typeDistribution[0].value} applications`
-                  : "No data"}
-              </span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+      </div>
 
       {/* FILTER BAR SECTION */}
       <Card className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden mb-6">
