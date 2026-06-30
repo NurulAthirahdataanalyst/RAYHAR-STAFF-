@@ -37,6 +37,18 @@ type Holiday = {
   name: string;
 };
 
+type CompanyLeaveEvent = {
+  id: number;
+  leave_name: string;
+  start_date: string;
+  end_date: string;
+  applies_to: string;
+  branch_id: string | null;
+  department_id: string | null;
+  leave_type: string;
+  is_paid: boolean;
+};
+
 type AttendanceLog = {
   id: number;
   clock_in: string;
@@ -57,6 +69,7 @@ export default function Calendar() {
   const [notes, setNotes] = useState<PersonalNote[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [attendance, setAttendance] = useState<AttendanceLog[]>([]);
+  const [companyLeaves, setCompanyLeaves] = useState<CompanyLeaveEvent[]>([]);
   
   const [isAddEventModalOpen, setIsAddEventModalOpen] = useState(false);
   
@@ -135,6 +148,30 @@ export default function Calendar() {
       const attRes = await fetch(`${API_BASE_URL}/api/attendance/history?userId=${currentUserId}`);
       const attData = await attRes.json();
       if (attData.success) setAttendance(attData.history);
+
+      // Fetch company leaves and filter for this user
+      const clRes = await fetch(`${API_BASE_URL}/api/company-leaves`);
+      const clData = await clRes.json();
+      if (clData.success && clData.leaves) {
+        const userBranch = user?.branch || '';
+        const userDept = user?.department || '';
+        const relevant = clData.leaves.filter((cl: CompanyLeaveEvent) => {
+          if (cl.applies_to === 'all') return true;
+          if (cl.applies_to === 'branch' && cl.branch_id) {
+            return cl.branch_id.split(',').map((s: string) => s.trim()).includes(userBranch);
+          }
+          if (cl.applies_to === 'department' && cl.department_id) {
+            const depts = cl.department_id.split(',').map((s: string) => s.trim());
+            const normEmp = userDept.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            return depts.some((d: string) => {
+              const normD = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+              return normEmp === normD || userDept === d;
+            });
+          }
+          return false;
+        });
+        setCompanyLeaves(relevant);
+      }
 
     } catch (error) {
       console.error("Error fetching calendar data:", error);
@@ -526,6 +563,18 @@ export default function Calendar() {
                     </div>
                   </div>
                 )}
+                {companyLeaves.length > 0 && (
+                  <div 
+                    onClick={() => setActiveFilter(activeFilter === 'company_leave' ? null : 'company_leave')}
+                    className={`flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'company_leave' ? 'bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/30' : 'bg-green-500/5 text-green-700 dark:text-green-400 hover:bg-green-500/10'}`}>
+                    <div className="flex items-center gap-3">
+                      <span className="w-3 h-3 rounded-full bg-green-500 border border-green-600/20" /> Company Leave
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {activeFilter === 'company_leave' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
+                    </div>
+                  </div>
+                )}
                 {customCategories.map(cat => (
                   <div 
                     key={cat.id}
@@ -670,6 +719,11 @@ export default function Calendar() {
               const dayNotes = notes.filter(n => isNoteActiveOnDate(n, dayStr) && (!activeFilter || activeFilter === n.type));
               const dayHolidays = holidays.filter(h => h.date === dayStr && (!activeFilter || activeFilter === 'holiday'));
               const dayAttendance = attendance.filter(a => a.clock_in && format(new Date(a.clock_in), 'yyyy-MM-dd') === dayStr && (!activeFilter || activeFilter === 'attendance'));
+              const dayCompanyLeaves = companyLeaves.filter(cl => {
+                const start = cl.start_date?.split('T')[0] || cl.start_date;
+                const end = cl.end_date?.split('T')[0] || cl.end_date;
+                return dayStr >= start && dayStr <= end && (!activeFilter || activeFilter === 'company_leave');
+              });
               
               return (
                 <div 
@@ -688,6 +742,13 @@ export default function Calendar() {
                     {dayHolidays.map((h, idx) => (
                       <div key={`hol-${idx}`} className="px-2 py-1 rounded-[4px] bg-red-500/10 border-l-2 border-red-500 text-[11px] font-bold text-red-700 dark:text-red-400 truncate shadow-sm">
                         {h.name}
+                      </div>
+                    ))}
+
+                    {/* Company Leaves */}
+                    {dayCompanyLeaves.map((cl, idx) => (
+                      <div key={`cl-${idx}`} className="px-2 py-1 rounded-[4px] bg-green-500/10 border-l-2 border-green-500 text-[11px] font-bold text-green-700 dark:text-green-400 truncate shadow-sm" title={`${cl.leave_name} (${cl.leave_type})`}>
+                        🏢 {cl.leave_name}
                       </div>
                     ))}
                     
