@@ -783,6 +783,7 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
     await connection.query(`ALTER TABLE company_leave_calendar ALTER COLUMN branch_id TYPE TEXT`);
     await connection.query(`ALTER TABLE company_leave_calendar ALTER COLUMN department_id TYPE TEXT`);
     await connection.query(`ALTER TABLE company_leave_calendar ALTER COLUMN leave_type DROP NOT NULL`).catch(() => {});
+    await connection.query(`DELETE FROM notifications WHERE type = 'company_leave'`).catch(() => {});
     console.log('✅ Auto-migration for company_leave_calendar completed.');
 
     try {
@@ -1963,11 +1964,66 @@ app.get("/api/notifications", async (req, res) => {
   if (!user_id) return res.status(400).json({ success: false, error: "user_id required" });
 
   try {
-    const [rows] = await pool.query(
+    // 1. Get user profile details
+    const [profiles] = await pool.query(
+      `SELECT branch, department FROM profiles WHERE user_id = ?`,
+      [user_id]
+    );
+    const userProfile = profiles[0] || {};
+    const userBranch = userProfile.branch || "";
+    const userDept = userProfile.department || "";
+
+    // 2. Fetch active company leaves
+    const [leaves] = await pool.query(
+      `SELECT * FROM company_leave_calendar WHERE status = 'Active' ORDER BY start_date DESC LIMIT 50`
+    );
+
+    // 3. Filter relevant company leaves
+    const relevantLeaves = leaves.filter(cl => {
+      if (cl.applies_to === 'all') return true;
+      if (cl.applies_to === 'branch' && cl.branch_id) {
+        return cl.branch_id.split(',').map(s => s.trim()).includes(userBranch);
+      }
+      if (cl.applies_to === 'department' && cl.department_id) {
+        const depts = cl.department_id.split(',').map(s => s.trim());
+        const normEmp = userDept.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+        return depts.some(d => {
+          const normD = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          return normEmp === normD || userDept === d;
+        });
+      }
+      return false;
+    });
+
+    // 4. Map to notification-like objects in-memory
+    const companyLeaveNotifs = relevantLeaves.map(cl => {
+      const dateRange = cl.start_date === cl.end_date
+        ? new Date(cl.start_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })
+        : `${new Date(cl.start_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })} – ${new Date(cl.end_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+      return {
+        id: `cl-${cl.id}`,
+        user_id: user_id,
+        title: `🏢 Company Leave: ${cl.leave_name}`,
+        message: `${cl.leave_type || 'Company Leave'} on ${dateRange}. This is a ${cl.is_paid ? 'paid' : 'unpaid'} leave day.`,
+        type: 'company_leave',
+        is_read: false,
+        related_leave_id: cl.id,
+        created_at: cl.created_at || cl.updated_at
+      };
+    });
+
+    // 5. Fetch db notifications
+    const [dbRows] = await pool.query(
       `SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
       [user_id]
     );
-    res.json({ success: true, notifications: rows });
+
+    // 6. Combine and sort
+    const combined = [...companyLeaveNotifs, ...dbRows].sort((a, b) => {
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+    res.json({ success: true, notifications: combined });
   } catch (err) {
     console.error("Fetch Notifications Error:", err);
     res.status(500).json({ success: false, error: err.message });
@@ -4283,30 +4339,7 @@ app.post("/api/company-leaves", async (req, res) => {
     );
     const newLeaveId = result.insertId;
 
-    // Notify all affected active employees
-    try {
-      let userQuery = `SELECT user_id FROM profiles WHERE status = 'Active'`;
-      let userParams = [];
-      if (applies_to === 'branch' && branch_id) {
-        const codes = branch_id.split(',').map(s => `'${s.trim()}'`).join(',');
-        userQuery += ` AND branch IN (${codes})`;
-      } else if (applies_to === 'department' && department_id) {
-        const depts = department_id.split(',').map(s => `'${s.trim()}'`).join(',');
-        userQuery += ` AND department IN (${depts})`;
-      }
-      const [activeUsers] = await pool.query(userQuery, userParams);
-      const dateRange = start_date === end_date
-        ? new Date(start_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })
-        : `${new Date(start_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })} – ${new Date(end_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}`;
-      for (const u of activeUsers) {
-        await pool.query(
-          `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
-          [u.user_id, `🏢 Company Leave: ${leave_name}`, `${leave_type || 'Company Leave'} on ${dateRange}. This is a ${is_paid ? 'paid' : 'unpaid'} leave day.`, 'company_leave', newLeaveId]
-        );
-      }
-    } catch (notifErr) {
-      console.error('Company leave notification error:', notifErr);
-    }
+    // Dynamically generated notification will be served via GET /api/notifications
 
     res.json({ success: true, id: newLeaveId });
   } catch (err) {

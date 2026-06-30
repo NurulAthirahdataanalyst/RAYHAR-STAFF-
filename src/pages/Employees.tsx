@@ -78,10 +78,36 @@ export default function Employees() {
   const [signupRole, setSignupRole] = useState("");
   const [availableRoles, setAvailableRoles] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [branchesList, setBranchesList] = useState<any[]>([]);
+  const [departmentsList, setDepartmentsList] = useState<any[]>([]);
+  const [branchMap, setBranchMap] = useState<Record<string, string>>(BRANCH_NAMES);
 
   useEffect(() => {
     fetchRoles();
+    fetchBranchesAndDepartments();
   }, []);
+
+  const fetchBranchesAndDepartments = async () => {
+    try {
+      const bRes = await fetch(`${API_BASE_URL}/api/branches`);
+      const bData = await bRes.json();
+      if (bData.success) {
+        setBranchesList(bData.branches);
+        const newMap = { ...BRANCH_NAMES };
+        bData.branches.forEach((b: any) => {
+          newMap[b.code] = b.name;
+        });
+        setBranchMap(newMap);
+      }
+      const dRes = await fetch(`${API_BASE_URL}/api/departments`);
+      const dData = await dRes.json();
+      if (dData.success) {
+        setDepartmentsList(dData.departments);
+      }
+    } catch (error) {
+      console.error("Error fetching branches/departments:", error);
+    }
+  };
 
   const fetchRoles = async () => {
     try {
@@ -397,7 +423,7 @@ export default function Employees() {
                 <SelectItem value="All" className="text-xs font-bold">All Branches</SelectItem>
                 {uniqueBranches.map((br) => (
                   <SelectItem key={br} value={br} className="text-xs font-bold">
-                    {BRANCH_NAMES[br] || br}
+                    {branchMap[br] || br}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -939,29 +965,14 @@ export default function Employees() {
                   <SelectValue placeholder="Select Branch" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="HQ">Rayhar HQ</SelectItem>
-                  <SelectItem value="KMM">Kemaman</SelectItem>
-                  <SelectItem value="TGG">Kuala Terengganu</SelectItem>
-                  <SelectItem value="CNH">Cheneh</SelectItem>
-                  <SelectItem value="KBG">Kuala Berang</SelectItem>
-                  <SelectItem value="DGN">Dungun</SelectItem>
-                  <SelectItem value="JTH">Jertih</SelectItem>
-                  <SelectItem value="KBR">Kota Baru</SelectItem>
-                  <SelectItem value="RMP">Rompin</SelectItem>
-                  <SelectItem value="MZM">Muadzam Shah</SelectItem>
-                  <SelectItem value="SHA">Shah Alam</SelectItem>
-                  <SelectItem value="BBB">Bandar Baru Bangi</SelectItem>
-                  <SelectItem value="KUL">Kuala Lumpur</SelectItem>
-                  <SelectItem value="IPH">Ipoh</SelectItem>
-                  <SelectItem value="MJG">Manjung</SelectItem>
-                  <SelectItem value="MLK">Melaka</SelectItem>
-                  <SelectItem value="KKS">Kuala Kangsar</SelectItem>
-                  <SelectItem value="TWU">Tawau</SelectItem>
-                  <SelectItem value="SNS">Seremban</SelectItem>
-                  <SelectItem value="AOR">Alor Setar</SelectItem>
-                  <SelectItem value="BTM">Bertam</SelectItem>
-                  <SelectItem value="BTP">Batu Pahat</SelectItem>
-                  <SelectItem value="JB">Johor Bharu</SelectItem>                        
+                  {branchesList.map((b) => (
+                    <SelectItem key={b.code} value={b.code}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                  {branchesList.length === 0 && (
+                    <SelectItem value="HQ" disabled>Loading branches...</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -974,12 +985,17 @@ export default function Employees() {
                     <SelectValue placeholder="Select Department" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="IT">IT</SelectItem>
-                    <SelectItem value="HAJI/UMRAH (BHU)">HAJI/UMRAH (BHU)</SelectItem>
-                    <SelectItem value="MARKETING & MEDIA">MARKETING & MEDIA</SelectItem>
-                    <SelectItem value="OTB & DESIGN">OTB & DESIGN</SelectItem>
-                    <SelectItem value="RESERVATION & VISA">RESERVATION & VISA</SelectItem>
-                    <SelectItem value="ACCOUNT DEPARTMENT">ACCOUNT DEPARTMENT</SelectItem>
+                    {departmentsList.map((d) => {
+                      const dName = d.name || d.department_name || d;
+                      return (
+                        <SelectItem key={dName} value={dName}>
+                          {dName}
+                        </SelectItem>
+                      );
+                    })}
+                    {departmentsList.length === 0 && (
+                      <SelectItem value="IT" disabled>Loading departments...</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>

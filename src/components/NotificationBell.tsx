@@ -8,7 +8,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
 
 interface Notification {
-  id: number;
+  id: number | string;
   title: string;
   message: string;
   type: string;
@@ -31,8 +31,15 @@ export default function NotificationBell() {
       const res = await fetch(`${API_BASE_URL}/api/notifications?user_id=${user.user_id}`);
       const data = await res.json();
       if (data.success) {
-        setNotifications(data.notifications);
-        setUnreadCount(data.notifications.filter((n: Notification) => !n.is_read).length);
+        const readCompanyLeaves = JSON.parse(localStorage.getItem('readCompanyLeaves') || '[]');
+        const mapped = data.notifications.map((n: any) => {
+          if (typeof n.id === 'string' && n.id.startsWith('cl-') && readCompanyLeaves.includes(n.id)) {
+            return { ...n, is_read: true };
+          }
+          return n;
+        });
+        setNotifications(mapped);
+        setUnreadCount(mapped.filter((n: Notification) => !n.is_read).length);
       }
     } catch (err) {
       console.error("Error fetching notifications:", err);
@@ -45,8 +52,18 @@ export default function NotificationBell() {
     return () => clearInterval(interval);
   }, [user?.user_id]);
 
-  const markAsRead = async (id: number) => {
+  const markAsRead = async (id: number | string) => {
     try {
+      if (typeof id === 'string' && id.startsWith('cl-')) {
+        const readList = JSON.parse(localStorage.getItem('readCompanyLeaves') || '[]');
+        if (!readList.includes(id)) {
+          readList.push(id);
+          localStorage.setItem('readCompanyLeaves', JSON.stringify(readList));
+        }
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+        setUnreadCount(prev => Math.max(0, prev - 1));
+        return;
+      }
       await fetch(`${API_BASE_URL}/api/notifications/${id}/read`, { method: "PATCH" });
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
@@ -63,6 +80,16 @@ export default function NotificationBell() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: user.user_id })
       });
+
+      // Mark all dynamic company leave notifications as read in localStorage
+      const readList = JSON.parse(localStorage.getItem('readCompanyLeaves') || '[]');
+      notifications.forEach(n => {
+        if (typeof n.id === 'string' && n.id.startsWith('cl-') && !readList.includes(n.id)) {
+          readList.push(n.id);
+        }
+      });
+      localStorage.setItem('readCompanyLeaves', JSON.stringify(readList));
+
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
       setUnreadCount(0);
     } catch (err) {
