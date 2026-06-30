@@ -125,6 +125,10 @@ const CompanyLeaveCalendar = () => {
       toast({ title: "Error", description: "Name, start date, and end date are required.", variant: "destructive" });
       return;
     }
+    if (!formData.leave_type) {
+      toast({ title: "Error", description: "Please select a Leave Type.", variant: "destructive" });
+      return;
+    }
     if (formData.end_date < formData.start_date) {
       toast({ title: "Invalid Date", description: "End date cannot be earlier than start date.", variant: "destructive" });
       return;

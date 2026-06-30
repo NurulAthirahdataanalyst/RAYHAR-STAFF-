@@ -765,7 +765,7 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       CREATE TABLE IF NOT EXISTS company_leave_calendar (
         id SERIAL PRIMARY KEY,
         leave_name VARCHAR(255) NOT NULL,
-        leave_type VARCHAR(100) NOT NULL,
+        leave_type VARCHAR(100),
         start_date DATE NOT NULL,
         end_date DATE NOT NULL,
         applies_to VARCHAR(100) NOT NULL,
@@ -782,6 +782,7 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
     `);
     await connection.query(`ALTER TABLE company_leave_calendar ALTER COLUMN branch_id TYPE TEXT`);
     await connection.query(`ALTER TABLE company_leave_calendar ALTER COLUMN department_id TYPE TEXT`);
+    await connection.query(`ALTER TABLE company_leave_calendar ALTER COLUMN leave_type DROP NOT NULL`).catch(() => {});
     console.log('✅ Auto-migration for company_leave_calendar completed.');
 
     try {
