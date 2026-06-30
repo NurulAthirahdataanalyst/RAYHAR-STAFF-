@@ -1006,26 +1006,141 @@ export default function SettingsPage() {
           {/* SIDEBAR FOR BRANCH TAB */}
           {activeTab === "branch" && (
             <>
-              {/* Network Density Mock Visualizer */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-4">
-                <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Regional Network Density</h4>
-                <div className="aspect-video w-full rounded-2xl bg-slate-900 border border-border/30 overflow-hidden relative flex items-center justify-center">
-                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/40 via-transparent to-transparent" />
-                  <div className="relative flex flex-col items-center gap-1 opacity-80 scale-90">
-                    <div className="flex gap-4">
-                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                      <div className="w-2 h-2 rounded-full bg-amber-500" />
+              {/* Malaysia Live Map Visualizer */}
+              {(() => {
+                const getBranchCoordinates = (code: string, name: string, locationStr: string = "") => {
+                  const normCode = code.toUpperCase();
+                  const normLoc = locationStr.toLowerCase();
+                  const normName = name.toLowerCase();
+
+                  if (normCode === "HQ" || normCode === "KUL") return { x: 25.5, y: 57.5 };
+                  if (normCode === "KMM") return { x: 52, y: 46 };
+                  if (normCode === "TGG") return { x: 51, y: 29 };
+                  if (normCode === "CNH") return { x: 48, y: 48 };
+                  if (normCode === "KBG") return { x: 44, y: 33 };
+                  if (normCode === "DGN") return { x: 52, y: 36 };
+                  if (normCode === "JTH") return { x: 45, y: 21 };
+                  if (normCode === "KBR") return { x: 41, y: 17 };
+                  if (normCode === "RMP") return { x: 49, y: 65 };
+                  if (normCode === "MZM") return { x: 43, y: 62 };
+                  if (normCode === "SHA") return { x: 24, y: 58 };
+                  if (normCode === "BBB") return { x: 26, y: 60 };
+                  if (normCode === "IPH") return { x: 24, y: 36 };
+                  if (normCode === "MJG") return { x: 21, y: 39 };
+                  if (normCode === "KKS") return { x: 23, y: 30 };
+                  if (normCode === "MLK") return { x: 32, y: 72 };
+                  if (normCode === "AOR") return { x: 22, y: 20 };
+                  if (normCode === "BTM") return { x: 20, y: 27 };
+                  if (normCode === "SNS") return { x: 28, y: 64 };
+                  if (normCode === "BTP") return { x: 38, y: 79 };
+                  if (normCode === "JB") return { x: 46, y: 83 };
+                  if (normCode === "TWU") return { x: 162, y: 56 };
+
+                  if (normLoc.includes("terengganu") || normName.includes("terengganu")) {
+                    if (normLoc.includes("kemaman") || normName.includes("kemaman") || normLoc.includes("cheneh")) return { x: 50, y: 44 };
+                    if (normLoc.includes("dungun") || normName.includes("dungun")) return { x: 51, y: 36 };
+                    if (normLoc.includes("kuala berang") || normName.includes("kuala berang")) return { x: 44, y: 33 };
+                    if (normLoc.includes("jertih") || normName.includes("jertih") || normLoc.includes("besut")) return { x: 45, y: 21 };
+                    return { x: 51, y: 29 };
+                  }
+                  if (normLoc.includes("kelantan") || normLoc.includes("kota bharu") || normName.includes("kelantan")) return { x: 41, y: 17 };
+                  if (normLoc.includes("kedah") || normLoc.includes("alor setar") || normName.includes("kedah")) return { x: 22, y: 20 };
+                  if (normLoc.includes("perlis") || normName.includes("perlis")) return { x: 21, y: 15 };
+                  if (normLoc.includes("penang") || normLoc.includes("pulau pinang") || normLoc.includes("bertam") || normName.includes("penang")) return { x: 20, y: 27 };
+                  if (normLoc.includes("perak") || normLoc.includes("ipoh") || normLoc.includes("manjung") || normName.includes("perak")) {
+                    if (normLoc.includes("manjung")) return { x: 21, y: 39 };
+                    if (normLoc.includes("kangsar")) return { x: 23, y: 30 };
+                    return { x: 24, y: 36 };
+                  }
+                  if (normLoc.includes("selangor") || normLoc.includes("bangi") || normLoc.includes("shah alam") || normLoc.includes("gombak") || normName.includes("selangor")) {
+                    if (normLoc.includes("bangi")) return { x: 26, y: 60 };
+                    if (normLoc.includes("gombak")) return { x: 25, y: 55 };
+                    return { x: 24, y: 58 };
+                  }
+                  if (normLoc.includes("kuala lumpur") || normName.includes("kuala lumpur")) return { x: 25.5, y: 57.5 };
+                  if (normLoc.includes("negeri sembilan") || normLoc.includes("seremban") || normName.includes("negeri sembilan")) return { x: 28, y: 64 };
+                  if (normLoc.includes("melaka") || normLoc.includes("malacca") || normName.includes("melaka")) return { x: 32, y: 72 };
+                  if (normLoc.includes("johor") || normLoc.includes("batu pahat") || normLoc.includes("johor bahru") || normName.includes("johor")) {
+                    if (normLoc.includes("batu pahat")) return { x: 38, y: 79 };
+                    return { x: 46, y: 83 };
+                  }
+                  if (normLoc.includes("pahang") || normLoc.includes("rompin") || normLoc.includes("muadzam") || normName.includes("pahang")) {
+                    if (normLoc.includes("muadzam")) return { x: 43, y: 62 };
+                    return { x: 49, y: 65 };
+                  }
+                  if (normLoc.includes("sabah") || normLoc.includes("tawau") || normLoc.includes("kota kinabalu") || normName.includes("sabah")) return { x: 162, y: 56 };
+                  if (normLoc.includes("sarawak") || normLoc.includes("kuching") || normName.includes("sarawak")) return { x: 80, y: 82 };
+
+                  return { x: 25.5, y: 57.5 };
+                };
+
+                return (
+                  <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-4">
+                    <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest font-sans">Malaysia Network Coverage</h4>
+                    <div className="w-full aspect-[2/1] rounded-2xl bg-[#090D1A] border border-border/30 overflow-hidden relative p-4 flex flex-col justify-between shadow-inner">
+                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-950/20 via-transparent to-transparent" />
+                      
+                      {/* SVG Map of Malaysia */}
+                      <svg className="w-full h-full text-slate-800 dark:text-slate-800/40" viewBox="0 0 200 100" fill="none" stroke="currentColor" strokeWidth="0.8">
+                        <defs>
+                          <pattern id="map-grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                            <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
+                          </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#map-grid)" stroke="none" />
+
+                        {/* Peninsular Malaysia Outline */}
+                        <path
+                          d="M 25 15 L 45 15 L 52 28 L 54 48 L 52 68 L 46 84 L 38 80 L 32 72 L 28 66 L 24 55 L 21 38 L 20 28 L 22 20 Z"
+                          fill="rgba(123, 0, 153, 0.08)"
+                          stroke="rgba(123, 0, 153, 0.4)"
+                          strokeWidth="1"
+                          className="transition-all duration-300 hover:fill-rgba(123, 0, 153, 0.15)"
+                        />
+
+                        {/* East Malaysia Outline */}
+                        <path
+                          d="M 80 82 L 92 78 L 102 70 L 115 62 L 125 54 L 132 46 L 142 36 L 152 25 L 165 34 L 168 46 L 162 56 L 138 58 L 115 72 L 92 84 Z"
+                          fill="rgba(123, 0, 153, 0.08)"
+                          stroke="rgba(123, 0, 153, 0.4)"
+                          strokeWidth="1"
+                          className="transition-all duration-300 hover:fill-rgba(123, 0, 153, 0.15)"
+                        />
+
+                        {/* Dotted separator or scale indication */}
+                        <path d="M 70 20 L 70 80" stroke="rgba(255,255,255,0.05)" strokeDasharray="3,3" />
+                      </svg>
+
+                      {/* Branch Pointers/Markers */}
+                      <div className="absolute inset-0 pointer-events-none">
+                        {branches.map((b) => {
+                          const coords = getBranchCoordinates(b.code, b.name, b.location);
+                          return (
+                            <div 
+                              key={b.code}
+                              style={{ left: `${coords.x}%`, top: `${coords.y}%` }}
+                              className="absolute w-3 h-3 -translate-x-1/2 -translate-y-1/2 pointer-events-auto group/marker cursor-pointer"
+                            >
+                              {/* Inner glowing dot */}
+                              <span className="absolute inset-0 rounded-full bg-emerald-400 opacity-75 shadow-[0_0_8px_rgba(52,211,153,0.8)] filter drop-shadow-[0_0_2px_emerald-500]" />
+                              {/* Outer pulse animation */}
+                              <span className="absolute -inset-1 rounded-full bg-emerald-400/30 animate-ping duration-1000" />
+                              
+                              {/* Tooltip */}
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[150px] bg-slate-950/90 text-white text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md border border-white/10 opacity-0 group-hover/marker:opacity-100 transition-opacity duration-200 pointer-events-none shadow-xl z-50 flex flex-col items-center">
+                                <span className="text-emerald-400 mb-0.5">{b.name}</span>
+                                <span className="text-[7px] text-white/50">{b.code} • {b.location || 'Branch Office'}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <span className="absolute bottom-2 right-3 text-[7px] font-black text-white/30 uppercase tracking-widest pointer-events-none">Malaysia Live Map</span>
                     </div>
-                    <div className="w-16 h-[1px] bg-white/20 my-1 rotate-12" />
-                    <div className="flex gap-4">
-                      <div className="w-2.5 h-2.5 rounded-full bg-purple-500" />
-                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                    </div>
-                  </div>
-                  <span className="absolute bottom-2 right-3 text-[7px] font-black text-white/30 uppercase tracking-widest">Live Map View</span>
-                </div>
-              </Card>
+                  </Card>
+                );
+              })()}
 
               {/* Recent Clusters */}
               <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-4">
