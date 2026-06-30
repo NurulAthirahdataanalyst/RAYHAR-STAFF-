@@ -4281,7 +4281,34 @@ app.post("/api/company-leaves", async (req, res) => {
         remarks || '', created_by || 'HR'
       ]
     );
-    res.json({ success: true, id: result.insertId });
+    const newLeaveId = result.insertId;
+
+    // Notify all affected active employees
+    try {
+      let userQuery = `SELECT user_id FROM profiles WHERE status = 'Active'`;
+      let userParams = [];
+      if (applies_to === 'branch' && branch_id) {
+        const codes = branch_id.split(',').map(s => `'${s.trim()}'`).join(',');
+        userQuery += ` AND branch IN (${codes})`;
+      } else if (applies_to === 'department' && department_id) {
+        const depts = department_id.split(',').map(s => `'${s.trim()}'`).join(',');
+        userQuery += ` AND department IN (${depts})`;
+      }
+      const [activeUsers] = await pool.query(userQuery, userParams);
+      const dateRange = start_date === end_date
+        ? new Date(start_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })
+        : `${new Date(start_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })} – ${new Date(end_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+      for (const u of activeUsers) {
+        await pool.query(
+          `INSERT INTO notifications (user_id, title, message, type, related_leave_id) VALUES (?, ?, ?, ?, ?)`,
+          [u.user_id, `🏢 Company Leave: ${leave_name}`, `${leave_type || 'Company Leave'} on ${dateRange}. This is a ${is_paid ? 'paid' : 'unpaid'} leave day.`, 'company_leave', newLeaveId]
+        );
+      }
+    } catch (notifErr) {
+      console.error('Company leave notification error:', notifErr);
+    }
+
+    res.json({ success: true, id: newLeaveId });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

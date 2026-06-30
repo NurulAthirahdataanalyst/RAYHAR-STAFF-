@@ -84,6 +84,7 @@ export default function Calendar() {
   const [eventDescription, setEventDescription] = useState("");
   const [eventType, setEventType] = useState("reminder");
   const [selectedEvent, setSelectedEvent] = useState<PersonalNote | null>(null);
+  const [selectedCompanyLeave, setSelectedCompanyLeave] = useState<CompanyLeaveEvent | null>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   // Custom Categories State
@@ -747,7 +748,12 @@ export default function Calendar() {
 
                     {/* Company Leaves */}
                     {dayCompanyLeaves.map((cl, idx) => (
-                      <div key={`cl-${idx}`} className="px-2 py-1 rounded-[4px] bg-green-500/10 border-l-2 border-green-500 text-[11px] font-bold text-green-700 dark:text-green-400 truncate shadow-sm" title={`${cl.leave_name} (${cl.leave_type})`}>
+                      <div
+                        key={`cl-${idx}`}
+                        onClick={() => setSelectedCompanyLeave(cl)}
+                        className="px-2 py-1 rounded-[4px] bg-green-500/10 border-l-2 border-green-500 text-[11px] font-bold text-green-700 dark:text-green-400 truncate shadow-sm cursor-pointer hover:bg-green-500/20 transition-colors"
+                        title={`${cl.leave_name} (${cl.leave_type})`}
+                      >
                         🏢 {cl.leave_name}
                       </div>
                     ))}
@@ -1178,6 +1184,96 @@ export default function Calendar() {
                   Delete
                 </Button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Company Leave Detail Modal */}
+      {selectedCompanyLeave && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setSelectedCompanyLeave(null)}>
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="bg-gradient-to-r from-green-600 to-emerald-500 px-6 py-5">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-2xl">🏢</span>
+                    <span className="text-xs font-semibold text-green-100 uppercase tracking-wide bg-white/20 px-2 py-0.5 rounded-full">
+                      {selectedCompanyLeave.leave_type || 'Company Leave'}
+                    </span>
+                  </div>
+                  <h2 className="text-xl font-bold text-white">{selectedCompanyLeave.leave_name}</h2>
+                </div>
+                <button onClick={() => setSelectedCompanyLeave(null)} className="text-white/70 hover:text-white transition-colors mt-1">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="px-6 py-5 space-y-4">
+              {/* Date Range */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
+                  <CalendarIcon className="w-4 h-4 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Date</p>
+                  {(() => {
+                    const start = selectedCompanyLeave.start_date?.split('T')[0];
+                    const end = selectedCompanyLeave.end_date?.split('T')[0];
+                    const startD = new Date(start);
+                    const endD = new Date(end);
+                    const totalDays = Math.round((endD.getTime() - startD.getTime()) / (1000*60*60*24)) + 1;
+                    const fmt = (d: Date) => d.toLocaleDateString('en-MY', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+                    return (
+                      <div>
+                        <p className="font-semibold text-foreground">
+                          {start === end ? fmt(startD) : `${fmt(startD)} – ${fmt(endD)}`}
+                        </p>
+                        <p className="text-sm text-green-600 dark:text-green-400 font-medium mt-0.5">
+                          {totalDays} day{totalDays !== 1 ? 's' : ''} leave
+                        </p>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Applies To */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
+                  <span className="text-green-600 text-sm">👥</span>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Applies To</p>
+                  <p className="font-semibold text-foreground capitalize">
+                    {selectedCompanyLeave.applies_to === 'all' ? 'All Staff' :
+                     selectedCompanyLeave.applies_to === 'branch' ? `Branch: ${selectedCompanyLeave.branch_id}` :
+                     `Department: ${selectedCompanyLeave.department_id}`}
+                  </p>
+                </div>
+              </div>
+
+              {/* Paid / Unpaid */}
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
+                  <span className="text-green-600 text-sm">💰</span>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Leave Pay</p>
+                  <span className={`inline-flex items-center gap-1 text-sm font-semibold px-2.5 py-0.5 rounded-full ${selectedCompanyLeave.is_paid ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+                    {selectedCompanyLeave.is_paid ? '✓ Paid Leave' : '✗ Unpaid Leave'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 pb-5">
+              <Button onClick={() => setSelectedCompanyLeave(null)} className="w-full bg-green-600 hover:bg-green-700 text-white">
+                Close
+              </Button>
             </div>
           </div>
         </div>
