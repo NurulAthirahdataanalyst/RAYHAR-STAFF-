@@ -769,8 +769,8 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
         start_date DATE NOT NULL,
         end_date DATE NOT NULL,
         applies_to VARCHAR(100) NOT NULL,
-        branch_id VARCHAR(50),
-        department_id VARCHAR(100),
+        branch_id TEXT,
+        department_id TEXT,
         is_paid BOOLEAN DEFAULT TRUE,
         attendance_required BOOLEAN DEFAULT FALSE,
         status VARCHAR(50) DEFAULT 'Active',
@@ -780,6 +780,8 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
+    await connection.query(`ALTER TABLE company_leave_calendar ALTER COLUMN branch_id TYPE TEXT`);
+    await connection.query(`ALTER TABLE company_leave_calendar ALTER COLUMN department_id TYPE TEXT`);
     console.log('✅ Auto-migration for company_leave_calendar completed.');
 
     try {
@@ -975,11 +977,16 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
       else {
         const matchingLeave = companyLeaveRows.find(cl => {
           if (cl.applies_to === 'all') return true;
-          if (cl.applies_to === 'branch' && cl.branch_id === p.branch) return true;
+          if (cl.applies_to === 'branch' && cl.branch_id) {
+            return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+          }
           if (cl.applies_to === 'department' && cl.department_id) {
+            const depts = cl.department_id.split(',').map(s => s.trim());
             const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
-            const normClDept = cl.department_id.toLowerCase().replace(/\bdepartment\b/g, '').trim();
-            return normEmpDept === normClDept || p.department === cl.department_id;
+            return depts.some(d => {
+              const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+              return normEmpDept === normClDept || p.department === d;
+            });
           }
           return false;
         });
@@ -2738,11 +2745,16 @@ app.get("/api/dashboard-stats", async (req, res) => {
         if (!clockedInSet.has(uid) && !personalLeaveSet.has(uid)) {
           const matchesCompanyLeave = companyLeaveDays.some(cl => {
             if (cl.applies_to === 'all') return true;
-            if (cl.applies_to === 'branch' && cl.branch_id === p.branch) return true;
+            if (cl.applies_to === 'branch' && cl.branch_id) {
+              return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+            }
             if (cl.applies_to === 'department' && cl.department_id) {
+              const depts = cl.department_id.split(',').map(s => s.trim());
               const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
-              const normClDept = cl.department_id.toLowerCase().replace(/\bdepartment\b/g, '').trim();
-              return normEmpDept === normClDept || p.department === cl.department_id;
+              return depts.some(d => {
+                const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+                return normEmpDept === normClDept || p.department === d;
+              });
             }
             return false;
           });
@@ -2955,12 +2967,13 @@ app.get("/api/reports/absent-employees", async (req, res) => {
         AND ?::date BETWEEN cl.start_date AND cl.end_date
         AND (
           cl.applies_to = 'all'
-          OR (cl.applies_to = 'branch' AND cl.branch_id = p.branch)
+          OR (cl.applies_to = 'branch' AND p.branch = ANY(string_to_array(cl.branch_id, ',')))
           OR (
             cl.applies_to = 'department' 
-            AND (
-              cl.department_id = p.department 
-              OR LOWER(TRIM(REPLACE(LOWER(p.department), 'department', ''))) = LOWER(TRIM(REPLACE(LOWER(cl.department_id), 'department', '')))
+            AND EXISTS (
+              SELECT 1 FROM unnest(string_to_array(cl.department_id, ',')) AS d
+              WHERE d = p.department 
+                 OR LOWER(TRIM(REPLACE(LOWER(p.department), 'department', ''))) = LOWER(TRIM(REPLACE(LOWER(d), 'department', '')))
             )
           )
         )

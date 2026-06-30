@@ -11,6 +11,8 @@ import { Calendar as CalendarIcon, Plus, Trash2, Edit2, ShieldAlert } from "luci
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Search } from "lucide-react";
 import { API_BASE_URL } from "@/config/api";
 
 interface CompanyLeave {
@@ -35,6 +37,8 @@ const CompanyLeaveCalendar = () => {
   const { toast } = useToast();
   
   const [leaves, setLeaves] = useState<CompanyLeave[]>([]);
+  const [branchesList, setBranchesList] = useState<any[]>([]);
+  const [departmentsList, setDepartmentsList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   // Only hr_admin gets CRUD access. Others view only.
@@ -42,6 +46,8 @@ const CompanyLeaveCalendar = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [branchSearch, setBranchSearch] = useState('');
+  const [deptSearch, setDeptSearch] = useState('');
   
   const [formData, setFormData] = useState<Partial<CompanyLeave>>({
     leave_name: '',
@@ -65,8 +71,17 @@ const CompanyLeaveCalendar = () => {
       if (data.success) {
         setLeaves(data.leaves);
       }
+      
+      const bRes = await fetch(`${API_BASE_URL}/api/branches`);
+      const bData = await bRes.json();
+      if (bData.success) setBranchesList(bData.data);
+      
+      const dRes = await fetch(`${API_BASE_URL}/api/departments`);
+      const dData = await dRes.json();
+      if (dData.success) setDepartmentsList(dData.data);
+      
     } catch (error) {
-      toast({ title: "Error", description: "Failed to fetch company leaves", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to fetch data", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -100,6 +115,8 @@ const CompanyLeaveCalendar = () => {
         remarks: ''
       });
     }
+    setBranchSearch('');
+    setDeptSearch('');
     setIsDialogOpen(true);
   };
 
@@ -148,10 +165,6 @@ const CompanyLeaveCalendar = () => {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-        title="Company Leave Calendar" 
-        description="View and manage organization-wide holidays and special leaves."
-      />
 
       {!isHR && (
         <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 p-4 rounded-lg flex items-start gap-3 border border-blue-200 dark:border-blue-800">
@@ -309,23 +322,100 @@ const CompanyLeaveCalendar = () => {
 
             {formData.applies_to === 'branch' && (
               <div className="grid gap-2">
-                <Label>Branch ID</Label>
-                <Input 
-                  value={formData.branch_id || ''} 
-                  onChange={(e) => setFormData({ ...formData, branch_id: e.target.value })} 
-                  placeholder="e.g. B001"
-                />
+                <Label>Select Branches</Label>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                  <Input 
+                    value={branchSearch} 
+                    onChange={(e) => setBranchSearch(e.target.value)} 
+                    placeholder="Search branch name or code..."
+                    className="pl-9"
+                  />
+                </div>
+                <div className="border rounded-md max-h-48 overflow-y-auto p-2 bg-gray-50 dark:bg-gray-900">
+                  {branchesList
+                    .filter(b => (b.branch + " " + b.name).toLowerCase().includes(branchSearch.toLowerCase()))
+                    .map(b => {
+                      const selected = (formData.branch_id || '').split(',').map(s => s.trim()).filter(Boolean);
+                      const isSelected = selected.includes(b.branch);
+                      return (
+                        <div key={b.branch} className="flex items-center space-x-2 py-1.5 px-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
+                          <Checkbox 
+                            id={`branch-${b.branch}`} 
+                            checked={isSelected}
+                            onCheckedChange={(checked) => {
+                              let newSelected = [...selected];
+                              if (checked) newSelected.push(b.branch);
+                              else newSelected = newSelected.filter(s => s !== b.branch);
+                              setFormData({ ...formData, branch_id: newSelected.join(',') });
+                            }}
+                          />
+                          <Label htmlFor={`branch-${b.branch}`} className="cursor-pointer flex-1">{b.branch} - {b.name || b.branch_name}</Label>
+                        </div>
+                      );
+                    })
+                  }
+                  {branchesList.length > 0 && branchesList.filter(b => (b.branch + " " + b.name).toLowerCase().includes(branchSearch.toLowerCase())).length === 0 && (
+                    <div className="text-sm text-gray-500 text-center py-4">No branches found</div>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {(formData.branch_id || '').split(',').filter(Boolean).map(code => (
+                    <Badge key={code} variant="secondary" className="text-xs">
+                      {code}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             )}
 
             {formData.applies_to === 'department' && (
               <div className="grid gap-2">
-                <Label>Department Name</Label>
-                <Input 
-                  value={formData.department_id || ''} 
-                  onChange={(e) => setFormData({ ...formData, department_id: e.target.value })} 
-                  placeholder="e.g. IT Department"
-                />
+                <Label>Select Departments</Label>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                  <Input 
+                    value={deptSearch} 
+                    onChange={(e) => setDeptSearch(e.target.value)} 
+                    placeholder="Search department..."
+                    className="pl-9"
+                  />
+                </div>
+                <div className="border rounded-md max-h-48 overflow-y-auto p-2 bg-gray-50 dark:bg-gray-900">
+                  {departmentsList
+                    .filter(d => (d.name || d.department_name || d).toLowerCase().includes(deptSearch.toLowerCase()))
+                    .map(deptObj => {
+                      const d = deptObj.name || deptObj.department_name || deptObj;
+                      const selected = (formData.department_id || '').split(',').map(s => s.trim()).filter(Boolean);
+                      const isSelected = selected.includes(d);
+                      return (
+                        <div key={d} className="flex items-center space-x-2 py-1.5 px-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
+                          <Checkbox 
+                            id={`dept-${d}`} 
+                            checked={isSelected}
+                            onCheckedChange={(checked) => {
+                              let newSelected = [...selected];
+                              if (checked) newSelected.push(d);
+                              else newSelected = newSelected.filter(s => s !== d);
+                              setFormData({ ...formData, department_id: newSelected.join(',') });
+                            }}
+                          />
+                          <Label htmlFor={`dept-${d}`} className="cursor-pointer flex-1">{d}</Label>
+                        </div>
+                      );
+                    })
+                  }
+                  {departmentsList.length > 0 && departmentsList.filter(d => (d.name || d.department_name || d).toLowerCase().includes(deptSearch.toLowerCase())).length === 0 && (
+                    <div className="text-sm text-gray-500 text-center py-4">No departments found</div>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {(formData.department_id || '').split(',').filter(Boolean).map(name => (
+                    <Badge key={name} variant="secondary" className="text-xs">
+                      {name}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             )}
 
