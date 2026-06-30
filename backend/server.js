@@ -1,4 +1,4 @@
-﻿const dotenv = require("dotenv");
+const dotenv = require("dotenv");
 dotenv.config();
 
 const express = require("express");
@@ -3337,18 +3337,12 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       pFilterParams
     );
 
-        // Real Branch Attendance Map for TODAY
-    const branchAttendanceMap = {};
-    const currentTodayStr = new Date(new Date().getTime() + 8*3600*1000).toISOString().split('T')[0];
-    
+        // Real Branch Attendance Map for MONTH (entire month)
+    const branchMonthlyAttendance = {};
     attRows.forEach(a => {
-      const dateObj = new Date(a.clock_in);
-      const rowDateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
-      if (rowDateStr === currentTodayStr) {
-        const b = a.branch || 'HQ';
-        if (!branchAttendanceMap[b]) branchAttendanceMap[b] = 0;
-        branchAttendanceMap[b]++;
-      }
+      const b = a.branch || 'HQ';
+      if (!branchMonthlyAttendance[b]) branchMonthlyAttendance[b] = 0;
+      branchMonthlyAttendance[b]++;
     });
 
     // Real Leave Analytics
@@ -3383,8 +3377,11 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       },
       branchMetrics: branchRows.map(r => {
         const total = parseInt(r.count || 0);
-        const present = branchAttendanceMap[r.branch] || 0;
-        const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+        const monthlyPresent = branchMonthlyAttendance[r.branch] || 0;
+        const possibleBranchAttendances = total * workingDaysInMonth;
+        const rate = possibleBranchAttendances > 0 
+          ? Math.round((monthlyPresent / possibleBranchAttendances) * 100) 
+          : 0;
         return {
           name: r.branch, 
           count: total, 
