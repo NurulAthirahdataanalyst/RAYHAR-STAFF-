@@ -862,19 +862,6 @@ export default function AttendanceDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className="relative inline-flex">
-                <input 
-                  type="date" 
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <Button variant="outline" size="sm" className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-9 rounded-lg px-3 flex items-center gap-1.5 shadow-sm text-xs font-medium pointer-events-none">
-                  <Calendar className="w-4 h-4 text-gray-500" />
-                  <span>{`${new Date(selectedDate).getDate()}/${new Date(selectedDate).getMonth() + 1}/${new Date(selectedDate).getFullYear()}`}</span>
-                </Button>
-              </div>
-              
               <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
             </div>
           </div>
@@ -883,33 +870,58 @@ export default function AttendanceDashboard() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 md:p-6 bg-gray-50/50">
             <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
               <span className="text-[13px] font-medium text-gray-500 mb-1">Total Present</span>
-              <span className="text-[32px] font-bold text-gray-900 leading-none">
-                {liveStats.total > 0 ? Math.round((liveStats.present / liveStats.total) * 100) : 0}%
-              </span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-[32px] font-bold text-gray-900 leading-none">
+                  {liveStats.total > 0 ? Math.round((liveStats.present / liveStats.total) * 100) : 0}%
+                </span>
+                <span className="text-[12px] font-semibold text-gray-400">
+                  ({liveStats.present}/{liveStats.total})
+                </span>
+              </div>
             </div>
             <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
               <span className="text-[13px] font-medium text-gray-500 mb-1">Present (On Time)</span>
-              <span className="text-[32px] font-bold text-gray-900 leading-none">
-                {liveStats.total > 0 ? Math.round(((liveStats.present - liveStats.late) / liveStats.total) * 100) : 0}%
-              </span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-[32px] font-bold text-gray-900 leading-none">
+                  {liveStats.total > 0 ? Math.round(((liveStats.present - liveStats.late) / liveStats.total) * 100) : 0}%
+                </span>
+                <span className="text-[12px] font-semibold text-gray-400">
+                  ({Math.max(0, liveStats.present - liveStats.late)}/{liveStats.total})
+                </span>
+              </div>
             </div>
             <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
               <span className="text-[13px] font-medium text-gray-500 mb-1">Present (Late)</span>
-              <span className="text-[32px] font-bold text-gray-900 leading-none">
-                {liveStats.total > 0 ? Math.round((liveStats.late / liveStats.total) * 100) : 0}%
-              </span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-[32px] font-bold text-gray-900 leading-none">
+                  {liveStats.total > 0 ? Math.round((liveStats.late / liveStats.total) * 100) : 0}%
+                </span>
+                <span className="text-[12px] font-semibold text-gray-400">
+                  ({liveStats.late}/{liveStats.total})
+                </span>
+              </div>
             </div>
             <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
               <span className="text-[13px] font-medium text-gray-500 mb-1">Absent</span>
-              <span className="text-[32px] font-bold text-gray-900 leading-none">
-                {liveStats.total > 0 ? Math.round((liveStats.absent / liveStats.total) * 100) : 0}%
-              </span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-[32px] font-bold text-gray-900 leading-none">
+                  {liveStats.total > 0 ? Math.round((liveStats.absent / liveStats.total) * 100) : 0}%
+                </span>
+                <span className="text-[12px] font-semibold text-gray-400">
+                  ({liveStats.absent}/{liveStats.total})
+                </span>
+              </div>
             </div>
             <div className="flex flex-col bg-white border border-gray-200 rounded-[10px] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
               <span className="text-[13px] font-medium text-gray-500 mb-1">Leave</span>
-              <span className="text-[32px] font-bold text-gray-900 leading-none">
-                {liveStats.total > 0 ? Math.round((liveStats.onLeave / liveStats.total) * 100) : 0}%
-              </span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-[32px] font-bold text-gray-900 leading-none">
+                  {liveStats.total > 0 ? Math.round((liveStats.onLeave / liveStats.total) * 100) : 0}%
+                </span>
+                <span className="text-[12px] font-semibold text-gray-400">
+                  ({liveStats.onLeave}/{liveStats.total})
+                </span>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -977,16 +989,6 @@ export default function AttendanceDashboard() {
                 </SelectContent>
               </Select>
 
-              {/* Sort By */}
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[140px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
-                  <SelectValue placeholder="Sort By" />
-                </SelectTrigger>
-                <SelectContent className="rounded-md">
-                  <SelectItem value="last7">Sort By : Last 7 Days</SelectItem>
-                  <SelectItem value="name">Sort By : Name</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
       </Card>
@@ -1301,7 +1303,7 @@ export default function AttendanceDashboard() {
               <CardTitle className="text-[16px] font-semibold text-gray-900">Branch Workforce Distribution</CardTitle>
             </div>
             <Select value={liveRegion} onValueChange={setLiveRegion}>
-              <SelectTrigger className="w-[150px] h-8 text-[11px] font-bold border-gray-200 bg-white shadow-none focus:ring-0">
+              <SelectTrigger className="w-[200px] h-8 text-[11px] font-bold border-gray-200 bg-white shadow-none focus:ring-0">
                 <SelectValue placeholder="All Regions" />
               </SelectTrigger>
               <SelectContent>
