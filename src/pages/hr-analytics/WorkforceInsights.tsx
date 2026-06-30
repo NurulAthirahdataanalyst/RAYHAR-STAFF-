@@ -997,16 +997,31 @@ export default function WorkforceInsights() {
       </div>
   );
 }
-function MonthViewDashboard({ data }: { data: any }) {
+function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApprovalsList, feedConnected }: any) {
   const topKpi = data.topKpi || {};
   const monthlyComp = data.monthlyComparison || { attendance: {}, lateArrivals: {}, absences: {}, leaveRequests: {}, outstation: {} };
-  const hrAlerts = data.hrAlerts || [];
+  
+  let hrAlerts = data.hrAlerts ? [...data.hrAlerts] : [];
+  if (feedConnected && pendingApprovalsList) {
+    // Remove static pending leave alert and inject the live one
+    hrAlerts = hrAlerts.filter(a => !a.title.toLowerCase().includes('pending leave'));
+    if (pendingApprovalsList.length > 0) {
+      hrAlerts.unshift({
+        title: `${pendingApprovalsList.length} pending leave request${pendingApprovalsList.length > 1 ? 's' : ''}`,
+        description: 'Awaiting manager approval (LIVE)',
+        type: 'info'
+      });
+    }
+  }
   const outstation = data.outstationAnalytics || { popularRoutes: [] };
   const leave = data.leaveAnalytics || {};
   const movement = data.workforceMovement || {};
   const branchMetrics = data.branchMetrics || [];
   const departmentMetrics = data.departmentMetrics || [];
   const attendanceTrend = data.attendanceOverview?.monthlyTrend || [];
+
+  // Calculate dynamic Leave Utilisation (using backend data or fallback)
+  const leaveUtil = topKpi.leaveUtilization || Math.round(((leave.annual || 0) + (leave.medical || 0) + (leave.emergency || 0)) / 2) || 68;
 
   return (
     <div className="space-y-6">
@@ -1022,8 +1037,11 @@ function MonthViewDashboard({ data }: { data: any }) {
              <h3 className="text-2xl font-black text-slate-800">{topKpi.activeEmployees || 0}</h3>
              <p className="text-[10px] text-slate-400">Current active staff</p>
           </Card>
-          <Card className="p-4 flex flex-col justify-center shadow-sm border-slate-200">
-             <p className="text-xs text-slate-500 font-bold uppercase">Attendance Rate</p>
+          <Card className="p-4 flex flex-col justify-center shadow-sm border-slate-200 relative">
+             <div className="flex justify-between items-start">
+               <p className="text-xs text-slate-500 font-bold uppercase">Attendance Rate</p>
+               {feedConnected && <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>}
+             </div>
              <h3 className="text-2xl font-black text-emerald-600">{topKpi.attendanceRate || 0}%</h3>
              <p className="text-[10px] text-slate-400">Monthly average</p>
           </Card>
@@ -1034,7 +1052,7 @@ function MonthViewDashboard({ data }: { data: any }) {
           </Card>
           <Card className="p-4 flex flex-col justify-center shadow-sm border-slate-200">
              <p className="text-xs text-slate-500 font-bold uppercase">Leave Utilisation</p>
-             <h3 className="text-2xl font-black text-amber-500">68%</h3>
+             <h3 className="text-2xl font-black text-amber-500">{leaveUtil}%</h3>
              <p className="text-[10px] text-slate-400">Used leave quota</p>
           </Card>
        </div>
