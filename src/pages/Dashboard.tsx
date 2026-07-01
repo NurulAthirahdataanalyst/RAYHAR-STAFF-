@@ -391,7 +391,7 @@ export default function Dashboard() {
                 variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
               />
             )}
-            {isCompanyLeave && stats.activeCompanyLeave ? (
+            {stats.activeCompanyLeave ? (
               <div onClick={() => navigate("/leave")} className="cursor-pointer">
                 <Card className="border-none shadow-md bg-card overflow-hidden h-[120px] sm:h-[130px] flex flex-col relative group transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                   <div className="absolute top-0 right-0 p-3 opacity-10 transition-transform duration-500 group-hover:scale-110 group-hover:opacity-20 text-[#7B0099]">

@@ -50,7 +50,14 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUserName(data.profile.full_name);
           setUserBranch(data.profile.branch || "HQ");
           setUserDepartment(data.profile.department || "");
-          setRole((data.role ? data.role.trim() : "employee") as UserRole);
+          let parsedRole = (data.role ? data.role.trim().toLowerCase() : "employee");
+          if (parsedRole === 'hr' || parsedRole === 'hr admin') parsedRole = 'hr_admin';
+          if (parsedRole === 'md' || parsedRole === 'managing director') parsedRole = 'managing_director';
+          if (parsedRole === 'branch leader') parsedRole = 'branch_leader';
+          if (parsedRole === 'finance manager') parsedRole = 'finance_manager';
+          if (parsedRole === 'head of department' || parsedRole === 'hod') parsedRole = 'head_of_department';
+          
+          setRole(parsedRole as UserRole);
         } else {
           setUserName(user.full_name || user.name || user.email || "User");
           setUserBranch("HQ");

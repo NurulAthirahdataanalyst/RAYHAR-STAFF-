@@ -2538,7 +2538,7 @@ app.get("/api/attendance-status", async (req, res) => {
     if (empProfile.length > 0) {
       const p = empProfile[0];
       const [companyLeaveTodayRows] = await pool.query(
-        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND CURRENT_DATE BETWEEN DATE(start_date) AND DATE(end_date)`
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`
       );
 
       const matchingLeave = companyLeaveTodayRows.find(cl => {
@@ -2974,7 +2974,13 @@ app.get("/api/attendance/history", async (req, res) => {
 // ===============================
 app.get("/api/dashboard-stats", async (req, res) => {
   const userId = req.query.userId;
-  const role = req.query.role ? req.query.role.toString().trim() : "";
+  let role = req.query.role ? req.query.role.toString().trim().toLowerCase() : "";
+  if (role === 'hr' || role === 'hr admin') role = 'hr_admin';
+  if (role === 'md' || role === 'managing director') role = 'managing_director';
+  if (role === 'branch leader') role = 'branch_leader';
+  if (role === 'finance manager') role = 'finance_manager';
+  if (role === 'head of department' || role === 'hod') role = 'head_of_department';
+
   const branch = req.query.branch ? req.query.branch.toString().trim() : "";
 
   if (!userId) {
@@ -3070,7 +3076,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const [companyLeaveDays] = await pool.query(
-        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND CURRENT_DATE BETWEEN DATE(start_date) AND DATE(end_date)`
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`
       );
 
       const [upcomingCompanyLeaveRows] = await pool.query(
@@ -3224,9 +3230,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
          FROM company_leave_calendar 
          WHERE status = 'Active' 
          AND (
-           (start_date BETWEEN DATE_TRUNC('month', CURRENT_DATE) AND CURRENT_DATE)
-           OR (end_date BETWEEN DATE_TRUNC('month', CURRENT_DATE) AND CURRENT_DATE)
-           OR (DATE_TRUNC('month', CURRENT_DATE) BETWEEN DATE(start_date) AND DATE(end_date))
+           ((start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN DATE_TRUNC('month', (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date) AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date)
+           OR ((end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN DATE_TRUNC('month', (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date) AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date)
+           OR (DATE_TRUNC('month', (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date) BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date)
          )`
       );
 
