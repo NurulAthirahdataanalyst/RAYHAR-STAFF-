@@ -261,32 +261,32 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             });
           }
 
-          if (hasCompanyLeave) {
-            // Exclude from working days count
-          } else {
+          const logsOnDay = myLogs.filter(l => {
+            if (!l.clock_in) return false;
+            const clockDate = new Date(l.clock_in);
+            const y = clockDate.getFullYear();
+            const mo = String(clockDate.getMonth() + 1).padStart(2, '0');
+            const day = String(clockDate.getDate()).padStart(2, '0');
+            return `${y}-${mo}-${day}` === dateStr;
+          });
+          
+          const hasLeave = approvedLeaves.some(l => {
+            const startStr = getLocalDateString(l.start_date);
+            const endStr = getLocalDateString(l.end_date);
+            return dateStr >= startStr && dateStr <= endStr;
+          });
+
+          if (logsOnDay.length > 0) {
             if (isPastOrToday) totalWorkingDaysPassed++;
-
-            const logsOnDay = myLogs.filter(l => {
-              if (!l.clock_in) return false;
-              const clockDate = new Date(l.clock_in);
-              const y = clockDate.getFullYear();
-              const mo = String(clockDate.getMonth() + 1).padStart(2, '0');
-              const day = String(clockDate.getDate()).padStart(2, '0');
-              return `${y}-${mo}-${day}` === dateStr;
-            });
-            const hasLeave = approvedLeaves.some(l => {
-              const startStr = getLocalDateString(l.start_date);
-              const endStr = getLocalDateString(l.end_date);
-              return dateStr >= startStr && dateStr <= endStr;
-            });
-
-            if (logsOnDay.length > 0) {
-              // Present
-            } else if (hasLeave) {
-              leaveDaysCount++;
-            } else if (isPastOrToday) {
-              absentDays++;
-            }
+            // Present
+          } else if (hasLeave) {
+            if (isPastOrToday) totalWorkingDaysPassed++;
+            leaveDaysCount++;
+          } else if (hasCompanyLeave) {
+            // Exclude from working days count
+          } else if (isPastOrToday) {
+            totalWorkingDaysPassed++;
+            absentDays++;
           }
         }
       }
@@ -325,40 +325,39 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           });
         }
 
-        if (hasCompanyLeave) {
-          heatmapData[d] = 'Company Leave';
-        } else {
+        const logsOnDay = myLogs.filter(l => {
+          if (!l.clock_in) return false;
+          const clockDate = new Date(l.clock_in);
+          const y = clockDate.getFullYear();
+          const m = String(clockDate.getMonth() + 1).padStart(2, '0');
+          const day = String(clockDate.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}` === dateStr;
+        });
+        const hasLeave = approvedLeaves.some(l => {
+          const startStr = getLocalDateString(l.start_date);
+          const endStr = getLocalDateString(l.end_date);
+          return dateStr >= startStr && dateStr <= endStr;
+        });
+
+        if (logsOnDay.length > 0) {
           if (isPastOrToday) totalWorkingDaysPassed++;
-          
-          const logsOnDay = myLogs.filter(l => {
-            if (!l.clock_in) return false;
-            const clockDate = new Date(l.clock_in);
-            const y = clockDate.getFullYear();
-            const m = String(clockDate.getMonth() + 1).padStart(2, '0');
-            const day = String(clockDate.getDate()).padStart(2, '0');
-            return `${y}-${m}-${day}` === dateStr;
-          });
-          const hasLeave = approvedLeaves.some(l => {
-            const startStr = getLocalDateString(l.start_date);
-            const endStr = getLocalDateString(l.end_date);
-            return dateStr >= startStr && dateStr <= endStr;
-          });
-          
-          if (logsOnDay.length > 0) {
-            const att = logsOnDay[0];
-            const isLateLog = att.is_late === 1 || att.is_late === true;
-            if (isLateLog) {
-              heatmapData[d] = 'Present (Late)';
-            } else {
-              heatmapData[d] = 'Present (On Time)';
-            }
-          } else if (hasLeave) {
-            heatmapData[d] = 'On Leave';
-            leaveDaysCount++;
-          } else if (isPastOrToday) {
-            absentDays++;
-            heatmapData[d] = 'Absent';
+          const att = logsOnDay[0];
+          const isLateLog = att.is_late === 1 || att.is_late === true || att.status === "LATE";
+          if (isLateLog) {
+            heatmapData[d] = 'Present (Late)';
+          } else {
+            heatmapData[d] = 'Present (On Time)';
           }
+        } else if (hasLeave) {
+          if (isPastOrToday) totalWorkingDaysPassed++;
+          leaveDaysCount++;
+          heatmapData[d] = 'On Leave';
+        } else if (hasCompanyLeave) {
+          heatmapData[d] = 'Company Leave';
+        } else if (isPastOrToday) {
+          totalWorkingDaysPassed++;
+          absentDays++;
+          heatmapData[d] = 'Absent';
         }
       }
     }
