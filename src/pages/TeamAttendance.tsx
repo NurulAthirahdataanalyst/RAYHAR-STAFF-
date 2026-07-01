@@ -83,7 +83,7 @@ export default function TeamAttendance() {
   // Merge employee info with their attendance
   const mergedList = employees.map(emp => {
     const att = attendanceData.find(a => a.user_id === emp.user_id);
-    let workingHours = "--:--";
+    let workingHours = "--";
     if (att && att.clock_in && att.clock_out) {
       const diffMs = new Date(att.clock_out).getTime() - new Date(att.clock_in).getTime();
       const hrs = Math.floor(diffMs / (1000 * 60 * 60));
@@ -92,8 +92,31 @@ export default function TeamAttendance() {
     }
     
     let statusLabel = "Absent";
+    let lateLabel = "--";
+
     if (att) {
-       statusLabel = att.is_late ? "Present (Late)" : "Present (On Time)";
+      if (att.status === "Present (On Time)" || att.status === "Present (Late)") {
+        statusLabel = "Present";
+      } else if (att.status === "Approved Leave") {
+        statusLabel = "Leave";
+      } else {
+        statusLabel = att.status || "Absent";
+      }
+
+      if (att.is_late && att.clock_in) {
+        const clockInDate = new Date(att.clock_in);
+        const klTime = new Date(clockInDate.getTime() + 8 * 60 * 60 * 1000);
+        const clockInHour = klTime.getUTCHours();
+        const clockInMinute = klTime.getUTCMinutes();
+        const lateTimeStr = "09:00"; // default
+        const [lateH, lateM] = lateTimeStr.split(':').map(Number);
+        const clockInMins = clockInHour * 60 + clockInMinute;
+        const thresholdMins = lateH * 60 + lateM;
+        const diff = clockInMins - thresholdMins;
+        lateLabel = diff > 0 ? `${diff} mins` : "00:00";
+      } else if (att && att.clock_in) {
+        lateLabel = "00:00";
+      }
     }
 
     return {
@@ -101,6 +124,7 @@ export default function TeamAttendance() {
       time_in: att?.time_in || "--:--",
       time_out: att?.time_out || "--:--",
       status: statusLabel,
+      late: lateLabel,
       workingHours
     };
   });
@@ -111,9 +135,9 @@ export default function TeamAttendance() {
   );
 
   if (statusFilter === "ON TIME") {
-    filteredList = filteredList.filter(e => e.status === "Present (On Time)");
+    filteredList = filteredList.filter(e => e.status === "Present" && e.late === "00:00");
   } else if (statusFilter === "LATE") {
-    filteredList = filteredList.filter(e => e.status === "Present (Late)");
+    filteredList = filteredList.filter(e => e.status === "Present" && e.late !== "00:00" && e.late !== "--");
   }
 
   return (
@@ -256,16 +280,17 @@ export default function TeamAttendance() {
                     <TableHead>Employee ID</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Department</TableHead>
-                    <TableHead>Clock In</TableHead>
-                    <TableHead>Clock Out</TableHead>
-                    <TableHead>Working Hours</TableHead>
+                    <TableHead>Time In</TableHead>
+                    <TableHead>Time Out</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Late</TableHead>
+                    <TableHead>Working Hours</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredList.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         No team members found.
                       </TableCell>
                     </TableRow>
@@ -277,13 +302,22 @@ export default function TeamAttendance() {
                         <TableCell>{emp.department || "-"}</TableCell>
                         <TableCell>{emp.time_in}</TableCell>
                         <TableCell>{emp.time_out}</TableCell>
-                        <TableCell className="font-medium text-gray-700">{emp.workingHours}</TableCell>
                         <TableCell>
-                          <Badge variant={emp.status === "Present (On Time)" ? "default" : (emp.status === "Present (Late)" ? "secondary" : "destructive")} 
-                                 className={`${emp.status === "Present (On Time)" ? "bg-green-500 hover:bg-green-600" : ""} ${emp.status === "Present (Late)" ? "bg-amber-500 hover:bg-amber-600 text-white" : ""}`}>
+                          <Badge 
+                            variant={emp.status === "Present" ? "default" : (emp.status === "Absent" ? "destructive" : "secondary")} 
+                            className={`
+                              ${emp.status === "Present" ? "bg-green-500 hover:bg-green-600" : ""} 
+                              ${emp.status === "Company Leave" ? "bg-violet-500 hover:bg-violet-600 text-white" : ""} 
+                              ${emp.status === "Leave" ? "bg-amber-500 hover:bg-amber-600 text-white" : ""} 
+                              ${emp.status === "Holiday" ? "bg-blue-500 hover:bg-blue-600 text-white" : ""}
+                              ${emp.status === "Weekend" ? "bg-slate-400 hover:bg-slate-500 text-white" : ""}
+                            `}
+                          >
                             {emp.status}
                           </Badge>
                         </TableCell>
+                        <TableCell className="font-medium text-rose-600">{emp.late}</TableCell>
+                        <TableCell className="font-medium text-gray-700">{emp.workingHours}</TableCell>
                       </TableRow>
                     ))
                   )}

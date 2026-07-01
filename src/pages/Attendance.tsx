@@ -303,13 +303,7 @@ export default function Attendance() {
         breakTime += hours * 0.1;
         // NOTE: Overtime (OT) is not functional yet — hardcoded to 00:00
         
-        const logDate = new Date(log.clock_in);
-        logDate.setHours(0, 0, 0, 0);
-        // Use the plain date string (YYYY-MM-DD) from log.date for reliable comparison
-        // This avoids UTC↔local timezone conversion issues with clock_in timestamps
-        const logDateStr = log.date
-          ? log.date.split('T')[0]
-          : logDate.toLocaleDateString('en-CA'); // en-CA gives YYYY-MM-DD in local time
+        const logDateStr = log.date ? log.date.split('T')[0] : "";
 
         // Format weekStart as YYYY-MM-DD for string comparison (timezone-safe)
         const weekStartStr = weekStart.toLocaleDateString('en-CA');
@@ -377,11 +371,7 @@ export default function Attendance() {
   // Export PDF Handler
   const handleExportPDF = () => {
     const targetLogs = viewMode === "day"
-      ? historyLogs.filter(log => {
-          const d = new Date(log.clock_in);
-          const logDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-          return logDate === selectedDate;
-        })
+      ? historyLogs.filter(log => log.date === selectedDate)
       : historyLogs;
 
     if (targetLogs.length === 0) {
@@ -432,15 +422,16 @@ export default function Attendance() {
     const fullBranchName = branchNames[userBranchCode] || userBranchCode;
 
     const logsHtml = targetLogs.map(log => {
-      const d = new Date(log.clock_in);
+      const d = new Date(log.date);
       const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+      const statusClass = (log.status || '').toLowerCase().replace(/\s+/g, '');
       return `
         <tr>
           <td>${dateStr}</td>
           <td>${log.time_in || '--:--'}</td>
           <td>${log.time_out || '--:--'}</td>
-          <td><span class="badge badge-${log.status.toLowerCase().replace(' ', '')}">${log.status}</span></td>
-          <td>${log.location_type === 'remote' ? log.location_name : fullBranchName}</td>
+          <td><span class="badge badge-${statusClass}">${log.status}</span></td>
+          <td>${log.late || '--'}</td>
           <td class="duration">${log.duration || '--'}</td>
         </tr>
       `;
@@ -466,9 +457,12 @@ export default function Attendance() {
             td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
             tr:nth-child(even) td { background: #f8fafc; }
             .badge { padding: 4px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; display: inline-block; }
-            .badge-ontime { background: #f3e8ff; color: #7b0099; }
-            .badge-late { background: #ffe4e6; color: #e11d48; }
-            .badge-remote { background: #dbeafe; color: #1d4ed8; }
+            .badge-present { background: #f3e8ff; color: #7b0099; }
+            .badge-absent { background: #fee2e2; color: #991b1b; }
+            .badge-leave { background: #fef3c7; color: #92400e; }
+            .badge-companyleave { background: #eae5ff; color: #581c87; }
+            .badge-holiday { background: #dbeafe; color: #1d4ed8; }
+            .badge-weekend { background: #f1f5f9; color: #475569; }
             .duration { font-family: monospace; font-weight: 600; }
             @media print {
               body { padding: 0; }
@@ -496,11 +490,11 @@ export default function Attendance() {
             <thead>
                <tr>
                  <th>Date</th>
-                 <th>Clock In</th>
-                 <th>Clock Out</th>
+                 <th>Time In</th>
+                 <th>Time Out</th>
                  <th>Status</th>
-                 <th>Location</th>
-                 <th>Duration</th>
+                 <th>Late</th>
+                 <th>Working Hours</th>
                </tr>
             </thead>
             <tbody>
@@ -522,11 +516,7 @@ export default function Attendance() {
   // Export CSV Handler
   const handleExportCSV = () => {
     const targetLogs = viewMode === "day"
-      ? historyLogs.filter(log => {
-          const d = new Date(log.clock_in);
-          const logDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-          return logDate === selectedDate;
-        })
+      ? historyLogs.filter(log => log.date === selectedDate)
       : historyLogs;
 
     if (targetLogs.length === 0) {
@@ -566,11 +556,10 @@ export default function Attendance() {
     const userBranchCode = user?.branch || 'N/A';
     const fullBranchName = branchNames[userBranchCode] || userBranchCode;
 
-    const headers = ["Date", "Clock In", "Clock Out", "Status", "Location", "Duration"];
+    const headers = ["Date", "Time In", "Time Out", "Status", "Late", "Working Hours"];
     const rows = targetLogs.map(log => {
-      const d = new Date(log.clock_in);
+      const d = new Date(log.date);
       const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-      const location = log.location_type === 'remote' ? log.location_name : fullBranchName;
       
       // Escape CSV values
       return [
@@ -578,7 +567,7 @@ export default function Attendance() {
         `"${(log.time_in || '--:--').replace(/"/g, '""')}"`,
         `"${(log.time_out || '--:--').replace(/"/g, '""')}"`,
         `"${(log.status || '').replace(/"/g, '""')}"`,
-        `"${(location || '').replace(/"/g, '""')}"`,
+        `"${(log.late || '--').replace(/"/g, '""')}"`,
         `"${(log.duration || '--').replace(/"/g, '""')}"`
       ];
     });
@@ -730,9 +719,7 @@ export default function Attendance() {
     .filter(log => statusFilter === "ALL" || log.status === statusFilter)
     .filter(log => {
       if (viewMode === "month") return true;
-      const d = new Date(log.clock_in);
-      const logDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-      return logDate === selectedDate;
+      return log.date === selectedDate;
     });
 
   if (initialFetch) {
@@ -1131,50 +1118,67 @@ export default function Attendance() {
                 <TableHeader className="bg-muted/30">
                   <TableRow>
                     <TableHead className="py-4 pl-6 font-medium">Date</TableHead>
-                    <TableHead className="font-medium">Check In</TableHead>
+                    <TableHead className="font-medium">Time In</TableHead>
+                    <TableHead className="font-medium">Time Out</TableHead>
                     <TableHead className="font-medium">Status</TableHead>
-                    <TableHead className="font-medium">Check Out</TableHead>
-                    <TableHead className="font-medium">Break</TableHead>
                     <TableHead className="font-medium">Late</TableHead>
-                    <TableHead className="text-right pr-6 font-medium">Production Hours</TableHead>
+                    <TableHead className="text-right pr-6 font-medium">Working Hours</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                 {fetchingHistory && historyLogs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="py-12 text-center">
+                    <TableCell colSpan={6} className="py-12 text-center">
                       <Loader2 className="w-6 h-6 animate-spin text-[#7B0099] mx-auto mb-2" />
                       <p className="text-sm font-medium text-muted-foreground">Loading Data...</p>
                     </TableCell>
                   </TableRow>
                 ) : displayedLogs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="py-12 text-center">
+                    <TableCell colSpan={6} className="py-12 text-center">
                        <Clock className="w-8 h-8 opacity-20 mx-auto mb-2" />
                        <p className="text-sm font-medium text-muted-foreground">No logs found</p>
                     </TableCell>
                   </TableRow>
                 ) : (
                   displayedLogs.slice(0, visibleLogsCount).map((log, index) => {
-                    const clockInDate = new Date(log.clock_in);
-                    const dateStr = clockInDate.toLocaleString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' });
+                    const logDate = new Date(log.date);
+                    const dateStr = logDate.toLocaleString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' });
                     
                     let statusBadge = "bg-muted/5 text-muted-foreground border-muted";
-                    if (log.status === "ON TIME") statusBadge = "bg-purple-100/50 text-[#7B0099] border-[#7B0099]/20 dark:bg-purple-900/20 dark:text-purple-400";
-                    if (log.status === "LATE") statusBadge = "bg-rose-100/50 text-rose-700 border-rose-200/50 dark:bg-rose-900/20 dark:text-rose-400";
+                    if (log.status === "Present") {
+                      if (log.late !== "00:00" && log.late !== "--") {
+                        statusBadge = "bg-rose-100/50 text-rose-700 border-rose-200/50 dark:bg-rose-900/20 dark:text-rose-400";
+                      } else {
+                        statusBadge = "bg-purple-100/50 text-[#7B0099] border-[#7B0099]/20 dark:bg-purple-900/20 dark:text-purple-400";
+                      }
+                    } else if (log.status === "Company Leave") {
+                      statusBadge = "bg-violet-100/50 text-violet-700 border-violet-200/50 dark:bg-violet-900/20 dark:text-violet-400";
+                    } else if (log.status === "Leave") {
+                      statusBadge = "bg-amber-100/50 text-amber-700 border-amber-200/50 dark:bg-amber-900/20 dark:text-amber-400";
+                    } else if (log.status === "Holiday") {
+                      statusBadge = "bg-blue-100/50 text-blue-700 border-blue-200/50 dark:bg-blue-900/20 dark:text-blue-400";
+                    } else if (log.status === "Weekend") {
+                      statusBadge = "bg-slate-100/50 text-slate-700 border-slate-200/50 dark:bg-slate-900/20 dark:text-slate-400";
+                    } else if (log.status === "Absent") {
+                      statusBadge = "bg-red-100/50 text-red-700 border-red-200/50 dark:bg-red-900/20 dark:text-red-400";
+                    }
 
                     return (
                       <TableRow key={log.attendance_id || index} className="hover:bg-muted/50 transition-colors">
                         <TableCell className="py-4 pl-6 font-medium text-foreground whitespace-nowrap">{dateStr}</TableCell>
-                        <TableCell className="font-medium text-foreground">{formatAttendanceTime(log.clock_in)}</TableCell>
+                        <TableCell className="font-medium text-foreground">
+                          {log.clock_in ? formatAttendanceTime(log.clock_in) : "--:--"}
+                        </TableCell>
+                        <TableCell className="font-medium text-foreground">
+                          {log.clock_out ? formatAttendanceTime(log.clock_out) : "--:--"}
+                        </TableCell>
                         <TableCell className="whitespace-nowrap">
                           <span className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-semibold rounded-md border ${statusBadge}`}>
                             {log.status}
                           </span>
                         </TableCell>
-                        <TableCell className="font-medium text-foreground">{log.clock_out ? formatAttendanceTime(log.clock_out) : "--:--"}</TableCell>
-                        <TableCell className="font-medium text-muted-foreground">--</TableCell>
-                        <TableCell className="font-medium text-rose-600">{log.is_late ? "Yes" : "--"}</TableCell>
+                        <TableCell className="font-medium text-rose-600">{log.late}</TableCell>
                         <TableCell className="font-bold text-emerald-600 text-right pr-6">{log.duration}</TableCell>
                       </TableRow>
                     );

@@ -17,6 +17,59 @@ if (!jwtSecret) {
 
 const app = express();
 
+const malaysiaHolidays = [
+  // 2024
+  { date: "2024-01-01", name: "New Year's Day" },
+  { date: "2024-02-10", name: "Chinese New Year" },
+  { date: "2024-02-11", name: "Chinese New Year" },
+  { date: "2024-03-28", name: "Nuzul Al-Quran" },
+  { date: "2024-04-10", name: "Hari Raya Aidilfitri" },
+  { date: "2024-04-11", name: "Hari Raya Aidilfitri" },
+  { date: "2024-05-01", name: "Labour Day" },
+  { date: "2024-05-22", name: "Wesak Day" },
+  { date: "2024-06-03", name: "Agong's Birthday" },
+  { date: "2024-06-17", name: "Hari Raya Haji" },
+  { date: "2024-07-07", name: "Awal Muharram" },
+  { date: "2024-08-31", name: "Merdeka Day" },
+  { date: "2024-09-16", name: "Malaysia Day" },
+  { date: "2024-10-31", name: "Deepavali" },
+  { date: "2024-12-25", name: "Christmas Day" },
+  
+  // 2025
+  { date: "2025-01-01", name: "New Year's Day" },
+  { date: "2025-01-29", name: "Chinese New Year" },
+  { date: "2025-01-30", name: "Chinese New Year" },
+  { date: "2025-03-17", name: "Nuzul Al-Quran" },
+  { date: "2025-03-31", name: "Hari Raya Aidilfitri" },
+  { date: "2025-04-01", name: "Hari Raya Aidilfitri" },
+  { date: "2025-05-01", name: "Labour Day" },
+  { date: "2025-05-12", name: "Wesak Day" },
+  { date: "2025-06-02", name: "Agong's Birthday" },
+  { date: "2025-06-06", name: "Hari Raya Haji" },
+  { date: "2025-06-27", name: "Awal Muharram" },
+  { date: "2025-08-31", name: "Merdeka Day" },
+  { date: "2025-09-16", name: "Malaysia Day" },
+  { date: "2025-10-20", name: "Deepavali" },
+  { date: "2025-12-25", name: "Christmas Day" },
+  
+  // 2026
+  { date: "2026-01-01", name: "New Year's Day" },
+  { date: "2026-02-17", name: "Chinese New Year" },
+  { date: "2026-02-18", name: "Chinese New Year" },
+  { date: "2026-03-06", name: "Nuzul Al-Quran" },
+  { date: "2026-03-20", name: "Hari Raya Aidilfitri" },
+  { date: "2026-03-21", name: "Hari Raya Aidilfitri" },
+  { date: "2026-05-01", name: "Labour Day" },
+  { date: "2026-05-24", name: "Wesak Day" },
+  { date: "2026-05-27", name: "Hari Raya Haji" },
+  { date: "2026-06-01", name: "Agong's Birthday" },
+  { date: "2026-06-16", name: "Awal Muharram" },
+  { date: "2026-08-31", name: "Merdeka Day" },
+  { date: "2026-09-16", name: "Malaysia Day" },
+  { date: "2026-11-08", name: "Deepavali" },
+  { date: "2026-12-25", name: "Christmas Day" }
+];
+
 // Global Settings Memory
 let settingsCache = {
   lateThreshold: "09:00 AM",
@@ -2634,120 +2687,232 @@ app.get("/api/attendance/history", async (req, res) => {
 
   const isAllMonth = month === 'all';
   const requestedYear = parseInt(year) || new Date().getFullYear();
-  let query = '';
-  let params = [];
 
   try {
+    // 1. Fetch user profile to check branch and department
+    const [profileRows] = await pool.query(
+      "SELECT branch, department FROM profiles WHERE user_id = ?",
+      [userId]
+    );
+    if (profileRows.length === 0) {
+      return res.status(404).json({ success: false, error: "User profile not found" });
+    }
+    const userProfile = profileRows[0];
+
+    // 2. Fetch all attendance records for this user in requestedYear
+    const [clockRows] = await pool.query(
+      `SELECT 
+        attendance_id,
+        clock_in,
+        clock_out,
+        TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
+        TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
+        DATE(clock_in) AS date
+      FROM attendances
+      WHERE user_id = ?
+      AND EXTRACT(YEAR FROM clock_in) = ?
+      ORDER BY clock_in DESC`,
+      [userId, requestedYear]
+    );
+
+    // 3. Fetch approved leaves for this user in requestedYear
+    const [leaveRows] = await pool.query(
+      `SELECT start_date, end_date, leave_type
+      FROM leave_requests
+      WHERE user_id = ? AND status = 'Approved'
+      AND (
+        EXTRACT(YEAR FROM start_date) = ?
+        OR EXTRACT(YEAR FROM end_date) = ?
+      )`,
+      [userId, requestedYear, requestedYear]
+    );
+
+    // 4. Fetch active company leaves in requestedYear
+    const [companyLeaves] = await pool.query(
+      `SELECT start_date, end_date, leave_name, applies_to, branch_id, department_id
+      FROM company_leave_calendar
+      WHERE status = 'Active'
+      AND (
+        EXTRACT(YEAR FROM start_date) = ?
+        OR EXTRACT(YEAR FROM end_date) = ?
+      )`,
+      [requestedYear, requestedYear]
+    );
+
+    // 5. Generate all relevant dates
+    const klNow = new Date(Date.now() + 8 * 60 * 60 * 1000); // Current KL time
+    const currentYear = klNow.getUTCFullYear();
+    const currentMonth = klNow.getUTCMonth() + 1;
+    const currentDay = klNow.getUTCDate();
+
+    let startDate, endDate;
     if (isAllMonth) {
-      query = `
-        SELECT 
-          attendance_id,
-          user_id,
-          clock_in,
-          clock_out,
-          TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
-          TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
-          DATE(clock_in) AS date
-        FROM attendances
-        WHERE user_id = ?
-        AND EXTRACT(YEAR FROM clock_in) = ?
-        ORDER BY clock_in DESC
-      `;
-      params = [userId, requestedYear];
+      // From Jan 1st of requestedYear to either Dec 31st (if past year) or today (if current year)
+      startDate = new Date(Date.UTC(requestedYear, 0, 1));
+      if (requestedYear < currentYear) {
+        endDate = new Date(Date.UTC(requestedYear, 11, 31));
+      } else if (requestedYear === currentYear) {
+        endDate = new Date(Date.UTC(requestedYear, currentMonth - 1, currentDay));
+      } else {
+        endDate = new Date(Date.UTC(requestedYear, 0, 1)); // Future year
+      }
     } else {
-      const requestedMonth = parseInt(month) || (new Date().getMonth() + 1);
-      query = `
-        SELECT 
-          attendance_id,
-          user_id,
-          clock_in,
-          clock_out,
-          TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
-          TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
-          DATE(clock_in) AS date
-        FROM attendances
-        WHERE user_id = ?
-        AND EXTRACT(MONTH FROM clock_in) = ?
-        AND EXTRACT(YEAR FROM clock_in) = ?
-        ORDER BY clock_in DESC
-      `;
-      params = [userId, requestedMonth, requestedYear];
+      const requestedMonth = parseInt(month) || currentMonth;
+      startDate = new Date(Date.UTC(requestedYear, requestedMonth - 1, 1));
+      
+      if (requestedYear < currentYear || (requestedYear === currentYear && requestedMonth < currentMonth)) {
+        endDate = new Date(Date.UTC(requestedYear, requestedMonth, 0)); // Last day of month
+      } else if (requestedYear === currentYear && requestedMonth === currentMonth) {
+        endDate = new Date(Date.UTC(requestedYear, requestedMonth - 1, currentDay)); // Up to today
+      } else {
+        endDate = null; // Future month
+      }
     }
 
-    const [rows] = await pool.query(query, params);
+    const dateStrings = [];
+    if (endDate) {
+      let curr = new Date(startDate);
+      while (curr <= endDate) {
+        const yyyy = curr.getUTCFullYear();
+        const mm = String(curr.getUTCMonth() + 1).padStart(2, '0');
+        const dd = String(curr.getUTCDate()).padStart(2, '0');
+        dateStrings.push(`${yyyy}-${mm}-${dd}`);
+        curr.setUTCDate(curr.getUTCDate() + 1);
+      }
+    }
+    dateStrings.reverse();
 
-    // Calculate late arrival detection, working duration, simulated location, and status badges
-    const formattedHistory = rows.map((row) => {
-      const clockInDate = new Date(row.clock_in);
-      const clockOutDate = row.clock_out ? new Date(row.clock_out) : null;
+    // Map clock records by date YYYY-MM-DD
+    const clockMap = {};
+    clockRows.forEach(r => {
+      if (r.clock_in) {
+        const dateObj = new Date(r.clock_in);
+        const yyyy = dateObj.getFullYear();
+        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const dd = String(dateObj.getDate()).padStart(2, '0');
+        const dateKey = `${yyyy}-${mm}-${dd}`;
+        clockMap[dateKey] = r;
+      }
+    });
 
-      // 1. Duration Calculation (active or completed)
-      let duration = "--h --m";
-      if (clockOutDate) {
-        const diffMs = clockOutDate.getTime() - clockInDate.getTime();
-        const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-        const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        duration = `${diffHrs}h ${diffMins}m`;
-      } else {
-        // Clock out is missing. Check if this clock-in was today in Kuala Lumpur timezone (UTC+8)
-        const klNow = new Date(Date.now() + 8 * 60 * 60 * 1000);
-        const klClockInTime = new Date(clockInDate.getTime() + 8 * 60 * 60 * 1000);
+    const lateTimeStr = getLateThresholdTime();
+    const [lateH, lateM] = lateTimeStr.split(':').map(Number);
+
+    const formattedHistory = dateStrings.map(dateStr => {
+      const clockRow = clockMap[dateStr];
+      
+      let status = "Absent";
+      let time_in = "--:--";
+      let time_out = "--:--";
+      let late = "--";
+      let duration = "--";
+      let clock_in = null;
+      let clock_out = null;
+      let location_type = "office";
+      let location_name = "Main Office, Floor 4";
+
+      // Match company leave
+      const matchingCompanyLeave = companyLeaves.find(cl => {
+        const startStr = new Date(cl.start_date).toISOString().split('T')[0];
+        const endStr = new Date(cl.end_date).toISOString().split('T')[0];
+        if (dateStr < startStr || dateStr > endStr) return false;
         
-        const isToday = klNow.getUTCFullYear() === klClockInTime.getUTCFullYear() &&
-                        klNow.getUTCMonth() === klClockInTime.getUTCMonth() &&
-                        klNow.getUTCDate() === klClockInTime.getUTCDate();
-        
-        let endCalculationTime;
-        if (isToday) {
-          endCalculationTime = Date.now();
+        if (cl.applies_to === 'all') return true;
+        if (cl.applies_to === 'branch' && cl.branch_id) {
+          return cl.branch_id.split(',').map(s => s.trim()).includes(userProfile.branch);
+        }
+        if (cl.applies_to === 'department' && cl.department_id) {
+          const depts = cl.department_id.split(',').map(s => s.trim());
+          const normEmpDept = (userProfile.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          return depts.some(d => {
+            const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            return normEmpDept === normClDept || userProfile.department === d;
+          });
+        }
+        return false;
+      });
+
+      // Match leave request
+      const leaveRow = leaveRows.find(l => {
+        const startStr = new Date(l.start_date).toISOString().split('T')[0];
+        const endStr = new Date(l.end_date).toISOString().split('T')[0];
+        return dateStr >= startStr && dateStr <= endStr;
+      });
+
+      // Match holiday
+      const matchingHoliday = malaysiaHolidays.find(h => h.date === dateStr);
+
+      // Match weekend
+      const dateObj = new Date(dateStr);
+      const dayOfWeek = dateObj.getDay();
+      const dateNum = dateObj.getDate();
+      const isWeekend = (dayOfWeek === 5) || (dayOfWeek === 6 && dateNum <= 7);
+
+      if (clockRow) {
+        clock_in = clockRow.clock_in;
+        clock_out = clockRow.clock_out;
+        time_in = clockRow.time_in || "--:--";
+        time_out = clockRow.time_out || "--:--";
+        status = "Present";
+
+        // Calculate late minutes
+        const clockInDate = new Date(clock_in);
+        const klTime = new Date(clockInDate.getTime() + 8 * 60 * 60 * 1000);
+        const clockInHour = klTime.getUTCHours();
+        const clockInMinute = klTime.getUTCMinutes();
+        const isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
+
+        if (isLate) {
+          const clockInMins = clockInHour * 60 + clockInMinute;
+          const thresholdMins = lateH * 60 + lateM;
+          const diff = clockInMins - thresholdMins;
+          late = `${diff} mins`;
         } else {
-          // Forgot to clock out on a past day. Calculate until the end of that day (23:59:59.999 KL time)
-          const klEndOfDay = new Date(klClockInTime);
-          klEndOfDay.setUTCHours(23, 59, 59, 999);
-          endCalculationTime = klEndOfDay.getTime() - 8 * 60 * 60 * 1000;
+          late = "00:00";
         }
 
-        const diffMs = Math.max(0, endCalculationTime - clockInDate.getTime());
-        const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-        const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        duration = `${diffHrs}h ${diffMins}m`;
-      }
+        // Calculate Working Hours = Time Out - Time In
+        if (clock_out) {
+          const clockOutDate = new Date(clock_out);
+          const diffMs = clockOutDate.getTime() - clockInDate.getTime();
+          const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+          const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+          duration = `${diffHrs}h ${diffMins}m`;
+        } else {
+          duration = "--";
+        }
 
-      // 2. Late Check Detection (dynamic)
-      const lateTimeStr = getLateThresholdTime();
-      const [lateH, lateM] = lateTimeStr.split(':').map(Number);
-      
-      const klTime = new Date(clockInDate.getTime() + 8 * 60 * 60 * 1000);
-      const clockInHour = klTime.getUTCHours();
-      const clockInMinute = klTime.getUTCMinutes();
-      const isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
-
-      // 3. Location Mapping (simulated professionally based on ID)
-      const isRemote = row.attendance_id % 3 === 1;
-      const locationType = isRemote ? "remote" : "office";
-      const locationName = isRemote 
-        ? "Home Office" 
-        : (row.attendance_id % 3 === 2 ? "Innovation Lab" : "Main Office, Floor 4");
-
-      // 4. Status Badge Determination
-      let status = "ON TIME";
-      if (isLate) {
-        status = "LATE";
+        // Location mapping
+        const isRemote = clockRow.attendance_id % 3 === 1;
+        location_type = isRemote ? "remote" : "office";
+        location_name = isRemote 
+          ? "Home Office" 
+          : (clockRow.attendance_id % 3 === 2 ? "Innovation Lab" : "Main Office, Floor 4");
+      } else if (matchingCompanyLeave) {
+        status = "Company Leave";
+      } else if (leaveRow) {
+        status = "Leave";
+      } else if (matchingHoliday) {
+        status = "Holiday";
+      } else if (isWeekend) {
+        status = "Weekend";
+      } else {
+        status = "Absent";
       }
 
       return {
-        attendance_id: row.attendance_id,
-        user_id: row.user_id,
-        clock_in: row.clock_in,
-        clock_out: row.clock_out,
-        time_in: row.time_in || "--:--",
-        time_out: row.time_out || "--:--",
-        date: row.date,
-        is_late: isLate,
+        attendance_id: clockRow ? clockRow.attendance_id : null,
+        user_id: userId,
+        clock_in: clock_in,
+        clock_out: clock_out,
+        time_in: time_in,
+        time_out: time_out,
+        date: dateStr,
+        status: status,
+        late: late,
         duration: duration,
-        location_type: locationType,
-        location_name: locationName,
-        status: status
+        location_type: location_type,
+        location_name: location_name
       };
     });
 
@@ -3324,11 +3489,15 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         return false;
       });
 
+      const matchingHoliday = malaysiaHolidays.find(h => h.date === queryDate);
+
       if (matchingLeave) {
         status = "Company Leave";
       } else if (leaveRow) {
         // Second priority: Approved Personal Leave
         status = "Approved Leave";
+      } else if (matchingHoliday) {
+        status = "Holiday";
       } else if (clockRow) {
         // Third priority: Attendance Record
         clock_in = clockRow.clock_in;
@@ -4485,58 +4654,6 @@ app.delete("/api/personal-notes/:id", async (req, res) => {
 
 // Get Malaysian Public Holidays (Static List for 2024-2026)
 app.get("/api/holidays", (req, res) => {
-  const malaysiaHolidays = [
-    // 2024
-    { date: "2024-01-01", name: "New Year's Day" },
-    { date: "2024-02-10", name: "Chinese New Year" },
-    { date: "2024-02-11", name: "Chinese New Year" },
-    { date: "2024-03-28", name: "Nuzul Al-Quran" },
-    { date: "2024-04-10", name: "Hari Raya Aidilfitri" },
-    { date: "2024-04-11", name: "Hari Raya Aidilfitri" },
-    { date: "2024-05-01", name: "Labour Day" },
-    { date: "2024-05-22", name: "Wesak Day" },
-    { date: "2024-06-03", name: "Agong's Birthday" },
-    { date: "2024-06-17", name: "Hari Raya Haji" },
-    { date: "2024-07-07", name: "Awal Muharram" },
-    { date: "2024-08-31", name: "Merdeka Day" },
-    { date: "2024-09-16", name: "Malaysia Day" },
-    { date: "2024-10-31", name: "Deepavali" },
-    { date: "2024-12-25", name: "Christmas Day" },
-    
-    // 2025
-    { date: "2025-01-01", name: "New Year's Day" },
-    { date: "2025-01-29", name: "Chinese New Year" },
-    { date: "2025-01-30", name: "Chinese New Year" },
-    { date: "2025-03-17", name: "Nuzul Al-Quran" },
-    { date: "2025-03-31", name: "Hari Raya Aidilfitri" },
-    { date: "2025-04-01", name: "Hari Raya Aidilfitri" },
-    { date: "2025-05-01", name: "Labour Day" },
-    { date: "2025-05-12", name: "Wesak Day" },
-    { date: "2025-06-02", name: "Agong's Birthday" },
-    { date: "2025-06-06", name: "Hari Raya Haji" },
-    { date: "2025-06-27", name: "Awal Muharram" },
-    { date: "2025-08-31", name: "Merdeka Day" },
-    { date: "2025-09-16", name: "Malaysia Day" },
-    { date: "2025-10-20", name: "Deepavali" },
-    { date: "2025-12-25", name: "Christmas Day" },
-    
-    // 2026
-    { date: "2026-01-01", name: "New Year's Day" },
-    { date: "2026-02-17", name: "Chinese New Year" },
-    { date: "2026-02-18", name: "Chinese New Year" },
-    { date: "2026-03-06", name: "Nuzul Al-Quran" },
-    { date: "2026-03-20", name: "Hari Raya Aidilfitri" },
-    { date: "2026-03-21", name: "Hari Raya Aidilfitri" },
-    { date: "2026-05-01", name: "Labour Day" },
-    { date: "2026-05-24", name: "Wesak Day" },
-    { date: "2026-05-27", name: "Hari Raya Haji" },
-    { date: "2026-06-01", name: "Agong's Birthday" },
-    { date: "2026-06-16", name: "Awal Muharram" },
-    { date: "2026-08-31", name: "Merdeka Day" },
-    { date: "2026-09-16", name: "Malaysia Day" },
-    { date: "2026-11-08", name: "Deepavali" },
-    { date: "2026-12-25", name: "Christmas Day" }
-  ];
   res.json({ success: true, holidays: malaysiaHolidays });
 });
 
