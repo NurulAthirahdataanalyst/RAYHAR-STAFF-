@@ -162,6 +162,18 @@ export default function LeaveAdmin() {
 
   useEffect(() => {
     void fetchRequests();
+
+    const sse = new EventSource(`${API_BASE_URL}/api/presence/stream`);
+    sse.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'leave-status' || data.type === 'leave-request' || data.type === 'refresh') {
+          void fetchRequests();
+        }
+      } catch (e) {}
+    };
+
+    return () => sse.close();
   }, [role, userBranch, userDepartment]);
 
   // Handle URL query parameters (tab and leaveId)
@@ -443,7 +455,7 @@ export default function LeaveAdmin() {
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
                           <span 
-                            className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${
+                            className={`inline-flex justify-center items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider whitespace-normal text-center leading-tight max-w-[140px] ${
                               req.status === "Approved" ? "bg-emerald-100/50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
                               req.status === "Rejected" ? "bg-rose-100/50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" :
                               "bg-[#C2410C] text-white"

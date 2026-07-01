@@ -124,7 +124,19 @@ export default function LeaveOverview() {
     };
 
     void fetchLeaveRequests();
-  }, [userId]);
+
+    const sse = new EventSource(`${API_BASE_URL}/api/presence/stream`);
+    sse.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'leave-status' || data.type === 'leave-request' || data.type === 'refresh') {
+          void fetchLeaveRequests();
+        }
+      } catch (e) {}
+    };
+
+    return () => sse.close();
+  }, [userId, userName]);
 
   const leaveBalances = useMemo(() => {
     return leaveTypes.map((item) => ({

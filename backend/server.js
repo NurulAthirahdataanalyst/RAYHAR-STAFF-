@@ -3121,7 +3121,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       adminStats = {
         totalEmployees: parseInt(employeeRows[0].total_employees || 0),
         presentToday: parseInt(presentRows[0].present_today || 0),
-        onLeave: parseInt(onLeaveRows[0].on_leave || 0),
+        onLeave: parseInt(onLeaveRows[0].on_leave || 0) + companyLeaveCount,
         lateArrivals: parseInt(lateRows[0].late_arrivals || 0),
         pendingApprovals: parseInt(pendingRows[0].pending_approvals || 0),
         companyLeave: companyLeaveCount,
@@ -4488,7 +4488,63 @@ app.get("/api/who-out-today", async (req, res) => {
         ${whereClause}
       ORDER BY lr.end_date ASC
     `, params);
-    res.json({ success: true, employees: rows });
+
+    let employeesOut = [...rows];
+
+    // Check for company leaves today
+    const [companyLeaves] = await pool.query(`
+      SELECT * FROM company_leave_calendar 
+      WHERE status = 'Active' 
+        AND CURRENT_DATE BETWEEN start_date AND end_date
+    `);
+
+    if (companyLeaves.length > 0) {
+      const [allProfiles] = await pool.query(`
+        SELECT p.user_id, p.full_name, p.branch, p.department 
+        FROM profiles p
+        WHERE p.status = 'Active'
+        ${whereClause}
+      `, params);
+
+      const outUserIds = new Set(employeesOut.map(e => e.user_id));
+
+      for (const cl of companyLeaves) {
+        for (const p of allProfiles) {
+          if (!outUserIds.has(p.user_id)) {
+            let applies = false;
+            if (cl.applies_to === 'all') applies = true;
+            else if (cl.applies_to === 'branch' && cl.branch_id) {
+              applies = cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+            } else if (cl.applies_to === 'department' && cl.department_id) {
+              const depts = cl.department_id.split(',').map(s => s.trim());
+              const normEmpDept = (p.department || '').toLowerCase().replace(/\\bdepartment\\b/g, '').trim();
+              applies = depts.some(d => {
+                const normClDept = d.toLowerCase().replace(/\\bdepartment\\b/g, '').trim();
+                return normEmpDept === normClDept || p.department === d;
+              });
+            }
+
+            if (applies) {
+              employeesOut.push({
+                leave_id: 'cl_' + cl.id + '_' + p.user_id,
+                user_id: p.user_id,
+                leave_type: cl.leave_name || "Company Leave",
+                start_date: cl.start_date,
+                end_date: cl.end_date,
+                days: 1,
+                reason: cl.remarks || "Company Leave",
+                full_name: p.full_name,
+                branch: p.branch
+              });
+              outUserIds.add(p.user_id);
+            }
+          }
+        }
+      }
+      employeesOut.sort((a, b) => new Date(a.end_date) - new Date(b.end_date));
+    }
+
+    res.json({ success: true, employees: employeesOut });
   } catch (err) {
     console.error("Who Out Today Error:", err);
     res.status(500).json({ success: false, error: err.message });
