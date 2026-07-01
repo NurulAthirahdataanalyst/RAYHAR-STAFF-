@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { exportToCSV } from "@/utils/export";
 import { Button } from "@/components/ui/button";
@@ -142,29 +143,21 @@ export default function Role() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Roles</h1>
-          <div className="flex items-center text-sm text-gray-500 mt-1">
-            <span className="hover:text-primary cursor-pointer">Home</span>
-            <ChevronRight className="w-4 h-4 mx-1" />
-            <span>User Management</span>
-            <ChevronRight className="w-4 h-4 mx-1" />
-            <span className="text-gray-900 font-medium">Roles</span>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <ExportDropdown 
-            onExportCSV={() => exportToCSV(roles, 'Roles_List')} 
-            onExportPDF={() => window.print()} 
-          />
-          <Button onClick={() => setIsAddModalOpen(true)} className="gap-2 bg-[#7B0099] hover:bg-[#60007A] text-white shadow-sm">
-            <Plus className="w-4 h-4" />
-            Add Roles
-          </Button>
-        </div>
-      </div>
+      {/* Action Buttons Portaled to Header */}
+      {document.getElementById("page-header-actions") &&
+        createPortal(
+          <div className="flex items-center gap-3 animate-in fade-in slide-in-from-right-4 duration-500">
+            <ExportDropdown 
+              onExportCSV={() => exportToCSV(roles, 'Roles_List')} 
+              onExportPDF={() => window.print()} 
+            />
+            <Button onClick={() => setIsAddModalOpen(true)} className="gap-2 bg-[#7B0099] hover:bg-[#60007A] text-white shadow-sm">
+              <Plus className="w-4 h-4" />
+              Add Roles
+            </Button>
+          </div>,
+          document.getElementById("page-header-actions")!
+        )}
 
       <Card className="border-0 shadow-sm rounded-xl overflow-hidden bg-white">
         <CardContent className="p-0">
