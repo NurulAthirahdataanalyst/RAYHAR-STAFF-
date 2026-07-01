@@ -31,11 +31,66 @@ const getLocalDateString = (dVal: any) => {
   return `${y}-${m}-${day}`;
 };
 
-export default function EmployeeAnalyticsView({ userId, userName, month, year, myLogs, leaveRequests }: EmployeeAnalyticsViewProps) {
+export default function EmployeeAnalyticsView({ userId, userName, month, year, myLogs: rawMyLogs, leaveRequests }: EmployeeAnalyticsViewProps) {
   const [rankData, setRankData] = useState<{ rank: number | null, total: number, score: number }>({ rank: null, total: 0, score: 0 });
   const [lastMonthLogs, setLastMonthLogs] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [companyLeaves, setCompanyLeaves] = useState<any[]>([]);
+
+  // Filter out any logs that were recorded on a Company Leave date
+  const myLogs = useMemo(() => {
+    return rawMyLogs.filter(log => {
+      if (!log.clock_in) return true;
+      const dateStr = getLocalDateString(log.clock_in);
+      const isCompanyLeave = companyLeaves.some((cl: any) => {
+        const startStr = getLocalDateString(cl.start_date);
+        const endStr = getLocalDateString(cl.end_date);
+        if (dateStr >= startStr && dateStr <= endStr) {
+          if (cl.applies_to === 'all') return true;
+          if (cl.applies_to === 'branch' && cl.branch_id) {
+            return cl.branch_id.split(',').map((s: string) => s.trim()).includes(profile?.branch);
+          }
+          if (cl.applies_to === 'department' && cl.department_id) {
+            const depts = cl.department_id.split(',').map((s: string) => s.trim());
+            const normEmpDept = (profile?.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            return depts.some((d: string) => {
+              const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+              return normEmpDept === normClDept || profile?.department === d;
+            });
+          }
+        }
+        return false;
+      });
+      return !isCompanyLeave;
+    });
+  }, [rawMyLogs, companyLeaves, profile]);
+
+  const processedLastMonthLogs = useMemo(() => {
+    return lastMonthLogs.filter(log => {
+      if (!log.clock_in) return true;
+      const dateStr = getLocalDateString(log.clock_in);
+      const isCompanyLeave = companyLeaves.some((cl: any) => {
+        const startStr = getLocalDateString(cl.start_date);
+        const endStr = getLocalDateString(cl.end_date);
+        if (dateStr >= startStr && dateStr <= endStr) {
+          if (cl.applies_to === 'all') return true;
+          if (cl.applies_to === 'branch' && cl.branch_id) {
+            return cl.branch_id.split(',').map((s: string) => s.trim()).includes(profile?.branch);
+          }
+          if (cl.applies_to === 'department' && cl.department_id) {
+            const depts = cl.department_id.split(',').map((s: string) => s.trim());
+            const normEmpDept = (profile?.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            return depts.some((d: string) => {
+              const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+              return normEmpDept === normClDept || profile?.department === d;
+            });
+          }
+        }
+        return false;
+      });
+      return !isCompanyLeave;
+    });
+  }, [lastMonthLogs, companyLeaves, profile]);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/user-details/${userId}`)
@@ -139,40 +194,17 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   const totalHours = logsWithDuration.reduce((acc, curr) => acc + parseDurationToHours(curr.duration), 0);
   const avgWorkHours = logsWithDuration.length > 0 ? (totalHours / logsWithDuration.length) : 0;
 
-  // Calculate last week's average for trend
-  const getWorkHoursTrend = () => {
-    const now = new Date();
-    const oneDay = 24 * 60 * 60 * 1000;
-    
-    const last7DaysLimit = new Date(now.getTime() - 7 * oneDay);
-    const prev7DaysLimit = new Date(now.getTime() - 14 * oneDay);
-    
-    const last7DaysLogs = logsWithDuration.filter(l => {
-      const d = new Date(l.clock_in);
-      return d >= last7DaysLimit && d <= now;
-    });
-    
-    const prev7DaysLogs = logsWithDuration.filter(l => {
-      const d = new Date(l.clock_in);
-      return d >= prev7DaysLimit && d < last7DaysLimit;
-    });
-    
-    const avgLast7 = last7DaysLogs.length > 0 
-      ? last7DaysLogs.reduce((acc, curr) => acc + parseDurationToHours(curr.duration), 0) / last7DaysLogs.length
-      : 0;
-      
-    const avgPrev7 = prev7DaysLogs.length > 0 
-      ? prev7DaysLogs.reduce((acc, curr) => acc + parseDurationToHours(curr.duration), 0) / prev7DaysLogs.length
-      : 0;
-      
-    const diff = avgLast7 - avgPrev7;
+  const lastMonthLogsWithDuration = processedLastMonthLogs.filter(l => l.duration && l.duration !== "--h --m");
+  const lastMonthTotalHours = lastMonthLogsWithDuration.reduce((acc, curr) => acc + parseDurationToHours(curr.duration), 0);
+  const lastMonthAvgWorkHours = lastMonthLogsWithDuration.length > 0 ? (lastMonthTotalHours / lastMonthLogsWithDuration.length) : 0;
+
+  const workHoursTrend = useMemo(() => {
+    const diff = avgWorkHours - lastMonthAvgWorkHours;
     return {
       diff: parseFloat(diff.toFixed(1)),
-      hasPrevData: prev7DaysLogs.length > 0
+      hasPrevData: lastMonthLogsWithDuration.length > 0
     };
-  };
-
-  const workHoursTrend = getWorkHoursTrend();
+  }, [avgWorkHours, lastMonthAvgWorkHours, lastMonthLogsWithDuration.length]);
 
   // Monthly summary
   const presentDays = myLogs.length;
@@ -363,8 +395,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
        if (date <= new Date() && !isWeekendDay) prevWorkingDaysPassed++;
     }
   }
-  const prevPresentDays = lastMonthLogs.length;
-  const prevLateArrivals = lastMonthLogs.filter(l => l.is_late || l.status === "LATE").length;
+  const prevPresentDays = processedLastMonthLogs.length;
+  const prevLateArrivals = processedLastMonthLogs.filter(l => l.is_late || l.status === "LATE").length;
   const prevAttendanceRate = calcRate(prevPresentDays - prevLateArrivals, prevLateArrivals, prevWorkingDaysPassed);
   
   const rateDiff = attendanceRate - prevAttendanceRate;
@@ -542,7 +574,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <span className="text-2xl font-black text-foreground">{attendanceRate}%</span>
               </div>
               <div className="flex items-center gap-1 mt-0.5">
-                {lastMonthLogs.length > 0 && rateDiff !== 0 ? (
+                {processedLastMonthLogs.length > 0 && rateDiff !== 0 ? (
                   <>
                     {rateDiff > 0 ? <ArrowUpRight className="w-3 h-3 text-emerald-500" /> : <ArrowDownRight className="w-3 h-3 text-rose-500" />}
                     <span className={`text-[10px] font-bold ${rateDiff > 0 ? "text-emerald-500" : "text-rose-500"}`}>
@@ -577,11 +609,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                   <>
                     {workHoursTrend.diff > 0 ? <ArrowUpRight className="w-3 h-3 text-emerald-500" /> : <ArrowDownRight className="w-3 h-3 text-rose-500" />}
                     <span className={`text-[10px] font-bold ${workHoursTrend.diff > 0 ? "text-emerald-500" : "text-rose-500"}`}>
-                      {workHoursTrend.diff > 0 ? `+${workHoursTrend.diff}` : workHoursTrend.diff} from last week
+                      {workHoursTrend.diff > 0 ? `+${workHoursTrend.diff}` : workHoursTrend.diff} hrs {month === "all" ? "from last year" : "from last month"}
                     </span>
                   </>
                 ) : (
-                  <span className="text-[10px] font-medium text-muted-foreground">-- from last week</span>
+                  <span className="text-[10px] font-medium text-muted-foreground">-- {month === "all" ? "from last year" : "from last month"}</span>
                 )}
               </div>
             </div>
