@@ -50,6 +50,25 @@ export default function LeaveManagement() {
     void fetchLiveRequests();
   }, [userId]);
 
+  // Fetch saved IC number to auto-populate the form on next submission
+  const [icAutoFilled, setIcAutoFilled] = useState(false);
+  useEffect(() => {
+    if (!userId) return;
+    const fetchSavedIc = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/user-ic?userId=${encodeURIComponent(userId)}`);
+        const data = await res.json();
+        if (data.success && data.icNumber) {
+          setFormData(prev => ({ ...prev, noKadPengenalan: data.icNumber }));
+          setIcAutoFilled(true);
+        }
+      } catch (err) {
+        console.error("Failed to fetch saved IC:", err);
+      }
+    };
+    void fetchSavedIc();
+  }, [userId]);
+
   // Form State
   const [formData, setFormData] = useState({
     namaPenuh: "",
@@ -231,6 +250,11 @@ export default function LeaveManagement() {
         payload.append("cuti_tanpa_gaji_signature", formData.cutiTanpaGajiSignature ? "true" : "false");
       }
 
+      // Always send IC number so the backend can save it for future auto-population
+      if (formData.noKadPengenalan.trim()) {
+        payload.append("no_kad_pengenalan", formData.noKadPengenalan.trim());
+      }
+
       const response = await fetch(`${API_BASE_URL}/api/leave-requests`, {
         method: "POST",
         body: payload,
@@ -370,12 +394,22 @@ export default function LeaveManagement() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">No Kad Pengenalan *</Label>
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                        No Kad Pengenalan *
+                        {icAutoFilled && (
+                          <span className="ml-2 text-[9px] font-black text-emerald-600 normal-case tracking-normal">
+                            ✓ Tersimpan
+                          </span>
+                        )}
+                      </Label>
                       <Input
                         placeholder="CONTOH: 900101115566"
                         value={formData.noKadPengenalan}
                         className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold"
-                        onChange={e => setFormData({ ...formData, noKadPengenalan: e.target.value })}
+                        onChange={e => {
+                          setIcAutoFilled(false);
+                          setFormData({ ...formData, noKadPengenalan: e.target.value });
+                        }}
                       />
                     </div>
                     <div className="space-y-2">

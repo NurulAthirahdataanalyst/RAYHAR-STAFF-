@@ -1686,7 +1686,8 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
     cuti_ganti_hari,
     cuti_ganti_jam,
     cuti_tanpa_gaji_phone,
-    cuti_tanpa_gaji_signature
+    cuti_tanpa_gaji_signature,
+    no_kad_pengenalan
   } = req.body;
 
   if (!user_id || !leave_type || !start_date || !end_date || !days) {
@@ -1760,6 +1761,21 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
       `SELECT lr.*, p.full_name, p.branch FROM leave_requests lr JOIN profiles p ON p.user_id = lr.user_id WHERE lr.leave_id = ?`,
       [result.insertId]
     );
+
+    // Save IC number to profile for auto-population on future leave requests
+    if (no_kad_pengenalan && no_kad_pengenalan.toString().trim()) {
+      try {
+        await pool.query(
+          `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS ic_number VARCHAR(20)`
+        );
+        await pool.query(
+          `UPDATE profiles SET ic_number = ? WHERE user_id = ? AND (ic_number IS NULL OR ic_number = '')`,
+          [no_kad_pengenalan.toString().trim(), user_id]
+        );
+      } catch (icErr) {
+        console.error("Warning: could not save ic_number to profile:", icErr);
+      }
+    }
 
     const leaveData = rows[0];
 
@@ -4907,6 +4923,26 @@ app.delete("/api/company-leaves/:id", async (req, res) => {
 });
 
 // ===============================
+// ===============================
+// USER IC NUMBER — Auto-populate Leave Form
+// ===============================
+
+// GET: Fetch saved IC number for a user
+app.get("/api/user-ic", async (req, res) => {
+  const { userId } = req.query;
+  if (!userId) return res.status(400).json({ success: false, error: "Missing userId" });
+  try {
+    // Ensure ic_number column exists (safe idempotent migration)
+    await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS ic_number VARCHAR(20)`);
+    const [rows] = await pool.query("SELECT ic_number FROM profiles WHERE user_id = ? LIMIT 1", [userId]);
+    const icNumber = rows[0]?.ic_number || null;
+    res.json({ success: true, icNumber });
+  } catch (err) {
+    console.error("GET /api/user-ic error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ROUTES
 // ===============================
 const PORT = process.env.PORT || 8080;
