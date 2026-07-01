@@ -77,6 +77,7 @@ export default function Dashboard() {
     presentToday: 0,
     onLeave: 0,
     lateArrivals: 0,
+    activeCompanyLeave: null as any,
   });
 
   const [activities, setActivities] = useState<any[]>([]);
@@ -234,16 +235,46 @@ export default function Dashboard() {
     };
   }, [applyAttendanceUpdate, fetchDashboardData]);
 
-  // Auto refresh every 10 seconds (keeps dashboard synced)
+  // Auto refresh via SSE and 60-second fallback
   useEffect(() => {
     if (!dashboardUserId) return;
 
+    // Fallback polling every 60 seconds
     const interval = setInterval(() => {
       fetchDashboardData(true);
-    }, 10000);
+    }, 60000);
 
-    return () => clearInterval(interval);
-  }, [dashboardUserId, fetchDashboardData]);
+    // Real-time SSE updates
+    const streamUrl = `${API_BASE_URL}/api/presence/stream`;
+    const eventSource = new EventSource(streamUrl);
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (
+          data.type === 'presence-update' || 
+          data.type === 'leave-status' || 
+          data.type === 'leave-request' || 
+          data.type === 'refresh'
+        ) {
+          // If the event is from another branch, ignore if role is restricted
+          if (role === "branch_leader" || role === "branch_officer" || !["hr_admin", "managing_director", "finance_manager"].includes(role)) {
+            if (data.branch && data.branch !== userBranch) return;
+          }
+          
+          fetchDashboardData(true);
+          if (["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role)) {
+            fetchWhoOutToday();
+          }
+        }
+      } catch (e) {}
+    };
+
+    return () => {
+      clearInterval(interval);
+      eventSource.close();
+    };
+  }, [dashboardUserId, fetchDashboardData, fetchWhoOutToday, role, userBranch]);
 
   // Refresh dashboard if Attendance.tsx updates sessionStorage (cross-tab sync)
   useEffect(() => {
@@ -360,15 +391,48 @@ export default function Dashboard() {
                 variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
               />
             )}
-            <div onClick={() => navigate("/employees")} className="cursor-pointer">
-              <StatCard
-                icon={Users}
-                title="Total Employees"
-                value={String(stats.totalEmployees ?? 0)}
-                subtitle="Active Personnel"
-                variant="success"
-              />
-            </div>
+            {stats.activeCompanyLeave ? (
+              <div onClick={() => navigate("/leave")} className="cursor-pointer">
+                <Card className="border-none shadow-md bg-card overflow-hidden h-[120px] sm:h-[130px] flex flex-col relative group transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                  <div className="absolute top-0 right-0 p-3 opacity-10 transition-transform duration-500 group-hover:scale-110 group-hover:opacity-20 text-[#7B0099]">
+                    <CalendarCheck className="w-16 h-16 sm:w-20 sm:h-20" />
+                  </div>
+                  <CardContent className="p-4 sm:p-5 flex flex-col justify-between h-full flex-grow relative z-10">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] sm:text-[11px] font-black text-muted-foreground uppercase tracking-widest truncate">Company Leave</p>
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#7B0099]/10 flex items-center justify-center shrink-0">
+                          <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7B0099]" />
+                        </div>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <h3 className="text-lg sm:text-xl font-black text-foreground tracking-tighter truncate">
+                          {stats.activeCompanyLeave.title || stats.activeCompanyLeave.leave_name || "Company Leave"}
+                        </h3>
+                      </div>
+                      <div className="flex flex-col gap-1 mt-1">
+                        <Badge variant="outline" className="w-fit border-[#7B0099]/20 text-[#7B0099] bg-[#7B0099]/5 uppercase text-[8px] tracking-wider font-black">
+                          📅 {new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </Badge>
+                        <Badge variant="outline" className="w-fit border-slate-500/20 text-slate-600 bg-slate-500/5 uppercase text-[8px] tracking-wider font-black truncate max-w-full">
+                          👥 {stats.activeCompanyLeave.applies_to}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : (
+              <div onClick={() => navigate("/employees")} className="cursor-pointer">
+                <StatCard
+                  icon={Users}
+                  title="Total Employees"
+                  value={String(stats.totalEmployees ?? 0)}
+                  subtitle="Active Personnel"
+                  variant="success"
+                />
+              </div>
+            )}
             <StatCard
               icon={CheckCircle2}
               title="Present Today"
