@@ -3281,45 +3281,163 @@ app.get("/api/dashboard-stats", async (req, res) => {
     );
     const pendingLeaves = parseInt(pendingRows[0].pending || 0);
 
-    // 4. RECENT ACTIVITIES
-    const [personalRecentRows] = await pool.query(
-      `
-      WITH activities AS (
-        SELECT 
-          'Attendance' AS action, 
-          'Clocked In' AS status,
-          clock_in as sort_time,
-          TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time
-        FROM attendances WHERE user_id = ? AND clock_in IS NOT NULL 
+    // 4. RECENT ACTIVITIES — Role-scoped Activity Intelligence Feed
+    // ── Layer 1: MY ACTIVITY (all roles) ────────────────────────────────────
+    const [myAttendanceRows] = await pool.query(
+      `WITH acts AS (
+        SELECT 'attendance' AS type,
+          'You' AS actor,
+          'Clocked In' AS action,
+          NULL AS target,
+          NULL AS context,
+          TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+          clock_in AS sort_time,
+          'Present' AS badge
+        FROM attendances
+        WHERE user_id = ? AND clock_in IS NOT NULL
           AND DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
-
         UNION ALL
-
-        SELECT 
-          'Attendance' AS action, 
-          'Clocked Out' AS status,
-          clock_out as sort_time,
-          TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time
-        FROM attendances WHERE user_id = ? AND clock_out IS NOT NULL 
+        SELECT 'attendance', 'You', 'Clocked Out', NULL, NULL,
+          TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM'),
+          clock_out, 'Clocked Out'
+        FROM attendances
+        WHERE user_id = ? AND clock_out IS NOT NULL
           AND DATE(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
-
         UNION ALL
-
-        SELECT 
-          CASE WHEN type = 'reminder' THEN 'Reminder' ELSE 'Note' END AS action,
-          CASE WHEN type = 'reminder' THEN 'Added Reminder' ELSE 'Added Note' END AS status,
-          created_at as sort_time,
-          TO_CHAR(created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time
-        FROM personal_notes WHERE user_id = ? 
+        SELECT 'leave', 'You',
+          CASE lr.status
+            WHEN 'Approved' THEN 'Leave request approved'
+            WHEN 'Rejected' THEN 'Leave request rejected'
+            ELSE 'Submitted leave request'
+          END,
+          NULL,
+          CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon')),
+          TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM'),
+          lr.updated_at,
+          lr.status
+        FROM leave_requests lr
+        WHERE lr.user_id = ?
+          AND lr.updated_at >= NOW() - INTERVAL '7 days'
+        UNION ALL
+        SELECT
+          CASE WHEN type = 'reminder' THEN 'note' ELSE 'note' END,
+          'You',
+          CASE WHEN type = 'reminder' THEN 'Added a reminder' ELSE 'Added a note' END,
+          NULL, NULL,
+          TO_CHAR(created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM'),
+          created_at,
+          CASE WHEN type = 'reminder' THEN 'Reminder' ELSE 'Note' END
+        FROM personal_notes WHERE user_id = ?
           AND DATE(created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
       )
-      SELECT act.action, act.status, act.time
-      FROM activities act
-      ORDER BY act.sort_time DESC
-      LIMIT 5
-      `,
-      [userId, userId, userId]
+      SELECT type, actor, action, target, context, time, badge FROM acts
+      ORDER BY sort_time DESC LIMIT 10`,
+      [userId, userId, userId, userId]
     );
+
+    // ── Layer 2: TEAM ACTIVITY (branch_leader, hod, hr_admin, md, finance_manager) ─
+    let teamActivityRows = [];
+    const isElevatedRole = ["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role);
+
+    if (isElevatedRole) {
+      const department = req.query.department ? req.query.department.toString().trim() : "";
+      let teamFilter = "";
+      let teamParams = [];
+
+      if (role === "branch_leader" && branch) {
+        teamFilter = "AND p.branch = ?";
+        teamParams = [branch];
+      } else if (role === "head_of_department" && department) {
+        teamFilter = "AND p.department = ?";
+        teamParams = [department];
+      }
+      // hr_admin, managing_director, finance_manager see all — no filter
+
+      const [teamRows] = await pool.query(
+        `WITH team_acts AS (
+          -- Late arrivals today
+          SELECT 'attendance' AS type,
+            p.full_name AS actor,
+            'Clocked in late' AS action,
+            NULL AS target,
+            CONCAT(COALESCE(p.department, ''), ' • ', p.branch) AS context,
+            TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+            a.clock_in AS sort_time,
+            'Late' AS badge
+          FROM attendances a
+          JOIN profiles p ON p.user_id = a.user_id
+          WHERE DATE(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
+            AND (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${getLateThresholdTime()}'
+            AND p.status = 'Active' ${teamFilter}
+
+          UNION ALL
+
+          -- Leave approvals last 7 days
+          SELECT 'approval', approver.full_name,
+            CASE lr.status
+              WHEN 'Approved' THEN 'Approved leave request'
+              WHEN 'Rejected' THEN 'Rejected leave request'
+              WHEN 'Pending HOD Approval' THEN 'Forwarded leave to HOD'
+              WHEN 'Pending Finance Approval' THEN 'Forwarded leave to Finance'
+              WHEN 'Pending MD Approval' THEN 'Forwarded leave to MD'
+              ELSE CONCAT('Updated leave: ', lr.status)
+            END,
+            emp.full_name,
+            CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon')),
+            TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM'),
+            lr.updated_at,
+            lr.status
+          FROM leave_requests lr
+          JOIN profiles emp ON emp.user_id = lr.user_id
+          LEFT JOIN profiles approver ON approver.user_id = lr.approved_by
+          WHERE lr.updated_at >= NOW() - INTERVAL '7 days'
+            AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
+        )
+        SELECT type, actor, action, target, context, time, badge FROM team_acts
+        ORDER BY sort_time DESC LIMIT 10`,
+        [...teamParams, ...teamParams]
+      );
+      teamActivityRows = teamRows;
+    }
+
+    // ── Layer 3: SYSTEM ACTIVITY (hr_admin, managing_director, finance_manager; hod limited) ─
+    let systemActivityRows = [];
+    const canSeeSystem = ["hr_admin", "managing_director", "finance_manager", "head_of_department"].includes(role);
+
+    if (canSeeSystem) {
+      const department = req.query.department ? req.query.department.toString().trim() : "";
+      let sysFilter = "";
+      let sysParams = [];
+
+      if (role === "head_of_department" && department) {
+        // HOD sees only company leaves affecting their dept
+        sysFilter = "AND (cl.applies_to = 'all' OR (cl.applies_to = 'department' AND cl.department_id ILIKE ?))";
+        sysParams = [`%${department}%`];
+      }
+
+      const [sysRows] = await pool.query(
+        `SELECT 'system' AS type,
+          'System' AS actor,
+          CASE
+            WHEN cl.status = 'Active' THEN 'Activated Company Leave'
+            ELSE 'Deactivated Company Leave'
+          END AS action,
+          cl.leave_name AS target,
+          CONCAT('Applies to: ', cl.applies_to,
+            CASE WHEN cl.applies_to = 'branch' THEN CONCAT(' (', cl.branch_id, ')') ELSE '' END,
+            CASE WHEN cl.applies_to = 'department' THEN CONCAT(' (', cl.department_id, ')') ELSE '' END
+          ) AS context,
+          TO_CHAR(cl.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+          TO_CHAR(cl.updated_at, 'DD Mon YYYY') AS date,
+          cl.status AS badge
+        FROM company_leave_calendar cl
+        WHERE cl.updated_at >= NOW() - INTERVAL '30 days'
+          ${sysFilter}
+        ORDER BY cl.updated_at DESC LIMIT 10`,
+        sysParams
+      );
+      systemActivityRows = sysRows;
+    }
 
     res.json({
       success: true,
@@ -3333,7 +3451,12 @@ app.get("/api/dashboard-stats", async (req, res) => {
         attendanceRate,
         ...(adminStats || {})
       },
-      recentActivities: personalRecentRows,
+      recentActivities: myAttendanceRows,
+      activityFeed: {
+        my: myAttendanceRows,
+        team: teamActivityRows,
+        system: systemActivityRows,
+      },
     });
   } catch (error) {
     console.error("Dashboard Stats Error:", error);

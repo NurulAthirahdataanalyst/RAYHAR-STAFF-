@@ -1,3 +1,4 @@
+import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import StatCard from "@/components/shared/StatCard";
@@ -14,6 +15,11 @@ import {
   ArrowRight,
   FileText,
   Bell,
+  Shield,
+  UserCheck,
+  TrendingUp,
+  Activity,
+  ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +80,9 @@ export default function Dashboard() {
   });
 
   const [activities, setActivities] = useState<any[]>([]);
+  const [activityFeed, setActivityFeed] = useState<{ my: any[]; team: any[]; system: any[] }>({ my: [], team: [], system: [] });
+  const [activeTab, setActiveTab] = useState<"my" | "team" | "system" | "all">("my");
+  const [activityFilter, setActivityFilter] = useState<"all" | "attendance" | "leave" | "approval" | "system">("all");
   const [whoOutToday, setWhoOutToday] = useState<any[]>([]);
 
   const rawName = userName || user?.full_name || "User";
@@ -158,6 +167,9 @@ export default function Dashboard() {
           } else {
             setStats((current) => ({ ...current, ...(data.stats || {}) }));
             setActivities(data.recentActivities || []);
+            if (data.activityFeed) {
+              setActivityFeed(data.activityFeed);
+            }
             setLastUpdated("Updated a few seconds ago");
           }
         }
@@ -269,6 +281,8 @@ export default function Dashboard() {
   const isClockedOut = stats.todayStatus.includes("Clocked Out");
   const isOnLeave = stats.todayStatus === "On Leave";
   const isCompanyLeave = stats.todayStatus === "Company Leave";
+  const isElevatedRole = ["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role);
+  const canSeeSystem = ["hr_admin", "managing_director", "finance_manager", "head_of_department"].includes(role);
   const todayStatusSubtitle = isPresent
     ? `Clock in: ${stats.todayStatusTime || stats.clockInTime}`
     : isClockedOut
@@ -479,67 +493,175 @@ export default function Dashboard() {
         </Card>
       )}
 
-      {/* Recent Activity - responsive */}
+      {/* Enterprise Recent Activity Feed */}
       <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] rounded-[20px] overflow-hidden bg-card">
-        <CardHeader className="border-b border-border/50 pb-3 px-3 sm:px-4">
+        <CardHeader className="border-b border-border/50 pb-3 px-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <CardTitle className="text-base sm:text-lg font-black text-foreground uppercase tracking-wider">
-              Recent Activity
-            </CardTitle>
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-[#7B0099]" />
+              <CardTitle className="text-base sm:text-lg font-black text-foreground uppercase tracking-wider">
+                Recent Activity
+              </CardTitle>
+            </div>
+            <div className="flex items-center gap-2">
               {lastUpdated && (
-                <span className="text-[10px] sm:text-[11px] font-bold text-muted-foreground">
-                  {lastUpdated}
-                </span>
+                <span className="text-[10px] font-bold text-muted-foreground">{lastUpdated}</span>
               )}
-              <Badge
-                variant="outline"
-                className="rounded-lg font-bold border-border text-muted-foreground text-[10px]"
-              >
-                Last 5 Events
+              <Badge variant="outline" className="rounded-lg font-bold border-border text-muted-foreground text-[10px]">
+                Last 10 Events
               </Badge>
             </div>
           </div>
+
+          {/* Tab Strip */}
+          <div className="flex gap-1 mt-3 bg-muted/40 rounded-xl p-1">
+            {([
+              { key: "my", label: "My Activity" },
+              ...(isElevatedRole ? [{ key: "team", label: "Team" }] : []),
+              ...(canSeeSystem ? [{ key: "system", label: "System" }] : []),
+              ...((role === "hr_admin" || role === "managing_director") ? [{ key: "all", label: "All" }] : []),
+            ] as { key: "my" | "team" | "system" | "all"; label: string }[]).map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${
+                  activeTab === tab.key
+                    ? "bg-[#7B0099] text-white shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Filter Chips */}
+          <div className="flex gap-1.5 mt-2 flex-wrap">
+            {([
+              { key: "all", label: "All" },
+              { key: "attendance", label: "Attendance" },
+              { key: "leave", label: "Leave" },
+              ...(isElevatedRole ? [{ key: "approval", label: "Approval" }] : []),
+              ...(canSeeSystem ? [{ key: "system", label: "System" }] : []),
+            ] as { key: "all" | "attendance" | "leave" | "approval" | "system"; label: string }[]).map(chip => (
+              <button
+                key={chip.key}
+                onClick={() => setActivityFilter(chip.key)}
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-all duration-200 ${
+                  activityFilter === chip.key
+                    ? "bg-[#7B0099]/10 text-[#7B0099] border-[#7B0099]/30"
+                    : "border-border/50 text-muted-foreground hover:border-[#7B0099]/30"
+                }`}
+              >
+                {chip.label}
+              </button>
+            ))}
+          </div>
         </CardHeader>
+
         <CardContent className="pt-3 px-3">
-          <div className="space-y-1">
-            {activities && activities.length > 0 ? (
-              activities.map((item, i) => (
-                <div
-                  key={i}
-                  className="group flex items-center gap-3 py-2 px-2.5 rounded-2xl hover:bg-accent/50 transition-colors duration-200"
-                >
-                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shrink-0 ${
-                    item.action === 'Reminder' ? 'bg-yellow-500/10 text-yellow-600 group-hover:bg-card group-hover:shadow-sm' :
-                    item.action === 'Note' ? 'bg-blue-500/10 text-blue-600 group-hover:bg-card group-hover:shadow-sm' :
-                    'bg-muted text-muted-foreground group-hover:bg-card group-hover:shadow-sm'
-                  }`}>
-                    {item.action === 'Reminder' ? (
-                      <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
-                    ) : item.action === 'Note' ? (
-                      <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
-                    ) : (
-                      <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-black text-foreground truncate">
-                      Today, {item.time}
-                    </p>
-                    <p className="text-xs font-bold text-muted-foreground truncate">
-                      {item.status}
-                    </p>
-                  </div>
+          {(() => {
+            // Determine which feed to show
+            let feedItems: any[] = [];
+            if (activeTab === "my") feedItems = activityFeed.my;
+            else if (activeTab === "team") feedItems = activityFeed.team;
+            else if (activeTab === "system") feedItems = activityFeed.system;
+            else if (activeTab === "all") feedItems = [...activityFeed.my, ...activityFeed.team, ...activityFeed.system].sort((a, b) => 0);
+
+            // Apply type filter
+            if (activityFilter !== "all") {
+              feedItems = feedItems.filter(item => item.type === activityFilter);
+            }
+
+            if (feedItems.length === 0) {
+              return (
+                <div className="py-8 text-center flex flex-col items-center justify-center gap-2">
+                  <Activity className="w-6 h-6 text-muted-foreground/30" />
+                  <p className="text-xs text-muted-foreground font-bold">No activity found for this view.</p>
                 </div>
-              ))
-            ) : (
-              <div className="py-4 text-center flex flex-col items-center justify-center gap-1.5">
-                <Clock className="w-4 h-4 text-muted-foreground/60" />
-                <p className="text-xs text-muted-foreground font-bold tracking-tight">
-                  No activity recorded for this period.
-                </p>
+              );
+            }
+
+            return (
+              <div className="space-y-1">
+                {feedItems.map((item, i) => {
+                  // Icon + colour by type
+                  const typeConfig: Record<string, { icon: React.ReactNode; bg: string; text: string }> = {
+                    attendance: { icon: <Clock className="w-4 h-4" />, bg: "bg-[#7B0099]/10", text: "text-[#7B0099]" },
+                    leave: { icon: <CalendarCheck className="w-4 h-4" />, bg: "bg-amber-500/10", text: "text-amber-600" },
+                    approval: { icon: <CheckCircle2 className="w-4 h-4" />, bg: "bg-emerald-500/10", text: "text-emerald-600" },
+                    system: { icon: <Shield className="w-4 h-4" />, bg: "bg-blue-500/10", text: "text-blue-600" },
+                    note: { icon: <FileText className="w-4 h-4" />, bg: "bg-slate-500/10", text: "text-slate-600" },
+                  };
+                  const cfg = typeConfig[item.type] || typeConfig.attendance;
+
+                  // Badge colour by badge value
+                  const badgeColor: Record<string, string> = {
+                    Present: "bg-[#7B0099]/10 text-[#7B0099]",
+                    "Clocked Out": "bg-slate-100 text-slate-600",
+                    Approved: "bg-emerald-100 text-emerald-700",
+                    Rejected: "bg-red-100 text-red-700",
+                    Late: "bg-rose-100 text-rose-700",
+                    Active: "bg-violet-100 text-violet-700",
+                    System: "bg-blue-100 text-blue-700",
+                    Reminder: "bg-yellow-100 text-yellow-700",
+                    Note: "bg-slate-100 text-slate-600",
+                  };
+                  const badgeCls = badgeColor[item.badge] || "bg-muted text-muted-foreground";
+
+                  return (
+                    <div
+                      key={i}
+                      className="group flex items-start gap-3 py-2.5 px-3 rounded-2xl hover:bg-accent/50 transition-colors duration-200"
+                    >
+                      {/* Type icon */}
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${cfg.bg} ${cfg.text}`}>
+                        {cfg.icon}
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-foreground leading-tight">
+                              <span className="text-[#7B0099]">{item.actor}</span>
+                              {" "}
+                              <span className="text-foreground font-semibold">{item.action}</span>
+                              {item.target && (
+                                <>
+                                  {" → "}
+                                  <span className="font-bold">{item.target}</span>
+                                </>
+                              )}
+                            </p>
+                            {item.context && (
+                              <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{item.context}</p>
+                            )}
+                          </div>
+                          <div className="flex flex-col items-end gap-1 shrink-0">
+                            <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">{item.time}</span>
+                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wide ${badgeCls}`}>
+                              {item.badge}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            )}
+            );
+          })()}
+
+          {/* View All footer */}
+          <div className="mt-3 pt-3 border-t border-border/40 flex justify-center">
+            <button
+              onClick={() => navigate("/attendance")}
+              className="flex items-center gap-1.5 text-xs font-bold text-[#7B0099] hover:underline transition-all"
+            >
+              View All Activity
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </CardContent>
       </Card>
