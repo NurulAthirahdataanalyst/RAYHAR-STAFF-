@@ -32,6 +32,22 @@ const statusVariant = (status: string) => {
   }
 };
 
+const getDisplayStatus = (status: string) => {
+  switch (status) {
+    case "Pending HOD":
+      return "Awaiting HOD Approval";
+    case "Pending Finance":
+    case "Pending Finance Manager":
+      return "Awaiting Finance Approval";
+    case "Pending MD":
+      return "Awaiting MD Approval";
+    case "Pending Branch Leader":
+      return "Awaiting Branch Leader Approval";
+    default:
+      return status;
+  }
+};
+
 const approvalProgress = (status: string) => {
   switch (status) {
     case "Approved": return 100;
@@ -227,13 +243,11 @@ export default function LeaveOverview() {
                           className={`text-[11px] font-black px-3 py-1 h-auto shadow-sm whitespace-nowrap ${
                             req.status === "Approved" ? "bg-emerald-500 text-white hover:bg-emerald-600" :
                             req.status === "Rejected" ? "bg-rose-600 text-white hover:bg-rose-700" :
-                            req.status === "Pending Finance" ? "bg-orange-500 text-white hover:bg-orange-600" :
-                            req.status === "Pending MD" ? "bg-blue-600 text-white hover:bg-blue-700" :
-                            req.status === "Pending Branch Leader" ? "bg-violet-500 text-white hover:bg-violet-600" :
-                            "bg-amber-500 text-white hover:bg-amber-600"
+                            "bg-[#C2410C] text-white hover:bg-[#A3370A]"
                           }`}
+                          style={req.status !== "Approved" && req.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
                         >
-                          {req.status.toUpperCase()}
+                          {getDisplayStatus(req.status).toUpperCase()}
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -260,13 +274,11 @@ export default function LeaveOverview() {
                       className={`text-[10px] font-black h-auto py-1 px-2.5 whitespace-nowrap ${
                         req.status === "Approved" ? "bg-emerald-500 text-white" :
                         req.status === "Rejected" ? "bg-rose-600 text-white" :
-                        req.status === "Pending Finance" ? "bg-orange-500 text-white" :
-                        req.status === "Pending MD" ? "bg-blue-600 text-white" :
-                        req.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
-                        "bg-amber-500 text-white"
+                        "bg-[#C2410C] text-white"
                       }`}
+                      style={req.status !== "Approved" && req.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
                     >
-                      {req.status.replace('Pending ', '').toUpperCase()}
+                      {getDisplayStatus(req.status).toUpperCase()}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between bg-muted/20 p-2 rounded-xl">
@@ -320,10 +332,11 @@ export default function LeaveOverview() {
                       className={`text-[9px] font-black px-2.5 h-5 w-fit shadow-sm sm:self-center ${
                         req.status === "Approved" ? "bg-emerald-500" :
                         req.status === "Rejected" ? "bg-rose-500" :
-                        "bg-amber-500 text-white border-none"
+                        "bg-[#C2410C] text-white border-none"
                       }`}
+                      style={req.status !== "Approved" && req.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
                     >
-                      {req.status.toUpperCase()}
+                      {getDisplayStatus(req.status).toUpperCase()}
                     </Badge>
                   </div>
 

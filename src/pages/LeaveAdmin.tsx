@@ -21,6 +21,22 @@ import { useRole } from "@/contexts/RoleContext";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "../config/api";
 
+const getDisplayStatus = (status: string) => {
+  switch (status) {
+    case "Pending HOD":
+      return "Awaiting HOD Approval";
+    case "Pending Finance":
+    case "Pending Finance Manager":
+      return "Awaiting Finance Approval";
+    case "Pending MD":
+      return "Awaiting MD Approval";
+    case "Pending Branch Leader":
+      return "Awaiting Branch Leader Approval";
+    default:
+      return status;
+  }
+};
+
 type LeaveRequest = {
   id: number;
   employee: string;
@@ -426,12 +442,15 @@ export default function LeaveAdmin() {
                           </Badge>
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${
-                            req.status === "Approved" ? "bg-emerald-100/50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
-                            req.status === "Rejected" ? "bg-rose-100/50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" :
-                            "bg-amber-100/50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                          }`}>
-                            {req.status === "Approved" || req.status === "Rejected" ? req.status : req.status}
+                          <span 
+                            className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${
+                              req.status === "Approved" ? "bg-emerald-100/50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
+                              req.status === "Rejected" ? "bg-rose-100/50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" :
+                              "bg-[#C2410C] text-white"
+                            }`}
+                            style={req.status !== "Approved" && req.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
+                          >
+                            {getDisplayStatus(req.status)}
                           </span>
                         </TableCell>
                         {canApprove && (

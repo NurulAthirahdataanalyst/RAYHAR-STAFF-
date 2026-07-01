@@ -23,6 +23,22 @@ import {
   getCleanReason,
 } from "@/lib/leaveStorage";
 
+const getDisplayStatus = (status: string) => {
+  switch (status) {
+    case "Pending HOD":
+      return "Awaiting HOD Approval";
+    case "Pending Finance":
+    case "Pending Finance Manager":
+      return "Awaiting Finance Approval";
+    case "Pending MD":
+      return "Awaiting MD Approval";
+    case "Pending Branch Leader":
+      return "Awaiting Branch Leader Approval";
+    default:
+      return status;
+  }
+};
+
 type LeaveForm = {
   id: number;
   employee: string;
@@ -302,14 +318,11 @@ export default function LeaveFormView() {
                             className={`text-[10px] font-black px-2.5 py-1 h-auto shadow-sm whitespace-nowrap ${
                               form.status === "Approved" ? "bg-emerald-500 text-white hover:bg-emerald-600" :
                               form.status === "Rejected" ? "bg-rose-600 text-white hover:bg-rose-700" :
-                              form.status === "Pending Finance" ? "bg-orange-500 text-white hover:bg-orange-600" :
-                              form.status === "Pending MD" ? "bg-blue-600 text-white hover:bg-blue-700" :
-                              form.status === "Pending HOD" ? "bg-violet-500 text-white hover:bg-violet-600" :
-                              form.status === "Pending Branch Leader" ? "bg-violet-500 text-white hover:bg-violet-600" :
-                              "bg-amber-500 text-white hover:bg-amber-600"
+                              "bg-[#C2410C] text-white hover:bg-[#A3370A]"
                             }`}
+                            style={form.status !== "Approved" && form.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
                           >
-                            {form.status.replace('Pending ', '').toUpperCase()}
+                            {getDisplayStatus(form.status).toUpperCase()}
                           </Badge>
                         </TableCell>
                         <TableCell className="px-6 py-4 text-right">
@@ -360,14 +373,11 @@ export default function LeaveFormView() {
                           className={`text-[9px] font-black px-2 py-1 h-auto shadow-sm whitespace-nowrap ${
                             form.status === "Approved" ? "bg-emerald-500 text-white" :
                             form.status === "Rejected" ? "bg-rose-600 text-white" :
-                            form.status === "Pending Finance" ? "bg-orange-500 text-white" :
-                            form.status === "Pending MD" ? "bg-blue-600 text-white" :
-                            form.status === "Pending HOD" ? "bg-violet-500 text-white" :
-                            form.status === "Pending Branch Leader" ? "bg-violet-500 text-white" :
-                            "bg-amber-500 text-white"
+                            "bg-[#C2410C] text-white"
                           }`}
+                          style={form.status !== "Approved" && form.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
                         >
-                          {form.status.replace('Pending ', '').toUpperCase()}
+                          {getDisplayStatus(form.status).toUpperCase()}
                         </Badge>
                       </div>
                     </div>

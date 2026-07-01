@@ -57,6 +57,22 @@ import {
   Sparkles,
 } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
+
+const getDisplayStatus = (status: string) => {
+  switch (status) {
+    case "Pending HOD":
+      return "Awaiting HOD Approval";
+    case "Pending Finance":
+    case "Pending Finance Manager":
+      return "Awaiting Finance Approval";
+    case "Pending MD":
+      return "Awaiting MD Approval";
+    case "Pending Branch Leader":
+      return "Awaiting Branch Leader Approval";
+    default:
+      return status;
+  }
+};
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import {
   DropdownMenu,
@@ -605,7 +621,7 @@ export default function LeaveAnalytics() {
           <td>${start}</td>
           <td>${end}</td>
           <td style="font-weight: 700;">${r.days}</td>
-          <td><span class="badge badge-${statusClass}">${r.status}</span></td>
+          <td><span class="badge badge-${statusClass}">${getDisplayStatus(r.status)}</span></td>
         </tr>
       `;
       })
@@ -648,7 +664,7 @@ export default function LeaveAnalytics() {
             .badge { padding: 4px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; display: inline-block; }
             .badge-approved { background: #d1fae5; color: #065f46; }
             .badge-rejected { background: #fee2e2; color: #991b1b; }
-            .badge-pending { background: #fef3c7; color: #92400e; }
+            .badge-pending, .badge-pending-hod, .badge-pending-finance, .badge-pending-md, .badge-pending-branch-leader { background: #C2410C; color: white; }
             @media print {
               body { padding: 0; }
               button { display: none; }
@@ -1625,7 +1641,7 @@ export default function LeaveAnalytics() {
               {
                 label: "Pending",
                 value: pending,
-                color: "bg-amber-500 text-white",
+                color: "bg-[#C2410C] text-white",
               },
             ].map((s) => (
               <div key={s.label} className="flex items-center gap-2">

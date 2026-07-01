@@ -23,6 +23,22 @@ export default function TeamLeaveRequests() {
 
   const formatRole = (r: string) => r.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
 
+  const getDisplayStatus = (status: string) => {
+    switch (status) {
+      case "Pending HOD":
+        return "Awaiting HOD Approval";
+      case "Pending Finance":
+      case "Pending Finance Manager":
+        return "Awaiting Finance Approval";
+      case "Pending MD":
+        return "Awaiting MD Approval";
+      case "Pending Branch Leader":
+        return "Awaiting Branch Leader Approval";
+      default:
+        return status;
+    }
+  };
+
   const formatApproverRole = (approverRole: string | undefined, approverDepartment: string | undefined, approverBranch: string | undefined) => {
     if (!approverRole) return "Admin";
     if (approverRole === "hr_admin") return "HR Admin";
@@ -216,13 +232,20 @@ export default function TeamLeaveRequests() {
                         <TableCell>{req.to}</TableCell>
                         <TableCell>{req.days}</TableCell>
                         <TableCell>
-                          <Badge variant={
-                            req.status === "Approved" ? "default" : 
-                            req.status === "Rejected" ? "destructive" : 
-                            "outline"
-                          } 
-                          className={req.status === "Approved" ? "bg-green-500 hover:bg-green-600" : ""}>
-                            {req.status}
+                          <Badge 
+                            variant={
+                              req.status === "Approved" ? "default" : 
+                              req.status === "Rejected" ? "destructive" : 
+                              "default"
+                            } 
+                            className={
+                              req.status === "Approved" ? "bg-green-500 hover:bg-green-600" : 
+                              req.status === "Rejected" ? "" :
+                              "bg-[#C2410C] hover:bg-[#A3370A] text-white border-none"
+                            }
+                            style={req.status !== "Approved" && req.status !== "Rejected" ? { backgroundColor: "#C2410C", color: "white" } : {}}
+                          >
+                            {getDisplayStatus(req.status)}
                           </Badge>
                         </TableCell>
                       </TableRow>
@@ -275,7 +298,7 @@ export default function TeamLeaveRequests() {
                     <div className="space-y-1">
                       <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Status</span>
                       <p className={`font-black uppercase ${selectedRequest.status === "Rejected" ? "text-rose-600" : "text-[#7B0099]"}`}>
-                        {selectedRequest.status}
+                        {getDisplayStatus(selectedRequest.status)}
                         {selectedRequest.status === "Rejected" && selectedRequest.approverRole && (
                           <span className="block text-[8px] text-rose-500 mt-0.5 opacity-60">
                             (by: {formatRole(selectedRequest.approverRole)})
