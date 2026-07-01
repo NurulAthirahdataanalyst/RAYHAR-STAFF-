@@ -1530,7 +1530,7 @@ app.get("/api/branch-employees", async (req, res) => {
         SELECT user_id, COUNT(*) as leave_count
         FROM leave_requests
         WHERE status = 'Approved'
-        AND CURRENT_DATE BETWEEN DATE(start_date) AND DATE(end_date)
+        AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
         GROUP BY user_id
       ) leave_today ON leave_today.user_id = p.user_id
       WHERE p.branch = ? AND p.status = 'Active'
@@ -2514,7 +2514,7 @@ app.get("/api/attendance-status", async (req, res) => {
 
     const [leaveRows] = await pool.query(`
       SELECT status FROM leave_requests 
-      WHERE user_id = ? AND status = 'Approved' AND CURRENT_DATE BETWEEN DATE(start_date) AND DATE(end_date)
+      WHERE user_id = ? AND status = 'Approved' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
     `, [empId]);
 
     const isOnLeave = leaveRows.length > 0;
@@ -2607,7 +2607,7 @@ app.post("/api/attendance", async (req, res) => {
     if (empProfile.length > 0) {
       const p = empProfile[0];
       const [companyLeaveTodayRows] = await pool.query(
-        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND CURRENT_DATE BETWEEN DATE(start_date) AND DATE(end_date)`
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`
       );
 
       const matchingLeave = companyLeaveTodayRows.find(cl => {
@@ -3183,7 +3183,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     // OVERRIDE IF ON LEAVE TODAY
     const [onLeaveTodayRows] = await pool.query(
-      `SELECT status FROM leave_requests WHERE user_id = ? AND status = 'Approved' AND CURRENT_DATE BETWEEN DATE(start_date) AND DATE(end_date)`,
+      `SELECT status FROM leave_requests WHERE user_id = ? AND status = 'Approved' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
       [userId]
     );
 
@@ -3202,7 +3202,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     if (empProfile.length > 0) {
       const p = empProfile[0];
       const [companyLeaveTodayRows] = await pool.query(
-        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND CURRENT_DATE BETWEEN DATE(start_date) AND DATE(end_date)`
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`
       );
       const matchingLeave = companyLeaveTodayRows.find(cl => {
         if (cl.applies_to === 'all') return true;
