@@ -428,8 +428,8 @@ export default function Attendance() {
       return `
         <tr>
           <td>${dateStr}</td>
-          <td>${log.time_in || '--:--'}</td>
-          <td>${log.time_out || '--:--'}</td>
+          <td>${log.time_in || '--'}</td>
+          <td>${log.time_out || '--'}</td>
           <td><span class="badge badge-${statusClass}">${log.status}</span></td>
           <td>${log.late || '--'}</td>
           <td class="duration">${log.duration || '--'}</td>
@@ -564,8 +564,8 @@ export default function Attendance() {
       // Escape CSV values
       return [
         `"${dateStr.replace(/"/g, '""')}"`,
-        `"${(log.time_in || '--:--').replace(/"/g, '""')}"`,
-        `"${(log.time_out || '--:--').replace(/"/g, '""')}"`,
+        `"${(log.time_in || '--').replace(/"/g, '""')}"`,
+        `"${(log.time_out || '--').replace(/"/g, '""')}"`,
         `"${(log.status || '').replace(/"/g, '""')}"`,
         `"${(log.late || '--').replace(/"/g, '""')}"`,
         `"${(log.duration || '--').replace(/"/g, '""')}"`
@@ -1168,10 +1168,10 @@ export default function Attendance() {
                       <TableRow key={log.attendance_id || index} className="hover:bg-muted/50 transition-colors">
                         <TableCell className="py-4 pl-6 font-medium text-foreground whitespace-nowrap">{dateStr}</TableCell>
                         <TableCell className="font-medium text-foreground">
-                          {log.clock_in ? formatAttendanceTime(log.clock_in) : "--:--"}
+                          {log.time_in || "--"}
                         </TableCell>
                         <TableCell className="font-medium text-foreground">
-                          {log.clock_out ? formatAttendanceTime(log.clock_out) : "--:--"}
+                          {log.time_out || "--"}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
                           <span className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-semibold rounded-md border ${statusBadge}`}>

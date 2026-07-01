@@ -2802,8 +2802,8 @@ app.get("/api/attendance/history", async (req, res) => {
       const clockRow = clockMap[dateStr];
       
       let status = "Absent";
-      let time_in = "--:--";
-      let time_out = "--:--";
+      let time_in = "--";
+      let time_out = "--";
       let late = "--";
       let duration = "--";
       let clock_in = null;
@@ -2851,8 +2851,8 @@ app.get("/api/attendance/history", async (req, res) => {
       if (clockRow) {
         clock_in = clockRow.clock_in;
         clock_out = clockRow.clock_out;
-        time_in = clockRow.time_in || "--:--";
-        time_out = clockRow.time_out || "--:--";
+        time_in = clockRow.time_in || "--";
+        time_out = clockRow.time_out || "--";
         status = "Present";
 
         // Calculate late minutes

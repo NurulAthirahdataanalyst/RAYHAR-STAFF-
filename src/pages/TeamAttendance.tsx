@@ -121,8 +121,8 @@ export default function TeamAttendance() {
 
     return {
       ...emp,
-      time_in: att?.time_in || "--:--",
-      time_out: att?.time_out || "--:--",
+      time_in: att?.time_in || "--",
+      time_out: att?.time_out || "--",
       status: statusLabel,
       late: lateLabel,
       workingHours
