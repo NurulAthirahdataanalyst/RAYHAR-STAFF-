@@ -11,13 +11,13 @@ interface StatCardProps {
 }
 
 const variantStyles = {
-  default: "bg-card dark:bg-card border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)]",
-  maroon: "bg-card dark:bg-card border-none border-l-4 border-l-rose-500 text-foreground shadow-[0_2px_12px_rgba(0,0,0,0.06)]",
-  gold: "bg-card dark:bg-card border-none border-l-4 border-l-amber-500 text-foreground shadow-[0_2px_12px_rgba(0,0,0,0.06)]",
-  success: "bg-card dark:bg-card border-none border-l-4 border-l-emerald-500 text-foreground shadow-[0_2px_12px_rgba(0,0,0,0.06)]",
+  default: "bg-card dark:bg-card border-none border-t-4 border-t-blue-500 text-foreground shadow-[0_2px_12px_rgba(0,0,0,0.06)]",
+  maroon: "bg-card dark:bg-card border-none border-t-4 border-t-rose-500 text-foreground shadow-[0_2px_12px_rgba(0,0,0,0.06)]",
+  gold: "bg-card dark:bg-card border-none border-t-4 border-t-amber-500 text-foreground shadow-[0_2px_12px_rgba(0,0,0,0.06)]",
+  success: "bg-card dark:bg-card border-none border-t-4 border-t-emerald-500 text-foreground shadow-[0_2px_12px_rgba(0,0,0,0.06)]",
   gauge: "bg-card dark:bg-card border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)]",
-  warning: "bg-card dark:bg-card border-none border-l-4 border-l-amber-500 text-foreground shadow-[0_2px_12px_rgba(0,0,0,0.06)]",
-  purple: "bg-card dark:bg-card border-none border-l-4 border-l-purple-500 text-foreground shadow-[0_2px_12px_rgba(0,0,0,0.06)]",
+  warning: "bg-card dark:bg-card border-none border-t-4 border-t-amber-500 text-foreground shadow-[0_2px_12px_rgba(0,0,0,0.06)]",
+  purple: "bg-card dark:bg-card border-none border-t-4 border-t-purple-500 text-foreground shadow-[0_2px_12px_rgba(0,0,0,0.06)]",
 };
 
 export default function StatCard({ 
