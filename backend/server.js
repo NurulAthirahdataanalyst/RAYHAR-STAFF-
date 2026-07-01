@@ -2753,19 +2753,49 @@ app.get("/api/attendance/history", async (req, res) => {
         endDate = new Date(Date.UTC(requestedYear, 11, 31));
       } else if (requestedYear === currentYear) {
         endDate = new Date(Date.UTC(requestedYear, currentMonth - 1, currentDay));
+        // Extend to include active Company Leave dates beyond today within this year
+        const lastDayOfYear = new Date(Date.UTC(requestedYear, 11, 31));
+        companyLeaves.forEach(cl => {
+          const clEnd = new Date(cl.end_date);
+          const clEndStr = clEnd.toISOString().split('T')[0];
+          const clEndYear = parseInt(clEndStr.split('-')[0]);
+          if (clEndYear === requestedYear) {
+            const clEndUTC = new Date(Date.UTC(clEndYear, parseInt(clEndStr.split('-')[1]) - 1, parseInt(clEndStr.split('-')[2])));
+            if (clEndUTC > endDate && clEndUTC <= lastDayOfYear) {
+              endDate = clEndUTC;
+            }
+          }
+        });
       } else {
         endDate = new Date(Date.UTC(requestedYear, 0, 1)); // Future year
       }
     } else {
       const requestedMonth = parseInt(month) || currentMonth;
       startDate = new Date(Date.UTC(requestedYear, requestedMonth - 1, 1));
+      const lastDayOfMonth = new Date(Date.UTC(requestedYear, requestedMonth, 0));
       
       if (requestedYear < currentYear || (requestedYear === currentYear && requestedMonth < currentMonth)) {
-        endDate = new Date(Date.UTC(requestedYear, requestedMonth, 0)); // Last day of month
+        endDate = lastDayOfMonth; // Last day of month
       } else if (requestedYear === currentYear && requestedMonth === currentMonth) {
         endDate = new Date(Date.UTC(requestedYear, requestedMonth - 1, currentDay)); // Up to today
+
+        // Extend endDate to cover any active Company Leave dates that fall within this month
+        // (even if they are in the future), so they appear in month view
+        companyLeaves.forEach(cl => {
+          const clEnd = new Date(cl.end_date);
+          const clEndStr = clEnd.toISOString().split('T')[0];
+          const clEndYear = parseInt(clEndStr.split('-')[0]);
+          const clEndMonth = parseInt(clEndStr.split('-')[1]);
+          // Only extend within the same requested month
+          if (clEndYear === requestedYear && clEndMonth === requestedMonth) {
+            const clEndUTC = new Date(Date.UTC(clEndYear, clEndMonth - 1, parseInt(clEndStr.split('-')[2])));
+            if (clEndUTC > endDate && clEndUTC <= lastDayOfMonth) {
+              endDate = clEndUTC;
+            }
+          }
+        });
       } else {
-        endDate = null; // Future month
+        endDate = null; // Future month (no company leave extension needed)
       }
     }
 
