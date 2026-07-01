@@ -3413,7 +3413,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
             lr.status
           FROM leave_requests lr
           JOIN profiles emp ON emp.user_id = lr.user_id
-          LEFT JOIN profiles approver ON approver.user_id = lr.approved_by
+          LEFT JOIN profiles approver ON approver.user_id = lr.approver_id
           WHERE lr.updated_at >= NOW() - INTERVAL '7 days'
             AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
         )
