@@ -16,6 +16,7 @@ import {
   Download
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -78,6 +79,11 @@ export default function Employees() {
   const [signupRole, setSignupRole] = useState("");
   const [availableRoles, setAvailableRoles] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setPortalTarget(document.getElementById("page-header-actions"));
+  }, []);
   const [branchesList, setBranchesList] = useState<any[]>([]);
   const [departmentsList, setDepartmentsList] = useState<any[]>([]);
   const [branchMap, setBranchMap] = useState<Record<string, string>>(BRANCH_NAMES);
@@ -363,41 +369,45 @@ export default function Employees() {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
-      {["hr_admin", "managing_director", "finance_manager"].includes(role) ? (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      {portalTarget && createPortal(
+        <>
+          {["hr_admin", "managing_director", "finance_manager"].includes(role) ? (
+            <Button 
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-[#7B0099] hover:bg-[#5e0080] text-white font-bold gap-2 whitespace-nowrap touch-target"
+            >
+              <Users className="w-4 h-4" />
+              Add Staff
+            </Button>
+          ) : (
+            <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4 w-full sm:w-auto">
+              <ExportDropdown onExportCSV={handleExportCSV} />
+              <Card className="border-border shadow-sm m-0">
+                <CardContent className="p-3 sm:p-4 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+                    <Users className="w-5 h-5 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Employees</p>
+                    <h3 className="text-2xl font-bold mt-0.5 text-green-600 dark:text-green-400 leading-none">
+                      {filtered.length}
+                    </h3>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </>,
+        portalTarget
+      )}
+
+      {["hr_admin", "managing_director", "finance_manager"].includes(role) && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2 mt-2">
           <div>
             <h1 className="text-responsive-xl font-bold font-heading text-foreground">Staff Directory</h1>
             <p className="text-responsive-sm text-muted-foreground mt-1">
               Manage employees across all branches
             </p>
-          </div>
-          
-          <Button 
-            onClick={() => setIsAddModalOpen(true)}
-            className="bg-[#7B0099] hover:bg-[#5e0080] text-white font-bold gap-2 whitespace-nowrap touch-target self-start sm:self-auto"
-          >
-            <Users className="w-4 h-4" />
-            Add Staff
-          </Button>
-        </div>
-      ) : (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-3 mb-2 mt-2">
-          {/* For HOD/Branch Leader: Staff Directory text is removed as requested, replaced with Export and KPI on the right */}
-          <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4 w-full sm:w-auto">
-            <ExportDropdown onExportCSV={handleExportCSV} />
-            <Card className="border-border shadow-sm m-0">
-              <CardContent className="p-3 sm:p-4 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Employees</p>
-                  <h3 className="text-2xl font-bold mt-0.5 text-green-600 dark:text-green-400 leading-none">
-                    {filtered.length}
-                  </h3>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       )}
