@@ -962,7 +962,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
 
     // Company leaves active today
     const [companyLeaveRows] = await pool.query(
-      `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND ?::date BETWEEN start_date AND end_date`,
+      `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND ?::date BETWEEN DATE(start_date) AND DATE(end_date)`,
       [dateStr]
     );
 
@@ -2208,7 +2208,7 @@ app.get("/api/employees", async (req, res) => {
         SELECT user_id, 1 AS is_on_leave_today
         FROM leave_requests
         WHERE status = 'Approved' 
-        AND ${date ? '?::date' : 'CURRENT_DATE'} BETWEEN start_date AND end_date
+        AND ${date ? '?::date' : 'CURRENT_DATE'} BETWEEN DATE(start_date) AND DATE(end_date)
         GROUP BY user_id
       ) leave_today ON leave_today.user_id = p.user_id
       ${branchFilter}
@@ -2514,7 +2514,7 @@ app.get("/api/attendance-status", async (req, res) => {
 
     const [leaveRows] = await pool.query(`
       SELECT status FROM leave_requests 
-      WHERE user_id = ? AND status = 'Approved' AND CURRENT_DATE BETWEEN start_date AND end_date
+      WHERE user_id = ? AND status = 'Approved' AND CURRENT_DATE BETWEEN DATE(start_date) AND DATE(end_date)
     `, [empId]);
 
     const isOnLeave = leaveRows.length > 0;
@@ -2538,7 +2538,7 @@ app.get("/api/attendance-status", async (req, res) => {
     if (empProfile.length > 0) {
       const p = empProfile[0];
       const [companyLeaveTodayRows] = await pool.query(
-        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND CURRENT_DATE BETWEEN start_date AND end_date`
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND CURRENT_DATE BETWEEN DATE(start_date) AND DATE(end_date)`
       );
 
       const matchingLeave = companyLeaveTodayRows.find(cl => {
@@ -2607,7 +2607,7 @@ app.post("/api/attendance", async (req, res) => {
     if (empProfile.length > 0) {
       const p = empProfile[0];
       const [companyLeaveTodayRows] = await pool.query(
-        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND CURRENT_DATE BETWEEN start_date AND end_date`
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND CURRENT_DATE BETWEEN DATE(start_date) AND DATE(end_date)`
       );
 
       const matchingLeave = companyLeaveTodayRows.find(cl => {
@@ -3026,7 +3026,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const [onLeaveRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS on_leave FROM leave_requests WHERE status = 'Approved' AND ${dateCondition} BETWEEN start_date AND end_date ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS on_leave FROM leave_requests WHERE status = 'Approved' AND ${dateCondition} BETWEEN DATE(start_date) AND DATE(end_date) ${attendanceFilter}`,
         onLeaveParams
       );
 
@@ -3070,7 +3070,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const [companyLeaveDays] = await pool.query(
-        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND CURRENT_DATE BETWEEN start_date AND end_date`
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND CURRENT_DATE BETWEEN DATE(start_date) AND DATE(end_date)`
       );
 
       const [upcomingCompanyLeaveRows] = await pool.query(
@@ -3089,7 +3089,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       const clockedInSet = new Set(clockedInRows.map(r => r.user_id));
 
       const [personalLeaveRows] = await pool.query(
-        `SELECT DISTINCT user_id FROM leave_requests WHERE status = 'Approved' AND ${dateCondition} BETWEEN start_date AND end_date ${attendanceFilter}`,
+        `SELECT DISTINCT user_id FROM leave_requests WHERE status = 'Approved' AND ${dateCondition} BETWEEN DATE(start_date) AND DATE(end_date) ${attendanceFilter}`,
         onLeaveParams
       );
       const personalLeaveSet = new Set(personalLeaveRows.map(r => r.user_id));
@@ -3177,7 +3177,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     // OVERRIDE IF ON LEAVE TODAY
     const [onLeaveTodayRows] = await pool.query(
-      `SELECT status FROM leave_requests WHERE user_id = ? AND status = 'Approved' AND CURRENT_DATE BETWEEN start_date AND end_date`,
+      `SELECT status FROM leave_requests WHERE user_id = ? AND status = 'Approved' AND CURRENT_DATE BETWEEN DATE(start_date) AND DATE(end_date)`,
       [userId]
     );
 
@@ -3196,7 +3196,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     if (empProfile.length > 0) {
       const p = empProfile[0];
       const [companyLeaveTodayRows] = await pool.query(
-        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND CURRENT_DATE BETWEEN start_date AND end_date`
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND CURRENT_DATE BETWEEN DATE(start_date) AND DATE(end_date)`
       );
       const matchingLeave = companyLeaveTodayRows.find(cl => {
         if (cl.applies_to === 'all') return true;
@@ -3226,7 +3226,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
          AND (
            (start_date BETWEEN DATE_TRUNC('month', CURRENT_DATE) AND CURRENT_DATE)
            OR (end_date BETWEEN DATE_TRUNC('month', CURRENT_DATE) AND CURRENT_DATE)
-           OR (DATE_TRUNC('month', CURRENT_DATE) BETWEEN start_date AND end_date)
+           OR (DATE_TRUNC('month', CURRENT_DATE) BETWEEN DATE(start_date) AND DATE(end_date))
          )`
       );
 
@@ -3615,7 +3615,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
 
     // 4. Fetch company leaves active on that date
     const [companyLeaves] = await pool.query(
-      `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND ?::date BETWEEN start_date AND end_date`,
+      `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND ?::date BETWEEN DATE(start_date) AND DATE(end_date)`,
       [queryDate]
     );
 
