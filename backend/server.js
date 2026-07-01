@@ -3074,7 +3074,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const [upcomingCompanyLeaveRows] = await pool.query(
-        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND end_date >= CURRENT_DATE ORDER BY start_date ASC LIMIT 1`
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND DATE(end_date) >= CURRENT_DATE ORDER BY start_date ASC LIMIT 1`
       );
 
       const [allActiveProfiles] = await pool.query(
@@ -4222,7 +4222,8 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       },
       performance: {
         topAttendance,
-        topLate
+        topLate,
+        allAttendance: rankings
       }
     });
 

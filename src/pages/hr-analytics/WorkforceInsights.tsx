@@ -203,6 +203,21 @@ export default function WorkforceInsights() {
     }
     return null;
   };
+
+  const CustomEmployeeTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white border border-slate-200 rounded-md shadow-lg p-2 flex flex-col gap-1 min-w-[100px]">
+          <p className="text-[11px] font-bold text-slate-600 bg-slate-50 px-2 py-1 rounded-sm border-b border-slate-100">{label}</p>
+          <div className="flex items-center gap-1.5 px-2 py-1">
+            <div className="w-2 h-2 rounded-full bg-[#7B0099]"></div>
+            <p className="text-[11px] text-slate-700">Attendance: <span className="font-bold">{payload[0].value}%</span></p>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
         
@@ -382,44 +397,84 @@ export default function WorkforceInsights() {
             </Card>
           </div>
 
-          {/* Column 3: Employees By Department */}
-          <Card className={`col-span-1 md:col-span-2 xl:col-span-2 rounded-lg shadow-sm border-slate-200 bg-white p-5 flex flex-col justify-between ${cardHoverEffect}`}>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[12px] font-bold text-slate-800">Employees By Department</span>
-              <span className="text-[10px] bg-slate-50 border border-slate-150 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 font-semibold">
-                This Month <ChevronDown className="w-3 h-3" />
-              </span>
-            </div>
-            
-            <div className="h-[95px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart 
-                  data={departmentChartData} 
-                  layout="vertical"
-                  margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
-                >
-                  <RechartsTooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} content={<CustomDeptTooltip />} />
-                  <XAxis type="number" hide />
-                  <YAxis 
-                    dataKey="name" 
-                    type="category" 
-                    tick={{ fontSize: 9, fill: '#64748b', fontWeight: 'bold' }} 
-                    axisLine={false} 
-                    tickLine={false} 
-                    width={130}
-                  />
-                  <Bar dataKey="value" fill="#ff5b37" radius={[0, 4, 4, 0]} barSize={6} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+          {/* Column 3: Employees By Department or Employee Attendance */}
+          {['branch_leader', 'head_of_department'].includes(role) ? (
+            <Card className={`col-span-1 md:col-span-2 xl:col-span-2 rounded-lg shadow-sm border-slate-200 bg-white p-5 flex flex-col justify-between ${cardHoverEffect}`}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[12px] font-bold text-slate-800">Employee Attendance Rates</span>
+                <span className="text-[10px] bg-slate-50 border border-slate-150 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 font-semibold">
+                  This Month <ChevronDown className="w-3 h-3" />
+                </span>
+              </div>
+              
+              <div className="h-[95px] w-full overflow-y-auto overflow-x-hidden custom-scrollbar">
+                <ResponsiveContainer width="100%" height={Math.max(95, (data.performance?.allAttendance?.length || 0) * 22)}>
+                  <BarChart 
+                    data={data.performance?.allAttendance || []} 
+                    layout="vertical"
+                    margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
+                  >
+                    <RechartsTooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} content={<CustomEmployeeTooltip />} />
+                    <XAxis type="number" hide domain={[0, 100]} />
+                    <YAxis 
+                      dataKey="name" 
+                      type="category" 
+                      tick={{ fontSize: 9, fill: '#64748b', fontWeight: 'bold' }} 
+                      axisLine={false} 
+                      tickLine={false} 
+                      width={130}
+                    />
+                    <Bar dataKey="attendanceRate" fill="#7B0099" radius={[0, 4, 4, 0]} barSize={6} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
 
-            <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-100">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#ff5b37]"></div>
-              <span className="text-[9px] font-bold text-slate-400">
-                No of Employees increased by <span className="text-emerald-500">+20%</span> from last Month
-              </span>
-            </div>
-          </Card>
+              <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-100">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#7B0099]"></div>
+                <span className="text-[9px] font-bold text-slate-400">
+                  Showing all staff in your {role === 'branch_leader' ? 'branch' : 'department'}
+                </span>
+              </div>
+            </Card>
+          ) : (
+            <Card className={`col-span-1 md:col-span-2 xl:col-span-2 rounded-lg shadow-sm border-slate-200 bg-white p-5 flex flex-col justify-between ${cardHoverEffect}`}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[12px] font-bold text-slate-800">Employees By Department</span>
+                <span className="text-[10px] bg-slate-50 border border-slate-150 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 font-semibold">
+                  This Month <ChevronDown className="w-3 h-3" />
+                </span>
+              </div>
+              
+              <div className="h-[95px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart 
+                    data={departmentChartData} 
+                    layout="vertical"
+                    margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
+                  >
+                    <RechartsTooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} content={<CustomDeptTooltip />} />
+                    <XAxis type="number" hide />
+                    <YAxis 
+                      dataKey="name" 
+                      type="category" 
+                      tick={{ fontSize: 9, fill: '#64748b', fontWeight: 'bold' }} 
+                      axisLine={false} 
+                      tickLine={false} 
+                      width={130}
+                    />
+                    <Bar dataKey="value" fill="#ff5b37" radius={[0, 4, 4, 0]} barSize={6} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-100">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#ff5b37]"></div>
+                <span className="text-[9px] font-bold text-slate-400">
+                  No of Employees increased by <span className="text-emerald-500">+20%</span> from last Month
+                </span>
+              </div>
+            </Card>
+          )}
 
         </div>
 
