@@ -2438,6 +2438,11 @@ app.get("/api/attendance-status", async (req, res) => {
     return res.status(400).json({ success: false, error: "Missing empId" });
   }
   try {
+    const [empProfile] = await pool.query(
+      `SELECT branch, department FROM profiles WHERE user_id = ?`,
+      [empId]
+    );
+
     const [leaveRows] = await pool.query(`
       SELECT status FROM leave_requests 
       WHERE user_id = ? AND status = 'Approved' AND CURRENT_DATE BETWEEN start_date AND end_date
@@ -2454,11 +2459,58 @@ app.get("/api/attendance-status", async (req, res) => {
       LIMIT 1
       `, [empId]);
 
+    let attendanceStatus = {
+      type: "NORMAL",
+      name: null,
+      attendanceRequired: true,
+      clockInAllowed: true
+    };
+
+    if (empProfile.length > 0) {
+      const p = empProfile[0];
+      const [companyLeaveTodayRows] = await pool.query(
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND CURRENT_DATE BETWEEN start_date AND end_date`
+      );
+
+      const matchingLeave = companyLeaveTodayRows.find(cl => {
+        if (cl.applies_to === 'all') return true;
+        if (cl.applies_to === 'branch' && cl.branch_id) {
+          return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+        }
+        if (cl.applies_to === 'department' && cl.department_id) {
+          const depts = cl.department_id.split(',').map(s => s.trim());
+          const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          return depts.some(d => {
+            const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            return normEmpDept === normClDept || p.department === d;
+          });
+        }
+        return false;
+      });
+
+      if (matchingLeave) {
+        attendanceStatus = {
+          type: "COMPANY_LEAVE",
+          name: matchingLeave.leave_name,
+          attendanceRequired: false,
+          clockInAllowed: false
+        };
+      } else if (isOnLeave) {
+        attendanceStatus = {
+          type: "APPROVED_LEAVE",
+          name: "Approved Leave",
+          attendanceRequired: false,
+          clockInAllowed: true
+        };
+      }
+    }
+
     res.json({
       success: true,
       active: rows.length > 0,
       record: rows[0] || null,
       isOnLeave: isOnLeave,
+      attendanceStatus: attendanceStatus
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -2478,7 +2530,41 @@ app.post("/api/attendance", async (req, res) => {
   }
 
   try {
+    const [empProfile] = await pool.query(
+      `SELECT branch, department FROM profiles WHERE user_id = ?`,
+      [user_id]
+    );
 
+    if (empProfile.length > 0) {
+      const p = empProfile[0];
+      const [companyLeaveTodayRows] = await pool.query(
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND CURRENT_DATE BETWEEN start_date AND end_date`
+      );
+
+      const matchingLeave = companyLeaveTodayRows.find(cl => {
+        if (cl.applies_to === 'all') return true;
+        if (cl.applies_to === 'branch' && cl.branch_id) {
+          return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+        }
+        if (cl.applies_to === 'department' && cl.department_id) {
+          const depts = cl.department_id.split(',').map(s => s.trim());
+          const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          return depts.some(d => {
+            const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            return normEmpDept === normClDept || p.department === d;
+          });
+        }
+        return false;
+      });
+
+      if (matchingLeave) {
+        return res.status(403).json({
+          success: false,
+          code: "COMPANY_LEAVE",
+          message: "Today is designated as Company Leave. Attendance is not required."
+        });
+      }
+    }
 
     const [result] = await pool.query(
       `INSERT INTO attendances (user_id, clock_in) VALUES (?, NOW())`,
@@ -2887,6 +2973,90 @@ app.get("/api/dashboard-stats", async (req, res) => {
       todayStatusTime = "--:--";
     }
 
+    // OVERRIDE IF COMPANY LEAVE TODAY (Highest priority)
+    const [empProfile] = await pool.query(
+      `SELECT branch, department FROM profiles WHERE user_id = ?`,
+      [userId]
+    );
+    let companyLeaveCountCurrentMonth = 0;
+    
+    if (empProfile.length > 0) {
+      const p = empProfile[0];
+      const [companyLeaveTodayRows] = await pool.query(
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND CURRENT_DATE BETWEEN start_date AND end_date`
+      );
+      const matchingLeave = companyLeaveTodayRows.find(cl => {
+        if (cl.applies_to === 'all') return true;
+        if (cl.applies_to === 'branch' && cl.branch_id) {
+          return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+        }
+        if (cl.applies_to === 'department' && cl.department_id) {
+          const depts = cl.department_id.split(',').map(s => s.trim());
+          const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          return depts.some(d => {
+            const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            return normEmpDept === normClDept || p.department === d;
+          });
+        }
+        return false;
+      });
+      if (matchingLeave) {
+        todayStatus = "Company Leave";
+        todayStatusTime = "--:--";
+      }
+
+      // Count Company Leaves in the current month up to today
+      const [coLeaves] = await pool.query(
+        `SELECT start_date, end_date, applies_to, branch_id, department_id 
+         FROM company_leave_calendar 
+         WHERE status = 'Active' 
+         AND (
+           (start_date BETWEEN DATE_TRUNC('month', CURRENT_DATE) AND CURRENT_DATE)
+           OR (end_date BETWEEN DATE_TRUNC('month', CURRENT_DATE) AND CURRENT_DATE)
+           OR (DATE_TRUNC('month', CURRENT_DATE) BETWEEN start_date AND end_date)
+         )`
+      );
+
+      const currentYear = new Date().getFullYear();
+      const currentMonth = new Date().getMonth(); // 0-indexed
+      const todayDay = new Date().getDate();
+
+      for (let d = 1; d <= todayDay; d++) {
+        const checkDate = new Date(currentYear, currentMonth, d);
+        const checkYear = checkDate.getFullYear();
+        const checkMonth = String(checkDate.getMonth() + 1).padStart(2, '0');
+        const checkDay = String(checkDate.getDate()).padStart(2, '0');
+        const checkDateStr = `${checkYear}-${checkMonth}-${checkDay}`;
+
+        const isCoLeave = coLeaves.some(cl => {
+          const start = new Date(cl.start_date);
+          const startStr = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`;
+          const end = new Date(cl.end_date);
+          const endStr = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`;
+          
+          if (checkDateStr >= startStr && checkDateStr <= endStr) {
+            if (cl.applies_to === 'all') return true;
+            if (cl.applies_to === 'branch' && cl.branch_id) {
+              return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+            }
+            if (cl.applies_to === 'department' && cl.department_id) {
+              const depts = cl.department_id.split(',').map(s => s.trim());
+              const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+              return depts.some(d => {
+                const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+                return normEmpDept === normClDept || p.department === d;
+              });
+            }
+          }
+          return false;
+        });
+
+        if (isCoLeave) {
+          companyLeaveCountCurrentMonth++;
+        }
+      }
+    }
+
     // 2. MONTHLY ATTENDANCE RATE
     const [monthlyRows] = await pool.query(
       `SELECT COUNT(DISTINCT DATE(clock_in)) AS days_present FROM attendances WHERE user_id = ? AND EXTRACT(YEAR FROM clock_in) = EXTRACT(YEAR FROM CURRENT_DATE) AND EXTRACT(MONTH FROM clock_in) = EXTRACT(MONTH FROM CURRENT_DATE)`,
@@ -2896,7 +3066,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const daysPresent = parseInt(monthlyRows[0].days_present || 0);
     const [todayDayRows] = await pool.query(`SELECT EXTRACT(DAY FROM CURRENT_DATE) AS today_day`);
     const totalDays = parseInt(todayDayRows[0].today_day || 1);
-    const attendanceRate = totalDays > 0 ? Math.round((daysPresent / totalDays) * 100) : 0;
+    const totalDaysExcludingCoLeave = Math.max(totalDays - companyLeaveCountCurrentMonth, 1);
+    const attendanceRate = totalDaysExcludingCoLeave > 0 ? Math.round((daysPresent / totalDaysExcludingCoLeave) * 100) : 0;
 
     // 3. PENDING LEAVES & LEAVE BALANCE
     const [leaveRows] = await pool.query(
@@ -3053,11 +3224,11 @@ app.get("/api/reports/absent-employees", async (req, res) => {
 // ===============================
 app.get("/api/reports/daily-attendance", async (req, res) => {
   const { date, role, branch, department } = req.query;
-  const queryDate = date ? date : null;
+  const queryDate = date ? date.toString() : new Date().toISOString().split('T')[0];
 
   try {
     let profileFilter = "";
-    let queryParams = queryDate ? [queryDate, queryDate] : [];
+    let queryParams = [];
 
     if (role === 'branch_leader' && branch && branch !== "All") {
       profileFilter = " AND p.branch = ?";
@@ -3067,74 +3238,147 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       queryParams.push(department);
     }
 
-    const [rows] = await pool.query(
-      `
-      SELECT 
-        p.user_id,
-        p.full_name,
-        p.branch,
-        p.department,
-        COALESCE(ur.role, 'employee') AS role,
-        a.clock_in,
-        a.clock_out,
-        TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
-        TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out
-      FROM profiles p
-      JOIN attendances a ON p.user_id = a.user_id
-      LEFT JOIN user_role ur ON ur.user_id = p.user_id
-      WHERE a.attendance_id IN (
-        SELECT MAX(attendance_id) 
-        FROM attendances 
-        WHERE DATE(clock_in) = ${queryDate ? '?' : 'CURRENT_DATE'}
-        GROUP BY user_id
-      )
-      AND NOT EXISTS (
-        SELECT 1 FROM leave_requests lr 
-        WHERE lr.user_id = p.user_id AND lr.status = 'Approved' 
-        AND ${queryDate ? '?::date' : 'CURRENT_DATE'} BETWEEN lr.start_date AND lr.end_date
-      )
-      ${profileFilter}
-      ORDER BY a.clock_in DESC
-      `,
+    // 1. Fetch all active employees matching filters
+    const [allProfiles] = await pool.query(
+      `SELECT p.user_id, p.full_name, p.branch, p.department, COALESCE(ur.role, 'employee') AS role
+       FROM profiles p
+       LEFT JOIN user_role ur ON ur.user_id = p.user_id
+       WHERE p.status = 'Active' ${profileFilter}
+       ORDER BY p.full_name ASC`,
       queryParams
+    );
+
+    // 2. Fetch all clock-ins for that date
+    const [clockRows] = await pool.query(
+      `SELECT a.user_id, a.clock_in, a.clock_out,
+              TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
+              TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out
+       FROM attendances a
+       JOIN profiles p ON p.user_id = a.user_id
+       WHERE DATE(a.clock_in) = ?::date ${profileFilter}`,
+      [queryDate, ...queryParams]
+    );
+
+    const clockMap = {};
+    for (const row of clockRows) {
+      clockMap[row.user_id] = row;
+    }
+
+    // 3. Fetch approved leaves for that date
+    const [leaveRows] = await pool.query(
+      `SELECT DISTINCT lr.user_id, lr.leave_type
+       FROM leave_requests lr
+       JOIN profiles p ON p.user_id = lr.user_id
+       WHERE lr.status = 'Approved' AND ?::date BETWEEN lr.start_date AND lr.end_date ${profileFilter}`,
+      [queryDate, ...queryParams]
+    );
+    const leaveMap = {};
+    for (const row of leaveRows) {
+      leaveMap[row.user_id] = row;
+    }
+
+    // 4. Fetch company leaves active on that date
+    const [companyLeaves] = await pool.query(
+      `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND ?::date BETWEEN start_date AND end_date`,
+      [queryDate]
     );
 
     const lateTimeStr = getLateThresholdTime();
     const [lateH, lateM] = lateTimeStr.split(':').map(Number);
 
-    const formattedReport = rows.map((row) => {
+    // Parse date for weekend check
+    const dateObj = new Date(queryDate);
+    const dayOfWeek = dateObj.getDay();
+    const dateNum = dateObj.getDate();
+    const isWeekend = (dayOfWeek === 5) || (dayOfWeek === 6 && dateNum <= 7);
+
+    const formattedReport = allProfiles.map((p) => {
+      const uid = p.user_id;
+      const clockRow = clockMap[uid];
+      const leaveRow = leaveMap[uid];
+
+      let status = "Absent";
+      let clock_in = null;
+      let clock_out = null;
+      let time_in = null;
+      let time_out = null;
       let isLate = false;
       let missingClockOut = false;
       let isEarlyLeaver = false;
       let isOvertime = false;
-      
-      if (row.clock_in) {
-        const klTimeIn = new Date(new Date(row.clock_in).getTime() + 8 * 60 * 60 * 1000);
+
+      // Check Company Leave first (Highest priority)
+      const matchingLeave = companyLeaves.find(cl => {
+        if (cl.applies_to === 'all') return true;
+        if (cl.applies_to === 'branch' && cl.branch_id) {
+          return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+        }
+        if (cl.applies_to === 'department' && cl.department_id) {
+          const depts = cl.department_id.split(',').map(s => s.trim());
+          const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          return depts.some(d => {
+            const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            return normEmpDept === normClDept || p.department === d;
+          });
+        }
+        return false;
+      });
+
+      if (matchingLeave) {
+        status = "Company Leave";
+      } else if (leaveRow) {
+        // Second priority: Approved Personal Leave
+        status = "Approved Leave";
+      } else if (clockRow) {
+        // Third priority: Attendance Record
+        clock_in = clockRow.clock_in;
+        clock_out = clockRow.clock_out;
+        time_in = clockRow.time_in;
+        time_out = clockRow.time_out;
+
+        const klTimeIn = new Date(new Date(clock_in).getTime() + 8 * 60 * 60 * 1000);
         const clockInHour = klTimeIn.getUTCHours();
         const clockInMinute = klTimeIn.getUTCMinutes();
         isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
+        status = isLate ? "Present (Late)" : "Present (On Time)";
 
-        if (row.clock_out) {
-           const klTimeOut = new Date(new Date(row.clock_out).getTime() + 8 * 60 * 60 * 1000);
-           const clockOutHour = klTimeOut.getUTCHours();
-           if (clockOutHour < 17) {
-             isEarlyLeaver = true;
-           }
-           
-           const diffMs = new Date(row.clock_out).getTime() - new Date(row.clock_in).getTime();
-           if (diffMs > 9 * 60 * 60 * 1000) {
-             isOvertime = true;
-           }
+        if (clock_out) {
+          const klTimeOut = new Date(new Date(clock_out).getTime() + 8 * 60 * 60 * 1000);
+          const clockOutHour = klTimeOut.getUTCHours();
+          if (clockOutHour < 17) {
+            isEarlyLeaver = true;
+          }
+          
+          const diffMs = new Date(clock_out).getTime() - new Date(clock_in).getTime();
+          if (diffMs > 9 * 60 * 60 * 1000) {
+            isOvertime = true;
+          }
         } else {
-           const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
-           const isPastDate = klTimeIn.getUTCDate() !== nowKl.getUTCDate() || klTimeIn.getUTCMonth() !== nowKl.getUTCMonth() || klTimeIn.getUTCFullYear() !== nowKl.getUTCFullYear();
-           if (isPastDate) {
-             missingClockOut = true;
-           }
+          const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
+          const isPastDate = klTimeIn.getUTCDate() !== nowKl.getUTCDate() || klTimeIn.getUTCMonth() !== nowKl.getUTCMonth() || klTimeIn.getUTCFullYear() !== nowKl.getUTCFullYear();
+          if (isPastDate) {
+            missingClockOut = true;
+          }
         }
+      } else if (isWeekend) {
+        // Fourth priority: Weekend
+        status = "Weekend";
+      } else {
+        // Fifth priority: Absent
+        status = "Absent";
       }
+
       return {
-        ...row,
+        user_id: p.user_id,
+        full_name: p.full_name,
+        branch: p.branch,
+        department: p.department,
+        role: p.role,
+        clock_in,
+        clock_out,
+        time_in,
+        time_out,
+        status,
         is_late: isLate,
         missing_clock_out: missingClockOut,
         is_early_leaver: isEarlyLeaver,
@@ -3142,7 +3386,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       };
     });
 
-    res.json({ success: true, report: formattedReport });
+    res.json({ success: true, report: formattedReport, data: formattedReport });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

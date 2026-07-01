@@ -268,13 +268,16 @@ export default function Dashboard() {
   const isPresent = stats.todayStatus.includes("Present");
   const isClockedOut = stats.todayStatus.includes("Clocked Out");
   const isOnLeave = stats.todayStatus === "On Leave";
+  const isCompanyLeave = stats.todayStatus === "Company Leave";
   const todayStatusSubtitle = isPresent
     ? `Clock in: ${stats.todayStatusTime || stats.clockInTime}`
     : isClockedOut
       ? `Clock out: ${stats.todayStatusTime || stats.clockOutTime}`
       : isOnLeave
         ? "Enjoy your leave!"
-        : `Clock in: ${stats.clockInTime || "--:--"}`;
+        : isCompanyLeave
+          ? "Company Leave Today"
+          : `Clock in: ${stats.clockInTime || "--:--"}`;
 
   return (
     <div className="space-y-3 animate-in fade-in duration-500">
@@ -307,7 +310,7 @@ export default function Dashboard() {
               title="Today's Status"
               value={stats.todayStatus}
               subtitle={todayStatusSubtitle}
-              variant={isPresent ? "success" : isClockedOut ? "default" : isOnLeave ? "purple" : "maroon"}
+              variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
             />
             <StatCard
               icon={CalendarCheck}
@@ -340,7 +343,7 @@ export default function Dashboard() {
                 title="Today's Status"
                 value={stats.todayStatus}
                 subtitle={todayStatusSubtitle}
-                variant={isPresent ? "success" : isClockedOut ? "default" : isOnLeave ? "purple" : "maroon"}
+                variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
               />
             )}
             <div onClick={() => navigate("/employees")} className="cursor-pointer">

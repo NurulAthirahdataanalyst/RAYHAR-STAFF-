@@ -441,25 +441,21 @@ export default function AttendanceDashboard() {
 
     const headers = ["Employee Name", "Branch", "Time In", "Time Out", "Attendance Status", "Work Status"];
     const rows = dailyAttendance.map(r => {
-      let isLate = false;
-      if (r.clock_in) {
-        const { hour: threshHour, minute: threshMin } = parseThreshold(workStartTime);
-        const klTimeIn = new Date(new Date(r.clock_in).getTime() + 8 * 60 * 60 * 1000);
-        isLate = klTimeIn.getUTCHours() > threshHour || (klTimeIn.getUTCHours() === threshHour && klTimeIn.getUTCMinutes() > threshMin);
-      }
-      const attStatus = r.clock_in ? (isLate ? "Present (Late)" : "Present (On Time)") : "Absent";
+      const attStatus = (r as any).status || "Absent";
       
       let workStatus = "Checked In";
       if (r.clock_out) {
          const workHrsStr = calculateWorkingHours(r.clock_in, r.clock_out);
          const workHrsNum = parseFloat(workHrsStr.replace('h', '.').replace('m', '')) || 0;
          workStatus = workHrsNum >= 8.0 ? "Clocked Out" : "Clocked Out Early";
+      } else if (!r.clock_in) {
+         workStatus = "--";
       }
 
       return [
         r.full_name,
         r.branch,
-        formatAttendanceTime(r.clock_in),
+        r.clock_in ? formatAttendanceTime(r.clock_in) : "--:--",
         r.clock_out ? formatAttendanceTime(r.clock_out) : "--:--",
         attStatus,
         workStatus
@@ -500,32 +496,48 @@ export default function AttendanceDashboard() {
     }
 
     const rowsHtml = dailyAttendance.map(r => {
-      const timeIn = formatAttendanceTime(r.clock_in);
+      const timeIn = r.clock_in ? formatAttendanceTime(r.clock_in) : "--:--";
       const timeOut = r.clock_out ? formatAttendanceTime(r.clock_out) : "--:--";
       
-      let isLate = false;
-      if (r.clock_in) {
-        const { hour: threshHour, minute: threshMin } = parseThreshold(workStartTime);
-        const klTimeIn = new Date(new Date(r.clock_in).getTime() + 8 * 60 * 60 * 1000);
-        isLate = klTimeIn.getUTCHours() > threshHour || (klTimeIn.getUTCHours() === threshHour && klTimeIn.getUTCMinutes() > threshMin);
-      }
-      const attStatus = r.clock_in ? (isLate ? "Present (Late)" : "Present (On Time)") : "Absent";
+      const attStatus = (r as any).status || "Absent";
       
       let workStatus = "Checked In";
       if (r.clock_out) {
          const workHrsStr = calculateWorkingHours(r.clock_in, r.clock_out);
          const workHrsNum = parseFloat(workHrsStr.replace('h', '.').replace('m', '')) || 0;
          workStatus = workHrsNum >= 8.0 ? "Clocked Out" : "Clocked Out Early";
+      } else if (!r.clock_in) {
+         workStatus = "--";
       }
 
-      const badgeClass = attStatus.includes("On Time") ? "badge-ontime" : attStatus.includes("Late") ? "badge-late" : "badge-absent";
+      const badgeClass = attStatus.includes("On Time") 
+        ? "badge-ontime" 
+        : attStatus.includes("Late") 
+        ? "badge-late" 
+        : attStatus.includes("Company Leave")
+        ? "badge-company"
+        : attStatus.includes("Leave")
+        ? "badge-leave"
+        : attStatus.includes("Weekend")
+        ? "badge-weekend"
+        : "badge-absent";
+
+      const workBadgeClass = workStatus === "--" 
+        ? "badge-none"
+        : workStatus.includes('Early') 
+        ? 'badge-late' 
+        : 'badge-remote';
+
       return `
         <tr>
           <td>${r.full_name}</td>
           <td>${r.branch}</td>
           <td>${timeIn}</td>
           <td>${timeOut}</td>
-          <td><span class="badge ${badgeClass}">${attStatus}</span> <span class="badge ${workStatus.includes('Early') ? 'badge-late' : 'badge-remote'}">${workStatus}</span></td>
+          <td>
+            <span class="badge ${badgeClass}">${attStatus}</span> 
+            ${workStatus !== "--" ? `<span class="badge ${workBadgeClass}">${workStatus}</span>` : ""}
+          </td>
         </tr>
       `;
     }).join("");
@@ -549,7 +561,13 @@ export default function AttendanceDashboard() {
             tr:nth-child(even) td { background: #f8fafc; }
             .badge { padding: 4px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; display: inline-block; }
             .badge-ontime { background: #d1fae5; color: #065f46; }
+            .badge-late { background: #fef3c7; color: #92400e; }
+            .badge-absent { background: #fee2e2; color: #991b1b; }
+            .badge-company { background: #f3e8ff; color: #6b21a8; }
+            .badge-leave { background: #e0f2fe; color: #075985; }
+            .badge-weekend { background: #f1f5f9; color: #475569; }
             .badge-remote { background: #dbeafe; color: #1d4ed8; }
+            .badge-none { display: none; }
             @media print {
               body { padding: 0; }
               button { display: none; }
@@ -761,10 +779,13 @@ export default function AttendanceDashboard() {
         }
 
         const matchesStatus = selectedStatusFilter === "all" || 
-          (selectedStatusFilter === "present_on_time" && attStatus === "Present (On Time)") ||
-          (selectedStatusFilter === "present_late" && attStatus === "Present (Late)") ||
-          (selectedStatusFilter === "absent" && attStatus === "Absent") ||
-          (selectedStatusFilter === "clocked_out" && r.time_out != null);
+          (selectedStatusFilter === "present_on_time" && (r as any).status === "Present (On Time)") ||
+          (selectedStatusFilter === "present_late" && (r as any).status === "Present (Late)") ||
+          (selectedStatusFilter === "approved_leave" && (r as any).status === "Approved Leave") ||
+          (selectedStatusFilter === "company_leave" && (r as any).status === "Company Leave") ||
+          (selectedStatusFilter === "weekend" && (r as any).status === "Weekend") ||
+          (selectedStatusFilter === "absent" && (r as any).status === "Absent") ||
+          (selectedStatusFilter === "clocked_out" && r.clock_out != null);
           
         return matchesBranch && matchesDept && matchesSearch && matchesStatus;
       })
@@ -1042,6 +1063,10 @@ export default function AttendanceDashboard() {
                   <SelectItem value="all">Select Status</SelectItem>
                   <SelectItem value="present_on_time">Present (On Time)</SelectItem>
                   <SelectItem value="present_late">Present (Late)</SelectItem>
+                  <SelectItem value="approved_leave">Approved Leave</SelectItem>
+                  <SelectItem value="company_leave">Company Leave</SelectItem>
+                  <SelectItem value="absent">Absent</SelectItem>
+                  <SelectItem value="weekend">Weekend</SelectItem>
                   <SelectItem value="clocked_out">Clocked Out</SelectItem>
                 </SelectContent>
               </Select>
@@ -1129,10 +1154,7 @@ export default function AttendanceDashboard() {
                       const workHrsNum = parseFloat(workHrsStr.replace('h', '.').replace('m', '')) || 0;
                       const isGoodHrs = workHrsNum >= 8.0;
 
-                      let attStatus = "Absent";
-                      if (record.clock_in) {
-                        attStatus = isLate ? "Present (Late)" : "Present (On Time)";
-                      }
+                      let attStatus = (record as any).status || "Absent";
                       
                       let workStatus = "Checked In";
                       if (record.clock_out) {
@@ -1143,6 +1165,12 @@ export default function AttendanceDashboard() {
                         ? "bg-green-50 text-green-700 border border-green-100"
                         : attStatus === "Present (Late)"
                         ? "bg-amber-50 text-amber-700 border border-amber-100"
+                        : attStatus === "Company Leave"
+                        ? "bg-purple-50 text-purple-700 border border-purple-100"
+                        : attStatus === "Approved Leave"
+                        ? "bg-blue-50 text-blue-700 border border-blue-100"
+                        : attStatus === "Weekend"
+                        ? "bg-gray-50 text-gray-700 border border-gray-100"
                         : "bg-red-50 text-red-700 border border-red-100";
 
                       const workStatusClass = workStatus === "Checked In"
@@ -1170,7 +1198,14 @@ export default function AttendanceDashboard() {
                           <td className="px-4 py-2">
                             <div className="flex flex-col gap-1 items-start">
                               <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium ${attStatusClass}`}>
-                                <span className={`w-1 h-1 rounded-full mr-1 ${attStatus === 'Present (On Time)' ? 'bg-green-500' : attStatus === 'Present (Late)' ? 'bg-amber-500' : 'bg-red-500'}`} />
+                                <span className={`w-1 h-1 rounded-full mr-1 ${
+                                  attStatus === 'Present (On Time)' ? 'bg-green-500' : 
+                                  attStatus === 'Present (Late)' ? 'bg-amber-500' : 
+                                  attStatus === 'Company Leave' ? 'bg-purple-500' :
+                                  attStatus === 'Approved Leave' ? 'bg-blue-500' :
+                                  attStatus === 'Weekend' ? 'bg-gray-500' :
+                                  'bg-red-500'
+                                }`} />
                                 {attStatus}
                               </span>
                               {record.clock_in && (
@@ -1466,7 +1501,8 @@ export default function AttendanceDashboard() {
                         data={[
                           { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
                           { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
-                          { name: 'On Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
+                          { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
+                          { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
                           { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
                         ]}
                         cx="50%"
@@ -1483,7 +1519,8 @@ export default function AttendanceDashboard() {
                         {[
                           { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
                           { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
-                          { name: 'On Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
+                          { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
+                          { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
                           { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
                         ].map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
@@ -1506,7 +1543,8 @@ export default function AttendanceDashboard() {
                   {[
                     { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
                     { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
-                    { name: 'On Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
+                    { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
+                    { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
                     { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
                   ].map((entry, idx) => (
                     <div key={idx} className="flex items-center justify-between gap-3">

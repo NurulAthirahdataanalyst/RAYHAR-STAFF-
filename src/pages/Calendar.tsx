@@ -600,9 +600,9 @@ export default function Calendar() {
                 {companyLeaves.length > 0 && (
                   <div 
                     onClick={() => setActiveFilter(activeFilter === 'company_leave' ? null : 'company_leave')}
-                    className={`flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'company_leave' ? 'bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/30' : 'bg-green-500/5 text-green-700 dark:text-green-400 hover:bg-green-500/10'}`}>
+                    className={`flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'company_leave' ? 'bg-purple-500/20 text-purple-700 dark:text-purple-400 border border-purple-500/30' : 'bg-purple-500/5 text-purple-700 dark:text-purple-400 hover:bg-purple-500/10'}`}>
                     <div className="flex items-center gap-3">
-                      <span className="w-3 h-3 rounded-full bg-green-500 border border-green-600/20" /> Company Leave
+                      <span className="w-3 h-3 rounded-full bg-purple-500 border border-purple-600/20" /> Company Leave
                     </div>
                     <div className="flex items-center gap-1">
                       {activeFilter === 'company_leave' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
@@ -784,7 +784,7 @@ export default function Calendar() {
                       <div
                         key={`cl-${idx}`}
                         onClick={() => setSelectedCompanyLeave(cl)}
-                        className="px-2 py-1 rounded-[4px] bg-green-500/10 border-l-2 border-green-500 text-[11px] font-bold text-green-700 dark:text-green-400 truncate shadow-sm cursor-pointer hover:bg-green-500/20 transition-colors"
+                        className="px-2 py-1 rounded-[4px] bg-purple-500/10 border-l-2 border-purple-500 text-[11px] font-bold text-purple-700 dark:text-purple-400 truncate shadow-sm cursor-pointer hover:bg-purple-500/20 transition-colors"
                         title={`${cl.leave_name} (${cl.leave_type})`}
                       >
                         🏢 {cl.leave_name}
@@ -1227,12 +1227,12 @@ export default function Calendar() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setSelectedCompanyLeave(null)}>
           <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
             {/* Header */}
-            <div className="bg-gradient-to-r from-green-600 to-emerald-500 px-6 py-5">
+            <div className="bg-gradient-to-r from-[#5e0080] via-[#7B0099] to-purple-500 px-6 py-5">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-2xl">🏢</span>
-                    <span className="text-xs font-semibold text-green-100 uppercase tracking-wide bg-white/20 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-semibold text-purple-100 uppercase tracking-wide bg-white/20 px-2 py-0.5 rounded-full">
                       {selectedCompanyLeave.leave_type || 'Company Leave'}
                     </span>
                   </div>
@@ -1248,8 +1248,8 @@ export default function Calendar() {
             <div className="px-6 py-5 space-y-4">
               {/* Date Range */}
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
-                  <CalendarIcon className="w-4 h-4 text-green-600" />
+                <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
+                  <CalendarIcon className="w-4 h-4 text-purple-600" />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Date</p>
@@ -1265,7 +1265,7 @@ export default function Calendar() {
                         <p className="font-semibold text-foreground">
                           {start === end ? fmt(startD) : `${fmt(startD)} – ${fmt(endD)}`}
                         </p>
-                        <p className="text-sm text-green-600 dark:text-green-400 font-medium mt-0.5">
+                        <p className="text-sm text-purple-600 dark:text-purple-400 font-medium mt-0.5">
                           {totalDays} day{totalDays !== 1 ? 's' : ''} leave
                         </p>
                       </div>
@@ -1276,8 +1276,8 @@ export default function Calendar() {
 
               {/* Applies To */}
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
-                  <span className="text-green-600 text-sm">👥</span>
+                <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
+                  <span className="text-purple-600 text-sm">👥</span>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Applies To</p>
@@ -1291,8 +1291,8 @@ export default function Calendar() {
 
               {/* Paid / Unpaid */}
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
-                  <span className="text-green-600 text-sm">💰</span>
+                <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
+                  <span className="text-purple-600 text-sm">💰</span>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Leave Pay</p>
@@ -1320,7 +1320,7 @@ export default function Calendar() {
               )}
               <Button 
                 onClick={() => setSelectedCompanyLeave(null)} 
-                className={`font-semibold ${isHR ? 'flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300' : 'w-full bg-green-600 hover:bg-green-700 text-white'}`}
+                className={`font-semibold ${isHR ? 'flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300' : 'w-full bg-purple-600 hover:bg-purple-700 text-white'}`}
               >
                 Close
               </Button>

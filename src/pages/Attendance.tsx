@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Clock, Fingerprint, Hand, Timer, MapPin, Home, SlidersHorizontal, Download, ChevronDown, FileText, FileSpreadsheet } from "lucide-react";
+import { Loader2, Clock, Fingerprint, Hand, Timer, MapPin, Home, SlidersHorizontal, Download, ChevronDown, FileText, FileSpreadsheet, Sparkles } from "lucide-react";
 import { API_BASE_URL } from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -106,6 +106,12 @@ export default function Attendance() {
   const [expandedLogId, setExpandedLogId] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [isOnLeave, setIsOnLeave] = useState(false);
+  const [attendanceStatus, setAttendanceStatus] = useState<any>({
+    type: "NORMAL",
+    name: null,
+    attendanceRequired: true,
+    clockInAllowed: true
+  });
 
   const { toast } = useToast();
 
@@ -161,6 +167,17 @@ export default function Attendance() {
 
       if (data.isOnLeave) {
         setIsOnLeave(true);
+      }
+
+      if (data.attendanceStatus) {
+        setAttendanceStatus(data.attendanceStatus);
+      } else {
+        setAttendanceStatus({
+          type: data.isOnLeave ? "APPROVED_LEAVE" : "NORMAL",
+          name: data.isOnLeave ? "Approved Leave" : null,
+          attendanceRequired: !data.isOnLeave,
+          clockInAllowed: true
+        });
       }
 
       if (data.active && data.record) {
@@ -650,12 +667,12 @@ export default function Attendance() {
         await fetchStatus(employeeId);
         await fetchHistoryLogs(employeeId, selectedMonth, selectedYear);
       } else {
-        throw new Error(result.error || "Action failed");
+        throw new Error(result.error || result.message || "Action failed");
       }
     } catch (err: any) {
       console.error("Attendance Error Detail:", err);
       toast({
-        title: "Database Error",
+        title: err.message.includes("Company Leave") ? "Clock-In Restricted" : "Database Error",
         description: err.message || "Constraint violation. Check if your ID exists in the system.",
         variant: "destructive",
       });
@@ -750,6 +767,21 @@ export default function Attendance() {
                 </div>
               </div>
 
+              {/* Company Leave Banner */}
+              {attendanceStatus && attendanceStatus.type === "COMPANY_LEAVE" && !activeSession && (
+                <div className="w-full mb-4 px-3 py-2 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900/50 rounded-lg text-center shadow-inner">
+                  <p className="text-xs font-bold text-purple-700 dark:text-purple-400">
+                    🏢 Company Leave Today
+                  </p>
+                  <p className="text-[10px] font-semibold text-purple-600/80 dark:text-purple-400/80 mt-0.5 uppercase tracking-wider">
+                    {attendanceStatus.name}
+                  </p>
+                  <p className="text-[9px] text-purple-500/90 dark:text-purple-400/70 mt-1 italic">
+                    Attendance is not required today.
+                  </p>
+                </div>
+              )}
+
               {/* Central Circular Button - compact and clean */}
               <div className="relative w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48 flex items-center justify-center mb-4 sm:mb-6 group">
                 {/* Outer pulsing rings for active session */}
@@ -784,13 +816,15 @@ export default function Attendance() {
 
                 <button
                   onClick={handleAttendanceAction}
-                  disabled={loading}
+                  disabled={loading || (attendanceStatus && !attendanceStatus.clockInAllowed && !activeSession)}
                   className={`relative w-28 h-28 sm:w-36 sm:h-36 md:w-38 md:h-38 rounded-full flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.96] shadow-2xl focus:outline-none focus:ring-4 focus:ring-offset-4 dark:focus:ring-offset-card touch-target ${
                     activeSession
                     ? "bg-card dark:bg-card border-[3px] border-emerald-500 focus:ring-emerald-200 dark:focus:ring-emerald-800 text-emerald-600 dark:text-emerald-400 shadow-emerald-500/20"
+                    : attendanceStatus && !attendanceStatus.clockInAllowed
+                    ? "bg-purple-100 dark:bg-purple-950/60 border-[3px] border-purple-500 text-purple-600 dark:text-purple-400 shadow-purple-500/10 cursor-not-allowed"
                     : "bg-gradient-to-tr from-[#5e0080] via-[#7B0099] to-purple-500 focus:ring-purple-200 dark:focus:ring-purple-800 text-white shadow-purple-500/40"
                     }`}
-                  aria-label={activeSession ? "Clock out - End shift" : "Clock in - Start shift"}
+                  aria-label={activeSession ? "Clock out - End shift" : (attendanceStatus && !attendanceStatus.clockInAllowed) ? "Company Leave - Clock-in disabled" : "Clock in - Start shift"}
                 >
                   {loading ? (
                     <Loader2 className={`animate-spin w-6 h-6 sm:w-8 sm:h-8 ${activeSession ? "text-emerald-500" : "text-white"}`} />
@@ -798,6 +832,13 @@ export default function Attendance() {
                     <>
                       <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-500 dark:text-emerald-400 mb-0.5" />
                       <span className="font-black tracking-widest text-xs sm:text-sm md:text-base">END SHIFT</span>
+                    </>
+                  ) : attendanceStatus && !attendanceStatus.clockInAllowed ? (
+                    <>
+                      <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500 mb-0.5 animate-pulse" />
+                      <span className="font-black tracking-widest text-[9px] sm:text-xs text-purple-700 dark:text-purple-400 text-center uppercase max-w-[85%] leading-tight break-words">
+                        {attendanceStatus.name || "Company Leave"}
+                      </span>
                     </>
                   ) : (
                     <>
@@ -813,6 +854,11 @@ export default function Attendance() {
                   <>
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span className="text-emerald-600 dark:text-emerald-400">Shift in progress ({Math.round(shiftProgress * 100)}%)...</span>
+                  </>
+                ) : attendanceStatus && !attendanceStatus.clockInAllowed ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+                    <span className="text-purple-600 dark:text-purple-400">Company Leave Active</span>
                   </>
                 ) : (
                   <>
