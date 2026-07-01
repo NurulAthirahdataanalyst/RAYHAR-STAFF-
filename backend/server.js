@@ -2848,7 +2848,9 @@ app.get("/api/attendance/history", async (req, res) => {
       const dateNum = dateObj.getDate();
       const isWeekend = (dayOfWeek === 5) || (dayOfWeek === 6 && dateNum <= 7);
 
-      if (clockRow) {
+      if (matchingCompanyLeave) {
+        status = "Company Leave";
+      } else if (clockRow) {
         clock_in = clockRow.clock_in;
         clock_out = clockRow.clock_out;
         time_in = clockRow.time_in || "--";
@@ -2888,8 +2890,6 @@ app.get("/api/attendance/history", async (req, res) => {
         location_name = isRemote 
           ? "Home Office" 
           : (clockRow.attendance_id % 3 === 2 ? "Innovation Lab" : "Main Office, Floor 4");
-      } else if (matchingCompanyLeave) {
-        status = "Company Leave";
       } else if (leaveRow) {
         status = "Leave";
       } else if (matchingHoliday) {
