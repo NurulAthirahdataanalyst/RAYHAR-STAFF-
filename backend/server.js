@@ -952,8 +952,42 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
 
     for (const p of allProfiles) {
       const uid = p.user_id;
-      // 1. Clocked In
-      if (clockMap[uid]) {
+
+      // 1. Check Company Leave first (Highest priority)
+      const matchingLeave = companyLeaveRows.find(cl => {
+        if (cl.applies_to === 'all') return true;
+        if (cl.applies_to === 'branch' && cl.branch_id) {
+          return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+        }
+        if (cl.applies_to === 'department' && cl.department_id) {
+          const depts = cl.department_id.split(',').map(s => s.trim());
+          const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          return depts.some(d => {
+            const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            return normEmpDept === normClDept || p.department === d;
+          });
+        }
+        return false;
+      });
+
+      if (matchingLeave) {
+        companyLeaveList.push({
+          user_id: uid,
+          full_name: p.full_name,
+          branch: p.branch || 'HQ',
+          department: p.department || '—',
+          clock_in: null,
+          clock_out: null,
+          status: 'companyLeave',
+          leave_name: matchingLeave.leave_name
+        });
+      }
+      // 2. On Approved Personal Leave
+      else if (onLeaveIds.has(uid)) {
+        leaveList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'onLeave' });
+      }
+      // 3. Clocked In
+      else if (clockMap[uid]) {
         const row = clockMap[uid];
         const klTime = new Date(new Date(row.clock_in).getTime() + 8 * 60 * 60 * 1000);
         const hh = klTime.getUTCHours();
@@ -971,43 +1005,9 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
         if (isLate) lateList.push({ ...emp, status: 'late', late_minutes: lateMinutes });
         else presentList.push({ ...emp, status: 'present', late_minutes: 0 });
       }
-      // 2. On Approved Personal Leave
-      else if (onLeaveIds.has(uid)) {
-        leaveList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'onLeave' });
-      }
-      // 3. On Company Leave
+      // 4. Absent
       else {
-        const matchingLeave = companyLeaveRows.find(cl => {
-          if (cl.applies_to === 'all') return true;
-          if (cl.applies_to === 'branch' && cl.branch_id) {
-            return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
-          }
-          if (cl.applies_to === 'department' && cl.department_id) {
-            const depts = cl.department_id.split(',').map(s => s.trim());
-            const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
-            return depts.some(d => {
-              const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
-              return normEmpDept === normClDept || p.department === d;
-            });
-          }
-          return false;
-        });
-
-        if (matchingLeave) {
-          companyLeaveList.push({
-            user_id: uid,
-            full_name: p.full_name,
-            branch: p.branch || 'HQ',
-            department: p.department || '—',
-            clock_in: null,
-            clock_out: null,
-            status: 'companyLeave',
-            leave_name: matchingLeave.leave_name
-          });
-        } else {
-          // 4. Absent
-          absentList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'absent' });
-        }
+        absentList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'absent' });
       }
     }
 
