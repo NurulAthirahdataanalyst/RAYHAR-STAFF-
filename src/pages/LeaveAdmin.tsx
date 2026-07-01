@@ -736,7 +736,14 @@ export default function LeaveAdmin() {
                       type="button"
                       variant="outline"
                       className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
-                      onClick={() => window.print()}
+                      onClick={() => {
+                        const originalTitle = document.title;
+                        const empId = selectedRequest.userId || "UNKNOWN";
+                        const branch = selectedRequest.branch || "HQ";
+                        document.title = `Leave Request (${empId}) (${branch})`;
+                        window.print();
+                        setTimeout(() => { document.title = originalTitle; }, 500);
+                      }}
                     >
                       <Printer className="h-4 w-4" />
                       Print Form
