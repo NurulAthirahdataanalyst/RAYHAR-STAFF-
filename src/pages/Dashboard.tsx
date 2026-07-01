@@ -382,56 +382,98 @@ export default function Dashboard() {
           </>
         ) : (
           <>
-            {["managing_director", "head_of_department", "finance_manager", "hr_admin", "branch_leader"].includes(role) && (
-              <StatCard
-                icon={Clock}
-                title="Today's Status"
-                value={stats.todayStatus}
-                subtitle={todayStatusSubtitle}
-                variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
-              />
-            )}
-            {stats.activeCompanyLeave ? (
-              <div onClick={() => navigate("/leave")} className="cursor-pointer">
-                <Card className="border-none shadow-md bg-card overflow-hidden h-[120px] sm:h-[130px] flex flex-col relative group transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-                  <div className="absolute top-0 right-0 p-3 opacity-10 transition-transform duration-500 group-hover:scale-110 group-hover:opacity-20 text-[#7B0099]">
-                    <CalendarCheck className="w-16 h-16 sm:w-20 sm:h-20" />
-                  </div>
-                  <CardContent className="p-4 sm:p-5 flex flex-col justify-between h-full flex-grow relative z-10">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <p className="text-[10px] sm:text-[11px] font-black text-muted-foreground uppercase tracking-widest truncate">Company Leave</p>
-                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#7B0099]/10 flex items-center justify-center shrink-0">
-                          <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7B0099]" />
+            {isCompanyLeave && stats.activeCompanyLeave && ["managing_director", "head_of_department", "finance_manager", "hr_admin", "branch_leader"].includes(role) ? (
+              <div onClick={() => navigate("/leave")} className="cursor-pointer col-span-1 sm:col-span-2 flex h-full">
+                <Card className="w-full border-none shadow-xl bg-gradient-to-br from-[#f8f5ff] to-[#f2ecfc] overflow-hidden flex flex-col relative group transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 rounded-2xl ring-1 ring-white/60">
+                  <div className="absolute inset-0 bg-white/40 backdrop-blur-sm z-0"></div>
+                  <CardContent className="p-4 sm:p-5 flex items-center justify-between h-full relative z-10 w-full">
+                    <div className="flex items-center gap-4 sm:gap-6 min-w-0">
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 drop-shadow-md transition-transform duration-500 group-hover:scale-105 group-hover:-rotate-3">
+                        <img src="/images/3d-calendar.png" alt="Company Leave" className="w-full h-full object-contain" />
+                      </div>
+                      <div className="space-y-1 sm:space-y-1.5 min-w-0">
+                        <p className="text-[10px] sm:text-[11px] font-black text-[#5c0073] uppercase tracking-widest truncate">Company Leave</p>
+                        <h3 className="text-lg sm:text-2xl font-black text-[#1a0029] tracking-tighter truncate drop-shadow-sm">
+                          {stats.activeCompanyLeave.title || stats.activeCompanyLeave.leave_name || "COMPANY TRIP"}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge className="bg-[#7B0099] hover:bg-[#60007A] text-white uppercase text-[9px] sm:text-[10px] tracking-wider font-black border-none shadow-sm rounded-full px-2.5 py-0.5">
+                            {new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()}
+                          </Badge>
                         </div>
                       </div>
-                      <div className="flex items-baseline gap-2">
-                        <h3 className="text-lg sm:text-xl font-black text-foreground tracking-tighter truncate">
-                          {stats.activeCompanyLeave.title || stats.activeCompanyLeave.leave_name || "Company Leave"}
-                        </h3>
+                    </div>
+                    <div className="flex flex-col items-end justify-between h-full py-1 shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-white/60 flex items-center justify-center shrink-0 shadow-sm border border-white">
+                        <CalendarCheck className="w-4 h-4 text-[#7B0099]" />
                       </div>
-                      <div className="flex flex-col gap-1 mt-1">
-                        <Badge variant="outline" className="w-fit border-[#7B0099]/20 text-[#7B0099] bg-[#7B0099]/5 uppercase text-[8px] tracking-wider font-black">
-                          📅 {new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </Badge>
-                        <Badge variant="outline" className="w-fit border-slate-500/20 text-slate-600 bg-slate-500/5 uppercase text-[8px] tracking-wider font-black truncate max-w-full">
-                          👥 Applies To: {stats.activeCompanyLeave.applies_to === 'all' ? 'All Staff' : stats.activeCompanyLeave.applies_to === 'branch' ? `Branch: ${stats.activeCompanyLeave.branch_id}` : stats.activeCompanyLeave.applies_to === 'department' ? `Dept: ${stats.activeCompanyLeave.department_id}` : stats.activeCompanyLeave.applies_to}
-                        </Badge>
+                      <div className="flex flex-col items-end mt-1">
+                        <p className="text-[9px] sm:text-[10px] font-semibold text-[#5c0073]/70 uppercase tracking-widest mb-0.5">Applies to</p>
+                        <p className="text-[10px] sm:text-[11px] font-black text-[#7B0099] uppercase tracking-wider bg-white/50 px-2 py-0.5 rounded-md border border-white/50 shadow-sm">
+                          {stats.activeCompanyLeave.applies_to === 'all' ? 'All Staff' : stats.activeCompanyLeave.applies_to === 'branch' ? `Branch: ${stats.activeCompanyLeave.branch_id}` : stats.activeCompanyLeave.applies_to === 'department' ? `Dept: ${stats.activeCompanyLeave.department_id}` : stats.activeCompanyLeave.applies_to}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 text-[#7B0099] font-bold text-[10px] sm:text-[11px] uppercase tracking-wider group-hover:gap-2 transition-all opacity-80 hover:opacity-100 mt-2">
+                        View Details <ChevronRight className="w-3 h-3" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </div>
             ) : (
-              <div onClick={() => navigate("/employees")} className="cursor-pointer">
-                <StatCard
-                  icon={Users}
-                  title="Total Employees"
-                  value={String(stats.totalEmployees ?? 0)}
-                  subtitle="Active Personnel"
-                  variant="success"
-                />
-              </div>
+              <>
+                {["managing_director", "head_of_department", "finance_manager", "hr_admin", "branch_leader"].includes(role) && (
+                  <StatCard
+                    icon={Clock}
+                    title="Today's Status"
+                    value={stats.todayStatus}
+                    subtitle={todayStatusSubtitle}
+                    variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
+                  />
+                )}
+                {stats.activeCompanyLeave ? (
+                  <div onClick={() => navigate("/leave")} className="cursor-pointer">
+                    <Card className="border-none shadow-md bg-card overflow-hidden h-[120px] sm:h-[130px] flex flex-col relative group transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                      <div className="absolute top-0 right-0 p-3 opacity-10 transition-transform duration-500 group-hover:scale-110 group-hover:opacity-20 text-[#7B0099]">
+                        <CalendarCheck className="w-16 h-16 sm:w-20 sm:h-20" />
+                      </div>
+                      <CardContent className="p-4 sm:p-5 flex flex-col justify-between h-full flex-grow relative z-10">
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[10px] sm:text-[11px] font-black text-muted-foreground uppercase tracking-widest truncate">Company Leave</p>
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#7B0099]/10 flex items-center justify-center shrink-0">
+                              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7B0099]" />
+                            </div>
+                          </div>
+                          <div className="flex items-baseline gap-2">
+                            <h3 className="text-lg sm:text-xl font-black text-foreground tracking-tighter truncate">
+                              {stats.activeCompanyLeave.title || stats.activeCompanyLeave.leave_name || "Company Leave"}
+                            </h3>
+                          </div>
+                          <div className="flex flex-col gap-1 mt-1">
+                            <Badge variant="outline" className="w-fit border-[#7B0099]/20 text-[#7B0099] bg-[#7B0099]/5 uppercase text-[8px] tracking-wider font-black">
+                              📅 {new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </Badge>
+                            <Badge variant="outline" className="w-fit border-slate-500/20 text-slate-600 bg-slate-500/5 uppercase text-[8px] tracking-wider font-black truncate max-w-full">
+                              👥 Applies To: {stats.activeCompanyLeave.applies_to === 'all' ? 'All Staff' : stats.activeCompanyLeave.applies_to === 'branch' ? `Branch: ${stats.activeCompanyLeave.branch_id}` : stats.activeCompanyLeave.applies_to === 'department' ? `Dept: ${stats.activeCompanyLeave.department_id}` : stats.activeCompanyLeave.applies_to}
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ) : (
+                  <div onClick={() => navigate("/employees")} className="cursor-pointer">
+                    <StatCard
+                      icon={Users}
+                      title="Total Employees"
+                      value={String(stats.totalEmployees ?? 0)}
+                      subtitle="Active Personnel"
+                      variant="success"
+                    />
+                  </div>
+                )}
+              </>
             )}
             <StatCard
               icon={CheckCircle2}

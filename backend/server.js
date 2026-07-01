@@ -3198,6 +3198,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       [userId]
     );
     let companyLeaveCountCurrentMonth = 0;
+    let isAllStaffCompanyLeaveToday = false;
     
     if (empProfile.length > 0) {
       const p = empProfile[0];
@@ -3222,6 +3223,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
       if (matchingLeave) {
         todayStatus = "Company Leave";
         todayStatusTime = "--:--";
+        if (matchingLeave.applies_to === 'all') {
+          isAllStaffCompanyLeaveToday = true;
+        }
       }
 
       // Count Company Leaves in the current month up to today
@@ -3473,7 +3477,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
         clockOutTime,
         todayStatusTime,
         attendanceRate,
-        ...(adminStats || {})
+        ...(adminStats || {}),
+        presentToday: isAllStaffCompanyLeaveToday && adminStats ? adminStats.totalEmployees : presentRows[0].present_today
       },
       recentActivities: myAttendanceRows,
       activityFeed: {
