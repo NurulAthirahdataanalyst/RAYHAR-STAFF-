@@ -6,7 +6,7 @@ import { Loader2, Download, Search, FileText, CalendarDays } from "lucide-react"
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 
 const formatDate = (value: string) => (value ? value.slice(0, 10) : "");
@@ -16,10 +16,25 @@ export default function LeaveReports() {
   const [loading, setLoading] = useState(true);
   const [leaveData, setLeaveData] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // View Toggle State
+  const [viewType, setViewType] = useState<"day" | "month">("month");
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+
+  const months = [
+    { value: "1", label: "January" }, { value: "2", label: "February" }, { value: "3", label: "March" },
+    { value: "4", label: "April" }, { value: "5", label: "May" }, { value: "6", label: "June" },
+    { value: "7", label: "July" }, { value: "8", label: "August" }, { value: "9", label: "September" },
+    { value: "10", label: "October" }, { value: "11", label: "November" }, { value: "12", label: "December" }
+  ];
+
+  const years = Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString());
 
   useEffect(() => {
     fetchData();
-  }, [role, userBranch, userDepartment]);
+  }, [role, userBranch, userDepartment, viewType, date, selectedMonth, selectedYear]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -29,10 +44,20 @@ export default function LeaveReports() {
         branch: userBranch || "",
         department: userDepartment || "",
       });
+
+      if (viewType === "day") {
+        params.append("date", date);
+      } else {
+        params.append("month", selectedMonth);
+        params.append("year", selectedYear);
+      }
+
       const res = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`);
       const data = await res.json();
       if (data.success) {
         setLeaveData(data.leaveRequests);
+      } else {
+        setLeaveData([]);
       }
     } catch (error) {
       console.error("Error fetching leave report:", error);
@@ -52,11 +77,11 @@ export default function LeaveReports() {
     const rows = filteredList.map(a => 
       `"${a.full_name || a.user_id}","${a.branch || 'HQ'}","${a.leave_type}","${formatDate(a.start_date)}","${formatDate(a.end_date)}",${a.days},"${a.status}"`
     );
-    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
+    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `leave_report.csv`);
+    link.setAttribute("download", viewType === "day" ? `leave_report_${date}.csv` : `leave_report_${months.find(m => m.value === selectedMonth)?.label}_${selectedYear}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -65,8 +90,64 @@ export default function LeaveReports() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-col md:flex-row justify-end items-start md:items-center mb-6 gap-4">
-          <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          
+          {/* DAY / MONTH Toggle */}
+          <div className="flex bg-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => setViewType("day")}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                viewType === "day"
+                  ? "bg-purple-600 text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              DAY
+            </button>
+            <button
+              onClick={() => setViewType("month")}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                viewType === "month"
+                  ? "bg-purple-600 text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              MONTH
+            </button>
+          </div>
+
+          <div className="flex flex-wrap gap-2 items-center">
+            {viewType === "day" ? (
+              <Input 
+                type="date" 
+                value={date} 
+                onChange={(e) => setDate(e.target.value)}
+                className="w-40 bg-white"
+              />
+            ) : (
+              <div className="flex items-center gap-2">
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <SelectTrigger className="w-[140px] bg-white">
+                    <SelectValue placeholder="Month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {months.map(m => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <SelectTrigger className="w-[100px] bg-white">
+                    <SelectValue placeholder="Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {years.map(y => (
+                      <SelectItem key={y} value={y}>{y}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <ExportDropdown onExportCSV={handleExportCSV} />
           </div>
         </div>
@@ -79,7 +160,7 @@ export default function LeaveReports() {
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Requests</p>
-                <h3 className="text-3xl font-bold mt-1">{leaveData.length}</h3>
+                <h3 className="text-3xl font-bold mt-1">{filteredList.length}</h3>
               </div>
             </CardContent>
           </Card>
@@ -92,7 +173,7 @@ export default function LeaveReports() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Approved</p>
                 <h3 className="text-3xl font-bold mt-1 text-green-600 dark:text-green-400">
-                  {leaveData.filter(a => a.status === 'Approved').length}
+                  {filteredList.filter(a => a.status === 'Approved').length}
                 </h3>
               </div>
             </CardContent>
@@ -106,7 +187,7 @@ export default function LeaveReports() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Leave Days</p>
                 <h3 className="text-3xl font-bold mt-1 text-orange-600 dark:text-orange-400">
-                  {leaveData.filter(a => a.status === 'Approved').reduce((acc, curr) => acc + Number(curr.days || 0), 0)}
+                  {filteredList.filter(a => a.status === 'Approved').reduce((acc, curr) => acc + Number(curr.days || 0), 0)}
                 </h3>
               </div>
             </CardContent>
@@ -149,7 +230,7 @@ export default function LeaveReports() {
                     {filteredList.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                          No leave records found.
+                          No leave records found for this {viewType}.
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -163,7 +244,15 @@ export default function LeaveReports() {
                           <TableCell>{formatDate(req.start_date)}</TableCell>
                           <TableCell>{formatDate(req.end_date)}</TableCell>
                           <TableCell>{req.days}</TableCell>
-                          <TableCell>{req.status}</TableCell>
+                          <TableCell>
+                            <span className={`px-2 py-1 text-xs font-semibold rounded-full \${
+                              req.status === 'Approved' ? 'bg-green-100 text-green-700' :
+                              req.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                              'bg-yellow-100 text-yellow-700'
+                            }`}>
+                              {req.status}
+                            </span>
+                          </TableCell>
                         </TableRow>
                       ))
                     )}
