@@ -173,6 +173,14 @@ const CompanyLeaveCalendar = () => {
 
   return (
     <div className="space-y-6">
+      <PageHeader 
+        title="Company Leave Calendar" 
+        breadcrumbs={[
+          { label: "Home", path: "/" },
+          { label: "Calendar", path: "/calendar" },
+          { label: "Company Leave Calendar" }
+        ]} 
+      />
 
       {!isHR && (
         <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 p-4 rounded-lg flex items-start gap-3 border border-blue-200 dark:border-blue-800">

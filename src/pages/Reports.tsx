@@ -92,7 +92,7 @@ interface Department {
 }
 
 export default function Reports() {
-  const { role } = useRole();
+  const { role, userBranch, userDepartment, userId } = useRole();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("presenceSidebarCollapsed") === "true";
@@ -224,7 +224,7 @@ export default function Reports() {
     try {
       const [resDaily, resStats] = await Promise.all([
         fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${selectedDate}`),
-        fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=hr_admin&branch=All&date=${selectedDate}`)
+        fetch(`${API_BASE_URL}/api/dashboard-stats?userId=${userId || "ADMIN"}&role=${role}&branch=${encodeURIComponent(userBranch || "All")}&department=${encodeURIComponent(userDepartment || "")}&date=${selectedDate}`)
       ]);
       const data = await resDaily.json();
       const statsData = await resStats.json();

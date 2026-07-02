@@ -1304,9 +1304,22 @@ export default function Calendar() {
             </div>
 
             <div className="px-6 pb-5 flex gap-3">
+              {role === 'hr_admin' && (
+                <Button 
+                  onClick={() => {
+                    if (confirm('Are you sure you want to delete this company leave?')) {
+                      handleDeleteCompanyLeave(selectedCompanyLeave.id);
+                      setSelectedCompanyLeave(null);
+                    }
+                  }} 
+                  className="w-1/3 bg-red-500 hover:bg-red-600 text-white font-semibold"
+                >
+                  Delete
+                </Button>
+              )}
               <Button 
                 onClick={() => setSelectedCompanyLeave(null)} 
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold"
+                className={`${role === 'hr_admin' ? 'w-2/3' : 'w-full'} bg-purple-600 hover:bg-purple-700 text-white font-semibold`}
               >
                 Close
               </Button>

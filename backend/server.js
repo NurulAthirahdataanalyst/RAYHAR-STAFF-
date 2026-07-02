@@ -945,10 +945,14 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
 
     let filterP = "";
     let paramsTotal = [];
-    if (role === 'branch_leader' && branch && branch !== "All") {
+    if (role === 'branch_leader') {
+      const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+      branch = safeBranch;
       filterP = " AND p.branch = ?";
       paramsTotal.push(branch);
-    } else if (role === 'head_of_department' && department && department !== "All") {
+    } else if (role === 'head_of_department') {
+      const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+      department = safeDept;
       filterP = " AND p.department = ?";
       paramsTotal.push(department);
     }
@@ -1179,10 +1183,14 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
 
   let filterP = "";
   let paramsBase = [];
-  if (role === 'branch_leader' && branch && branch !== "All") {
+  if (role === 'branch_leader') {
+      const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+      branch = safeBranch;
     filterP = " AND p.branch = ?";
     paramsBase.push(branch);
-  } else if (role === 'head_of_department' && department && department !== "All") {
+  } else if (role === 'head_of_department') {
+      const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+      department = safeDept;
     filterP = " AND p.department = ?";
     paramsBase.push(department);
   }
@@ -3049,14 +3057,17 @@ app.get("/api/dashboard-stats", async (req, res) => {
       let profileFilter = "";
       let attendanceFilter = "AND user_id IN (SELECT user_id FROM profiles WHERE status = 'Active')";
 
-      if (isBranchLeader && branch) {
+      if (isBranchLeader) {
+        const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
         profileFilter = "AND branch = ?";
         attendanceFilter = "AND user_id IN (SELECT user_id FROM profiles WHERE branch = ? AND status = 'Active')";
-        queryParams.push(branch);
-      } else if (isHOD && branch && department) {
+        queryParams.push(safeBranch);
+      } else if (isHOD) {
+        const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+        const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
         profileFilter = "AND branch = ? AND department = ?";
         attendanceFilter = "AND user_id IN (SELECT user_id FROM profiles WHERE branch = ? AND department = ? AND status = 'Active')";
-        queryParams.push(branch, department);
+        queryParams.push(safeBranch, safeDept);
       }
 
       const queryDate = req.query.date ? req.query.date.toString() : null;
@@ -3555,10 +3566,14 @@ app.get("/api/reports/absent-employees", async (req, res) => {
     let profileFilter = "";
     let queryParams = [queryDate, queryDate, queryDate, queryDate];
 
-    if (role === 'branch_leader' && branch && branch !== "All") {
+    if (role === 'branch_leader') {
+      const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+      branch = safeBranch;
       profileFilter = " AND p.branch = ?";
       queryParams.push(branch);
-    } else if (role === 'head_of_department' && department && department !== "All") {
+    } else if (role === 'head_of_department') {
+      const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+      department = safeDept;
       profileFilter = " AND p.department = ?";
       queryParams.push(department);
     }
@@ -3629,10 +3644,14 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
     let profileFilter = "";
     let queryParams = [];
 
-    if (role === 'branch_leader' && branch && branch !== "All") {
+    if (role === 'branch_leader') {
+      const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+      branch = safeBranch;
       profileFilter = " AND p.branch = ?";
       queryParams.push(branch);
-    } else if (role === 'head_of_department' && department && department !== "All") {
+    } else if (role === 'head_of_department') {
+      const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+      department = safeDept;
       profileFilter = " AND p.department = ?";
       queryParams.push(department);
     }
@@ -3804,10 +3823,14 @@ app.get("/api/reports/total-leave-requests", async (req, res) => {
     let filter = "";
     let params = [];
 
-    if (role === 'branch_leader' && branch && branch !== "All") {
+    if (role === 'branch_leader') {
+      const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+      branch = safeBranch;
       filter = " AND p.branch = ?";
       params.push(branch);
-    } else if (role === 'head_of_department' && department && department !== "All") {
+    } else if (role === 'head_of_department') {
+      const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+      department = safeDept;
       filter = " AND p.department = ?";
       params.push(department);
     }
@@ -3909,10 +3932,14 @@ app.get("/api/reports/analytics", async (req, res) => {
     let profileFilter = "";
     let pFilterParams = [];
 
-    if (role === 'branch_leader' && branch && branch !== "All") {
+    if (role === 'branch_leader') {
+      const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+      branch = safeBranch;
       profileFilter = " AND p.branch = ?";
       pFilterParams.push(branch);
-    } else if (role === 'head_of_department' && department && department !== "All") {
+    } else if (role === 'head_of_department') {
+      const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+      department = safeDept;
       profileFilter = " AND p.department = ?";
       pFilterParams.push(department);
     }
@@ -4050,10 +4077,14 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     let profileFilter = "";
     let pFilterParams = [];
 
-    if (role === 'branch_leader' && branch && branch !== "All") {
+    if (role === 'branch_leader') {
+      const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+      branch = safeBranch;
       profileFilter = " AND p.branch = ?";
       pFilterParams.push(branch);
-    } else if (role === 'head_of_department' && department && department !== "All") {
+    } else if (role === 'head_of_department') {
+      const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+      department = safeDept;
       profileFilter = " AND p.department = ?";
       pFilterParams.push(department);
     }
@@ -4665,10 +4696,14 @@ app.get("/api/reports/leave-utilization", async (req, res) => {
     let filter = "";
     let params = [];
 
-    if (role === 'branch_leader' && branch && branch !== "All") {
+    if (role === 'branch_leader') {
+      const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+      branch = safeBranch;
       filter = " AND p.branch = ?";
       params.push(branch);
-    } else if (role === 'head_of_department' && department && department !== "All") {
+    } else if (role === 'head_of_department') {
+      const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+      department = safeDept;
       filter = " AND p.department = ?";
       params.push(department);
     }
