@@ -1125,8 +1125,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
     { name: 'Unpaid', value: leave.unpaid || 0, color: '#64748b' } // slate-500
   ].filter(d => d.value > 0);
   
-  // mock total count if not present
-  const totalLeaveCount = totalLeaveEmployees || 18; 
+  // exact total count without fallback
+  const totalLeaveCount = totalLeaveEmployees || 0; 
 
   return (
     <div className="space-y-8">
@@ -1377,33 +1377,47 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                        data={leaveData}
                        innerRadius={45}
                        outerRadius={65}
-                       paddingAngle={2}
-                       dataKey="value"
-                       stroke="none"
-                     >
-                       {leaveData.map((entry, index) => (
-                         <Cell key={`cell-${index}`} fill={entry.color} />
-                       ))}
-                     </Pie>
-                   </PieChart>
-                 </ResponsiveContainer>
-                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                   <span className="text-lg font-black text-slate-800 leading-none">{totalLeaveCount}</span>
-                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total</span>
-                 </div>
-               </div>
-               <div className="flex-1 pl-4 space-y-2">
-                 {leaveData.map((entry, idx) => (
-                   <div key={idx} className="flex justify-between items-center">
-                     <div className="flex items-center gap-1.5">
-                       <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }}></span>
-                       <span className="text-[10px] font-semibold text-slate-700">{entry.name}</span>
-                     </div>
-                     <span className="text-[10px] font-black text-slate-800">{entry.value}%</span>
-                   </div>
-                 ))}
-               </div>
-             </div>
+             {totalLeaveCount > 0 ? (
+                <div className="flex items-center flex-1 h-[140px]">
+                  <div className="w-[140px] h-[140px] relative">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={leaveData}
+                          innerRadius={45}
+                          outerRadius={65}
+                          paddingAngle={2}
+                          dataKey="value"
+                          stroke="none"
+                        >
+                          {leaveData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      <span className="text-lg font-black text-slate-800 leading-none">{totalLeaveCount}</span>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 pl-4 space-y-2">
+                    {leaveData.map((entry, idx) => (
+                      <div key={idx} className="flex justify-between items-center">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }}></span>
+                          <span className="text-[10px] font-semibold text-slate-700">{entry.name}</span>
+                        </div>
+                        <span className="text-[10px] font-black text-slate-800">{entry.value}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center flex-1 h-[140px] text-slate-400 text-xs italic bg-slate-50/50 rounded-lg border border-slate-100 border-dashed">
+                  No Leave Request History Available
+                </div>
+              )}
 
              <div className="mt-3 pt-3 border-t border-slate-100 flex justify-end">
                <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">View Details <ChevronRight className="w-3 h-3" /></button>
