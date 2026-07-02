@@ -3128,7 +3128,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       adminStats = {
         totalEmployees: parseInt(employeeRows[0].total_employees || 0),
         presentToday: parseInt(presentRows[0].present_today || 0),
-        onLeave: parseInt(onLeaveRows[0].on_leave || 0) + companyLeaveCount,
+        onLeave: parseInt(onLeaveRows[0].on_leave || 0),
         lateArrivals: parseInt(lateRows[0].late_arrivals || 0),
         pendingApprovals: parseInt(pendingRows[0].pending_approvals || 0),
         companyLeave: companyLeaveCount,
