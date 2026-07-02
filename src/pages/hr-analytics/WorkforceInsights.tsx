@@ -343,42 +343,42 @@ export default function WorkforceInsights() {
           </Card>
 
           {/* Column 2 (middle): 2x2 Grid of KPIs */}
-          <div className="col-span-1 xl:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="col-span-1 xl:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-3">
             {/* KPI 1: Total Headcount */}
             <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
-              <CardContent className="p-5 flex items-center gap-4 h-full w-full">
-                <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                  <Users className="w-5 h-5 text-blue-600" />
+              <CardContent className="p-3 sm:p-4 flex items-center gap-3 h-full w-full">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Headcount</p>
-                  <h3 className="text-xl font-bold text-slate-800 leading-tight mt-1">{data.topKpi.totalHeadcount}</h3>
+                  <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Headcount</p>
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-800 leading-tight mt-0.5">{data.topKpi.totalHeadcount}</h3>
                 </div>
               </CardContent>
             </Card>
 
             {/* KPI 2: Active Employees */}
             <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
-              <CardContent className="p-5 flex items-center gap-4 h-full w-full">
-                <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
-                  <UserCheck className="w-5 h-5 text-emerald-600" />
+              <CardContent className="p-3 sm:p-4 flex items-center gap-3 h-full w-full">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+                  <UserCheck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Employees</p>
-                  <h3 className="text-xl font-bold text-slate-800 leading-tight mt-1">{data.topKpi.activeEmployees}</h3>
+                  <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Employees</p>
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-800 leading-tight mt-0.5">{data.topKpi.activeEmployees}</h3>
                 </div>
               </CardContent>
             </Card>
 
             {/* KPI 3: Attendance Rate */}
             <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
-              <CardContent className="p-5 flex items-center gap-4 h-full w-full">
-                <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-5 h-5 text-indigo-600" />
+              <CardContent className="p-3 sm:p-4 flex items-center gap-3 h-full w-full">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Attendance Rate</p>
-                  <h3 className="text-xl font-bold text-slate-800 leading-tight mt-1">{data.topKpi.attendanceRate}%</h3>
+                  <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Attendance Rate</p>
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-800 leading-tight mt-0.5">{data.topKpi.attendanceRate}%</h3>
                 </div>
               </CardContent>
             </Card>
@@ -386,12 +386,12 @@ export default function WorkforceInsights() {
             {/* KPI 4: On Leave Today */}
             <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
               <CardContent className="p-5 flex items-center gap-4 h-full w-full">
-                <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
                   <CalendarDays className="w-5 h-5 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">On Leave Today</p>
-                  <h3 className="text-xl font-bold text-slate-800 leading-tight mt-1">{data.topKpi.onLeaveToday}</h3>
+                  <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">On Leave Today</p>
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-800 leading-tight mt-0.5">{data.topKpi.onLeaveToday}</h3>
                 </div>
               </CardContent>
             </Card>
@@ -605,7 +605,7 @@ export default function WorkforceInsights() {
                   className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-yellow-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-yellow-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
                       <Clock className="w-5 h-5 text-yellow-600" />
                     </div>
                     <div>
@@ -624,8 +624,8 @@ export default function WorkforceInsights() {
                   className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-emerald-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
-                      <FileCheck className="w-5 h-5 text-emerald-600" />
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-emerald-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
+                      <FileCheck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-slate-800 group-hover:text-[#7B0099] transition-colors">Approved Leave</p>
@@ -643,8 +643,8 @@ export default function WorkforceInsights() {
                   className="flex items-center justify-between p-4 bg-slate-50/80 hover:bg-[#7B0099]/5 border border-transparent hover:border-[#7B0099]/20 rounded-lg transition-all duration-300 cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-blue-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
-                      <Users className="w-5 h-5 text-blue-600" />
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-100/50 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-slate-800 group-hover:text-[#7B0099] transition-colors">Staff on Leave</p>
@@ -763,7 +763,7 @@ export default function WorkforceInsights() {
                         </div>
                         <div>
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{emp.full_name}</p>
+                            <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
                             {emp.is_late && (
                               <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
                             )}
@@ -830,7 +830,7 @@ export default function WorkforceInsights() {
                     </div>
                     <div>
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{emp.full_name}</p>
+                        <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
                         <span className="px-1.5 py-0.5 text-[8px] font-bold rounded bg-red-500 text-white">
                           {Math.floor(emp.late_minutes / 60)} H {(emp.late_minutes % 60).toString().padStart(2, '0')} Min
                         </span>
@@ -895,7 +895,7 @@ export default function WorkforceInsights() {
                     </div>
                     <div>
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{emp.full_name}</p>
+                        <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
                       </div>
                       <p className="text-[10px] text-slate-400 font-medium">{emp.department !== 'â€”' ? emp.department : emp.branch}</p>
                     </div>

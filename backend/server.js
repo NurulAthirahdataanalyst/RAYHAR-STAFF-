@@ -4172,8 +4172,8 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     const { role, branch, department } = req.query;
     const requestedMonth = parseInt(req.query.month) || (new Date().getMonth() + 1);
     const requestedYear = parseInt(req.query.year) || new Date().getFullYear();
-    // In Malaysia timezone for accurate 'today'
     const todayStr = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"})).toISOString().split('T')[0];
+    const isDayView = !!req.query.date;
     const targetDateStr = req.query.date ? req.query.date : todayStr;
     const lateTimeStr = getLateThresholdTime();
 
@@ -4182,14 +4182,12 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
 
     if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
-      branch = safeBranch;
       profileFilter = " AND p.branch = ?";
-      pFilterParams.push(branch);
+      pFilterParams.push(safeBranch);
     } else if (role === 'head_of_department') {
       const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-      department = safeDept;
       profileFilter = " AND p.department = ?";
-      pFilterParams.push(department);
+      pFilterParams.push(safeDept);
     }
 
     // 1. Employees & KPI
@@ -4197,10 +4195,41 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     const totalHeadcount = parseInt(empRows[0].total || 0);
     const activeEmployees = parseInt(empRows[0].active || 0);
 
+    // Fetch active company leaves
+    const [companyLeaveRows] = await pool.query(
+      `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND start_date <= ? AND end_date >= ?`,
+      [targetDateStr, targetDateStr]
+    );
+
+    // Calculate company leave exactly
+    let companyLeaveCount = 0;
+    const [allProfiles] = await pool.query(
+      `SELECT * FROM profiles p WHERE p.status = 'Active' ${profileFilter}`, pFilterParams
+    );
+    
+    let isCompanyLeaveDay = false;
+    let companyLeaveEmployees = new Set();
+    allProfiles.forEach(emp => {
+      let onCL = false;
+      for (let cl of companyLeaveRows) {
+        if (cl.applies_to === 'All') onCL = true;
+        else if (cl.applies_to === 'Specific Branch' && emp.branch === cl.branch_code) onCL = true;
+        else if (cl.applies_to === 'Specific Department' && emp.department === cl.department) onCL = true;
+      }
+      if (onCL) {
+        companyLeaveCount++;
+        companyLeaveEmployees.add(emp.user_id);
+      }
+    });
+
+    if (companyLeaveCount > 0 && companyLeaveCount === activeEmployees) {
+      isCompanyLeaveDay = true;
+    }
+
     // 2. Attendance & Lates
     const [attRows] = await pool.query(
       `SELECT 
-        a.user_id, p.full_name as name, p.branch, a.clock_in, a.clock_out,
+        a.user_id, p.full_name as name, p.branch, p.department, a.clock_in, a.clock_out,
         CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END as is_late
        FROM attendances a
        JOIN profiles p ON p.user_id = a.user_id
@@ -4217,7 +4246,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     attRows.forEach(att => {
       const isLate = parseInt(att.is_late) === 1;
       const dateObj = new Date(att.clock_in);
-      const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0]; // Quick offset for Malaysia
+      const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
       
       if (isLate) totalLateArrivals++;
       if (dateStr === targetDateStr) {
@@ -4234,7 +4263,19 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
 
     const workingDaysInMonth = 22; 
     const possibleAttendances = activeEmployees * workingDaysInMonth;
-    const averageAttendance = possibleAttendances > 0 ? Math.round((attRows.length / possibleAttendances) * 100) : 0;
+    let averageAttendance = 0;
+    
+    if (isDayView) {
+      if (isCompanyLeaveDay) {
+        averageAttendance = 0;
+      } else {
+        const expectedToClockIn = activeEmployees - companyLeaveCount;
+        averageAttendance = expectedToClockIn > 0 ? Math.round((presentToday / expectedToClockIn) * 100) : 0;
+      }
+    } else {
+      averageAttendance = possibleAttendances > 0 ? Math.round((attRows.length / possibleAttendances) * 100) : 0;
+    }
+
     const absences = Math.max(0, possibleAttendances - attRows.length);
 
     // 3. Leave Stats
@@ -4265,7 +4306,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     });
 
     // 4. Team Availability today
-    const absentToday = Math.max(0, activeEmployees - presentToday - onLeaveToday);
+    const absentToday = Math.max(0, activeEmployees - presentToday - onLeaveToday - companyLeaveCount);
 
     // 5. Rankings
     const rankings = Object.values(userStats).map(u => ({
@@ -4283,12 +4324,11 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       { month: "Apr", rate: 97 }, { month: "May", rate: 95 }, { month: "Jun", rate: 98 }
     ];
     
-    // Group attRows by date for daily trend
     const dailyMap = {};
     attRows.forEach(att => {
       const dateObj = new Date(att.clock_in);
       const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
-      const d = dateStr.slice(8, 10); // Day of month
+      const d = dateStr.slice(8, 10); 
       if (!dailyMap[d]) dailyMap[d] = { rate: 0, lates: 0, count: 0 };
       dailyMap[d].count++;
       if (parseInt(att.is_late) === 1) dailyMap[d].lates++;
@@ -4298,10 +4338,9 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       date: d,
       rate: activeEmployees > 0 ? Math.round((dailyMap[d].count / activeEmployees) * 100) : 0,
       lates: dailyMap[d].lates
-    })).slice(-10); // Last 10 days with activity
+    })).slice(-10);
 
     // 7. Employees by Department
-        // 7. Employees by Department
     const [deptRows] = await pool.query(
       `SELECT p.department, COUNT(*) as count 
        FROM profiles p 
@@ -4319,7 +4358,6 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       [targetDateStr, ...pFilterParams]
     );
 
-        // Real Branch Attendance Map for MONTH (entire month)
     const branchMonthlyAttendance = {};
     attRows.forEach(a => {
       const b = a.branch || 'HQ';
@@ -4327,7 +4365,6 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       branchMonthlyAttendance[b]++;
     });
 
-    // Real Leave Analytics
     const [realLeaveAnalyticsRows] = await pool.query(
       `SELECT lr.leave_type, COUNT(*) as count 
        FROM leave_requests lr
@@ -4346,6 +4383,70 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       else if (type.includes('emergency')) realLeaveAnalytics.emergency += count;
       else realLeaveAnalytics.unpaid += count;
     });
+
+    // Populate missing attendees for SSE simulation payload
+    const presentUserIds = new Set(attRows.filter(a => {
+      const dateObj = new Date(a.clock_in);
+      const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
+      return dateStr === targetDateStr;
+    }).map(a => a.user_id));
+
+    let simulatedAbsent = [];
+    let simulatedCompanyLeave = [];
+    allProfiles.forEach(p => {
+      if (!presentUserIds.has(p.user_id)) {
+        if (companyLeaveEmployees.has(p.user_id)) {
+          simulatedCompanyLeave.push({
+            user_id: p.user_id,
+            full_name: p.full_name,
+            initials: p.full_name.split(' ').map(n=>n[0]).join('').substring(0,2),
+            department: p.department || '—',
+            branch: p.branch || '—',
+            status: 'companyLeave'
+          });
+        } else {
+          simulatedAbsent.push({
+            user_id: p.user_id,
+            full_name: p.full_name,
+            initials: p.full_name.split(' ').map(n=>n[0]).join('').substring(0,2),
+            department: p.department || '—',
+            branch: p.branch || '—',
+            status: 'absent'
+          });
+        }
+      }
+    });
+
+    // Combine them, putting company leaves first
+    const finalAbsentList = [...simulatedCompanyLeave, ...simulatedAbsent].slice(0, 10);
+
+    const sseInitialPayload = {
+      attendance: attRows.filter(a => {
+        const dateObj = new Date(a.clock_in);
+        const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
+        return dateStr === targetDateStr;
+      }).map(a => ({
+        user_id: a.user_id,
+        full_name: a.name,
+        initials: a.name.split(' ').map(n=>n[0]).join('').substring(0,2),
+        department: a.department || '—',
+        branch: a.branch || '—',
+        clock_in: a.clock_in
+      })).slice(0, 5),
+      late: attRows.filter(a => {
+        const dateObj = new Date(a.clock_in);
+        const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
+        return dateStr === targetDateStr && parseInt(a.is_late) === 1;
+      }).map(a => ({
+        user_id: a.user_id,
+        full_name: a.name,
+        initials: a.name.split(' ').map(n=>n[0]).join('').substring(0,2),
+        department: a.department || '—',
+        branch: a.branch || '—',
+        clock_in: a.clock_in
+      })).slice(0, 5),
+      absent: finalAbsentList
+    };
 
     res.json({
       success: true,
@@ -4376,9 +4477,9 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         upcoming: 8,
         cancelled: 2,
         popularRoutes: [
-          { route: 'KL â†’ Penang', trips: 8 },
-          { route: 'KL â†’ Johor', trips: 6 },
-          { route: 'KL â†’ Sabah', trips: 4 }
+          { route: 'KL → Penang', trips: 8 },
+          { route: 'KL → Johor', trips: 6 },
+          { route: 'KL → Sabah', trips: 4 }
         ]
       },
       workforceMovement: {
@@ -4391,13 +4492,15 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         { title: '4 Employees', description: 'Absent 3 Consecutive Days', type: 'critical' },
         { title: '2 Contracts', description: 'Expiring in 30 Days', type: 'warning' },
         { title: '7 Leave Requests', description: 'Awaiting Approval', type: 'info' },
-        { title: 'Attendance', description: 'â†‘4% vs Last Month', type: 'success' }
+        { title: 'Attendance', description: '↑4% vs Last Month', type: 'success' }
       ],
       topKpi: {
         totalHeadcount,
         activeEmployees,
         attendanceRate: Math.min(100, averageAttendance),
-        onLeaveToday
+        onLeaveToday,
+        companyLeaveToday: companyLeaveCount,
+        outstationToday: 0
       },
       attendanceOverview: {
         averageAttendance: Math.min(100, averageAttendance),
@@ -4414,6 +4517,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       teamAvailability: {
         present: presentToday,
         onLeave: onLeaveToday,
+        companyLeave: companyLeaveCount,
         absent: absentToday,
         late: lateToday
       },
@@ -4421,18 +4525,14 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         topAttendance,
         topLate,
         allAttendance: rankings
-      }
+      },
+      sseInitialPayload
     });
-
   } catch (err) {
-    console.error("Workforce Insights Error:", err);
+    console.error("workforce-insights error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
-// ===============================
-// GET & POST BRANCHES API
-// ===============================
 app.get("/api/branches", async (req, res) => {
   try {
     const queryStr = `
