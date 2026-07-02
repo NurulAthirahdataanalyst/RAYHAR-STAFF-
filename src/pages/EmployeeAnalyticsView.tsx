@@ -40,7 +40,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   // Filter out any logs that were recorded on a Company Leave date
   const myLogs = useMemo(() => {
     return rawMyLogs.filter(log => {
-      if (!log.clock_in) return false;
+      if (!log.clock_in) return true;
       const dateStr = getLocalDateString(log.clock_in);
       const isCompanyLeave = companyLeaves.some((cl: any) => {
         const startStr = getLocalDateString(cl.start_date);
@@ -206,9 +206,10 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     };
   }, [avgWorkHours, lastMonthAvgWorkHours, lastMonthLogsWithDuration.length]);
 
-  // Monthly summary
-  const presentDays = myLogs.length;
-  const lateArrivals = myLogs.filter(l => l.is_late || l.status === "LATE").length;
+  // Monthly summary — only count days where the employee actually clocked in
+  const presentLogs = myLogs.filter(l => l.clock_in != null && (l.status === 'Present' || l.status === 'LATE' || l.status === 'Late'));
+  const presentDays = presentLogs.length;
+  const lateArrivals = presentLogs.filter(l => l.is_late === 1 || l.is_late === true || l.status === 'LATE' || l.status === 'Late').length;
   
   let daysInMonth = 0;
   let absentDays = 0;
@@ -296,7 +297,16 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     for (let d = 1; d <= daysInMonth; d++) {
       const date = new Date(parseInt(year), parseInt(month) - 1, d);
       const dayOfWeek = date.getDay();
-      const isPastOrToday = date <= new Date() || parseInt(month) !== (new Date().getMonth() + 1);
+      // For past months: ALL days are past. For current month: only today/before is past.
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      const selectedMonthInt = parseInt(month);
+      const selectedYearInt = parseInt(year);
+      const currentMonthInt = today.getMonth() + 1;
+      const currentYearInt = today.getFullYear();
+      const isPastOrToday = (selectedYearInt < currentYearInt) ||
+        (selectedYearInt === currentYearInt && selectedMonthInt < currentMonthInt) ||
+        (selectedYearInt === currentYearInt && selectedMonthInt === currentMonthInt && date <= today);
       
       const isWeekendDay = (dayOfWeek === 5) || (dayOfWeek === 6 && d <= 7);
       
@@ -327,6 +337,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
         const logsOnDay = myLogs.filter(l => {
           if (!l.clock_in) return false;
+          // Use the date string directly if available, otherwise derive from clock_in
+          if (l.date) return l.date === dateStr;
           const clockDate = new Date(l.clock_in);
           const y = clockDate.getFullYear();
           const m = String(clockDate.getMonth() + 1).padStart(2, '0');
@@ -394,8 +406,9 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
        if (date <= new Date() && !isWeekendDay) prevWorkingDaysPassed++;
     }
   }
-  const prevPresentDays = processedLastMonthLogs.length;
-  const prevLateArrivals = processedLastMonthLogs.filter(l => l.is_late || l.status === "LATE").length;
+  const prevPresentLogs = processedLastMonthLogs.filter(l => l.clock_in != null && (l.status === 'Present' || l.status === 'LATE' || l.status === 'Late'));
+  const prevPresentDays = prevPresentLogs.length;
+  const prevLateArrivals = prevPresentLogs.filter(l => l.is_late === 1 || l.is_late === true || l.status === 'LATE' || l.status === 'Late').length;
   const prevAttendanceRate = calcRate(prevPresentDays - prevLateArrivals, prevLateArrivals, prevWorkingDaysPassed);
   
   const rateDiff = attendanceRate - prevAttendanceRate;
