@@ -573,27 +573,31 @@ export default function Dashboard() {
                 )}
               </>
             )}
-            <StatCard
-              icon={CheckCircle2}
-              title="Present Today"
-              value={String(stats.presentToday ?? 0)}
-              subtitle="Clocked In Today"
-              variant="success"
-            />
-            <StatCard
-              icon={XCircle}
-              title="On Leave"
-              value={String(stats.onLeave ?? 0)}
-              subtitle="Approved Leaves"
-              variant="default"
-            />
-            <StatCard
-              icon={AlertTriangle}
-              title="Late Arrivals"
-              value={String(stats.lateArrivals ?? 0)}
-              subtitle="Action Required"
-              variant="maroon"
-            />
+            {!(isCompanyLeave && stats.activeCompanyLeave && ["hr_admin", "managing_director", "finance_manager"].includes(role)) && (
+              <>
+                <StatCard
+                  icon={CheckCircle2}
+                  title="Present Today"
+                  value={String(stats.presentToday ?? 0)}
+                  subtitle="Clocked In Today"
+                  variant="success"
+                />
+                <StatCard
+                  icon={XCircle}
+                  title="On Leave"
+                  value={String(stats.onLeave ?? 0)}
+                  subtitle="Approved Leaves"
+                  variant="default"
+                />
+                <StatCard
+                  icon={AlertTriangle}
+                  title="Late Arrivals"
+                  value={String(stats.lateArrivals ?? 0)}
+                  subtitle="Action Required"
+                  variant="maroon"
+                />
+              </>
+            )}
           </>
         )}
       </div>
