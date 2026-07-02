@@ -399,11 +399,11 @@ export default function Dashboard() {
                             <div className="w-16 h-16 shrink-0 drop-shadow-sm transition-transform duration-500 group-hover:scale-105">
                               <div className="w-full h-full bg-white rounded-xl shadow-sm border border-purple-100 flex flex-col overflow-hidden">
                                 <div className="bg-[#7B0099] py-1 flex justify-center items-center gap-2 relative">
-                                  <span className="text-[9px] font-black text-white uppercase tracking-widest">{new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-US', { month: 'short' })}</span>
+                                  <span className="text-[9px] font-black text-white uppercase tracking-widest">{new Date().toLocaleDateString('en-US', { month: 'short' })}</span>
                                 </div>
                                 <div className="flex-1 bg-gradient-to-b from-white to-purple-50 flex flex-col items-center justify-center">
-                                  <span className="text-xl font-black text-[#1a0029] leading-none">{new Date(stats.activeCompanyLeave.start_date).getDate()}</span>
-                                  <span className="text-[7px] font-bold text-purple-900/50 mt-0.5">{new Date(stats.activeCompanyLeave.start_date).getFullYear()}</span>
+                                  <span className="text-xl font-black text-[#1a0029] leading-none">{new Date().getDate()}</span>
+                                  <span className="text-[7px] font-bold text-purple-900/50 mt-0.5">{new Date().getFullYear()}</span>
                                 </div>
                               </div>
                             </div>
@@ -470,12 +470,12 @@ export default function Dashboard() {
                               <div className="bg-[#7B0099] py-1 sm:py-1.5 flex justify-center items-center gap-3 relative overflow-hidden">
                                 <div className="absolute inset-0 bg-white/10" />
                                 <div className="w-1.5 h-1.5 rounded-full bg-white/80 shadow-sm z-10" />
-                                <span className="text-[9px] sm:text-[11px] font-black text-white uppercase tracking-widest z-10">{new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-US', { month: 'short' })}</span>
+                                <span className="text-[9px] sm:text-[11px] font-black text-white uppercase tracking-widest z-10">{new Date().toLocaleDateString('en-US', { month: 'short' })}</span>
                                 <div className="w-1.5 h-1.5 rounded-full bg-white/80 shadow-sm z-10" />
                               </div>
                               <div className="flex-1 bg-gradient-to-b from-white to-purple-50 flex flex-col items-center justify-center">
-                                <span className="text-xl sm:text-3xl font-black text-[#1a0029] leading-none drop-shadow-sm">{new Date(stats.activeCompanyLeave.start_date).getDate()}</span>
-                                <span className="text-[7px] sm:text-[9px] font-bold text-purple-900/50 mt-0.5">{new Date(stats.activeCompanyLeave.start_date).getFullYear()}</span>
+                                <span className="text-xl sm:text-3xl font-black text-[#1a0029] leading-none drop-shadow-sm">{new Date().getDate()}</span>
+                                <span className="text-[7px] sm:text-[9px] font-bold text-purple-900/50 mt-0.5">{new Date().getFullYear()}</span>
                               </div>
                             </div>
                           </div>

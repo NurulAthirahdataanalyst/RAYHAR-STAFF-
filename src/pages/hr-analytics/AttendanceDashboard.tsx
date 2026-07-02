@@ -716,8 +716,9 @@ export default function AttendanceDashboard() {
       const presentOnTime = branchEmployees.filter(emp => emp.status === 'present').length;
       const presentLate = branchEmployees.filter(emp => emp.status === 'late').length;
       const onLeave = branchEmployees.filter(emp => emp.status === 'onLeave').length;
+      const companyLeave = branchEmployees.filter(emp => emp.status === 'companyLeave').length;
       const totalEmployees = b.totalEmployees || 0;
-      const absent = Math.max(0, totalEmployees - (presentOnTime + presentLate + onLeave));
+      const absent = Math.max(0, totalEmployees - (presentOnTime + presentLate + onLeave + companyLeave));
       const rate = totalEmployees > 0 ? Math.round(((presentOnTime + presentLate) / totalEmployees) * 100) : 0;
 
       return {
@@ -728,6 +729,7 @@ export default function AttendanceDashboard() {
         presentOnTime,
         presentLate,
         onLeave,
+        companyLeave,
         absent
       };
     })
@@ -1421,12 +1423,13 @@ export default function AttendanceDashboard() {
                     </div>
                     <div className="w-full bg-slate-100 rounded-full h-2 relative group cursor-pointer">
                       <div className={`h-2 rounded-full ${branch.rate >= 90 ? 'bg-[#10b981]' : branch.rate >= 75 ? 'bg-[#f59e0b]' : 'bg-[#ef4444]'}`} style={{ width: `${Math.min(100, branch.rate)}%` }}></div>
-                      <div className="absolute left-1/2 -top-20 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-2 pointer-events-none z-10 w-max whitespace-nowrap text-left">
+                      <div className="absolute left-1/2 -top-24 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-2 pointer-events-none z-10 w-max whitespace-nowrap text-left">
                         <p className="text-[10px] font-bold text-slate-800 mb-1 border-b pb-1">{branch.branch}</p>
                         <div className="space-y-0.5 text-[9px] text-slate-600">
                           <p className="flex justify-between gap-4">Present (On Time): <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
                           <p className="flex justify-between gap-4">Present (Late): <span className="font-bold text-amber-500">{branch.presentLate}</span></p>
                           <p className="flex justify-between gap-4">On Leave: <span className="font-bold text-blue-500">{branch.onLeave}</span></p>
+                          <p className="flex justify-between gap-4">Company Leave: <span className="font-bold text-purple-500">{branch.companyLeave}</span></p>
                           <p className="flex justify-between gap-4">Absent: <span className="font-bold text-red-500">{branch.absent}</span></p>
                         </div>
                       </div>
