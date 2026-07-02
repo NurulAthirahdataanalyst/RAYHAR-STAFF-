@@ -864,7 +864,7 @@ export default function WorkforceInsights() {
           <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-slate-800">Absent</h3>
+                <h3 className="text-sm font-bold text-slate-800">Absent / Company Leave</h3>
                 {feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
                   : <span className="text-[8px] text-slate-400 font-bold uppercase">Connectingâ€¦</span>}
@@ -900,9 +900,9 @@ export default function WorkforceInsights() {
                       <p className="text-[10px] text-slate-400 font-medium">{emp.department !== 'â€”' ? emp.department : emp.branch}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <XCircle className="w-3.5 h-3.5 text-red-400" />
-                    <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-red-500 text-white">Absent</span>
+                    <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-red-500 text-white text-center leading-tight">Absent /<br />Co. Leave</span>
                   </div>
                 </div>
               ))}
