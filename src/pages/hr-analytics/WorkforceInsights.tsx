@@ -181,6 +181,8 @@ export default function WorkforceInsights() {
     { name: 'Late', value: data.teamAvailability.late },
     { name: 'On Leave', value: data.teamAvailability.onLeave },
     { name: 'Absent', value: data.teamAvailability.absent },
+    { name: 'Comp Leave', value: data.teamAvailability.companyLeave || 0 },
+    { name: 'Outstation', value: data.topKpi?.outstationToday || 0 },
   ];
 
   const availableToday = data.teamAvailability.present;
@@ -571,7 +573,7 @@ export default function WorkforceInsights() {
                 </p>
               </div>
 
-              {/* 4-Shape Compact Legend */}
+              {/* 6-Shape Compact Legend */}
               <div className="grid grid-cols-3 gap-2 w-full mt-auto mb-4">
                 {donutData.map((entry, index) => (
                   <div key={entry.name} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border ${index === 0 ? 'bg-indigo-50/70 border-indigo-100' : 'bg-slate-50 border-slate-100'} transition-colors`}>

@@ -4212,9 +4212,9 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     allProfiles.forEach(emp => {
       let onCL = false;
       for (let cl of companyLeaveRows) {
-        if (cl.applies_to === 'All') onCL = true;
-        else if (cl.applies_to === 'Specific Branch' && emp.branch === cl.branch_code) onCL = true;
-        else if (cl.applies_to === 'Specific Department' && emp.department === cl.department) onCL = true;
+        if (cl.applies_to === 'All' || cl.applies_to === 'all') onCL = true;
+        else if ((cl.applies_to === 'Specific Branch' || cl.applies_to === 'branch') && cl.branch_id && cl.branch_id.split(',').includes(emp.branch)) onCL = true;
+        else if ((cl.applies_to === 'Specific Department' || cl.applies_to === 'department') && cl.department_id && cl.department_id.split(',').includes(emp.department)) onCL = true;
       }
       if (onCL) {
         companyLeaveCount++;
