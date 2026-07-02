@@ -19,6 +19,11 @@ import {
   UserCheck,
   TrendingUp,
   Activity,
+  Building2,
+  Scale,
+  BarChart,
+  Info,
+  TrendingDown,
   ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -347,7 +352,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stat Cards - responsive grid */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 ${role === "employee" || role === "branch_officer" ? "lg:grid-cols-4" : "lg:grid-cols-5"}`}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 ${role === "employee" || role === "branch_officer" ? "lg:grid-cols-4" : (isCompanyLeave && stats.activeCompanyLeave && ["hr_admin", "managing_director", "finance_manager"].includes(role) ? "lg:grid-cols-6" : "lg:grid-cols-5")}`}>
         {role === "employee" || role === "branch_officer" ? (
           <>
             <StatCard
@@ -383,58 +388,131 @@ export default function Dashboard() {
         ) : (
           <>
             {isCompanyLeave && stats.activeCompanyLeave && ["managing_director", "head_of_department", "finance_manager", "hr_admin", "branch_leader"].includes(role) ? (
-              <div onClick={() => navigate("/leave")} className="cursor-pointer col-span-1 sm:col-span-2 flex h-full">
-                <Card className="w-full border-none shadow-xl bg-gradient-to-br from-[#f8f5ff] to-[#f2ecfc] overflow-hidden flex flex-col relative group transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 rounded-2xl ring-1 ring-white/60">
-                  <div className="absolute inset-0 bg-white/40 backdrop-blur-sm z-0"></div>
-                  <CardContent className="p-4 sm:p-5 flex items-center justify-between h-full relative z-10 w-full">
-                    <div className="flex items-center gap-4 sm:gap-6 min-w-0">
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 drop-shadow-md transition-transform duration-500 group-hover:scale-105 group-hover:-rotate-3">
-                        <div className="w-full h-full bg-white rounded-xl shadow-md border border-purple-100 flex flex-col overflow-hidden">
-                          <div className="bg-[#7B0099] py-1 sm:py-1.5 flex justify-center items-center gap-3 relative overflow-hidden">
-                            <div className="absolute inset-0 bg-white/10" />
-                            <div className="w-1.5 h-1.5 rounded-full bg-white/80 shadow-sm z-10" />
-                            <span className="text-[9px] sm:text-[11px] font-black text-white uppercase tracking-widest z-10">{new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-US', { month: 'short' })}</span>
-                            <div className="w-1.5 h-1.5 rounded-full bg-white/80 shadow-sm z-10" />
+              <>
+                {["hr_admin", "managing_director", "finance_manager"].includes(role) ? (
+                  <>
+                    <div onClick={() => navigate("/attendance/company-leave")} className="cursor-pointer col-span-1 sm:col-span-2 lg:col-span-2 flex h-full">
+                      <Card className="w-full border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] bg-white overflow-hidden flex flex-col relative group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 rounded-[20px] ring-1 ring-slate-100">
+                        <CardContent className="p-4 sm:p-5 flex items-center justify-between h-full relative z-10 w-full">
+                          <div className="flex items-center gap-4 min-w-0">
+                            <div className="w-16 h-16 shrink-0 drop-shadow-sm transition-transform duration-500 group-hover:scale-105">
+                              <div className="w-full h-full bg-white rounded-xl shadow-sm border border-purple-100 flex flex-col overflow-hidden">
+                                <div className="bg-[#7B0099] py-1 flex justify-center items-center gap-2 relative">
+                                  <span className="text-[9px] font-black text-white uppercase tracking-widest">{new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-US', { month: 'short' })}</span>
+                                </div>
+                                <div className="flex-1 bg-gradient-to-b from-white to-purple-50 flex flex-col items-center justify-center">
+                                  <span className="text-xl font-black text-[#1a0029] leading-none">{new Date(stats.activeCompanyLeave.start_date).getDate()}</span>
+                                  <span className="text-[7px] font-bold text-purple-900/50 mt-0.5">{new Date(stats.activeCompanyLeave.start_date).getFullYear()}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="space-y-1 min-w-0">
+                              <p className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest truncate">Company Leave</p>
+                              <h3 className="text-lg font-black text-slate-800 tracking-tighter truncate">
+                                {stats.activeCompanyLeave.title || stats.activeCompanyLeave.leave_name || "COMPANY TRIP"}
+                              </h3>
+                              <Badge className="bg-[#7B0099] hover:bg-[#60007A] text-white uppercase text-[9px] tracking-wider font-black border-none shadow-sm rounded-full px-2.5 py-0.5 mt-1">
+                                {(() => {
+                                  const start = new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
+                                  const end = stats.activeCompanyLeave.end_date ? new Date(stats.activeCompanyLeave.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : start;
+                                  return start === end ? start : `${start} - ${end}`;
+                                })()}
+                              </Badge>
+                            </div>
                           </div>
-                          <div className="flex-1 bg-gradient-to-b from-white to-purple-50 flex flex-col items-center justify-center">
-                            <span className="text-xl sm:text-3xl font-black text-[#1a0029] leading-none drop-shadow-sm">{new Date(stats.activeCompanyLeave.start_date).getDate()}</span>
-                            <span className="text-[7px] sm:text-[9px] font-bold text-purple-900/50 mt-0.5">{new Date(stats.activeCompanyLeave.start_date).getFullYear()}</span>
+                          <div className="flex flex-col items-end justify-between h-full py-1 shrink-0">
+                            <CalendarDays className="w-5 h-5 text-[#7B0099]/40 mb-auto" />
+                            <div className="flex items-center gap-1 text-[#7B0099] font-bold text-[10px] uppercase tracking-wider group-hover:gap-2 transition-all opacity-80 hover:opacity-100 mt-4">
+                              View Details <ChevronRight className="w-3 h-3" />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                    <StatCard
+                      icon={CheckCircle2}
+                      title="Present Today"
+                      value={String(stats.presentToday ?? 0)}
+                      subtitle="Clocked In Today"
+                      variant="success"
+                    />
+                    <StatCard
+                      icon={Users}
+                      title="Affected By Company Leave"
+                      value={String(stats.companyLeave ?? 0)}
+                      subtitle="Employees Exempt"
+                      variant="purple"
+                    />
+                    <StatCard
+                      icon={Building2}
+                      title="Applies To"
+                      value={stats.activeCompanyLeave.applies_to === 'all' ? 'ALL STAFF' : stats.activeCompanyLeave.applies_to === 'branch' ? `BRANCH ${stats.activeCompanyLeave.branch_id}` : `DEPT ${stats.activeCompanyLeave.department_id}`}
+                      subtitle="Coverage"
+                      variant="purple"
+                    />
+                    <StatCard
+                      icon={AlertTriangle}
+                      title="Late Arrivals"
+                      value={String(stats.lateArrivals ?? 0)}
+                      subtitle="Action Required"
+                      variant="maroon"
+                    />
+                  </>
+                ) : (
+                  <div onClick={() => navigate("/leave")} className="cursor-pointer col-span-1 sm:col-span-2 flex h-full">
+                    <Card className="w-full border-none shadow-xl bg-gradient-to-br from-[#f8f5ff] to-[#f2ecfc] overflow-hidden flex flex-col relative group transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 rounded-2xl ring-1 ring-white/60">
+                      <div className="absolute inset-0 bg-white/40 backdrop-blur-sm z-0"></div>
+                      <CardContent className="p-4 sm:p-5 flex items-center justify-between h-full relative z-10 w-full">
+                        <div className="flex items-center gap-4 sm:gap-6 min-w-0">
+                          <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 drop-shadow-md transition-transform duration-500 group-hover:scale-105 group-hover:-rotate-3">
+                            <div className="w-full h-full bg-white rounded-xl shadow-md border border-purple-100 flex flex-col overflow-hidden">
+                              <div className="bg-[#7B0099] py-1 sm:py-1.5 flex justify-center items-center gap-3 relative overflow-hidden">
+                                <div className="absolute inset-0 bg-white/10" />
+                                <div className="w-1.5 h-1.5 rounded-full bg-white/80 shadow-sm z-10" />
+                                <span className="text-[9px] sm:text-[11px] font-black text-white uppercase tracking-widest z-10">{new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-US', { month: 'short' })}</span>
+                                <div className="w-1.5 h-1.5 rounded-full bg-white/80 shadow-sm z-10" />
+                              </div>
+                              <div className="flex-1 bg-gradient-to-b from-white to-purple-50 flex flex-col items-center justify-center">
+                                <span className="text-xl sm:text-3xl font-black text-[#1a0029] leading-none drop-shadow-sm">{new Date(stats.activeCompanyLeave.start_date).getDate()}</span>
+                                <span className="text-[7px] sm:text-[9px] font-bold text-purple-900/50 mt-0.5">{new Date(stats.activeCompanyLeave.start_date).getFullYear()}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="space-y-1 sm:space-y-1.5 min-w-0">
+                            <p className="text-[10px] sm:text-[11px] font-black text-[#5c0073] uppercase tracking-widest truncate">Company Leave</p>
+                            <h3 className="text-lg sm:text-2xl font-black text-[#1a0029] tracking-tighter truncate drop-shadow-sm">
+                              {stats.activeCompanyLeave.title || stats.activeCompanyLeave.leave_name || "COMPANY TRIP"}
+                            </h3>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge className="bg-[#7B0099] hover:bg-[#60007A] text-white uppercase text-[9px] sm:text-[10px] tracking-wider font-black border-none shadow-sm rounded-full px-2.5 py-0.5">
+                                {(() => {
+                                  const start = new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
+                                  const end = stats.activeCompanyLeave.end_date ? new Date(stats.activeCompanyLeave.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : start;
+                                  return start === end ? start : `${start} - ${end}`;
+                                })()}
+                              </Badge>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="space-y-1 sm:space-y-1.5 min-w-0">
-                        <p className="text-[10px] sm:text-[11px] font-black text-[#5c0073] uppercase tracking-widest truncate">Company Leave</p>
-                        <h3 className="text-lg sm:text-2xl font-black text-[#1a0029] tracking-tighter truncate drop-shadow-sm">
-                          {stats.activeCompanyLeave.title || stats.activeCompanyLeave.leave_name || "COMPANY TRIP"}
-                        </h3>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge className="bg-[#7B0099] hover:bg-[#60007A] text-white uppercase text-[9px] sm:text-[10px] tracking-wider font-black border-none shadow-sm rounded-full px-2.5 py-0.5">
-                            {(() => {
-                              const start = new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
-                              const end = stats.activeCompanyLeave.end_date ? new Date(stats.activeCompanyLeave.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : start;
-                              return start === end ? start : `${start} - ${end}`;
-                            })()}
-                          </Badge>
+                        <div className="flex flex-col items-end justify-between h-full py-1 shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-white/60 flex items-center justify-center shrink-0 shadow-sm border border-white">
+                            <CalendarCheck className="w-4 h-4 text-[#7B0099]" />
+                          </div>
+                          <div className="flex flex-col items-end mt-1">
+                            <p className="text-[9px] sm:text-[10px] font-semibold text-[#5c0073]/70 uppercase tracking-widest mb-0.5">Applies to</p>
+                            <p className="text-[10px] sm:text-[11px] font-black text-[#7B0099] uppercase tracking-wider bg-white/50 px-2 py-0.5 rounded-md border border-white/50 shadow-sm">
+                              {stats.activeCompanyLeave.applies_to === 'all' ? 'All Staff' : stats.activeCompanyLeave.applies_to === 'branch' ? `Branch: ${stats.activeCompanyLeave.branch_id}` : stats.activeCompanyLeave.applies_to === 'department' ? `Dept: ${stats.activeCompanyLeave.department_id}` : stats.activeCompanyLeave.applies_to}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1 text-[#7B0099] font-bold text-[10px] sm:text-[11px] uppercase tracking-wider group-hover:gap-2 transition-all opacity-80 hover:opacity-100 mt-2">
+                            View Details <ChevronRight className="w-3 h-3" />
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end justify-between h-full py-1 shrink-0">
-                      <div className="w-8 h-8 rounded-full bg-white/60 flex items-center justify-center shrink-0 shadow-sm border border-white">
-                        <CalendarCheck className="w-4 h-4 text-[#7B0099]" />
-                      </div>
-                      <div className="flex flex-col items-end mt-1">
-                        <p className="text-[9px] sm:text-[10px] font-semibold text-[#5c0073]/70 uppercase tracking-widest mb-0.5">Applies to</p>
-                        <p className="text-[10px] sm:text-[11px] font-black text-[#7B0099] uppercase tracking-wider bg-white/50 px-2 py-0.5 rounded-md border border-white/50 shadow-sm">
-                          {stats.activeCompanyLeave.applies_to === 'all' ? 'All Staff' : stats.activeCompanyLeave.applies_to === 'branch' ? `Branch: ${stats.activeCompanyLeave.branch_id}` : stats.activeCompanyLeave.applies_to === 'department' ? `Dept: ${stats.activeCompanyLeave.department_id}` : stats.activeCompanyLeave.applies_to}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1 text-[#7B0099] font-bold text-[10px] sm:text-[11px] uppercase tracking-wider group-hover:gap-2 transition-all opacity-80 hover:opacity-100 mt-2">
-                        View Details <ChevronRight className="w-3 h-3" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </>
             ) : (
               <>
                 {["managing_director", "head_of_department", "finance_manager", "hr_admin", "branch_leader"].includes(role) && (
@@ -518,6 +596,222 @@ export default function Dashboard() {
           </>
         )}
       </div>
+
+      {isCompanyLeave && stats.activeCompanyLeave && ["hr_admin", "managing_director", "finance_manager"].includes(role) && (
+        <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] rounded-[20px] overflow-hidden bg-white mb-6 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 fill-mode-both">
+          <CardHeader className="border-b border-border/50 pb-3 px-4 flex flex-col md:flex-row md:items-center justify-between bg-white gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#7B0099]/10 rounded-xl">
+                <Scale className="w-5 h-5 text-[#7B0099]" />
+              </div>
+              <div>
+                <CardTitle className="text-base font-black text-slate-800 tracking-tight uppercase">
+                  Attendance Comparison
+                </CardTitle>
+                <p className="text-[10px] font-bold text-slate-500 mt-0.5">
+                  See how today compares to a normal working day
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 text-[10px] font-bold text-slate-500">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-[#7B0099]"></div>
+                Today ({new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-slate-300"></div>
+                Typical Working Day (Avg)
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4 bg-slate-50/50">
+            {(() => {
+              const typicalTotal = stats.totalEmployees || 70;
+              const typicalPresent = 62;
+              const typicalAffected = 0;
+              const typicalLate = 4;
+              
+              const todayTotal = stats.totalEmployees || 70;
+              const todayPresent = stats.presentToday || 0;
+              const todayAffected = stats.companyLeave || 0;
+              const todayLate = stats.lateArrivals || 0;
+
+              const todayAttendanceRate = ((todayPresent / todayTotal) * 100) || 0;
+              const typicalAttendanceRate = ((typicalPresent / typicalTotal) * 100) || 0;
+
+              const presentDiff = ((typicalPresent - todayPresent) / typicalPresent * 100).toFixed(1);
+              const lateDiff = typicalLate > 0 ? ((typicalLate - todayLate) / typicalLate * 100).toFixed(0) : 0;
+              const rateDiff = (typicalAttendanceRate - todayAttendanceRate).toFixed(1);
+
+              return (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+                  {/* Total Employees */}
+                  <div className="bg-white rounded-xl border border-slate-100 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <Users className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Total Employees</span>
+                      <Info className="w-3 h-3 text-slate-400 ml-auto" />
+                    </div>
+                    <div className="flex justify-between items-end mb-4 flex-1 px-2">
+                      <div className="flex flex-col items-center">
+                        <span className="text-xl font-black text-[#7B0099]">{todayTotal}</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className="text-xl font-black text-slate-800">{typicalTotal}</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Typical</span>
+                      </div>
+                    </div>
+                    <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200">
+                      <div className="w-8 bg-[#7B0099] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
+                      <div className="w-8 bg-slate-300 rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
+                    </div>
+                    <div className="absolute bottom-[-1px] left-0 right-0 h-[3px] bg-emerald-400 rounded-b-xl"></div>
+                  </div>
+
+                  {/* Present */}
+                  <div className="bg-white rounded-xl border border-slate-100 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Present <span className="hidden lg:inline">(Clocked In)</span></span>
+                      <Info className="w-3 h-3 text-slate-400 ml-auto shrink-0" />
+                    </div>
+                    <div className="flex justify-between items-end mb-4 flex-1 px-2">
+                      <div className="flex flex-col items-center">
+                        <span className="text-xl font-black text-[#7B0099]">{todayPresent}</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className="text-xl font-black text-slate-800">{typicalPresent}</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Typical</span>
+                      </div>
+                    </div>
+                    <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200">
+                      <div className="w-8 bg-[#7B0099] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: typicalPresent ? `${(todayPresent/typicalPresent)*100}%` : '0%' }}></div>
+                      <div className="w-8 bg-slate-300 rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
+                    </div>
+                    <div className="absolute bottom-[-1px] left-0 right-0 h-[3px] bg-red-400 rounded-b-xl"></div>
+                    <div className="absolute bottom-1 left-0 right-0 flex justify-center translate-y-full pt-2">
+                      <span className="text-[10px] font-bold text-red-500 flex items-center gap-1 bg-red-50 px-2 py-0.5 rounded-full">
+                        <TrendingDown className="w-3 h-3" /> {presentDiff}% lower
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Affected By Company Leave */}
+                  <div className="bg-white rounded-xl border border-slate-100 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-6 h-6 rounded-md bg-[#7B0099]/10 text-[#7B0099] flex items-center justify-center shrink-0">
+                        <Users className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest leading-tight">Affected By<br/>Company Leave</span>
+                      <Info className="w-3 h-3 text-slate-400 ml-auto shrink-0" />
+                    </div>
+                    <div className="flex justify-between items-end mb-4 flex-1 px-2">
+                      <div className="flex flex-col items-center">
+                        <span className="text-xl font-black text-[#7B0099]">{todayAffected}</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className="text-xl font-black text-slate-800">{typicalAffected}</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Typical</span>
+                      </div>
+                    </div>
+                    <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200">
+                      <div className="w-8 bg-[#7B0099] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
+                      <div className="w-8 bg-slate-300 rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '2%' }}></div>
+                    </div>
+                    <div className="absolute bottom-[-1px] left-0 right-0 h-[3px] bg-emerald-400 rounded-b-xl"></div>
+                    <div className="absolute bottom-1 left-0 right-0 flex justify-center translate-y-full pt-2">
+                      <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full">
+                        <TrendingUp className="w-3 h-3" /> +{todayAffected} employees
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Attendance Rate */}
+                  <div className="bg-white rounded-xl border border-slate-100 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <BarChart className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Attendance Rate</span>
+                      <Info className="w-3 h-3 text-slate-400 ml-auto" />
+                    </div>
+                    <div className="flex justify-between items-end mb-4 flex-1 px-2">
+                      <div className="flex flex-col items-center">
+                        <span className="text-xl font-black text-[#7B0099]">{todayAttendanceRate.toFixed(1)}%</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className="text-xl font-black text-slate-800">{typicalAttendanceRate.toFixed(1)}%</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Typical</span>
+                      </div>
+                    </div>
+                    <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200">
+                      <div className="w-8 bg-[#7B0099] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: typicalAttendanceRate ? `${(todayAttendanceRate/typicalAttendanceRate)*100}%` : '0%' }}></div>
+                      <div className="w-8 bg-slate-300 rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
+                    </div>
+                    <div className="absolute bottom-[-1px] left-0 right-0 h-[3px] bg-red-400 rounded-b-xl"></div>
+                    <div className="absolute bottom-1 left-0 right-0 flex justify-center translate-y-full pt-2">
+                      <span className="text-[10px] font-bold text-red-500 flex items-center gap-1 bg-red-50 px-2 py-0.5 rounded-full">
+                        <TrendingDown className="w-3 h-3" /> {rateDiff}% lower
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Late Arrivals */}
+                  <div className="bg-white rounded-xl border border-slate-100 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-6 h-6 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                        <Clock className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Late Arrivals</span>
+                      <Info className="w-3 h-3 text-slate-400 ml-auto" />
+                    </div>
+                    <div className="flex justify-between items-end mb-4 flex-1 px-2">
+                      <div className="flex flex-col items-center">
+                        <span className="text-xl font-black text-[#7B0099]">{todayLate}</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className="text-xl font-black text-slate-800">{typicalLate}</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Typical</span>
+                      </div>
+                    </div>
+                    <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200">
+                      <div className="w-8 bg-[#7B0099] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: todayLate > 0 ? `${(todayLate/typicalLate)*100}%` : '2%' }}></div>
+                      <div className="w-8 bg-slate-300 rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
+                    </div>
+                    <div className="absolute bottom-[-1px] left-0 right-0 h-[3px] bg-emerald-400 rounded-b-xl"></div>
+                    <div className="absolute bottom-1 left-0 right-0 flex justify-center translate-y-full pt-2">
+                      <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full">
+                        <TrendingDown className="w-3 h-3" /> {lateDiff}% lower
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            <div className="mt-10 bg-gradient-to-r from-indigo-50/80 to-purple-50/50 rounded-xl p-3 sm:p-4 border border-indigo-100 flex items-start gap-3 sm:gap-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+              <div className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center shrink-0 border border-indigo-100">
+                <Info className="w-4 h-4 text-[#7B0099]" />
+              </div>
+              <div className="pt-0.5">
+                <p className="text-xs font-black text-[#1a0029] mb-1">Why the difference?</p>
+                <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                  Today's attendance is lower because <span className="font-bold text-[#7B0099] bg-white px-1 py-0.5 rounded shadow-sm border border-slate-100">{stats.companyLeave || 0} employees</span> are on Company Leave (<span className="font-bold">{stats.activeCompanyLeave.title || "Company Trip"}</span>) which applies to <span className="font-bold text-[#7B0099] bg-white px-1 py-0.5 rounded shadow-sm border border-slate-100 uppercase">{stats.activeCompanyLeave.applies_to === 'all' ? 'ALL STAFF' : stats.activeCompanyLeave.applies_to === 'branch' ? `BRANCH ${stats.activeCompanyLeave.branch_id}` : `DEPT ${stats.activeCompanyLeave.department_id}`}</span>.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Who's Out Today - admin roles only */}
       {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role) && (
