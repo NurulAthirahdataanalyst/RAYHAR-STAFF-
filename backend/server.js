@@ -955,8 +955,8 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
 
     // Total active employees
     const [allProfiles] = await pool.query(
-      `SELECT user_id, full_name, branch, department, role FROM profiles WHERE status = 'Active' ${filterP}`,
-      paramsTotal
+      `SELECT user_id, full_name, branch, department, role FROM profiles WHERE status = 'Active' AND DATE(created_at) <= ?::date ${filterP}`,
+      [dateStr, ...paramsTotal]
     );
     const total = allProfiles.length;
 
@@ -3035,13 +3035,15 @@ app.get("/api/dashboard-stats", async (req, res) => {
         queryParams.push(branch, department);
       }
 
-      const [employeeRows] = await pool.query(
-        `SELECT COUNT(*) AS total_employees FROM profiles WHERE status = 'Active' ${profileFilter}`,
-        queryParams
-      );
-
       const queryDate = req.query.date ? req.query.date.toString() : null;
       const dateCondition = queryDate ? '?' : 'CURRENT_DATE';
+      const profileQueryParams = queryDate ? [queryDate, ...queryParams] : queryParams;
+
+      const [employeeRows] = await pool.query(
+        `SELECT COUNT(*) AS total_employees FROM profiles WHERE status = 'Active' AND DATE(created_at) <= ${dateCondition}::date ${profileFilter}`,
+        profileQueryParams
+      );
+
       const presentParams = queryDate ? [queryDate, queryDate, ...queryParams] : queryParams;
       const onLeaveParams = queryDate ? [queryDate, ...queryParams] : queryParams;
 
@@ -3109,8 +3111,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const [allActiveProfiles] = await pool.query(
-        `SELECT user_id, branch, department FROM profiles WHERE status = 'Active' ${profileFilter}`,
-        queryParams
+        `SELECT user_id, branch, department FROM profiles WHERE status = 'Active' AND DATE(created_at) <= ${dateCondition}::date ${profileFilter}`,
+        profileQueryParams
       );
 
       const [clockedInRows] = await pool.query(
@@ -3527,7 +3529,7 @@ app.get("/api/reports/absent-employees", async (req, res) => {
 
   try {
     let profileFilter = "";
-    let queryParams = [queryDate, queryDate, queryDate];
+    let queryParams = [queryDate, queryDate, queryDate, queryDate];
 
     if (role === 'branch_leader' && branch && branch !== "All") {
       profileFilter = " AND p.branch = ?";
@@ -3548,6 +3550,7 @@ app.get("/api/reports/absent-employees", async (req, res) => {
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
       WHERE p.status = 'Active'
+      AND DATE(p.created_at) <= ?::date
       -- 1. No attendance record today
       AND NOT EXISTS (
         SELECT 1 FROM attendances a 
@@ -3615,9 +3618,9 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       `SELECT p.user_id, p.full_name, p.branch, p.department, COALESCE(ur.role, 'employee') AS role
        FROM profiles p
        LEFT JOIN user_role ur ON ur.user_id = p.user_id
-       WHERE p.status = 'Active' ${profileFilter}
+       WHERE p.status = 'Active' AND DATE(p.created_at) <= ?::date ${profileFilter}
        ORDER BY p.full_name ASC`,
-      queryParams
+      [queryDate, ...queryParams]
     );
 
     // 2. Fetch all clock-ins for that date
@@ -3906,10 +3909,10 @@ app.get("/api/reports/analytics", async (req, res) => {
       LEFT JOIN attendances a ON p.user_id = a.user_id 
         AND EXTRACT(MONTH FROM a.clock_in) = ? 
         AND EXTRACT(YEAR FROM a.clock_in) = ?
-      WHERE p.status = 'Active' ${profileFilter}
+      WHERE p.status = 'Active' AND DATE(p.created_at) <= ?::date ${profileFilter}
       GROUP BY p.branch
       `,
-      [requestedDateStr, requestedMonth, requestedYear, ...pFilterParams]
+      [requestedDateStr, requestedMonth, requestedYear, requestedDateStr, ...pFilterParams]
     );
 
     const branchComparison = branchRows.map(row => {
@@ -4032,7 +4035,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     }
 
     // 1. Employees & KPI
-    const [empRows] = await pool.query(`SELECT COUNT(*) as total, SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) as active FROM profiles p WHERE 1=1 ${profileFilter}`, pFilterParams);
+    const [empRows] = await pool.query(`SELECT COUNT(*) as total, SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) as active FROM profiles p WHERE DATE(p.created_at) <= ?::date ${profileFilter}`, [targetDateStr, ...pFilterParams]);
     const totalHeadcount = parseInt(empRows[0].total || 0);
     const activeEmployees = parseInt(empRows[0].active || 0);
 
@@ -4144,18 +4147,18 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     const [deptRows] = await pool.query(
       `SELECT p.department, COUNT(*) as count 
        FROM profiles p 
-       WHERE p.status = 'Active' AND p.department IS NOT NULL AND p.department != '' ${profileFilter}
+       WHERE p.status = 'Active' AND DATE(p.created_at) <= ?::date AND p.department IS NOT NULL AND p.department != '' ${profileFilter}
        GROUP BY p.department`,
-      pFilterParams
+      [targetDateStr, ...pFilterParams]
     );
 
     // 8. Employees by Branch
     const [branchRows] = await pool.query(
       `SELECT p.branch, COUNT(*) as count 
        FROM profiles p 
-       WHERE p.status = 'Active' AND p.branch IS NOT NULL AND p.branch != '' ${profileFilter}
+       WHERE p.status = 'Active' AND DATE(p.created_at) <= ?::date AND p.branch IS NOT NULL AND p.branch != '' ${profileFilter}
        GROUP BY p.branch`,
-      pFilterParams
+      [targetDateStr, ...pFilterParams]
     );
 
         // Real Branch Attendance Map for MONTH (entire month)
