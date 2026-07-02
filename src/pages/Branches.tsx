@@ -502,7 +502,9 @@ export default function Branches() {
                                     ? "bg-emerald-500 text-white"
                                     : employee.today_status === "On Leave"
                                       ? "bg-amber-500 text-white"
-                                      : "bg-rose-500 text-white"
+                                      : employee.today_status === "Company Leave"
+                                        ? "bg-purple-500 text-white"
+                                        : "bg-rose-500 text-white"
                                 }`}
                               >
                                 {employee.today_status}
@@ -554,7 +556,9 @@ export default function Branches() {
                                   ? "bg-emerald-500"
                                   : employee.today_status === "On Leave"
                                     ? "bg-amber-500"
-                                    : "bg-rose-500"
+                                    : employee.today_status === "Company Leave"
+                                      ? "bg-purple-500"
+                                      : "bg-rose-500"
                               }`}
                             >
                               {employee.today_status}

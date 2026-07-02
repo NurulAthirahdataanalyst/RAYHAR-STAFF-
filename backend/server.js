@@ -1550,16 +1550,41 @@ app.get("/api/branch-employees", async (req, res) => {
       [branch]
     );
 
-    const employees = rows.map((employee) => ({
-      ...employee,
-      today_status: employee.is_on_leave
-        ? "On Leave"
-        : employee.today_clock_in
-          ? employee.today_clock_out
-            ? "Clocked Out"
-            : "Present"
-          : "Absent",
-    }));
+    const [companyLeaves] = await pool.query(
+      `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`
+    );
+
+    const employees = rows.map((employee) => {
+      const matchingLeave = companyLeaves.find(cl => {
+        if (cl.applies_to === 'all') return true;
+        if (cl.applies_to === 'branch' && cl.branch_id) {
+          return cl.branch_id.split(',').map(s => s.trim()).includes(employee.branch);
+        }
+        if (cl.applies_to === 'department' && cl.department_id) {
+          const depts = cl.department_id.split(',').map(s => s.trim());
+          const normEmpDept = (employee.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          return depts.some(d => {
+            const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            return normEmpDept === normClDept || employee.department === d;
+          });
+        }
+        return false;
+      });
+
+      let todayStatus = "Absent";
+      if (matchingLeave) {
+        todayStatus = "Company Leave";
+      } else if (employee.is_on_leave) {
+        todayStatus = "On Leave";
+      } else if (employee.today_clock_in) {
+        todayStatus = employee.today_clock_out ? "Clocked Out" : "Present";
+      }
+
+      return {
+        ...employee,
+        today_status: todayStatus
+      };
+    });
 
     res.json({ success: true, employees });
   } catch (err) {

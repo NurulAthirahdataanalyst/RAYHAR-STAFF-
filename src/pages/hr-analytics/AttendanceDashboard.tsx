@@ -12,7 +12,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   LineChart, Line, Legend, Cell, PieChart as RechartsPieChart, Pie
 } from "recharts";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
@@ -106,6 +106,7 @@ const parseThreshold = (thresholdStr: string) => {
 export default function AttendanceDashboard() {
   const { role, userBranch, userDepartment } = useRole();
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("presenceSidebarCollapsed") === "true";
@@ -1585,7 +1586,10 @@ export default function AttendanceDashboard() {
                     <span className="font-medium text-amber-900">{liveStats.absent || 14} employees currently absent.</span>
                   </p>
                   <div className="pl-6 pt-1">
-                    <button className="text-[12px] font-semibold text-amber-700 hover:text-amber-900 flex items-center gap-1">
+                    <button
+                      onClick={() => navigate("/branches")}
+                      className="text-[12px] font-semibold text-amber-700 hover:text-amber-900 flex items-center gap-1"
+                    >
                       View Employees <ChevronDown className="w-3 h-3 -rotate-90" />
                     </button>
                   </div>
