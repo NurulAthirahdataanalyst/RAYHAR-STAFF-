@@ -85,9 +85,10 @@ function computeMetrics(
   isAllMonths?: boolean,
   selectedYear?: number
 ): EmployeeMetrics {
-  const presentLogs = logs.filter(l => l.clock_in);
+  // Only count days where employee actually clocked in
+  const presentLogs = logs.filter(l => l.clock_in != null && (l.status === 'Present' || l.status === 'LATE' || l.status === 'Late' || (!l.status && l.clock_in)));
   const total     = presentLogs.length;
-  const lateDays  = presentLogs.filter(l => l.is_late || l.status === "LATE").length;
+  const lateDays  = presentLogs.filter(l => l.is_late === 1 || l.is_late === true || l.status === "LATE" || l.status === "Late").length;
   const onTime    = total - lateDays;
   const punctuality = total > 0 ? Math.round((onTime / total) * 100) : 0;
 
@@ -116,7 +117,7 @@ function computeMetrics(
   const absenteeism = Math.round((absent / WORKING_DAYS) * 100);
 
   // Consistency: reward low variance in hours
-  const hourList = logs.map(l => parseHours(l.duration)).filter(h => h > 0);
+  const hourList = presentLogs.map(l => parseHours(l.duration)).filter(h => h > 0);
   let consistency = 100;
   if (hourList.length > 1) {
     const mean = hourList.reduce((s, h) => s + h, 0) / hourList.length;
