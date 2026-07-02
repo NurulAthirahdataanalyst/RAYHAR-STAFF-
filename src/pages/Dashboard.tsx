@@ -621,7 +621,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-4 text-[10px] font-bold text-slate-500">
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-[#7B0099]"></div>
-                Today ({new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})
+                Today ({new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-slate-300"></div>
