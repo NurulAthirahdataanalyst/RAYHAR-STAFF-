@@ -625,18 +625,17 @@ export default function Dashboard() {
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-slate-300"></div>
-                Typical Working Day (Avg)
+                Normal Working Day (Avg)
               </div>
             </div>
           </CardHeader>
           <CardContent className="p-4 bg-slate-50/50">
             {(() => {
-              const typicalTotal = stats.totalEmployees || 70;
-              const typicalPresent = 62;
+              const todayTotal = stats.totalEmployees || 0;
+              const typicalTotal = todayTotal || 1;
+              const typicalPresent = Math.round(todayTotal * 0.88);
               const typicalAffected = 0;
-              const typicalLate = 4;
-              
-              const todayTotal = stats.totalEmployees || 70;
+              const typicalLate = Math.round(todayTotal * 0.05);
               const todayPresent = stats.presentToday || 0;
               const todayAffected = stats.companyLeave || 0;
               const todayLate = stats.lateArrivals || 0;
@@ -666,7 +665,7 @@ export default function Dashboard() {
                       </div>
                       <div className="flex flex-col items-center">
                         <span className="text-xl font-black text-slate-800">{typicalTotal}</span>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Typical</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
                     <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200">
@@ -692,7 +691,7 @@ export default function Dashboard() {
                       </div>
                       <div className="flex flex-col items-center">
                         <span className="text-xl font-black text-slate-800">{typicalPresent}</span>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Typical</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
                     <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200">
@@ -723,7 +722,7 @@ export default function Dashboard() {
                       </div>
                       <div className="flex flex-col items-center">
                         <span className="text-xl font-black text-slate-800">{typicalAffected}</span>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Typical</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
                     <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200">
@@ -754,7 +753,7 @@ export default function Dashboard() {
                       </div>
                       <div className="flex flex-col items-center">
                         <span className="text-xl font-black text-slate-800">{typicalAttendanceRate.toFixed(1)}%</span>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Typical</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
                     <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200">
@@ -785,7 +784,7 @@ export default function Dashboard() {
                       </div>
                       <div className="flex flex-col items-center">
                         <span className="text-xl font-black text-slate-800">{typicalLate}</span>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Typical</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
                     <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200">
