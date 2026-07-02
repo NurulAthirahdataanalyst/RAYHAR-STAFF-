@@ -3478,7 +3478,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         todayStatusTime,
         attendanceRate,
         ...(adminStats || {}),
-        presentToday: isAllStaffCompanyLeaveToday && adminStats ? adminStats.totalEmployees : presentRows[0].present_today
+        presentToday: isAllStaffCompanyLeaveToday && adminStats ? adminStats.totalEmployees : (adminStats ? adminStats.presentToday : 0)
       },
       recentActivities: myAttendanceRows,
       activityFeed: {
