@@ -61,15 +61,6 @@ export default function AttendanceReports() {
         // We will process the data to include "Status"
         let processedData = data.data.map((r: any) => {
           let calcStatus = r.status || "Unknown"; // from monthly it has status
-          if (viewType === "day") {
-            if (r.time_in) {
-               // Calculate late based on a threshold (e.g. 09:00 AM)
-               // Simple heuristic since the backend doesn't return status for daily yet
-               calcStatus = (r.clock_in && new Date(r.clock_in).getHours() >= 9) ? "Present (Late)" : "Present (On Time)";
-            } else {
-               calcStatus = "Absent";
-            }
-          }
           return { ...r, status: calcStatus };
         });
         setAttendanceData(processedData);
