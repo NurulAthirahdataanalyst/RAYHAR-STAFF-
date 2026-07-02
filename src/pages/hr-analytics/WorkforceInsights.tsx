@@ -184,7 +184,7 @@ export default function WorkforceInsights() {
   ];
 
   const availableToday = data.teamAvailability.present;
-  const totalTeam = availableToday + data.teamAvailability.onLeave + data.teamAvailability.absent;
+  const totalTeam = availableToday + data.teamAvailability.onLeave + data.teamAvailability.absent + (data.teamAvailability.companyLeave || 0) + (data.topKpi?.outstationToday || 0);
   const availabilityRate = totalTeam > 0 ? Math.round((availableToday / totalTeam) * 100) : 0;
 
   const departmentChartData = (data.departmentMetrics || [])
@@ -572,7 +572,7 @@ export default function WorkforceInsights() {
               </div>
 
               {/* 4-Shape Compact Legend */}
-              <div className="grid grid-cols-4 gap-2 w-full mt-auto mb-4">
+              <div className="grid grid-cols-3 gap-2 w-full mt-auto mb-4">
                 {donutData.map((entry, index) => (
                   <div key={entry.name} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border ${index === 0 ? 'bg-indigo-50/70 border-indigo-100' : 'bg-slate-50 border-slate-100'} transition-colors`}>
                     <div className="flex items-center gap-1 mb-1">
