@@ -1304,23 +1304,9 @@ export default function Calendar() {
             </div>
 
             <div className="px-6 pb-5 flex gap-3">
-              {isHR && (
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    if (confirm('Are you sure you want to delete this company leave? This will affect attendance records.')) {
-                      handleDeleteCompanyLeave(selectedCompanyLeave.id);
-                      setSelectedCompanyLeave(null);
-                    }
-                  }} 
-                  className="flex-1 font-semibold border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-                >
-                  Delete
-                </Button>
-              )}
               <Button 
                 onClick={() => setSelectedCompanyLeave(null)} 
-                className={`font-semibold ${isHR ? 'flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300' : 'w-full bg-purple-600 hover:bg-purple-700 text-white'}`}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold"
               >
                 Close
               </Button>
