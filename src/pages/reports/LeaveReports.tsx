@@ -118,35 +118,25 @@ export default function LeaveReports() {
 
           <div className="flex flex-wrap gap-2 items-center">
             {viewType === "day" ? (
-              <Input 
-                type="date" 
-                value={date} 
+              <input
+                type="date"
+                value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-40 bg-white"
+                className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white h-10"
               />
             ) : (
-              <div className="flex items-center gap-2">
-                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                  <SelectTrigger className="w-[140px] bg-white">
-                    <SelectValue placeholder="Month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {months.map(m => (
-                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={selectedYear} onValueChange={setSelectedYear}>
-                  <SelectTrigger className="w-[100px] bg-white">
-                    <SelectValue placeholder="Year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {years.map(y => (
-                      <SelectItem key={y} value={y}>{y}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <input
+                type="month"
+                value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    const [yyyy, mm] = e.target.value.split('-');
+                    setSelectedYear(yyyy);
+                    setSelectedMonth(parseInt(mm).toString());
+                  }
+                }}
+                className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white h-10"
+              />
             )}
             <ExportDropdown onExportCSV={handleExportCSV} />
           </div>
