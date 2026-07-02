@@ -40,7 +40,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   // Filter out any logs that were recorded on a Company Leave date
   const myLogs = useMemo(() => {
     return rawMyLogs.filter(log => {
-      if (!log.clock_in) return true;
+      if (!log.clock_in) return false;
       const dateStr = getLocalDateString(log.clock_in);
       const isCompanyLeave = companyLeaves.some((cl: any) => {
         const startStr = getLocalDateString(cl.start_date);

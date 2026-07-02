@@ -85,15 +85,16 @@ function computeMetrics(
   isAllMonths?: boolean,
   selectedYear?: number
 ): EmployeeMetrics {
-  const total     = logs.length;
-  const lateDays  = logs.filter(l => l.is_late || l.status === "LATE").length;
+  const presentLogs = logs.filter(l => l.clock_in);
+  const total     = presentLogs.length;
+  const lateDays  = presentLogs.filter(l => l.is_late || l.status === "LATE").length;
   const onTime    = total - lateDays;
   const punctuality = total > 0 ? Math.round((onTime / total) * 100) : 0;
 
   // Overtime: hours > STANDARD_HOURS per day
   let overtime = 0;
   let totalHrs = 0;
-  logs.forEach(l => {
+  presentLogs.forEach(l => {
     const h = parseHours(l.duration);
     totalHrs += h;
     if (h > STANDARD_HOURS) overtime += h - STANDARD_HOURS;
@@ -128,7 +129,7 @@ function computeMetrics(
   let streak = 0;
   let longestStreak = 0;
   let cur = 0;
-  for (const log of [...logs].reverse()) {
+  for (const log of [...presentLogs].reverse()) {
     if (!log.is_late && log.status !== "LATE") {
       cur++;
       longestStreak = Math.max(longestStreak, cur);
