@@ -95,7 +95,16 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   const hodMenuItems = [
     { title: "Main Navigation", isSection: true, roles: HOD_BL_ROLES },
     { title: "Dashboard", icon: LayoutDashboard, path: "/", roles: HOD_BL_ROLES },
-    { title: "Calendar", icon: Calendar, path: "/calendar", roles: HOD_BL_ROLES },
+    {
+      title: "Calendar",
+      icon: Calendar,
+      path: "/calendar",
+      roles: HOD_BL_ROLES,
+      children: [
+        { title: "Work Calendar", icon: Calendar, path: "/calendar", roles: HOD_BL_ROLES },
+        { title: "Company Leave Calendar", icon: CalendarDays, path: "/attendance/company-leave", roles: HOD_BL_ROLES },
+      ],
+    },
     {
       title: "Attendance",
       icon: Clock,
@@ -104,7 +113,6 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       children: [
         { title: "Attendance Overview", icon: Clock, path: "/attendance", roles: HOD_BL_ROLES },
         { title: "Team Attendance", icon: Users, path: "/team-attendance", roles: HOD_BL_ROLES },
-        { title: "Company Leave Calendar", icon: CalendarDays, path: "/attendance/company-leave", roles: HOD_BL_ROLES },
       ],
     },
     {
@@ -149,7 +157,16 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   const menuItems = [
     { title: "Main Navigation", isSection: true, roles: ALL_ROLES },
     { title: "Dashboard", icon: LayoutDashboard, path: "/", roles: ALL_ROLES },
-    { title: "Calendar", icon: Calendar, path: "/calendar", roles: ALL_ROLES },
+    {
+      title: "Calendar",
+      icon: Calendar,
+      path: "/calendar",
+      roles: ALL_ROLES,
+      children: [
+        { title: "Work Calendar", icon: Calendar, path: "/calendar", roles: ALL_ROLES },
+        { title: "Company Leave Calendar", icon: CalendarDays, path: "/attendance/company-leave", roles: ALL_ROLES },
+      ],
+    },
     {
       title: "Attendance",
       icon: Clock,
@@ -157,8 +174,6 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       roles: ALL_ROLES,
       children: [
         { title: "My Attendance", icon: Clock, path: "/attendance", roles: ALL_ROLES },
-
-        { title: "Company Leave Calendar", icon: CalendarDays, path: "/attendance/company-leave", roles: ALL_ROLES },
       ],
     },
     {
