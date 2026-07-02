@@ -574,12 +574,12 @@ export default function WorkforceInsights() {
               </div>
 
               {/* 6-Shape Compact Legend */}
-              <div className="grid grid-cols-3 gap-2 w-full mt-auto mb-4">
+              <div className="grid grid-cols-2 gap-2 w-full mt-auto mb-4">
                 {donutData.map((entry, index) => (
                   <div key={entry.name} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border ${index === 0 ? 'bg-indigo-50/70 border-indigo-100' : 'bg-slate-50 border-slate-100'} transition-colors`}>
                     <div className="flex items-center gap-1 mb-1">
                       <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider truncate max-w-[40px] sm:max-w-[50px]">{entry.name}</span>
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider truncate">{entry.name}</span>
                     </div>
                     <span className="text-lg font-bold text-slate-800 leading-none">{entry.value}</span>
                   </div>
