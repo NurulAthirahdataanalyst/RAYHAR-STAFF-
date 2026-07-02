@@ -732,8 +732,13 @@ export default function AttendanceDashboard() {
       const companyLeave = branchEmployees.filter(emp => emp.status === 'companyLeave').length;
       const totalEmployees = b.totalEmployees || 0;
       const absent = Math.max(0, totalEmployees - (presentOnTime + presentLate + onLeave + companyLeave));
-      const rate = totalEmployees > 0 ? Math.round(((presentOnTime + presentLate) / totalEmployees) * 100) : 0;
-
+      const expectedWorkingDays = totalEmployees - onLeave - companyLeave;
+      let rate = 0;
+      if (expectedWorkingDays > 0) {
+        rate = Math.round(((presentOnTime + presentLate) / expectedWorkingDays) * 100);
+      } else if (totalEmployees > 0 && expectedWorkingDays === 0) {
+        rate = 100; // If everyone is on leave, rate is effectively 100%
+      }
       return {
         branch: b.branch,
         rate,
@@ -1446,8 +1451,18 @@ export default function AttendanceDashboard() {
                       </div>
                       <span className={`text-[10px] font-black ${branch.rate >= 90 ? 'text-emerald-500' : branch.rate >= 75 ? 'text-amber-500' : 'text-red-500'}`}>{branch.rate}%</span>
                     </div>
-                    <div className="w-full bg-slate-100 rounded-full h-2 relative group cursor-pointer">
-                      <div className={`h-2 rounded-full ${branch.rate >= 90 ? 'bg-[#10b981]' : branch.rate >= 75 ? 'bg-[#f59e0b]' : 'bg-[#ef4444]'}`} style={{ width: `${Math.min(100, branch.rate)}%` }}></div>
+                    <div className="w-full bg-slate-100 rounded-full h-2 relative group cursor-pointer flex overflow-hidden">
+                      {branch.totalEmployees > 0 ? (
+                        <>
+                          <div className="h-full bg-[#10b981]" style={{ width: `${(branch.presentOnTime / branch.totalEmployees) * 100}%` }}></div>
+                          <div className="h-full bg-[#f59e0b]" style={{ width: `${(branch.presentLate / branch.totalEmployees) * 100}%` }}></div>
+                          <div className="h-full bg-blue-500" style={{ width: `${(branch.onLeave / branch.totalEmployees) * 100}%` }}></div>
+                          <div className="h-full bg-purple-500" style={{ width: `${(branch.companyLeave / branch.totalEmployees) * 100}%` }}></div>
+                          <div className="h-full bg-red-500" style={{ width: `${(branch.absent / branch.totalEmployees) * 100}%` }}></div>
+                        </>
+                      ) : (
+                        <div className="h-full w-full bg-slate-200"></div>
+                      )}
                       <div className="absolute left-1/2 -top-24 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-2 pointer-events-none z-10 w-max whitespace-nowrap text-left">
                         <p className="text-[10px] font-bold text-slate-800 mb-1 border-b pb-1">{branch.branch}</p>
                         <div className="space-y-0.5 text-[9px] text-slate-600">
