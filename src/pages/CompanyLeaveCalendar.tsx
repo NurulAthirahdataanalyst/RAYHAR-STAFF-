@@ -272,7 +272,7 @@ const CompanyLeaveCalendar = () => {
           <DialogHeader>
             <DialogTitle>{editingId ? "Edit Company Leave" : "Add Company Leave"}</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto px-1">
             <div className="grid gap-2">
               <Label>Leave Name (e.g. Hari Raya, Company Trip)</Label>
               <Input 
