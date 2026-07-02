@@ -901,8 +901,17 @@ export default function WorkforceInsights() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <XCircle className="w-3.5 h-3.5 text-red-400" />
-                    <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-red-500 text-white text-center leading-tight">Absent /<br />Co. Leave</span>
+                    {emp.status === 'companyLeave' ? (
+                      <>
+                        <CalendarDays className="w-3.5 h-3.5 text-purple-400" />
+                        <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-purple-600 text-white text-center leading-tight">Company<br />Leave</span>
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="w-3.5 h-3.5 text-red-400" />
+                        <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-red-500 text-white text-center leading-tight">Absent</span>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

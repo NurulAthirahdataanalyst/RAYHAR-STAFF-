@@ -392,7 +392,7 @@ export default function Dashboard() {
               <>
                 {["hr_admin", "managing_director", "finance_manager"].includes(role) ? (
                   <>
-                    <div onClick={() => navigate("/attendance/company-leave")} className="cursor-pointer col-span-1 sm:col-span-2 lg:col-span-2 flex h-full">
+                    <div onClick={() => navigate("/calendar/company-leave")} className="cursor-pointer col-span-1 sm:col-span-2 lg:col-span-2 flex h-full">
                       <Card className="w-full border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] bg-white overflow-hidden flex flex-col relative group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 rounded-[20px] ring-1 ring-slate-100">
                         <CardContent className="p-4 sm:p-5 flex items-center justify-between h-full relative z-10 w-full">
                           <div className="flex items-center gap-4 min-w-0">
@@ -460,7 +460,7 @@ export default function Dashboard() {
                     />
                   </>
                 ) : (
-                  <div onClick={() => navigate("/attendance/company-leave")} className="cursor-pointer col-span-1 sm:col-span-2 flex h-full">
+                  <div onClick={() => navigate("/calendar/company-leave")} className="cursor-pointer col-span-1 sm:col-span-2 flex h-full">
                     <Card className="w-full border-none shadow-xl bg-gradient-to-br from-[#f8f5ff] to-[#f2ecfc] overflow-hidden flex flex-col relative group transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 rounded-2xl ring-1 ring-white/60">
                       <div className="absolute inset-0 bg-white/40 backdrop-blur-sm z-0"></div>
                       <CardContent className="p-4 sm:p-5 flex items-center justify-between h-full relative z-10 w-full">
@@ -526,7 +526,7 @@ export default function Dashboard() {
                   />
                 )}
                 {stats.activeCompanyLeave ? (
-                  <div onClick={() => navigate("/attendance/company-leave")} className="cursor-pointer">
+                  <div onClick={() => navigate("/calendar/company-leave")} className="cursor-pointer">
                     <Card className="border-none shadow-md bg-card overflow-hidden h-[120px] sm:h-[130px] flex flex-col relative group transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                       <div className="absolute top-0 right-0 p-3 opacity-10 transition-transform duration-500 group-hover:scale-110 group-hover:opacity-20 text-[#7B0099]">
                         <CalendarCheck className="w-16 h-16 sm:w-20 sm:h-20" />

@@ -102,7 +102,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       roles: HOD_BL_ROLES,
       children: [
         { title: "Work Calendar", icon: Calendar, path: "/calendar", roles: HOD_BL_ROLES },
-        { title: "Company Leave Calendar", icon: CalendarDays, path: "/attendance/company-leave", roles: HOD_BL_ROLES },
+        { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave", roles: HOD_BL_ROLES },
       ],
     },
     {
@@ -164,7 +164,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       roles: ALL_ROLES,
       children: [
         { title: "Work Calendar", icon: Calendar, path: "/calendar", roles: ALL_ROLES },
-        { title: "Company Leave Calendar", icon: CalendarDays, path: "/attendance/company-leave", roles: ALL_ROLES },
+        { title: "Company Leave Calendar", icon: CalendarDays, path: "/calendar/company-leave", roles: ALL_ROLES },
       ],
     },
     {

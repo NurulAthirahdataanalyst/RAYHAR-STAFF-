@@ -22,6 +22,7 @@ function getBreadcrumbs(pathname: string): BreadcrumbSegment[] {
   if (pathname === "/analytics") return [home, { label: "REPORTS & ANALYTICS" }, { label: "EMPLOYEE ANALYTICS" }];
   if (pathname === "/settings") return [home, { label: "ADMINISTRATION" }, { label: "SETTINGS" }];
   if (pathname === "/calendar") return [home, { label: "CALENDAR" }];
+  if (pathname === "/calendar/company-leave") return [home, { label: "CALENDAR", path: "/calendar" }, { label: "COMPANY LEAVE CALENDAR" }];
   if (pathname === "/profile") return [home, { label: "PROFILE" }];
   if (pathname === "/master") return [home, { label: "ADMINISTRATION" }, { label: "OVERVIEW" }];
   if (pathname === "/master/department") return [home, { label: "ADMINISTRATION" }, { label: "DEPARTMENT" }];
@@ -57,6 +58,7 @@ function getPageTitle(pathname: string): string {
   if (pathname === "/analytics") return "Employee Analytics";
   if (pathname === "/settings") return "Settings";
   if (pathname === "/calendar") return "Work Calendar";
+  if (pathname === "/calendar/company-leave") return "Company Leave Calendar";
   if (pathname === "/profile") return "Profile";
   if (pathname === "/master") return "Administration";
   if (pathname === "/master/department") return "Department";

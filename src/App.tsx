@@ -60,7 +60,7 @@ function ProtectedRoutes() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/attendance" element={<Attendance />} />
-          <Route path="/attendance/company-leave" element={<CompanyLeaveCalendar />} />
+          <Route path="/calendar/company-leave" element={<CompanyLeaveCalendar />} />
 
           {/* LEAVE SYSTEM FLOW */}
           {/* 1. Dashboard Cuti & Sejarah (Image 1 anda) */}

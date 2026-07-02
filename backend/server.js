@@ -1214,6 +1214,12 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
     if (!clockMap[row.user_id]) clockMap[row.user_id] = row;
   }
 
+  // Get active company leaves
+  const [companyLeaveDays] = await pool.query(
+    `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND ?::date BETWEEN DATE(start_date) AND DATE(end_date)`,
+    [dateStr]
+  );
+
   // Get all active profiles to determine absentees
   const [allProfiles] = await pool.query(
     `SELECT user_id, full_name, branch, department, role FROM profiles WHERE status = 'Active' ${filterP}`,
@@ -1244,7 +1250,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
       full_name: row.full_name,
       initials,
       branch: row.branch || 'HQ',
-      department: row.department || 'â€”',
+      department: row.department || '—',
       role: row.role || '',
       clock_in: timeInFmt,
       clock_out: timeOutFmt,
@@ -1259,13 +1265,31 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
   for (const p of allProfiles) {
     if (!onLeaveIds.has(p.user_id) && !clockMap[p.user_id]) {
       const initials = (p.full_name || '??').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+      
+      const isCompanyLeave = companyLeaveDays.some(cl => {
+        if (cl.applies_to === 'all') return true;
+        if (cl.applies_to === 'branch' && cl.branch_id) {
+          return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+        }
+        if (cl.applies_to === 'department' && cl.department_id) {
+          const depts = cl.department_id.split(',').map(s => s.trim());
+          const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          return depts.some(d => {
+            const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+            return normEmpDept === normClDept || p.department === d;
+          });
+        }
+        return false;
+      });
+
       absentList.push({
         user_id: p.user_id,
         full_name: p.full_name,
         initials,
         branch: p.branch || 'HQ',
-        department: p.department || 'â€”',
-        role: p.role || ''
+        department: p.department || '—',
+        role: p.role || '',
+        status: isCompanyLeave ? 'companyLeave' : 'absent'
       });
     }
   }

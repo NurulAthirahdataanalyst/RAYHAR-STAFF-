@@ -104,7 +104,7 @@ const parseThreshold = (thresholdStr: string) => {
 };
 
 export default function AttendanceDashboard() {
-  const { role, userBranch, userDepartment } = useRole();
+  const { role, userBranch, userDepartment, loading } = useRole();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -372,6 +372,16 @@ export default function AttendanceDashboard() {
   };
 
   useEffect(() => {
+    if (role === "branch_leader" && userBranch) {
+      setSelectedBranchFilter(userBranch);
+    }
+    if (role === "head_of_department" && userDepartment) {
+      setSelectedDepartmentFilter(userDepartment);
+    }
+  }, [role, userBranch, userDepartment]);
+
+  useEffect(() => {
+    if (loading) return;
     if (activeTab === "attendance") {
       fetchDailyAttendance();
       fetchAnalytics();
@@ -379,10 +389,11 @@ export default function AttendanceDashboard() {
     } else if (activeTab === "leave") {
       fetchLeaveUtilization();
     }
-  }, [activeTab, selectedMonth, selectedYear, selectedDate]);
+  }, [activeTab, selectedMonth, selectedYear, selectedDate, role, userBranch, userDepartment, loading]);
 
   // ── LIVE-STATS SSE CONNECTION ─────────────────────────────────────────
   useEffect(() => {
+    if (loading) return;
     const url = `${API_BASE_URL}/api/presence/live-stats?date=${selectedDate}&role=${role || ""}&branch=${userBranch || ""}&department=${userDepartment || ""}`;
     const es = new EventSource(url);
     liveEsRef.current = es;
@@ -410,10 +421,11 @@ export default function AttendanceDashboard() {
     es.onerror = () => setLiveConnected(false);
 
     return () => { es.close(); liveEsRef.current = null; };
-  }, [selectedDate]);
+  }, [selectedDate, role, userBranch, userDepartment, loading]);
 
   // Handle SSE live stream refresh (table data)
   useEffect(() => {
+    if (loading) return;
     const streamUrl = `${API_BASE_URL}/api/presence/stream`;
     const eventSource = new EventSource(streamUrl);
 
@@ -431,7 +443,7 @@ export default function AttendanceDashboard() {
     };
 
     return () => eventSource.close();
-  }, [activeTab, selectedMonth, selectedYear, selectedDate]);
+  }, [activeTab, selectedMonth, selectedYear, selectedDate, role, userBranch, userDepartment, loading]);
 
   // Export CSV Handler
   const handleExport = () => {
@@ -851,6 +863,14 @@ export default function AttendanceDashboard() {
     value: parseInt(r.total_days)
   }));
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-6">
 
@@ -1032,30 +1052,34 @@ export default function AttendanceDashboard() {
               </div>
 
               {/* Department Filter */}
-              <Select value={selectedDepartmentFilter} onValueChange={setSelectedDepartmentFilter}>
-                <SelectTrigger className="w-[130px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
-                  <SelectValue placeholder="Department" />
-                </SelectTrigger>
-                <SelectContent className="rounded-md">
-                  <SelectItem value="all">All Departments</SelectItem>
-                  {departments.map((dept, idx) => (
-                    <SelectItem key={idx} value={dept}>{dept}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {role !== "head_of_department" && (
+                <Select value={selectedDepartmentFilter} onValueChange={setSelectedDepartmentFilter}>
+                  <SelectTrigger className="w-[130px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+                    <SelectValue placeholder="Department" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-md">
+                    <SelectItem value="all">All Departments</SelectItem>
+                    {departments.map((dept, idx) => (
+                      <SelectItem key={idx} value={dept}>{dept}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
 
               {/* Branch Filter */}
-              <Select value={selectedBranchFilter} onValueChange={setSelectedBranchFilter}>
-                <SelectTrigger className="w-[120px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
-                  <SelectValue placeholder="Branch" />
-                </SelectTrigger>
-                <SelectContent className="rounded-md">
-                  <SelectItem value="all">All Branch</SelectItem>
-                  {branches.map((b, idx) => (
-                    <SelectItem key={idx} value={b.code}>{b.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {role !== "branch_leader" && (
+                <Select value={selectedBranchFilter} onValueChange={setSelectedBranchFilter}>
+                  <SelectTrigger className="w-[120px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+                    <SelectValue placeholder="Branch" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-md">
+                    <SelectItem value="all">All Branch</SelectItem>
+                    {branches.map((b, idx) => (
+                      <SelectItem key={idx} value={b.code}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
 
               {/* Status Filter */}
               <Select value={selectedStatusFilter} onValueChange={setSelectedStatusFilter}>
