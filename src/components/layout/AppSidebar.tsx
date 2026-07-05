@@ -205,6 +205,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       children: [
         { title: "Employee Directory", icon: Users, path: "/employees", roles: FULL_ADMIN_ROLES },
         { title: "Department", icon: Building2, path: "/master/department", roles: ["hr_admin"] },
+        { title: "Leave Entitlement Management", icon: CalendarDays, path: "/master/leave-entitlement", roles: ["hr_admin"] },
         { title: "Role", icon: Settings, path: "/master/role", roles: ["hr_admin"] },
       ],
     },

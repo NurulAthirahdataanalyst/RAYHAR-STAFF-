@@ -30,6 +30,7 @@ import MasterPlaceholder from "./pages/master/Placeholder";
 import Department from "./pages/master/Department";
 import DepartmentDetails from "./pages/master/DepartmentDetails";
 import MasterOverview from "./pages/master/Overview";
+import LeaveEntitlementManagement from "./pages/master/LeaveEntitlementManagement";
 import Role from "./pages/master/Role";
 import AttendanceDashboard from "./pages/hr-analytics/AttendanceDashboard";
 import TeamAttendance from "./pages/TeamAttendance";
@@ -99,6 +100,7 @@ function ProtectedRoutes() {
           <Route path="/master" element={<MasterOverview />} />
           <Route path="/master/department" element={<Department />} />
           <Route path="/master/department/:deptName" element={<DepartmentDetails />} />
+          <Route path="/master/leave-entitlement" element={<LeaveEntitlementManagement />} />
           <Route path="/master/designation" element={<MasterPlaceholder title="Designation" />} />
           <Route path="/master/role" element={<Role />} />
 
