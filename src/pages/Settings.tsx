@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Building2, UserPlus, Loader2, Plus, AlertCircle,
-  SlidersHorizontal, MapPin, Layers, Info, Cloud, CheckCircle2, History, X, Save, BellRing, Calendar, Clock
+  SlidersHorizontal, MapPin, Layers, Info, Cloud, CheckCircle2, History, X, Save, BellRing, Calendar, Clock, CalendarDays
 } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
@@ -22,13 +22,19 @@ interface Department {
   employee_count: number;
 }
 
+type SettingsTab = "system" | "staff" | "branch" | "department" | "leave-entitlement";
+
 export default function SettingsPage() {
   const { role } = useRole();
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   
-  const initialTab = (searchParams.get("tab") as "system" | "staff" | "branch" | "department") || "system";
-  const [activeTab, setActiveTab] = useState<"system" | "staff" | "branch" | "department">(initialTab);
+  const initialTab = (searchParams.get("tab") as SettingsTab) || "system";
+  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
+  const handleTabChange = (tabId: SettingsTab) => {
+    setActiveTab(tabId);
+    setSearchParams({ tab: tabId });
+  };
   
   // States
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -391,14 +397,15 @@ export default function SettingsPage() {
           { id: "system", label: "System Configuration", icon: SlidersHorizontal },
           { id: "staff", label: "Personnel Management", icon: UserPlus },
           { id: "branch", label: "Branch Management", icon: MapPin },
-          { id: "department", label: "Department Management", icon: Layers }
+          { id: "department", label: "Department Management", icon: Layers },
+          { id: "leave-entitlement", label: "Leave Entitlement Management", icon: CalendarDays }
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => handleTabChange(tab.id as SettingsTab)}
               className={`flex items-center gap-2 py-2.5 px-6 font-black text-[10px] uppercase tracking-widest whitespace-nowrap rounded-md transition-all duration-300 ${
                 isActive 
                   ? "bg-white text-[#7B0099] border-b-[3px] border-[#d4b0eb] shadow-md active:translate-y-[1px] active:border-b-[1px]" 
@@ -960,9 +967,106 @@ export default function SettingsPage() {
                       <Save className="w-3.5 h-3.5 mr-1" />
                       Save Changes
                     </Button>
+              </div>
+            </Card>
+          )}
+
+          {/* TAB 5: LEAVE ENTITLEMENT MANAGEMENT */}
+          {activeTab === "leave-entitlement" && (
+            <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] overflow-hidden p-6 space-y-6 animate-in slide-in-from-left duration-300">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-[#7B0099]/10 rounded-xl text-[#7B0099]">
+                  <CalendarDays className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">
+                    Leave Entitlement Management
+                  </h3>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">
+                    Manage employee leave allocation, adjustments, and entitlement history
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {[
+                  {
+                    title: "Annual Leave Allocation",
+                    body: "Set the standard yearly entitlement for each employee group, department, or employment category.",
+                  },
+                  {
+                    title: "Carry Forward Leave",
+                    body: "Move unused leave from the previous year into the current cycle based on company policy.",
+                  },
+                  {
+                    title: "Additional Leave Allocation",
+                    body: "Grant extra days beyond the normal allowance for rewards, compensation, or special approval.",
+                  },
+                  {
+                    title: "Manual Leave Adjustments",
+                    body: "Increase or reduce balances to correct errors or reflect policy exceptions.",
+                  },
+                  {
+                    title: "Special Leave Credits",
+                    body: "Issue purpose-specific leave such as replacement leave, compassionate leave, or special credits.",
+                  },
+                  {
+                    title: "Leave Forfeiture",
+                    body: "Remove balances that expire or exceed carry-forward limits under policy rules.",
+                  },
+                  {
+                    title: "Leave Balance History",
+                    body: "Track every entitlement change for auditability, reviews, and employee transparency.",
+                  },
+                  {
+                    title: "Bulk Leave Allocation",
+                    body: "Apply leave allocation to many employees at once during yearly rollout or policy updates.",
+                  },
+                ].map((item) => (
+                  <div key={item.title} className="p-4 rounded-2xl border border-border/40 bg-muted/20 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099]" />
+                      <h4 className="text-[10px] font-black text-foreground uppercase tracking-widest">{item.title}</h4>
+                    </div>
+                    <p className="text-[9px] sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-wide leading-relaxed normal-case">
+                      {item.body}
+                    </p>
                   </div>
-                </Card>
-              )}
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
+                <div className="lg:col-span-2 p-4 rounded-2xl bg-[#7B0099]/5 border border-[#7B0099]/15 space-y-3">
+                  <h4 className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest">
+                    Why this module exists
+                  </h4>
+                  <p className="text-[10px] font-semibold text-muted-foreground leading-relaxed normal-case">
+                    This naming is future-proof for an enterprise HR workflow. It can cover yearly allocation, policy-based
+                    carry forward, manual corrections, special leave credits, forfeiture, and audit history without needing
+                    a rename later.
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-slate-950 text-white space-y-2.5">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-purple-200">
+                    HR Admin Scope
+                  </h4>
+                  <div className="space-y-2">
+                    {[
+                      "Set entitlement rules",
+                      "Allocate balances in bulk",
+                      "Adjust leave manually",
+                      "Review balance history",
+                    ].map((line) => (
+                      <div key={line} className="flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-white/80">{line}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
             </>
           )}
 

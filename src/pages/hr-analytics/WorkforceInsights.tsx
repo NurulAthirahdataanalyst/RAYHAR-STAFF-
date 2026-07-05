@@ -1369,6 +1369,14 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                </div>
              </div>
              
+             <div className="flex items-center flex-1 h-[140px]">
+               <div className="w-[140px] h-[140px] relative">
+                 <ResponsiveContainer width="100%" height="100%">
+                   <PieChart>
+                     <Pie
+                       data={leaveData}
+                       innerRadius={45}
+                       outerRadius={65}
              {totalLeaveCount > 0 ? (
                 <div className="flex items-center flex-1 h-[140px]">
                   <div className="w-[140px] h-[140px] relative">
