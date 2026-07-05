@@ -3166,11 +3166,10 @@ app.get("/api/dashboard-stats", async (req, res) => {
         attendanceFilter = "AND user_id IN (SELECT user_id FROM profiles WHERE branch = ? AND status = 'Active')";
         queryParams.push(safeBranch);
       } else if (isHOD) {
-        const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
         const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
-        profileFilter = "AND branch = ? AND department = ?";
-        attendanceFilter = "AND user_id IN (SELECT user_id FROM profiles WHERE branch = ? AND department = ? AND status = 'Active')";
-        queryParams.push(safeBranch, safeDept);
+        profileFilter = "AND department = ?";
+        attendanceFilter = "AND user_id IN (SELECT user_id FROM profiles WHERE department = ? AND status = 'Active')";
+        queryParams.push(safeDept);
       }
 
       const queryDate = req.query.date ? req.query.date.toString() : null;
@@ -3662,7 +3661,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 // ABSENT EMPLOYEES REPORT
 // ===============================
 app.get("/api/reports/absent-employees", async (req, res) => {
-  const { date, role, branch, department } = req.query;
+  let { date, role, branch, department } = req.query;
   const queryDate = date ? date : new Date().toISOString().split('T')[0];
 
   try {
@@ -3740,7 +3739,7 @@ app.get("/api/reports/absent-employees", async (req, res) => {
 // DAILY ATTENDANCE REPORT
 // ===============================
 app.get("/api/reports/daily-attendance", async (req, res) => {
-  const { date, role, branch, department } = req.query;
+  let { date, role, branch, department } = req.query;
   const queryDate = date ? date.toString() : new Date().toISOString().split('T')[0];
 
   try {
@@ -3922,7 +3921,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
 // ===============================
 app.get("/api/reports/total-leave-requests", async (req, res) => {
   try {
-    const { role, branch, department } = req.query;
+    let { role, branch, department } = req.query;
     let filter = "";
     let params = [];
 
@@ -4030,7 +4029,7 @@ app.get("/api/reports/analytics", async (req, res) => {
     const requestedMonth = parseInt(req.query.month) || (new Date().getMonth() + 1);
     const requestedYear = parseInt(req.query.year) || new Date().getFullYear();
     const requestedDateStr = req.query.date || new Date().toISOString().split('T')[0];
-    const { role, branch, department } = req.query;
+    let { role, branch, department } = req.query;
     
     let profileFilter = "";
     let pFilterParams = [];
@@ -4895,7 +4894,7 @@ app.get("/api/reports/generator", async (req, res) => {
 // ===============================
 app.get("/api/reports/leave-utilization", async (req, res) => {
   try {
-    const { role, branch, department } = req.query;
+    let { role, branch, department } = req.query;
     let filter = "";
     let params = [];
 
