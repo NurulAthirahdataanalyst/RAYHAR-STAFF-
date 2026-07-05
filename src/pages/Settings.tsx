@@ -893,83 +893,6 @@ export default function SettingsPage() {
               </form>
             </Card>
           )}
-        </div>
-
-        {/* RIGHT/SIDEBAR CONTAINER (SPAN 1 COL) */}
-        <div className="space-y-4">
-          
-          {/* SIDEBAR FOR SYSTEM TAB */}
-          {activeTab === "system" && (
-            <>
-              {/* Active Environment */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-5">
-                <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Active Environment</h4>
-                <div className="flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                      <Cloud className="w-4 h-4" />
-                    </div>
-                    <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Production-AZ-East</span>
-                  </div>
-                  <Info className="w-4 h-4 text-emerald-600 dark:text-emerald-400 opacity-60" />
-                </div>
-                
-                <div className="p-4 bg-muted/20 border border-border/30 rounded-2xl space-y-1">
-                  <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest block">Last Configuration Deployment</span>
-                  <span className="text-xs font-black text-foreground block">
-                    {deploymentLog.timestamp}
-                  </span>
-                  <span className="text-[9px] font-medium text-muted-foreground block opacity-85">
-                    By {deploymentLog.operator}
-                  </span>
-                </div>
-              </Card>
-
-              {/* Real-time SSE Log Stream */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Live SSE Stream</h4>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                    <span className="text-[8px] font-black text-emerald-500 uppercase tracking-wider">Active</span>
-                  </div>
-                </div>
-                <div className="p-3.5 bg-slate-950 dark:bg-slate-900 border border-border/20 rounded-2xl h-[120px] overflow-y-auto font-mono text-[7px] space-y-2 text-purple-300/80 leading-normal scrollbar-thin">
-                  {sseEvents.map((evt, i) => (
-                    <div key={i} className="break-all border-b border-white/5 pb-1 last:border-0">
-                      {evt}
-                    </div>
-                  ))}
-                </div>
-              </Card>
-
-              {/* Action Bar Footer equivalent */}
-              {hasUnsavedChanges && (
-                <Card className="border-none shadow-sm bg-amber-500/10 border border-amber-500/25 rounded-[20px] p-5 space-y-4 animate-in zoom-in-95 duration-200">
-                  <div className="flex items-start gap-2.5">
-                    <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
-                    <p className="text-[9px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider leading-normal">
-                      You have unsaved changes in portal configurations. Deactivate or save to deploy changes.
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={handleDiscardSettings}
-                      className="flex-1 h-9 rounded-xl border border-amber-500/20 hover:bg-amber-500/10 bg-transparent text-amber-700 dark:text-amber-400 font-black text-[8px] uppercase tracking-widest"
-                    >
-                      <X className="w-3.5 h-3.5 mr-1" />
-                      Discard
-                    </Button>
-                    <Button 
-                      onClick={handleSaveSettings}
-                      className="flex-1 h-9 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[8px] uppercase tracking-widest shadow-md"
-                    >
-                      <Save className="w-3.5 h-3.5 mr-1" />
-                      Save Changes
-                    </Button>
-              </div>
-            </Card>
-          )}
 
           {/* TAB 5: LEAVE ENTITLEMENT MANAGEMENT */}
           {activeTab === "leave-entitlement" && (
@@ -1064,6 +987,83 @@ export default function SettingsPage() {
                     ))}
                   </div>
                 </div>
+              </div>
+            </Card>
+          )}
+        </div>
+
+        {/* RIGHT/SIDEBAR CONTAINER (SPAN 1 COL) */}
+        <div className="space-y-4">
+          
+          {/* SIDEBAR FOR SYSTEM TAB */}
+          {activeTab === "system" && (
+            <>
+              {/* Active Environment */}
+              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-5">
+                <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Active Environment</h4>
+                <div className="flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                      <Cloud className="w-4 h-4" />
+                    </div>
+                    <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Production-AZ-East</span>
+                  </div>
+                  <Info className="w-4 h-4 text-emerald-600 dark:text-emerald-400 opacity-60" />
+                </div>
+                
+                <div className="p-4 bg-muted/20 border border-border/30 rounded-2xl space-y-1">
+                  <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest block">Last Configuration Deployment</span>
+                  <span className="text-xs font-black text-foreground block">
+                    {deploymentLog.timestamp}
+                  </span>
+                  <span className="text-[9px] font-medium text-muted-foreground block opacity-85">
+                    By {deploymentLog.operator}
+                  </span>
+                </div>
+              </Card>
+
+              {/* Real-time SSE Log Stream */}
+              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Live SSE Stream</h4>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                    <span className="text-[8px] font-black text-emerald-500 uppercase tracking-wider">Active</span>
+                  </div>
+                </div>
+                <div className="p-3.5 bg-slate-950 dark:bg-slate-900 border border-border/20 rounded-2xl h-[120px] overflow-y-auto font-mono text-[7px] space-y-2 text-purple-300/80 leading-normal scrollbar-thin">
+                  {sseEvents.map((evt, i) => (
+                    <div key={i} className="break-all border-b border-white/5 pb-1 last:border-0">
+                      {evt}
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              {/* Action Bar Footer equivalent */}
+              {hasUnsavedChanges && (
+                <Card className="border-none shadow-sm bg-amber-500/10 border border-amber-500/25 rounded-[20px] p-5 space-y-4 animate-in zoom-in-95 duration-200">
+                  <div className="flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-[9px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider leading-normal">
+                      You have unsaved changes in portal configurations. Deactivate or save to deploy changes.
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleDiscardSettings}
+                      className="flex-1 h-9 rounded-xl border border-amber-500/20 hover:bg-amber-500/10 bg-transparent text-amber-700 dark:text-amber-400 font-black text-[8px] uppercase tracking-widest"
+                    >
+                      <X className="w-3.5 h-3.5 mr-1" />
+                      Discard
+                    </Button>
+                    <Button 
+                      onClick={handleSaveSettings}
+                      className="flex-1 h-9 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[8px] uppercase tracking-widest shadow-md"
+                    >
+                      <Save className="w-3.5 h-3.5 mr-1" />
+                      Save Changes
+                    </Button>
               </div>
             </Card>
           )}
