@@ -15,6 +15,7 @@ import { API_BASE_URL } from "../config/api";
 interface Branch {
   code: string;
   name: string;
+  location?: string;
 }
 
 interface Department {
@@ -896,99 +897,223 @@ export default function SettingsPage() {
 
           {/* TAB 5: LEAVE ENTITLEMENT MANAGEMENT */}
           {activeTab === "leave-entitlement" && (
-            <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] overflow-hidden p-6 space-y-6 animate-in slide-in-from-left duration-300">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-[#7B0099]/10 rounded-xl text-[#7B0099]">
-                  <CalendarDays className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">
-                    Leave Entitlement Management
-                  </h3>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">
-                    Manage employee leave allocation, adjustments, and entitlement history
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                {[
-                  {
-                    title: "Annual Leave Allocation",
-                    body: "Set the standard yearly entitlement for each employee group, department, or employment category.",
-                  },
-                  {
-                    title: "Carry Forward Leave",
-                    body: "Move unused leave from the previous year into the current cycle based on company policy.",
-                  },
-                  {
-                    title: "Additional Leave Allocation",
-                    body: "Grant extra days beyond the normal allowance for rewards, compensation, or special approval.",
-                  },
-                  {
-                    title: "Manual Leave Adjustments",
-                    body: "Increase or reduce balances to correct errors or reflect policy exceptions.",
-                  },
-                  {
-                    title: "Special Leave Credits",
-                    body: "Issue purpose-specific leave such as replacement leave, compassionate leave, or special credits.",
-                  },
-                  {
-                    title: "Leave Forfeiture",
-                    body: "Remove balances that expire or exceed carry-forward limits under policy rules.",
-                  },
-                  {
-                    title: "Leave Balance History",
-                    body: "Track every entitlement change for auditability, reviews, and employee transparency.",
-                  },
-                  {
-                    title: "Bulk Leave Allocation",
-                    body: "Apply leave allocation to many employees at once during yearly rollout or policy updates.",
-                  },
-                ].map((item) => (
-                  <div key={item.title} className="p-4 rounded-2xl border border-border/40 bg-muted/20 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099]" />
-                      <h4 className="text-[10px] font-black text-foreground uppercase tracking-widest">{item.title}</h4>
+            <div className="space-y-4 sm:space-y-5 animate-in slide-in-from-left duration-300">
+              <Card className="border-none shadow-sm bg-gradient-to-r from-[#7B0099] via-[#8E24AA] to-[#4A005E] text-white rounded-[24px] overflow-hidden p-6">
+                <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+                  <div className="space-y-3 max-w-3xl">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 w-fit">
+                      <CalendarDays className="w-4 h-4" />
+                      <span className="text-[9px] font-black uppercase tracking-[0.25em]">HR Admin Workspace</span>
                     </div>
-                    <p className="text-[9px] sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-wide leading-relaxed normal-case">
-                      {item.body}
-                    </p>
+                    <div className="space-y-1">
+                      <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-tight">
+                        Leave Entitlement Management
+                      </h3>
+                      <p className="text-[11px] sm:text-xs font-medium text-white/80 leading-relaxed max-w-2xl">
+                        Centralize annual leave allocation, carry forward rules, manual balance corrections, special credits,
+                        forfeiture, and audit history in one enterprise HR control panel.
+                      </p>
+                    </div>
                   </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => toast.info("Policy sync prepared for the next entitlement cycle.")}
+                      className="px-4 py-2 rounded-xl bg-white/15 hover:bg-white/20 border border-white/15 text-[10px] font-black uppercase tracking-widest transition-all"
+                    >
+                      Sync Policy
+                    </button>
+                    <button
+                      onClick={() => toast.info("Audit export queued for compliance review.")}
+                      className="px-4 py-2 rounded-xl bg-white text-[#7B0099] hover:bg-white/90 border border-white/20 text-[10px] font-black uppercase tracking-widest transition-all"
+                    >
+                      Export Audit
+                    </button>
+                  </div>
+                </div>
+              </Card>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5">
+                {[
+                  { label: "Active Entitlements", value: "1,284", note: "Across all employees" },
+                  { label: "Carry Forward Pool", value: "326", note: "Pending year rollover" },
+                  { label: "Manual Adjustments", value: "42", note: "This month" },
+                  { label: "Bulk Runs", value: "8", note: "Year-end batches" },
+                ].map((item) => (
+                  <Card key={item.label} className="border border-border/40 shadow-sm rounded-[20px] p-4 bg-white/70 dark:bg-card/70 backdrop-blur-md">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">{item.label}</p>
+                    <div className="mt-2 flex items-end gap-2">
+                      <span className="text-3xl font-black text-foreground leading-none">{item.value}</span>
+                    </div>
+                    <p className="mt-1 text-[10px] font-semibold text-muted-foreground">{item.note}</p>
+                  </Card>
                 ))}
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
-                <div className="lg:col-span-2 p-4 rounded-2xl bg-[#7B0099]/5 border border-[#7B0099]/15 space-y-3">
-                  <h4 className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest">
-                    Why this module exists
-                  </h4>
-                  <p className="text-[10px] font-semibold text-muted-foreground leading-relaxed normal-case">
-                    This naming is future-proof for an enterprise HR workflow. It can cover yearly allocation, policy-based
-                    carry forward, manual corrections, special leave credits, forfeiture, and audit history without needing
-                    a rename later.
-                  </p>
-                </div>
-                <div className="p-4 rounded-2xl bg-slate-950 text-white space-y-2.5">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-purple-200">
-                    HR Admin Scope
-                  </h4>
-                  <div className="space-y-2">
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 items-start">
+                <Card className="xl:col-span-2 border-none shadow-sm bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-[22px] p-5 space-y-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
+                        Entitlement Actions
+                      </h4>
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        Admin controls for allocation, adjustment, and special leave credits.
+                      </p>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full bg-[#7B0099]/10 text-[#7B0099] text-[9px] font-black uppercase tracking-widest">
+                      HR Only
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                     {[
-                      "Set entitlement rules",
-                      "Allocate balances in bulk",
-                      "Adjust leave manually",
-                      "Review balance history",
-                    ].map((line) => (
-                      <div key={line} className="flex items-center gap-2">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-white/80">{line}</span>
+                      {
+                        title: "Annual Leave Allocation",
+                        body: "Assign yearly leave entitlements to the selected population at the start of a cycle.",
+                      },
+                      {
+                        title: "Carry Forward Leave",
+                        body: "Move unused balance into the new leave year according to policy rules.",
+                      },
+                      {
+                        title: "Additional Leave Allocation",
+                        body: "Grant one-off leave for performance rewards, special approval, or compensation.",
+                      },
+                      {
+                        title: "Manual Leave Adjustments",
+                        body: "Correct balances when a policy exception or data issue is discovered.",
+                      },
+                      {
+                        title: "Special Leave Credits",
+                        body: "Issue custom credits such as replacement leave, birthday leave, or compassionate leave.",
+                      },
+                      {
+                        title: "Leave Forfeiture",
+                        body: "Automatically remove excess leave that cannot be carried forward.",
+                      },
+                    ].map((item) => (
+                      <div key={item.title} className="rounded-2xl border border-border/40 bg-muted/20 p-4 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099]" />
+                          <h5 className="text-[10px] font-black uppercase tracking-widest text-foreground">{item.title}</h5>
+                        </div>
+                        <p className="text-[10px] font-medium text-muted-foreground leading-relaxed">
+                          {item.body}
+                        </p>
                       </div>
                     ))}
                   </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    <div className="rounded-2xl border border-[#7B0099]/15 bg-[#7B0099]/5 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h5 className="text-[10px] font-black uppercase tracking-widest text-[#7B0099]">Bulk Allocation</h5>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-[#7B0099]/70">Year Start</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Target Group</label>
+                          <input
+                            type="text"
+                            placeholder="Permanent Staff"
+                            className="w-full h-10 px-3 rounded-xl border border-border/70 bg-background/50 text-xs outline-none focus:border-[#7B0099]"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Days to Grant</label>
+                          <input
+                            type="number"
+                            placeholder="14"
+                            className="w-full h-10 px-3 rounded-xl border border-border/70 bg-background/50 text-xs outline-none focus:border-[#7B0099]"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => toast.success("Bulk leave allocation preview opened.")}
+                        className="w-full h-10 rounded-xl bg-[#7B0099] text-white text-[10px] font-black uppercase tracking-widest"
+                      >
+                        Prepare Bulk Run
+                      </button>
+                    </div>
+
+                    <div className="rounded-2xl border border-border/40 bg-slate-950 text-white p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h5 className="text-[10px] font-black uppercase tracking-widest text-purple-200">Policy Controls</h5>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-emerald-300">Live</span>
+                      </div>
+                      <div className="space-y-2.5">
+                        {[
+                          "Carry forward cap: 5 days",
+                          "Manual adjustments require audit note",
+                          "Special leave credits need HR approval",
+                          "Forfeiture runs after year-end closure",
+                        ].map((rule) => (
+                          <div key={rule} className="flex items-center gap-2">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-white/85">{rule}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                <div className="space-y-4">
+                  <Card className="border-none shadow-sm bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-[22px] p-5 space-y-4">
+                    <div>
+                      <h4 className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
+                        Balance Snapshot
+                      </h4>
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        Quick look at the leave ledger state.
+                      </p>
+                    </div>
+                    <div className="space-y-3">
+                      {[
+                        { label: "Annual Leave", value: "14,820 days" },
+                        { label: "Carry Forward", value: "326 days" },
+                        { label: "Special Credits", value: "58 days" },
+                        { label: "Pending Review", value: "12 cases" },
+                      ].map((row) => (
+                        <div key={row.label} className="flex items-center justify-between rounded-xl bg-muted/20 border border-border/30 px-3 py-2.5">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-foreground">{row.label}</span>
+                          <span className="text-[10px] font-black text-[#7B0099]">{row.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+
+                  <Card className="border-none shadow-sm bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-[22px] p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
+                          Recent History
+                        </h4>
+                        <p className="text-[10px] text-muted-foreground mt-1">Audit trail of entitlement operations.</p>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      {[
+                        { action: "Bulk allocation", meta: "14 days to 312 employees", time: "Today" },
+                        { action: "Carry forward", meta: "5 days moved to 18 staff", time: "Yesterday" },
+                        { action: "Manual adjustment", meta: "+2 days for payroll fix", time: "2 days ago" },
+                        { action: "Forfeiture run", meta: "Excess 3 days removed", time: "This week" },
+                      ].map((item) => (
+                        <div key={item.action} className="rounded-xl border border-border/30 bg-muted/20 p-3.5">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="space-y-0.5">
+                              <p className="text-[10px] font-black uppercase tracking-widest text-foreground">{item.action}</p>
+                              <p className="text-[10px] text-muted-foreground">{item.meta}</p>
+                            </div>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-[#7B0099]">{item.time}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
                 </div>
               </div>
-            </Card>
+            </div>
           )}
         </div>
 
