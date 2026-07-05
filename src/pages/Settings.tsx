@@ -421,10 +421,12 @@ export default function SettingsPage() {
       </div>
 
       {/* ACTIVE TAB CONTENTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 items-start">
+      <div className={`grid grid-cols-1 gap-4 sm:gap-5 items-start ${
+        activeTab === "leave-entitlement" ? "" : "lg:grid-cols-3"
+      }`}>
         
         {/* LEFT/MAIN CONTAINER (SPAN 2 COLS) */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className={activeTab === "leave-entitlement" ? "space-y-4" : "lg:col-span-2 space-y-4"}>
           
           {/* TAB 1: SYSTEM CONFIGURATION */}
           {activeTab === "system" && (
@@ -1164,7 +1166,8 @@ export default function SettingsPage() {
         </div>
 
         {/* RIGHT/SIDEBAR CONTAINER (SPAN 1 COL) */}
-        <div className="space-y-4">
+        {activeTab !== "leave-entitlement" && (
+          <div className="space-y-4">
           
           {/* SIDEBAR FOR SYSTEM TAB */}
           {activeTab === "system" && (
@@ -1200,8 +1203,9 @@ export default function SettingsPage() {
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
                     <span className="text-[8px] font-black text-emerald-500 uppercase tracking-wider">Active</span>
-                  </div>
-                </div>
+          </div>
+        )}
+      </div>
                 <div className="p-3.5 bg-slate-950 dark:bg-slate-900 border border-border/20 rounded-2xl h-[120px] overflow-y-auto font-mono text-[7px] space-y-2 text-purple-300/80 leading-normal scrollbar-thin">
                   {sseEvents.map((evt, i) => (
                     <div key={i} className="break-all border-b border-white/5 pb-1 last:border-0">
