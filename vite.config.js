@@ -1,7 +1,5 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
-import path from "path";
-import { componentTagger } from "lovable-tagger";
+import path from "node:path";
 
 export default defineConfig(({ mode }) => ({
   server: {
@@ -10,11 +8,11 @@ export default defineConfig(({ mode }) => ({
     allowedHosts: ["activity-fiddle-subdued.ngrok-free.dev"],
   },
 
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [],
 
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(process.cwd(), "src"),
     },
   },
   build: {
