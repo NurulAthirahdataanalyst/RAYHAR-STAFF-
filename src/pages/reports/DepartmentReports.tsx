@@ -2,19 +2,18 @@ import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Download, Search, Building2, Users } from "lucide-react";
+import { Loader2, Download, Building2, Users } from "lucide-react";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 
 export default function DepartmentReports() {
   const { role, userBranch, userDepartment } = useRole();
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<any[]>([]);
-  const [searchDeptQuery, setSearchDeptQuery] = useState("");
-  const [searchBranchQuery, setSearchBranchQuery] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState("All");
+  const [selectedDept, setSelectedDept] = useState("All");
 
   useEffect(() => {
     fetchData();
@@ -40,9 +39,20 @@ export default function DepartmentReports() {
     }
   };
 
-  // Group by department
+  // Get unique branches and departments for dropdown filters
+  const branches = ["All", ...new Set(employees.map(e => e.branch || 'HQ').filter(Boolean))];
+  const departments = ["All", ...new Set(employees.map(e => e.department || '--').filter(Boolean))];
+
+  // Filter employees based on selected dropdown options
+  const filteredEmployees = employees.filter(e => {
+    const matchesBranch = selectedBranch === "All" || (e.branch || 'HQ') === selectedBranch;
+    const matchesDept = selectedDept === "All" || (e.department || '--') === selectedDept;
+    return matchesBranch && matchesDept;
+  });
+
+  // Group by department using filtered employees list
   const deptMap: Record<string, { branch: string, headcount: number, active: number }> = {};
-  employees.forEach(e => {
+  filteredEmployees.forEach(e => {
     const key = `${e.department || '--'} - ${e.branch || 'HQ'}`;
     if (!deptMap[key]) {
       deptMap[key] = { branch: e.branch || 'HQ', headcount: 0, active: 0 };
@@ -60,13 +70,23 @@ export default function DepartmentReports() {
     active: stats.active
   }));
 
-  const hqList = deptArray
-    .filter(e => e.branch === 'HQ')
-    .filter(e => e.department.toLowerCase().includes(searchDeptQuery.toLowerCase()));
+  const hqList = deptArray.filter(e => e.branch === 'HQ');
     
-  const branchList = deptArray
-    .filter(e => e.branch !== 'HQ')
-    .filter(e => e.branch.toLowerCase().includes(searchBranchQuery.toLowerCase()));
+  // Aggregate branch list by branch
+  const branchMap: Record<string, { headcount: number, active: number }> = {};
+  deptArray.filter(e => e.branch !== 'HQ').forEach(e => {
+    if (!branchMap[e.branch]) {
+      branchMap[e.branch] = { headcount: 0, active: 0 };
+    }
+    branchMap[e.branch].headcount += e.headcount;
+    branchMap[e.branch].active += e.active;
+  });
+  
+  const branchList = Object.entries(branchMap).map(([branch, stats]) => ({
+    branch,
+    headcount: stats.headcount,
+    active: stats.active
+  }));
 
   const handleExportCSV = () => {
     const headers = ["Department", "Branch", "Total Headcount", "Active Employees"];
@@ -93,58 +113,46 @@ export default function DepartmentReports() {
     document.body.removeChild(link);
   };
 
-  const handleExportDeptCSV = () => {
-    const headers = ["Department", "Total Headcount", "Active Employees"];
-    const rows = hqList.map(a => [
-      `"${(a.department || '').replace(/"/g, '""')}"`,
-      a.headcount,
-      a.active
-    ]);
-
-    const csvContent = "\ufeff" + [
-      headers.join(","),
-      ...rows.map(row => row.join(","))
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `hq_department_statistics.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const handleExportBranchCSV = () => {
-    const headers = ["Branch", "Total Headcount", "Active Employees"];
-    const rows = branchList.map(a => [
-      `"${(a.branch || '').replace(/"/g, '""')}"`,
-      a.headcount,
-      a.active
-    ]);
-
-    const csvContent = "\ufeff" + [
-      headers.join(","),
-      ...rows.map(row => row.join(","))
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `branch_statistics.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-col md:flex-row justify-end items-start md:items-center mb-6 gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          {/* Filters on Left */}
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Branch:</span>
+              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                <SelectTrigger className="w-[180px] h-9 bg-white dark:bg-slate-950">
+                  <SelectValue placeholder="All Branches" />
+                </SelectTrigger>
+                <SelectContent>
+                  {branches.map(b => (
+                    <SelectItem key={b} value={b} className="uppercase text-xs">
+                      {b === "All" ? "All Branches" : b}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Department:</span>
+              <Select value={selectedDept} onValueChange={setSelectedDept}>
+                <SelectTrigger className="w-[200px] h-9 bg-white dark:bg-slate-950">
+                  <SelectValue placeholder="All Departments" />
+                </SelectTrigger>
+                <SelectContent>
+                  {departments.map(d => (
+                    <SelectItem key={d} value={d} className="uppercase text-xs">
+                      {d === "All" ? "All Departments" : d}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Export on Right */}
           <div className="flex flex-wrap gap-2">
             <ExportDropdown onExportCSV={handleExportCSV} />
           </div>
@@ -184,7 +192,7 @@ export default function DepartmentReports() {
                 <p className="text-xs font-medium text-muted-foreground">Total Employees <br/>(Dept & Branch)</p>
               </div>
               <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {employees.length}
+                {filteredEmployees.length}
               </h3>
             </CardContent>
           </Card>
@@ -221,23 +229,8 @@ export default function DepartmentReports() {
         <h1 className="text-2xl font-bold mb-6">Department & Branch Report</h1>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="border-border shadow-sm">
-            <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <CardHeader>
               <CardTitle className="text-lg">Department Statistics (HQ)</CardTitle>
-              <div className="flex items-center gap-2">
-                <div className="relative w-full sm:w-48">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search department..."
-                    className="pl-8 h-9"
-                    value={searchDeptQuery}
-                    onChange={(e) => setSearchDeptQuery(e.target.value)}
-                  />
-                </div>
-                <Button variant="outline" size="sm" className="h-9 px-3 flex items-center gap-2" onClick={handleExportDeptCSV}>
-                  <Download className="w-4 h-4" />
-                  <span className="hidden sm:inline">Export</span>
-                </Button>
-              </div>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -278,23 +271,8 @@ export default function DepartmentReports() {
           </Card>
 
           <Card className="border-border shadow-sm">
-            <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <CardHeader>
               <CardTitle className="text-lg">Branch Statistics</CardTitle>
-              <div className="flex items-center gap-2">
-                <div className="relative w-full sm:w-48">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search branch..."
-                    className="pl-8 h-9"
-                    value={searchBranchQuery}
-                    onChange={(e) => setSearchBranchQuery(e.target.value)}
-                  />
-                </div>
-                <Button variant="outline" size="sm" className="h-9 px-3 flex items-center gap-2" onClick={handleExportBranchCSV}>
-                  <Download className="w-4 h-4" />
-                  <span className="hidden sm:inline">Export</span>
-                </Button>
-              </div>
             </CardHeader>
             <CardContent>
               {loading ? (
