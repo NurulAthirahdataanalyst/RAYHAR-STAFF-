@@ -1348,7 +1348,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
   
   const outstationWhere = outstationFilters.length ? `WHERE ${outstationFilters.join(' AND ')}` : '';
   const [outstationRows] = await pool.query(
-    `SELECT id, user_id, full_name, destination, project, start_date, start_time, end_time, status
+    `SELECT id, user_id, full_name, destination, project, start_date, end_date, start_time, end_time, status
      FROM outstation_assignments
      ${outstationWhere}
      ORDER BY start_date ASC`,
@@ -1376,6 +1376,8 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
         id: r.id,
         title: r.project || r.destination,
         destination: r.destination,
+        startDate: r.start_date,
+        endDate: r.end_date,
         time: timeStr,
         employees: []
       };
