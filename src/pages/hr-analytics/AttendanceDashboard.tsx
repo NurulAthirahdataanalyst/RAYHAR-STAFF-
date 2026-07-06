@@ -798,6 +798,9 @@ export default function AttendanceDashboard() {
           attStatus = isLate ? "Present (Late)" : "Present (On Time)";
         }
 
+        // Exclude Absent employees from Admin Attendance listing (they appear in Employee Absenteeism)
+        if (attStatus === 'Absent') return false;
+
         const matchesStatus = selectedStatusFilter === "all" || 
           (selectedStatusFilter === "present_on_time" && (r as any).status === "Present (On Time)") ||
           (selectedStatusFilter === "present_late" && (r as any).status === "Present (Late)") ||
@@ -1097,7 +1100,6 @@ export default function AttendanceDashboard() {
                   <SelectItem value="present_late">Present (Late)</SelectItem>
                   <SelectItem value="approved_leave">Approved Leave</SelectItem>
                   <SelectItem value="company_leave">Company Leave</SelectItem>
-                  <SelectItem value="absent">Absent</SelectItem>
                   <SelectItem value="weekend">Weekend</SelectItem>
                   <SelectItem value="clocked_out">Clocked Out</SelectItem>
                 </SelectContent>
@@ -1110,7 +1112,10 @@ export default function AttendanceDashboard() {
       {/* ADMIN ATTENDANCE TABLE */}
       <Card id="admin-attendance" className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden mb-6 scroll-mt-24">
         <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <h2 className="text-base font-bold text-gray-800">Admin Attendance</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-base font-bold text-gray-800">Admin Attendance</h2>
+            <span title="Absent employees are shown in the 'Employee Absenteeism' table to avoid duplication" className="text-xs text-gray-400">(Absentees listed separately)</span>
+          </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <span className="text-[11px] text-gray-500">Row Per Page</span>

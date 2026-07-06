@@ -77,6 +77,9 @@ export default function SettingsPage() {
   const [leaveSummary, setLeaveSummary] = useState({ totalEmployees: 0, carryForwardEligible: 0, pendingAdjustments: 0, expiringSoon: 0 });
   const [leaveLoading, setLeaveLoading] = useState(false);
   const [sseStatus, setSseStatus] = useState("Connecting");
+  
+  // Which leave workspace module is active (left submenu)
+  const [selectedLeaveModule, setSelectedLeaveModule] = useState<string>("Annual Leave Allocation");
 
   const leaveTypes = ["Annual Leave", "Carry Forward", "Special Leave", "Medical Leave", "Unpaid Leave"];
   const leaveStatusOptions = ["Active", "Pending", "Approved", "Forfeited"];
@@ -987,10 +990,13 @@ export default function SettingsPage() {
                       <h4 className="text-sm font-black uppercase tracking-[0.25em] text-[#7B0099]">Workspace</h4>
                       <p className="text-[11px] text-muted-foreground mt-1">Select one of the leave entitlement management modules.</p>
                     </div>
-                      <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700">
-                        <span className={`h-2 w-2 rounded-full ${sseStatus === "Live" ? "bg-emerald-500" : "bg-amber-500"}`} />
-                        SSE {sseStatus}
-                      </div>
+                    <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700">
+                      <span className={`h-2 w-2 rounded-full ${sseStatus === "Live" ? "bg-emerald-500" : "bg-amber-500"}`} />
+                      SSE {sseStatus}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {[
                       { label: "Annual Leave Allocation" },
                       { label: "Carry Forward" },
                       { label: "Additional Leave" },
@@ -998,13 +1004,14 @@ export default function SettingsPage() {
                       { label: "Special Leave" },
                       { label: "Forfeiture" },
                       { label: "History" },
-                      { label: "Reports" }
+                      { label: "Reports" },
+                      { label: "Bulk Allocation" }
                     ].map((item) => (
                       <button
                         key={item.label}
                         type="button"
-                        onClick={() => toast.success(`${item.label} selected.`)}
-                        className={`w-full text-left rounded-2xl border px-4 py-3 transition-all ${item.active ? 'border-[#7B0099] bg-[#7B0099]/10 text-[#220841]' : 'border-border/70 bg-background/60 text-foreground hover:border-[#7B0099] hover:bg-[#7B0099]/5'}`}
+                        onClick={() => setSelectedLeaveModule(item.label)}
+                        className={`w-full text-left rounded-2xl border px-4 py-3 transition-all ${item.label === selectedLeaveModule ? 'border-[#7B0099] bg-[#7B0099]/10 text-[#220841]' : 'border-border/70 bg-background/60 text-foreground hover:border-[#7B0099] hover:bg-[#7B0099]/5'}`}
                       >
                         <span className="text-sm font-black">{item.label}</span>
                         <p className="text-[10px] text-muted-foreground mt-1">{item.label === 'Dashboard' ? 'HR summary and action required' : 'Manage ' + item.label.toLowerCase()}</p>
@@ -1197,6 +1204,184 @@ export default function SettingsPage() {
                       )}
                     </tbody>
                     </table>
+                  </div>
+                )}
+              </Card>
+
+              {/* Module render area: show the selected leave module UI */}
+              <Card className="border-none shadow-sm bg-white/90 dark:bg-card/80 rounded-[20px] p-5">
+                {selectedLeaveModule === 'Carry Forward' && (
+                  <div>
+                    <h4 className="text-lg font-black">Carry Forward Leave</h4>
+                    <p className="text-sm text-muted-foreground mt-1">Configure carry forward rules and process eligible employees.</p>
+                    <div className="grid gap-3 mt-4 sm:grid-cols-2">
+                      <Select value={selectedLeaveType} onValueChange={setSelectedLeaveType}>
+                        <SelectTrigger className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 text-sm font-black uppercase">
+                          <SelectValue placeholder="Leave Type" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {leaveTypes.map((type) => (
+                            <SelectItem key={type} value={type} className="text-[10px] font-black uppercase">{type}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={selectedLeaveYear} onValueChange={setSelectedLeaveYear}>
+                        <SelectTrigger className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 text-sm font-black uppercase">
+                          <SelectValue placeholder="Leave Year" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {leaveYears.map((y) => (
+                            <SelectItem key={y} value={y} className="text-[10px] font-black uppercase">{y}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <Select value="" onValueChange={() => {}}>
+                        <SelectTrigger className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 text-sm font-black uppercase">
+                          <SelectValue placeholder="Carry Forward To" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="2027" className="text-[10px] font-black uppercase">2027</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <div className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 px-4 py-3 flex items-center">
+                        <label className="font-black mr-2">Max Carry Forward</label>
+                        <input className="w-16 bg-transparent outline-none" defaultValue={5} />
+                        <span className="text-muted-foreground"> days</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex gap-3">
+                      <Button onClick={() => toast.success('Preview generated')} className="bg-background/20">Preview</Button>
+                      <Button onClick={() => toast.success('Carry forward executed')} className="bg-[#7B0099] text-white">Execute Carry Forward</Button>
+                    </div>
+                  </div>
+                )}
+
+                {selectedLeaveModule === 'Additional Leave' && (
+                  <div>
+                    <h4 className="text-lg font-black">Additional Leave Allocation</h4>
+                    <p className="text-sm text-muted-foreground mt-1">Grant additional leave to selected employee.</p>
+                    <div className="grid gap-3 mt-4 sm:grid-cols-2">
+                      <input type="text" placeholder="Search Employee" className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 px-4" />
+                      <div className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 px-4 py-3 flex items-center">Current Balance: 14 Days</div>
+                    </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <Select value={selectedLeaveType} onValueChange={setSelectedLeaveType}>
+                        <SelectTrigger className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 text-sm font-black uppercase">
+                          <SelectValue placeholder="Leave Type" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {leaveTypes.map((type) => (
+                            <SelectItem key={type} value={type} className="text-[10px] font-black uppercase">{type}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <div className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 px-4 py-3 flex items-center">
+                        <label className="font-black mr-2">Additional Days</label>
+                        <input className="w-16 bg-transparent outline-none" defaultValue={3} />
+                        <span className="text-muted-foreground"> days</span>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex gap-3">
+                      <Button onClick={() => toast.error('Cancelled')} className="bg-background/20">Cancel</Button>
+                      <Button onClick={() => toast.success('Leave granted')} className="bg-[#7B0099] text-white">Grant Leave</Button>
+                    </div>
+                  </div>
+                )}
+
+                {selectedLeaveModule === 'Adjustments' && (
+                  <div>
+                    <h4 className="text-lg font-black">Manual Leave Adjustment</h4>
+                    <p className="text-sm text-muted-foreground mt-1">Adjust an employee's leave balances.</p>
+                    <div className="mt-4">
+                      <input type="text" placeholder="Search Employee" className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 px-4" />
+                    </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <Select value={selectedLeaveType} onValueChange={setSelectedLeaveType}>
+                        <SelectTrigger className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 text-sm font-black uppercase">
+                          <SelectValue placeholder="Leave Type" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {leaveTypes.map((type) => (
+                            <SelectItem key={type} value={type} className="text-[10px] font-black uppercase">{type}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <div className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 px-4 py-3 flex items-center">
+                        <label className="font-black mr-2">Adjustment Days</label>
+                        <input className="w-16 bg-transparent outline-none" defaultValue={2} />
+                      </div>
+                    </div>
+                    <div className="mt-6 flex gap-3">
+                      <Button onClick={() => toast.error('Cancelled')} className="bg-background/20">Cancel</Button>
+                      <Button onClick={() => toast.success('Adjustment saved')} className="bg-[#7B0099] text-white">Save Adjustment</Button>
+                    </div>
+                  </div>
+                )}
+
+                {selectedLeaveModule === 'Special Leave' && (
+                  <div>
+                    <h4 className="text-lg font-black">Special Leave Credits</h4>
+                    <p className="text-sm text-muted-foreground mt-1">Grant special leave types such as birthday or compassionate leave.</p>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <input type="text" placeholder="Search Employee" className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 px-4" />
+                      <Select value="Birthday" onValueChange={() => {}}>
+                        <SelectTrigger className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 text-sm font-black uppercase">
+                          <SelectValue placeholder="Leave Type" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="Birthday">Birthday Leave</SelectItem>
+                          <SelectItem value="Compassionate">Compassionate Leave</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="mt-6 flex gap-3">
+                      <Button onClick={() => toast.error('Cancelled')} className="bg-background/20">Cancel</Button>
+                      <Button onClick={() => toast.success('Special leave granted')} className="bg-[#7B0099] text-white">Grant Credit</Button>
+                    </div>
+                  </div>
+                )}
+
+                {selectedLeaveModule === 'Forfeiture' && (
+                  <div>
+                    <h4 className="text-lg font-black">Leave Forfeiture</h4>
+                    <p className="text-sm text-muted-foreground mt-1">Process forfeiture for employees exceeding limits.</p>
+                    <div className="mt-4">
+                      <input type="text" placeholder="Search Employee" className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 px-4" />
+                    </div>
+                    <div className="mt-6 flex gap-3">
+                      <Button onClick={() => toast.success('Preview generated')} className="bg-background/20">Preview</Button>
+                      <Button onClick={() => toast.success('Forfeiture processed')} className="bg-[#7B0099] text-white">Process Forfeiture</Button>
+                    </div>
+                  </div>
+                )}
+
+                {selectedLeaveModule === 'Bulk Allocation' && (
+                  <div>
+                    <h4 className="text-lg font-black">Bulk Leave Allocation (Wizard)</h4>
+                    <p className="text-sm text-muted-foreground mt-1">4-step wizard for bulk allocation.</p>
+                    <div className="mt-4">
+                      <p className="font-black">Step 1 — Select Employees</p>
+                      <div className="mt-2">(Department / Branch / Type filters and employee table)</div>
+                    </div>
+                    <div className="mt-4">
+                      <p className="font-black">Step 2 — Allocation</p>
+                      <div className="mt-2">(Leave Type / Days / Effective Date / Expiry)</div>
+                    </div>
+                    <div className="mt-4">
+                      <p className="font-black">Step 3 — Preview</p>
+                      <div className="mt-2">Preview table with counts and totals</div>
+                    </div>
+                    <div className="mt-4">
+                      <p className="font-black">Step 4 — Confirm</p>
+                      <div className="mt-2">Allocation summary and confirm</div>
+                    </div>
                   </div>
                 )}
               </Card>
