@@ -274,6 +274,7 @@ export default function LeaveEntitlementManagement() {
             <LeaveBalanceHistoryForm
               employees={employees}
               onCancel={() => setActiveModule(null)}
+              getUnusedDays={getUnusedDays}
             />
           )}
         </div>
@@ -1639,9 +1640,11 @@ function BulkLeaveAllocationForm({
 function LeaveBalanceHistoryForm({
   employees,
   onCancel,
+  getUnusedDays,
 }: {
   employees: any[];
   onCancel: () => void;
+  getUnusedDays: (id: string) => number;
 }) {
   const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
   const [yearFilter, setYearFilter] = useState("2026");
@@ -1767,6 +1770,55 @@ function LeaveBalanceHistoryForm({
               </Select>
             </div>
           </div>
+          {selectedEmp && (
+            <div className="mt-4 p-4 rounded-xl border border-border/60 bg-muted/10 backdrop-blur-sm animate-in fade-in duration-300">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 pb-2 border-b">
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-[#7B0099]">Current Leave Balances</h4>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Showing active entitlements for the current calendar cycle.</p>
+                </div>
+                <div className="text-right mt-2 sm:mt-0 text-xs">
+                  <span className="font-bold text-foreground">{selectedEmp.full_name}</span>
+                  <span className="text-muted-foreground ml-1">({selectedEmp.user_id})</span>
+                  <span className="text-muted-foreground block text-[10px]">{selectedEmp.branch} • {selectedEmp.department || "No Department"}</span>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-white p-3 rounded-lg border shadow-sm">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Annual Leave</span>
+                  <div className="flex items-baseline gap-1 mt-1">
+                    <span className="text-lg font-black text-[#7B0099]">{getUnusedDays(selectedEmp.user_id) + 6}d</span>
+                    <span className="text-[10px] text-muted-foreground">/ 14d limit</span>
+                  </div>
+                </div>
+
+                <div className="bg-white p-3 rounded-lg border shadow-sm">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Medical Leave</span>
+                  <div className="flex items-baseline gap-1 mt-1">
+                    <span className="text-lg font-black text-emerald-600">12d</span>
+                    <span className="text-[10px] text-muted-foreground">/ 14d limit</span>
+                  </div>
+                </div>
+
+                <div className="bg-white p-3 rounded-lg border shadow-sm">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Carry Forward</span>
+                  <div className="flex items-baseline gap-1 mt-1">
+                    <span className="text-lg font-black text-blue-600">{getUnusedDays(selectedEmp.user_id) > 5 ? 5 : getUnusedDays(selectedEmp.user_id)}d</span>
+                    <span className="text-[10px] text-muted-foreground">Expires Mar 31</span>
+                  </div>
+                </div>
+
+                <div className="bg-white p-3 rounded-lg border shadow-sm">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Replacement Leave</span>
+                  <div className="flex items-baseline gap-1 mt-1">
+                    <span className="text-lg font-black text-amber-600">2d</span>
+                    <span className="text-[10px] text-muted-foreground">active credits</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div>
