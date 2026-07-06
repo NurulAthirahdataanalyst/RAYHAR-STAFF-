@@ -319,7 +319,7 @@ function EmployeeSearchSelector({
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
-          className="pl-8 pr-8 bg-white h-9"
+          className="pl-8 pr-8 bg-white h-9 text-xs"
         />
         {selectedEmployee && (
           <button
@@ -419,7 +419,7 @@ function AnnualLeaveAllocationForm({
       before: 0,
       after: leaveDays,
       type: "Allocation",
-      leave: "Annual Leave",
+      leave: "Annual & Emergency Leave",
       employee: emp.full_name,
     }));
 
@@ -537,7 +537,7 @@ function AnnualLeaveAllocationForm({
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold">Base Entitlement (Days)</Label>
-                  <Input type="number" value={leaveDays} onChange={(e) => setLeaveDays(Number(e.target.value))} className="bg-white" />
+                  <Input type="number" value={leaveDays} onChange={(e) => setLeaveDays(Number(e.target.value))} className="bg-white text-xs h-9" />
                 </div>
               </div>
             </div>
@@ -569,7 +569,7 @@ function AnnualLeaveAllocationForm({
                 </div>
                 <div className="space-y-1.5 md:col-span-2">
                   <Label className="text-xs font-bold">Search Name or ID</Label>
-                  <Input placeholder="Enter employee name..." value={search} onChange={(e) => setSearch(e.target.value)} className="bg-white" />
+                  <Input placeholder="Enter employee name..." value={search} onChange={(e) => setSearch(e.target.value)} className="bg-white text-xs h-9" />
                 </div>
               </div>
             </div>
@@ -726,7 +726,7 @@ function CarryForwardLeaveForm({
   onCancel: () => void;
   getUnusedDays: (id: string) => number;
 }) {
-  const [leaveType, setLeaveType] = useState("Annual Leave");
+  const [leaveType, setLeaveType] = useState("Annual & Emergency Leave");
   const [leaveYear, setLeaveYear] = useState("2026");
   const [carryToYear, setCarryToYear] = useState("2027");
   const [maxCarry, setMaxCarry] = useState(5);
@@ -820,8 +820,10 @@ function CarryForwardLeaveForm({
               <Select value={leaveType} onValueChange={setLeaveType}>
                 <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Annual Leave">Annual Leave</SelectItem>
-                  <SelectItem value="Medical Leave">Medical Leave</SelectItem>
+                  <SelectItem value="Annual & Emergency Leave">Annual & Emergency Leave</SelectItem>
+                  <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
+                  <SelectItem value="Sick Leave (MC)">Sick Leave (MC)</SelectItem>
+                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -847,11 +849,11 @@ function CarryForwardLeaveForm({
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Max Carry Forward (Days)</Label>
-              <Input type="number" value={maxCarry} onChange={(e) => setMaxCarry(Number(e.target.value))} className="bg-white h-9" />
+              <Input type="number" value={maxCarry} onChange={(e) => setMaxCarry(Number(e.target.value))} className="bg-white h-9 text-xs" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Expiry Date</Label>
-              <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="bg-white h-9" />
+              <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="bg-white h-9 text-xs" />
             </div>
           </div>
         </div>
@@ -892,7 +894,7 @@ function CarryForwardLeaveForm({
               <Label className="text-xs font-bold">Search Employee</Label>
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Enter ID or Name..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 bg-white h-9" />
+                <Input placeholder="Enter ID or Name..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 bg-white h-9 text-xs" />
               </div>
             </div>
           </div>
@@ -982,7 +984,7 @@ function AdditionalLeaveAllocationForm({
   onCancel: () => void;
 }) {
   const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
-  const [leaveType, setLeaveType] = useState("Annual Leave");
+  const [leaveType, setLeaveType] = useState("Annual & Emergency Leave");
   const [addDays, setAddDays] = useState(3);
   const [effectiveDate, setEffectiveDate] = useState("2027-01-10");
   const [expiryDate, setExpiryDate] = useState("2027-12-31");
@@ -1069,9 +1071,10 @@ function AdditionalLeaveAllocationForm({
               <Select value={leaveType} onValueChange={setLeaveType}>
                 <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Annual Leave">Annual Leave</SelectItem>
-                  <SelectItem value="Medical Leave">Medical Leave</SelectItem>
+                  <SelectItem value="Annual & Emergency Leave">Annual & Emergency Leave</SelectItem>
                   <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
+                  <SelectItem value="Sick Leave (MC)">Sick Leave (MC)</SelectItem>
+                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1089,11 +1092,11 @@ function AdditionalLeaveAllocationForm({
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Effective Date</Label>
-              <Input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} className="bg-white h-9" />
+              <Input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} className="bg-white h-9 text-xs" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Expiry Date</Label>
-              <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="bg-white h-9" />
+              <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="bg-white h-9 text-xs" />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label className="text-xs font-bold">Reason Category</Label>
@@ -1141,18 +1144,30 @@ function ManualLeaveAdjustmentForm({
   onCancel: () => void;
 }) {
   const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
-  const [leaveType, setLeaveType] = useState("Annual Leave");
+  const [leaveType, setLeaveType] = useState("Annual & Emergency Leave");
   const [adjType, setAdjType] = useState("add"); // add / deduct
-  const [adjDays, setAdjDays] = useState(2);
+  const [adjDays, setAdjDays] = useState(1);
   const [reason, setReason] = useState("System Correction");
   const [remarks, setRemarks] = useState("");
   const [fileName, setFileName] = useState("");
 
   const currentAnnualBalance = 12;
-  const currentMedicalBalance = 8;
+  const currentReplacementBalance = 2;
+  const currentSickBalance = 8;
+  const currentUnpaidBalance = 0;
 
-  const currentSelectedBalance = leaveType === "Annual Leave" ? currentAnnualBalance : currentMedicalBalance;
-  const newBalance = adjType === "add" ? currentSelectedBalance + adjDays : currentSelectedBalance - adjDays;
+  const getSelectedBalance = () => {
+    switch (leaveType) {
+      case "Annual & Emergency Leave": return currentAnnualBalance;
+      case "Replacement Leave": return currentReplacementBalance;
+      case "Sick Leave (MC)": return currentSickBalance;
+      case "Unpaid Leave": return currentUnpaidBalance;
+      default: return 0;
+    }
+  };
+
+  const currentSelectedBalance = getSelectedBalance();
+  const newBalance = adjType === "add" ? currentSelectedBalance + adjDays : Math.max(0, currentSelectedBalance - adjDays);
 
   const handleSave = () => {
     if (!selectedEmp) return;
@@ -1207,14 +1222,16 @@ function ManualLeaveAdjustmentForm({
             {selectedEmp && (
               <div className="grid grid-cols-2 gap-4 bg-muted/20 p-3 rounded-lg border border-border/50 text-xs">
                 <div>
-                  <span className="text-muted-foreground block mb-1">Current Balance</span>
-                  <div className="space-y-0.5">
-                    <div>Annual Leave: <span className="font-bold text-foreground">{currentAnnualBalance} Days</span></div>
-                    <div>Medical Leave: <span className="font-bold text-foreground">{currentMedicalBalance} Days</span></div>
+                  <span className="text-muted-foreground block mb-1 font-bold">Current Balance</span>
+                  <div className="space-y-1">
+                    <div>Annual & Emergency Leave: <span className="font-bold text-foreground">{currentAnnualBalance} Days</span></div>
+                    <div>Replacement Leave: <span className="font-bold text-foreground">{currentReplacementBalance} Days</span></div>
+                    <div>Sick Leave (MC): <span className="font-bold text-foreground">{currentSickBalance} Days</span></div>
+                    <div>Unpaid Leave: <span className="font-bold text-foreground">{currentUnpaidBalance} Days</span></div>
                   </div>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block mb-1">Details</span>
+                  <span className="text-muted-foreground block mb-1 font-bold">Details</span>
                   <div>Branch: <span className="font-bold text-foreground">{selectedEmp.branch}</span></div>
                   <div>Dept: <span className="font-bold text-foreground">{selectedEmp.department || "-"}</span></div>
                 </div>
@@ -1231,8 +1248,10 @@ function ManualLeaveAdjustmentForm({
               <Select value={leaveType} onValueChange={setLeaveType}>
                 <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Annual Leave">Annual Leave</SelectItem>
-                  <SelectItem value="Medical Leave">Medical Leave</SelectItem>
+                  <SelectItem value="Annual & Emergency Leave">Annual & Emergency Leave</SelectItem>
+                  <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
+                  <SelectItem value="Sick Leave (MC)">Sick Leave (MC)</SelectItem>
+                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1248,11 +1267,11 @@ function ManualLeaveAdjustmentForm({
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Adjustment Days</Label>
-              <Input type="number" value={adjDays} onChange={(e) => setAdjDays(Math.max(0, Number(e.target.value)))} className="bg-white h-9" />
+              <Input type="number" value={adjDays} onChange={(e) => setAdjDays(Math.max(0, Number(e.target.value)))} className="bg-white h-9 text-xs" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">New Balance</Label>
-              <div className="h-9 flex items-center px-3 border bg-muted/30 rounded-md font-black text-sm text-foreground">
+              <div className="h-9 flex items-center px-3 border bg-muted/30 rounded-md font-black text-xs text-foreground">
                 {newBalance} Days
               </div>
             </div>
@@ -1332,7 +1351,7 @@ function SpecialLeaveCreditsForm({
   const handleGrant = () => {
     if (!selectedEmp) return;
 
-    // Log to local balance history logs
+    // Log to local balance history logs (allocated under Replacement Leave)
     const newLog = {
       date: new Date().toISOString().split('T')[0],
       action: `Special Credit (${specialLeave})`,
@@ -1341,7 +1360,7 @@ function SpecialLeaveCreditsForm({
       before: 0,
       after: days,
       type: "Allocation",
-      leave: specialLeave,
+      leave: "Replacement Leave",
       employee: selectedEmp.full_name,
     };
     const saved = localStorage.getItem("leave_balance_history_logs");
@@ -1389,26 +1408,26 @@ function SpecialLeaveCreditsForm({
                 {["Birthday Leave", "Compassionate Leave", "Marriage Leave", "Replacement Leave", "Emergency Leave"].map((type) => (
                   <div key={type} className="flex items-center space-x-2 border p-2.5 rounded-md bg-white hover:bg-muted/10 cursor-pointer">
                     <RadioGroupItem value={type} id={type} />
-                    <Label htmlFor={type} className="text-xs font-bold cursor-pointer">{type}</Label>
+                    <Label htmlFor={type} className="text-xs font-bold cursor-pointer text-xxs">{type}</Label>
                   </div>
                 ))}
               </RadioGroup>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Days</Label>
-              <Input type="number" value={days} onChange={(e) => setDays(Number(e.target.value))} className="bg-white h-9" />
+              <Input type="number" value={days} onChange={(e) => setDays(Number(e.target.value))} className="bg-white h-9 text-xs" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Effective Date</Label>
-              <Input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} className="bg-white h-9" />
+              <Input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} className="bg-white h-9 text-xs" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Expiry Date</Label>
-              <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="bg-white h-9" />
+              <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="bg-white h-9 text-xs" />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label className="text-xs font-bold">Reason</Label>
-              <Input placeholder="Enter reason description..." value={reason} onChange={(e) => setReason(e.target.value)} className="bg-white h-9" />
+              <Input placeholder="Enter reason description..." value={reason} onChange={(e) => setReason(e.target.value)} className="bg-white h-9 text-xs" />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label className="text-xs font-bold">Remarks</Label>
@@ -1446,7 +1465,7 @@ function LeaveForfeitureForm({
   onCancel: () => void;
   getUnusedDays: (id: string) => number;
 }) {
-  const [leaveType, setLeaveType] = useState("Annual Leave");
+  const [leaveType, setLeaveType] = useState("Annual & Emergency Leave");
   const [carryLimit, setCarryLimit] = useState(5);
   const [expiryDate, setExpiryDate] = useState("2027-03-31");
   const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
@@ -1506,8 +1525,10 @@ function LeaveForfeitureForm({
               <Select value={leaveType} onValueChange={setLeaveType}>
                 <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Annual Leave">Annual Leave</SelectItem>
-                  <SelectItem value="Medical Leave">Medical Leave</SelectItem>
+                  <SelectItem value="Annual & Emergency Leave">Annual & Emergency Leave</SelectItem>
+                  <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
+                  <SelectItem value="Sick Leave (MC)">Sick Leave (MC)</SelectItem>
+                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1524,7 +1545,7 @@ function LeaveForfeitureForm({
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Expiry Date</Label>
-              <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="bg-white h-9" />
+              <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="bg-white h-9 text-xs" />
             </div>
           </div>
         </div>
@@ -1613,7 +1634,7 @@ function BulkLeaveAllocationForm({
   const [statusFilter, setStatusFilter] = useState("Active");
 
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
-  const [leaveType, setLeaveType] = useState("Annual Leave");
+  const [leaveType, setLeaveType] = useState("Annual & Emergency Leave");
   const [days, setDays] = useState(14);
   const [effectiveDate, setEffectiveDate] = useState("2027-01-01");
   const [expiryDate, setExpiryDate] = useState("2027-12-31");
@@ -1812,27 +1833,28 @@ function BulkLeaveAllocationForm({
               <Select value={leaveType} onValueChange={setLeaveType}>
                 <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Annual Leave">Annual/Emergency Leave</SelectItem>
-                  <SelectItem value="Medical Leave">Medical Leave</SelectItem>
+                  <SelectItem value="Annual & Emergency Leave">Annual & Emergency Leave</SelectItem>
                   <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
+                  <SelectItem value="Sick Leave (MC)">Sick Leave (MC)</SelectItem>
+                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Days to Allocate</Label>
-              <Input type="number" value={days} onChange={(e) => setDays(Number(e.target.value))} className="bg-white h-9" />
+              <Input type="number" value={days} onChange={(e) => setDays(Number(e.target.value))} className="bg-white h-9 text-xs" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Effective Date</Label>
-              <Input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} className="bg-white h-9" />
+              <Input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} className="bg-white h-9 text-xs" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Expiry Date</Label>
-              <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="bg-white h-9" />
+              <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="bg-white h-9 text-xs" />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label className="text-xs font-bold">Reason</Label>
-              <Input placeholder="e.g. Annual Allocation 2027" value={reason} onChange={(e) => setReason(e.target.value)} className="bg-white h-9" />
+              <Input placeholder="e.g. Annual Allocation 2027" value={reason} onChange={(e) => setReason(e.target.value)} className="bg-white h-9 text-xs" />
             </div>
           </div>
         )}
@@ -2010,7 +2032,7 @@ function LeaveBalanceHistoryForm({
       before: before,
       after: after,
       type: "Usage",
-      leave: req.leave_type || "Annual Leave",
+      leave: req.leave_type || "Annual & Emergency Leave",
       employee: req.full_name || "Unknown",
     };
   });
@@ -2027,7 +2049,7 @@ function LeaveBalanceHistoryForm({
       before: 10,
       after: 12,
       type: "Adjustment",
-      leave: "Annual Leave",
+      leave: "Annual & Emergency Leave",
       employee: "Ali Ahmad",
     },
     {
@@ -2038,7 +2060,7 @@ function LeaveBalanceHistoryForm({
       before: 0,
       after: 5,
       type: "Carry Forward",
-      leave: "Annual Leave",
+      leave: "Annual & Emergency Leave",
       employee: "Siti Nur",
     },
     {
@@ -2049,7 +2071,7 @@ function LeaveBalanceHistoryForm({
       before: 0,
       after: 14,
       type: "Allocation",
-      leave: "Annual Leave",
+      leave: "Annual & Emergency Leave",
       employee: "Ali Ahmad",
     },
   ];
@@ -2106,8 +2128,10 @@ function LeaveBalanceHistoryForm({
                 <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All">All Types</SelectItem>
-                  <SelectItem value="Annual Leave">Annual Leave</SelectItem>
-                  <SelectItem value="Medical Leave">Medical Leave</SelectItem>
+                  <SelectItem value="Annual & Emergency Leave">Annual & Emergency Leave</SelectItem>
+                  <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
+                  <SelectItem value="Sick Leave (MC)">Sick Leave (MC)</SelectItem>
+                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -2141,7 +2165,7 @@ function LeaveBalanceHistoryForm({
               
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="bg-white p-3 rounded-lg border shadow-sm">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Annual Leave</span>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Annual & Emergency Leave</span>
                   <div className="flex items-baseline gap-1 mt-1">
                     <span className="text-lg font-black text-[#7B0099]">{getUnusedDays(selectedEmp.user_id) + 6}d</span>
                     <span className="text-[10px] text-muted-foreground">/ 14d limit</span>
@@ -2149,18 +2173,10 @@ function LeaveBalanceHistoryForm({
                 </div>
 
                 <div className="bg-white p-3 rounded-lg border shadow-sm">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Medical Leave</span>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Sick Leave (MC)</span>
                   <div className="flex items-baseline gap-1 mt-1">
                     <span className="text-lg font-black text-emerald-600">12d</span>
                     <span className="text-[10px] text-muted-foreground">/ 14d limit</span>
-                  </div>
-                </div>
-
-                <div className="bg-white p-3 rounded-lg border shadow-sm">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Carry Forward</span>
-                  <div className="flex items-baseline gap-1 mt-1">
-                    <span className="text-lg font-black text-blue-600">{getUnusedDays(selectedEmp.user_id) > 5 ? 5 : getUnusedDays(selectedEmp.user_id)}d</span>
-                    <span className="text-[10px] text-muted-foreground">Expires Mar 31</span>
                   </div>
                 </div>
 
@@ -2169,6 +2185,14 @@ function LeaveBalanceHistoryForm({
                   <div className="flex items-baseline gap-1 mt-1">
                     <span className="text-lg font-black text-amber-600">2d</span>
                     <span className="text-[10px] text-muted-foreground">active credits</span>
+                  </div>
+                </div>
+
+                <div className="bg-white p-3 rounded-lg border shadow-sm">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Unpaid Leave</span>
+                  <div className="flex items-baseline gap-1 mt-1">
+                    <span className="text-lg font-black text-slate-600">0d</span>
+                    <span className="text-[10px] text-muted-foreground">accumulated</span>
                   </div>
                 </div>
               </div>
