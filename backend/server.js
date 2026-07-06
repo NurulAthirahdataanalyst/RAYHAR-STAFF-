@@ -3909,19 +3909,24 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
       queryParams
     );
 
-    const { format } = require('date-fns');
     const lateThreshold = typeof getLateThresholdTime === 'function' ? getLateThresholdTime() : "09:00:00";
+    const [lateH, lateM] = lateThreshold.split(':').map(Number);
 
     const reportData = clockRows.map(clock => {
       const emp = allProfiles.find(p => p.user_id === clock.user_id) || {};
-      const clockInTimeStr = format(new Date(clock.clock_in), 'HH:mm:ss');
-      const isLate = clockInTimeStr > lateThreshold;
+      
+      // Shift UTC timestamp to KL timezone (UTC+8) for accurate date & late check
+      const klTimeIn = new Date(new Date(clock.clock_in).getTime() + 8 * 60 * 60 * 1000);
+      const clockInHour = klTimeIn.getUTCHours();
+      const clockInMinute = klTimeIn.getUTCMinutes();
+      const isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
+      const dateStr = klTimeIn.toISOString().split('T')[0];
 
       return {
         user_id: clock.user_id,
         full_name: emp.full_name || 'Unknown',
         branch: emp.branch || 'HQ',
-        date: new Date(clock.clock_in).toISOString().split('T')[0],
+        date: dateStr,
         time_in: clock.time_in,
         time_out: clock.time_out,
         clock_in: clock.clock_in,

@@ -1,5 +1,6 @@
 import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Download, Building2, Users } from "lucide-react";
@@ -14,6 +15,11 @@ export default function DepartmentReports() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [selectedBranch, setSelectedBranch] = useState("All");
   const [selectedDept, setSelectedDept] = useState("All");
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setPortalTarget(document.getElementById("page-header-actions"));
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -116,13 +122,12 @@ export default function DepartmentReports() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          {/* Filters on Left */}
-          <div className="flex flex-wrap items-center gap-4">
+        {portalTarget && createPortal(
+          <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4 w-full sm:w-auto">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Branch:</span>
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="w-[180px] h-9 bg-white dark:bg-slate-950">
+                <SelectTrigger className="w-[140px] h-9 bg-white dark:bg-slate-950">
                   <SelectValue placeholder="All Branches" />
                 </SelectTrigger>
                 <SelectContent>
@@ -136,9 +141,9 @@ export default function DepartmentReports() {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Department:</span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Dept:</span>
               <Select value={selectedDept} onValueChange={setSelectedDept}>
-                <SelectTrigger className="w-[200px] h-9 bg-white dark:bg-slate-950">
+                <SelectTrigger className="w-[160px] h-9 bg-white dark:bg-slate-950">
                   <SelectValue placeholder="All Departments" />
                 </SelectTrigger>
                 <SelectContent>
@@ -150,13 +155,11 @@ export default function DepartmentReports() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          {/* Export on Right */}
-          <div className="flex flex-wrap gap-2">
             <ExportDropdown onExportCSV={handleExportCSV} />
-          </div>
-        </div>
+          </div>,
+          portalTarget
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
           <Card className="border-border shadow-sm">
@@ -226,7 +229,6 @@ export default function DepartmentReports() {
           </Card>
         </div>
 
-        <h1 className="text-2xl font-bold mb-6">Department & Branch Report</h1>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="border-border shadow-sm">
             <CardHeader>

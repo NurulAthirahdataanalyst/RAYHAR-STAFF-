@@ -20,6 +20,7 @@ function getBreadcrumbs(pathname: string): BreadcrumbSegment[] {
   if (pathname === "/employees") return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "EMPLOYEE DIRECTORY" }];
   if (pathname === "/branches") return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "BRANCH MANAGEMENT" }];
   if (pathname === "/reports") return [home, { label: "ANALYTICS" }, { label: "REPORTS" }];
+  if (pathname === "/reports/department") return [home, { label: "REPORTS", path: "/reports" }, { label: "DEPARTMENT & BRANCH REPORT" }];
   if (pathname === "/analytics") return [home, { label: "ANALYTICS" }, { label: "EMPLOYEE ANALYTICS" }];
   if (pathname === "/settings") return [home, { label: "ADMINISTRATION" }, { label: "SETTINGS" }];
   if (pathname === "/calendar") return [home, { label: "CALENDAR", path: "/calendar" }, { label: "WORK CALENDAR" }];
@@ -57,6 +58,7 @@ function getPageTitle(pathname: string): string {
   if (pathname === "/employees") return "Employee Directory";
   if (pathname === "/branches") return "Branches";
   if (pathname === "/reports") return "Reports & Analytics";
+  if (pathname === "/reports/department") return "Department & Branch Report";
   if (pathname === "/analytics") return "Employee Analytics";
   if (pathname === "/settings") return "Settings";
   if (pathname === "/calendar") return "Work Calendar";

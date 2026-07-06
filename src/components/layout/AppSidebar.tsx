@@ -146,7 +146,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       children: [
         { title: "Attendance Reports", icon: Clock, path: "/reports/attendance", roles: HOD_BL_ROLES },
         { title: "Leave Reports", icon: CalendarDays, path: "/reports/leave", roles: HOD_BL_ROLES },
-        { title: "Department Reports", icon: Building2, path: "/reports/department", roles: HOD_BL_ROLES },
+        { title: "Department & Branch Report", icon: Building2, path: "/reports/department", roles: HOD_BL_ROLES },
       ],
     },
     { title: "Administration", isSection: true, roles: HOD_BL_ROLES },
@@ -232,7 +232,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       children: [
         { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance", roles: FULL_ADMIN_ROLES },
         { title: "Leave Reports", icon: FileSearch, path: "/reports/leave", roles: FULL_ADMIN_ROLES },
-        { title: "Department Reports", icon: Building2, path: "/reports/department", roles: FULL_ADMIN_ROLES },
+        { title: "Department & Branch Report", icon: Building2, path: "/reports/department", roles: FULL_ADMIN_ROLES },
       ]
     },
     { title: "Settings", icon: Settings, path: "/settings", roles: ["hr_admin"] },
