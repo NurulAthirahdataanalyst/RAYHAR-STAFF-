@@ -35,11 +35,11 @@ function fmtDate(d: string) {
 
 function statusBadge(status: string) {
   switch (status) {
-    case "Active":    return <Badge className="bg-pink-100 text-pink-700 border border-pink-200 font-bold text-[10px]">🟣 Active</Badge>;
-    case "Upcoming":  return <Badge className="bg-amber-100 text-amber-700 border border-amber-200 font-bold text-[10px]">🟡 Upcoming</Badge>;
-    case "Completed": return <Badge className="bg-blue-100 text-blue-700 border border-blue-200 font-bold text-[10px]">🔵 Completed</Badge>;
-    case "Cancelled": return <Badge className="bg-gray-100 text-gray-600 border border-gray-200 font-bold text-[10px]">⬜ Cancelled</Badge>;
-    default:          return <Badge variant="outline">{status}</Badge>;
+    case "Active":    return <Badge className="bg-pink-100 text-pink-700 border border-pink-200 font-bold text-[10px] whitespace-nowrap">🟣 Active</Badge>;
+    case "Upcoming":  return <Badge className="bg-amber-100 text-amber-700 border border-amber-200 font-bold text-[10px] whitespace-nowrap">🟡 Upcoming</Badge>;
+    case "Completed": return <Badge className="bg-blue-100 text-blue-700 border border-blue-200 font-bold text-[10px] whitespace-nowrap">🔵 Completed</Badge>;
+    case "Cancelled": return <Badge className="bg-gray-100 text-gray-600 border border-gray-200 font-bold text-[10px] whitespace-nowrap">⬜ Cancelled</Badge>;
+    default:          return <Badge variant="outline" className="whitespace-nowrap">{status}</Badge>;
   }
 }
 
@@ -322,16 +322,16 @@ export default function OutstationAssignment() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50/60 hover:bg-slate-50/60">
-                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Employee</TableHead>
-                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Department</TableHead>
-                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Branch</TableHead>
-                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Destination</TableHead>
-                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Start</TableHead>
-                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">End</TableHead>
-                    <TableHead className="text-center font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Days</TableHead>
-                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Assigned By</TableHead>
-                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Status</TableHead>
-                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Actions</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Employee</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Department</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Branch</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Destination</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Start</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">End</TableHead>
+                    <TableHead className="text-center font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Days</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Assigned By</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Status</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
