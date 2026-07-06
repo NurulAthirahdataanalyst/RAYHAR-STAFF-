@@ -91,30 +91,70 @@ export default function DepartmentReports() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
           <Card className="border-border shadow-sm">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Building2 className="w-6 h-6 text-primary" />
+            <CardContent className="p-4 flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Building2 className="w-4 h-4 text-primary" />
+                </div>
+                <p className="text-xs font-medium text-muted-foreground">Total Department</p>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Departments</p>
-                <h3 className="text-3xl font-bold mt-1">{new Set(deptArray.map(d => d.department)).size}</h3>
-              </div>
+              <h3 className="text-2xl font-bold">{new Set(deptArray.filter(d => d.branch === 'HQ').map(d => d.department)).size}</h3>
             </CardContent>
           </Card>
           
           <Card className="border-border shadow-sm">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-                <Users className="w-6 h-6 text-green-500" />
+            <CardContent className="p-4 flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                  <Building2 className="w-4 h-4 text-blue-500" />
+                </div>
+                <p className="text-xs font-medium text-muted-foreground">Total Branch</p>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Employees</p>
-                <h3 className="text-3xl font-bold mt-1 text-green-600 dark:text-green-400">
-                  {employees.length}
-                </h3>
+              <h3 className="text-2xl font-bold">{new Set(deptArray.filter(d => d.branch !== 'HQ').map(d => d.branch)).size}</h3>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border shadow-sm">
+            <CardContent className="p-4 flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-green-500" />
+                </div>
+                <p className="text-xs font-medium text-muted-foreground">Total Employees <br/>(Dept & Branch)</p>
               </div>
+              <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">
+                {employees.length}
+              </h3>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border shadow-sm">
+            <CardContent className="p-4 flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-purple-500" />
+                </div>
+                <p className="text-xs font-medium text-muted-foreground">Total Employees <br/>(Department)</p>
+              </div>
+              <h3 className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                {deptArray.filter(d => d.branch === 'HQ').reduce((sum, item) => sum + item.headcount, 0)}
+              </h3>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border shadow-sm">
+            <CardContent className="p-4 flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-orange-500" />
+                </div>
+                <p className="text-xs font-medium text-muted-foreground">Total Employees <br/>(All Branch)</p>
+              </div>
+              <h3 className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                {deptArray.filter(d => d.branch !== 'HQ').reduce((sum, item) => sum + item.headcount, 0)}
+              </h3>
             </CardContent>
           </Card>
         </div>
