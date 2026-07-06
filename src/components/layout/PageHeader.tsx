@@ -14,7 +14,8 @@ function getBreadcrumbs(pathname: string): BreadcrumbSegment[] {
   if (pathname === "/hr-analytics/leave") return [home, { label: "LEAVE MANAGEMENT" }, { label: "LEAVE ANALYTICS" }];
   if (pathname === "/leave") return [home, { label: "LEAVE MANAGEMENT" }, { label: "OVERVIEW" }];
   if (pathname === "/leave/apply") return [home, { label: "LEAVE MANAGEMENT", path: "/leave" }, { label: "LEAVE APPLICATION" }];
-  if (pathname === "/leave/admin") return [home, { label: "LEAVE MANAGEMENT", path: "/leave" }, { label: "LEAVE APPROVALS" }];
+  if (pathname === "/leave/admin") return [home, { label: "LEAVE ADMINISTRATION", path: "/leave/admin" }, { label: "LEAVE APPROVALS" }];
+  if (pathname === "/leave/entitlement") return [home, { label: "LEAVE ADMINISTRATION", path: "/leave/admin" }, { label: "LEAVE ENTITLEMENT MANAGEMENT" }];
   if (pathname === "/leave/forms") return [home, { label: "LEAVE MANAGEMENT", path: "/leave" }, { label: "MY LEAVE REQUESTS" }];
   if (pathname === "/employees") return [home, { label: "ADMINISTRATION" }, { label: "EMPLOYEE DIRECTORY" }];
   if (pathname === "/branches") return [home, { label: "ADMINISTRATION" }, { label: "BRANCHES" }];
@@ -51,6 +52,7 @@ function getPageTitle(pathname: string): string {
   if (pathname === "/leave") return "Leave Management";
   if (pathname === "/leave/apply") return "Leave Application";
   if (pathname === "/leave/admin") return "Leave Approvals";
+  if (pathname === "/leave/entitlement") return "Leave Entitlement Management";
   if (pathname === "/leave/forms") return "My Leave Requests";
   if (pathname === "/employees") return "Employee Directory";
   if (pathname === "/branches") return "Branches";

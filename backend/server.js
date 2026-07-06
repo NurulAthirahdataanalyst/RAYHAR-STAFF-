@@ -3172,22 +3172,42 @@ app.get("/api/attendance/history", async (req, res) => {
           const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
           duration = `${diffHrs}h ${diffMins}m`;
         } else {
-          // No clock_out recorded - compute duration up to KL end of same day (23:59:59 KL)
+          // No clock_out recorded
           try {
             const ci = new Date(clock_in);
-            // Convert clock_in to KL moment by adding +8h to UTC timestamp
+            const nowUtc = new Date();
+            // Check if clock_in date (in KL time) is today (in KL time)
             const klClockIn = new Date(ci.getTime() + 8 * 60 * 60 * 1000);
-            const klEndOfDay = new Date(klClockIn);
-            klEndOfDay.setUTCHours(23, 59, 59, 999);
-            // Convert KL end-of-day back to UTC timestamp for diff
-            const endUtc = klEndOfDay.getTime() - 8 * 60 * 60 * 1000;
-            const diffMs2 = endUtc - ci.getTime();
-            if (diffMs2 >= 0) {
-              const diffHrs2 = Math.floor(diffMs2 / (1000 * 60 * 60));
-              const diffMins2 = Math.floor((diffMs2 % (1000 * 60 * 60)) / (1000 * 60));
-              duration = `${diffHrs2}h ${diffMins2}m`;
+            const klNow = new Date(nowUtc.getTime() + 8 * 60 * 60 * 1000);
+            const isTodayKL =
+              klClockIn.getUTCFullYear() === klNow.getUTCFullYear() &&
+              klClockIn.getUTCMonth() === klNow.getUTCMonth() &&
+              klClockIn.getUTCDate() === klNow.getUTCDate();
+
+            if (isTodayKL) {
+              // Active session today: use current time as the end point
+              const diffMs2 = nowUtc.getTime() - ci.getTime();
+              if (diffMs2 >= 0) {
+                const diffHrs2 = Math.floor(diffMs2 / (1000 * 60 * 60));
+                const diffMins2 = Math.floor((diffMs2 % (1000 * 60 * 60)) / (1000 * 60));
+                duration = `${diffHrs2}h ${diffMins2}m`;
+              } else {
+                duration = "--";
+              }
             } else {
-              duration = "--";
+              // Past day with missing clock-out: use 11:59 PM KL as fallback
+              const klEndOfDay = new Date(klClockIn);
+              klEndOfDay.setUTCHours(23, 59, 59, 999);
+              // Convert KL end-of-day back to UTC timestamp for diff
+              const endUtc = klEndOfDay.getTime() - 8 * 60 * 60 * 1000;
+              const diffMs2 = endUtc - ci.getTime();
+              if (diffMs2 >= 0) {
+                const diffHrs2 = Math.floor(diffMs2 / (1000 * 60 * 60));
+                const diffMins2 = Math.floor((diffMs2 % (1000 * 60 * 60)) / (1000 * 60));
+                duration = `${diffHrs2}h ${diffMins2}m`;
+              } else {
+                duration = "--";
+              }
             }
           } catch (e) {
             duration = "--";

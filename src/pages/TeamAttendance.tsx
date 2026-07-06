@@ -74,11 +74,8 @@ export default function TeamAttendance() {
     );
   }
 
-  // Calculate metrics
+  // Calculate metrics (will compute after merging attendance into employee list)
   const totalTeam = employees.length;
-  const presentIds = new Set(attendanceData.map(a => a.user_id));
-  const presentCount = presentIds.size;
-  const absentCount = totalTeam - presentCount;
 
   // Merge employee info with their attendance
   const mergedList = employees.map(emp => {
@@ -129,6 +126,11 @@ export default function TeamAttendance() {
     };
   });
 
+  // Metrics computed from merged list to reflect displayed statuses
+  const presentCount = mergedList.filter(e => e.status === 'Present').length;
+  const lateCount = mergedList.filter(e => e.status === 'Present' && e.late !== '00:00' && e.late !== '--').length;
+  const absentCount = mergedList.filter(e => e.status === 'Absent').length;
+
   let filteredList = mergedList.filter(e => 
     e.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     e.user_id?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -159,7 +161,7 @@ export default function TeamAttendance() {
       )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <Card className="border-border shadow-sm">
             <CardContent className="p-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -180,6 +182,18 @@ export default function TeamAttendance() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Present Today</p>
                 <h3 className="text-3xl font-bold mt-1 text-green-600 dark:text-green-400">{presentCount}</h3>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border shadow-sm">
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                <Clock className="w-6 h-6 text-amber-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Late Today</p>
+                <h3 className="text-3xl font-bold mt-1 text-amber-600 dark:text-amber-400">{lateCount}</h3>
               </div>
             </CardContent>
           </Card>
