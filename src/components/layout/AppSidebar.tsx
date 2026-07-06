@@ -251,8 +251,13 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     let activeParentTitle = "";
     filteredItems.forEach(item => {
       if (item.children) {
-        const isParentActive = item.path && (location.pathname === item.path || location.pathname.startsWith(`${item.path}/`));
-        const hasActiveChild = item.children.some(child => child.path && location.pathname === child.path);
+        const visibleChildren = item.children.filter((child) =>
+          child.roles.includes(role || "employee")
+        );
+        const hasActiveChild = visibleChildren.some(child =>
+          child.path && (location.pathname === child.path || location.pathname.startsWith(`${child.path}/`))
+        );
+        const isParentActive = item.path && location.pathname === item.path;
         if (hasActiveChild || isParentActive) {
           activeParentTitle = item.title;
         }
@@ -261,7 +266,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     if (activeParentTitle) {
       setExpandedMenus({ [activeParentTitle]: true });
     }
-  }, [location.pathname]);
+  }, [location.pathname, role]);
 
   const sidebarContent = (isMobile: boolean) => (
     <>
@@ -329,14 +334,17 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
               );
             }
 
-            const isActive =
-              item.path === "/"
-                ? location.pathname === item.path
-                : item.path && (location.pathname === item.path || location.pathname.startsWith(`${item.path}/`));
             const visibleChildren = item.children?.filter((child) =>
               child.roles.includes(role || "employee")
             );
             const hasChildren = !!visibleChildren?.length;
+            const hasActiveChild = hasChildren && visibleChildren.some(child =>
+              child.path && (location.pathname === child.path || location.pathname.startsWith(`${child.path}/`))
+            );
+            const isActive =
+              item.path === "/"
+                ? location.pathname === item.path
+                : (item.path && location.pathname === item.path) || hasActiveChild || (!hasChildren && item.path && location.pathname.startsWith(`${item.path}/`));
             const isMenuExpanded = expandedMenus[item.title];
             const ItemIcon = item.icon;
 
@@ -403,7 +411,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                   <div className="relative pl-[2.25rem] pr-6 py-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
                     <div className="absolute left-[1.1rem] top-0 bottom-4 w-px bg-sidebar-border"></div>
                     {visibleChildren.map((child) => {
-                      const isChildActive = location.pathname === child.path;
+                      const isChildActive = child.path && (location.pathname === child.path || location.pathname.startsWith(`${child.path}/`));
                       return (
                         <Link
                           key={child.title}
@@ -433,7 +441,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                     {/* Submenu Items */}
                     <div className="space-y-1">
                       {visibleChildren.map((child) => {
-                        const isChildActive = location.pathname === child.path;
+                        const isChildActive = child.path && (location.pathname === child.path || location.pathname.startsWith(`${child.path}/`));
                         return (
                           <Link
                             key={child.title}
