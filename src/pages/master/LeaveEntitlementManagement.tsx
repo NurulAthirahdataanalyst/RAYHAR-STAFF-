@@ -65,22 +65,16 @@ const modules = [
     tone: "bg-rose-500/10 text-rose-600",
   },
   {
-    title: "Leave Forfeiture",
-    description: "Remove expired or non-carryable leave balances after policy cut-off or year-end processing.",
-    icon: ShieldAlert,
-    tone: "bg-red-500/10 text-red-600",
+    title: "Maternity Leave",
+    description: "Leave granted to female employees before and/or after childbirth.",
+    icon: Sparkles,
+    tone: "bg-pink-500/10 text-pink-600",
   },
   {
     title: "Leave Balance History",
     description: "Track every allocation, deduction, and correction so HR can audit the full entitlement lifecycle.",
     icon: History,
     tone: "bg-slate-500/10 text-slate-600",
-  },
-  {
-    title: "Bulk Leave Allocation",
-    description: "Apply the same entitlement update to many employees at once for annual rollouts or policy changes.",
-    icon: Users,
-    tone: "bg-cyan-500/10 text-cyan-600",
   },
 ];
 
@@ -266,15 +260,8 @@ export default function LeaveEntitlementManagement() {
               onCancel={() => setActiveModule(null)}
             />
           )}
-          {activeModule === "Leave Forfeiture" && (
-            <LeaveForfeitureForm
-              employees={employees}
-              onCancel={() => setActiveModule(null)}
-              getUnusedDays={getUnusedDays}
-            />
-          )}
-          {activeModule === "Bulk Leave Allocation" && (
-            <BulkLeaveAllocationForm
+          {activeModule === "Maternity Leave" && (
+            <MaternityLeaveForm
               employees={employees}
               onCancel={() => setActiveModule(null)}
             />
@@ -1491,50 +1478,39 @@ function SpecialLeaveCreditsForm({
 }
 
 /* ==========================================================
-   6. LEAVE FORFEITURE FORM
+   6. MATERNITY LEAVE FORM
    ========================================================== */
-function LeaveForfeitureForm({
+function MaternityLeaveForm({
   employees,
   onCancel,
-  getUnusedDays,
 }: {
   employees: any[];
   onCancel: () => void;
-  getUnusedDays: (id: string) => number;
 }) {
-  const [leaveType, setLeaveType] = useState("Annual & Emergency Leave");
-  const [carryLimit, setCarryLimit] = useState(5);
-  const [expiryDate, setExpiryDate] = useState("2027-03-31");
   const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
-  const [reason, setReason] = useState("Carry Forward Limit Exceeded");
+  const [startDate, setStartDate] = useState("");
   const [remarks, setRemarks] = useState("");
+  const [fileName, setFileName] = useState("");
 
-  const currentBalances = selectedEmp ? getEmployeeLeaveBalances(selectedEmp.user_id) : {
-    "Annual & Emergency Leave": 12,
-    "Replacement Leave": 2,
-    "Sick Leave (MC)": 8,
-    "Unpaid Leave": 0
-  };
+  const endDate = startDate ? (() => {
+    const d = new Date(startDate);
+    d.setDate(d.getDate() + 98);
+    return d.toISOString().split('T')[0];
+  })() : "";
 
-  const unused = selectedEmp ? currentBalances[leaveType as any] || 0 : 0;
-  const eligible = Math.min(unused, carryLimit);
-  const forfeit = Math.max(0, unused - eligible);
-
-  const handleForfeit = () => {
-    if (!selectedEmp) return;
-
-    updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, leaveType, eligible);
+  const handleGrant = () => {
+    if (!selectedEmp || !startDate) return;
 
     // Log to local balance history logs
     const newLog = {
       date: new Date().toISOString().split('T')[0],
-      action: `Forfeited (-${forfeit}d)`,
+      action: "Maternity Leave (+98d)",
       performedBy: "Nurul Athirah (HR)",
-      reference: `FORFEIT-${reason.replace(/\s+/g, '-')}`,
-      before: unused,
-      after: eligible,
-      type: "Adjustment",
-      leave: leaveType,
+      reference: `MAT-ALLOC-${startDate}`,
+      before: 0,
+      after: 98,
+      type: "Allocation",
+      leave: "Replacement Leave",
       employee: selectedEmp.full_name,
     };
     const saved = localStorage.getItem("leave_balance_history_logs");
@@ -1542,8 +1518,8 @@ function LeaveForfeitureForm({
     localStorage.setItem("leave_balance_history_logs", JSON.stringify([newLog, ...currentLogs]));
 
     toast({
-      title: "Leave Forfeited Successful",
-      description: `Forfeited ${forfeit} unused days from ${selectedEmp.full_name} successfully.`,
+      title: "Maternity Leave Granted",
+      description: `Successfully granted 98 days maternity leave to ${selectedEmp.full_name} starting from ${startDate} to ${endDate}.`,
     });
     onCancel();
   };
@@ -1551,478 +1527,86 @@ function LeaveForfeitureForm({
   return (
     <Card className="border-border/60 bg-card/75 shadow-lg max-w-2xl mx-auto">
       <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20">
-        <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-red-500/10 hover:text-red-600 transition-colors">
+        <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-pink-500/10 hover:text-pink-600 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Button>
-        <div className="w-9 h-9 rounded-xl bg-red-500/10 flex items-center justify-center">
-          <ShieldAlert className="w-5 h-5 text-red-600" />
+        <div className="w-9 h-9 rounded-xl bg-pink-500/10 flex items-center justify-center">
+          <Sparkles className="w-5 h-5 text-pink-600" />
         </div>
         <div>
-          <CardTitle className="text-base sm:text-lg font-black text-foreground">Leave Forfeiture</CardTitle>
-          <CardDescription className="text-xs">Enforce forfeiture rules on expired carry forwards or policy overflows.</CardDescription>
+          <CardTitle className="text-base sm:text-lg font-black text-foreground">Maternity Leave</CardTitle>
+          <CardDescription className="text-xs">Configure and allocate childbirth maternity leave for eligible female employees.</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="space-y-6 pt-2">
         <div>
-          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Policy</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Leave Type</Label>
-              <Select value={leaveType} onValueChange={setLeaveType}>
-                <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Annual & Emergency Leave">Annual & Emergency Leave</SelectItem>
-                  <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
-                  <SelectItem value="Sick Leave (MC)">Sick Leave (MC)</SelectItem>
-                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Carry Forward Limit</Label>
-              <Select value={carryLimit.toString()} onValueChange={(val) => setCarryLimit(Number(val))}>
-                <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5">5 Days</SelectItem>
-                  <SelectItem value="3">3 Days</SelectItem>
-                  <SelectItem value="0">0 Days (No roll-over)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Expiry Date</Label>
-              <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="bg-white h-9 text-xs" />
-            </div>
-          </div>
-        </div>
-
-        <div>
           <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Employee</h4>
-          <div className="space-y-4">
-            <EmployeeSearchSelector
-              employees={employees}
-              selectedEmployee={selectedEmp}
-              onSelect={setSelectedEmp}
-              placeholder="Search staff to check..."
-            />
-            {selectedEmp && (
-              <div className="grid grid-cols-3 gap-4 bg-muted/20 p-3 rounded-lg border border-border/50 text-xs">
-                <div>
-                  <span className="text-muted-foreground block">Unused Leave</span>
-                  <span className="font-bold text-foreground text-sm">{unused} Days</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block">Eligible Carry Forward</span>
-                  <span className="font-bold text-emerald-600 text-sm">{eligible} Days</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block">Days To Forfeit</span>
-                  <span className="font-bold text-rose-600 text-sm">{forfeit} Days</span>
-                </div>
-              </div>
-            )}
-          </div>
+          <EmployeeSearchSelector
+            employees={employees.filter(e => e.gender?.toLowerCase() === "female" || !e.gender)}
+            selectedEmployee={selectedEmp}
+            onSelect={setSelectedEmp}
+            placeholder="Search female employee..."
+          />
         </div>
 
         {selectedEmp && (
-          <div>
-            <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Forfeiture Process</h4>
-            <div className="grid grid-cols-1 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold">Reason</Label>
-                <Select value={reason} onValueChange={setReason}>
-                  <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Carry Forward Limit Exceeded">Carry Forward Limit Exceeded</SelectItem>
-                    <SelectItem value="Policy Expiry Date Reached">Policy Expiry Date Reached</SelectItem>
-                  </SelectContent>
-                </Select>
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Leave Period (98 Days)</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold">Start Date</Label>
+                  <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-white h-9 text-xs" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold">End Date (Auto calculated)</Label>
+                  <div className="h-9 flex items-center px-3 border bg-muted/30 rounded-md font-bold text-xs text-foreground">
+                    {endDate || "Select Start Date"}
+                  </div>
+                </div>
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold">Remarks</Label>
-                <Textarea
-                  rows={2}
-                  placeholder="Audit trail remarks..."
-                  value={remarks}
-                  onChange={(e) => setRemarks(e.target.value)}
-                  className="bg-white text-xs"
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Remarks</Label>
+              <Textarea
+                rows={3}
+                placeholder="Details of the maternity request, EDD details..."
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                className="bg-white text-xs"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">Attachment (Optional)</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="file"
+                  id="mat-file"
+                  onChange={(e) => setFileName(e.target.files?.[0]?.name || "")}
+                  className="hidden"
                 />
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="flex justify-end gap-3 border-t pt-4">
-          <Button variant="outline" size="sm" onClick={onCancel} className="text-xs uppercase font-black tracking-wider">Cancel</Button>
-          <Button size="sm" disabled={!selectedEmp || forfeit === 0} onClick={handleForfeit} className="bg-red-600 hover:bg-red-700 text-white text-xs uppercase font-black tracking-wider">
-            Process Forfeiture
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-/* ==========================================================
-   7. BULK LEAVE ALLOCATION FORM (4-STEP WIZARD)
-   ========================================================== */
-function BulkLeaveAllocationForm({
-  employees,
-  onCancel,
-}: {
-  employees: any[];
-  onCancel: () => void;
-}) {
-  const [step, setStep] = useState(1);
-  const [selectedDept, setSelectedDept] = useState("All");
-  const [selectedBranch, setSelectedBranch] = useState("All");
-  const [empType, setEmpType] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("Active");
-
-  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
-  const [leaveType, setLeaveType] = useState("Annual & Emergency Leave");
-  const [days, setDays] = useState(14);
-  const [effectiveDate, setEffectiveDate] = useState("2027-01-01");
-  const [expiryDate, setExpiryDate] = useState("2027-12-31");
-  const [reason, setReason] = useState("Annual Allocation");
-
-  // Dynamic filter for Step 1
-  const filtered = employees.filter((e) => {
-    const bMatch = selectedBranch === "All" || e.branch === selectedBranch;
-    const dMatch = selectedDept === "All" || e.department === selectedDept;
-    return bMatch && dMatch;
-  });
-
-  const uniqueBranches = ["All", ...new Set(employees.map(e => e.branch).filter(Boolean))];
-  const uniqueDepts = ["All", ...new Set(employees.map(e => e.department).filter(Boolean))];
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedEmployees(filtered.map(e => e.user_id));
-    } else {
-      setSelectedEmployees([]);
-    }
-  };
-
-  const handleToggleSelect = (uid: string) => {
-    if (selectedEmployees.includes(uid)) {
-      setSelectedEmployees(selectedEmployees.filter(id => id !== uid));
-    } else {
-      setSelectedEmployees([...selectedEmployees, uid]);
-    }
-  };
-
-  const handleConfirmAllocation = () => {
-    // Log to local balance history logs
-    const newLogs = employees
-      .filter((e) => selectedEmployees.includes(e.user_id))
-      .map(emp => {
-        const currentBalances = getEmployeeLeaveBalances(emp.user_id);
-        const newTotal = currentBalances[leaveType as any] + days;
-        updateEmployeeLeaveBalance(emp.user_id, emp.full_name, leaveType, newTotal);
-
-        return {
-          date: new Date().toISOString().split('T')[0],
-          action: `Bulk Allocation (+${days}d)`,
-          performedBy: "Nurul Athirah (HR)",
-          reference: `BULK-ALLOC-${reason.replace(/\s+/g, '-')}`,
-          before: currentBalances[leaveType as any],
-          after: newTotal,
-          type: "Allocation",
-          leave: leaveType,
-          employee: emp.full_name,
-        };
-      });
-
-    const saved = localStorage.getItem("leave_balance_history_logs");
-    const currentLogs = saved ? JSON.parse(saved) : [];
-    localStorage.setItem("leave_balance_history_logs", JSON.stringify([...newLogs, ...currentLogs]));
-
-    toast({
-      title: "Bulk Allocation Successful",
-      description: `Granted ${days} days of ${leaveType} to ${selectedEmployees.length} employees.`,
-    });
-    onCancel();
-  };
-
-  return (
-    <Card className="border-border/60 bg-card/75 shadow-lg">
-      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20">
-        <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-cyan-500/10 hover:text-cyan-600 transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
-        <div className="w-9 h-9 rounded-xl bg-cyan-500/10 flex items-center justify-center">
-          <Users className="w-5 h-5 text-cyan-600" />
-        </div>
-        <div>
-          <CardTitle className="text-base sm:text-lg font-black text-foreground">Bulk Leave Allocation</CardTitle>
-          <CardDescription className="text-xs">Grant leave balances to batches of employees using a step-by-step wizard.</CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6 pt-2">
-        {/* Wizard Steps indicator */}
-        <div className="flex items-center justify-between border-b pb-4">
-          {[
-            { num: 1, label: "Select Employees" },
-            { num: 2, label: "Allocation Details" },
-            { num: 3, label: "Preview" },
-            { num: 4, label: "Confirmation" },
-          ].map((s) => (
-            <div key={s.num} className="flex items-center gap-2 text-xs">
-              <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center font-black ${
-                  step === s.num
-                    ? "bg-cyan-600 text-white"
-                    : step > s.num
-                    ? "bg-cyan-100 text-cyan-700"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                {step > s.num ? <Check className="w-3.5 h-3.5" /> : s.num}
-              </div>
-              <span className={`font-bold ${step === s.num ? "text-cyan-600" : "text-muted-foreground"}`}>{s.label}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* STEP 1: SELECT EMPLOYEES */}
-        {step === 1 && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold">Department</Label>
-                <Select value={selectedDept} onValueChange={setSelectedDept}>
-                  <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {uniqueDepts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold">Branch</Label>
-                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                  <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {uniqueBranches.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold">Employment Type</Label>
-                <Select value={empType} onValueChange={setEmpType}>
-                  <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All">All Types</SelectItem>
-                    <SelectItem value="Permanent">Permanent</SelectItem>
-                    <SelectItem value="Contract">Contract</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold">Employment Status</Label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => document.getElementById("mat-file")?.click()}
+                  className="text-xs w-full justify-start h-9"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  {fileName || "Upload medical certificate / EDD confirmation document"}
+                </Button>
               </div>
             </div>
 
-            <div className="border rounded-md max-h-60 overflow-y-auto bg-white">
-              <Table className="text-xs">
-                <TableHeader className="bg-muted/30">
-                  <TableRow>
-                    <TableHead className="w-[50px] text-center">
-                      <input
-                        type="checkbox"
-                        checked={filtered.length > 0 && selectedEmployees.length === filtered.length}
-                        onChange={(e) => handleSelectAll(e.target.checked)}
-                        className="cursor-pointer rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"
-                      />
-                    </TableHead>
-                    <TableHead>Employee ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Branch</TableHead>
-                    <TableHead>Department</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map((emp) => {
-                    const isSel = selectedEmployees.includes(emp.user_id);
-                    return (
-                      <TableRow key={emp.user_id} className={isSel ? "bg-cyan-500/5" : ""}>
-                        <TableCell className="text-center">
-                          <input
-                            type="checkbox"
-                            checked={isSel}
-                            onChange={() => handleToggleSelect(emp.user_id)}
-                            className="cursor-pointer rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"
-                          />
-                        </TableCell>
-                        <TableCell className="font-medium">{emp.user_id}</TableCell>
-                        <TableCell className="font-bold">{emp.full_name}</TableCell>
-                        <TableCell>{emp.branch}</TableCell>
-                        <TableCell>{emp.department || "--"}</TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-            <div className="flex justify-between items-center text-xs text-muted-foreground">
-              <span>Selected: <strong>{selectedEmployees.length}</strong> employees</span>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 2: ALLOCATION DETAILS */}
-        {step === 2 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto py-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Leave Type</Label>
-              <Select value={leaveType} onValueChange={setLeaveType}>
-                <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Annual & Emergency Leave">Annual & Emergency Leave</SelectItem>
-                  <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
-                  <SelectItem value="Sick Leave (MC)">Sick Leave (MC)</SelectItem>
-                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Days to Allocate</Label>
-              <Input type="number" value={days} onChange={(e) => setDays(Number(e.target.value))} className="bg-white h-9 text-xs" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Effective Date</Label>
-              <Input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} className="bg-white h-9 text-xs" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Expiry Date</Label>
-              <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="bg-white h-9 text-xs" />
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-xs font-bold">Reason</Label>
-              <Input placeholder="e.g. Annual Allocation 2027" value={reason} onChange={(e) => setReason(e.target.value)} className="bg-white h-9 text-xs" />
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: PREVIEW */}
-        {step === 3 && (
-          <div className="space-y-4">
-            <div className="bg-cyan-50 border border-cyan-200 p-4 rounded-lg flex items-center justify-between text-xs dark:bg-slate-900 dark:border-slate-800">
-              <div>
-                <span className="text-muted-foreground block">Allocation Overview</span>
-                <span className="font-bold text-sm text-cyan-800 dark:text-cyan-400">
-                  {selectedEmployees.length} Employees • {leaveType} • {days} Days
-                </span>
-              </div>
-              <div className="text-right">
-                <span className="text-muted-foreground block">Effective Date</span>
-                <span className="font-bold">{effectiveDate}</span>
-              </div>
-            </div>
-
-            <div className="border rounded-md max-h-60 overflow-y-auto bg-white">
-              <Table className="text-xs">
-                <TableHeader className="bg-muted/30">
-                  <TableRow>
-                    <TableHead>Employee ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Branch</TableHead>
-                    <TableHead className="text-right">Days Allocated</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {employees
-                    .filter((e) => selectedEmployees.includes(e.user_id))
-                    .map((emp) => (
-                      <TableRow key={emp.user_id}>
-                        <TableCell className="font-medium">{emp.user_id}</TableCell>
-                        <TableCell className="font-bold">{emp.full_name}</TableCell>
-                        <TableCell>{emp.branch}</TableCell>
-                        <TableCell className="text-right font-black text-cyan-600">+{days} Days</TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 4: CONFIRMATION */}
-        {step === 4 && (
-          <div className="max-w-md mx-auto text-center py-8 space-y-4 border rounded-xl bg-muted/10">
-            <div className="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center mx-auto text-cyan-600">
-              <Users className="w-8 h-8" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-bold text-lg">Allocation Summary</h3>
-              <p className="text-xs text-muted-foreground">Please double check the batch allocation totals.</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4 max-w-xs mx-auto text-left text-xs bg-white p-4 rounded-lg border">
-              <div>
-                <span className="text-muted-foreground">Total Employees:</span>
-                <div className="font-black text-sm">{selectedEmployees.length}</div>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Total Days:</span>
-                <div className="font-black text-sm">{selectedEmployees.length * days} Days</div>
-              </div>
-              <div className="col-span-2 pt-2 border-t">
-                <span className="text-muted-foreground">Leave Type:</span>
-                <div className="font-bold">{leaveType}</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Navigation Controls */}
-        <div className="flex justify-between items-center border-t pt-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onCancel}
-            className="text-xs uppercase font-black tracking-wider"
-          >
-            Cancel
-          </Button>
-
-          <div className="flex gap-2">
-            {step > 1 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setStep(step - 1)}
-                className="text-xs uppercase font-black tracking-wider"
-              >
-                Back
+            <div className="flex justify-end gap-3 border-t pt-4">
+              <Button variant="outline" size="sm" onClick={onCancel} className="text-xs uppercase font-black tracking-wider">Cancel</Button>
+              <Button size="sm" disabled={!startDate} onClick={handleGrant} className="bg-pink-600 hover:bg-pink-700 text-white text-xs uppercase font-black tracking-wider">
+                Grant Maternity Leave
               </Button>
-            )}
-            {step < 4 ? (
-              <Button
-                size="sm"
-                onClick={() => setStep(step + 1)}
-                disabled={step === 1 && selectedEmployees.length === 0}
-                className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs uppercase font-black tracking-wider"
-              >
-                Next
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                onClick={handleConfirmAllocation}
-                className="bg-cyan-700 hover:bg-cyan-800 text-white text-xs uppercase font-black tracking-wider"
-              >
-                Confirm Allocation
-              </Button>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
