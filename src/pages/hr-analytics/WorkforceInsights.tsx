@@ -83,6 +83,7 @@ export default function WorkforceInsights() {
   const [lateList, setLateList] = useState<LiveEmp[]>([]);
   const [absentList, setAbsentList] = useState<LiveEmp[]>([]);
   const [pendingApprovalsList, setPendingApprovalsList] = useState<PendingItem[]>([]);
+  const [upcomingOutstationList, setUpcomingOutstationList] = useState<any[]>([]);
   const [feedConnected, setFeedConnected] = useState(false);
 
   const isAdminRole = ["hr_admin", "managing_director", "finance_manager"].includes(role || "");
@@ -108,6 +109,7 @@ export default function WorkforceInsights() {
           setLateList(d.lateList || []);
           setAbsentList(d.absentList || []);
           setPendingApprovalsList(d.pendingApprovals || []);
+          setUpcomingOutstationList(d.upcomingOutstationList || []);
           setFeedConnected(true);
         }
       } catch {}
@@ -1012,56 +1014,59 @@ export default function WorkforceInsights() {
               </span>
             </div>
             
-            <div className="flex-1 space-y-4">
-              {/* Kuala Lumpur Site Visit */}
-              <div className="border-l-4 border-orange-500 pl-3 py-1 space-y-2">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-xs font-bold text-slate-800">Kuala Lumpur Site Visit</p>
-                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">12:00 PM - 01:50 PM</p>
-                  </div>
-                  <div className="flex -space-x-1.5">
-                    <div className="w-5 h-5 rounded-full bg-slate-200 border border-white text-[8px] font-bold flex items-center justify-center">A</div>
-                    <div className="w-5 h-5 rounded-full bg-slate-300 border border-white text-[8px] font-bold flex items-center justify-center">B</div>
-                    <div className="w-5 h-5 rounded-full bg-slate-400 border border-white text-[8px] font-bold flex items-center justify-center">C</div>
-                    <div className="w-5 h-5 rounded-full bg-indigo-500 border border-white text-[8px] font-bold text-white flex items-center justify-center">+9</div>
-                  </div>
+            <div className="flex-1 space-y-4 max-h-[300px] overflow-y-auto pr-0.5">
+              {upcomingOutstationList.length === 0 && !feedConnected && (
+                <div className="flex flex-col items-center justify-center py-8 text-slate-300">
+                  <Loader2 className="w-5 h-5 animate-spin mb-2" />
+                  <p className="text-[10px] font-medium">Loading live data…</p>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 bg-white text-slate-600 rounded flex items-center gap-1">
-                    <CalendarDays className="w-3 h-3" /> Add to Calendar
-                  </Button>
-                  <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 bg-white text-slate-600 rounded">
-                    Join Now
-                  </Button>
+              )}
+              {upcomingOutstationList.length === 0 && feedConnected && (
+                <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                  <Plane className="w-6 h-6 opacity-40 mb-1" />
+                  <p className="text-[10px] font-semibold">No upcoming outstations today!</p>
                 </div>
-              </div>
-
-              {/* Penang Branch Audit */}
-              <div className="border-l-4 border-cyan-500 pl-3 py-1 space-y-2">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-xs font-bold text-slate-800">Penang Branch Audit</p>
-                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">03:00 PM - 04:00 PM</p>
+              )}
+              {upcomingOutstationList.map((item, idx) => {
+                const borderColors = ['border-orange-500', 'border-cyan-500', 'border-pink-500', 'border-emerald-500'];
+                const borderColor = borderColors[idx % borderColors.length];
+                const displayEmps = item.employees.slice(0, 3);
+                const extraCount = item.employees.length - 3;
+                
+                return (
+                  <div key={item.id} className={`border-l-4 ${borderColor} pl-3 py-1 space-y-2`}>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-xs font-bold text-slate-800">{item.title}</p>
+                        <p className="text-[10px] text-slate-400 font-medium mt-0.5">{item.time}</p>
+                      </div>
+                      <div className="flex -space-x-1.5">
+                        {displayEmps.map((e: any, i: number) => (
+                          <div key={i} title={e.name} className={`w-5 h-5 rounded-full border border-white text-[8px] font-bold flex items-center justify-center shadow-sm ${getAvatarColor(e.name)}`}>
+                            {e.initials}
+                          </div>
+                        ))}
+                        {extraCount > 0 && (
+                          <div className="w-5 h-5 rounded-full bg-indigo-500 border border-white text-[8px] font-bold text-white flex items-center justify-center shadow-sm">
+                            +{extraCount}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 bg-white text-slate-600 rounded flex items-center gap-1 hover:bg-slate-50 transition-colors">
+                        <CalendarDays className="w-3 h-3" /> Add to Calendar
+                      </Button>
+                      <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 bg-white text-slate-600 rounded hover:bg-slate-50 transition-colors">
+                        Join Now
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex -space-x-1.5">
-                    <div className="w-5 h-5 rounded-full bg-slate-200 border border-white text-[8px] font-bold flex items-center justify-center">X</div>
-                    <div className="w-5 h-5 rounded-full bg-slate-300 border border-white text-[8px] font-bold flex items-center justify-center">Y</div>
-                    <div className="w-5 h-5 rounded-full bg-indigo-500 border border-white text-[8px] font-bold text-white flex items-center justify-center">+4</div>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 bg-white text-slate-600 rounded flex items-center gap-1">
-                    <CalendarDays className="w-3 h-3" /> Add to Calendar
-                  </Button>
-                  <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 bg-white text-slate-600 rounded">
-                    Join Now
-                  </Button>
-                </div>
-              </div>
+                );
+              })}
             </div>
             
-            <button className="text-xs font-semibold text-[#7B0099] hover:text-[#5c0073] text-center mt-4 flex items-center justify-center gap-1 w-full pt-2 border-t border-slate-100">
+            <button onClick={() => navigate('/outstation/assignment')} className="text-xs font-semibold text-[#7B0099] hover:text-[#5c0073] text-center mt-4 flex items-center justify-center gap-1 w-full pt-2 border-t border-slate-100">
               View All <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </Card>

@@ -1335,13 +1335,64 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
     status: r.status
   }));
 
+  // Upcoming Outstation — role-filtered
+  let outstationFilters = ["status != 'Cancelled'", "?::date <= DATE(end_date)"];
+  let outstationParams = [dateStr];
+  if (role === 'branch_leader' && branch && branch !== "All") {
+      outstationFilters.push("branch = ?");
+      outstationParams.push(branch);
+  } else if (role === 'head_of_department' && department && department !== "All") {
+      outstationFilters.push("department = ?");
+      outstationParams.push(department);
+  }
+  
+  const outstationWhere = outstationFilters.length ? `WHERE ${outstationFilters.join(' AND ')}` : '';
+  const [outstationRows] = await pool.query(
+    `SELECT id, user_id, full_name, destination, project, start_date, start_time, end_time, status
+     FROM outstation_assignments
+     ${outstationWhere}
+     ORDER BY start_date ASC`,
+    outstationParams
+  );
+
+  const outstationGroups = {};
+  for (const r of outstationRows) {
+    const key = `${r.destination}_${r.start_date}_${r.start_time}`;
+    if (!outstationGroups[key]) {
+      const formatTime = (t) => {
+        if (!t) return null;
+        const [h, m] = t.split(':');
+        let hr = parseInt(h);
+        const ampm = hr >= 12 ? 'PM' : 'AM';
+        hr = hr % 12 || 12;
+        return `${hr.toString().padStart(2, '0')}:${m} ${ampm}`;
+      };
+      
+      const st = formatTime(r.start_time);
+      const et = formatTime(r.end_time);
+      const timeStr = st && et ? `${st} - ${et}` : (st ? st : 'All Day');
+
+      outstationGroups[key] = {
+        id: r.id,
+        title: r.project || r.destination,
+        destination: r.destination,
+        time: timeStr,
+        employees: []
+      };
+    }
+    const initials = (r.full_name || '??').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+    outstationGroups[key].employees.push({ id: r.user_id, name: r.full_name, initials });
+  }
+  const upcomingOutstationList = Object.values(outstationGroups);
+
   return {
     type: 'workforce_feed',
     timestamp: new Date().toISOString(),
     clockInOut,
     lateList,
     absentList,
-    pendingApprovals
+    pendingApprovals,
+    upcomingOutstationList
   };
 }
 

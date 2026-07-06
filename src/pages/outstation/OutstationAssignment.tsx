@@ -355,7 +355,7 @@ export default function OutstationAssignment() {
                       </TableCell>
                       <TableCell className="text-gray-500 whitespace-nowrap text-[12px]">{fmtDate(a.start_date)}</TableCell>
                       <TableCell className="text-gray-500 whitespace-nowrap text-[12px]">{fmtDate(a.end_date)}</TableCell>
-                      <TableCell className="text-center font-black text-pink-600 text-[12px]">{a.total_days ?? "—"}</TableCell>
+                      <TableCell className="text-center font-black text-pink-600 text-[12px]">{a.total_days != null ? Number(a.total_days) : "—"}</TableCell>
                       <TableCell className="text-gray-500 text-[12px] font-medium" title={a.assigned_by_name}>{formatName(a.assigned_by_name)}</TableCell>
                       <TableCell>{statusBadge(a.status)}</TableCell>
                       <TableCell>
