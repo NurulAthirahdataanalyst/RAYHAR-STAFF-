@@ -9,7 +9,7 @@ import {
   SlidersHorizontal, MapPin, Layers, Info, Cloud, CheckCircle2, History, X, Save, BellRing, Calendar, Clock, CalendarDays
 } from "lucide-react";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { API_BASE_URL } from "../config/api";
 
 interface Branch {
@@ -66,6 +66,21 @@ export default function SettingsPage() {
   const [staffStatus, setStaffStatus] = useState("Active");
   const [submittingStaff, setSubmittingStaff] = useState(false);
   const [availableRoles, setAvailableRoles] = useState<any[]>([]);
+
+  const [leaveSearch, setLeaveSearch] = useState("");
+  const [selectedLeaveBranch, setSelectedLeaveBranch] = useState("");
+  const [selectedLeaveDept, setSelectedLeaveDept] = useState("");
+  const [selectedLeaveType, setSelectedLeaveType] = useState("");
+  const [selectedLeaveYear, setSelectedLeaveYear] = useState(String(new Date().getFullYear()));
+  const [selectedLeaveStatus, setSelectedLeaveStatus] = useState("Active");
+  const [leaveRows, setLeaveRows] = useState<any[]>([]);
+  const [leaveSummary, setLeaveSummary] = useState({ totalEmployees: 0, carryForwardEligible: 0, pendingAdjustments: 0, expiringSoon: 0 });
+  const [leaveLoading, setLeaveLoading] = useState(false);
+  const [sseStatus, setSseStatus] = useState("Connecting");
+
+  const leaveTypes = ["Annual Leave", "Carry Forward", "Special Leave", "Medical Leave", "Unpaid Leave"];
+  const leaveStatusOptions = ["Active", "Pending", "Approved", "Forfeited"];
+  const leaveYears = [String(new Date().getFullYear()), String(new Date().getFullYear() - 1), String(new Date().getFullYear() - 2)];
 
   // System Configurations Toggles
   const [isAlertsEnabled, setIsAlertsEnabled] = useState(true);
@@ -139,6 +154,9 @@ export default function SettingsPage() {
         const rolesData = await rolesRes.json();
         if (rolesData.success) setAvailableRoles(rolesData.roles);
 
+        // 5. Fetch leave entitlements
+        await fetchLeaveEntitlements();
+
       } catch (err) {
         console.error("Settings initialization error:", err);
       } finally {
@@ -146,22 +164,50 @@ export default function SettingsPage() {
       }
     };
     void fetchData();
-  }, []);
+  }, [fetchLeaveEntitlements]);
+
+  const fetchLeaveEntitlements = useCallback(async () => {
+    setLeaveLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (selectedLeaveBranch) params.set("branch", selectedLeaveBranch);
+      if (selectedLeaveDept) params.set("department", selectedLeaveDept);
+      if (leaveSearch) params.set("search", leaveSearch);
+      if (selectedLeaveType) params.set("leaveType", selectedLeaveType);
+      if (selectedLeaveYear) params.set("year", selectedLeaveYear);
+      if (selectedLeaveStatus) params.set("status", selectedLeaveStatus);
+
+      const response = await fetch(`${API_BASE_URL}/api/leave-entitlements?${params.toString()}`);
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setLeaveRows(data.entitlements || []);
+        setLeaveSummary(data.summary || { totalEmployees: 0, carryForwardEligible: 0, pendingAdjustments: 0, expiringSoon: 0 });
+      }
+    } catch (err) {
+      console.error("Leave entitlement refresh error:", err);
+    } finally {
+      setLeaveLoading(false);
+    }
+  }, [leaveSearch, selectedLeaveBranch, selectedLeaveDept, selectedLeaveType, selectedLeaveYear, selectedLeaveStatus]);
 
   // SSE connection for real-time telemetry
   useEffect(() => {
     const eventSource = new EventSource(`${API_BASE_URL}/api/presence/stream`);
-    
+
+    eventSource.onopen = () => {
+      setSseStatus("Live");
+    };
+
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         const time = new Date().toLocaleTimeString();
-        
+
         if (data.type === "config-change") {
           const roleStr = data.operatorRole === 'hr_admin' ? 'HR Admin' : data.operatorRole || 'Admin';
           const msg = `[SSE] ${time} - ${data.operatorName} (${roleStr}): ${data.action}`;
           setSseEvents(prev => [msg, ...prev].slice(0, 50));
-          
+
           if (data.action.includes("System Configuration updated")) {
             const dateStr = new Date(data.timestamp || new Date()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
             setDeploymentLog({
@@ -175,22 +221,25 @@ export default function SettingsPage() {
           setSseEvents(prev => [`[SSE] ${time} - User ${data.userId} clocked out`, ...prev].slice(0, 50));
         } else if (data.type === "leave-status") {
           setSseEvents(prev => [`[SSE] ${time} - Leave request #${data.leaveId} status updated to ${data.status} for User ${data.userId}`, ...prev].slice(0, 50));
+          void fetchLeaveEntitlements();
         } else if (data.type === "employee-status-change") {
           setSseEvents(prev => [`[SSE] ${time} - Employee ${data.userId} status changed to ${data.status}`, ...prev].slice(0, 50));
+          void fetchLeaveEntitlements();
         }
       } catch (e) {
         console.error("Failed to parse SSE event:", e);
       }
     };
-    
+
     eventSource.onerror = (err) => {
       console.error("SSE connection error:", err);
+      setSseStatus("Reconnecting");
     };
-    
+
     return () => {
       eventSource.close();
     };
-  }, []);
+  }, [fetchLeaveEntitlements]);
 
   // Add Branch Submit
   const handleAddBranch = async (e: React.FormEvent) => {
@@ -901,20 +950,20 @@ export default function SettingsPage() {
           {activeTab === "leave-entitlement" && (
             <div className="space-y-4 animate-in slide-in-from-left duration-300">
               <Card className="border-none shadow-sm bg-gradient-to-r from-[#7B0099] to-[#5E006F] text-white rounded-[18px] overflow-hidden px-5 py-4">
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div className="min-w-0">
                     <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/12 border border-white/15">
                       <CalendarDays className="w-3.5 h-3.5" />
                       <span className="text-[9px] font-black uppercase tracking-[0.22em]">HR Admin Workspace</span>
                     </div>
                     <h3 className="mt-2 text-[20px] sm:text-[24px] leading-none font-black uppercase tracking-tight">
-                      Leave Entitlement Management
+                      Leave Balance Management
                     </h3>
                     <p className="mt-1 text-[10px] sm:text-[11px] text-white/78 max-w-2xl">
-                      Manage annual leave allocation, carry forward, manual adjustments, special credits, forfeiture, and history in one screen.
+                      Manage employee leave allocation, carry forward, additional credits, adjustments, and history from a single HR workspace.
                     </p>
                   </div>
-                  <div className="hidden md:flex items-center gap-2 shrink-0">
+                  <div className="flex flex-wrap items-center gap-2">
                     <button
                       onClick={() => toast.info("Policy sync prepared for the next entitlement cycle.")}
                       className="h-9 px-3.5 rounded-xl bg-white/12 hover:bg-white/18 border border-white/15 text-[9px] font-black uppercase tracking-widest whitespace-nowrap"
@@ -931,605 +980,225 @@ export default function SettingsPage() {
                 </div>
               </Card>
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-                <Card className="lg:col-span-3 border-none shadow-sm bg-white/75 dark:bg-card/75 backdrop-blur-md rounded-[18px] p-4 space-y-4">
-                  <div>
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Navigation</h4>
-                    <p className="mt-1 text-[10px] text-muted-foreground">Leave management sections</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    {[
-                      "Dashboard",
-                      "Annual Leave",
-                      "Carry Forward",
-                      "Adjustments",
-                      "Special Leave",
-                      "Forfeiture",
-                      "History",
-                      "Reports",
-                    ].map((item, idx) => (
+              <div className="grid gap-4 xl:grid-cols-[320px_1fr]">
+                <Card className="border-none shadow-sm bg-white/90 dark:bg-card/80 rounded-[20px] p-5">
+                  <div className="flex items-center justify-between gap-3 mb-4">
+                    <div>
+                      <h4 className="text-sm font-black uppercase tracking-[0.25em] text-[#7B0099]">Workspace</h4>
+                      <p className="text-[11px] text-muted-foreground mt-1">Select one of the leave entitlement management modules.</p>
+                    </div>
+                      <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700">
+                        <span className={`h-2 w-2 rounded-full ${sseStatus === "Live" ? "bg-emerald-500" : "bg-amber-500"}`} />
+                        SSE {sseStatus}
+                      </div>
+                      { label: "Annual Leave Allocation" },
+                      { label: "Carry Forward" },
+                      { label: "Additional Leave" },
+                      { label: "Adjustments" },
+                      { label: "Special Leave" },
+                      { label: "Forfeiture" },
+                      { label: "History" },
+                      { label: "Reports" }
+                    ].map((item) => (
                       <button
-                        key={item}
-                        className={`w-full flex items-center justify-between rounded-xl px-3 py-2 text-left transition-colors ${
-                          idx === 0 ? "bg-[#7B0099]/10 text-[#7B0099]" : "hover:bg-muted/30 text-foreground"
-                        }`}
-                        onClick={() => {
-                          if (item !== "Dashboard") {
-                            toast.info(`${item} section will open here.`);
-                          }
-                        }}
+                        key={item.label}
+                        type="button"
+                        onClick={() => toast.success(`${item.label} selected.`)}
+                        className={`w-full text-left rounded-2xl border px-4 py-3 transition-all ${item.active ? 'border-[#7B0099] bg-[#7B0099]/10 text-[#220841]' : 'border-border/70 bg-background/60 text-foreground hover:border-[#7B0099] hover:bg-[#7B0099]/5'}`}
                       >
-                        <span className="text-[10px] font-black uppercase tracking-widest">{item}</span>
-                        <span className="text-[9px] font-black text-current/70">›</span>
+                        <span className="text-sm font-black">{item.label}</span>
+                        <p className="text-[10px] text-muted-foreground mt-1">{item.label === 'Dashboard' ? 'HR summary and action required' : 'Manage ' + item.label.toLowerCase()}</p>
                       </button>
                     ))}
                   </div>
                 </Card>
 
-                <div className="lg:col-span-9 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-6 gap-2.5">
-                    {[
-                      { label: "Employees", value: "1,284" },
-                      { label: "Eligible", value: "1,112" },
-                      { label: "Carry Forward", value: "326" },
-                      { label: "Pending", value: "42" },
-                      { label: "Expiring", value: "12" },
-                      { label: "Bulk Runs", value: "8" },
-                    ].map((item) => (
-                      <Card key={item.label} className="border border-border/40 shadow-sm rounded-[16px] p-3 bg-white/75 dark:bg-card/75">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">{item.label}</p>
-                        <div className="mt-1 text-[22px] leading-none font-black text-foreground">{item.value}</div>
-                      </Card>
-                    ))}
-                  </div>
-
-                  <Card className="border-none shadow-sm bg-white/75 dark:bg-card/75 backdrop-blur-md rounded-[18px] p-4 space-y-4">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                      <div>
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Quick Filters</h4>
-                        <p className="text-[10px] text-muted-foreground mt-1">Filter entitlement records before applying actions.</p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {["Allocate", "Carry Forward", "Adjust", "Forfeit"].map((action) => (
-                          <button
-                            key={action}
-                            onClick={() => toast.info(`${action} action opened.`)}
-                            className="h-9 px-3.5 rounded-xl bg-[#7B0099]/8 hover:bg-[#7B0099]/12 border border-[#7B0099]/15 text-[#7B0099] text-[9px] font-black uppercase tracking-widest"
-                          >
-                            {action}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-6 gap-2.5">
+                <div className="space-y-4">
+                  <Card className="border-none shadow-sm bg-white/90 dark:bg-card/80 rounded-[20px] p-5">
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                       {[
-                        "Search Employee...",
-                        "Branch",
-                        "Department",
-                        "Leave Type",
-                        "Year",
-                        "Status",
-                      ].map((placeholder, idx) => (
-                        <input
-                          key={placeholder}
-                          type="text"
-                          placeholder={placeholder}
-                          className={`h-10 px-3 rounded-xl border border-border/70 bg-background/50 text-[10px] outline-none focus:border-[#7B0099] ${
-                            idx === 0 ? "md:col-span-2" : ""
-                          }`}
-                        />
+                        { title: 'Total Employees', value: leaveSummary.totalEmployees, tone: 'bg-violet-500/10 text-violet-600' },
+                        { title: 'Carry Forward Eligible', value: leaveSummary.carryForwardEligible, tone: 'bg-emerald-500/10 text-emerald-600' },
+                        { title: 'Pending Adjustments', value: leaveSummary.pendingAdjustments, tone: 'bg-amber-500/10 text-amber-600' },
+                        { title: 'Expiring Soon', value: leaveSummary.expiringSoon, tone: 'bg-red-500/10 text-red-600' }
+                      ].map((metric) => (
+                        <div key={metric.title} className={`rounded-3xl border border-border/70 p-4 ${metric.tone}`}>
+                          <p className="text-[9px] font-black uppercase tracking-[0.27em] text-muted-foreground">{metric.title}</p>
+                          <p className="mt-3 text-2xl font-black text-foreground">{metric.value}</p>
+                        </div>
                       ))}
                     </div>
                   </Card>
 
-                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 items-start">
-                    <Card className="xl:col-span-2 border-none shadow-sm bg-white/75 dark:bg-card/75 backdrop-blur-md rounded-[18px] p-4 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Entitlement Actions</h4>
-                          <p className="text-[10px] text-muted-foreground mt-1">Compact controls for the leave workspace.</p>
-                        </div>
-                        <span className="px-2.5 py-1 rounded-full bg-[#7B0099]/10 text-[#7B0099] text-[9px] font-black uppercase tracking-widest">
-                          HR Only
-                        </span>
+                  <Card className="border-none shadow-sm bg-white/90 dark:bg-card/80 rounded-[20px] p-5">
+                    <div className="flex items-center justify-between gap-3 mb-4">
+                      <div>
+                        <h4 className="text-sm font-black uppercase tracking-[0.25em] text-[#7B0099]">Quick Actions</h4>
+                        <p className="text-[11px] text-muted-foreground mt-1">Start the most common HR leave operations.</p>
                       </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {[
-                          {
-                            title: "Annual Leave Allocation",
-                            body: "Assign yearly leave entitlements to the selected population at the start of a cycle.",
-                          },
-                          {
-                            title: "Carry Forward Leave",
-                            body: "Move unused balance into the new leave year according to policy rules.",
-                          },
-                          {
-                            title: "Additional Leave Allocation",
-                            body: "Grant one-off leave for performance rewards, special approval, or compensation.",
-                          },
-                          {
-                            title: "Manual Leave Adjustments",
-                            body: "Correct balances when a policy exception or data issue is discovered.",
-                          },
-                        ].map((item) => (
-                          <div key={item.title} className="rounded-[16px] border border-border/40 bg-muted/20 p-3.5">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099]" />
-                              <h5 className="text-[10px] font-black uppercase tracking-widest text-foreground">{item.title}</h5>
-                            </div>
-                            <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{item.body}</p>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="rounded-[16px] border border-[#7B0099]/15 bg-[#7B0099]/5 p-3.5 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <h5 className="text-[10px] font-black uppercase tracking-widest text-[#7B0099]">Bulk Allocation</h5>
-                            <span className="text-[9px] font-black uppercase tracking-widest text-[#7B0099]/70">Year Start</span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2.5">
-                            <input
-                              type="text"
-                              placeholder="Target group"
-                              className="h-9 px-3 rounded-xl border border-border/70 bg-background/50 text-[10px] outline-none focus:border-[#7B0099]"
-                            />
-                            <input
-                              type="number"
-                              placeholder="Days"
-                              className="h-9 px-3 rounded-xl border border-border/70 bg-background/50 text-[10px] outline-none focus:border-[#7B0099]"
-                            />
-                          </div>
-                          <button
-                            onClick={() => toast.success("Bulk leave allocation preview opened.")}
-                            className="w-full h-9 rounded-xl bg-[#7B0099] text-white text-[9px] font-black uppercase tracking-widest"
-                          >
-                            Prepare Bulk Run
-                          </button>
-                        </div>
-
-                        <div className="rounded-[16px] border border-border/40 bg-slate-950 text-white p-3.5 space-y-2.5">
-                          <div className="flex items-center justify-between">
-                            <h5 className="text-[10px] font-black uppercase tracking-widest text-purple-200">Policy Controls</h5>
-                            <span className="text-[9px] font-black uppercase tracking-widest text-emerald-300">Live</span>
-                          </div>
-                          <div className="space-y-2">
-                            {[
-                              "Carry forward cap: 5 days",
-                              "Manual adjustments require audit note",
-                              "Special leave credits need HR approval",
-                              "Forfeiture runs after year-end closure",
-                            ].map((rule) => (
-                              <div key={rule} className="flex items-center gap-2">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-white/85">{rule}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-
-                    <div className="space-y-4">
-                      <Card className="border-none shadow-sm bg-white/75 dark:bg-card/75 backdrop-blur-md rounded-[18px] p-4 space-y-3">
-                        <div>
-                          <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Balance Snapshot</h4>
-                          <p className="text-[10px] text-muted-foreground mt-1">Quick look at the leave ledger state.</p>
-                        </div>
-                        <div className="space-y-2.5">
-                          {[
-                            { label: "Annual Leave", value: "14,820 days" },
-                            { label: "Carry Forward", value: "326 days" },
-                            { label: "Special Credits", value: "58 days" },
-                            { label: "Pending Review", value: "12 cases" },
-                          ].map((row) => (
-                            <div key={row.label} className="flex items-center justify-between rounded-xl bg-muted/20 border border-border/30 px-3 py-2.5">
-                              <span className="text-[10px] font-black uppercase tracking-widest text-foreground">{row.label}</span>
-                              <span className="text-[10px] font-black text-[#7B0099]">{row.value}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </Card>
-
-                      <Card className="border-none shadow-sm bg-white/75 dark:bg-card/75 backdrop-blur-md rounded-[18px] p-4 space-y-3">
-                        <div>
-                          <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Recent History</h4>
-                          <p className="text-[10px] text-muted-foreground mt-1">Audit trail of entitlement operations.</p>
-                        </div>
-                        <div className="space-y-2.5">
-                          {[
-                            { action: "Bulk allocation", meta: "14 days to 312 employees", time: "Today" },
-                            { action: "Carry forward", meta: "5 days moved to 18 staff", time: "Yesterday" },
-                            { action: "Manual adjustment", meta: "+2 days for payroll fix", time: "2 days ago" },
-                            { action: "Forfeiture run", meta: "Excess 3 days removed", time: "This week" },
-                          ].map((item) => (
-                            <div key={item.action} className="rounded-xl border border-border/30 bg-muted/20 p-3">
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="space-y-0.5">
-                                  <p className="text-[10px] font-black uppercase tracking-widest text-foreground">{item.action}</p>
-                                  <p className="text-[10px] text-muted-foreground">{item.meta}</p>
-                                </div>
-                                <span className="text-[9px] font-black uppercase tracking-widest text-[#7B0099]">{item.time}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </Card>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* RIGHT/SIDEBAR CONTAINER (SPAN 1 COL) */}
-        {activeTab !== "leave-entitlement" && (
-          <div className="space-y-4">
-          
-          {/* SIDEBAR FOR SYSTEM TAB */}
-          {activeTab === "system" && (
-            <>
-              {/* Active Environment */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-5">
-                <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Active Environment</h4>
-                <div className="flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                      <Cloud className="w-4 h-4" />
-                    </div>
-                    <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Production-AZ-East</span>
-                  </div>
-                  <Info className="w-4 h-4 text-emerald-600 dark:text-emerald-400 opacity-60" />
-                </div>
-                
-                <div className="p-4 bg-muted/20 border border-border/30 rounded-2xl space-y-1">
-                  <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest block">Last Configuration Deployment</span>
-                  <span className="text-xs font-black text-foreground block">
-                    {deploymentLog.timestamp}
-                  </span>
-                  <span className="text-[9px] font-medium text-muted-foreground block opacity-85">
-                    By {deploymentLog.operator}
-                  </span>
-                </div>
-              </Card>
-
-              {/* Real-time SSE Log Stream */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Live SSE Stream</h4>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                    <span className="text-[8px] font-black text-emerald-500 uppercase tracking-wider">Active</span>
-          </div>
-        )}
-      </div>
-                <div className="p-3.5 bg-slate-950 dark:bg-slate-900 border border-border/20 rounded-2xl h-[120px] overflow-y-auto font-mono text-[7px] space-y-2 text-purple-300/80 leading-normal scrollbar-thin">
-                  {sseEvents.map((evt, i) => (
-                    <div key={i} className="break-all border-b border-white/5 pb-1 last:border-0">
-                      {evt}
-                    </div>
-                  ))}
-                </div>
-              </Card>
-
-              {/* Action Bar Footer equivalent */}
-              {hasUnsavedChanges && (
-                <Card className="border-none shadow-sm bg-amber-500/10 border border-amber-500/25 rounded-[20px] p-5 space-y-4 animate-in zoom-in-95 duration-200">
-                  <div className="flex items-start gap-2.5">
-                    <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
-                    <p className="text-[9px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider leading-normal">
-                      You have unsaved changes in portal configurations. Deactivate or save to deploy changes.
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={handleDiscardSettings}
-                      className="flex-1 h-9 rounded-xl border border-amber-500/20 hover:bg-amber-500/10 bg-transparent text-amber-700 dark:text-amber-400 font-black text-[8px] uppercase tracking-widest"
-                    >
-                      <X className="w-3.5 h-3.5 mr-1" />
-                      Discard
-                    </Button>
-                    <Button 
-                      onClick={handleSaveSettings}
-                      className="flex-1 h-9 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[8px] uppercase tracking-widest shadow-md"
-                    >
-                      <Save className="w-3.5 h-3.5 mr-1" />
-                      Save Changes
-                    </Button>
-              </div>
-            </Card>
-          )}
-            </>
-          )}
-
-          {/* SIDEBAR FOR STAFF TAB */}
-          {activeTab === "staff" && (
-            <>
-              {/* Guidelines */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-5">
-                <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Onboarding Policy</h4>
-                <div className="space-y-3.5">
-                  {[
-                    "New credentials must be unique enterprise-wide.",
-                    "Staff must be assigned to an active branch node.",
-                    "System role determines feature access level."
-                  ].map((rule, idx) => (
-                    <div key={idx} className="flex gap-3">
-                      <div className="w-4 h-4 rounded-md bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0 mt-0.5">
-                        <CheckCircle2 className="w-3 h-3" />
-                      </div>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider leading-normal">{rule}</p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-
-              {/* Department Structure List */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-5">
-                <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">HQ Department Structure</h4>
-                <div className="grid grid-cols-1 gap-2.5 max-h-[220px] overflow-y-auto pr-1">
-                  {deptStats.map((dept) => (
-                    <div key={dept.name} className="flex items-center justify-between p-3 bg-muted/20 border border-border/30 rounded-xl">
-                      <span className="text-[10px] font-black text-foreground uppercase tracking-wider">{dept.name}</span>
-                      <span className="text-[9px] font-black bg-[#7B0099]/10 text-[#7B0099] px-2 py-0.5 rounded-md">{dept.employee_count} Staff</span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </>
-          )}
-
-          {/* SIDEBAR FOR BRANCH TAB */}
-          {activeTab === "branch" && (
-            <>
-              {/* Malaysia Live Map Visualizer */}
-              {(() => {
-                const getBranchCoordinates = (code: string, name: string, locationStr: string = "") => {
-                  const normCode = code.toUpperCase();
-                  const normLoc = locationStr.toLowerCase();
-                  const normName = name.toLowerCase();
-
-                  if (normCode === "HQ" || normCode === "KUL") return { x: 25.5, y: 57.5 };
-                  if (normCode === "KMM") return { x: 52, y: 46 };
-                  if (normCode === "TGG") return { x: 51, y: 29 };
-                  if (normCode === "CNH") return { x: 48, y: 48 };
-                  if (normCode === "KBG") return { x: 44, y: 33 };
-                  if (normCode === "DGN") return { x: 52, y: 36 };
-                  if (normCode === "JTH") return { x: 45, y: 21 };
-                  if (normCode === "KBR") return { x: 41, y: 17 };
-                  if (normCode === "RMP") return { x: 49, y: 65 };
-                  if (normCode === "MZM") return { x: 43, y: 62 };
-                  if (normCode === "SHA") return { x: 24, y: 58 };
-                  if (normCode === "BBB") return { x: 26, y: 60 };
-                  if (normCode === "IPH") return { x: 24, y: 36 };
-                  if (normCode === "MJG") return { x: 21, y: 39 };
-                  if (normCode === "KKS") return { x: 23, y: 30 };
-                  if (normCode === "MLK") return { x: 32, y: 72 };
-                  if (normCode === "AOR") return { x: 22, y: 20 };
-                  if (normCode === "BTM") return { x: 20, y: 27 };
-                  if (normCode === "SNS") return { x: 28, y: 64 };
-                  if (normCode === "BTP") return { x: 38, y: 79 };
-                  if (normCode === "JB") return { x: 46, y: 83 };
-                  if (normCode === "TWU") return { x: 162, y: 56 };
-
-                  if (normLoc.includes("terengganu") || normName.includes("terengganu")) {
-                    if (normLoc.includes("kemaman") || normName.includes("kemaman") || normLoc.includes("cheneh")) return { x: 50, y: 44 };
-                    if (normLoc.includes("dungun") || normName.includes("dungun")) return { x: 51, y: 36 };
-                    if (normLoc.includes("kuala berang") || normName.includes("kuala berang")) return { x: 44, y: 33 };
-                    if (normLoc.includes("jertih") || normName.includes("jertih") || normLoc.includes("besut")) return { x: 45, y: 21 };
-                    return { x: 51, y: 29 };
-                  }
-                  if (normLoc.includes("kelantan") || normLoc.includes("kota bharu") || normName.includes("kelantan")) return { x: 41, y: 17 };
-                  if (normLoc.includes("kedah") || normLoc.includes("alor setar") || normName.includes("kedah")) return { x: 22, y: 20 };
-                  if (normLoc.includes("perlis") || normName.includes("perlis")) return { x: 21, y: 15 };
-                  if (normLoc.includes("penang") || normLoc.includes("pulau pinang") || normLoc.includes("bertam") || normName.includes("penang")) return { x: 20, y: 27 };
-                  if (normLoc.includes("perak") || normLoc.includes("ipoh") || normLoc.includes("manjung") || normName.includes("perak")) {
-                    if (normLoc.includes("manjung")) return { x: 21, y: 39 };
-                    if (normLoc.includes("kangsar")) return { x: 23, y: 30 };
-                    return { x: 24, y: 36 };
-                  }
-                  if (normLoc.includes("selangor") || normLoc.includes("bangi") || normLoc.includes("shah alam") || normLoc.includes("gombak") || normName.includes("selangor")) {
-                    if (normLoc.includes("bangi")) return { x: 26, y: 60 };
-                    if (normLoc.includes("gombak")) return { x: 25, y: 55 };
-                    return { x: 24, y: 58 };
-                  }
-                  if (normLoc.includes("kuala lumpur") || normName.includes("kuala lumpur")) return { x: 25.5, y: 57.5 };
-                  if (normLoc.includes("negeri sembilan") || normLoc.includes("seremban") || normName.includes("negeri sembilan")) return { x: 28, y: 64 };
-                  if (normLoc.includes("melaka") || normLoc.includes("malacca") || normName.includes("melaka")) return { x: 32, y: 72 };
-                  if (normLoc.includes("johor") || normLoc.includes("batu pahat") || normLoc.includes("johor bahru") || normName.includes("johor")) {
-                    if (normLoc.includes("batu pahat")) return { x: 38, y: 79 };
-                    return { x: 46, y: 83 };
-                  }
-                  if (normLoc.includes("pahang") || normLoc.includes("rompin") || normLoc.includes("muadzam") || normName.includes("pahang")) {
-                    if (normLoc.includes("muadzam")) return { x: 43, y: 62 };
-                    return { x: 49, y: 65 };
-                  }
-                  if (normLoc.includes("sabah") || normLoc.includes("tawau") || normLoc.includes("kota kinabalu") || normName.includes("sabah")) return { x: 162, y: 56 };
-                  if (normLoc.includes("sarawak") || normLoc.includes("kuching") || normName.includes("sarawak")) return { x: 80, y: 82 };
-
-                  return { x: 25.5, y: 57.5 };
-                };
-
-                return (
-                  <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-4">
-                    <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest font-sans">Malaysia Network Coverage</h4>
-                    <div className="w-full aspect-[2/1] rounded-2xl bg-[#090D1A] border border-border/30 overflow-hidden relative p-4 flex flex-col justify-between shadow-inner">
-                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-950/20 via-transparent to-transparent" />
-                      
-                      {/* SVG Map of Malaysia */}
-                      <svg className="w-full h-full text-slate-800 dark:text-slate-800/40" viewBox="0 0 200 100" fill="none" stroke="currentColor" strokeWidth="0.8">
-                        <defs>
-                          <pattern id="map-grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                            <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
-                          </pattern>
-                        </defs>
-                        <rect width="100%" height="100%" fill="url(#map-grid)" stroke="none" />
-
-                        {/* Peninsular Malaysia Outline */}
-                        <path
-                          d="M 25 15 L 45 15 L 52 28 L 54 48 L 52 68 L 46 84 L 38 80 L 32 72 L 28 66 L 24 55 L 21 38 L 20 28 L 22 20 Z"
-                          fill="rgba(123, 0, 153, 0.08)"
-                          stroke="rgba(123, 0, 153, 0.4)"
-                          strokeWidth="1"
-                          className="transition-all duration-300 hover:fill-rgba(123, 0, 153, 0.15)"
-                        />
-
-                        {/* East Malaysia Outline */}
-                        <path
-                          d="M 80 82 L 92 78 L 102 70 L 115 62 L 125 54 L 132 46 L 142 36 L 152 25 L 165 34 L 168 46 L 162 56 L 138 58 L 115 72 L 92 84 Z"
-                          fill="rgba(123, 0, 153, 0.08)"
-                          stroke="rgba(123, 0, 153, 0.4)"
-                          strokeWidth="1"
-                          className="transition-all duration-300 hover:fill-rgba(123, 0, 153, 0.15)"
-                        />
-
-                        {/* Dotted separator or scale indication */}
-                        <path d="M 70 20 L 70 80" stroke="rgba(255,255,255,0.05)" strokeDasharray="3,3" />
-                      </svg>
-
-                      {/* Branch Pointers/Markers */}
-                      <div className="absolute inset-0 pointer-events-none">
-                        {branches.map((b) => {
-                          const coords = getBranchCoordinates(b.code, b.name, b.location);
-                          return (
-                            <div 
-                              key={b.code}
-                              style={{ left: `${coords.x}%`, top: `${coords.y}%` }}
-                              className="absolute w-3 h-3 -translate-x-1/2 -translate-y-1/2 pointer-events-auto group/marker cursor-pointer"
-                            >
-                              {/* Inner glowing dot */}
-                              <span className="absolute inset-0 rounded-full bg-emerald-400 opacity-75 shadow-[0_0_8px_rgba(52,211,153,0.8)] filter drop-shadow-[0_0_2px_emerald-500]" />
-                              {/* Outer pulse animation */}
-                              <span className="absolute -inset-1 rounded-full bg-emerald-400/30 animate-ping duration-1000" />
-                              
-                              {/* Tooltip */}
-                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[150px] bg-slate-950/90 text-white text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md border border-white/10 opacity-0 group-hover/marker:opacity-100 transition-opacity duration-200 pointer-events-none shadow-xl z-50 flex flex-col items-center">
-                                <span className="text-emerald-400 mb-0.5">{b.name}</span>
-                                <span className="text-[7px] text-white/50">{b.code} • {b.location || 'Branch Office'}</span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      <span className="absolute bottom-2 right-3 text-[7px] font-black text-white/30 uppercase tracking-widest pointer-events-none">Malaysia Live Map</span>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {[
+                        { label: 'Allocate Leave', tone: 'bg-[#7B0099]/10 text-[#7B0099]' },
+                        { label: 'Carry Forward', tone: 'bg-emerald-500/10 text-emerald-600' },
+                        { label: 'Adjust Leave', tone: 'bg-amber-500/10 text-amber-600' },
+                        { label: 'Grant Credits', tone: 'bg-sky-500/10 text-sky-600' }
+                      ].map((action) => (
+                        <button
+                          key={action.label}
+                          type="button"
+                          onClick={() => toast.success(`${action.label} workflow opened.`)}
+                          className={`rounded-3xl border border-border/70 px-4 py-4 text-left ${action.tone} hover:shadow-lg hover:scale-[1.01] transition-all`}
+                        >
+                          <span className="text-sm font-black">{action.label}</span>
+                          <p className="text-[10px] text-muted-foreground mt-2">Execute the selected leave entitlement workflow for employees.</p>
+                        </button>
+                      ))}
                     </div>
                   </Card>
-                );
-              })()}
+                </div>
+              </div>
 
-              {/* Recent Clusters */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Recent Clusters</h4>
-                  <button 
-                    onClick={() => toast.info("No older branch clusters logged.")}
-                    className="text-[8px] font-black text-[#7B0099] hover:underline uppercase tracking-wider"
+              <Card className="border-none shadow-sm bg-white/90 dark:bg-card/80 rounded-[20px] p-5">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                  <div>
+                    <h4 className="text-lg font-black text-foreground">Leave Entitlement Search</h4>
+                    <p className="text-[11px] text-muted-foreground mt-1">Search, filter, and review leave balances before applying allocations or adjustments.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void fetchLeaveEntitlements();
+                      toast.success('Leave entitlement filters applied.');
+                    }}
+                    className="h-11 rounded-xl bg-[#7B0099] px-5 text-[9px] font-black uppercase tracking-widest text-white"
                   >
-                    View All
+                    Apply Filters
                   </button>
                 </div>
-                <div className="space-y-3">
-                  {[
-                    { name: "Austin Tech Center", code: "TX-ATC-092", status: "Active", color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20" },
-                    { name: "Miami Logistics", code: "FL-MLO-114", status: "Active", color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20" },
-                    { name: "Boston R&D Hub", code: "MA-BRD-005", status: "Provisioning", color: "text-amber-600 bg-amber-500/10 border-amber-500/20" }
-                  ].map((cluster, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 bg-muted/20 border border-border/30 rounded-xl">
-                      <div className="flex flex-col space-y-0.5">
-                        <span className="text-[10px] font-black text-foreground uppercase tracking-wider">{cluster.name}</span>
-                        <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">{cluster.code}</span>
-                      </div>
-                      <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border ${cluster.color}`}>
-                        {cluster.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
 
-              {/* Purple Alert Note */}
-              <div className="p-5 bg-[#7B0099] border border-[#7B0099]/30 rounded-[20px] text-white space-y-2">
-                <div className="flex items-center gap-2">
-                  <Info className="w-4 h-4 text-purple-200" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-purple-100">Registry Note</span>
-                </div>
-                <p className="text-[9px] font-semibold tracking-wide text-purple-200 leading-relaxed">
-                  New branches are automatically assigned a network gateway. Verification may take up to 24 hours for security clearance.
-                </p>
-              </div>
-            </>
-          )}
-
-          {/* SIDEBAR FOR DEPARTMENT TAB */}
-          {activeTab === "department" && (
-            <>
-              {/* Current structure list */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-4">
-                <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Current Structure</h4>
-                <div className="space-y-2.5 max-h-[180px] overflow-y-auto pr-1">
-                  {deptStats.map((dept, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 bg-muted/20 border border-border/30 rounded-xl">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-foreground uppercase tracking-wider">{dept.name}</span>
-                        <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest font-bold">Registered HQ</span>
-                      </div>
-                      <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md border border-emerald-500/20">
-                        Active
-                      </span>
-                    </div>
-                  ))}
-                  <div className="flex items-center justify-between p-3 bg-[#7B0099]/5 border border-[#7B0099]/20 rounded-xl border-dashed">
-                    <span className="text-[10px] font-black text-[#7B0099] uppercase tracking-wider">[New Department]</span>
-                    <span className="text-[8px] font-black uppercase text-[#7B0099]/70 tracking-widest">Awaiting creation</span>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Enterprise Quota Progress */}
-              <Card className="border-none shadow-sm bg-[#7B0099] border border-[#7B0099]/30 rounded-[20px] p-6 text-white space-y-4">
-                <div>
-                  <span className="text-[8px] font-black uppercase tracking-widest text-purple-200">Enterprise Quota</span>
-                  <div className="flex items-baseline gap-1 mt-1">
-                    <span className="text-2xl font-black">{deptStats.length}</span>
-                    <span className="text-sm font-bold text-purple-200">/ 15 Departments</span>
-                  </div>
-                </div>
-                <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-white rounded-full transition-all duration-1000" 
-                    style={{ width: `${Math.min(100, (deptStats.length / 15) * 100)}%` }}
+                <div className="grid gap-3 mt-4 sm:grid-cols-2 xl:grid-cols-3">
+                  <input
+                    type="text"
+                    value={leaveSearch}
+                    onChange={(e) => setLeaveSearch(e.target.value)}
+                    placeholder="Search Employee..."
+                    className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 px-4 text-sm font-bold outline-none focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10"
                   />
+                  <Select value={selectedLeaveBranch} onValueChange={setSelectedLeaveBranch}>
+                    <SelectTrigger className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 text-sm font-black uppercase">
+                      <SelectValue placeholder="Branch" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="" className="text-[10px] font-black uppercase">All Branches</SelectItem>
+                      {branches.map((branch) => (
+                        <SelectItem key={branch.code} value={branch.code} className="text-[10px] font-black uppercase">{branch.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedLeaveDept} onValueChange={setSelectedLeaveDept}>
+                    <SelectTrigger className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 text-sm font-black uppercase">
+                      <SelectValue placeholder="Department" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="" className="text-[10px] font-black uppercase">All Departments</SelectItem>
+                      {departments.map((dept) => (
+                        <SelectItem key={dept} value={dept} className="text-[10px] font-black uppercase">{dept}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedLeaveType} onValueChange={setSelectedLeaveType}>
+                    <SelectTrigger className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 text-sm font-black uppercase">
+                      <SelectValue placeholder="Leave Type" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="" className="text-[10px] font-black uppercase">All Leave Types</SelectItem>
+                      {leaveTypes.map((type) => (
+                        <SelectItem key={type} value={type} className="text-[10px] font-black uppercase">{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedLeaveYear} onValueChange={setSelectedLeaveYear}>
+                    <SelectTrigger className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 text-sm font-black uppercase">
+                      <SelectValue placeholder="Year" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {leaveYears.map((year) => (
+                        <SelectItem key={year} value={year} className="text-[10px] font-black uppercase">{year}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedLeaveStatus} onValueChange={setSelectedLeaveStatus}>
+                    <SelectTrigger className="h-11 w-full rounded-2xl border border-border/70 bg-background/60 text-sm font-black uppercase">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {leaveStatusOptions.map((status) => (
+                        <SelectItem key={status} value={status} className="text-[10px] font-black uppercase">{status}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </Card>
 
-              {/* Policy Checklist */}
-              <Card className="border-none shadow-sm bg-white/60 dark:bg-card/60 backdrop-blur-md rounded-[20px] p-6 space-y-4">
-                <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Policy Checklist</h4>
-                <div className="space-y-3">
-                  {[
-                    "Department code must be unique enterprise-wide.",
-                    "Initial budget must not exceed branch surplus.",
-                    "Assigned manager must be a Full-Time employee."
-                  ].map((policy, idx) => (
-                    <div key={idx} className="flex gap-2.5">
-                      <div className="w-4 h-4 rounded-md bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0 mt-0.5">
-                        <CheckCircle2 className="w-3 h-3" />
-                      </div>
-                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider leading-normal">{policy}</p>
-                    </div>
-                  ))}
-                </div>
+              <Card className="border-none shadow-sm bg-white/90 dark:bg-card/80 rounded-[20px] p-0 overflow-hidden">
+                {leaveLoading ? (
+                  <div className="flex items-center justify-center py-10 text-sm font-black uppercase tracking-[0.25em] text-muted-foreground">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading live entitlements...
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-left text-sm">
+                    <thead className="bg-muted/10 text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
+                      <tr>
+                        <th className="px-4 py-4">Employee</th>
+                        <th className="px-4 py-4">Branch</th>
+                        <th className="px-4 py-4">Department</th>
+                        <th className="px-4 py-4">Leave Type</th>
+                        <th className="px-4 py-4">Balance</th>
+                        <th className="px-4 py-4">Pending</th>
+                        <th className="px-4 py-4">Status</th>
+                        <th className="px-4 py-4">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {leaveRows.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} className="px-4 py-10 text-center text-sm font-black uppercase tracking-[0.22em] text-muted-foreground">
+                            No live entitlement records found for the selected filters.
+                          </td>
+                        </tr>
+                      ) : (
+                        leaveRows.map((row) => (
+                          <tr key={row.user_id} className="border-t border-border/70 even:bg-muted/10">
+                            <td className="px-4 py-4 font-black text-foreground">{row.employee}</td>
+                            <td className="px-4 py-4 text-[11px] text-muted-foreground">{row.branch || 'HQ'}</td>
+                            <td className="px-4 py-4 text-[11px] text-muted-foreground">{row.department || 'Unassigned'}</td>
+                            <td className="px-4 py-4 text-[11px] text-muted-foreground">{row.leave_type}</td>
+                            <td className="px-4 py-4 font-black">{row.balance} days</td>
+                            <td className="px-4 py-4 text-[11px] text-muted-foreground">{row.pending} days</td>
+                            <td className="px-4 py-4">
+                              <span className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.22em] ${row.status === 'Active' ? 'bg-emerald-500/10 text-emerald-700' : row.status === 'Pending' ? 'bg-amber-500/10 text-amber-700' : 'bg-sky-500/10 text-sky-700'}`}>
+                                {row.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-4">
+                              <button
+                                type="button"
+                                onClick={() => toast.success(`Reviewing ${row.employee}'s leave balance.`)}
+                                className="rounded-full border border-[#7B0099] px-3 py-1 text-[9px] font-black uppercase tracking-widest text-[#7B0099]"
+                              >
+                                Review
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                    </table>
+                  </div>
+                )}
               </Card>
-            </>
+            </div>
           )}
-
-        </div>
-
-      </div>
-    </div>
-  );
-}

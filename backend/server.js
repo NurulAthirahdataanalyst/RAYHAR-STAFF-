@@ -1628,6 +1628,91 @@ app.get("/api/branch-employees", async (req, res) => {
 });
 
 // ===============================
+// LEAVE ENTITLEMENT DATA
+// ===============================
+app.get("/api/leave-entitlements", async (req, res) => {
+  const { branch, department, search, leaveType, year, status } = req.query;
+
+  try {
+    const params = [];
+    const filters = ["p.status = 'Active'"];
+
+    if (branch) {
+      filters.push("p.branch = ?");
+      params.push(branch);
+    }
+
+    if (department) {
+      filters.push("p.department = ?");
+      params.push(department);
+    }
+
+    if (search) {
+      filters.push("(p.full_name ILIKE ? OR p.user_id ILIKE ?)");
+      params.push(`%${search}%`, `%${search}%`);
+    }
+
+    if (status) {
+      filters.push("(CASE WHEN COALESCE(lr.pending_count, 0) > 0 THEN 'Pending' ELSE 'Active' END) = ?");
+      params.push(status);
+    }
+
+    const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
+
+    const [rows] = await pool.query(
+      `
+      SELECT
+        p.user_id,
+        p.full_name AS employee,
+        p.branch,
+        p.department,
+        COALESCE(lr.annual_days_used, 0) AS annual_days_used,
+        GREATEST(14 - COALESCE(lr.annual_days_used, 0), 0) AS balance,
+        COALESCE(lr.pending_count, 0) AS pending,
+        CASE
+          WHEN COALESCE(lr.pending_count, 0) > 0 THEN 'Pending'
+          ELSE 'Active'
+        END AS status,
+        'Annual Leave' AS leave_type,
+        COALESCE(?, EXTRACT(YEAR FROM CURRENT_DATE)) AS year_value
+      FROM profiles p
+      LEFT JOIN (
+        SELECT
+          user_id,
+          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
+          SUM(CASE WHEN status LIKE 'Pending%' THEN 1 ELSE 0 END) AS pending_count
+        FROM leave_requests
+        GROUP BY user_id
+      ) lr ON lr.user_id = p.user_id
+      ${whereClause}
+      ORDER BY p.full_name ASC
+      `,
+      [year || null, ...params]
+    );
+
+    const entitlements = rows.map((row) => ({
+      ...row,
+      balance: Number(row.balance || 0),
+      pending: Number(row.pending || 0),
+      annual_days_used: Number(row.annual_days_used || 0),
+      year: Number(row.year_value || new Date().getFullYear())
+    }));
+
+    const summary = {
+      totalEmployees: entitlements.length,
+      carryForwardEligible: entitlements.filter((row) => row.balance > 0).length,
+      pendingAdjustments: entitlements.filter((row) => row.status === "Pending").length,
+      expiringSoon: entitlements.filter((row) => row.balance <= 4).length
+    };
+
+    res.json({ success: true, entitlements, summary });
+  } catch (err) {
+    console.error("Leave entitlements error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ===============================
 // LEAVE REQUESTS
 // ===============================
 app.get("/api/leave-requests", async (req, res) => {
