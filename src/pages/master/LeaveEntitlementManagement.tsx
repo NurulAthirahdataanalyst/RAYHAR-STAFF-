@@ -17,11 +17,6 @@ import {
   Check,
   X,
   Plus,
-  Minus,
-  CalendarDays,
-  FileSpreadsheet,
-  Trash2,
-  Lock,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -117,10 +112,6 @@ export default function LeaveEntitlementManagement() {
     return <Navigate to="/" replace />;
   }
 
-  // Common styles
-  const textTitleClass = "text-xl font-bold tracking-tight text-foreground flex items-center gap-2 border-b pb-2 mb-4";
-  const sectionTitleClass = "text-xs font-black uppercase tracking-wider text-muted-foreground mt-6 mb-3 flex items-center gap-2";
-
   // Helper: get unused leaves mock
   const getUnusedDays = (empId: string) => {
     const num = parseInt(empId.replace(/\D/g, '')) || 5;
@@ -142,18 +133,6 @@ export default function LeaveEntitlementManagement() {
             Centralised administration for employee leave allocation, balance corrections, carry forward rules, and audit-ready entitlement history.
           </p>
         </div>
-
-        {activeModule && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setActiveModule(null)}
-            className="w-fit text-xs font-bold gap-2 uppercase tracking-wider h-9"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Modules
-          </Button>
-        )}
       </div>
 
       {activeModule === null ? (
@@ -192,7 +171,7 @@ export default function LeaveEntitlementManagement() {
           </Card>
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-            <Card className="xl:col-span-2 border-border/60 bg-card/70 backdrop-blur-sm">
+            <Card className="xl:col-span-2 border-border/60 bg-card/77 backdrop-blur-sm">
               <CardHeader className="border-b border-border/50 bg-muted/20">
                 <CardTitle className="flex items-center gap-2 text-lg font-black">
                   <Award className="w-5 h-5 text-emerald-600" />
@@ -223,7 +202,7 @@ export default function LeaveEntitlementManagement() {
               </CardContent>
             </Card>
 
-            <Card className="border-border/60 bg-card/70 backdrop-blur-sm">
+            <Card className="border-border/60 bg-card/77 backdrop-blur-sm">
               <CardHeader className="border-b border-border/50 bg-muted/20">
                 <CardTitle className="flex items-center gap-2 text-lg font-black">
                   <CircleAlert className="w-5 h-5 text-amber-600" />
@@ -251,7 +230,6 @@ export default function LeaveEntitlementManagement() {
             <AnnualLeaveAllocationForm
               employees={employees}
               onCancel={() => setActiveModule(null)}
-              getUnusedDays={getUnusedDays}
             />
           )}
           {activeModule === "Carry Forward Leave" && (
@@ -389,11 +367,9 @@ function EmployeeSearchSelector({
 function AnnualLeaveAllocationForm({
   employees,
   onCancel,
-  getUnusedDays,
 }: {
   employees: any[];
   onCancel: () => void;
-  getUnusedDays: (id: string) => number;
 }) {
   const [selectedBranch, setSelectedBranch] = useState("All");
   const [selectedDept, setSelectedDept] = useState("All");
@@ -421,14 +397,19 @@ function AnnualLeaveAllocationForm({
 
   return (
     <Card className="border-border/60 bg-card/75 shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold flex items-center gap-2">
+      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20">
+        <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-sky-500/10 hover:text-sky-600 transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+        <div className="w-9 h-9 rounded-xl bg-sky-500/10 flex items-center justify-center">
           <CalendarRange className="w-5 h-5 text-sky-600" />
-          Annual Leave Allocation
-        </CardTitle>
-        <CardDescription>Setup or reset the annual base leave days for your staff.</CardDescription>
+        </div>
+        <div>
+          <CardTitle className="text-base sm:text-lg font-black text-foreground">Annual Leave Allocation</CardTitle>
+          <CardDescription className="text-xs">Setup or reset the annual base leave days for your staff.</CardDescription>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 pt-2">
         <div>
           <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3">Allocation Config</h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -584,14 +565,19 @@ function CarryForwardLeaveForm({
 
   return (
     <Card className="border-border/60 bg-card/75 shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold flex items-center gap-2">
+      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20">
+        <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-emerald-500/10 hover:text-emerald-600 transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+        <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center">
           <RotateCcw className="w-5 h-5 text-emerald-600" />
-          Carry Forward Leave
-        </CardTitle>
-        <CardDescription>Setup annual roll-over configs and select eligible employees to carry forward unused leaves.</CardDescription>
+        </div>
+        <div>
+          <CardTitle className="text-base sm:text-lg font-black text-foreground">Carry Forward Leave</CardTitle>
+          <CardDescription className="text-xs">Setup annual roll-over configs and select eligible employees to carry forward unused leaves.</CardDescription>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 pt-2">
         <div>
           <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Carry Forward Configuration</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
@@ -780,14 +766,19 @@ function AdditionalLeaveAllocationForm({
 
   return (
     <Card className="border-border/60 bg-card/75 shadow-lg max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold flex items-center gap-2">
+      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20">
+        <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-violet-500/10 hover:text-violet-600 transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+        <div className="w-9 h-9 rounded-xl bg-violet-500/10 flex items-center justify-center">
           <BadgePlus className="w-5 h-5 text-violet-600" />
-          Additional Leave Allocation
-        </CardTitle>
-        <CardDescription>Grant extra leave days to specific employees as rewards or adjustments.</CardDescription>
+        </div>
+        <div>
+          <CardTitle className="text-base sm:text-lg font-black text-foreground">Additional Leave Allocation</CardTitle>
+          <CardDescription className="text-xs">Grant extra leave days to specific employees as rewards or adjustments.</CardDescription>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 pt-2">
         <div>
           <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Employee Information</h4>
           <div className="space-y-4">
@@ -923,14 +914,19 @@ function ManualLeaveAdjustmentForm({
 
   return (
     <Card className="border-border/60 bg-card/75 shadow-lg max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold flex items-center gap-2">
+      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20">
+        <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-amber-500/10 hover:text-amber-600 transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+        <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
           <ClipboardList className="w-5 h-5 text-amber-600" />
-          Manual Leave Adjustment
-        </CardTitle>
-        <CardDescription>Directly modify an employee's leave balance ledger for audit corrections.</CardDescription>
+        </div>
+        <div>
+          <CardTitle className="text-base sm:text-lg font-black text-foreground">Manual Leave Adjustment</CardTitle>
+          <CardDescription className="text-xs">Directly modify an employee's leave balance ledger for audit corrections.</CardDescription>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 pt-2">
         <div>
           <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Employee</h4>
           <div className="space-y-4">
@@ -1076,14 +1072,19 @@ function SpecialLeaveCreditsForm({
 
   return (
     <Card className="border-border/60 bg-card/75 shadow-lg max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold flex items-center gap-2">
+      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20">
+        <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-rose-500/10 hover:text-rose-600 transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+        <div className="w-9 h-9 rounded-xl bg-rose-500/10 flex items-center justify-center">
           <Gift className="w-5 h-5 text-rose-600" />
-          Special Leave Credits
-        </CardTitle>
-        <CardDescription>Grant special-use credits like Birthday, Marriage, or Replacement leaves.</CardDescription>
+        </div>
+        <div>
+          <CardTitle className="text-base sm:text-lg font-black text-foreground">Special Leave Credits</CardTitle>
+          <CardDescription className="text-xs">Grant special-use credits like Birthday, Marriage, or Replacement leaves.</CardDescription>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 pt-2">
         <div>
           <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Employee</h4>
           <EmployeeSearchSelector
@@ -1182,14 +1183,19 @@ function LeaveForfeitureForm({
 
   return (
     <Card className="border-border/60 bg-card/75 shadow-lg max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold flex items-center gap-2">
+      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20">
+        <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-red-500/10 hover:text-red-600 transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+        <div className="w-9 h-9 rounded-xl bg-red-500/10 flex items-center justify-center">
           <ShieldAlert className="w-5 h-5 text-red-600" />
-          Leave Forfeiture
-        </CardTitle>
-        <CardDescription>Enforce forfeiture rules on expired carry forwards or policy overflows.</CardDescription>
+        </div>
+        <div>
+          <CardTitle className="text-base sm:text-lg font-black text-foreground">Leave Forfeiture</CardTitle>
+          <CardDescription className="text-xs">Enforce forfeiture rules on expired carry forwards or policy overflows.</CardDescription>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 pt-2">
         <div>
           <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Policy</h4>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1347,14 +1353,19 @@ function BulkLeaveAllocationForm({
 
   return (
     <Card className="border-border/60 bg-card/75 shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold flex items-center gap-2">
+      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20">
+        <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-cyan-500/10 hover:text-cyan-600 transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+        <div className="w-9 h-9 rounded-xl bg-cyan-500/10 flex items-center justify-center">
           <Users className="w-5 h-5 text-cyan-600" />
-          Bulk Leave Allocation
-        </CardTitle>
-        <CardDescription>Grant leave balances to batches of employees using a step-by-step wizard.</CardDescription>
+        </div>
+        <div>
+          <CardTitle className="text-base sm:text-lg font-black text-foreground">Bulk Leave Allocation</CardTitle>
+          <CardDescription className="text-xs">Grant leave balances to batches of employees using a step-by-step wizard.</CardDescription>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 pt-2">
         {/* Wizard Steps indicator */}
         <div className="flex items-center justify-between border-b pb-4">
           {[
@@ -1696,14 +1707,19 @@ function LeaveBalanceHistoryForm({
 
   return (
     <Card className="border-border/60 bg-card/75 shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold flex items-center gap-2">
+      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20">
+        <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-slate-500/10 hover:text-slate-600 transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+        <div className="w-9 h-9 rounded-xl bg-slate-500/10 flex items-center justify-center">
           <History className="w-5 h-5 text-slate-600" />
-          Leave Balance History
-        </CardTitle>
-        <CardDescription>Track and audit changes to employee leave balances over time.</CardDescription>
+        </div>
+        <div>
+          <CardTitle className="text-base sm:text-lg font-black text-foreground">Leave Balance History</CardTitle>
+          <CardDescription className="text-xs">Track and audit changes to employee leave balances over time.</CardDescription>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 pt-2">
         <div>
           <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Filters</h4>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
