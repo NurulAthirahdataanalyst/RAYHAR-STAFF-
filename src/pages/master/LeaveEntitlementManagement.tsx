@@ -138,7 +138,7 @@ export default function LeaveEntitlementManagement() {
       {activeModule === null ? (
         // DASHBOARD VIEW
         <>
-          <Card className="overflow-hidden border-border/60 bg-card/70 backdrop-blur-sm">
+          <Card className="overflow-hidden border-border/60 bg-card/77 backdrop-blur-sm">
             <CardHeader className="border-b border-border/50 bg-muted/20">
               <CardTitle className="flex items-center gap-2 text-lg font-black">
                 <Layers3 className="w-5 h-5 text-[#7B0099]" />
@@ -319,7 +319,7 @@ function EmployeeSearchSelector({
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
-          className="pl-8 pr-8"
+          className="pl-8 pr-8 bg-white h-9"
         />
         {selectedEmployee && (
           <button
@@ -372,11 +372,32 @@ function AnnualLeaveAllocationForm({
   employees: any[];
   onCancel: () => void;
 }) {
+  const [allocMode, setAllocMode] = useState<"base" | "ot">("base");
+
+  // Mode 1: Base entitlement state variables
   const [selectedBranch, setSelectedBranch] = useState("All");
   const [selectedDept, setSelectedDept] = useState("All");
   const [search, setSearch] = useState("");
   const [leaveDays, setLeaveDays] = useState(14);
   const [leaveYear, setLeaveYear] = useState("2026");
+
+  // Mode 2: OT convert state variables
+  const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
+  const [selectedOTs, setSelectedOTs] = useState<string[]>([]);
+  const [targetLeaveType, setTargetLeaveType] = useState("Annual & Emergency Leave");
+  const [otHoursLimit, setOtHoursLimit] = useState(8);
+
+  const mockOTs = [
+    { id: "OT-01", date: "2026-07-01", hours: 4, description: "Approved Overtime - System maintenance HOD approved" },
+    { id: "OT-02", date: "2026-07-04", hours: 8, description: "Approved Overtime - Weekend event HOD approved" },
+    { id: "OT-03", date: "2026-07-05", hours: 6, description: "Approved Overtime - Urgent customer support" },
+  ];
+
+  const totalSelectedOTHours = mockOTs
+    .filter(ot => selectedOTs.includes(ot.id))
+    .reduce((sum, ot) => sum + ot.hours, 0);
+
+  const allocatedDays = Number((totalSelectedOTHours / otHoursLimit).toFixed(1));
 
   const filtered = employees.filter((e) => {
     const bMatch = selectedBranch === "All" || e.branch === selectedBranch;
@@ -389,11 +410,75 @@ function AnnualLeaveAllocationForm({
   const uniqueDepts = ["All", ...new Set(employees.map(e => e.department).filter(Boolean))];
 
   const handleGrant = () => {
+    // Audit Log for localStorage
+    const newLogs = filtered.map(emp => ({
+      date: new Date().toISOString().split('T')[0],
+      action: `Base Entitlement`,
+      performedBy: "Nurul Athirah (HR)",
+      reference: `ANN-ALLOC-${leaveYear}`,
+      before: 0,
+      after: leaveDays,
+      type: "Allocation",
+      leave: "Annual Leave",
+      employee: emp.full_name,
+    }));
+
+    const saved = localStorage.getItem("leave_balance_history_logs");
+    const currentLogs = saved ? JSON.parse(saved) : [];
+    localStorage.setItem("leave_balance_history_logs", JSON.stringify([...newLogs, ...currentLogs]));
+
     toast({
       title: "Annual Leave Allocated",
       description: `Successfully allocated base ${leaveDays} days for year ${leaveYear} to ${filtered.length} employees.`,
     });
     onCancel();
+  };
+
+  const handleOTAllocate = () => {
+    if (!selectedEmp) return;
+    if (selectedOTs.length === 0) {
+      toast({
+        title: "No OT Records Selected",
+        description: "Please check at least one approved OT record to convert.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Append to local history logs
+    const newLog = {
+      date: new Date().toISOString().split('T')[0],
+      action: `OT Convert (+${allocatedDays}d)`,
+      performedBy: "Nurul Athirah (HR)",
+      reference: `OT-CONV-${selectedOTs.join('-')}`,
+      before: 14,
+      after: 14 + allocatedDays,
+      type: "Allocation",
+      leave: targetLeaveType,
+      employee: selectedEmp.full_name,
+    };
+
+    const saved = localStorage.getItem("leave_balance_history_logs");
+    const currentLogs = saved ? JSON.parse(saved) : [];
+    localStorage.setItem("leave_balance_history_logs", JSON.stringify([newLog, ...currentLogs]));
+
+    toast({
+      title: "OT Conversion Successful",
+      description: `Allocated +${allocatedDays} days of ${targetLeaveType} to ${selectedEmp.full_name} for ${totalSelectedOTHours} hours of Overtime.`,
+    });
+    
+    // reset form
+    setSelectedEmp(null);
+    setSelectedOTs([]);
+    onCancel();
+  };
+
+  const handleToggleOT = (otId: string) => {
+    if (selectedOTs.includes(otId)) {
+      setSelectedOTs(selectedOTs.filter(id => id !== otId));
+    } else {
+      setSelectedOTs([...selectedOTs, otId]);
+    }
   };
 
   return (
@@ -411,94 +496,219 @@ function AnnualLeaveAllocationForm({
         </div>
       </CardHeader>
       <CardContent className="space-y-6 pt-2">
-        <div>
-          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3">Allocation Config</h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Leave Year</Label>
-              <Select value={leaveYear} onValueChange={setLeaveYear}>
-                <SelectTrigger className="bg-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="2026">2026</SelectItem>
-                  <SelectItem value="2027">2027</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Base Entitlement (Days)</Label>
-              <Input type="number" value={leaveDays} onChange={(e) => setLeaveDays(Number(e.target.value))} className="bg-white" />
-            </div>
-          </div>
+        {/* Toggle Mode */}
+        <div className="flex gap-2 p-1 bg-muted/30 border rounded-lg w-fit">
+          <Button
+            variant={allocMode === "base" ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setAllocMode("base")}
+            className="text-xs font-bold uppercase tracking-wider h-8"
+          >
+            Base Entitlement
+          </Button>
+          <Button
+            variant={allocMode === "ot" ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setAllocMode("ot")}
+            className="text-xs font-bold uppercase tracking-wider h-8 gap-1.5"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            OT to Replacement Leave
+          </Button>
         </div>
 
-        <div className="border-t pt-4">
-          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3">Employee Filter</h4>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Branch</Label>
-              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="bg-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {uniqueBranches.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
-                </SelectContent>
-              </Select>
+        {allocMode === "base" ? (
+          // MODE 1: BASE ENTITLEMENT ALLOCATION
+          <>
+            <div>
+              <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Allocation Config</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold">Leave Year</Label>
+                  <Select value={leaveYear} onValueChange={setLeaveYear}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2026">2026</SelectItem>
+                      <SelectItem value="2027">2027</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold">Base Entitlement (Days)</Label>
+                  <Input type="number" value={leaveDays} onChange={(e) => setLeaveDays(Number(e.target.value))} className="bg-white" />
+                </div>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Department</Label>
-              <Select value={selectedDept} onValueChange={setSelectedDept}>
-                <SelectTrigger className="bg-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {uniqueDepts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5 md:col-span-2">
-              <Label className="text-xs font-bold">Search Name or ID</Label>
-              <Input placeholder="Enter employee name..." value={search} onChange={(e) => setSearch(e.target.value)} className="bg-white" />
-            </div>
-          </div>
-        </div>
 
-        <div className="border-t pt-4">
-          <div className="flex justify-between items-center mb-3">
-            <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Matching Employees ({filtered.length})</h4>
-          </div>
-          <div className="border rounded-md max-h-60 overflow-y-auto bg-white">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[120px]">Employee ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Branch</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead className="text-right">New Balance</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((emp) => (
-                  <TableRow key={emp.user_id}>
-                    <TableCell className="font-medium text-xs">{emp.user_id}</TableCell>
-                    <TableCell className="text-xs font-bold">{emp.full_name}</TableCell>
-                    <TableCell className="text-xs">{emp.branch}</TableCell>
-                    <TableCell className="text-xs">{emp.department || "-"}</TableCell>
-                    <TableCell className="text-right text-xs font-black text-sky-600">{leaveDays} Days</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
+            <div>
+              <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Employee Filter</h4>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold">Branch</Label>
+                  <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {uniqueBranches.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold">Department</Label>
+                  <Select value={selectedDept} onValueChange={setSelectedDept}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {uniqueDepts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5 md:col-span-2">
+                  <Label className="text-xs font-bold">Search Name or ID</Label>
+                  <Input placeholder="Enter employee name..." value={search} onChange={(e) => setSearch(e.target.value)} className="bg-white" />
+                </div>
+              </div>
+            </div>
 
-        <div className="flex justify-end gap-3 border-t pt-4">
-          <Button variant="outline" size="sm" onClick={onCancel} className="text-xs uppercase font-black tracking-wider">Cancel</Button>
-          <Button size="sm" onClick={handleGrant} className="bg-sky-600 hover:bg-sky-700 text-white text-xs uppercase font-black tracking-wider">Allocate Base Leave</Button>
-        </div>
+            <div>
+              <div className="flex justify-between items-center mb-3">
+                <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Matching Employees ({filtered.length})</h4>
+              </div>
+              <div className="border rounded-md max-h-60 overflow-y-auto bg-white">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[120px]">Employee ID</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Branch</TableHead>
+                      <TableHead>Department</TableHead>
+                      <TableHead className="text-right">New Balance</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((emp) => (
+                      <TableRow key={emp.user_id}>
+                        <TableCell className="font-medium text-xs">{emp.user_id}</TableCell>
+                        <TableCell className="text-xs font-bold">{emp.full_name}</TableCell>
+                        <TableCell className="text-xs">{emp.branch}</TableCell>
+                        <TableCell className="text-xs">{emp.department || "-"}</TableCell>
+                        <TableCell className="text-right text-xs font-black text-[#7B0099]">{leaveDays} Days</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 border-t pt-4">
+              <Button variant="outline" size="sm" onClick={onCancel} className="text-xs uppercase font-black tracking-wider">Cancel</Button>
+              <Button size="sm" onClick={handleGrant} className="bg-sky-600 hover:bg-sky-700 text-white text-xs uppercase font-black tracking-wider">Allocate Base Leave</Button>
+            </div>
+          </>
+        ) : (
+          // MODE 2: OT TO REPLACEMENT LEAVE ALLOCATION
+          <div className="space-y-4 max-w-2xl mx-auto border p-4 rounded-xl bg-muted/5">
+            <div>
+              <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Employee</h4>
+              <EmployeeSearchSelector
+                employees={employees}
+                selectedEmployee={selectedEmp}
+                onSelect={setSelectedEmp}
+                placeholder="Search staff who worked OT..."
+              />
+            </div>
+
+            {selectedEmp && (
+              <>
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Approved Overtime Records</h4>
+                  <div className="border rounded-md bg-white text-xs divide-y">
+                    {mockOTs.map((ot) => {
+                      const isChecked = selectedOTs.includes(ot.id);
+                      return (
+                        <div
+                          key={ot.id}
+                          onClick={() => handleToggleOT(ot.id)}
+                          className={`p-3 cursor-pointer transition-colors flex items-center justify-between hover:bg-muted/10 ${
+                            isChecked ? "bg-amber-500/5" : ""
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {}} // handled by click
+                              className="cursor-pointer rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                            />
+                            <div>
+                              <div className="font-bold">{ot.date}</div>
+                              <div className="text-[10px] text-muted-foreground mt-0.5">{ot.description}</div>
+                            </div>
+                          </div>
+                          <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-200">
+                            {ot.hours} Hours
+                          </Badge>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold">Leave Type Allocation</Label>
+                    <Select value={targetLeaveType} onValueChange={setTargetLeaveType}>
+                      <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Annual & Emergency Leave">Annual & Emergency Leave</SelectItem>
+                        <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold">OT Hours Per 1 Day Leave</Label>
+                    <Select value={otHoursLimit.toString()} onValueChange={(val) => setOtHoursLimit(Number(val))}>
+                      <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="8">8 Hours Overtime</SelectItem>
+                        <SelectItem value="4">4 Hours Overtime</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="bg-amber-50 border border-amber-200 p-3.5 rounded-lg flex items-center justify-between text-xs dark:bg-slate-900 dark:border-slate-800 mt-2">
+                  <div>
+                    <span className="text-muted-foreground block font-medium">Conversion Summary</span>
+                    <span className="font-bold text-amber-800 dark:text-amber-400">
+                      {totalSelectedOTHours} Selected Hours / {otHoursLimit}h Rate
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-muted-foreground block font-medium">Replacement Days Granted</span>
+                    <span className="font-black text-sm text-amber-600">+{allocatedDays} Days</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 border-t pt-4">
+                  <Button variant="outline" size="sm" onClick={onCancel} className="text-xs uppercase font-black tracking-wider">Cancel</Button>
+                  <Button
+                    size="sm"
+                    onClick={handleOTAllocate}
+                    disabled={selectedOTs.length === 0}
+                    className="bg-amber-600 hover:bg-amber-700 text-white text-xs uppercase font-black tracking-wider"
+                  >
+                    Allocate Replacement Leave
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -557,6 +767,29 @@ function CarryForwardLeaveForm({
   };
 
   const handleExecute = () => {
+    // Log to local balance history logs
+    const newLogs = employees
+      .filter((e) => selectedEmployees.includes(e.user_id))
+      .map(emp => {
+        const unused = getUnusedDays(emp.user_id);
+        const eligible = Math.min(unused, maxCarry);
+        return {
+          date: new Date().toISOString().split('T')[0],
+          action: `Carry Forward CF`,
+          performedBy: "System Job",
+          reference: `ROLL-CF-${carryToYear}`,
+          before: 0,
+          after: eligible,
+          type: "Carry Forward",
+          leave: leaveType,
+          employee: emp.full_name,
+        };
+      });
+
+    const saved = localStorage.getItem("leave_balance_history_logs");
+    const currentLogs = saved ? JSON.parse(saved) : [];
+    localStorage.setItem("leave_balance_history_logs", JSON.stringify([...newLogs, ...currentLogs]));
+
     toast({
       title: "Carry Forward Successful",
       description: `Executed carry forward for ${selectedEmployees.length} employees up to max ${maxCarry} days.`,
@@ -758,6 +991,23 @@ function AdditionalLeaveAllocationForm({
 
   const handleGrant = () => {
     if (!selectedEmp) return;
+
+    // Log to local balance history logs
+    const newLog = {
+      date: new Date().toISOString().split('T')[0],
+      action: `Additional Leave (+${addDays}d)`,
+      performedBy: "Nurul Athirah (HR)",
+      reference: `ADD-ALLOC-${reasonCat.replace(/\s+/g, '-')}`,
+      before: 14,
+      after: 14 + addDays,
+      type: "Allocation",
+      leave: leaveType,
+      employee: selectedEmp.full_name,
+    };
+    const saved = localStorage.getItem("leave_balance_history_logs");
+    const currentLogs = saved ? JSON.parse(saved) : [];
+    localStorage.setItem("leave_balance_history_logs", JSON.stringify([newLog, ...currentLogs]));
+
     toast({
       title: "Leave Allocated Successfully",
       description: `Granted +${addDays} days to ${selectedEmp.full_name} under Category: ${reasonCat}.`,
@@ -906,6 +1156,23 @@ function ManualLeaveAdjustmentForm({
 
   const handleSave = () => {
     if (!selectedEmp) return;
+
+    // Log to local balance history logs
+    const newLog = {
+      date: new Date().toISOString().split('T')[0],
+      action: `Manual Correction (${adjType === "add" ? "+" : "-"}${adjDays}d)`,
+      performedBy: "Nurul Athirah (HR)",
+      reference: `MAN-ADJ-${reason.replace(/\s+/g, '-')}`,
+      before: currentSelectedBalance,
+      after: newBalance,
+      type: "Adjustment",
+      leave: leaveType,
+      employee: selectedEmp.full_name,
+    };
+    const saved = localStorage.getItem("leave_balance_history_logs");
+    const currentLogs = saved ? JSON.parse(saved) : [];
+    localStorage.setItem("leave_balance_history_logs", JSON.stringify([newLog, ...currentLogs]));
+
     toast({
       title: "Adjustment Applied Successfully",
       description: `Adjusted balance for ${selectedEmp.full_name}: New Balance is ${newBalance} days.`,
@@ -1064,6 +1331,23 @@ function SpecialLeaveCreditsForm({
 
   const handleGrant = () => {
     if (!selectedEmp) return;
+
+    // Log to local balance history logs
+    const newLog = {
+      date: new Date().toISOString().split('T')[0],
+      action: `Special Credit (${specialLeave})`,
+      performedBy: "Nurul Athirah (HR)",
+      reference: `SPEC-CRED-${specialLeave.replace(/\s+/g, '-')}`,
+      before: 0,
+      after: days,
+      type: "Allocation",
+      leave: specialLeave,
+      employee: selectedEmp.full_name,
+    };
+    const saved = localStorage.getItem("leave_balance_history_logs");
+    const currentLogs = saved ? JSON.parse(saved) : [];
+    localStorage.setItem("leave_balance_history_logs", JSON.stringify([newLog, ...currentLogs]));
+
     toast({
       title: "Special Leave Granted",
       description: `Granted ${days} days of ${specialLeave} to ${selectedEmp.full_name}.`,
@@ -1175,6 +1459,23 @@ function LeaveForfeitureForm({
 
   const handleForfeit = () => {
     if (!selectedEmp) return;
+
+    // Log to local balance history logs
+    const newLog = {
+      date: new Date().toISOString().split('T')[0],
+      action: `Forfeited (-${forfeit}d)`,
+      performedBy: "Nurul Athirah (HR)",
+      reference: `FORFEIT-${reason.replace(/\s+/g, '-')}`,
+      before: unused,
+      after: eligible,
+      type: "Adjustment",
+      leave: leaveType,
+      employee: selectedEmp.full_name,
+    };
+    const saved = localStorage.getItem("leave_balance_history_logs");
+    const currentLogs = saved ? JSON.parse(saved) : [];
+    localStorage.setItem("leave_balance_history_logs", JSON.stringify([newLog, ...currentLogs]));
+
     toast({
       title: "Leave Forfeited Successful",
       description: `Forfeited ${forfeit} unused days from ${selectedEmp.full_name} successfully.`,
@@ -1345,6 +1646,25 @@ function BulkLeaveAllocationForm({
   };
 
   const handleConfirmAllocation = () => {
+    // Log to local balance history logs
+    const newLogs = employees
+      .filter((e) => selectedEmployees.includes(e.user_id))
+      .map(emp => ({
+        date: new Date().toISOString().split('T')[0],
+        action: `Bulk Allocation (+${days}d)`,
+        performedBy: "Nurul Athirah (HR)",
+        reference: `BULK-ALLOC-${reason.replace(/\s+/g, '-')}`,
+        before: 14,
+        after: 14 + days,
+        type: "Allocation",
+        leave: leaveType,
+        employee: emp.full_name,
+      }));
+
+    const saved = localStorage.getItem("leave_balance_history_logs");
+    const currentLogs = saved ? JSON.parse(saved) : [];
+    localStorage.setItem("leave_balance_history_logs", JSON.stringify([...newLogs, ...currentLogs]));
+
     toast({
       title: "Bulk Allocation Successful",
       description: `Granted ${days} days of ${leaveType} to ${selectedEmployees.length} employees.`,
@@ -1651,6 +1971,7 @@ function LeaveBalanceHistoryForm({
   const [leaveType, setLeaveType] = useState("All");
   const [actionType, setActionType] = useState("All");
   const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
+  const [localLogs, setLocalLogs] = useState<any[]>([]);
 
   // Fetch real leave requests to populate real usage history
   useEffect(() => {
@@ -1668,6 +1989,12 @@ function LeaveBalanceHistoryForm({
       }
     };
     fetchRequests();
+
+    // Load local logs (from OT conversion or other screen actions)
+    const saved = localStorage.getItem("leave_balance_history_logs");
+    if (saved) {
+      setLocalLogs(JSON.parse(saved));
+    }
   }, []);
 
   // Map real approved leave requests into history format
@@ -1688,9 +2015,10 @@ function LeaveBalanceHistoryForm({
     };
   });
 
-  // Combined History (Real approved leave requests + mock system allocations/corrections)
+  // Combined History (Real approved leave requests + local adjustments + mock system allocations/corrections)
   const combinedHistory = [
     ...realHistory,
+    ...localLogs,
     {
       date: "2026-07-06",
       action: "Manual Correction",
