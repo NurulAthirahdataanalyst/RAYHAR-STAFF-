@@ -84,6 +84,7 @@ export default function WorkforceInsights() {
   const [absentList, setAbsentList] = useState<LiveEmp[]>([]);
   const [pendingApprovalsList, setPendingApprovalsList] = useState<PendingItem[]>([]);
   const [upcomingOutstationList, setUpcomingOutstationList] = useState<any[]>([]);
+  const [outstationSummary, setOutstationSummary] = useState<any>(null);
   const [feedConnected, setFeedConnected] = useState(false);
 
   const isAdminRole = ["hr_admin", "managing_director", "finance_manager"].includes(role || "");
@@ -110,6 +111,7 @@ export default function WorkforceInsights() {
           setAbsentList(d.absentList || []);
           setPendingApprovalsList(d.pendingApprovals || []);
           setUpcomingOutstationList(d.upcomingOutstationList || []);
+          setOutstationSummary(d.outstationSummary || null);
           setFeedConnected(true);
         }
       } catch {}
@@ -1033,12 +1035,43 @@ export default function WorkforceInsights() {
                 const displayEmps = item.employees.slice(0, 3);
                 const extraCount = item.employees.length - 3;
                 
+                const formatDate = (ds: string) => {
+                  if (!ds) return "";
+                  const d = new Date(ds);
+                  return d.toLocaleDateString("en-MY", { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+                };
+                let dateDisplay = "";
+                if (item.startDate) {
+                  const sd = formatDate(item.startDate);
+                  const ed = item.endDate ? formatDate(item.endDate) : sd;
+                  dateDisplay = sd === ed ? sd : `${sd} - ${ed}`;
+                }
+
                 return (
                   <div key={item.id} className={`border-l-4 ${borderColor} pl-3 py-1 space-y-2`}>
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="text-xs font-bold text-slate-800">{item.title}</p>
-                        <p className="text-[10px] text-slate-400 font-medium mt-0.5">{item.time}</p>
+                        <div className="mt-1 space-y-0.5">
+                          {dateDisplay && (
+                            <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
+                              <CalendarDays className="w-3 h-3 text-slate-400 shrink-0" /> {dateDisplay}
+                            </p>
+                          )}
+                          <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-slate-400 shrink-0" /> {item.time}
+                          </p>
+                          {item.destination && item.title !== item.destination && (
+                            <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-slate-400 shrink-0" /> {item.destination}
+                            </p>
+                          )}
+                          {item.title === item.destination && (
+                            <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-slate-400 shrink-0" /> {item.destination}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <div className="flex -space-x-1.5">
                         {displayEmps.map((e: any, i: number) => (
@@ -1076,12 +1109,12 @@ export default function WorkforceInsights() {
         )}
           </>
         ) : (
-          <MonthViewDashboard data={data} />
+          <MonthViewDashboard data={data} outstationSummary={outstationSummary} feedConnected={feedConnected} />
         )}
       </div>
   );
 }
-function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApprovalsList, feedConnected }: any) {
+function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApprovalsList, feedConnected, outstationSummary }: any) {
   const topKpi = data.topKpi || {};
   const monthlyComp = data.monthlyComparison || { attendance: {}, lateArrivals: {}, absences: {}, leaveRequests: {}, outstation: {} };
   
@@ -1422,8 +1455,13 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
            </Card>
 
            {/* Travel & Outstation Summary */}
-           <Card className="p-4 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
-             <div className="flex justify-between items-center mb-4">
+           <Card className="p-4 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col relative overflow-hidden">
+             {feedConnected && (
+               <div className="absolute top-2 right-2 flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest z-10 shadow-sm">
+                 <span className="w-1 h-1 rounded-full bg-white animate-pulse" /> LIVE
+               </div>
+             )}
+             <div className="flex justify-between items-center mb-4 relative z-10">
                <div className="flex items-center gap-2">
                  <Plane className="w-4 h-4 text-slate-400" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">Travel & Outstation Summary</h3>
@@ -1432,23 +1470,29 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
              
              <div className="grid grid-cols-3 gap-2 mb-6">
                <div className="flex flex-col items-center">
-                 <span className="text-2xl font-black text-[#1A1F36]">{outstation.completed || 0}</span>
+                 <span className="text-2xl font-black text-[#1A1F36]">{outstationSummary?.completed || data.outstationAnalytics?.completed || 0}</span>
                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Completed</span>
                </div>
                <div className="flex flex-col items-center">
-                 <span className="text-2xl font-black text-[#1A1F36]">{outstation.upcoming || 0}</span>
+                 <span className="text-2xl font-black text-[#1A1F36]">{outstationSummary?.upcoming || data.outstationAnalytics?.upcoming || 0}</span>
                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Upcoming</span>
                </div>
                <div className="flex flex-col items-center">
-                 <span className="text-2xl font-black text-[#1A1F36]">{outstation.cancelled || 0}</span>
+                 <span className="text-2xl font-black text-[#1A1F36]">{outstationSummary?.cancelled || data.outstationAnalytics?.cancelled || 0}</span>
                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Cancelled</span>
                </div>
              </div>
              
              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2">Popular Routes</p>
-             <div className="space-y-3 flex-1 overflow-y-auto">
-               {(outstation.popularRoutes || []).map((r: any, i: number) => {
-                 const maxTrips = Math.max(...(outstation.popularRoutes||[]).map((pr:any)=>pr.trips));
+             <div className="space-y-3 flex-1 overflow-y-auto pr-1">
+               {((outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes || [])).length === 0 ? (
+                 <div className="flex flex-col items-center justify-center h-full text-slate-400 py-4">
+                   <Plane className="w-6 h-6 opacity-30 mb-2" />
+                   <p className="text-[9px] font-bold uppercase tracking-widest">No Routes Recorded</p>
+                 </div>
+               ) : (outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes || []).map((r: any, i: number) => {
+                 const currentRoutes = outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes || [];
+                 const maxTrips = Math.max(...currentRoutes.map((pr: any) => pr.trips));
                  const w = maxTrips > 0 ? (r.trips / maxTrips) * 100 : 0;
                  return (
                    <div key={i} className="flex items-center gap-3">

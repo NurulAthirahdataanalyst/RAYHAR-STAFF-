@@ -1385,7 +1385,54 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
     const initials = (r.full_name || '??').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
     outstationGroups[key].employees.push({ id: r.user_id, name: r.full_name, initials });
   }
-  const upcomingOutstationList = Object.values(outstationGroups);
+  // Outstation Summary (for the month)
+  const monthStart = dateStr.substring(0, 8) + '01';
+  const nextMonthDate = new Date(monthStart);
+  nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
+  const monthEnd = nextMonthDate.toISOString().substring(0, 10);
+
+  let summaryFilters = ["start_date >= ?", "start_date < ?"];
+  let summaryParams = [monthStart, monthEnd];
+  if (role === 'branch_leader' && branch && branch !== "All") {
+      summaryFilters.push("branch = ?");
+      summaryParams.push(branch);
+  } else if (role === 'head_of_department' && department && department !== "All") {
+      summaryFilters.push("department = ?");
+      summaryParams.push(department);
+  }
+
+  const summaryWhere = `WHERE ${summaryFilters.join(' AND ')}`;
+  const [summaryRows] = await pool.query(
+    `SELECT status, destination FROM outstation_assignments ${summaryWhere}`,
+    summaryParams
+  );
+
+  let completedCount = 0;
+  let upcomingCount = 0;
+  let cancelledCount = 0;
+  const routeCounts = {};
+
+  for (const r of summaryRows) {
+    if (r.status === 'Completed') completedCount++;
+    else if (r.status === 'Upcoming' || r.status === 'Active') upcomingCount++;
+    else if (r.status === 'Cancelled') cancelledCount++;
+
+    if (r.status !== 'Cancelled' && r.destination) {
+      routeCounts[r.destination] = (routeCounts[r.destination] || 0) + 1;
+    }
+  }
+
+  const popularRoutes = Object.entries(routeCounts)
+    .map(([route, trips]) => ({ route: `KL → ${route}`, trips }))
+    .sort((a, b) => b.trips - a.trips)
+    .slice(0, 3);
+
+  const outstationSummary = {
+    completed: completedCount,
+    upcoming: upcomingCount,
+    cancelled: cancelledCount,
+    popularRoutes
+  };
 
   return {
     type: 'workforce_feed',
@@ -1394,7 +1441,8 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
     lateList,
     absentList,
     pendingApprovals,
-    upcomingOutstationList
+    upcomingOutstationList,
+    outstationSummary
   };
 }
 
