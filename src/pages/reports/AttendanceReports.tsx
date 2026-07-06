@@ -43,6 +43,15 @@ const calculateWorkingHours = (clockIn: string | null | undefined, clockOut: str
   return `${hours}h ${minutes}m`;
 };
 
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return "-";
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return dateStr;
+};
+
 export default function AttendanceReports() {
   const { role, userBranch, userDepartment } = useRole();
   const [loading, setLoading] = useState(true);
@@ -321,7 +330,7 @@ export default function AttendanceReports() {
                     ) : (
                       filteredList.map((req, idx) => (
                         <TableRow key={idx}>
-                          {viewType === "month" && <TableCell>{req.date || "-"}</TableCell>}
+                          {viewType === "month" && <TableCell>{formatDate(req.date)}</TableCell>}
                           <TableCell className="font-medium">{req.user_id}</TableCell>
                           <TableCell className="max-w-[180px] truncate" title={req.full_name}>{req.full_name}</TableCell>
                           <TableCell>{req.branch || "-"}</TableCell>
