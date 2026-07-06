@@ -100,17 +100,12 @@ export default function TeamAttendance() {
         statusLabel = att.status || "Absent";
       }
 
-      if (att.is_late && att.clock_in) {
-        const clockInDate = new Date(att.clock_in);
-        const klTime = new Date(clockInDate.getTime() + 8 * 60 * 60 * 1000);
-        const clockInHour = klTime.getUTCHours();
-        const clockInMinute = klTime.getUTCMinutes();
-        const lateTimeStr = "09:00"; // default
-        const [lateH, lateM] = lateTimeStr.split(':').map(Number);
-        const clockInMins = clockInHour * 60 + clockInMinute;
-        const thresholdMins = lateH * 60 + lateM;
-        const diff = clockInMins - thresholdMins;
-        lateLabel = diff > 0 ? `${diff} mins` : "00:00";
+      if (att.is_late && att.late_minutes != null && att.late_minutes > 0) {
+        const hrs = Math.floor(att.late_minutes / 60);
+        const mins = att.late_minutes % 60;
+        lateLabel = hrs > 0
+          ? `${hrs}h ${String(mins).padStart(2, '0')}m`
+          : `${mins} mins`;
       } else if (att && att.clock_in) {
         lateLabel = "00:00";
       }
