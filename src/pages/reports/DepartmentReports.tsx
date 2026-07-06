@@ -13,7 +13,8 @@ export default function DepartmentReports() {
   const { role, userBranch, userDepartment } = useRole();
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchDeptQuery, setSearchDeptQuery] = useState("");
+  const [searchBranchQuery, setSearchBranchQuery] = useState("");
 
   useEffect(() => {
     fetchData();
@@ -59,17 +60,17 @@ export default function DepartmentReports() {
     active: stats.active
   }));
 
-  const filteredList = deptArray.filter(e => 
-    e.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    e.branch.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const hqList = filteredList.filter(e => e.branch === 'HQ');
-  const branchList = filteredList.filter(e => e.branch !== 'HQ');
+  const hqList = deptArray
+    .filter(e => e.branch === 'HQ')
+    .filter(e => e.department.toLowerCase().includes(searchDeptQuery.toLowerCase()));
+    
+  const branchList = deptArray
+    .filter(e => e.branch !== 'HQ')
+    .filter(e => e.branch.toLowerCase().includes(searchBranchQuery.toLowerCase()));
 
   const handleExportCSV = () => {
     const headers = ["Department,Branch,Total Headcount,Active Employees"];
-    const rows = filteredList.map(a => 
+    const rows = deptArray.map(a => 
       `"${a.department}","${a.branch}",${a.headcount},${a.active}`
     );
     const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
@@ -77,6 +78,36 @@ export default function DepartmentReports() {
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", `department_report.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleExportDeptCSV = () => {
+    const headers = ["Department,Total Headcount,Active Employees"];
+    const rows = hqList.map(a => 
+      `"${a.department}",${a.headcount},${a.active}`
+    );
+    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `hq_department_statistics.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleExportBranchCSV = () => {
+    const headers = ["Branch,Total Headcount,Active Employees"];
+    const rows = branchList.map(a => 
+      `"${a.branch}",${a.headcount},${a.active}`
+    );
+    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `branch_statistics.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -164,14 +195,20 @@ export default function DepartmentReports() {
           <Card className="border-border shadow-sm">
             <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <CardTitle className="text-lg">Department Statistics (HQ)</CardTitle>
-              <div className="relative w-full sm:w-48">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search department..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+              <div className="flex items-center gap-2">
+                <div className="relative w-full sm:w-48">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search department..."
+                    className="pl-8 h-9"
+                    value={searchDeptQuery}
+                    onChange={(e) => setSearchDeptQuery(e.target.value)}
+                  />
+                </div>
+                <Button variant="outline" size="sm" className="h-9 px-3 flex items-center gap-2" onClick={handleExportDeptCSV}>
+                  <Download className="w-4 h-4" />
+                  <span className="hidden sm:inline">Export</span>
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -215,6 +252,21 @@ export default function DepartmentReports() {
           <Card className="border-border shadow-sm">
             <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <CardTitle className="text-lg">Branch Statistics</CardTitle>
+              <div className="flex items-center gap-2">
+                <div className="relative w-full sm:w-48">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search branch..."
+                    className="pl-8 h-9"
+                    value={searchBranchQuery}
+                    onChange={(e) => setSearchBranchQuery(e.target.value)}
+                  />
+                </div>
+                <Button variant="outline" size="sm" className="h-9 px-3 flex items-center gap-2" onClick={handleExportBranchCSV}>
+                  <Download className="w-4 h-4" />
+                  <span className="hidden sm:inline">Export</span>
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {loading ? (
