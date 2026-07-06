@@ -55,6 +55,9 @@ import {
   ArrowRight,
   Calendar,
   Sparkles,
+  Building2,
+  Layers,
+  UserCheck,
 } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
 
@@ -333,9 +336,20 @@ export default function LeaveAnalytics() {
     setPortalTarget(document.getElementById("page-header-actions"));
   }, []);
 
-  // Redirect non-hr_admin roles
+  // Identify scoped roles
+  const isBranchLeader = role === "branch_leader";
+  const isHOD = role === "head_of_department";
+  const isScopedRole = isBranchLeader || isHOD;
+
+  // Redirect roles that are not allowed
   useEffect(() => {
-    if (!roleLoading && role !== "hr_admin" && role !== "managing_director") {
+    if (
+      !roleLoading &&
+      role !== "hr_admin" &&
+      role !== "managing_director" &&
+      role !== "branch_leader" &&
+      role !== "head_of_department"
+    ) {
       navigate("/");
     }
   }, [role, roleLoading, navigate]);
@@ -369,21 +383,28 @@ export default function LeaveAnalytics() {
     attendanceRate: 0,
   });
 
-  // ─ Fetch all leave requests & attendance stats ──────────────────────────────
+  // ─ Fetch leave requests & attendance stats (scope-aware) ─────────────────
   const fetchData = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        role: "hr_admin",
-        branch: "",
-        department: "",
-      });
+      // Build params based on role scope
+      const params = new URLSearchParams(
+        isBranchLeader
+          ? { role: "branch_leader", branch: userBranch, department: "" }
+          : isHOD
+          ? { role: "head_of_department", branch: userBranch, department: userDepartment }
+          : { role: "hr_admin", branch: "", department: "" }
+      );
+
+      const statsQuery = isBranchLeader
+        ? `userId=ADMIN&role=branch_leader&branch=${encodeURIComponent(userBranch)}`
+        : isHOD
+        ? `userId=ADMIN&role=head_of_department&branch=${encodeURIComponent(userBranch)}&department=${encodeURIComponent(userDepartment)}`
+        : `userId=ADMIN&role=hr_admin&branch=All`;
 
       const [leaveRes, statsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/leave-requests?${params}`),
-        fetch(
-          `${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=hr_admin&branch=All`,
-        ),
+        fetch(`${API_BASE_URL}/api/dashboard-stats?${statsQuery}`),
       ]);
 
       const data = await leaveRes.json();
@@ -435,7 +456,24 @@ export default function LeaveAnalytics() {
 
   useEffect(() => {
     void fetchData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [role, userBranch, userDepartment]);
+
+  // ─ Staff-level summary (for Branch Leader / HOD) ─────────────────────────
+  const staffSummary = useMemo(() => {
+    const map: Record<string, { name: string; total: number; approved: number; rejected: number; pending: number; days: number }> = {};
+    records.forEach((r) => {
+      if (!map[r.user_id]) {
+        map[r.user_id] = { name: r.full_name, total: 0, approved: 0, rejected: 0, pending: 0, days: 0 };
+      }
+      map[r.user_id].total++;
+      map[r.user_id].days += r.days;
+      if (r.status === "Approved") map[r.user_id].approved++;
+      else if (r.status === "Rejected") map[r.user_id].rejected++;
+      else map[r.user_id].pending++;
+    });
+    return Object.values(map).sort((a, b) => b.total - a.total);
+  }, [records]);
 
   // ─ Filter logic ─────────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
@@ -735,6 +773,41 @@ export default function LeaveAnalytics() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-6">
+
+      {/* ── SCOPED CONTEXT BANNER for Branch Leader / HOD ── */}
+      {isScopedRole && (
+        <div className="relative overflow-hidden rounded-2xl border border-purple-200/60 bg-gradient-to-r from-[#7B0099]/5 via-purple-50 to-blue-50 px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3 shadow-sm">
+          {/* decorative gradient orb */}
+          <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-gradient-to-br from-purple-400/10 to-blue-400/10 blur-2xl pointer-events-none" />
+          <div className="flex items-center gap-3">
+            <div className={`p-2.5 rounded-xl shadow-sm ${
+              isBranchLeader ? "bg-gradient-to-br from-[#7B0099] to-purple-600" : "bg-gradient-to-br from-blue-600 to-indigo-700"
+            }`}>
+              {isBranchLeader ? <Building2 className="w-4 h-4 text-white" /> : <Layers className="w-4 h-4 text-white" />}
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.15em] text-purple-600/70">
+                {isBranchLeader ? "Branch Scope" : "Department Scope"}
+              </p>
+              <p className="text-[15px] font-black text-gray-800 leading-tight">
+                {isBranchLeader
+                  ? `Branch ${userBranch} — Leave Analytics`
+                  : `${userDepartment} Department — Leave Analytics`}
+              </p>
+            </div>
+          </div>
+          <div className="sm:ml-auto flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 bg-white border border-purple-200 text-purple-700 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm uppercase tracking-widest">
+              <UserCheck className="w-3 h-3" />
+              {isBranchLeader ? `Viewing: ${userBranch}` : `Dept: ${userDepartment}`}
+            </span>
+            <span className="inline-flex items-center gap-1.5 bg-white border border-blue-200 text-blue-700 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm uppercase tracking-widest">
+              <Users className="w-3 h-3" />
+              {records.length} Records
+            </span>
+          </div>
+        </div>
+      )}
       {/* ── LIVE PRESENCE PANEL ─────────────────────────────────────────── */}
       {/* ── LIVE LEAVE OVERVIEW & QUICK INSIGHTS ─────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-6 items-stretch">
@@ -979,6 +1052,11 @@ export default function LeaveAnalytics() {
             </h2>
             <p className="text-[10px] text-gray-400 font-medium ml-6 mt-0.5 uppercase tracking-widest">
               {filtered.length} Records Found
+              {isScopedRole && (
+                <span className="ml-2 text-purple-500">
+                  · Scoped to {isBranchLeader ? `Branch ${userBranch}` : userDepartment}
+                </span>
+              )}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -1010,19 +1088,21 @@ export default function LeaveAnalytics() {
               </SelectContent>
             </Select>
 
-            {/* Branch */}
-            <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-              <SelectTrigger className="w-[130px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="rounded-md max-h-60">
-                {BRANCHES.map((b) => (
-                  <SelectItem key={b} value={b}>
-                    {b}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Branch — shown only for HR Admin / MD */}
+            {!isScopedRole && (
+              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                <SelectTrigger className="w-[130px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-md max-h-60">
+                  {BRANCHES.map((b) => (
+                    <SelectItem key={b} value={b}>
+                      {b}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
 
             {/* Leave Type */}
             <Select value={selectedType} onValueChange={setSelectedType}>
@@ -1055,14 +1135,14 @@ export default function LeaveAnalytics() {
 
             {/* Active filter count badge */}
             {(selectedMonth !== "all" ||
-              selectedBranch !== "All Branches" ||
+              (!isScopedRole && selectedBranch !== "All Branches") ||
               selectedType !== "All Types" ||
               selectedStatus !== "All") && (
               <Badge
                 className="bg-gray-100 text-gray-600 font-medium text-[10px] px-2.5 py-1 rounded-md cursor-pointer hover:bg-gray-200 transition-colors ml-1"
                 onClick={() => {
                   setSelectedMonth("all");
-                  setSelectedBranch("All Branches");
+                  if (!isScopedRole) setSelectedBranch("All Branches");
                   setSelectedType("All Types");
                   setSelectedStatus("All");
                 }}
@@ -1733,6 +1813,135 @@ export default function LeaveAnalytics() {
           </div>
         </CardContent>
       </Card>
+
+      {/* ── STAFF LEAVE SUMMARY TABLE (Branch Leader / HOD only) ── */}
+      {isScopedRole && (
+        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden">
+          <CardHeader className="pb-0 border-b border-gray-100 bg-white">
+            <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+              <div className="p-2 bg-purple-500/10 rounded-xl">
+                <Users className="w-4 h-4 text-purple-600" />
+              </div>
+              {isBranchLeader ? `Branch ${userBranch}` : userDepartment} — Staff Leave Summary
+            </CardTitle>
+            <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground/70 ml-11 italic">
+              Individual breakdown for all staff under your {isBranchLeader ? "branch" : "department"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-4 px-0 pb-0">
+            {loading ? (
+              <div className="h-40 flex items-center justify-center">
+                <Loader2 className="animate-spin text-purple-400 w-7 h-7" />
+              </div>
+            ) : staffSummary.length === 0 ? (
+              <div className="h-40 flex items-center justify-center text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-30">
+                No staff leave records found
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-[12px]">
+                  <thead>
+                    <tr className="border-b border-gray-100 bg-slate-50/60">
+                      <th className="px-5 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Staff Member</th>
+                      <th className="px-4 py-3 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Applications</th>
+                      <th className="px-4 py-3 text-center text-[10px] font-black text-emerald-600 uppercase tracking-widest">Approved</th>
+                      <th className="px-4 py-3 text-center text-[10px] font-black text-rose-500 uppercase tracking-widest">Rejected</th>
+                      <th className="px-4 py-3 text-center text-[10px] font-black text-amber-500 uppercase tracking-widest">Pending</th>
+                      <th className="px-4 py-3 text-center text-[10px] font-black text-blue-600 uppercase tracking-widest">Days Used</th>
+                      <th className="px-5 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Leave Utilisation</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {staffSummary.map((staff, idx) => {
+                      const utilisationPct = Math.min(100, Math.round((staff.days / 14) * 100));
+                      return (
+                        <tr
+                          key={staff.name + idx}
+                          className="border-b border-gray-50 hover:bg-purple-50/30 transition-colors"
+                        >
+                          {/* Name */}
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#7B0099]/20 to-purple-300 flex items-center justify-center text-[10px] font-black text-purple-700 shrink-0">
+                                {staff.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                              </div>
+                              <span className="font-bold text-gray-800 truncate max-w-[160px]" title={staff.name}>{staff.name}</span>
+                            </div>
+                          </td>
+                          {/* Total */}
+                          <td className="px-4 py-3 text-center">
+                            <span className="font-black text-gray-700">{staff.total}</span>
+                          </td>
+                          {/* Approved */}
+                          <td className="px-4 py-3 text-center">
+                            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[11px] font-black ${
+                              staff.approved > 0 ? "bg-emerald-50 text-emerald-600" : "text-slate-300"
+                            }`}>{staff.approved}</span>
+                          </td>
+                          {/* Rejected */}
+                          <td className="px-4 py-3 text-center">
+                            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[11px] font-black ${
+                              staff.rejected > 0 ? "bg-rose-50 text-rose-500" : "text-slate-300"
+                            }`}>{staff.rejected}</span>
+                          </td>
+                          {/* Pending */}
+                          <td className="px-4 py-3 text-center">
+                            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[11px] font-black ${
+                              staff.pending > 0 ? "bg-amber-50 text-amber-500" : "text-slate-300"
+                            }`}>{staff.pending}</span>
+                          </td>
+                          {/* Days Used */}
+                          <td className="px-4 py-3 text-center">
+                            <span className="font-black text-blue-600">{staff.days}</span>
+                            <span className="text-slate-400 font-medium"> / 14</span>
+                          </td>
+                          {/* Utilisation bar */}
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden min-w-[80px]">
+                                <div
+                                  className={`h-full rounded-full transition-all duration-700 ${
+                                    utilisationPct >= 80 ? "bg-rose-400" :
+                                    utilisationPct >= 50 ? "bg-amber-400" :
+                                    "bg-emerald-400"
+                                  }`}
+                                  style={{ width: `${utilisationPct}%` }}
+                                />
+                              </div>
+                              <span className={`text-[10px] font-black ${
+                                utilisationPct >= 80 ? "text-rose-500" :
+                                utilisationPct >= 50 ? "text-amber-500" :
+                                "text-emerald-500"
+                              }`}>{utilisationPct}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+
+                {/* Footer Summary Row */}
+                <div className="px-5 py-3 bg-slate-50/80 border-t border-gray-100 flex flex-wrap items-center gap-4">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Team Totals:</span>
+                  <span className="text-[11px] font-black text-gray-700">{staffSummary.length} Staff Members</span>
+                  <span className="text-[11px] font-black text-gray-700">·</span>
+                  <span className="text-[11px] font-black text-gray-700">{records.length} Total Applications</span>
+                  <span className="text-[11px] font-black text-gray-700">·</span>
+                  <span className="text-[11px] font-black text-emerald-600">
+                    {records.filter(r => r.status === "Approved").length} Approved
+                  </span>
+                  <span className="text-[11px] font-black text-gray-700">·</span>
+                  <span className="text-[11px] font-black text-amber-500">
+                    {records.filter(r => r.status.startsWith("Pending")).length} Pending Action
+                  </span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
     </div>
   );
 }
