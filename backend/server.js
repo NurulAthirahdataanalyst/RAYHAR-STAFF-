@@ -254,7 +254,7 @@ app.put("/api/roles/:id", async (req, res) => {
       "UPDATE roles SET name = $1, status = $2 WHERE id = $3 RETURNING *",
       [name, status || "Active", id]
     );
-    if (result.rows.length === 0) {
+    if (rows.length === 0) {
       return res.status(404).json({ success: false, error: "Role not found" });
     }
     res.json({ success: true, role: result.rows[0] });
@@ -274,7 +274,7 @@ app.delete("/api/roles/:id", async (req, res) => {
       "DELETE FROM roles WHERE id = $1 RETURNING *",
       [id]
     );
-    if (result.rows.length === 0) {
+    if (rows.length === 0) {
       return res.status(404).json({ success: false, error: "Role not found" });
     }
     res.json({ success: true, message: "Role deleted successfully" });
@@ -5543,11 +5543,11 @@ app.get('/api/outstation', async (req, res) => {
     }
     // hr_admin, managing_director, finance_manager → see all (no extra filter)
 
-    const result = await pool.query(
+    const [rawRows] = await pool.query(
       `SELECT * FROM outstation_assignments ${whereClause} ORDER BY start_date DESC, created_at DESC`,
       params
     );
-    const rows = result.rows.map(r => ({ ...r, status: computeOutstationStatus(r) }));
+    const rows = rawRows.map(r => ({ ...r, status: computeOutstationStatus(r) }));
     res.json({ success: true, assignments: rows });
   } catch (err) {
     console.error('GET /api/outstation error:', err);
@@ -5572,24 +5572,24 @@ app.get('/api/outstation/stats', async (req, res) => {
 
     const today = new Date().toISOString().split('T')[0];
 
-    const [activeRes, upcomingRes, completedRes, cancelledRes, todayDeptRes, todayReturnRes] = await Promise.all([
-      pool.query(`SELECT COUNT(*) FROM outstation_assignments WHERE ${scopeWhere} AND status != 'Cancelled' AND start_date <= $${params.length+1} AND end_date >= $${params.length+1}`, [...params, today]),
-      pool.query(`SELECT COUNT(*) FROM outstation_assignments WHERE ${scopeWhere} AND status != 'Cancelled' AND start_date > $${params.length+1}`, [...params, today]),
-      pool.query(`SELECT COUNT(*) FROM outstation_assignments WHERE ${scopeWhere} AND status != 'Cancelled' AND end_date < $${params.length+1}`, [...params, today]),
-      pool.query(`SELECT COUNT(*) FROM outstation_assignments WHERE ${scopeWhere} AND status = 'Cancelled'`, params),
-      pool.query(`SELECT COUNT(*) FROM outstation_assignments WHERE ${scopeWhere} AND status != 'Cancelled' AND start_date = $${params.length+1}`, [...params, today]),
-      pool.query(`SELECT COUNT(*) FROM outstation_assignments WHERE ${scopeWhere} AND status != 'Cancelled' AND end_date = $${params.length+1}`, [...params, today]),
+    const [[activeRows], [upcomingRows], [completedRows], [cancelledRows], [todayDeptRows], [todayReturnRows]] = await Promise.all([
+      pool.query(`SELECT COUNT(*) as count FROM outstation_assignments WHERE ${scopeWhere} AND status = 'Active'`, params),
+      pool.query(`SELECT COUNT(*) as count FROM outstation_assignments WHERE ${scopeWhere} AND status = 'Upcoming'`, params),
+      pool.query(`SELECT COUNT(*) as count FROM outstation_assignments WHERE ${scopeWhere} AND status = 'Completed'`, params),
+      pool.query(`SELECT COUNT(*) as count FROM outstation_assignments WHERE ${scopeWhere} AND status = 'Cancelled'`, params),
+      pool.query(`SELECT COUNT(*) as count FROM outstation_assignments WHERE ${scopeWhere} AND status != 'Cancelled' AND start_date = $${params.length+1}`, [...params, today]),
+      pool.query(`SELECT COUNT(*) as count FROM outstation_assignments WHERE ${scopeWhere} AND status != 'Cancelled' AND end_date = $${params.length+1}`, [...params, today]),
     ]);
 
     res.json({
       success: true,
       stats: {
-        active: parseInt(activeRes.rows[0].count),
-        upcoming: parseInt(upcomingRes.rows[0].count),
-        completed: parseInt(completedRes.rows[0].count),
-        cancelled: parseInt(cancelledRes.rows[0].count),
-        todayDepartures: parseInt(todayDeptRes.rows[0].count),
-        todayReturns: parseInt(todayReturnRes.rows[0].count)
+        active: parseInt(activeRows[0].count),
+        upcoming: parseInt(upcomingRows[0].count),
+        completed: parseInt(completedRows[0].count),
+        cancelled: parseInt(cancelledRows[0].count),
+        todayDepartures: parseInt(todayDeptRows[0].count),
+        todayReturns: parseInt(todayReturnRows[0].count)
       }
     });
   } catch (err) {
@@ -5602,14 +5602,14 @@ app.get('/api/outstation/stats', async (req, res) => {
 app.get('/api/outstation/active-today', async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
-    const result = await pool.query(
+    const [rows] = await pool.query(
       `SELECT user_id, full_name, branch, department, destination, start_date, end_date 
        FROM outstation_assignments 
        WHERE status != 'Cancelled' AND start_date <= $1 AND end_date >= $1
        ORDER BY full_name`,
       [today]
     );
-    res.json({ success: true, employees: result.rows });
+    res.json({ success: true, employees: rows });
   } catch (err) {
     console.error('GET /api/outstation/active-today error:', err);
     res.status(500).json({ success: false, error: err.message });
@@ -5635,7 +5635,7 @@ app.post('/api/outstation', async (req, res) => {
 
     const inserted = [];
     for (const emp of user_ids) {
-      const result = await pool.query(
+      const [insertResult] = await pool.query(
         `INSERT INTO outstation_assignments 
          (user_id, full_name, branch, department, position, destination, client_company, purpose, project, meeting_title, start_date, start_time, end_date, end_time, total_days, assigned_by, assigned_by_name, assigned_by_role)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
@@ -5645,7 +5645,8 @@ app.post('/api/outstation', async (req, res) => {
          start_date, start_time || null, end_date, end_time || null, total_days || null,
          assigned_by, assigned_by_name, assigned_by_role]
       );
-      inserted.push(result.rows[0]);
+      const returnedRow = Array.isArray(insertResult) ? insertResult[0] : insertResult;
+      inserted.push(returnedRow);
     }
 
     res.json({ success: true, assignments: inserted, message: `${inserted.length} outstation assignment(s) created` });
@@ -5664,7 +5665,7 @@ app.put('/api/outstation/:id', async (req, res) => {
       start_date, start_time, end_date, end_time, total_days, status
     } = req.body;
 
-    const result = await pool.query(
+    const [rows] = await pool.query(
       `UPDATE outstation_assignments 
        SET destination=$1, client_company=$2, purpose=$3, project=$4, meeting_title=$5,
            start_date=$6, start_time=$7, end_date=$8, end_time=$9, total_days=$10,
@@ -5675,8 +5676,8 @@ app.put('/api/outstation/:id', async (req, res) => {
        status || null, id]
     );
 
-    if (result.rows.length === 0) return res.status(404).json({ success: false, error: 'Assignment not found' });
-    res.json({ success: true, assignment: result.rows[0] });
+    if (rows.length === 0) return res.status(404).json({ success: false, error: 'Assignment not found' });
+    res.json({ success: true, assignment: rows[0] });
   } catch (err) {
     console.error('PUT /api/outstation/:id error:', err);
     res.status(500).json({ success: false, error: err.message });
@@ -5687,12 +5688,12 @@ app.put('/api/outstation/:id', async (req, res) => {
 app.put('/api/outstation/:id/cancel', async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query(
+    const [rows] = await pool.query(
       `UPDATE outstation_assignments SET status='Cancelled', updated_at=NOW() WHERE id=$1 RETURNING *`,
       [id]
     );
-    if (result.rows.length === 0) return res.status(404).json({ success: false, error: 'Assignment not found' });
-    res.json({ success: true, assignment: result.rows[0] });
+    if (rows.length === 0) return res.status(404).json({ success: false, error: 'Assignment not found' });
+    res.json({ success: true, assignment: rows[0] });
   } catch (err) {
     console.error('PUT /api/outstation/:id/cancel error:', err);
     res.status(500).json({ success: false, error: err.message });
