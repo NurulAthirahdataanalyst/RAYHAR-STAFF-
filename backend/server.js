@@ -1523,7 +1523,7 @@ app.get("/api/branch-employees", async (req, res) => {
         COALESCE(lr.mc_leaves, 0) AS mc_leaves,
         GREATEST(14 - COALESCE(lr.annual_days_used, 0), 0) AS annual_leave_balance,
         COALESCE(att.days_present, 0) AS days_present,
-        ROUND((COALESCE(att.days_present, 0)::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100) AS attendance_rate,
+        LEAST(100, ROUND((COALESCE(att.days_present, 0)::numeric / NULLIF(EXTRACT(DAY FROM CURRENT_DATE), 0)) * 100)) AS attendance_rate,
         today.clock_in AS today_clock_in,
         today.clock_out AS today_clock_out,
         CASE WHEN COALESCE(leave_today.leave_count, 0) > 0 THEN 1 ELSE 0 END AS is_on_leave
@@ -2412,7 +2412,7 @@ app.get("/api/employees", async (req, res) => {
         COALESCE(lr.mc_leaves, 0) AS mc_leaves,
         GREATEST(14 - COALESCE(lr.annual_days_used, 0), 0) AS annual_leave_balance,
         COALESCE(att.days_present, 0) AS days_present,
-        ROUND((COALESCE(att.days_present, 0)::numeric / EXTRACT(DAY FROM CURRENT_DATE)) * 100) AS attendance_rate,
+        LEAST(100, ROUND((COALESCE(att.days_present, 0)::numeric / NULLIF(EXTRACT(DAY FROM CURRENT_DATE), 0)) * 100)) AS attendance_rate,
         COALESCE(leave_today.is_on_leave_today, 0) AS is_on_leave_today,
         today.clock_in AS today_clock_in,
         today.clock_out AS today_clock_out
