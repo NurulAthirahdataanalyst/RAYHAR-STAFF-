@@ -1304,7 +1304,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
     }
   }
 
-  // Pending approvals â€” role-filtered
+  // Pending approvals — role-filtered
   let pendingFilters = ["lr.status IN ('Pending', 'Pending Finance', 'Pending MD', 'Pending HOD')"];
   let pendingParams = [];
   if (!['hr_admin', 'managing_director', 'finance_manager'].includes(role)) {
@@ -4981,6 +4981,7 @@ app.get("/api/who-out-today", async (req, res) => {
     const whereClause = filters.length ? `AND ${filters.join(" AND ")}` : "";
 
     const [rows] = await pool.query(`
+      SELECT * FROM (
       SELECT
         lr.leave_id,
         lr.user_id,
@@ -4996,8 +4997,25 @@ app.get("/api/who-out-today", async (req, res) => {
       WHERE lr.status = 'Approved'
         AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date
         ${whereClause}
-      ORDER BY lr.end_date ASC
-    `, params);
+      UNION ALL
+      SELECT 
+        o.id as leave_id,
+        o.user_id,
+        'Outstation' as leave_type,
+        o.start_date,
+        o.end_date,
+        o.total_days as days,
+        o.destination as reason,
+        p.full_name,
+        p.branch
+      FROM outstation_assignments o
+      JOIN profiles p ON p.user_id = o.user_id
+      WHERE o.status != 'Cancelled'
+        AND CURRENT_DATE BETWEEN o.start_date AND o.end_date
+        ${whereClause}
+      ) combined
+      ORDER BY end_date ASC
+    `, [...params, ...params]);
 
     res.json({ success: true, employees: rows });
   } catch (err) {
@@ -5457,6 +5475,245 @@ app.get("/api/user-ic", async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
+// =================================================================
+// OUTSTATION MANAGEMENT API
+// =================================================================
+
+// Auto-create outstation table on startup
+pool.query(`
+  CREATE TABLE IF NOT EXISTS outstation_assignments (
+    id SERIAL PRIMARY KEY,
+    user_id VARCHAR(100) NOT NULL,
+    full_name VARCHAR(200),
+    branch VARCHAR(100),
+    department VARCHAR(100),
+    position VARCHAR(100),
+    destination VARCHAR(300) NOT NULL,
+    client_company VARCHAR(200),
+    purpose TEXT,
+    project VARCHAR(200),
+    meeting_title VARCHAR(300),
+    start_date DATE NOT NULL,
+    start_time TIME,
+    end_date DATE NOT NULL,
+    end_time TIME,
+    total_days NUMERIC(5,1),
+    status VARCHAR(50) DEFAULT 'Upcoming',
+    assigned_by VARCHAR(100),
+    assigned_by_name VARCHAR(200),
+    assigned_by_role VARCHAR(50),
+    assigned_at TIMESTAMP DEFAULT NOW(),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+  )
+`).then(() => console.log('✅ outstation_assignments table ready')).catch(e => console.error('❌ outstation table error:', e));
+
+// Helper: compute live status based on dates
+function computeOutstationStatus(row) {
+  if (row.status === 'Cancelled') return 'Cancelled';
+  if (row.status === 'Completed') return 'Completed';
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(row.start_date);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(row.end_date);
+  end.setHours(0, 0, 0, 0);
+  if (today < start) return 'Upcoming';
+  if (today > end) return 'Completed';
+  return 'Active';
+}
+
+// GET /api/outstation — list assignments (role-scoped)
+app.get('/api/outstation', async (req, res) => {
+  try {
+    const { role, branch, department, user_id } = req.query;
+    let whereClause = 'WHERE 1=1';
+    const params = [];
+
+    if (role === 'branch_leader' && branch) {
+      params.push(branch);
+      whereClause += ` AND branch = $${params.length}`;
+    } else if (role === 'head_of_department' && department) {
+      params.push(department);
+      whereClause += ` AND department = $${params.length}`;
+    } else if (role === 'employee' && user_id) {
+      params.push(user_id);
+      whereClause += ` AND user_id = $${params.length}`;
+    }
+    // hr_admin, managing_director, finance_manager → see all (no extra filter)
+
+    const result = await pool.query(
+      `SELECT * FROM outstation_assignments ${whereClause} ORDER BY start_date DESC, created_at DESC`,
+      params
+    );
+    const rows = result.rows.map(r => ({ ...r, status: computeOutstationStatus(r) }));
+    res.json({ success: true, assignments: rows });
+  } catch (err) {
+    console.error('GET /api/outstation error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/outstation/stats — KPI stats for dashboard
+app.get('/api/outstation/stats', async (req, res) => {
+  try {
+    const { role, branch, department } = req.query;
+    let scopeWhere = '1=1';
+    const params = [];
+
+    if (role === 'branch_leader' && branch) {
+      params.push(branch);
+      scopeWhere = `branch = $${params.length}`;
+    } else if (role === 'head_of_department' && department) {
+      params.push(department);
+      scopeWhere = `department = $${params.length}`;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const [activeRes, upcomingRes, completedRes, cancelledRes, todayDeptRes, todayReturnRes] = await Promise.all([
+      pool.query(`SELECT COUNT(*) FROM outstation_assignments WHERE ${scopeWhere} AND status != 'Cancelled' AND start_date <= $${params.length+1} AND end_date >= $${params.length+1}`, [...params, today]),
+      pool.query(`SELECT COUNT(*) FROM outstation_assignments WHERE ${scopeWhere} AND status != 'Cancelled' AND start_date > $${params.length+1}`, [...params, today]),
+      pool.query(`SELECT COUNT(*) FROM outstation_assignments WHERE ${scopeWhere} AND status != 'Cancelled' AND end_date < $${params.length+1}`, [...params, today]),
+      pool.query(`SELECT COUNT(*) FROM outstation_assignments WHERE ${scopeWhere} AND status = 'Cancelled'`, params),
+      pool.query(`SELECT COUNT(*) FROM outstation_assignments WHERE ${scopeWhere} AND status != 'Cancelled' AND start_date = $${params.length+1}`, [...params, today]),
+      pool.query(`SELECT COUNT(*) FROM outstation_assignments WHERE ${scopeWhere} AND status != 'Cancelled' AND end_date = $${params.length+1}`, [...params, today]),
+    ]);
+
+    res.json({
+      success: true,
+      stats: {
+        active: parseInt(activeRes.rows[0].count),
+        upcoming: parseInt(upcomingRes.rows[0].count),
+        completed: parseInt(completedRes.rows[0].count),
+        cancelled: parseInt(cancelledRes.rows[0].count),
+        todayDepartures: parseInt(todayDeptRes.rows[0].count),
+        todayReturns: parseInt(todayReturnRes.rows[0].count)
+      }
+    });
+  } catch (err) {
+    console.error('GET /api/outstation/stats error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/outstation/active-today — employees currently on outstation today
+app.get('/api/outstation/active-today', async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const result = await pool.query(
+      `SELECT user_id, full_name, branch, department, destination, start_date, end_date 
+       FROM outstation_assignments 
+       WHERE status != 'Cancelled' AND start_date <= $1 AND end_date >= $1
+       ORDER BY full_name`,
+      [today]
+    );
+    res.json({ success: true, employees: result.rows });
+  } catch (err) {
+    console.error('GET /api/outstation/active-today error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/outstation — create assignment(s) — supports multiple user_ids
+app.post('/api/outstation', async (req, res) => {
+  try {
+    const {
+      user_ids, // array of { user_id, full_name, branch, department, position }
+      destination, client_company, purpose, project, meeting_title,
+      start_date, start_time, end_date, end_time, total_days,
+      assigned_by, assigned_by_name, assigned_by_role
+    } = req.body;
+
+    if (!user_ids || !Array.isArray(user_ids) || user_ids.length === 0) {
+      return res.status(400).json({ success: false, error: 'At least one employee must be selected' });
+    }
+    if (!destination || !start_date || !end_date) {
+      return res.status(400).json({ success: false, error: 'Destination, start date, and end date are required' });
+    }
+
+    const inserted = [];
+    for (const emp of user_ids) {
+      const result = await pool.query(
+        `INSERT INTO outstation_assignments 
+         (user_id, full_name, branch, department, position, destination, client_company, purpose, project, meeting_title, start_date, start_time, end_date, end_time, total_days, assigned_by, assigned_by_name, assigned_by_role)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+         RETURNING *`,
+        [emp.user_id, emp.full_name, emp.branch, emp.department, emp.position,
+         destination, client_company || null, purpose || null, project || null, meeting_title || null,
+         start_date, start_time || null, end_date, end_time || null, total_days || null,
+         assigned_by, assigned_by_name, assigned_by_role]
+      );
+      inserted.push(result.rows[0]);
+    }
+
+    res.json({ success: true, assignments: inserted, message: `${inserted.length} outstation assignment(s) created` });
+  } catch (err) {
+    console.error('POST /api/outstation error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// PUT /api/outstation/:id — edit assignment
+app.put('/api/outstation/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      destination, client_company, purpose, project, meeting_title,
+      start_date, start_time, end_date, end_time, total_days, status
+    } = req.body;
+
+    const result = await pool.query(
+      `UPDATE outstation_assignments 
+       SET destination=$1, client_company=$2, purpose=$3, project=$4, meeting_title=$5,
+           start_date=$6, start_time=$7, end_date=$8, end_time=$9, total_days=$10,
+           status=COALESCE($11, status), updated_at=NOW()
+       WHERE id=$12 RETURNING *`,
+      [destination, client_company || null, purpose || null, project || null, meeting_title || null,
+       start_date, start_time || null, end_date, end_time || null, total_days || null,
+       status || null, id]
+    );
+
+    if (result.rows.length === 0) return res.status(404).json({ success: false, error: 'Assignment not found' });
+    res.json({ success: true, assignment: result.rows[0] });
+  } catch (err) {
+    console.error('PUT /api/outstation/:id error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// PUT /api/outstation/:id/cancel — cancel assignment
+app.put('/api/outstation/:id/cancel', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `UPDATE outstation_assignments SET status='Cancelled', updated_at=NOW() WHERE id=$1 RETURNING *`,
+      [id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ success: false, error: 'Assignment not found' });
+    res.json({ success: true, assignment: result.rows[0] });
+  } catch (err) {
+    console.error('PUT /api/outstation/:id/cancel error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE /api/outstation/:id — delete assignment
+app.delete('/api/outstation/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query('DELETE FROM outstation_assignments WHERE id=$1', [id]);
+    res.json({ success: true, message: 'Assignment deleted' });
+  } catch (err) {
+    console.error('DELETE /api/outstation/:id error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// =================================================================
+// END OUTSTATION MANAGEMENT API
+// =================================================================
 
 // ROUTES
 // ===============================

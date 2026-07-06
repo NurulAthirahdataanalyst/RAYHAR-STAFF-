@@ -12,7 +12,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Attendance from "./pages/Attendance";
 import LeaveOverview from "./pages/LeaveOverview";
-import LeaveManagement from "./pages/LeaveManagement"; // Ini adalah file borang Rayhar anda
+import LeaveManagement from "./pages/LeaveManagement";
 import LeaveAdmin from "./pages/LeaveAdmin";
 import LeaveAnalytics from "./pages/LeaveAnalytics";
 import EmployeeAnalytics from "./pages/EmployeeAnalytics";
@@ -40,6 +40,13 @@ import AttendanceReports from "./pages/reports/AttendanceReports";
 import LeaveReports from "./pages/reports/LeaveReports";
 import DepartmentReports from "./pages/reports/DepartmentReports";
 import CompanyLeaveCalendar from "./pages/CompanyLeaveCalendar";
+import OutstationDashboard from "./pages/outstation/OutstationDashboard";
+import OutstationAssignment from "./pages/outstation/OutstationAssignment";
+import MyOutstation from "./pages/outstation/MyOutstation";
+import OutstationCalendar from "./pages/outstation/OutstationCalendar";
+import OutstationAnalytics from "./pages/outstation/OutstationAnalytics";
+import OutstationReports from "./pages/outstation/OutstationReports";
+
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
@@ -64,19 +71,10 @@ function ProtectedRoutes() {
           <Route path="/calendar/company-leave" element={<CompanyLeaveCalendar />} />
 
           {/* LEAVE SYSTEM FLOW */}
-          {/* 1. Dashboard Cuti & Sejarah (Image 1 anda) */}
           <Route path="/leave" element={<LeaveOverview />} />
-
-          {/* 2. Borang Permohonan Multi-step (Kod Rayhar) */}
           <Route path="/leave/apply" element={<LeaveManagement />} />
-
-          {/* 3. Panel Kelulusan Admin */}
           <Route path="/leave/admin" element={<LeaveAdmin />} />
-
-          {/* 4. Leave Entitlement Management (HR only) */}
           <Route path="/leave/entitlement" element={<LeaveEntitlementManagement />} />
-
-          {/* 4. Leave Form Application (View/Print own forms) */}
           <Route path="/leave/forms" element={<LeaveFormView />} />
 
           <Route path="/employees" element={<Employees />} />
@@ -89,7 +87,7 @@ function ProtectedRoutes() {
           <Route path="/hr-analytics/leave" element={<LeaveAnalytics />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/calendar" element={<CalendarPage />} />
-          
+
           {/* Team-specific routes for Branch Leader / HOD */}
           <Route path="/team-attendance" element={<TeamAttendance />} />
           <Route path="/leave/team" element={<TeamLeaveRequests />} />
@@ -105,6 +103,14 @@ function ProtectedRoutes() {
           <Route path="/master/leave-entitlement" element={<LeaveEntitlementManagement />} />
           <Route path="/master/designation" element={<MasterPlaceholder title="Designation" />} />
           <Route path="/master/role" element={<Role />} />
+
+          {/* Outstation Management */}
+          <Route path="/outstation" element={<OutstationDashboard />} />
+          <Route path="/outstation/assignment" element={<OutstationAssignment />} />
+          <Route path="/outstation/my" element={<MyOutstation />} />
+          <Route path="/outstation/calendar" element={<OutstationCalendar />} />
+          <Route path="/outstation/analytics" element={<OutstationAnalytics />} />
+          <Route path="/outstation/reports" element={<OutstationReports />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

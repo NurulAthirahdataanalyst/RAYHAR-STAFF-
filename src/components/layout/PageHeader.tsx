@@ -34,6 +34,12 @@ function getBreadcrumbs(pathname: string): BreadcrumbSegment[] {
   }
   if (pathname === "/master/designation") return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "DESIGNATION" }];
   if (pathname === "/master/role") return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "ROLE" }];
+  if (pathname === "/outstation") return [home, { label: "OUTSTATION MANAGEMENT" }, { label: "DASHBOARD" }];
+  if (pathname === "/outstation/assignment") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "ASSIGNMENT" }];
+  if (pathname === "/outstation/my") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "MY OUTSTATION" }];
+  if (pathname === "/outstation/calendar") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "CALENDAR" }];
+  if (pathname === "/outstation/analytics") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "ANALYTICS" }];
+  if (pathname === "/outstation/reports") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "REPORTS" }];
 
   const segments = pathname.split("/").filter(Boolean);
   const result: BreadcrumbSegment[] = [home];
@@ -72,6 +78,12 @@ function getPageTitle(pathname: string): string {
   }
   if (pathname === "/master/designation") return "Designation";
   if (pathname === "/master/role") return "Role";
+  if (pathname === "/outstation") return "Outstation Dashboard";
+  if (pathname === "/outstation/assignment") return "Outstation Assignment";
+  if (pathname === "/outstation/my") return "My Outstation";
+  if (pathname === "/outstation/calendar") return "Outstation Calendar";
+  if (pathname === "/outstation/analytics") return "Outstation Analytics";
+  if (pathname === "/outstation/reports") return "Outstation Reports";
   const last = pathname.split("/").filter(Boolean).pop() || "Page";
   return last.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }

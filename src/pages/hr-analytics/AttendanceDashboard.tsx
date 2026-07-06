@@ -160,6 +160,7 @@ export default function AttendanceDashboard() {
   const [loadingDaily, setLoadingDaily] = useState(false);
   const [absentEmployees, setAbsentEmployees] = useState<any[]>([]);
   const [loadingAbsent, setLoadingAbsent] = useState(false);
+  const [outstationRecords, setOutstationRecords] = useState<any[]>([]);
   const [attendanceStats, setAttendanceStats] = useState({
     presentToday: 0,
     lateArrivals: 0,
@@ -273,14 +274,16 @@ export default function AttendanceDashboard() {
     setLoadingDaily(true);
     setLoadingAbsent(true);
     try {
-      const [resDaily, resStats, resAbsent] = await Promise.all([
+      const [resDaily, resStats, resAbsent, resOutstation] = await Promise.all([
         fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${selectedDate}&role=${role || ""}&branch=${userBranch || ""}&department=${userDepartment || ""}`),
         fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=${role || ""}&branch=${userBranch || "All"}&department=${userDepartment || "All"}&date=${selectedDate}`),
-        fetch(`${API_BASE_URL}/api/reports/absent-employees?date=${selectedDate}&role=${role || ""}&branch=${userBranch || ""}&department=${userDepartment || ""}`)
+        fetch(`${API_BASE_URL}/api/reports/absent-employees?date=${selectedDate}&role=${role || ""}&branch=${userBranch || ""}&department=${userDepartment || ""}`),
+        fetch(`${API_BASE_URL}/api/outstation?role=${role || ""}&branch=${userBranch || ""}&department=${userDepartment || ""}`)
       ]);
       const data = await resDaily.json();
       const statsData = await resStats.json();
       const absentData = await resAbsent.json();
+      const outstationData = await resOutstation.json();
 
       if (data.success) {
         setDailyAttendance(data.report);
@@ -288,6 +291,10 @@ export default function AttendanceDashboard() {
 
       if (absentData.success) {
         setAbsentEmployees(absentData.report);
+      }
+      
+      if (outstationData.success) {
+        setOutstationRecords(outstationData.assignments.filter((a: any) => a.status !== "Cancelled"));
       }
 
       if (statsData.success && statsData.stats) {
@@ -801,18 +808,27 @@ export default function AttendanceDashboard() {
         // Exclude Absent employees from Admin Attendance listing (they appear in Employee Absenteeism)
         if (attStatus === 'Absent') return false;
 
+        let displayStatus = (r as any).status || "Absent";
+        const isOutstation = outstationRecords.some((o: any) => 
+          o.user_id === r.user_id && 
+          o.start_date.slice(0,10) <= selectedDate && 
+          o.end_date.slice(0,10) >= selectedDate
+        );
+        if (isOutstation) displayStatus = "Outstation";
+
         const matchesStatus = selectedStatusFilter === "all" || 
-          (selectedStatusFilter === "present_on_time" && (r as any).status === "Present (On Time)") ||
-          (selectedStatusFilter === "present_late" && (r as any).status === "Present (Late)") ||
-          (selectedStatusFilter === "approved_leave" && (r as any).status === "Approved Leave") ||
-          (selectedStatusFilter === "company_leave" && (r as any).status === "Company Leave") ||
-          (selectedStatusFilter === "weekend" && (r as any).status === "Weekend") ||
-          (selectedStatusFilter === "absent" && (r as any).status === "Absent") ||
+          (selectedStatusFilter === "present_on_time" && displayStatus === "Present (On Time)") ||
+          (selectedStatusFilter === "present_late" && displayStatus === "Present (Late)") ||
+          (selectedStatusFilter === "approved_leave" && displayStatus === "Approved Leave") ||
+          (selectedStatusFilter === "company_leave" && displayStatus === "Company Leave") ||
+          (selectedStatusFilter === "outstation" && displayStatus === "Outstation") ||
+          (selectedStatusFilter === "weekend" && displayStatus === "Weekend") ||
+          (selectedStatusFilter === "absent" && displayStatus === "Absent") ||
           (selectedStatusFilter === "clocked_out" && r.clock_out != null);
           
         return matchesBranch && matchesDept && matchesSearch && matchesStatus;
       })
-  }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, searchTerm, selectedStatusFilter]);
+  }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, searchTerm, selectedStatusFilter, outstationRecords, selectedDate]);
 
   const filteredAbsentEmployees = useMemo(() => {
     return absentEmployees.filter((r) => {
@@ -1100,6 +1116,7 @@ export default function AttendanceDashboard() {
                   <SelectItem value="present_late">Present (Late)</SelectItem>
                   <SelectItem value="approved_leave">Approved Leave</SelectItem>
                   <SelectItem value="company_leave">Company Leave</SelectItem>
+                  <SelectItem value="outstation">Outstation</SelectItem>
                   <SelectItem value="weekend">Weekend</SelectItem>
                   <SelectItem value="clocked_out">Clocked Out</SelectItem>
                 </SelectContent>
@@ -1193,6 +1210,13 @@ export default function AttendanceDashboard() {
 
                       let attStatus = (record as any).status || "Absent";
                       
+                      const isOutstation = outstationRecords.some((o: any) => 
+                        o.user_id === record.user_id && 
+                        o.start_date.slice(0,10) <= selectedDate && 
+                        o.end_date.slice(0,10) >= selectedDate
+                      );
+                      if (isOutstation) attStatus = "Outstation";
+                      
                       let workStatus = "Checked In";
                       if (record.clock_out) {
                         workStatus = isGoodHrs ? "Clocked Out" : "Clocked Out Early";
@@ -1206,6 +1230,8 @@ export default function AttendanceDashboard() {
                         ? "bg-purple-50 text-purple-700 border border-purple-100"
                         : attStatus === "Approved Leave"
                         ? "bg-blue-50 text-blue-700 border border-blue-100"
+                        : attStatus === "Outstation"
+                        ? "bg-pink-50 text-pink-700 border border-pink-200 shadow-sm"
                         : attStatus === "Weekend"
                         ? "bg-gray-50 text-gray-700 border border-gray-100"
                         : "bg-red-50 text-red-700 border border-red-100";
@@ -1240,6 +1266,7 @@ export default function AttendanceDashboard() {
                                   attStatus === 'Present (Late)' ? 'bg-amber-500' : 
                                   attStatus === 'Company Leave' ? 'bg-purple-500' :
                                   attStatus === 'Approved Leave' ? 'bg-blue-500' :
+                                  attStatus === 'Outstation' ? 'bg-[#EC4899] animate-pulse' :
                                   attStatus === 'Weekend' ? 'bg-gray-500' :
                                   'bg-red-500'
                                 }`} />
@@ -1381,11 +1408,17 @@ export default function AttendanceDashboard() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {filteredAbsentEmployees.length > 0 ? (
-                    filteredAbsentEmployees.slice((absentCurrentPage - 1) * parseInt(absentLimit), absentCurrentPage * parseInt(absentLimit)).map((emp) => (
+                    filteredAbsentEmployees.slice((absentCurrentPage - 1) * parseInt(absentLimit), absentCurrentPage * parseInt(absentLimit)).map((emp) => {
+                      const isOutstation = outstationRecords.some((o: any) => 
+                        o.user_id === emp.user_id && 
+                        o.start_date.slice(0,10) <= selectedDate && 
+                        o.end_date.slice(0,10) >= selectedDate
+                      );
+                      return (
                       <tr key={emp.user_id} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-4 py-2">
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-md bg-red-500/10 text-red-600 font-bold flex items-center justify-center text-xs uppercase shadow-sm">
+                            <div className={`w-8 h-8 rounded-md font-bold flex items-center justify-center text-xs uppercase shadow-sm ${isOutstation ? 'bg-pink-100 text-pink-700' : 'bg-red-500/10 text-red-600'}`}>
                               {emp.full_name.charAt(0)}
                             </div>
                             <div>
@@ -1400,13 +1433,21 @@ export default function AttendanceDashboard() {
                           {emp.role.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
                         </td>
                         <td className="px-4 py-2">
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-red-50 text-red-700 border border-red-100">
-                            <span className="w-1 h-1 rounded-full mr-1 bg-red-500" />
-                            Absent
-                          </span>
+                          {isOutstation ? (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-pink-50 text-pink-700 border border-pink-200 shadow-sm">
+                              <span className="w-1 h-1 rounded-full mr-1 bg-[#EC4899] animate-pulse" />
+                              Outstation
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-red-50 text-red-700 border border-red-100">
+                              <span className="w-1 h-1 rounded-full mr-1 bg-red-500" />
+                              Absent
+                            </span>
+                          )}
                         </td>
                       </tr>
-                    ))
+                      );
+                    })
                   ) : (
                     <tr>
                       <td colSpan={5} className="px-4 py-10 text-center text-xs font-bold text-gray-400 uppercase tracking-wider italic">

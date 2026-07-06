@@ -26,7 +26,8 @@ import {
   Calendar,
   Menu,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Plane
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRole } from "@/contexts/RoleContext";
@@ -116,6 +117,20 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       ],
     },
     {
+      title: "Outstation Management",
+      icon: Plane,
+      path: "/outstation",
+      roles: HOD_BL_ROLES,
+      children: [
+        { title: "Outstation Dashboard", icon: Plane, path: "/outstation", roles: HOD_BL_ROLES },
+        { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment", roles: HOD_BL_ROLES },
+        { title: "My Outstation", icon: Plane, path: "/outstation/my", roles: HOD_BL_ROLES },
+        { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar", roles: HOD_BL_ROLES },
+        { title: "Outstation Analytics", icon: BarChart3, path: "/outstation/analytics", roles: HOD_BL_ROLES },
+        { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports", roles: HOD_BL_ROLES },
+      ],
+    },
+    {
       title: "Leave Management",
       icon: CalendarDays,
       path: "/leave",
@@ -174,6 +189,20 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       roles: ALL_ROLES,
       children: [
         { title: "My Attendance", icon: Clock, path: "/attendance", roles: ALL_ROLES },
+      ],
+    },
+    {
+      title: "Outstation Management",
+      icon: Plane,
+      path: "/outstation",
+      roles: ALL_ROLES,
+      children: [
+        { title: "Outstation Dashboard", icon: Plane, path: "/outstation", roles: FULL_ADMIN_ROLES },
+        { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment", roles: FULL_ADMIN_ROLES },
+        { title: "My Outstation", icon: Plane, path: "/outstation/my", roles: ALL_ROLES },
+        { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar", roles: ALL_ROLES },
+        { title: "Outstation Analytics", icon: BarChart3, path: "/outstation/analytics", roles: FULL_ADMIN_ROLES },
+        { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports", roles: FULL_ADMIN_ROLES },
       ],
     },
     {

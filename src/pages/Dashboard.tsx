@@ -870,6 +870,7 @@ export default function Dashboard() {
                     "Cuti Tanpa Gaji": { short: "UNPAID", color: "bg-slate-500" },
                     "Unpaid Leave": { short: "UNPAID", color: "bg-slate-500" },
                     "Cuti Ehsan": { short: "COMPASSIONATE", color: "bg-teal-500" },
+                    "Outstation": { short: "OUTSTATION", color: "bg-[#EC4899]" },
                   };
                   const typeInfo = leaveTypeLabel[emp.leave_type] || { short: emp.leave_type?.toUpperCase(), color: "bg-gray-500" };
 
