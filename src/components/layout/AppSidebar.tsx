@@ -142,17 +142,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", roles: HOD_BL_ROLES },
       ],
     },
-    {
-      title: "Analytics",
-      icon: BarChart3,
-      path: "/hr-analytics/attendance",
-      roles: HOD_BL_ROLES,
-      children: [
-        { title: "Attendance Analytics", icon: BarChart3, path: "/hr-analytics/attendance", roles: HOD_BL_ROLES },
-        { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave", roles: HOD_BL_ROLES },
-        { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce", roles: HOD_BL_ROLES },
-      ],
-    },
+    { title: "Employee Analytics", icon: BarChart3, path: "/analytics", roles: HOD_BL_ROLES },
     {
       title: "Reports",
       icon: FileSearch,
@@ -166,6 +156,17 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     },
     { title: "Administration", isSection: true, roles: HOD_BL_ROLES },
     { title: "Employee Directory", icon: Users, path: "/employees", roles: HOD_BL_ROLES },
+    {
+      title: "Workforce Analytics",
+      icon: PieChart,
+      path: "/hr-analytics/attendance",
+      roles: HOD_BL_ROLES,
+      children: [
+        { title: "Attendance Analytics", icon: BarChart3, path: "/hr-analytics/attendance", roles: HOD_BL_ROLES },
+        { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave", roles: HOD_BL_ROLES },
+        { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce", roles: HOD_BL_ROLES },
+      ],
+    },
   ];
 
   // ── Standard sidebar (employee, branch_officer, hr_admin, MD, finance) ───
