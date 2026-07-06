@@ -17,22 +17,22 @@ function getBreadcrumbs(pathname: string): BreadcrumbSegment[] {
   if (pathname === "/leave/admin") return [home, { label: "LEAVE ADMINISTRATION", path: "/leave/admin" }, { label: "LEAVE APPROVALS" }];
   if (pathname === "/leave/entitlement") return [home, { label: "LEAVE ADMINISTRATION", path: "/leave/admin" }, { label: "LEAVE ENTITLEMENT MANAGEMENT" }];
   if (pathname === "/leave/forms") return [home, { label: "LEAVE MANAGEMENT", path: "/leave" }, { label: "MY LEAVE REQUESTS" }];
-  if (pathname === "/employees") return [home, { label: "ADMINISTRATION" }, { label: "EMPLOYEE DIRECTORY" }];
-  if (pathname === "/branches") return [home, { label: "ADMINISTRATION" }, { label: "BRANCHES" }];
-  if (pathname === "/reports") return [home, { label: "REPORTS & ANALYTICS" }, { label: "REPORTS" }];
-  if (pathname === "/analytics") return [home, { label: "REPORTS & ANALYTICS" }, { label: "EMPLOYEE ANALYTICS" }];
+  if (pathname === "/employees") return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "EMPLOYEE DIRECTORY" }];
+  if (pathname === "/branches") return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "BRANCH MANAGEMENT" }];
+  if (pathname === "/reports") return [home, { label: "ANALYTICS" }, { label: "REPORTS" }];
+  if (pathname === "/analytics") return [home, { label: "ANALYTICS" }, { label: "EMPLOYEE ANALYTICS" }];
   if (pathname === "/settings") return [home, { label: "ADMINISTRATION" }, { label: "SETTINGS" }];
-  if (pathname === "/calendar") return [home, { label: "CALENDAR" }];
+  if (pathname === "/calendar") return [home, { label: "CALENDAR", path: "/calendar" }, { label: "WORK CALENDAR" }];
   if (pathname === "/calendar/company-leave") return [home, { label: "CALENDAR", path: "/calendar" }, { label: "COMPANY LEAVE CALENDAR" }];
   if (pathname === "/profile") return [home, { label: "PROFILE" }];
-  if (pathname === "/master") return [home, { label: "ADMINISTRATION" }, { label: "OVERVIEW" }];
-  if (pathname === "/master/department") return [home, { label: "ADMINISTRATION" }, { label: "DEPARTMENT" }];
+  if (pathname === "/master") return [home, { label: "EMPLOYEE MANAGEMENT" }];
+  if (pathname === "/master/department") return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "DEPARTMENT" }];
   if (pathname.startsWith("/master/department/")) {
     const deptName = pathname.split("/").pop()?.replace(/-/g, " ").toUpperCase() || "DETAILS";
-    return [home, { label: "ADMINISTRATION" }, { label: "DEPARTMENT", path: "/master/department" }, { label: deptName }];
+    return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "DEPARTMENT", path: "/master/department" }, { label: deptName }];
   }
-  if (pathname === "/master/designation") return [home, { label: "ADMINISTRATION" }, { label: "DESIGNATION" }];
-  if (pathname === "/master/role") return [home, { label: "ADMINISTRATION" }, { label: "ROLE" }];
+  if (pathname === "/master/designation") return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "DESIGNATION" }];
+  if (pathname === "/master/role") return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "ROLE" }];
 
   const segments = pathname.split("/").filter(Boolean);
   const result: BreadcrumbSegment[] = [home];
