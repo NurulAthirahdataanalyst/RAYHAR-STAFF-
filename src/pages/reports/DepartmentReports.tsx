@@ -43,7 +43,7 @@ export default function DepartmentReports() {
   // Group by department
   const deptMap: Record<string, { branch: string, headcount: number, active: number }> = {};
   employees.forEach(e => {
-    const key = `${e.department || 'Unassigned'} - ${e.branch || 'HQ'}`;
+    const key = `${e.department || '--'} - ${e.branch || 'HQ'}`;
     if (!deptMap[key]) {
       deptMap[key] = { branch: e.branch || 'HQ', headcount: 0, active: 0 };
     }

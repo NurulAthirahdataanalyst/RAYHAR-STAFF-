@@ -77,7 +77,7 @@ export default function LeaveReports() {
     const rows = filteredList.map(a => 
       `"${a.full_name || a.user_id}","${a.branch || 'HQ'}","${a.leave_type}","${formatDate(a.start_date)}","${formatDate(a.end_date)}",${a.days},"${a.status}"`
     );
-    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\\n");
+    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
