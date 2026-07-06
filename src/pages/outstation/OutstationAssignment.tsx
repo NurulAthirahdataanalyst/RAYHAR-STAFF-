@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import {
   Plane, Plus, Filter, Loader2, MapPin, Edit2, XCircle, Trash2,
@@ -21,6 +22,11 @@ const OUTSTATION_ROLES = ["hr_admin", "managing_director", "finance_manager", "b
 const PINK = "#EC4899";
 
 const BRANCHES = ["HQ","KMM","TGG","CNH","KBG","DGN","JTH","KBR","RMP","MZM","TWU","AOR","BTM","KKS","SHA","BBB","KUL","IPH","MJG","MLK","SNS","JB","BTP"];
+
+function formatName(fullName: string) {
+  if (!fullName) return "—";
+  return fullName.split(/ BIN | BINTI /i)[0];
+}
 
 function fmtDate(d: string) {
   if (!d) return "—";
@@ -312,40 +318,47 @@ export default function OutstationAssignment() {
               <p className="text-[10px] font-black uppercase tracking-widest">No assignments found</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-[12px]">
-                <thead>
-                  <tr className="border-b border-gray-100 bg-slate-50/60">
-                    {["Employee","Department","Branch","Destination","Start","End","Days","Assigned By","Status","Actions"].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
+            <div className="rounded-md border border-gray-200/60 bg-white">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50/60 hover:bg-slate-50/60">
+                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Employee</TableHead>
+                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Department</TableHead>
+                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Branch</TableHead>
+                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Destination</TableHead>
+                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Start</TableHead>
+                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">End</TableHead>
+                    <TableHead className="text-center font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Days</TableHead>
+                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Assigned By</TableHead>
+                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Status</TableHead>
+                    <TableHead className="font-black text-slate-400 uppercase tracking-widest whitespace-nowrap text-[10px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {filtered.map(a => (
-                    <tr key={a.id} className="border-b border-gray-50 hover:bg-pink-50/20 transition-colors">
-                      <td className="px-4 py-3">
+                    <TableRow key={a.id} className="hover:bg-pink-50/20 transition-colors">
+                      <TableCell className="py-3">
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center text-[9px] font-black text-pink-800 shrink-0">
                             {(a.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                           </div>
-                          <span className="font-semibold text-gray-800 truncate max-w-[120px]">{a.full_name}</span>
+                          <span className="font-semibold text-gray-800 text-[12px] truncate max-w-[120px]" title={a.full_name}>{formatName(a.full_name)}</span>
                         </div>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">{a.department || "—"}</td>
-                      <td className="px-4 py-3 text-gray-600">{a.branch || "—"}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1 font-semibold text-gray-800">
+                      </TableCell>
+                      <TableCell className="text-gray-600 text-[12px]">{a.department || "—"}</TableCell>
+                      <TableCell className="text-gray-600 text-[12px]">{a.branch || "—"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 font-semibold text-gray-800 text-[12px]">
                           <MapPin className="w-3 h-3 text-pink-400 shrink-0" />{a.destination}
                         </div>
                         {a.client_company && <div className="text-[10px] text-gray-400 ml-4">{a.client_company}</div>}
-                      </td>
-                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{fmtDate(a.start_date)}</td>
-                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{fmtDate(a.end_date)}</td>
-                      <td className="px-4 py-3 text-center font-black text-pink-600">{a.total_days ?? "—"}</td>
-                      <td className="px-4 py-3 text-gray-500">{a.assigned_by_name || "—"}</td>
-                      <td className="px-4 py-3">{statusBadge(a.status)}</td>
-                      <td className="px-4 py-3">
+                      </TableCell>
+                      <TableCell className="text-gray-500 whitespace-nowrap text-[12px]">{fmtDate(a.start_date)}</TableCell>
+                      <TableCell className="text-gray-500 whitespace-nowrap text-[12px]">{fmtDate(a.end_date)}</TableCell>
+                      <TableCell className="text-center font-black text-pink-600 text-[12px]">{a.total_days ?? "—"}</TableCell>
+                      <TableCell className="text-gray-500 text-[12px] font-medium" title={a.assigned_by_name}>{formatName(a.assigned_by_name)}</TableCell>
+                      <TableCell>{statusBadge(a.status)}</TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-1">
                           <button onClick={() => openEdit(a)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500 transition-colors" title="Edit"><Edit2 className="w-3.5 h-3.5" /></button>
                           {a.status !== "Cancelled" && a.status !== "Completed" && (
@@ -353,11 +366,11 @@ export default function OutstationAssignment() {
                           )}
                           <button onClick={() => handleDelete(a.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 transition-colors" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>
