@@ -1173,14 +1173,14 @@ function ManualLeaveAdjustmentForm({
   const [leaveType, setLeaveType] = useState("Annual & Emergency Leave");
   const [adjType, setAdjType] = useState("add"); // add / deduct
   const [adjDays, setAdjDays] = useState(1);
-  const [reason, setReason] = useState("System Correction");
+  const [reason, setReason] = useState("");
   const [remarks, setRemarks] = useState("");
   const [fileName, setFileName] = useState("");
 
   const currentBalances = selectedEmp ? getEmployeeLeaveBalances(selectedEmp.user_id) : {
-    "Annual & Emergency Leave": 12,
-    "Replacement Leave": 2,
-    "Sick Leave (MC)": 8,
+    "Annual & Emergency Leave": 14,
+    "Replacement Leave": 0,
+    "Sick Leave (MC)": 14,
     "Unpaid Leave": 0
   };
 
@@ -1312,14 +1312,12 @@ function ManualLeaveAdjustmentForm({
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label className="text-xs font-bold">Reason</Label>
-              <Select value={reason} onValueChange={setReason}>
-                <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="System Correction">System Correction</SelectItem>
-                  <SelectItem value="Policy Update">Policy Update</SelectItem>
-                  <SelectItem value="Dispute Settlement">Dispute Settlement</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                placeholder="Enter reason for adjustment..."
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className="bg-white text-xs h-9"
+              />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label className="text-xs font-bold">Remarks</Label>

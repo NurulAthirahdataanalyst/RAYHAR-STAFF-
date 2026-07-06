@@ -158,9 +158,9 @@ export const getEmployeeLeaveBalances = (employeeIdOrName: string): {
   "Unpaid Leave": number;
 } => {
   const defaultBalances = {
-    "Annual & Emergency Leave": 12,
-    "Replacement Leave": 2,
-    "Sick Leave (MC)": 8,
+    "Annual & Emergency Leave": 14,
+    "Replacement Leave": 0,
+    "Sick Leave (MC)": 14,
     "Unpaid Leave": 0
   };
 
@@ -202,9 +202,9 @@ export const updateEmployeeLeaveBalance = (
 
     // Get existing balances or initialize
     let existing = allBalances[idKey] || allBalances[nameKey] || {
-      "Annual & Emergency Leave": 12,
-      "Replacement Leave": 2,
-      "Sick Leave (MC)": 8,
+      "Annual & Emergency Leave": 14,
+      "Replacement Leave": 0,
+      "Sick Leave (MC)": 14,
       "Unpaid Leave": 0
     };
 
