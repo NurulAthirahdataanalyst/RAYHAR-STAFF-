@@ -25,7 +25,7 @@ interface DepartmentData {
 }
 
 export default function MasterOverview() {
-  const { role, userBranch } = useRole();
+  const { role, userBranch, loading: roleLoading } = useRole();
   const navigate = useNavigate();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
@@ -51,10 +51,18 @@ export default function MasterOverview() {
 
   // Redirect non-hr_admin roles as this is a master administration center
   useEffect(() => {
-    if (role && role !== "hr_admin" && role !== "managing_director") {
+    if (!roleLoading && role !== "hr_admin" && role !== "managing_director") {
       navigate("/");
     }
-  }, [role, navigate]);
+  }, [role, roleLoading, navigate]);
+
+  if (roleLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7B0099]" />
+      </div>
+    );
+  }
 
   const fetchData = async () => {
     setLoading(true);

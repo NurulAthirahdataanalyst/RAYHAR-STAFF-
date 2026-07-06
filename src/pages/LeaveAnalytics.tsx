@@ -322,7 +322,7 @@ function StatCard({
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function LeaveAnalytics() {
-  const { role, userBranch, userDepartment } = useRole();
+  const { role, userBranch, userDepartment, loading: roleLoading } = useRole();
   const navigate = useNavigate();
 
   // State to hold portal target
@@ -335,10 +335,18 @@ export default function LeaveAnalytics() {
 
   // Redirect non-hr_admin roles
   useEffect(() => {
-    if (role && role !== "hr_admin" && role !== "managing_director") {
+    if (!roleLoading && role !== "hr_admin" && role !== "managing_director") {
       navigate("/");
     }
-  }, [role, navigate]);
+  }, [role, roleLoading, navigate]);
+
+  if (roleLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7B0099]" />
+      </div>
+    );
+  }
 
   // ─ Filter state ─
   const [selectedMonth, setSelectedMonth] = useState("all");

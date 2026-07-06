@@ -85,7 +85,7 @@ const modules = [
 ];
 
 export default function LeaveEntitlementManagement() {
-  const { role } = useRole();
+  const { role, loading: roleLoading } = useRole();
   const [activeModule, setActiveModule] = useState<string | null>(null);
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -109,7 +109,15 @@ export default function LeaveEntitlementManagement() {
     fetchEmployees();
   }, []);
 
-  if (role && role !== "hr_admin" && role !== "managing_director") {
+  if (roleLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7B0099]" />
+      </div>
+    );
+  }
+
+  if (role !== "hr_admin" && role !== "managing_director") {
     return <Navigate to="/" replace />;
   }
 
