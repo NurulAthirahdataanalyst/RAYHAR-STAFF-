@@ -86,23 +86,44 @@ export default function AttendanceReports() {
   });
 
   const handleExportCSV = () => {
-    const headers = viewType === "day" 
-      ? ["Employee ID,Name,Branch,Clock In,Clock Out,Status"]
-      : ["Date,Employee ID,Name,Branch,Clock In,Clock Out,Status"];
-      
+    const headers = viewType === "day"
+      ? ["Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status"]
+      : ["Date", "Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status"];
+
     const rows = filteredList.map(a => {
       if (viewType === "day") {
-        return `${a.user_id},"${a.full_name}","${a.branch}",${a.time_in || 'N/A'},${a.time_out || 'N/A'},"${a.status}"`;
+        return [
+          `"${(a.user_id || '').replace(/"/g, '""')}"`,
+          `"${(a.full_name || '').replace(/"/g, '""')}"`,
+          `"${(a.branch || 'HQ').replace(/"/g, '""')}"`,
+          `"${(a.time_in || 'N/A').replace(/"/g, '""')}"`,
+          `"${(a.time_out || 'N/A').replace(/"/g, '""')}"`,
+          `"${(a.status || '').replace(/"/g, '""')}"`
+        ];
       } else {
-        return `${a.date},${a.user_id},"${a.full_name}","${a.branch}",${a.time_in || 'N/A'},${a.time_out || 'N/A'},"${a.status}"`;
+        return [
+          `"${(a.date || '').replace(/"/g, '""')}"`,
+          `"${(a.user_id || '').replace(/"/g, '""')}"`,
+          `"${(a.full_name || '').replace(/"/g, '""')}"`,
+          `"${(a.branch || 'HQ').replace(/"/g, '""')}"`,
+          `"${(a.time_in || 'N/A').replace(/"/g, '""')}"`,
+          `"${(a.time_out || 'N/A').replace(/"/g, '""')}"`,
+          `"${(a.status || '').replace(/"/g, '""')}"`
+        ];
       }
     });
-    
-    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
-    const encodedUri = encodeURI(csvContent);
+
+    const csvContent = "\ufeff" + [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", url);
     link.setAttribute("download", viewType === "day" ? `attendance_report_${date}.csv` : `attendance_report_${months.find(m => m.value === selectedMonth)?.label}_${selectedYear}.csv`);
+    link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -69,45 +69,73 @@ export default function DepartmentReports() {
     .filter(e => e.branch.toLowerCase().includes(searchBranchQuery.toLowerCase()));
 
   const handleExportCSV = () => {
-    const headers = ["Department,Branch,Total Headcount,Active Employees"];
-    const rows = deptArray.map(a => 
-      `"${a.department}","${a.branch}",${a.headcount},${a.active}`
-    );
-    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
-    const encodedUri = encodeURI(csvContent);
+    const headers = ["Department", "Branch", "Total Headcount", "Active Employees"];
+    const rows = deptArray.map(a => [
+      `"${(a.department || '').replace(/"/g, '""')}"`,
+      `"${(a.branch || '').replace(/"/g, '""')}"`,
+      a.headcount,
+      a.active
+    ]);
+
+    const csvContent = "\ufeff" + [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", url);
     link.setAttribute("download", `department_report.csv`);
+    link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
   const handleExportDeptCSV = () => {
-    const headers = ["Department,Total Headcount,Active Employees"];
-    const rows = hqList.map(a => 
-      `"${a.department}",${a.headcount},${a.active}`
-    );
-    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
-    const encodedUri = encodeURI(csvContent);
+    const headers = ["Department", "Total Headcount", "Active Employees"];
+    const rows = hqList.map(a => [
+      `"${(a.department || '').replace(/"/g, '""')}"`,
+      a.headcount,
+      a.active
+    ]);
+
+    const csvContent = "\ufeff" + [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", url);
     link.setAttribute("download", `hq_department_statistics.csv`);
+    link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
   const handleExportBranchCSV = () => {
-    const headers = ["Branch,Total Headcount,Active Employees"];
-    const rows = branchList.map(a => 
-      `"${a.branch}",${a.headcount},${a.active}`
-    );
-    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
-    const encodedUri = encodeURI(csvContent);
+    const headers = ["Branch", "Total Headcount", "Active Employees"];
+    const rows = branchList.map(a => [
+      `"${(a.branch || '').replace(/"/g, '""')}"`,
+      a.headcount,
+      a.active
+    ]);
+
+    const csvContent = "\ufeff" + [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", url);
     link.setAttribute("download", `branch_statistics.csv`);
+    link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -73,15 +73,28 @@ export default function LeaveReports() {
   );
 
   const handleExportCSV = () => {
-    const headers = ["Employee,Branch,Leave Type,Start Date,End Date,Days,Status"];
-    const rows = filteredList.map(a => 
-      `"${a.full_name || a.user_id}","${a.branch || 'HQ'}","${a.leave_type}","${formatDate(a.start_date)}","${formatDate(a.end_date)}",${a.days},"${a.status}"`
-    );
-    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
-    const encodedUri = encodeURI(csvContent);
+    const headers = ["Employee", "Branch", "Leave Type", "Start Date", "End Date", "Days", "Status"];
+    const rows = filteredList.map(a => [
+      `"${(a.full_name || a.user_id || '').replace(/"/g, '""')}"`,
+      `"${(a.branch || 'HQ').replace(/"/g, '""')}"`,
+      `"${(a.leave_type || '').replace(/"/g, '""')}"`,
+      `"${(formatDate(a.start_date) || '').replace(/"/g, '""')}"`,
+      `"${(formatDate(a.end_date) || '').replace(/"/g, '""')}"`,
+      a.days,
+      `"${(a.status || '').replace(/"/g, '""')}"`
+    ]);
+
+    const csvContent = "\ufeff" + [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", url);
     link.setAttribute("download", viewType === "day" ? `leave_report_${date}.csv` : `leave_report_${months.find(m => m.value === selectedMonth)?.label}_${selectedYear}.csv`);
+    link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
