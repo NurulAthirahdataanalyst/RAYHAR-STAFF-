@@ -1650,9 +1650,47 @@ function LeaveBalanceHistoryForm({
   const [yearFilter, setYearFilter] = useState("2026");
   const [leaveType, setLeaveType] = useState("All");
   const [actionType, setActionType] = useState("All");
+  const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
 
-  // Mock History Records
-  const historyRecords = [
+  // Fetch real leave requests to populate real usage history
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/leave-requests`);
+        const data = await res.json();
+        if (data.success) {
+          // Filter only approved leave requests
+          const approved = data.data.filter((r: any) => r.status === "Approved" || r.status === "approved");
+          setLeaveRequests(approved);
+        }
+      } catch (err) {
+        console.error("Error loading leave requests:", err);
+      }
+    };
+    fetchRequests();
+  }, []);
+
+  // Map real approved leave requests into history format
+  const realHistory = leaveRequests.map((req) => {
+    const days = parseInt(req.days) || 1;
+    const after = getUnusedDays(req.user_id);
+    const before = after + days;
+    return {
+      date: req.start_date ? req.start_date.split('T')[0] : "2026-07-06",
+      action: "Leave Taken (Approved)",
+      performedBy: req.approval_history?.[0]?.approver_name || "Manager",
+      reference: `REQ-LV-${req.leave_id}`,
+      before: before,
+      after: after,
+      type: "Usage",
+      leave: req.leave_type || "Annual Leave",
+      employee: req.full_name || "Unknown",
+    };
+  });
+
+  // Combined History (Real approved leave requests + mock system allocations/corrections)
+  const combinedHistory = [
+    ...realHistory,
     {
       date: "2026-07-06",
       action: "Manual Correction",
@@ -1676,17 +1714,6 @@ function LeaveBalanceHistoryForm({
       employee: "Siti Nur",
     },
     {
-      date: "2026-06-12",
-      action: "Leave Taken (Approved)",
-      performedBy: "Siti Nur (Self)",
-      reference: "REQ-LV-1002",
-      before: 8,
-      after: 5,
-      type: "Usage",
-      leave: "Annual Leave",
-      employee: "Siti Nur",
-    },
-    {
       date: "2026-01-01",
       action: "Annual Allocation Granted",
       performedBy: "Nurul Athirah (HR)",
@@ -1700,8 +1727,8 @@ function LeaveBalanceHistoryForm({
   ];
 
   // Filter dynamic history list
-  const filteredHistory = historyRecords.filter((rec) => {
-    const empMatch = !selectedEmp || rec.employee === selectedEmp.full_name || selectedEmp.full_name?.toLowerCase().includes(rec.employee.toLowerCase());
+  const filteredHistory = combinedHistory.filter((rec) => {
+    const empMatch = !selectedEmp || rec.employee.toLowerCase().includes(selectedEmp.full_name.toLowerCase()) || selectedEmp.full_name.toLowerCase().includes(rec.employee.toLowerCase());
     const yearMatch = rec.date.startsWith(yearFilter);
     const leaveMatch = leaveType === "All" || rec.leave === leaveType;
     const actionMatch = actionType === "All" || rec.type === actionType;
