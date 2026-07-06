@@ -15,6 +15,7 @@ import {
   leaveTypeLabels,
   type LeaveRequest,
   type LeaveType,
+  getEmployeeLeaveBalances,
 } from "@/lib/leaveStorage";
 
 const leaveTypes: Array<{ type: LeaveType; total?: number }> = [
@@ -76,6 +77,7 @@ export default function LeaveOverview() {
   const { userId, userName } = useRole();
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const filteredLeaveRequests = useMemo(() => {
     return leaveRequests.filter(req => {
@@ -135,16 +137,59 @@ export default function LeaveOverview() {
       } catch (e) {}
     };
 
-    return () => sse.close();
+    // BroadcastChannel and storage event listeners for cross-tab sync
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel("rayhar_leave_refresh");
+      bc.onmessage = () => {
+        setRefreshKey(prev => prev + 1);
+        void fetchLeaveRequests();
+      };
+    } catch (e) {}
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "rayhar_employee_leave_balances") {
+        setRefreshKey(prev => prev + 1);
+        void fetchLeaveRequests();
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      sse.close();
+      window.removeEventListener("storage", handleStorageChange);
+      if (bc) bc.close();
+    };
   }, [userId, userName]);
 
+  const currentBalances = useMemo(() => {
+    return getEmployeeLeaveBalances(userId || userName || "");
+  }, [userId, userName, refreshKey, leaveRequests]);
+
+  const mapTypeToBalanceKey = (type: LeaveType): "Annual & Emergency Leave" | "Replacement Leave" | "Sick Leave (MC)" | "Unpaid Leave" => {
+    if (type === "Annual/Emergency Leave" || type === "Cuti Tahunan") {
+      return "Annual & Emergency Leave";
+    }
+    if (type === "Sick Leave" || type === "Cuti Sakit") {
+      return "Sick Leave (MC)";
+    }
+    if (type === "Replacement Leave" || type === "Cuti Ganti") {
+      return "Replacement Leave";
+    }
+    return "Unpaid Leave";
+  };
+
   const leaveBalances = useMemo(() => {
-    return leaveTypes.map((item) => ({
-      label: leaveTypeLabels[item.type],
-      used: getUsedLeaveDays(filteredLeaveRequests, item.type),
-      total: item.total,
-    }));
-  }, [filteredLeaveRequests]);
+    return leaveTypes.map((item) => {
+      const balanceKey = mapTypeToBalanceKey(item.type);
+      const total = currentBalances[balanceKey];
+      return {
+        label: leaveTypeLabels[item.type],
+        used: getUsedLeaveDays(filteredLeaveRequests, item.type),
+        total: total,
+      };
+    });
+  }, [filteredLeaveRequests, currentBalances]);
 
   return (
     <div className="space-y-3 sm:space-y-5 animate-in fade-in duration-500">

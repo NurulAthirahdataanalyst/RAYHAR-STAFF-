@@ -150,3 +150,86 @@ export const getCleanReason = (reason: string): string => {
   if (!reason) return "";
   return reason.replace(/\[CUTI_GANTI_DATA:.*?\]/g, "").trim();
 };
+
+export const getEmployeeLeaveBalances = (employeeIdOrName: string): {
+  "Annual & Emergency Leave": number;
+  "Replacement Leave": number;
+  "Sick Leave (MC)": number;
+  "Unpaid Leave": number;
+} => {
+  const defaultBalances = {
+    "Annual & Emergency Leave": 12,
+    "Replacement Leave": 2,
+    "Sick Leave (MC)": 8,
+    "Unpaid Leave": 0
+  };
+
+  if (typeof window === "undefined" || !employeeIdOrName) return defaultBalances;
+
+  try {
+    const stored = window.localStorage.getItem("rayhar_employee_leave_balances");
+    if (stored) {
+      const allBalances = JSON.parse(stored);
+      const key = employeeIdOrName.toLowerCase().trim();
+      
+      for (const k of Object.keys(allBalances)) {
+        if (k.toLowerCase().trim() === key) {
+          return { ...defaultBalances, ...allBalances[k] };
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Error loading employee balances:", err);
+  }
+
+  return defaultBalances;
+};
+
+export const updateEmployeeLeaveBalance = (
+  employeeId: string,
+  employeeName: string,
+  leaveType: string,
+  newTotal: number
+) => {
+  if (typeof window === "undefined") return;
+
+  try {
+    const stored = window.localStorage.getItem("rayhar_employee_leave_balances");
+    const allBalances = stored ? JSON.parse(stored) : {};
+
+    const idKey = employeeId.toLowerCase().trim();
+    const nameKey = employeeName.toLowerCase().trim();
+
+    // Get existing balances or initialize
+    let existing = allBalances[idKey] || allBalances[nameKey] || {
+      "Annual & Emergency Leave": 12,
+      "Replacement Leave": 2,
+      "Sick Leave (MC)": 8,
+      "Unpaid Leave": 0
+    };
+
+    const mappedType = leaveType === "Annual Leave" || leaveType === "Annual/Emergency Leave" || leaveType === "Annual & Emergency Leave"
+      ? "Annual & Emergency Leave"
+      : leaveType === "Sick Leave" || leaveType === "Sick Leave (MC)" || leaveType === "Medical Leave"
+      ? "Sick Leave (MC)"
+      : leaveType === "Replacement Leave"
+      ? "Replacement Leave"
+      : "Unpaid Leave";
+
+    existing[mappedType] = newTotal;
+
+    allBalances[idKey] = existing;
+    allBalances[nameKey] = existing;
+
+    window.localStorage.setItem("rayhar_employee_leave_balances", JSON.stringify(allBalances));
+
+    try {
+      const bc = new BroadcastChannel("rayhar_leave_refresh");
+      bc.postMessage("refresh");
+    } catch (e) {
+      // BroadcastChannel might fail in some sandboxed contexts
+    }
+  } catch (err) {
+    console.error("Error saving employee balance:", err);
+  }
+};

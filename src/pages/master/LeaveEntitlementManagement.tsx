@@ -31,6 +31,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { Navigate } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
 import { toast } from "@/hooks/use-toast";
+import { getEmployeeLeaveBalances, updateEmployeeLeaveBalance } from "@/lib/leaveStorage";
 
 const modules = [
   {
@@ -411,17 +412,20 @@ function AnnualLeaveAllocationForm({
 
   const handleGrant = () => {
     // Audit Log for localStorage
-    const newLogs = filtered.map(emp => ({
-      date: new Date().toISOString().split('T')[0],
-      action: `Base Entitlement`,
-      performedBy: "Nurul Athirah (HR)",
-      reference: `ANN-ALLOC-${leaveYear}`,
-      before: 0,
-      after: leaveDays,
-      type: "Allocation",
-      leave: "Annual & Emergency Leave",
-      employee: emp.full_name,
-    }));
+    const newLogs = filtered.map(emp => {
+      updateEmployeeLeaveBalance(emp.user_id, emp.full_name, "Annual & Emergency Leave", leaveDays);
+      return {
+        date: new Date().toISOString().split('T')[0],
+        action: `Base Entitlement`,
+        performedBy: "Nurul Athirah (HR)",
+        reference: `ANN-ALLOC-${leaveYear}`,
+        before: 0,
+        after: leaveDays,
+        type: "Allocation",
+        leave: "Annual & Emergency Leave",
+        employee: emp.full_name,
+      };
+    });
 
     const saved = localStorage.getItem("leave_balance_history_logs");
     const currentLogs = saved ? JSON.parse(saved) : [];
@@ -445,14 +449,19 @@ function AnnualLeaveAllocationForm({
       return;
     }
 
+    const currentBalances = getEmployeeLeaveBalances(selectedEmp.user_id);
+    const targetType = targetLeaveType === "Annual & Emergency Leave" ? "Annual & Emergency Leave" : "Replacement Leave";
+    const newTotal = currentBalances[targetType] + allocatedDays;
+    updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, targetType, newTotal);
+
     // Append to local history logs
     const newLog = {
       date: new Date().toISOString().split('T')[0],
       action: `OT Convert (+${allocatedDays}d)`,
       performedBy: "Nurul Athirah (HR)",
       reference: `OT-CONV-${selectedOTs.join('-')}`,
-      before: 14,
-      after: 14 + allocatedDays,
+      before: currentBalances[targetType],
+      after: newTotal,
       type: "Allocation",
       leave: targetLeaveType,
       employee: selectedEmp.full_name,
@@ -773,13 +782,18 @@ function CarryForwardLeaveForm({
       .map(emp => {
         const unused = getUnusedDays(emp.user_id);
         const eligible = Math.min(unused, maxCarry);
+        
+        const currentBalances = getEmployeeLeaveBalances(emp.user_id);
+        const newTotal = currentBalances[leaveType as any] + eligible;
+        updateEmployeeLeaveBalance(emp.user_id, emp.full_name, leaveType, newTotal);
+
         return {
           date: new Date().toISOString().split('T')[0],
           action: `Carry Forward CF`,
           performedBy: "System Job",
           reference: `ROLL-CF-${carryToYear}`,
-          before: 0,
-          after: eligible,
+          before: currentBalances[leaveType as any],
+          after: newTotal,
           type: "Carry Forward",
           leave: leaveType,
           employee: emp.full_name,
@@ -994,14 +1008,18 @@ function AdditionalLeaveAllocationForm({
   const handleGrant = () => {
     if (!selectedEmp) return;
 
+    const currentBalances = getEmployeeLeaveBalances(selectedEmp.user_id);
+    const newTotal = currentBalances[leaveType as any] + addDays;
+    updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, leaveType, newTotal);
+
     // Log to local balance history logs
     const newLog = {
       date: new Date().toISOString().split('T')[0],
       action: `Additional Leave (+${addDays}d)`,
       performedBy: "Nurul Athirah (HR)",
       reference: `ADD-ALLOC-${reasonCat.replace(/\s+/g, '-')}`,
-      before: 14,
-      after: 14 + addDays,
+      before: currentBalances[leaveType as any],
+      after: newTotal,
       type: "Allocation",
       leave: leaveType,
       employee: selectedEmp.full_name,
@@ -1151,10 +1169,17 @@ function ManualLeaveAdjustmentForm({
   const [remarks, setRemarks] = useState("");
   const [fileName, setFileName] = useState("");
 
-  const currentAnnualBalance = 12;
-  const currentReplacementBalance = 2;
-  const currentSickBalance = 8;
-  const currentUnpaidBalance = 0;
+  const currentBalances = selectedEmp ? getEmployeeLeaveBalances(selectedEmp.user_id) : {
+    "Annual & Emergency Leave": 12,
+    "Replacement Leave": 2,
+    "Sick Leave (MC)": 8,
+    "Unpaid Leave": 0
+  };
+
+  const currentAnnualBalance = currentBalances["Annual & Emergency Leave"];
+  const currentReplacementBalance = currentBalances["Replacement Leave"];
+  const currentSickBalance = currentBalances["Sick Leave (MC)"];
+  const currentUnpaidBalance = currentBalances["Unpaid Leave"];
 
   const getSelectedBalance = () => {
     switch (leaveType) {
@@ -1171,6 +1196,8 @@ function ManualLeaveAdjustmentForm({
 
   const handleSave = () => {
     if (!selectedEmp) return;
+
+    updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, leaveType, newBalance);
 
     // Log to local balance history logs
     const newLog = {
@@ -1351,14 +1378,18 @@ function SpecialLeaveCreditsForm({
   const handleGrant = () => {
     if (!selectedEmp) return;
 
+    const currentBalances = getEmployeeLeaveBalances(selectedEmp.user_id);
+    const newTotal = currentBalances["Replacement Leave"] + days;
+    updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, "Replacement Leave", newTotal);
+
     // Log to local balance history logs (allocated under Replacement Leave)
     const newLog = {
       date: new Date().toISOString().split('T')[0],
       action: `Special Credit (${specialLeave})`,
       performedBy: "Nurul Athirah (HR)",
       reference: `SPEC-CRED-${specialLeave.replace(/\s+/g, '-')}`,
-      before: 0,
-      after: days,
+      before: currentBalances["Replacement Leave"],
+      after: newTotal,
       type: "Allocation",
       leave: "Replacement Leave",
       employee: selectedEmp.full_name,
@@ -1472,12 +1503,21 @@ function LeaveForfeitureForm({
   const [reason, setReason] = useState("Carry Forward Limit Exceeded");
   const [remarks, setRemarks] = useState("");
 
-  const unused = selectedEmp ? getUnusedDays(selectedEmp.user_id) : 0;
+  const currentBalances = selectedEmp ? getEmployeeLeaveBalances(selectedEmp.user_id) : {
+    "Annual & Emergency Leave": 12,
+    "Replacement Leave": 2,
+    "Sick Leave (MC)": 8,
+    "Unpaid Leave": 0
+  };
+
+  const unused = selectedEmp ? currentBalances[leaveType as any] || 0 : 0;
   const eligible = Math.min(unused, carryLimit);
   const forfeit = Math.max(0, unused - eligible);
 
   const handleForfeit = () => {
     if (!selectedEmp) return;
+
+    updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, leaveType, eligible);
 
     // Log to local balance history logs
     const newLog = {
@@ -1670,17 +1710,23 @@ function BulkLeaveAllocationForm({
     // Log to local balance history logs
     const newLogs = employees
       .filter((e) => selectedEmployees.includes(e.user_id))
-      .map(emp => ({
-        date: new Date().toISOString().split('T')[0],
-        action: `Bulk Allocation (+${days}d)`,
-        performedBy: "Nurul Athirah (HR)",
-        reference: `BULK-ALLOC-${reason.replace(/\s+/g, '-')}`,
-        before: 14,
-        after: 14 + days,
-        type: "Allocation",
-        leave: leaveType,
-        employee: emp.full_name,
-      }));
+      .map(emp => {
+        const currentBalances = getEmployeeLeaveBalances(emp.user_id);
+        const newTotal = currentBalances[leaveType as any] + days;
+        updateEmployeeLeaveBalance(emp.user_id, emp.full_name, leaveType, newTotal);
+
+        return {
+          date: new Date().toISOString().split('T')[0],
+          action: `Bulk Allocation (+${days}d)`,
+          performedBy: "Nurul Athirah (HR)",
+          reference: `BULK-ALLOC-${reason.replace(/\s+/g, '-')}`,
+          before: currentBalances[leaveType as any],
+          after: newTotal,
+          type: "Allocation",
+          leave: leaveType,
+          employee: emp.full_name,
+        };
+      });
 
     const saved = localStorage.getItem("leave_balance_history_logs");
     const currentLogs = saved ? JSON.parse(saved) : [];
