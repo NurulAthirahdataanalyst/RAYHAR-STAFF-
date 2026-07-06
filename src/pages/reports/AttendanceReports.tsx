@@ -1,13 +1,47 @@
 import { useState, useEffect } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Download, Search, Clock, FileText } from "lucide-react";
+import { Loader2, Download, Search, Clock, FileText, X } from "lucide-react";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { useRole } from "@/contexts/RoleContext";
+
+const calculateWorkingHours = (clockIn: string | null | undefined, clockOut: string | null | undefined) => {
+  if (!clockIn) return "--";
+  
+  const start = new Date(clockIn).getTime();
+  let end;
+  
+  if (clockOut) {
+    end = new Date(clockOut).getTime();
+  } else {
+    // If clockOut is missing, check if it's today in UTC+8
+    const clockInDate = new Date(clockIn);
+    const klNow = new Date(Date.now() + 8 * 60 * 60 * 1000);
+    const klClockInTime = new Date(clockInDate.getTime() + 8 * 60 * 60 * 1000);
+    
+    const isToday = klNow.getUTCFullYear() === klClockInTime.getUTCFullYear() &&
+                    klNow.getUTCMonth() === klClockInTime.getUTCMonth() &&
+                    klNow.getUTCDate() === klClockInTime.getUTCDate();
+    
+    if (isToday) {
+      end = Date.now();
+    } else {
+      const klEndOfDay = new Date(klClockInTime);
+      klEndOfDay.setUTCHours(23, 59, 59, 999);
+      end = klEndOfDay.getTime() - 8 * 60 * 60 * 1000;
+    }
+  }
+  
+  const diffMs = end - start;
+  if (diffMs < 0) return "--";
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  return `${hours}h ${minutes}m`;
+};
 
 export default function AttendanceReports() {
   const { role, userBranch, userDepartment } = useRole();
@@ -87,10 +121,11 @@ export default function AttendanceReports() {
 
   const handleExportCSV = () => {
     const headers = viewType === "day"
-      ? ["Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status"]
-      : ["Date", "Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status"];
+      ? ["Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours"]
+      : ["Date", "Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours"];
 
     const rows = filteredList.map(a => {
+      const workingHrs = calculateWorkingHours(a.clock_in, a.clock_out);
       if (viewType === "day") {
         return [
           `"${(a.user_id || '').replace(/"/g, '""')}"`,
@@ -98,7 +133,8 @@ export default function AttendanceReports() {
           `"${(a.branch || 'HQ').replace(/"/g, '""')}"`,
           `"${(a.time_in || 'N/A').replace(/"/g, '""')}"`,
           `"${(a.time_out || 'N/A').replace(/"/g, '""')}"`,
-          `"${(a.status || '').replace(/"/g, '""')}"`
+          `"${(a.status || '').replace(/"/g, '""')}"`,
+          `"${workingHrs}"`
         ];
       } else {
         return [
@@ -108,7 +144,8 @@ export default function AttendanceReports() {
           `"${(a.branch || 'HQ').replace(/"/g, '""')}"`,
           `"${(a.time_in || 'N/A').replace(/"/g, '""')}"`,
           `"${(a.time_out || 'N/A').replace(/"/g, '""')}"`,
-          `"${(a.status || '').replace(/"/g, '""')}"`
+          `"${(a.status || '').replace(/"/g, '""')}"`,
+          `"${workingHrs}"`
         ];
       }
     });
@@ -238,35 +275,46 @@ export default function AttendanceReports() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search name, ID, or branch..."
-                className="pl-8"
+                className="pl-8 pr-8"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
+                  type="button"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0 sm:p-6">
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
               </div>
             ) : (
-              <div className="rounded-md border">
-                <Table>
+              <div className="rounded-md border overflow-hidden">
+                <Table className="text-xs">
                   <TableHeader>
                     <TableRow>
-                      {viewType === "month" && <TableHead>Date</TableHead>}
-                      <TableHead>Employee ID</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Branch</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Clock In</TableHead>
-                      <TableHead>Clock Out</TableHead>
+                      {viewType === "month" && <TableHead className="w-[100px]">Date</TableHead>}
+                      <TableHead className="w-[100px]">Employee ID</TableHead>
+                      <TableHead className="min-w-[150px] max-w-[200px]">Name</TableHead>
+                      <TableHead className="w-[80px]">Branch</TableHead>
+                      <TableHead className="w-[140px]">Status</TableHead>
+                      <TableHead className="w-[90px]">Clock In</TableHead>
+                      <TableHead className="w-[90px]">Clock Out</TableHead>
+                      <TableHead className="w-[100px]">Working Hours</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredList.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={viewType === "month" ? 7 : 6} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={viewType === "month" ? 8 : 7} className="text-center py-8 text-muted-foreground">
                           No attendance records found for this {viewType}.
                         </TableCell>
                       </TableRow>
@@ -275,10 +323,10 @@ export default function AttendanceReports() {
                         <TableRow key={idx}>
                           {viewType === "month" && <TableCell>{req.date || "-"}</TableCell>}
                           <TableCell className="font-medium">{req.user_id}</TableCell>
-                          <TableCell>{req.full_name}</TableCell>
+                          <TableCell className="max-w-[180px] truncate" title={req.full_name}>{req.full_name}</TableCell>
                           <TableCell>{req.branch || "-"}</TableCell>
                           <TableCell>
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-full \${
+                            <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full ${
                               req.status === 'Present (On Time)' ? 'bg-green-100 text-green-700' :
                               req.status === 'Present (Late)' ? 'bg-yellow-100 text-yellow-700' :
                               'bg-red-100 text-red-700'
@@ -288,6 +336,7 @@ export default function AttendanceReports() {
                           </TableCell>
                           <TableCell>{req.time_in || "-"}</TableCell>
                           <TableCell>{req.time_out || "-"}</TableCell>
+                          <TableCell>{calculateWorkingHours(req.clock_in, req.clock_out)}</TableCell>
                         </TableRow>
                       ))
                     )}
