@@ -64,6 +64,9 @@ export default function DepartmentReports() {
     e.branch.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const hqList = filteredList.filter(e => e.branch === 'HQ');
+  const branchList = filteredList.filter(e => e.branch !== 'HQ');
+
   const handleExportCSV = () => {
     const headers = ["Department,Branch,Total Headcount,Active Employees"];
     const rows = filteredList.map(a => 
@@ -116,58 +119,101 @@ export default function DepartmentReports() {
           </Card>
         </div>
 
-        <Card className="border-border shadow-sm">
-          <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <CardTitle className="text-lg">Department Statistics</CardTitle>
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search department or branch..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        <h1 className="text-2xl font-bold mb-6">Department & Branch Report</h1>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="border-border shadow-sm">
+            <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <CardTitle className="text-lg">Department Statistics (HQ)</CardTitle>
+              <div className="relative w-full sm:w-48">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search department..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Department</TableHead>
-                      <TableHead>Branch</TableHead>
-                      <TableHead>Total Headcount</TableHead>
-                      <TableHead>Active Employees</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredList.length === 0 ? (
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                          No department records found.
-                        </TableCell>
+                        <TableHead>Department</TableHead>
+                        <TableHead>Total Headcount</TableHead>
+                        <TableHead>Active Employees</TableHead>
                       </TableRow>
-                    ) : (
-                      filteredList.map((req, idx) => (
-                        <TableRow key={idx}>
-                          <TableCell className="font-medium">{req.department}</TableCell>
-                          <TableCell>{req.branch}</TableCell>
-                          <TableCell>{req.headcount}</TableCell>
-                          <TableCell>{req.active}</TableCell>
+                    </TableHeader>
+                    <TableBody>
+                      {hqList.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                            No departments found.
+                          </TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                      ) : (
+                        hqList.map((req, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell className="font-medium text-xs font-bold text-slate-800 uppercase">{req.department}</TableCell>
+                            <TableCell>{req.headcount}</TableCell>
+                            <TableCell>{req.active}</TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-border shadow-sm">
+            <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <CardTitle className="text-lg">Branch Statistics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Branch</TableHead>
+                        <TableHead>Total Headcount</TableHead>
+                        <TableHead>Active Employees</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {branchList.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                            No branches found.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        branchList.map((req, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell className="font-medium text-xs font-bold text-slate-800 uppercase">{req.branch}</TableCell>
+                            <TableCell>{req.headcount}</TableCell>
+                            <TableCell>{req.active}</TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
       </div>
     </div>

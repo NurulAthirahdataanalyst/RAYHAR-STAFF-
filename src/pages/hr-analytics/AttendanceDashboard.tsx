@@ -1456,19 +1456,21 @@ export default function AttendanceDashboard() {
                       </div>
                       <span className={`text-[10px] font-black ${branch.rate >= 90 ? 'text-emerald-500' : branch.rate >= 75 ? 'text-amber-500' : 'text-red-500'}`}>{branch.rate}%</span>
                     </div>
-                    <div className="w-full bg-slate-100 rounded-full h-2 relative group cursor-pointer flex overflow-hidden">
-                      {branch.totalEmployees > 0 ? (
-                        <>
-                          <div className="h-full bg-[#10b981]" style={{ width: `${(branch.presentOnTime / branch.totalEmployees) * 100}%` }}></div>
-                          <div className="h-full bg-[#f59e0b]" style={{ width: `${(branch.presentLate / branch.totalEmployees) * 100}%` }}></div>
-                          <div className="h-full bg-blue-500" style={{ width: `${(branch.onLeave / branch.totalEmployees) * 100}%` }}></div>
-                          <div className="h-full bg-purple-500" style={{ width: `${(branch.companyLeave / branch.totalEmployees) * 100}%` }}></div>
-                          <div className="h-full bg-red-500" style={{ width: `${(branch.absent / branch.totalEmployees) * 100}%` }}></div>
-                        </>
-                      ) : (
-                        <div className="h-full w-full bg-slate-200"></div>
-                      )}
-                      <div className="absolute left-1/2 -top-24 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-2 pointer-events-none z-10 w-max whitespace-nowrap text-left">
+                    <div className="relative group cursor-pointer">
+                      <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
+                        {branch.totalEmployees > 0 ? (
+                          <>
+                            <div className="h-full bg-[#10b981]" style={{ width: `${(branch.presentOnTime / branch.totalEmployees) * 100}%` }}></div>
+                            <div className="h-full bg-[#f59e0b]" style={{ width: `${(branch.presentLate / branch.totalEmployees) * 100}%` }}></div>
+                            <div className="h-full bg-blue-500" style={{ width: `${(branch.onLeave / branch.totalEmployees) * 100}%` }}></div>
+                            <div className="h-full bg-purple-500" style={{ width: `${(branch.companyLeave / branch.totalEmployees) * 100}%` }}></div>
+                            <div className="h-full bg-red-500" style={{ width: `${(branch.absent / branch.totalEmployees) * 100}%` }}></div>
+                          </>
+                        ) : (
+                          <div className="h-full w-full bg-slate-200"></div>
+                        )}
+                      </div>
+                      <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-2 pointer-events-none z-50 w-max whitespace-nowrap text-left">
                         <p className="text-[10px] font-bold text-slate-800 mb-1 border-b pb-1">{branch.branch}</p>
                         <div className="space-y-0.5 text-[9px] text-slate-600">
                           <p className="flex justify-between gap-4">Present (On Time): <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
