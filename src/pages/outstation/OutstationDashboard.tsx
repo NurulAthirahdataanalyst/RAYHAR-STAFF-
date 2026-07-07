@@ -82,7 +82,7 @@ export default function OutstationDashboard() {
         ]);
         const statsData = await statsRes.json();
         const listData = await listRes.json();
-        if (statsData.success && statsData.stats) setStats(statsData.stats);
+        if (statsData.success && statsData.stats) setStats((prev: any) => ({ ...prev, ...statsData.stats }));
         if (listData.success) setAssignments(listData.assignments || []);
       } catch (err) {
         console.error("Fetch error:", err);
@@ -100,19 +100,24 @@ export default function OutstationDashboard() {
     return assignments.filter(a => a.status === "Active" && a.end_date && a.end_date.startsWith(today));
   }, [assignments]);
 
+  const activeCount = Number(stats.active || 0);
+  const completedCount = Number(stats.completed || 0);
+  const upcomingCount = Number(stats.upcoming || 0);
+  const cancelledCount = Number(stats.cancelled || 0);
+
   // Derived Analytics Data
   const monthlyTrendData = useMemo(() => [
     { name: "Jan", val: 12 }, { name: "Feb", val: 19 }, { name: "Mar", val: 15 },
     { name: "Apr", val: 22 }, { name: "May", val: 30 }, { name: "Jun", val: 28 },
-    { name: "Jul", val: stats.active + stats.completed }
-  ], [stats]);
+    { name: "Jul", val: activeCount + completedCount }
+  ], [activeCount, completedCount]);
 
   const statusData = useMemo(() => [
-    { name: "Completed", value: stats.completed || 45, color: C_BLUE },
-    { name: "Active", value: stats.active || 1, color: C_GREEN },
-    { name: "Upcoming", value: stats.upcoming || 1, color: C_ORANGE },
-    { name: "Cancelled", value: stats.cancelled || 2, color: C_RED },
-  ], [stats]);
+    { name: "Completed", value: completedCount || 45, color: C_BLUE },
+    { name: "Active", value: activeCount || 1, color: C_GREEN },
+    { name: "Upcoming", value: upcomingCount || 1, color: C_ORANGE },
+    { name: "Cancelled", value: cancelledCount || 2, color: C_RED },
+  ], [activeCount, completedCount, upcomingCount, cancelledCount]);
 
   const deptData = useMemo(() => [
     { name: "IT", value: 35 }, { name: "Sales", value: 28 },
@@ -149,9 +154,9 @@ export default function OutstationDashboard() {
         {/* ROW 1: KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           {[
-            { label: "Active Outstations", val: stats.active, trend: "↑ +4 this week", subtitle: "Currently travelling", color: C_GREEN, trendColor: "text-green-600" },
-            { label: "Upcoming Departures", val: stats.upcoming, trend: "↑ +2 today", subtitle: "Scheduled within 7 days", color: C_ORANGE, trendColor: "text-orange-600" },
-            { label: "Total Assignments", val: stats.active + stats.completed + stats.upcoming, trend: "↑ +12% vs last month", subtitle: "Year to date", color: C_PURPLE, trendColor: "text-purple-600" },
+            { label: "Active Outstations", val: activeCount, trend: "↑ +4 this week", subtitle: "Currently travelling", color: C_GREEN, trendColor: "text-green-600" },
+            { label: "Upcoming Departures", val: upcomingCount, trend: "↑ +2 today", subtitle: "Scheduled within 7 days", color: C_ORANGE, trendColor: "text-orange-600" },
+            { label: "Total Assignments", val: activeCount + completedCount + upcomingCount, trend: "↑ +12% vs last month", subtitle: "Year to date", color: C_PURPLE, trendColor: "text-purple-600" },
             { label: "Completion Rate", val: "94%", trend: "↓ -1% vs last month", subtitle: "Trips concluded successfully", color: C_BLUE, trendColor: "text-red-500" }
           ].map((kpi, i) => (
             <Card key={i} className="border-0 shadow-sm rounded-[16px] bg-white overflow-hidden hover:shadow-md transition-shadow relative">
@@ -363,7 +368,7 @@ export default function OutstationDashboard() {
                   </RechartsPie>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
-                  <span className="text-[28px] font-extrabold text-gray-900 leading-none">{stats.active + stats.completed + stats.upcoming}</span>
+                  <span className="text-[28px] font-extrabold text-gray-900 leading-none">{activeCount + completedCount + upcomingCount}</span>
                   <span className="text-[10px] font-bold tracking-[0.1em] text-gray-400 uppercase mt-1">Total</span>
                 </div>
               </div>
