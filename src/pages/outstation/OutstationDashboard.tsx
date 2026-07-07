@@ -96,7 +96,7 @@ export default function OutstationDashboard() {
   const upcoming = useMemo(() => assignments.filter(a => a.status === "Upcoming"), [assignments]);
   const returns = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
-    return assignments.filter(a => a.status === "Active" && a.end_date.startsWith(today));
+    return assignments.filter(a => a.status === "Active" && a.end_date && a.end_date.startsWith(today));
   }, [assignments]);
 
   // Derived Analytics Data
@@ -224,17 +224,17 @@ export default function OutstationDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {activeNow.filter(a => a.full_name?.toLowerCase().includes(search.toLowerCase())).map((a, i) => {
+                    {activeNow.filter(a => (a.full_name || "").toLowerCase().includes(search.toLowerCase())).map((a, i) => {
                       const prog = calcProgress(a.start_date, a.end_date);
                       return (
                         <tr key={i} className="hover:bg-gray-50/50 transition-colors group">
                           <td className="px-6 py-3">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-[11px] font-bold shadow-sm">
-                                {a.full_name.split(" ").map((n:string)=>n[0]).join("").substring(0,2).toUpperCase()}
+                                {(a.full_name || "?").split(" ").map((n:string)=>n[0]).join("").substring(0,2).toUpperCase()}
                               </div>
                               <div>
-                                <p className="text-[14px] font-semibold text-gray-900">{a.full_name}</p>
+                                <p className="text-[14px] font-semibold text-gray-900">{a.full_name || "Unknown"}</p>
                                 <p className="text-[12px] text-gray-500">{a.department || "—"}</p>
                               </div>
                             </div>
