@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,27 +71,28 @@ export default function OutstationDashboard() {
     if (!roleLoading && !OUTSTATION_ROLES.includes(role)) navigate("/");
   }, [role, roleLoading, navigate]);
 
-  useEffect(() => { 
-    const fetchAll = async () => {
-      setLoading(true);
-      try {
-        const scopeParams = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "" });
-        const [statsRes, listRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/outstation/stats?${scopeParams}`),
-          fetch(`${API_BASE_URL}/api/outstation?${scopeParams}`),
-        ]);
-        const statsData = await statsRes.json();
-        const listData = await listRes.json();
-        if (statsData.success && statsData.stats) setStats((prev: any) => ({ ...prev, ...statsData.stats }));
-        if (listData.success) setAssignments(listData.assignments || []);
-      } catch (err) {
-        console.error("Fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    void fetchAll(); 
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    try {
+      const scopeParams = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "" });
+      const [statsRes, listRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/outstation/stats?${scopeParams}`),
+        fetch(`${API_BASE_URL}/api/outstation?${scopeParams}`),
+      ]);
+      const statsData = await statsRes.json();
+      const listData = await listRes.json();
+      if (statsData.success && statsData.stats) setStats((prev: any) => ({ ...prev, ...statsData.stats }));
+      if (listData.success) setAssignments(listData.assignments || []);
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
   }, [role, userBranch, userDepartment]);
+
+  useEffect(() => { 
+    void fetchAll(); 
+  }, [fetchAll]);
 
   const activeNow = useMemo(() => assignments.filter(a => a.status === "Active"), [assignments]);
   const upcoming = useMemo(() => assignments.filter(a => a.status === "Upcoming"), [assignments]);
