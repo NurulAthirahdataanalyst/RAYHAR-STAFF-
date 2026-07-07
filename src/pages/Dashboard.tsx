@@ -846,278 +846,365 @@ export default function Dashboard() {
         </Card>
       )}
 
-      {/* Who's Out Today - admin roles only */}
-      {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role) && (
-        <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] rounded-[20px] overflow-hidden bg-card">
-          <CardHeader className="border-b border-border/50 pb-3 px-3 sm:px-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-rose-500/10 rounded-xl">
-                  <CalendarOff className="w-5 h-5 text-rose-500" />
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        {/* Left Column (Who's Out Today & Recent Activity) */}
+        <div className="xl:col-span-2 space-y-4">
+          {/* Who's Out Today - admin roles only */}
+          {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role) && (
+            <Card className="border border-slate-200 shadow-none rounded-md overflow-hidden bg-white">
+              <CardHeader className="border-b border-slate-100 pb-3 px-4 pt-4">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                  <div className="flex items-start gap-2">
+                    <CalendarOff className="w-5 h-5 text-indigo-600 mt-0.5" />
+                    <div>
+                      <CardTitle className="text-lg font-bold text-slate-800 tracking-tight">
+                        Who's Out Today
+                      </CardTitle>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {whoOutToday.length} employee{whoOutToday.length !== 1 ? "s" : ""} currently on leave / outstation
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate("/leave/admin")}
+                    className="text-[10px] font-bold text-indigo-700 hover:text-indigo-800 hover:bg-transparent uppercase tracking-widest px-0 h-auto self-start"
+                  >
+                    VIEW ALL HISTORY →
+                  </Button>
                 </div>
-                <div>
-                  <CardTitle className="text-base sm:text-lg font-black text-foreground tracking-tight">
-                    Who's Out Today
+              </CardHeader>
+              <CardContent className="p-4">
+                {whoOutToday.length > 0 ? (
+                  <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3`}>
+                    {whoOutToday.map((emp) => {
+                      const endDate = new Date(emp.end_date);
+                      const today = new Date();
+                      today.setHours(0,0,0,0);
+                      endDate.setHours(0,0,0,0);
+                      const isSameDay = endDate.getTime() === today.getTime();
+                      const endLabel = isSameDay
+                        ? `${endDate.toLocaleDateString('en-MY', { month: 'short', day: '2-digit' })} Only`
+                        : `Until ${endDate.toLocaleDateString('en-MY', { month: 'short', day: '2-digit' })}`;
+
+                      const leaveTypeLabel: Record<string, { short: string; color: string }> = {
+                        "Cuti Tahunan": { short: "ANNUAL/EMERGENCY", color: "bg-blue-600" },
+                        "Annual/Emergency Leave": { short: "ANNUAL/EMERGENCY", color: "bg-blue-600" },
+                        "Cuti Sakit": { short: "MC/SICK", color: "bg-rose-600" },
+                        "Sick Leave": { short: "MC/SICK", color: "bg-rose-600" },
+                        "Cuti Kecemasan": { short: "EMERGENCY", color: "bg-amber-500" },
+                        "Cuti Ganti": { short: "REPLACEMENT", color: "bg-violet-600" },
+                        "Replacement Leave": { short: "REPLACEMENT", color: "bg-violet-600" },
+                        "Cuti Tanpa Gaji": { short: "UNPAID", color: "bg-slate-600" },
+                        "Unpaid Leave": { short: "UNPAID", color: "bg-slate-600" },
+                        "Cuti Ehsan": { short: "COMPASSIONATE", color: "bg-teal-600" },
+                        "Outstation": { short: "OUTSTATION", color: "bg-indigo-600" },
+                      };
+                      const typeInfo = leaveTypeLabel[emp.leave_type] || { short: emp.leave_type?.toUpperCase(), color: "bg-gray-600" };
+
+                      return (
+                        <div
+                          key={emp.leave_id}
+                          onClick={() => navigate(`/leave/admin?leaveId=${emp.leave_id}`)}
+                          className="cursor-pointer group rounded-sm border border-slate-200 bg-white hover:border-indigo-300 transition-colors duration-200 p-3"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded bg-indigo-100 flex items-center justify-center text-sm font-bold text-indigo-700 shrink-0">
+                              {emp.full_name?.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[11px] font-bold text-slate-800 uppercase tracking-tight truncate">
+                                {emp.full_name}
+                              </p>
+                              <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                                {emp.leave_type} • {endLabel}
+                              </p>
+                              <div className="flex items-center justify-between mt-2">
+                                <span className={`text-[9px] font-bold text-white px-2 py-0.5 rounded-sm ${typeInfo.color}`}>
+                                  {typeInfo.short}
+                                </span>
+                                <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-widest">
+                                  {emp.branch}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="py-6 text-center flex flex-col items-center justify-center gap-2">
+                    <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                    <p className="text-sm font-bold text-slate-700">All Hands on Deck!</p>
+                    <p className="text-xs text-slate-500">No employees are on leave today.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Enterprise Recent Activity Feed */}
+          <Card className="border border-slate-200 shadow-none rounded-md overflow-hidden bg-white">
+            <CardHeader className="border-b border-slate-100 pb-0 px-4 pt-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-indigo-600" />
+                  <CardTitle className="text-lg font-bold text-slate-800">
+                    Recent Activity
                   </CardTitle>
-                  <p className="text-[10px] sm:text-xs font-bold text-muted-foreground mt-0.5">
-                    {whoOutToday.length} employee{whoOutToday.length !== 1 ? "s" : ""} currently on leave
-                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  {lastUpdated && (
+                    <span className="text-xs italic text-slate-500">Updated a few seconds ago</span>
+                  )}
+                  <div className="border border-slate-200 rounded px-2 py-1 text-[10px] font-bold text-slate-600">
+                    Last 10 Events
+                  </div>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/leave/admin")}
-                className="text-[10px] sm:text-xs font-black text-[#7B0099] hover:text-[#7B0099] hover:bg-[#7B0099]/5 gap-1.5 uppercase tracking-widest self-start sm:self-auto px-3"
-              >
-                View All History
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-3 sm:p-3">
-            {whoOutToday.length > 0 ? (
-              <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3`}>
-                {whoOutToday.map((emp) => {
-                  const endDate = new Date(emp.end_date);
-                  const today = new Date();
-                  today.setHours(0,0,0,0);
-                  endDate.setHours(0,0,0,0);
-                  const isSameDay = endDate.getTime() === today.getTime();
-                  const endLabel = isSameDay
-                    ? `${endDate.toLocaleDateString('en-MY', { month: 'short', day: '2-digit' })} Only`
-                    : `Until ${endDate.toLocaleDateString('en-MY', { month: 'short', day: '2-digit' })}`;
 
-                  const leaveTypeLabel: Record<string, { short: string; color: string }> = {
-                    "Cuti Tahunan": { short: "ANNUAL/EMERGENCY", color: "bg-blue-500" },
-                    "Annual/Emergency Leave": { short: "ANNUAL/EMERGENCY", color: "bg-blue-500" },
-                    "Cuti Sakit": { short: "MC/SICK", color: "bg-rose-500" },
-                    "Sick Leave": { short: "MC/SICK", color: "bg-rose-500" },
-                    "Cuti Kecemasan": { short: "EMERGENCY", color: "bg-amber-500" },
-                    "Cuti Ganti": { short: "REPLACEMENT", color: "bg-violet-500" },
-                    "Replacement Leave": { short: "REPLACEMENT", color: "bg-violet-500" },
-                    "Cuti Tanpa Gaji": { short: "UNPAID", color: "bg-slate-500" },
-                    "Unpaid Leave": { short: "UNPAID", color: "bg-slate-500" },
-                    "Cuti Ehsan": { short: "COMPASSIONATE", color: "bg-teal-500" },
-                    "Outstation": { short: "OUTSTATION", color: "bg-[#EC4899]" },
-                  };
-                  const typeInfo = leaveTypeLabel[emp.leave_type] || { short: emp.leave_type?.toUpperCase(), color: "bg-gray-500" };
+              {/* Tab Strip */}
+              <div className="flex gap-4 border-b border-slate-200">
+                {([
+                  { key: "my", label: "My Activity" },
+                  ...(isElevatedRole ? [{ key: "team", label: "Team" }] : []),
+                  ...(canSeeSystem ? [{ key: "system", label: "System" }] : []),
+                  ...((role === "hr_admin" || role === "managing_director") ? [{ key: "all", label: "All" }] : []),
+                ] as { key: "my" | "team" | "system" | "all"; label: string }[]).map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`pb-2 text-sm font-bold transition-all duration-200 border-b-2 ${
+                      activeTab === tab.key
+                        ? "border-indigo-700 text-indigo-700"
+                        : "border-transparent text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
 
+              {/* Filter Chips */}
+              <div className="flex gap-2 my-3 flex-wrap">
+                {([
+                  { key: "all", label: "ALL" },
+                  { key: "attendance", label: "ATTENDANCE" },
+                  { key: "leave", label: "LEAVE" },
+                  ...(isElevatedRole ? [{ key: "approval", label: "APPROVAL" }] : []),
+                  ...(canSeeSystem ? [{ key: "system", label: "SYSTEM" }] : []),
+                ] as { key: "all" | "attendance" | "leave" | "approval" | "system"; label: string }[]).map(chip => (
+                  <button
+                    key={chip.key}
+                    onClick={() => setActivityFilter(chip.key)}
+                    className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-all duration-200 ${
+                      activityFilter === chip.key
+                        ? "bg-indigo-700 text-white border-indigo-700"
+                        : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
+                    }`}
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-0">
+              {(() => {
+                let feedItems: any[] = [];
+                if (activeTab === "my") feedItems = activityFeed.my;
+                else if (activeTab === "team") feedItems = activityFeed.team;
+                else if (activeTab === "system") feedItems = activityFeed.system;
+                else if (activeTab === "all") feedItems = [...activityFeed.my, ...activityFeed.team, ...activityFeed.system].sort((a, b) => 0);
+
+                if (activityFilter !== "all") {
+                  feedItems = feedItems.filter(item => item.type === activityFilter);
+                }
+
+                if (feedItems.length === 0) {
                   return (
-                    <div
-                      key={emp.leave_id}
-                      onClick={() => navigate(`/leave/admin?leaveId=${emp.leave_id}`)}
-                      className="cursor-pointer group rounded-[20px] border border-border/60 bg-card hover:border-[#7B0099]/30 hover:shadow-lg transition-all duration-300 p-3.5"
-                    >
-                      {/* Top: Avatar + Info */}
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-md bg-[#7B0099]/10 flex items-center justify-center text-base font-black text-[#7B0099] group-hover:scale-110 transition-transform shrink-0">
-                          {emp.full_name?.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-black text-foreground uppercase tracking-tight truncate group-hover:text-[#7B0099] transition-colors">
-                            {emp.full_name}
-                          </p>
-                          <p className="text-xs font-medium text-muted-foreground mt-0.5">
-                            {emp.leave_type} • {endLabel}
-                          </p>
-                        </div>
-                      </div>
-                      {/* Bottom: Badge + Branch */}
-                      <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border/40">
-                        <Badge className={`${typeInfo.color} text-white text-[10px] font-black px-2.5 py-0.5 h-auto border-none rounded-md`}>
-                          {typeInfo.short}
-                        </Badge>
-                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                          {emp.branch}
-                        </span>
-                      </div>
+                    <div className="py-8 text-center flex flex-col items-center justify-center gap-2">
+                      <Activity className="w-6 h-6 text-slate-300" />
+                      <p className="text-xs text-slate-500 font-medium">No activity found.</p>
                     </div>
                   );
-                })}
-              </div>
-            ) : (
-              <div className="py-3 text-center flex items-center justify-center gap-3 bg-emerald-500/5 rounded-xl border border-emerald-500/10 max-w-md mx-auto my-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span className="text-xs font-bold text-foreground">All Hands on Deck! No employees are on leave today.</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+                }
 
-      {/* Enterprise Recent Activity Feed */}
-      <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] rounded-[20px] overflow-hidden bg-card">
-        <CardHeader className="border-b border-border/50 pb-3 px-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-[#7B0099]" />
-              <CardTitle className="text-base sm:text-lg font-black text-foreground uppercase tracking-wider">
-                Recent Activity
-              </CardTitle>
-            </div>
-            <div className="flex items-center gap-2">
-              {lastUpdated && (
-                <span className="text-[10px] font-bold text-muted-foreground">{lastUpdated}</span>
-              )}
-              <Badge variant="outline" className="rounded-lg font-bold border-border text-muted-foreground text-[10px]">
-                Last 10 Events
-              </Badge>
-            </div>
-          </div>
+                return (
+                  <div className="w-full text-left border-t border-slate-100">
+                    <div className="grid grid-cols-12 px-4 py-2 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100">
+                      <div className="col-span-2">Type</div>
+                      <div className="col-span-3">Timestamp</div>
+                      <div className="col-span-5">Description</div>
+                      <div className="col-span-2 text-right">Status</div>
+                    </div>
+                    {feedItems.map((item, i) => {
+                      const badgeColor: Record<string, string> = {
+                        Present: "text-indigo-700 border-indigo-200",
+                        "Clocked Out": "text-slate-600 border-slate-200",
+                        Approved: "text-emerald-700 border-emerald-200",
+                        Rejected: "text-red-700 border-red-200",
+                        Late: "text-rose-700 border-rose-200",
+                        Active: "text-violet-700 border-violet-200",
+                        System: "text-blue-700 border-blue-200",
+                        Reminder: "text-yellow-700 border-yellow-200",
+                        Note: "text-slate-600 border-slate-200",
+                      };
+                      const badgeCls = badgeColor[item.badge] || "text-slate-500 border-slate-200";
+                      
+                      const typeIcon: Record<string, string> = {
+                        attendance: "text-indigo-700",
+                        leave: "text-indigo-700",
+                        approval: "text-indigo-700",
+                        system: "text-rose-600",
+                      };
 
-          {/* Tab Strip */}
-          <div className="flex gap-1 mt-3 bg-muted/40 rounded-xl p-1">
-            {([
-              { key: "my", label: "My Activity" },
-              ...(isElevatedRole ? [{ key: "team", label: "Team" }] : []),
-              ...(canSeeSystem ? [{ key: "system", label: "System" }] : []),
-              ...((role === "hr_admin" || role === "managing_director") ? [{ key: "all", label: "All" }] : []),
-            ] as { key: "my" | "team" | "system" | "all"; label: string }[]).map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${
-                  activeTab === tab.key
-                    ? "bg-[#7B0099] text-white shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Filter Chips */}
-          <div className="flex gap-1.5 mt-2 flex-wrap">
-            {([
-              { key: "all", label: "All" },
-              { key: "attendance", label: "Attendance" },
-              { key: "leave", label: "Leave" },
-              ...(isElevatedRole ? [{ key: "approval", label: "Approval" }] : []),
-              ...(canSeeSystem ? [{ key: "system", label: "System" }] : []),
-            ] as { key: "all" | "attendance" | "leave" | "approval" | "system"; label: string }[]).map(chip => (
-              <button
-                key={chip.key}
-                onClick={() => setActivityFilter(chip.key)}
-                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-all duration-200 ${
-                  activityFilter === chip.key
-                    ? "bg-[#7B0099]/10 text-[#7B0099] border-[#7B0099]/30"
-                    : "border-border/50 text-muted-foreground hover:border-[#7B0099]/30"
-                }`}
-              >
-                {chip.label}
-              </button>
-            ))}
-          </div>
-        </CardHeader>
-
-        <CardContent className="pt-3 px-3">
-          {(() => {
-            // Determine which feed to show
-            let feedItems: any[] = [];
-            if (activeTab === "my") feedItems = activityFeed.my;
-            else if (activeTab === "team") feedItems = activityFeed.team;
-            else if (activeTab === "system") feedItems = activityFeed.system;
-            else if (activeTab === "all") feedItems = [...activityFeed.my, ...activityFeed.team, ...activityFeed.system].sort((a, b) => 0);
-
-            // Apply type filter
-            if (activityFilter !== "all") {
-              feedItems = feedItems.filter(item => item.type === activityFilter);
-            }
-
-            if (feedItems.length === 0) {
-              return (
-                <div className="py-8 text-center flex flex-col items-center justify-center gap-2">
-                  <Activity className="w-6 h-6 text-muted-foreground/30" />
-                  <p className="text-xs text-muted-foreground font-bold">No activity found for this view.</p>
-                </div>
-              );
-            }
-
-            return (
-              <div className="space-y-1">
-                {feedItems.map((item, i) => {
-                  // Icon + colour by type
-                  const typeConfig: Record<string, { icon: React.ReactNode; bg: string; text: string }> = {
-                    attendance: { icon: <Clock className="w-4 h-4" />, bg: "bg-[#7B0099]/10", text: "text-[#7B0099]" },
-                    leave: { icon: <CalendarCheck className="w-4 h-4" />, bg: "bg-amber-500/10", text: "text-amber-600" },
-                    approval: { icon: <CheckCircle2 className="w-4 h-4" />, bg: "bg-emerald-500/10", text: "text-emerald-600" },
-                    system: { icon: <Shield className="w-4 h-4" />, bg: "bg-blue-500/10", text: "text-blue-600" },
-                    note: { icon: <FileText className="w-4 h-4" />, bg: "bg-slate-500/10", text: "text-slate-600" },
-                  };
-                  const cfg = typeConfig[item.type] || typeConfig.attendance;
-
-                  // Badge colour by badge value
-                  const badgeColor: Record<string, string> = {
-                    Present: "bg-[#7B0099]/10 text-[#7B0099]",
-                    "Clocked Out": "bg-slate-100 text-slate-600",
-                    Approved: "bg-emerald-100 text-emerald-700",
-                    Rejected: "bg-red-100 text-red-700",
-                    Late: "bg-rose-100 text-rose-700",
-                    Active: "bg-violet-100 text-violet-700",
-                    System: "bg-blue-100 text-blue-700",
-                    Reminder: "bg-yellow-100 text-yellow-700",
-                    Note: "bg-slate-100 text-slate-600",
-                  };
-                  const badgeCls = badgeColor[item.badge] || "bg-muted text-muted-foreground";
-
-                  return (
-                    <div
-                      key={i}
-                      className="group flex items-start gap-3 py-2.5 px-3 rounded-2xl hover:bg-accent/50 transition-colors duration-200"
-                    >
-                      {/* Type icon */}
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${cfg.bg} ${cfg.text}`}>
-                        {cfg.icon}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="text-sm font-bold text-foreground leading-tight">
-                              <span className="text-[#7B0099]">{item.actor}</span>
-                              {" "}
-                              <span className="text-foreground font-semibold">{item.action}</span>
-                              {item.target && (
-                                <>
-                                  {" → "}
-                                  <span className="font-bold">{item.target}</span>
-                                </>
-                              )}
-                            </p>
-                            {item.context && (
-                              <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{item.context}</p>
-                            )}
+                      return (
+                        <div
+                          key={i}
+                          className="grid grid-cols-12 px-4 py-3 border-b border-slate-50 items-center hover:bg-slate-50 transition-colors"
+                        >
+                          <div className="col-span-2 flex items-center gap-2 text-xs font-bold text-slate-700 capitalize">
+                            <div className={`w-1.5 h-1.5 rounded-full bg-current ${typeIcon[item.type] || 'text-slate-400'}`}></div>
+                            {item.type}
                           </div>
-                          <div className="flex flex-col items-end gap-1 shrink-0">
-                            <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">{item.time}</span>
-                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wide ${badgeCls}`}>
+                          <div className="col-span-3 text-[11px] text-slate-600">
+                            {item.time}
+                          </div>
+                          <div className="col-span-5 text-[11px] text-slate-800 truncate pr-4">
+                            <span className="font-bold">{item.actor}</span> {item.action} {item.target && item.target}
+                            {item.context && <span className="block text-slate-500 truncate">{item.context}</span>}
+                          </div>
+                          <div className="col-span-2 text-right">
+                            <span className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase rounded border ${badgeCls}`}>
                               {item.badge}
                             </span>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })()}
+                      );
+                    })}
+                  </div>
+                );
+              })()}
 
-          {/* View All footer */}
-          <div className="mt-3 pt-3 border-t border-border/40 flex justify-center">
-            <button
-              onClick={() => navigate("/attendance")}
-              className="flex items-center gap-1.5 text-xs font-bold text-[#7B0099] hover:underline transition-all"
-            >
-              View All Activity
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </CardContent>
-      </Card>
+              <div className="p-3 border-t border-slate-100 flex justify-center">
+                <button
+                  onClick={() => navigate("/attendance")}
+                  className="text-[11px] font-bold text-indigo-700 hover:underline"
+                >
+                  Load More History
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column (Sidebar) */}
+        <div className="xl:col-span-1 space-y-4">
+          
+          {/* Quick Actions */}
+          <Card className="border border-slate-200 shadow-none rounded-md overflow-hidden bg-white">
+            <CardHeader className="border-b border-slate-100 pb-3 px-4 pt-4">
+              <div className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-indigo-600" />
+                <CardTitle className="text-[11px] font-bold text-slate-800 uppercase tracking-widest">
+                  Quick Actions
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div onClick={() => navigate("/clock-in")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-indigo-300 hover:bg-slate-50 transition-colors">
+                  <Clock className="w-6 h-6 text-indigo-700 mb-2" />
+                  <span className="text-[10px] font-bold text-slate-600 uppercase">Clock In/Out</span>
+                </div>
+                <div onClick={() => navigate("/leave/apply")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-indigo-300 hover:bg-slate-50 transition-colors">
+                  <CalendarCheck className="w-6 h-6 text-indigo-700 mb-2" />
+                  <span className="text-[10px] font-bold text-slate-600 uppercase">Apply Leave</span>
+                </div>
+                <div onClick={() => navigate("/outstation/apply")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-indigo-300 hover:bg-slate-50 transition-colors">
+                  <MapPin className="w-6 h-6 text-indigo-700 mb-2" />
+                  <span className="text-[10px] font-bold text-slate-600 uppercase">Outstation</span>
+                </div>
+                <div onClick={() => navigate("/claims")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-indigo-300 hover:bg-slate-50 transition-colors">
+                  <FileText className="w-6 h-6 text-indigo-700 mb-2" />
+                  <span className="text-[10px] font-bold text-slate-600 uppercase">Claims</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Upcoming Outstation */}
+          <Card className="border border-slate-200 shadow-none rounded-md overflow-hidden bg-white">
+            <CardHeader className="border-b border-slate-100 pb-3 px-4 pt-4 flex flex-row items-center justify-between">
+              <CardTitle className="text-[11px] font-bold text-slate-800 uppercase tracking-widest">
+                Upcoming Outstation
+              </CardTitle>
+              <span className="text-[10px] font-bold text-indigo-600 uppercase cursor-pointer hover:underline">
+                Calendar
+              </span>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="flex items-center gap-4 p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer">
+                <div className="w-12 h-12 bg-indigo-50 rounded flex flex-col items-center justify-center shrink-0">
+                  <span className="text-[9px] font-bold text-indigo-700 uppercase">Jul</span>
+                  <span className="text-lg font-black text-indigo-900 leading-none mt-0.5">09</span>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800">Site Audit - Zone B</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Kelantan Branch • 09:00 AM</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors cursor-pointer">
+                <div className="w-12 h-12 bg-indigo-50 rounded flex flex-col items-center justify-center shrink-0">
+                  <span className="text-[9px] font-bold text-indigo-700 uppercase">Jul</span>
+                  <span className="text-lg font-black text-indigo-900 leading-none mt-0.5">12</span>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800">Client Meeting - HQ</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Kuala Lumpur • All Day</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Monthly Attendance Score */}
+          <Card className="border-none shadow-none rounded-md overflow-hidden bg-indigo-800 text-white">
+            <CardContent className="p-5">
+              <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-2">
+                Monthly Attendance Score
+              </p>
+              <div className="flex items-end gap-3 mb-2">
+                <span className="text-4xl font-black">{stats.attendanceRate}%</span>
+                <span className="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-sm mb-1.5">
+                  +1.2%
+                </span>
+              </div>
+              <p className="text-[11px] opacity-80">
+                Excellent performance this month!
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Server Status */}
+          <Card className="border border-slate-200 shadow-none rounded-md overflow-hidden bg-white">
+            <CardContent className="p-4 flex items-center justify-between">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                Server Status
+              </span>
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
+                  Operational
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+        </div>
+      </div>
     </div>
   );
 }
