@@ -140,7 +140,7 @@ export default function OutstationAnalytics() {
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-4 pb-12 bg-[#f8fafc] min-h-screen -mx-4 -mt-4 px-8 pt-8">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-8">
       {/* Header Titles */}
       <div className="mb-6 flex justify-between items-end">
         <div>
