@@ -537,8 +537,8 @@ export default function WorkforceInsights() {
                             </div>
                             <span className={`text-[10px] font-black ${branch.attendanceRate >= 95 ? 'text-emerald-500' : 'text-rose-500'}`}>{branch.attendanceRate}%</span>
                           </div>
-                          <div className="w-full bg-slate-100 rounded-full h-2 relative group cursor-pointer">
-                            <div className={`h-2 rounded-full ${branch.attendanceRate >= 95 ? 'bg-[#10b981]' : 'bg-[#f43f5e]'}`} style={{ width: `${Math.min(100, branch.attendanceRate)}%` }}></div>
+                          <div className="w-full bg-rose-500 rounded-full h-2 relative group cursor-pointer overflow-hidden">
+                            <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, branch.attendanceRate)}%` }}></div>
                             <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-white border border-slate-200 shadow-xl rounded-lg p-3 pointer-events-none z-50 w-max min-w-[150px]">
                               <p className="text-[11px] font-bold text-slate-800 mb-2 border-b border-slate-100 pb-1">{branch.name}</p>
                               <div className="flex flex-col gap-0.5">
