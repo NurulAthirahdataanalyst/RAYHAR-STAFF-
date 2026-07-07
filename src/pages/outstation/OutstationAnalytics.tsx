@@ -428,7 +428,7 @@ export default function OutstationAnalytics() {
                       <td className="px-6 py-3">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[11px] font-bold shadow-sm">
-                            {e.name.split(" ").map(n=>n[0]).join("").substring(0,2).toUpperCase()}
+                            {e.name.split(" ").map((n: string)=>n[0]).join("").substring(0,2).toUpperCase()}
                           </div>
                           <div>
                             <p className="text-[13px] font-semibold text-gray-900">{e.name}</p>
@@ -446,8 +446,6 @@ export default function OutstationAnalytics() {
               </table>
             </CardContent>
           </Card>
-        </div>
-
         </div>
 
       </div>

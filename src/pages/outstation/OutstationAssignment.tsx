@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -116,27 +116,28 @@ export default function OutstationAssignment() {
     if (!roleLoading && !OUTSTATION_ROLES.includes(role)) navigate("/");
   }, [role, roleLoading, navigate]);
 
-  useEffect(() => { 
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const scopeParams = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "" });
-        const [listRes, empRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/outstation?${scopeParams}`),
-          fetch(`${API_BASE_URL}/api/employees?role=${role}&branch=${userBranch || ""}&department=${userDepartment || ""}`),
-        ]);
-        const listData = await listRes.json();
-        const empData = await empRes.json();
-        if (listData.success) setAssignments(listData.assignments || []);
-        if (empData.success) setEmployees(empData.employees || empData.data || []);
-      } catch (err) {
-        console.error("OutstationAssignment fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    void fetchData(); 
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const scopeParams = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "" });
+      const [assRes, empRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/outstation?${scopeParams}`),
+        fetch(`${API_BASE_URL}/api/employees?role=${role}&branch=${userBranch || ""}&department=${userDepartment || ""}`),
+      ]);
+      const [assData, empData] = await Promise.all([assRes.json(), empRes.json()]);
+      if (assData.success) setAssignments(assData.data || assData.assignments || []);
+      if (empData.success) setEmployees(empData.data || empData.employees || []);
+    } catch (err) {
+      console.error("OutstationAssignment fetch error:", err);
+      toast.error("Failed to fetch data");
+    } finally {
+      setLoading(false);
+    }
   }, [role, userBranch, userDepartment]);
+
+  useEffect(() => {
+    void fetchData();
+  }, [fetchData]);
 
   // Filtered employee list for multi-select dropdown
   const filteredEmps = useMemo(() => {
@@ -293,6 +294,7 @@ export default function OutstationAssignment() {
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
+                <SelectItem value="none" disabled>Select Status</SelectItem>
                 {["All", "Active", "Upcoming", "Completed", "Cancelled"].map(s => (
                   <SelectItem key={s} value={s}>{s}</SelectItem>
                 ))}
@@ -367,7 +369,7 @@ export default function OutstationAssignment() {
                       <TableCell className="text-gray-500 whitespace-nowrap text-[12px]">{fmtDate(a.start_date)}</TableCell>
                       <TableCell className="text-gray-500 whitespace-nowrap text-[12px]">{fmtDate(a.end_date)}</TableCell>
                       <TableCell className="text-center font-black text-pink-600 text-[12px]">{a.total_days != null ? Number(a.total_days) : "—"}</TableCell>
-                      <TableCell className="text-gray-500 text-[12px] font-medium" title={a.assigned_by_name}>{formatName(a.assigned_by_name)}</TableCell>
+                      <TableCell className="text-gray-500 text-[12px] font-medium" title={a.assigned_by_name}>{formatName(a.assigned_by_name || "")}</TableCell>
                       <TableCell>{statusBadge(a.status)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">

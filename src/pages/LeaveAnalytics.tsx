@@ -1426,9 +1426,8 @@ export default function LeaveAnalytics() {
                           allowDecimals={false}
                         />
                         <Tooltip
-                          trigger="item"
                           cursor={false}
-                          contentStyle={tooltipStyle}
+                          contentStyle={{ ...tooltipStyle, borderRadius: "8px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" } as React.CSSProperties}
                           labelStyle={{
                             fontWeight: 900,
                             fontSize: 10,

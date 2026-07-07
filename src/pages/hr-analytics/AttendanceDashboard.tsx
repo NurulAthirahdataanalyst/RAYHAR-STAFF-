@@ -1458,7 +1458,7 @@ export default function AttendanceDashboard() {
                         <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{emp.branch || "HQ"}</td>
                         <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{emp.department || "—"}</td>
                         <td className="px-4 py-2 text-[11px] text-gray-600 font-medium capitalize">
-                          {emp.role.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                          {(emp as any).role?.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
                         </td>
                         <td className="px-4 py-2">
                           {displayStatus === 'Outstation' ? (

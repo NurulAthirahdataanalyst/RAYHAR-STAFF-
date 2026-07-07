@@ -85,7 +85,11 @@ export default function Dashboard() {
     presentToday: 0,
     onLeave: 0,
     lateArrivals: 0,
+    absentToday: 0,
+    outstationToday: 0,
+    upcomingOutstation: 0,
     activeCompanyLeave: null as any,
+    companyLeave: null as any,
   });
 
   const [activities, setActivities] = useState<any[]>([]);

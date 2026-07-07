@@ -817,7 +817,7 @@ function CarryForwardLeaveForm({
         const eligible = Math.min(unused, maxCarry);
         
         const currentBalances = getEmployeeLeaveBalances(emp.user_id);
-        const newTotal = currentBalances[leaveType as any] + eligible;
+        const newTotal = currentBalances[leaveType as keyof typeof currentBalances] + eligible;
         updateEmployeeLeaveBalance(emp.user_id, emp.full_name, leaveType, newTotal);
 
         return {
@@ -825,7 +825,7 @@ function CarryForwardLeaveForm({
           action: `Carry Forward CF`,
           performedBy: "System Job",
           reference: `ROLL-CF-${carryToYear}`,
-          before: currentBalances[leaveType as any],
+          before: currentBalances[leaveType as keyof typeof currentBalances],
           after: newTotal,
           type: "Carry Forward",
           leave: leaveType,
@@ -1042,7 +1042,7 @@ function AdditionalLeaveAllocationForm({
     if (!selectedEmp) return;
 
     const currentBalances = getEmployeeLeaveBalances(selectedEmp.user_id);
-    const newTotal = currentBalances[leaveType as any] + addDays;
+    const newTotal = currentBalances[leaveType as keyof typeof currentBalances] + addDays;
     updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, leaveType, newTotal);
 
     // Log to local balance history logs
@@ -1051,7 +1051,7 @@ function AdditionalLeaveAllocationForm({
       action: `Additional Leave (+${addDays}d)`,
       performedBy: "Nurul Athirah (HR)",
       reference: `ADD-ALLOC-${reasonCat.replace(/\s+/g, '-')}`,
-      before: currentBalances[leaveType as any],
+      before: currentBalances[leaveType as keyof typeof currentBalances],
       after: newTotal,
       type: "Allocation",
       leave: leaveType,

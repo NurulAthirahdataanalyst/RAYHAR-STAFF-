@@ -88,7 +88,7 @@ function computeMetrics(
   // Only count days where employee actually clocked in
   const presentLogs = logs.filter(l => l.clock_in != null && (l.status === 'Present' || l.status === 'LATE' || l.status === 'Late' || (!l.status && l.clock_in)));
   const total     = presentLogs.length;
-  const lateDays  = presentLogs.filter(l => l.is_late === 1 || l.is_late === true || l.status === "LATE" || l.status === "Late").length;
+  const lateDays  = presentLogs.filter(l => Number(l.is_late) === 1 || l.is_late === true || l.status === "LATE" || l.status === "Late").length;
   const onTime    = total - lateDays;
   const punctuality = total > 0 ? Math.round((onTime / total) * 100) : 0;
 
