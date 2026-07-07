@@ -93,6 +93,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<"my" | "team" | "system" | "all">("my");
   const [activityFilter, setActivityFilter] = useState<"all" | "attendance" | "leave" | "approval" | "system">("all");
   const [whoOutToday, setWhoOutToday] = useState<any[]>([]);
+  const [upcomingOutstations, setUpcomingOutstations] = useState<any[]>([]);
 
   const rawName = userName || user?.full_name || "User";
   
@@ -209,6 +210,20 @@ export default function Dashboard() {
     }
   }, [role, userBranch, userDepartment]);
 
+  const fetchUpcomingOutstations = useCallback(async () => {
+    try {
+      if (!dashboardUserId) return;
+      const res = await fetch(`${API_BASE_URL}/api/outstation?role=employee&user_id=${dashboardUserId}`);
+      const data = await res.json();
+      if (data.success && data.assignments) {
+        const upcoming = data.assignments.filter((a: any) => a.status === "Upcoming");
+        setUpcomingOutstations(upcoming);
+      }
+    } catch (err) {
+      console.error("Fetch Upcoming Outstations Error:", err);
+    }
+  }, [dashboardUserId]);
+
   // Initial fetch + refresh when focus + Custom Event Listener
   useEffect(() => {
     const latestUpdate = sessionStorage.getItem("latestAttendanceUpdate");
@@ -221,6 +236,7 @@ export default function Dashboard() {
     }
 
     fetchDashboardData();
+    fetchUpcomingOutstations();
     if (["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role)) {
       fetchWhoOutToday();
     }
@@ -1145,31 +1161,36 @@ export default function Dashboard() {
               <CardTitle className="text-[11px] font-bold text-slate-800 uppercase tracking-widest">
                 Upcoming Outstation
               </CardTitle>
-              <span className="text-[10px] font-bold text-indigo-600 uppercase cursor-pointer hover:underline">
+              <span onClick={() => navigate("/outstation/calendar")} className="text-[10px] font-bold text-indigo-600 uppercase cursor-pointer hover:underline">
                 Calendar
               </span>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="flex items-center gap-4 p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer">
-                <div className="w-12 h-12 bg-indigo-50 rounded flex flex-col items-center justify-center shrink-0">
-                  <span className="text-[9px] font-bold text-indigo-700 uppercase">Jul</span>
-                  <span className="text-lg font-black text-indigo-900 leading-none mt-0.5">09</span>
+              {upcomingOutstations.length > 0 ? (
+                upcomingOutstations.map((a, i) => {
+                  const d = new Date(a.start_date);
+                  const month = d.toLocaleDateString("en-US", { month: "short" });
+                  const day = d.toLocaleDateString("en-US", { day: "2-digit" });
+                  return (
+                    <div key={i} className={`flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors cursor-pointer ${i !== upcomingOutstations.length - 1 ? "border-b border-slate-50" : ""}`}>
+                      <div className="w-12 h-12 bg-indigo-50 rounded flex flex-col items-center justify-center shrink-0">
+                        <span className="text-[9px] font-bold text-indigo-700 uppercase">{month}</span>
+                        <span className="text-lg font-black text-indigo-900 leading-none mt-0.5">{day}</span>
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-sm font-bold text-slate-800 truncate">{a.destination}</h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5 truncate">{a.purpose || "Outstation"} • {d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</p>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="p-8 text-center flex flex-col items-center justify-center">
+                  <MapPin className="w-8 h-8 text-slate-200 mb-2" />
+                  <p className="text-[12px] font-bold text-slate-500 uppercase tracking-widest">Not Scheduled for Outstation</p>
+                  <p className="text-[10px] text-slate-400 mt-1">No upcoming trips</p>
                 </div>
-                <div>
-                  <h4 className="text-sm font-bold text-slate-800">Site Audit - Zone B</h4>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Kelantan Branch • 09:00 AM</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors cursor-pointer">
-                <div className="w-12 h-12 bg-indigo-50 rounded flex flex-col items-center justify-center shrink-0">
-                  <span className="text-[9px] font-bold text-indigo-700 uppercase">Jul</span>
-                  <span className="text-lg font-black text-indigo-900 leading-none mt-0.5">12</span>
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-slate-800">Client Meeting - HQ</h4>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Kuala Lumpur • All Day</p>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
