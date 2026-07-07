@@ -16,7 +16,7 @@ const variantStyles = {
   gold: "bg-white border border-slate-200 text-slate-800",
   success: "bg-white border border-slate-200 text-slate-800",
   gauge: "bg-white border border-slate-200 text-slate-800",
-  warning: "bg-white border border-slate-200 text-slate-800",
+  warning: "bg-amber-50 border border-amber-200 text-amber-800",
   purple: "bg-white border border-slate-200 text-slate-800",
 };
 
@@ -64,13 +64,17 @@ export default function StatCard({
   return (
     <div className={`rounded-md p-4 h-full min-h-[130px] flex flex-col ${currentStyle}`}>
       <div className="flex items-start justify-between gap-2 mb-3 min-h-[28px]">
-        <p className={`text-[10px] font-bold uppercase tracking-widest break-words leading-snug w-[75%] ${variant === 'maroon' ? 'text-rose-700' : 'text-slate-500'}`}>
+        <p className={`text-[10px] font-bold uppercase tracking-widest break-words leading-snug w-[75%] ${
+          variant === 'maroon' ? 'text-rose-700' : 
+          variant === 'warning' ? 'text-amber-700' : 'text-slate-500'
+        }`}>
           {title}
         </p>
         
         <div className="shrink-0 flex items-center justify-center">
           <Icon className={`w-[18px] h-[18px] ${
             variant === 'maroon' ? 'text-rose-600' : 
+            variant === 'warning' ? 'text-amber-600' : 
             variant === 'purple' ? 'text-[#3b0764]' : 
             variant === 'success' ? 'text-[#3b0764]' :
             'text-slate-600'
@@ -79,7 +83,10 @@ export default function StatCard({
       </div>
 
       <div>
-        <p className={`text-[28px] font-black tracking-tight leading-tight ${variant === 'maroon' ? 'text-rose-700' : 'text-slate-800'}`}>
+        <p className={`text-[28px] font-black tracking-tight leading-tight ${
+          variant === 'maroon' ? 'text-rose-700' : 
+          variant === 'warning' ? 'text-amber-700' : 'text-slate-800'
+        }`}>
           {value}
         </p>
 
@@ -93,7 +100,10 @@ export default function StatCard({
               </span>
             )}
             {subtitle && (
-              <p className={`text-[10px] font-medium font-mono truncate ${variant === 'maroon' ? 'text-rose-500' : 'text-slate-500'}`}>
+              <p className={`text-[10px] font-medium font-mono truncate ${
+                variant === 'maroon' ? 'text-rose-500' : 
+                variant === 'warning' ? 'text-amber-600' : 'text-slate-500'
+              }`}>
                 {subtitle}
               </p>
             )}

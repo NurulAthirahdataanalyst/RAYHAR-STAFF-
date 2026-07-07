@@ -492,7 +492,7 @@ export default function Dashboard() {
                       title="Late Arrivals"
                       value={String(stats.lateArrivals ?? 0)}
                       subtitle="Action Required"
-                      variant="maroon"
+                      variant="warning"
                     />
                   </>
                 ) : (
@@ -644,7 +644,7 @@ export default function Dashboard() {
                   title="Late Arrivals"
                   value={String(stats.lateArrivals ?? 0)}
                   subtitle="Action Required"
-                  variant="maroon"
+                  variant="warning"
                 />
               </>
             )}
@@ -852,8 +852,8 @@ export default function Dashboard() {
               );
             })()}
 
-            <div className="mt-10 bg-gradient-to-r from-indigo-50/80 to-purple-50/50 rounded-xl p-3 sm:p-4 border border-indigo-100 flex items-start gap-3 sm:gap-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-              <div className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center shrink-0 border border-indigo-100">
+            <div className="mt-10 bg-gradient-to-r from-purple-50/80 to-purple-50/50 rounded-xl p-3 sm:p-4 border border-purple-100 flex items-start gap-3 sm:gap-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+              <div className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center shrink-0 border border-purple-100">
                 <Info className="w-4 h-4 text-[#7B0099]" />
               </div>
               <div className="pt-0.5">
@@ -876,7 +876,7 @@ export default function Dashboard() {
               <CardHeader className="border-b border-slate-100 pb-3 px-4 pt-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                   <div className="flex items-start gap-2">
-                    <CalendarOff className="w-5 h-5 text-indigo-600 mt-0.5" />
+                    <CalendarOff className="w-5 h-5 text-purple-600 mt-0.5" />
                     <div>
                       <CardTitle className="text-lg font-bold text-slate-800 tracking-tight">
                         Who's Out Today
@@ -890,7 +890,7 @@ export default function Dashboard() {
                     variant="ghost"
                     size="sm"
                     onClick={() => navigate("/leave/admin")}
-                    className="text-[10px] font-bold text-indigo-700 hover:text-indigo-800 hover:bg-transparent uppercase tracking-widest px-0 h-auto self-start"
+                    className="text-[10px] font-bold text-purple-700 hover:text-purple-800 hover:bg-transparent uppercase tracking-widest px-0 h-auto self-start"
                   >
                     VIEW ALL HISTORY →
                   </Button>
@@ -920,7 +920,7 @@ export default function Dashboard() {
                         "Cuti Tanpa Gaji": { short: "UNPAID", color: "bg-slate-600" },
                         "Unpaid Leave": { short: "UNPAID", color: "bg-slate-600" },
                         "Cuti Ehsan": { short: "COMPASSIONATE", color: "bg-teal-600" },
-                        "Outstation": { short: "OUTSTATION", color: "bg-indigo-600" },
+                        "Outstation": { short: "OUTSTATION", color: "bg-purple-600" },
                       };
                       const typeInfo = leaveTypeLabel[emp.leave_type] || { short: emp.leave_type?.toUpperCase(), color: "bg-gray-600" };
 
@@ -928,10 +928,10 @@ export default function Dashboard() {
                         <div
                           key={emp.leave_id}
                           onClick={() => navigate(`/leave/admin?leaveId=${emp.leave_id}`)}
-                          className="cursor-pointer group rounded-sm border border-slate-200 bg-white hover:border-indigo-300 transition-colors duration-200 p-3"
+                          className="cursor-pointer group rounded-sm border border-slate-200 bg-white hover:border-purple-300 transition-colors duration-200 p-3"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded bg-indigo-100 flex items-center justify-center text-sm font-bold text-indigo-700 shrink-0">
+                            <div className="w-10 h-10 rounded bg-purple-100 flex items-center justify-center text-sm font-bold text-purple-700 shrink-0">
                               {emp.full_name?.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                             </div>
                             <div className="min-w-0 flex-1">
@@ -945,7 +945,7 @@ export default function Dashboard() {
                                 <span className={`text-[9px] font-bold text-white px-2 py-0.5 rounded-sm ${typeInfo.color}`}>
                                   {typeInfo.short}
                                 </span>
-                                <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-widest">
+                                <span className="text-[10px] font-bold text-purple-700 uppercase tracking-widest">
                                   {emp.branch}
                                 </span>
                               </div>
@@ -971,7 +971,7 @@ export default function Dashboard() {
             <CardHeader className="border-b border-slate-100 pb-0 px-4 pt-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                 <div className="flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-indigo-600" />
+                  <Activity className="w-5 h-5 text-purple-600" />
                   <CardTitle className="text-lg font-bold text-slate-800">
                     Recent Activity
                   </CardTitle>
@@ -999,7 +999,7 @@ export default function Dashboard() {
                     onClick={() => setActiveTab(tab.key)}
                     className={`pb-2 text-sm font-bold transition-all duration-200 border-b-2 ${
                       activeTab === tab.key
-                        ? "border-indigo-700 text-indigo-700"
+                        ? "border-purple-700 text-purple-700"
                         : "border-transparent text-slate-500 hover:text-slate-800"
                     }`}
                   >
@@ -1022,7 +1022,7 @@ export default function Dashboard() {
                     onClick={() => setActivityFilter(chip.key)}
                     className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-all duration-200 ${
                       activityFilter === chip.key
-                        ? "bg-indigo-700 text-white border-indigo-700"
+                        ? "bg-purple-700 text-white border-purple-700"
                         : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
                     }`}
                   >
@@ -1063,7 +1063,7 @@ export default function Dashboard() {
                     </div>
                     {feedItems.map((item, i) => {
                       const badgeColor: Record<string, string> = {
-                        Present: "text-indigo-700 border-indigo-200",
+                        Present: "text-purple-700 border-purple-200",
                         "Clocked Out": "text-slate-600 border-slate-200",
                         Approved: "text-emerald-700 border-emerald-200",
                         Rejected: "text-red-700 border-red-200",
@@ -1076,9 +1076,9 @@ export default function Dashboard() {
                       const badgeCls = badgeColor[item.badge] || "text-slate-500 border-slate-200";
                       
                       const typeIcon: Record<string, string> = {
-                        attendance: "text-indigo-700",
-                        leave: "text-indigo-700",
-                        approval: "text-indigo-700",
+                        attendance: "text-purple-700",
+                        leave: "text-purple-700",
+                        approval: "text-purple-700",
                         system: "text-rose-600",
                       };
 
@@ -1113,7 +1113,7 @@ export default function Dashboard() {
               <div className="p-3 border-t border-slate-100 flex justify-center">
                 <button
                   onClick={() => navigate("/attendance")}
-                  className="text-[11px] font-bold text-indigo-700 hover:underline"
+                  className="text-[11px] font-bold text-purple-700 hover:underline"
                 >
                   Load More History
                 </button>
@@ -1129,7 +1129,7 @@ export default function Dashboard() {
           <Card className="border border-slate-200 shadow-none rounded-md overflow-hidden bg-white">
             <CardHeader className="border-b border-slate-100 pb-3 px-4 pt-4">
               <div className="flex items-center gap-2">
-                <Zap className="w-5 h-5 text-indigo-600" />
+                <Zap className="w-5 h-5 text-purple-600" />
                 <CardTitle className="text-[11px] font-bold text-slate-800 uppercase tracking-widest">
                   Quick Actions
                 </CardTitle>
@@ -1137,17 +1137,17 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="p-4">
               <div className="grid grid-cols-2 gap-3">
-                <div onClick={() => navigate("/attendance")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-indigo-300 hover:bg-slate-50 transition-colors">
-                  <Clock className="w-6 h-6 text-indigo-700 mb-2" />
+                <div onClick={() => navigate("/attendance")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-purple-300 hover:bg-slate-50 transition-colors">
+                  <Clock className="w-6 h-6 text-purple-700 mb-2" />
                   <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Clock In/Out</span>
                 </div>
-                <div onClick={() => navigate("/leave/apply")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-indigo-300 hover:bg-slate-50 transition-colors">
-                  <CalendarCheck className="w-6 h-6 text-indigo-700 mb-2" />
+                <div onClick={() => navigate("/leave/apply")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-purple-300 hover:bg-slate-50 transition-colors">
+                  <CalendarCheck className="w-6 h-6 text-purple-700 mb-2" />
                   <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Apply Leave</span>
                 </div>
                 {["hr_admin", "managing_director", "finance_manager", "head_of_department", "branch_leader"].includes(role) && (
-                  <div onClick={() => navigate("/outstation")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-indigo-300 hover:bg-slate-50 transition-colors col-span-2">
-                    <MapPin className="w-6 h-6 text-indigo-700 mb-2" />
+                  <div onClick={() => navigate("/outstation")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-purple-300 hover:bg-slate-50 transition-colors col-span-2">
+                    <MapPin className="w-6 h-6 text-purple-700 mb-2" />
                     <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Outstation</span>
                   </div>
                 )}
@@ -1161,7 +1161,7 @@ export default function Dashboard() {
               <CardTitle className="text-[11px] font-bold text-slate-800 uppercase tracking-widest">
                 Upcoming Outstation
               </CardTitle>
-              <span onClick={() => navigate("/outstation/calendar")} className="text-[10px] font-bold text-indigo-600 uppercase cursor-pointer hover:underline">
+              <span onClick={() => navigate("/outstation/calendar")} className="text-[10px] font-bold text-purple-600 uppercase cursor-pointer hover:underline">
                 Calendar
               </span>
             </CardHeader>
@@ -1173,9 +1173,9 @@ export default function Dashboard() {
                   const day = d.toLocaleDateString("en-US", { day: "2-digit" });
                   return (
                     <div key={i} className={`flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors cursor-pointer ${i !== upcomingOutstations.length - 1 ? "border-b border-slate-50" : ""}`}>
-                      <div className="w-12 h-12 bg-indigo-50 rounded flex flex-col items-center justify-center shrink-0">
-                        <span className="text-[9px] font-bold text-indigo-700 uppercase">{month}</span>
-                        <span className="text-lg font-black text-indigo-900 leading-none mt-0.5">{day}</span>
+                      <div className="w-12 h-12 bg-purple-50 rounded flex flex-col items-center justify-center shrink-0">
+                        <span className="text-[9px] font-bold text-purple-700 uppercase">{month}</span>
+                        <span className="text-lg font-black text-purple-900 leading-none mt-0.5">{day}</span>
                       </div>
                       <div className="min-w-0">
                         <h4 className="text-sm font-bold text-slate-800 truncate">{a.destination}</h4>
@@ -1195,7 +1195,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Monthly Attendance Score */}
-          <Card className="border-none shadow-none rounded-md overflow-hidden bg-indigo-800 text-white">
+          <Card className="border-none shadow-none rounded-md overflow-hidden bg-purple-800 text-white">
             <CardContent className="p-5">
               <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-2">
                 Monthly Attendance Score
