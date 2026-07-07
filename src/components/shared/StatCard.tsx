@@ -39,7 +39,7 @@ export default function StatCard({
         <div className="min-w-0">
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-normal break-words leading-tight">{title}</p>
           <p className="mt-1.5 text-[28px] font-black text-slate-800 tracking-tight leading-none">{value}</p>
-          {subtitle && <p className="text-[11px] text-slate-500 mt-1 font-medium truncate">{subtitle}</p>}
+          {subtitle && <p className="text-[10px] text-slate-500 mt-1 font-medium font-mono truncate">{subtitle}</p>}
         </div>
         <div className="relative w-14 h-14 flex items-center justify-center shrink-0 ml-2">
           <svg className="w-full h-full transform -rotate-90">

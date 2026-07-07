@@ -65,7 +65,7 @@ export default function OutstationCalendar() {
         });
         const res = await fetch(`${API_BASE_URL}/api/outstation?${params}`);
         const data = await res.json();
-        if (data.success) setAssignments(data.assignments);
+        if (data.success) setAssignments(data.assignments || []);
       } catch { /* swallow */ } finally {
         setLoading(false);
       }

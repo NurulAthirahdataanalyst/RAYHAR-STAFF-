@@ -63,7 +63,7 @@ export default function MyOutstation() {
       try {
         const res = await fetch(`${API_BASE_URL}/api/outstation?role=employee&user_id=${userId}`);
         const data = await res.json();
-        if (data.success) setAssignments(data.assignments);
+        if (data.success) setAssignments(data.assignments || []);
       } catch (err) {
         console.error("MyOutstation error:", err);
       } finally {

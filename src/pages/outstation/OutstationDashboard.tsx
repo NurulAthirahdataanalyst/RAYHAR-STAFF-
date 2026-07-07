@@ -82,8 +82,8 @@ export default function OutstationDashboard() {
         ]);
         const statsData = await statsRes.json();
         const listData = await listRes.json();
-        if (statsData.success) setStats(statsData.stats);
-        if (listData.success) setAssignments(listData.assignments);
+        if (statsData.success && statsData.stats) setStats(statsData.stats);
+        if (listData.success) setAssignments(listData.assignments || []);
       } catch (err) {
         console.error("Fetch error:", err);
       } finally {

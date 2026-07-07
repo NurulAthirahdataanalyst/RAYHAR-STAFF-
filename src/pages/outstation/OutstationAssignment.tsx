@@ -127,7 +127,7 @@ export default function OutstationAssignment() {
         ]);
         const listData = await listRes.json();
         const empData = await empRes.json();
-        if (listData.success) setAssignments(listData.assignments);
+        if (listData.success) setAssignments(listData.assignments || []);
         if (empData.success) setEmployees(empData.employees || empData.data || []);
       } catch (err) {
         console.error("OutstationAssignment fetch error:", err);

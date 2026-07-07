@@ -63,7 +63,7 @@ export default function OutstationReports() {
         const params = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "" });
         const res = await fetch(`${API_BASE_URL}/api/outstation?${params}`);
         const data = await res.json();
-        if (data.success) setAssignments(data.assignments);
+        if (data.success) setAssignments(data.assignments || []);
       } catch { /* */ } finally { setLoading(false); }
     };
     void fetchData();
