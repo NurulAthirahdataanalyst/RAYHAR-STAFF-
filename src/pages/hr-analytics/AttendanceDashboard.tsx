@@ -717,7 +717,7 @@ export default function AttendanceDashboard() {
     "MZM": "East Coast / East Malaysia",
     "TWU": "East Coast / East Malaysia",
     "AOR": "North Malaysia",
-    "BTM": "North Malaysia",
+"BTM": "North Malaysia",
     "KKS": "North Malaysia",
     "SHA": "Central / West Coast",
     "BBB": "Central / West Coast",
@@ -733,19 +733,29 @@ export default function AttendanceDashboard() {
   const liveBranchRanking = branchComparison
     .map(b => {
       const branchEmployees = liveEmployees.filter(emp => emp.branch === b.branch);
-      const presentOnTime = branchEmployees.filter(emp => emp.status === 'present').length;
-      const presentLate = branchEmployees.filter(emp => emp.status === 'late').length;
-      const onLeave = branchEmployees.filter(emp => emp.status === 'onLeave').length;
-      const companyLeave = branchEmployees.filter(emp => emp.status === 'companyLeave').length;
+      
+      const outstationIds = new Set(
+        outstationRecords
+          .filter((o: any) => branchEmployees.some(emp => emp.user_id === o.user_id))
+          .map((o: any) => o.user_id)
+      );
+      
+      const outstation = outstationIds.size;
+      const presentOnTime = branchEmployees.filter(emp => emp.status === 'present' && !outstationIds.has(emp.user_id)).length;
+      const presentLate = branchEmployees.filter(emp => emp.status === 'late' && !outstationIds.has(emp.user_id)).length;
+      const onLeave = branchEmployees.filter(emp => emp.status === 'onLeave' && !outstationIds.has(emp.user_id)).length;
+      const companyLeave = branchEmployees.filter(emp => emp.status === 'companyLeave' && !outstationIds.has(emp.user_id)).length;
+      
       const totalEmployees = b.totalEmployees || 0;
-      const absent = Math.max(0, totalEmployees - (presentOnTime + presentLate + onLeave + companyLeave));
+      const absent = Math.max(0, totalEmployees - (presentOnTime + presentLate + outstation + onLeave + companyLeave));
       const expectedWorkingDays = totalEmployees - onLeave - companyLeave;
       let rate = 0;
       if (expectedWorkingDays > 0) {
-        rate = Math.round(((presentOnTime + presentLate) / expectedWorkingDays) * 100);
+        rate = Math.round(((presentOnTime + presentLate + outstation) / expectedWorkingDays) * 100);
       } else if (totalEmployees > 0 && expectedWorkingDays === 0) {
-        rate = 100; // If everyone is on leave, rate is effectively 100%
+        rate = 100;
       }
+
       return {
         branch: b.branch,
         rate,
@@ -753,6 +763,7 @@ export default function AttendanceDashboard() {
         totalEmployees,
         presentOnTime,
         presentLate,
+        outstation,
         onLeave,
         companyLeave,
         absent
@@ -1503,6 +1514,7 @@ export default function AttendanceDashboard() {
                           <>
                             <div className="h-full bg-[#10b981]" style={{ width: `${(branch.presentOnTime / branch.totalEmployees) * 100}%` }}></div>
                             <div className="h-full bg-[#f59e0b]" style={{ width: `${(branch.presentLate / branch.totalEmployees) * 100}%` }}></div>
+                            <div className="h-full bg-pink-500" style={{ width: `${(branch.outstation / branch.totalEmployees) * 100}%` }}></div>
                             <div className="h-full bg-blue-500" style={{ width: `${(branch.onLeave / branch.totalEmployees) * 100}%` }}></div>
                             <div className="h-full bg-purple-500" style={{ width: `${(branch.companyLeave / branch.totalEmployees) * 100}%` }}></div>
                             <div className="h-full bg-red-500" style={{ width: `${(branch.absent / branch.totalEmployees) * 100}%` }}></div>
@@ -1511,14 +1523,15 @@ export default function AttendanceDashboard() {
                           <div className="h-full w-full bg-slate-200"></div>
                         )}
                       </div>
-                      <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-2 pointer-events-none z-50 w-max whitespace-nowrap text-left">
-                        <p className="text-[10px] font-bold text-slate-800 mb-1 border-b pb-1">{branch.branch}</p>
-                        <div className="space-y-0.5 text-[9px] text-slate-600">
-                          <p className="flex justify-between gap-4">Present (On Time): <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
-                          <p className="flex justify-between gap-4">Present (Late): <span className="font-bold text-amber-500">{branch.presentLate}</span></p>
-                          <p className="flex justify-between gap-4">On Leave: <span className="font-bold text-blue-500">{branch.onLeave}</span></p>
-                          <p className="flex justify-between gap-4">Company Leave: <span className="font-bold text-purple-500">{branch.companyLeave}</span></p>
-                          <p className="flex justify-between gap-4">Absent: <span className="font-bold text-red-500">{branch.absent}</span></p>
+                      <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-3 pointer-events-none z-50 w-max whitespace-nowrap text-left min-w-[150px]">
+                        <p className="text-[11px] font-bold text-slate-800 mb-2 border-b border-slate-100 pb-1">{branch.branch}</p>
+                        <div className="flex flex-col gap-1 text-[9px] text-slate-600">
+                          <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
+                          <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{branch.presentLate}</span></p>
+                          <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-500">{branch.outstation}</span></p>
+                          <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>On Leave:</span> <span className="font-bold text-blue-500">{branch.onLeave}</span></p>
+                          <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-500">{branch.companyLeave}</span></p>
+                          <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-red-500">{branch.absent}</span></p>
                         </div>
                       </div>
                     </div>

@@ -537,17 +537,28 @@ export default function WorkforceInsights() {
                             </div>
                             <span className={`text-[10px] font-black ${branch.attendanceRate >= 95 ? 'text-emerald-500' : 'text-rose-500'}`}>{branch.attendanceRate}%</span>
                           </div>
-                          <div className="w-full bg-rose-500 rounded-full h-2 relative group cursor-pointer overflow-hidden">
-                            <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, branch.attendanceRate)}%` }}></div>
+                          <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden relative group cursor-pointer">
+                            {branch.count > 0 ? (
+                              <>
+                                <div className="h-full bg-[#10b981]" style={{ width: `${(stats.onTime / branch.count) * 100}%` }}></div>
+                                <div className="h-full bg-[#f59e0b]" style={{ width: `${(stats.late / branch.count) * 100}%` }}></div>
+                                <div className="h-full bg-pink-500" style={{ width: `${(stats.outstation / branch.count) * 100}%` }}></div>
+                                <div className="h-full bg-blue-500" style={{ width: `${(stats.onLeave / branch.count) * 100}%` }}></div>
+                                <div className="h-full bg-purple-500" style={{ width: `${(stats.compLeave / branch.count) * 100}%` }}></div>
+                                <div className="h-full bg-red-500" style={{ width: `${(stats.absent / branch.count) * 100}%` }}></div>
+                              </>
+                            ) : (
+                              <div className="h-full w-full bg-slate-200"></div>
+                            )}
                             <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-white border border-slate-200 shadow-xl rounded-lg p-3 pointer-events-none z-50 w-max min-w-[150px]">
                               <p className="text-[11px] font-bold text-slate-800 mb-2 border-b border-slate-100 pb-1">{branch.name}</p>
-                              <div className="flex flex-col gap-0.5">
-                                <p className="text-[9px] text-slate-600 flex justify-between gap-4"><span>Present (On Time):</span> <span className="font-bold text-emerald-600">{stats.onTime}</span></p>
-                                <p className="text-[9px] text-slate-600 flex justify-between gap-4"><span>Present (Late):</span> <span className="font-bold text-amber-500">{stats.late}</span></p>
-                                <p className="text-[9px] text-slate-600 flex justify-between gap-4"><span>Outstation:</span> <span className="font-bold text-sky-500">{stats.outstation}</span></p>
-                                <p className="text-[9px] text-slate-600 flex justify-between gap-4"><span>On Leave:</span> <span className="font-bold text-indigo-500">{stats.onLeave}</span></p>
-                                <p className="text-[9px] text-slate-600 flex justify-between gap-4"><span>Company Leave:</span> <span className="font-bold text-purple-500">{stats.compLeave}</span></p>
-                                <p className="text-[9px] text-slate-600 flex justify-between gap-4"><span>Absent:</span> <span className="font-bold text-rose-500">{stats.absent}</span></p>
+                              <div className="flex flex-col gap-1 text-[9px] text-slate-600">
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{stats.onTime}</span></p>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{stats.late}</span></p>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-500">{stats.outstation}</span></p>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>On Leave:</span> <span className="font-bold text-blue-500">{stats.onLeave}</span></p>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-500">{stats.compLeave}</span></p>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-red-500">{stats.absent}</span></p>
                               </div>
                             </div>
                           </div>
