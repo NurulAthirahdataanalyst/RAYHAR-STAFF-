@@ -35,7 +35,7 @@ export default function StatCard({
   // Render for Circular Gauge (Attendance Rate)
   if (variant === "gauge") {
     return (
-      <div className={`rounded-md p-4 flex items-center justify-between h-full min-h-[130px] ${currentStyle}`}>
+      <div className={`rounded-md p-4 flex items-start justify-between h-full min-h-[130px] ${currentStyle}`}>
         <div className="min-w-0">
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-normal break-words leading-tight">{title}</p>
           <p className="mt-1.5 text-[28px] font-black text-slate-800 tracking-tight leading-none">{value}</p>
@@ -58,8 +58,8 @@ export default function StatCard({
   }
 
   return (
-    <div className={`rounded-md p-4 h-full min-h-[130px] flex flex-col justify-between ${currentStyle}`}>
-      <div className="flex items-start justify-between gap-2">
+    <div className={`rounded-md p-4 h-full min-h-[130px] flex flex-col ${currentStyle}`}>
+      <div className="flex items-start justify-between gap-2 mb-3 min-h-[28px]">
         <p className={`text-[10px] font-bold uppercase tracking-widest break-words leading-snug w-[75%] ${variant === 'maroon' ? 'text-rose-700' : 'text-slate-500'}`}>
           {title}
         </p>
