@@ -354,8 +354,8 @@ export default function Dashboard() {
       </div>
 
       {/* Stat Cards - responsive grid */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 ${role === "employee" || role === "branch_officer" ? "lg:grid-cols-4" : (isCompanyLeave && stats.activeCompanyLeave && ["hr_admin", "managing_director", "finance_manager"].includes(role) ? "lg:grid-cols-4 xl:grid-cols-7" : "lg:grid-cols-3 xl:grid-cols-6")}`}>
-        {role === "employee" || role === "branch_officer" ? (
+      <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 ${role === "employee" ? "lg:grid-cols-4" : (isCompanyLeave && stats.activeCompanyLeave && ["hr_admin", "managing_director", "finance_manager"].includes(role) ? "lg:grid-cols-4 xl:grid-cols-8" : "lg:grid-cols-3 xl:grid-cols-7")}`}>
+        {role === "employee" ? (
           <>
             <StatCard
               icon={Clock}
@@ -444,6 +444,13 @@ export default function Dashboard() {
                       value={String(stats.outstationToday ?? 0)}
                       subtitle={`${stats.upcomingOutstation ?? 0} Upcoming`}
                       variant="purple"
+                    />
+                    <StatCard
+                      icon={AlertTriangle}
+                      title="Absent"
+                      value={String(stats.absentToday ?? 0)}
+                      subtitle="Not Clocked In"
+                      variant="maroon"
                     />
                     <StatCard
                       icon={Users}
@@ -603,6 +610,13 @@ export default function Dashboard() {
                   value={String(stats.onLeave ?? 0)}
                   subtitle="Approved Leaves"
                   variant="default"
+                />
+                <StatCard
+                  icon={AlertTriangle}
+                  title="Absent"
+                  value={String(stats.absentToday ?? 0)}
+                  subtitle="Not Clocked In"
+                  variant="maroon"
                 />
                 <StatCard
                   icon={AlertTriangle}

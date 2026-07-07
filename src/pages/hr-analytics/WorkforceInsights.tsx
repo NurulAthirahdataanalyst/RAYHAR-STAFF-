@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 
-const COLORS = ['#4f46e5', '#eab308', '#94a3b8', '#DC2626']; // Present, Late, On Leave, Absent
+const COLORS = ['#4f46e5', '#eab308', '#94a3b8', '#DC2626', '#a855f7', '#ec4899']; // Present, Late, On Leave, Absent, Comp Leave, Outstation
 
 const cardHoverEffect = "transition-all duration-300 hover:shadow-[0_0_15px_rgba(123,0,153,0.15)] hover:border-[#7B0099]/30 hover:-translate-y-0.5";
 
@@ -991,8 +991,8 @@ export default function WorkforceInsights() {
                       </>
                     ) : emp.status === 'outstation' ? (
                       <>
-                        <Plane className="w-3.5 h-3.5 text-sky-400" />
-                        <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-sky-500 text-white text-center leading-tight">Outstation</span>
+                        <Plane className="w-3.5 h-3.5 text-pink-400" />
+                        <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-pink-500 text-white text-center leading-tight">Outstation</span>
                       </>
                     ) : (
                       <>
