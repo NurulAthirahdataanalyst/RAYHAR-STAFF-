@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
-  Loader2, Plane, MapPin, Clock, Medal, TrendingUp, Filter, Download, Search, AlertCircle, Building2, Users
+  Loader2, Plane, MapPin, Clock, Medal, TrendingUp, Filter, Download, Search, AlertCircle, Building2, Users, CheckCircle2
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
