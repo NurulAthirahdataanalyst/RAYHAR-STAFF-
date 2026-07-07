@@ -3446,7 +3446,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       }
 
       const queryDate = req.query.date ? req.query.date.toString() : null;
-      const dateCondition = queryDate ? '?' : 'CURRENT_DATE';
+      const dateCondition = queryDate ? '?::date' : "(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date";
       const profileQueryParams = queryDate ? [queryDate, ...queryParams] : queryParams;
 
       const [employeeRows] = await pool.query(
@@ -3503,12 +3503,12 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       const outstationParams = queryDate ? [queryDate, ...queryParams] : queryParams;
       const [outstationTodayRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS outstation_today FROM outstation_assignments WHERE status != 'Cancelled' AND ${dateCondition} BETWEEN DATE(start_date) AND DATE(end_date) ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS outstation_today FROM outstation_assignments WHERE status != 'Cancelled' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date ${attendanceFilter}`,
         outstationParams
       );
 
       const [upcomingOutstationRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS upcoming_outstation FROM outstation_assignments WHERE status != 'Cancelled' AND DATE(start_date) > ${dateCondition} ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS upcoming_outstation FROM outstation_assignments WHERE status != 'Cancelled' AND (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date > ${dateCondition} ${attendanceFilter}`,
         outstationParams
       );
 
@@ -4871,6 +4871,18 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       else realLeaveAnalytics.unpaid += count;
     });
 
+    const outstationParams = [targetDateStr, ...pFilterParams];
+    const [outstationTodayRows] = await pool.query(
+      `SELECT COUNT(DISTINCT o.user_id) as outstation_today
+       FROM outstation_assignments o
+       JOIN profiles p ON p.user_id = o.user_id
+       WHERE o.status != 'Cancelled'
+       AND ?::date BETWEEN (o.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (o.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+       ${profileFilter}`,
+      outstationParams
+    );
+    const outstationTodayCount = parseInt(outstationTodayRows[0].outstation_today) || 0;
+
     // Populate missing attendees for SSE simulation payload
     const presentUserIds = new Set(attRows.filter(a => {
       const dateObj = new Date(a.clock_in);
@@ -4994,7 +5006,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         attendanceRate: Math.min(100, averageAttendance),
         onLeaveToday,
         companyLeaveToday: companyLeaveCount,
-        outstationToday: 0
+        outstationToday: outstationTodayCount
       },
       attendanceOverview: {
         averageAttendance: Math.min(100, averageAttendance),

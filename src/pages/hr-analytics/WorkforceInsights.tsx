@@ -1,6 +1,6 @@
 import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { exportToCSV } from "@/utils/export";
 import { API_BASE_URL } from "@/config/api";
@@ -569,9 +569,15 @@ export default function WorkforceInsights() {
                       <div className="text-center text-slate-400 text-xs py-10 font-medium">No branches found in this region.</div>
                     )}
                   </div>
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                    <span className="text-[10px] font-semibold text-slate-400">Showing {Math.min(5, filteredBranches.length)} locations</span>
+                  <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                      <span className="text-[10px] font-semibold text-slate-400">Showing {Math.min(5, filteredBranches.length)} locations</span>
+                    </div>
+                    <Link to="/branches" className="text-[11px] font-bold text-[#4f46e5] hover:text-[#4338ca] transition-colors flex items-center group/link">
+                      View all
+                      <ChevronRight className="w-3 h-3 ml-0.5 group-hover/link:translate-x-0.5 transition-transform" />
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
