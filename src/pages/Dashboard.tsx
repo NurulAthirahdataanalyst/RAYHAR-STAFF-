@@ -1117,22 +1117,20 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="p-4">
               <div className="grid grid-cols-2 gap-3">
-                <div onClick={() => navigate("/clock-in")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-indigo-300 hover:bg-slate-50 transition-colors">
+                <div onClick={() => navigate("/attendance")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-indigo-300 hover:bg-slate-50 transition-colors">
                   <Clock className="w-6 h-6 text-indigo-700 mb-2" />
-                  <span className="text-[10px] font-bold text-slate-600 uppercase">Clock In/Out</span>
+                  <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Clock In/Out</span>
                 </div>
                 <div onClick={() => navigate("/leave/apply")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-indigo-300 hover:bg-slate-50 transition-colors">
                   <CalendarCheck className="w-6 h-6 text-indigo-700 mb-2" />
-                  <span className="text-[10px] font-bold text-slate-600 uppercase">Apply Leave</span>
+                  <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Apply Leave</span>
                 </div>
-                <div onClick={() => navigate("/outstation/apply")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-indigo-300 hover:bg-slate-50 transition-colors">
-                  <MapPin className="w-6 h-6 text-indigo-700 mb-2" />
-                  <span className="text-[10px] font-bold text-slate-600 uppercase">Outstation</span>
-                </div>
-                <div onClick={() => navigate("/claims")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-indigo-300 hover:bg-slate-50 transition-colors">
-                  <FileText className="w-6 h-6 text-indigo-700 mb-2" />
-                  <span className="text-[10px] font-bold text-slate-600 uppercase">Claims</span>
-                </div>
+                {["hr_admin", "managing_director", "finance_manager", "head_of_department", "branch_leader"].includes(role) && (
+                  <div onClick={() => navigate("/outstation")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-indigo-300 hover:bg-slate-50 transition-colors col-span-2">
+                    <MapPin className="w-6 h-6 text-indigo-700 mb-2" />
+                    <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Outstation</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
