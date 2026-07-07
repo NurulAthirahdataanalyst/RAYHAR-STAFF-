@@ -220,10 +220,10 @@ export default function OutstationAnalytics() {
                         nameKey="name" 
                         cx="50%" 
                         cy="50%" 
-                        innerRadius={65} 
+                        innerRadius={55} 
                         outerRadius={85} 
                         stroke="none"
-                        paddingAngle={2}
+                        paddingAngle={3}
                       >
                         {branchData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                       </Pie>
@@ -232,20 +232,22 @@ export default function OutstationAnalytics() {
                   </ResponsiveContainer>
                   {/* Center Text */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
-                    <span className="text-2xl font-bold text-gray-900 leading-none">{stats.total}</span>
-                    <span className="text-[10px] tracking-[0.2em] text-gray-500 uppercase mt-1">Total</span>
+                    <span className="text-3xl font-bold text-gray-900 leading-none">{stats.total}</span>
+                    <span className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mt-1">Total</span>
                   </div>
                 </div>
-                {/* Custom Legend */}
                 <div className="w-full mt-6 space-y-3 px-4">
                   {branchData.slice(0,3).map((d, i) => (
                     <div key={d.name} className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-3 text-gray-700">
-                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }}></div>
-                        <span className="font-medium">{d.name}</span>
+                        <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }}></div>
+                        <span className="font-bold flex items-center gap-2">
+                          {d.name}
+                          {i === 0 && <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded uppercase tracking-wider">Highest</span>}
+                        </span>
                       </div>
-                      <div className="text-gray-500 font-medium">
-                        {Math.round((d.value / stats.total) * 100)}%
+                      <div className="text-gray-900 font-bold">
+                        {d.value} <span className="text-gray-400 font-medium ml-1">({Math.round((d.value / stats.total) * 100)}%)</span>
                       </div>
                     </div>
                   ))}
