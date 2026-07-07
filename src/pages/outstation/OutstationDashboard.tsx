@@ -118,12 +118,6 @@ export default function OutstationDashboard() {
     { name: "HR", value: 15 }, { name: "Finance", value: 10 },
   ], []);
 
-  const timelineData = [
-    { time: "10:20 AM", text: "Ahmad departed to Johor Bahru", type: "depart" },
-    { time: "09:30 AM", text: "Ali returned from Penang", type: "return" },
-    { time: "08:10 AM", text: "HR Admin approved assignment #1024", type: "approve" },
-    { time: "Yesterday", text: "New assignment created for Finance Team", type: "create" },
-  ];
 
   if (roleLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50"><Loader2 className="animate-spin w-8 h-8 text-purple-900" /></div>;
 
@@ -385,33 +379,8 @@ export default function OutstationDashboard() {
           </Card>
         </div>
 
-        {/* ROW 4: Destination Map/Heatmap (6) & Department (6) */}
+        {/* ROW 4: Department Distribution */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <Card className="border-0 shadow-sm rounded-[16px] bg-white">
-            <CardHeader className="px-6 py-5 border-b border-gray-50 flex flex-row items-center justify-between">
-              <CardTitle className="text-[18px] font-bold text-gray-900 flex items-center gap-2"><Map className="w-5 h-5 text-blue-500" /> Geographic Heatmap</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              {/* Mock Map / Heatmap implementation */}
-              <div className="w-full h-[200px] bg-[#f1f5f9] rounded-[12px] border border-gray-100 flex items-center justify-center relative overflow-hidden">
-                <p className="text-gray-400 text-[13px] font-bold uppercase tracking-widest absolute z-0 opacity-50">Map Visualization</p>
-                {/* Mock pins */}
-                <div className="absolute top-[30%] left-[20%] flex flex-col items-center animate-bounce duration-1000">
-                  <div className="w-3 h-3 rounded-full bg-purple-600 shadow-[0_0_0_4px_rgba(124,58,237,0.2)]" />
-                  <span className="text-[10px] font-bold text-gray-700 mt-1">KL</span>
-                </div>
-                <div className="absolute top-[50%] left-[40%] flex flex-col items-center">
-                  <div className="w-2 h-2 rounded-full bg-pink-500" />
-                  <span className="text-[10px] font-bold text-gray-700 mt-1">Johor</span>
-                </div>
-                <div className="absolute top-[20%] left-[35%] flex flex-col items-center">
-                  <div className="w-4 h-4 rounded-full bg-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.2)] flex items-center justify-center"><div className="w-1.5 h-1.5 bg-white rounded-full"/></div>
-                  <span className="text-[10px] font-bold text-gray-700 mt-1">Penang</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           <Card className="border-0 shadow-sm rounded-[16px] bg-white">
             <CardHeader className="px-6 py-5 border-b border-gray-50">
               <CardTitle className="text-[18px] font-bold text-gray-900">Department Distribution</CardTitle>
@@ -432,37 +401,9 @@ export default function OutstationDashboard() {
               </div>
             </CardContent>
           </Card>
-        </div>
-
-        {/* ROW 5: Recent Activity Timeline (12) */}
-        <Card className="border-0 shadow-sm rounded-[16px] bg-white overflow-hidden">
-          <CardHeader className="px-6 py-5 border-b border-gray-50">
-            <CardTitle className="text-[18px] font-bold text-gray-900">Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="relative pl-4 space-y-6 before:absolute before:inset-0 before:ml-[23px] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
-              {timelineData.map((item, idx) => (
-                <div key={idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                  {/* Icon */}
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-white bg-gray-100 text-gray-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-                    {item.type === "depart" ? <Plane className="w-3.5 h-3.5" /> : 
-                     item.type === "return" ? <MapPin className="w-3.5 h-3.5" /> : 
-                     item.type === "approve" ? <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> : 
-                     <User className="w-3.5 h-3.5" />}
-                  </div>
-                  {/* Content */}
-                  <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white border border-gray-100 p-4 rounded-[12px] shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[11px] font-bold text-purple-600 uppercase tracking-widest">{item.time}</span>
-                    </div>
-                    <p className="text-[14px] font-medium text-gray-700">{item.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
+          
+          {/* Empty column to keep layout balanced */}
+          <div className="hidden md:block"></div>
       </div>
     </div>
   );
