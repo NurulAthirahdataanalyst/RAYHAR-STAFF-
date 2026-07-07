@@ -322,6 +322,11 @@ export default function Dashboard() {
   const isCompanyLeave = stats.todayStatus === "Company Leave";
   const isElevatedRole = ["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role);
   const canSeeSystem = ["hr_admin", "managing_director", "finance_manager", "head_of_department"].includes(role);
+  
+  const displayStatus = stats.todayStatus
+    .replace("Clocked In (Outstation)", "Outstation")
+    .replace("Present (Outstation)", "Outstation")
+    .replace("Present (On Time)", "Present");
   const todayStatusSubtitle = isPresent
     ? `Clock in: ${stats.todayStatusTime || stats.clockInTime}`
     : isClockedOut
@@ -361,7 +366,7 @@ export default function Dashboard() {
             <StatCard
               icon={Clock}
               title="Today's Status"
-              value={stats.todayStatus}
+              value={displayStatus}
               subtitle={todayStatusSubtitle}
               variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
             />
@@ -536,7 +541,7 @@ export default function Dashboard() {
                   <StatCard
                     icon={Clock}
                     title="Today's Status"
-                    value={stats.todayStatus}
+                    value={displayStatus}
                     subtitle={todayStatusSubtitle}
                     variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
                   />
