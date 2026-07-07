@@ -9,7 +9,7 @@ import {
   Loader2, Plane, TrendingUp, RefreshCw, Clock, 
   MapPin, CheckCircle2, Search, Filter, MoreHorizontal, 
   AlertCircle, ChevronRight, Activity, Map, ArrowRight,
-  User, CheckCircle
+  User, CheckCircle, Calendar
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
