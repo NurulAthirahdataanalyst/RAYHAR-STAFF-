@@ -3593,6 +3593,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         activeCompanyLeave: upcomingCompanyLeaveRows.length > 0 ? upcomingCompanyLeaveRows[0] : null,
         outstationToday: parseInt(outstationTodayRows[0].outstation_today || 0),
         upcomingOutstation: parseInt(upcomingOutstationRows[0].upcoming_outstation || 0),
+        absentToday: Math.max(0, parseInt(employeeRows[0].total_employees || 0) - parseInt(presentRows[0].present_today || 0) - parseInt(onLeaveRows[0].on_leave || 0) - companyLeaveCount - parseInt(outstationTodayRows[0].outstation_today || 0)),
       };
       globalRecentActivities = recentRows;
     }
