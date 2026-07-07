@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Download, FileBarChart, Loader2, Users, TrendingUp, History, Calendar, Filter, 
   Activity, Clock, AlertCircle, Sparkles, Plus, Check, CheckCircle2, Trash2, Building2, UserPlus, 
-  Settings2, RefreshCw, BarChart2, PieChart, Info, ShieldAlert, MapPin, ChevronDown, FileText, FileSpreadsheet, Search
+  Settings2, RefreshCw, BarChart2, PieChart, Info, ShieldAlert, MapPin, ChevronDown, FileText, FileSpreadsheet, Search, ChevronRight
 } from "lucide-react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -1546,6 +1546,12 @@ export default function AttendanceDashboard() {
               <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                 Showing {liveBranchRanking.length} locations
+              </p>
+              <p 
+                className="text-[10px] font-bold text-[#7B0099] cursor-pointer hover:underline flex items-center gap-1"
+                onClick={() => navigate('/branches')}
+              >
+                View All <ChevronRight className="w-3 h-3" />
               </p>
             </div>
           </CardContent>

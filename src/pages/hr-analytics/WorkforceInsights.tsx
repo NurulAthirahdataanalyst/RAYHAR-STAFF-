@@ -658,6 +658,12 @@ export default function WorkforceInsights() {
                 <Button variant="outline" className="w-full bg-indigo-50/50 hover:bg-indigo-50 border-transparent text-[#4f46e5] font-medium h-9">
                   <Users className="w-4 h-4 mr-2" /> Manage Team
                 </Button>
+                <p 
+                  className="text-[10px] font-bold text-[#7B0099] cursor-pointer hover:underline flex items-center gap-1 justify-end mt-1"
+                  onClick={() => navigate('/hr-analytics/attendance')}
+                >
+                  View All <ChevronRight className="w-3 h-3" />
+                </p>
               </div>
             </CardContent>
           </Card>

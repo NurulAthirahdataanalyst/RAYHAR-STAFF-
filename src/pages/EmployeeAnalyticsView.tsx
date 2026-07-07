@@ -36,6 +36,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   const [lastMonthLogs, setLastMonthLogs] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [companyLeaves, setCompanyLeaves] = useState<any[]>([]);
+  const [outstations, setOutstations] = useState<any[]>([]);
 
   // Filter out any logs that were recorded on a Company Leave date
   const myLogs = useMemo(() => {
@@ -107,6 +108,15 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       .then(data => {
         if (data.success) {
           setCompanyLeaves(data.leaves || []);
+        }
+      })
+      .catch(console.error);
+
+    fetch(`${API_BASE_URL}/api/outstation?role=employee&user_id=${userId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setOutstations(data.assignments || []);
         }
       })
       .catch(console.error);
@@ -221,9 +231,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   let absentDays = 0;
   let leaveDaysCount = 0;
   let totalWorkingDaysPassed = 0;
+  let companyLeaveDaysCount = 0;
+  let outstationDaysCount = 0;
   
   // Also collect data for Calendar Heatmap
-  const heatmapData: Record<number, 'Present (On Time)' | 'Present (Late)' | 'Absent' | 'On Leave' | 'Company Leave'> = {};
+  const heatmapData: Record<number, 'Present (On Time)' | 'Present (Late)' | 'Absent' | 'On Leave' | 'Company Leave' | 'Outstation'> = {};
 
   if (month === "all") {
     const targetYear = parseInt(year);
@@ -283,13 +295,23 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             return dateStr >= startStr && dateStr <= endStr;
           });
 
-          if (logsOnDay.length > 0) {
+          const hasOutstation = outstations.some(o => {
+            const startStr = getLocalDateString(o.start_date);
+            const endStr = getLocalDateString(o.end_date);
+            return dateStr >= startStr && dateStr <= endStr && o.status !== 'Cancelled';
+          });
+
+          if (hasOutstation) {
+            if (isPastOrToday) totalWorkingDaysPassed++;
+            outstationDaysCount++;
+          } else if (logsOnDay.length > 0) {
             if (isPastOrToday) totalWorkingDaysPassed++;
             // Present
           } else if (hasLeave) {
             if (isPastOrToday) totalWorkingDaysPassed++;
             leaveDaysCount++;
           } else if (hasCompanyLeave) {
+            companyLeaveDaysCount++;
             // Exclude from working days count
           } else if (isPastOrToday) {
             totalWorkingDaysPassed++;
@@ -357,7 +379,17 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           return dateStr >= startStr && dateStr <= endStr;
         });
 
-        if (logsOnDay.length > 0) {
+        const hasOutstation = outstations.some(o => {
+          const startStr = getLocalDateString(o.start_date);
+          const endStr = getLocalDateString(o.end_date);
+          return dateStr >= startStr && dateStr <= endStr && o.status !== 'Cancelled';
+        });
+
+        if (hasOutstation) {
+          if (isPastOrToday) totalWorkingDaysPassed++;
+          outstationDaysCount++;
+          heatmapData[d] = 'Outstation';
+        } else if (logsOnDay.length > 0) {
           if (isPastOrToday) totalWorkingDaysPassed++;
           const att = logsOnDay[0];
           const isLateLog = att.is_late === 1 || att.is_late === true || att.status === "LATE";
@@ -371,6 +403,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           leaveDaysCount++;
           heatmapData[d] = 'On Leave';
         } else if (hasCompanyLeave) {
+          companyLeaveDaysCount++;
           heatmapData[d] = 'Company Leave';
         } else if (isPastOrToday) {
           totalWorkingDaysPassed++;
@@ -708,7 +741,9 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 {[
                   { label: "Present (On Time)", value: presentDays - lateArrivals, color: "bg-emerald-500" },
                   { label: "Present (Late)", value: lateArrivals, color: "bg-amber-400" },
+                  { label: "Outstation", value: outstationDaysCount, color: "bg-pink-500" },
                   { label: "On Leave", value: leaveDaysCount, color: "bg-blue-500" },
+                  { label: "Company Leave", value: companyLeaveDaysCount, color: "bg-purple-500" },
                   { label: "Absent", value: absentDays, color: "bg-rose-500" }
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
@@ -838,6 +873,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                         else if (status === 'Absent') bgColor = "bg-rose-500 text-white";
                         else if (status === 'On Leave') bgColor = "bg-blue-500 text-white";
                         else if (status === 'Company Leave') bgColor = "bg-purple-500 text-white";
+                        else if (status === 'Outstation') bgColor = "bg-pink-500 text-white";
                         else if (isWeekend) bgColor = "bg-muted/30"; // weekend empty
                       }
                       
@@ -856,6 +892,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                  <div className="flex flex-wrap items-center justify-center gap-3 mt-auto pt-4 border-t border-border/40">
                     <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /><span className="text-[9px] font-bold text-muted-foreground">Present (On Time)</span></div>
                     <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-amber-400" /><span className="text-[9px] font-bold text-muted-foreground">Present (Late)</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-pink-500" /><span className="text-[9px] font-bold text-muted-foreground">Outstation</span></div>
                     <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-blue-500" /><span className="text-[9px] font-bold text-muted-foreground">Approved Leave</span></div>
                     <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-purple-500" /><span className="text-[9px] font-bold text-muted-foreground">Company Leave</span></div>
                     <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-rose-500" /><span className="text-[9px] font-bold text-muted-foreground">Absent</span></div>

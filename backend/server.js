@@ -3464,6 +3464,11 @@ app.get("/api/dashboard-stats", async (req, res) => {
            WHERE lr.user_id = attendances.user_id AND lr.status = 'Approved' 
            AND ${dateCondition} BETWEEN lr.start_date AND lr.end_date
          )
+         AND NOT EXISTS (
+           SELECT 1 FROM outstation_assignments oa 
+           WHERE oa.user_id = attendances.user_id AND oa.status != 'Cancelled' 
+           AND ${dateCondition} BETWEEN (oa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (oa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+         )
          ${attendanceFilter}`,
         presentParams
       );
@@ -3480,6 +3485,11 @@ app.get("/api/dashboard-stats", async (req, res) => {
            SELECT 1 FROM leave_requests lr 
            WHERE lr.user_id = attendances.user_id AND lr.status = 'Approved' 
            AND ${dateCondition} BETWEEN lr.start_date AND lr.end_date
+         )
+         AND NOT EXISTS (
+           SELECT 1 FROM outstation_assignments oa 
+           WHERE oa.user_id = attendances.user_id AND oa.status != 'Cancelled' 
+           AND ${dateCondition} BETWEEN (oa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (oa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
          )
          ${attendanceFilter}`,
         presentParams
@@ -4658,6 +4668,19 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       isCompanyLeaveDay = true;
     }
 
+    const outstationParams = [targetDateStr, ...pFilterParams];
+    const [outstationTodayRows] = await pool.query(
+      `SELECT DISTINCT o.user_id
+       FROM outstation_assignments o
+       JOIN profiles p ON p.user_id = o.user_id
+       WHERE o.status != 'Cancelled'
+       AND ?::date BETWEEN (o.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (o.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+       ${profileFilter}`,
+      outstationParams
+    );
+    const outstationTodayCount = outstationTodayRows.length;
+    const outstationEmployees = new Set(outstationTodayRows.map(r => r.user_id));
+
     // 2. Attendance & Lates
     const [attRows] = await pool.query(
       `SELECT 
@@ -4679,18 +4702,24 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       const isLate = parseInt(att.is_late) === 1;
       const dateObj = new Date(att.clock_in);
       const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
+      const isOutstation = outstationEmployees.has(att.user_id);
       
-      if (isLate) totalLateArrivals++;
+      if (isLate && !isOutstation) totalLateArrivals++;
       if (dateStr === targetDateStr) {
-        presentToday++;
-        if (isLate) lateToday++;
+        if (!isOutstation) {
+          presentToday++;
+          if (isLate) lateToday++;
+        }
       }
 
       if (!userStats[att.user_id]) {
         userStats[att.user_id] = { name: att.name, presentDays: 0, lateDays: 0 };
       }
-      userStats[att.user_id].presentDays++;
-      if (isLate) userStats[att.user_id].lateDays++;
+      
+      if (!isOutstation) {
+        userStats[att.user_id].presentDays++;
+        if (isLate) userStats[att.user_id].lateDays++;
+      }
     });
 
     const workingDaysInMonth = 22; 
@@ -4738,7 +4767,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     });
 
     // 4. Team Availability today
-    const absentToday = Math.max(0, activeEmployees - presentToday - onLeaveToday - companyLeaveCount);
+    const absentToday = Math.max(0, activeEmployees - presentToday - onLeaveToday - companyLeaveCount - outstationTodayCount);
 
     // 5. Rankings
     const rankings = Object.values(userStats).map(u => ({
@@ -4805,8 +4834,10 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       const dateObj = new Date(a.clock_in);
       const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
       if (dateStr === targetDateStr && branchStats[b]) {
-        if (parseInt(a.is_late) === 1) branchStats[b].late++;
-        else branchStats[b].onTime++;
+        if (!outstationEmployees.has(a.user_id)) {
+          if (parseInt(a.is_late) === 1) branchStats[b].late++;
+          else branchStats[b].onTime++;
+        }
       }
     });
 
@@ -4871,18 +4902,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       else realLeaveAnalytics.unpaid += count;
     });
 
-    const outstationParams = [targetDateStr, ...pFilterParams];
-    const [outstationTodayRows] = await pool.query(
-      `SELECT COUNT(DISTINCT o.user_id) as outstation_today
-       FROM outstation_assignments o
-       JOIN profiles p ON p.user_id = o.user_id
-       WHERE o.status != 'Cancelled'
-       AND ?::date BETWEEN (o.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (o.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
-       ${profileFilter}`,
-      outstationParams
-    );
-    const outstationTodayCount = parseInt(outstationTodayRows[0].outstation_today) || 0;
-
+    // outstation query moved up
     // Populate missing attendees for SSE simulation payload
     const presentUserIds = new Set(attRows.filter(a => {
       const dateObj = new Date(a.clock_in);
@@ -4935,7 +4955,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       late: attRows.filter(a => {
         const dateObj = new Date(a.clock_in);
         const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
-        return dateStr === targetDateStr && parseInt(a.is_late) === 1;
+        return dateStr === targetDateStr && parseInt(a.is_late) === 1 && !outstationEmployees.has(a.user_id);
       }).map(a => ({
         user_id: a.user_id,
         full_name: a.name,
