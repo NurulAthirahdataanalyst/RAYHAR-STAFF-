@@ -26,6 +26,7 @@ import {
   TrendingDown,
   ChevronRight,
   CalendarDays,
+  MapPin,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -353,7 +354,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stat Cards - responsive grid */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 ${role === "employee" || role === "branch_officer" ? "lg:grid-cols-4" : (isCompanyLeave && stats.activeCompanyLeave && ["hr_admin", "managing_director", "finance_manager"].includes(role) ? "lg:grid-cols-6" : "lg:grid-cols-5")}`}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 ${role === "employee" || role === "branch_officer" ? "lg:grid-cols-4" : (isCompanyLeave && stats.activeCompanyLeave && ["hr_admin", "managing_director", "finance_manager"].includes(role) ? "lg:grid-cols-4 xl:grid-cols-7" : "lg:grid-cols-3 xl:grid-cols-6")}`}>
         {role === "employee" || role === "branch_officer" ? (
           <>
             <StatCard
@@ -436,6 +437,13 @@ export default function Dashboard() {
                       value={String(stats.presentToday ?? 0)}
                       subtitle="Clocked In Today"
                       variant="success"
+                    />
+                    <StatCard
+                      icon={MapPin}
+                      title="Outstation"
+                      value={String(stats.outstationToday ?? 0)}
+                      subtitle={`${stats.upcomingOutstation ?? 0} Upcoming`}
+                      variant="purple"
                     />
                     <StatCard
                       icon={Users}
@@ -581,6 +589,13 @@ export default function Dashboard() {
                   value={String(stats.presentToday ?? 0)}
                   subtitle="Clocked In Today"
                   variant="success"
+                />
+                <StatCard
+                  icon={MapPin}
+                  title="Outstation"
+                  value={String(stats.outstationToday ?? 0)}
+                  subtitle={`${stats.upcomingOutstation ?? 0} Upcoming`}
+                  variant="purple"
                 />
                 <StatCard
                   icon={XCircle}

@@ -985,6 +985,21 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
 
     const onLeaveIds = new Set(leaveRows.map(r => r.user_id));
 
+    // Outstation today
+    const outstationParams = [dateStr, ...paramsTotal];
+    const [outstationRows] = await pool.query(
+      `SELECT DISTINCT o.user_id, o.destination
+       FROM outstation_assignments o
+       JOIN profiles p ON p.user_id = o.user_id
+       WHERE o.status = 'Active' AND ? BETWEEN o.start_date AND o.end_date
+       AND p.status = 'Active' ${filterP}`,
+      outstationParams
+    );
+    const outstationMap = new Map();
+    for (const r of outstationRows) {
+        outstationMap.set(r.user_id, r.destination);
+    }
+
     // All clock-ins today
     const clockParams = [dateStr, ...paramsTotal];
     const [clockRows] = await pool.query(
@@ -1060,7 +1075,10 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
           ? new Date(new Date(row.clock_out).getTime() + 8 * 60 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
           : null;
 
-        const emp = { user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', role: p.role || '', clock_in: timeInFmt, clock_out: timeOutFmt };
+        const isOutstation = outstationMap.has(uid);
+        const outstationDest = outstationMap.get(uid);
+
+        const emp = { user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', role: p.role || '', clock_in: timeInFmt, clock_out: timeOutFmt, is_outstation: isOutstation, outstation_destination: outstationDest };
         if (isLate) lateList.push({ ...emp, status: 'late', late_minutes: lateMinutes });
         else presentList.push({ ...emp, status: 'present', late_minutes: 0 });
       }
@@ -2920,11 +2938,18 @@ app.get("/api/attendance-status", async (req, res) => {
       }
     }
 
+      const [outstationRows] = await pool.query(
+        `SELECT destination FROM outstation_assignments WHERE user_id = ? AND status = 'Active' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
+        [empId]
+      );
+      const isOnOutstation = outstationRows.length > 0;
+
     res.json({
       success: true,
       active: rows.length > 0,
       record: rows[0] || null,
       isOnLeave: isOnLeave,
+      isOnOutstation: isOnOutstation,
       attendanceStatus: attendanceStatus
     });
   } catch (err) {
@@ -2993,7 +3018,12 @@ app.post("/api/attendance", async (req, res) => {
       [insertedId]
     );
 
-    res.json({ success: true, record: rows[0] });
+    const [outstationRows] = await pool.query(
+      `SELECT destination FROM outstation_assignments WHERE user_id = ? AND status = 'Active' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
+      [user_id]
+    );
+
+    res.json({ success: true, record: rows[0], isOnOutstation: outstationRows.length > 0 });
     broadcastPresenceUpdate({ type: 'clock-in', userId: user_id });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -3453,6 +3483,17 @@ app.get("/api/dashboard-stats", async (req, res) => {
         [statusToCount, ...queryParams]
       );
 
+      const outstationParams = queryDate ? [queryDate, ...queryParams] : queryParams;
+      const [outstationTodayRows] = await pool.query(
+        `SELECT COUNT(DISTINCT user_id) AS outstation_today FROM outstation_assignments WHERE status = 'Active' AND ${dateCondition} BETWEEN DATE(start_date) AND DATE(end_date) ${attendanceFilter}`,
+        outstationParams
+      );
+
+      const [upcomingOutstationRows] = await pool.query(
+        `SELECT COUNT(DISTINCT user_id) AS upcoming_outstation FROM outstation_assignments WHERE status = 'Active' AND DATE(start_date) > ${dateCondition} ${attendanceFilter}`,
+        outstationParams
+      );
+
       const [recentRows] = await pool.query(
         `
         SELECT p.full_name AS name, 'Leave' AS action, CONCAT('Leave ', lr.status) AS status, TO_CHAR(lr.created_at, 'HH12:MI AM') AS time
@@ -3522,6 +3563,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
         pendingApprovals: parseInt(pendingRows[0].pending_approvals || 0),
         companyLeave: companyLeaveCount,
         activeCompanyLeave: upcomingCompanyLeaveRows.length > 0 ? upcomingCompanyLeaveRows[0] : null,
+        outstationToday: parseInt(outstationTodayRows[0].outstation_today || 0),
+        upcomingOutstation: parseInt(upcomingOutstationRows[0].upcoming_outstation || 0),
       };
       globalRecentActivities = recentRows;
     }
@@ -3614,6 +3657,21 @@ app.get("/api/dashboard-stats", async (req, res) => {
         todayStatusTime = "--:--";
         if (matchingLeave.applies_to === 'all') {
           isAllStaffCompanyLeaveToday = true;
+        }
+      }
+
+      // OVERRIDE IF ON OUTSTATION TODAY
+      const [onOutstationTodayRows] = await pool.query(
+        `SELECT destination FROM outstation_assignments WHERE user_id = ? AND status = 'Active' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
+        [userId]
+      );
+  
+      if (onOutstationTodayRows.length > 0 && !matchingLeave) {
+        if (todayRows.length > 0) {
+            todayStatus = todayRows[0].clock_out ? "Clocked Out (Outstation)" : "Clocked In (Outstation)";
+        } else {
+            todayStatus = "Outstation";
+            todayStatusTime = "--:--";
         }
       }
 
@@ -4115,6 +4173,19 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       [queryDate]
     );
 
+    // 5. Fetch outstation assignments for that date
+    const [outstationRows] = await pool.query(
+      `SELECT DISTINCT o.user_id, o.destination
+       FROM outstation_assignments o
+       JOIN profiles p ON p.user_id = o.user_id
+       WHERE o.status = 'Active' AND ?::date BETWEEN o.start_date AND o.end_date ${profileFilter}`,
+      [queryDate, ...queryParams]
+    );
+    const outstationMap = new Map();
+    for (const row of outstationRows) {
+      outstationMap.set(row.user_id, row);
+    }
+
     const lateTimeStr = getLateThresholdTime();
     const [lateH, lateM] = lateTimeStr.split(':').map(Number);
 
@@ -4160,6 +4231,38 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
 
       if (matchingLeave) {
         status = "Company Leave";
+      } else if (outstationMap.has(uid)) {
+        status = "Outstation";
+        if (clockRow) {
+          clock_in = clockRow.clock_in;
+          clock_out = clockRow.clock_out;
+          time_in = clockRow.time_in;
+          time_out = clockRow.time_out;
+
+          const klTimeIn = new Date(new Date(clock_in).getTime() + 8 * 60 * 60 * 1000);
+          const clockInHour = klTimeIn.getUTCHours();
+          const clockInMinute = klTimeIn.getUTCMinutes();
+          isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
+
+          if (clock_out) {
+            const klTimeOut = new Date(new Date(clock_out).getTime() + 8 * 60 * 60 * 1000);
+            const clockOutHour = klTimeOut.getUTCHours();
+            if (clockOutHour < 17) {
+              isEarlyLeaver = true;
+            }
+            
+            const diffMs = new Date(clock_out).getTime() - new Date(clock_in).getTime();
+            if (diffMs > 9 * 60 * 60 * 1000) {
+              isOvertime = true;
+            }
+          } else {
+            const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
+            const isPastDate = klTimeIn.getUTCDate() !== nowKl.getUTCDate() || klTimeIn.getUTCMonth() !== nowKl.getUTCMonth() || klTimeIn.getUTCFullYear() !== nowKl.getUTCFullYear();
+            if (isPastDate) {
+              missingClockOut = true;
+            }
+          }
+        }
       } else if (leaveRow) {
         // Second priority: Approved Personal Leave
         status = "Approved Leave";

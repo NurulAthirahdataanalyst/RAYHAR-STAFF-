@@ -633,8 +633,8 @@ export default function Attendance() {
         const dashboardUpdate = {
           userId: String(employeeId).trim(),
           name: user?.full_name || "User",
-          todayStatus: isClockOut ? "Clocked Out" : "Present",
-          activityStatus: isClockOut ? "Clocked Out" : "Clocked In",
+          todayStatus: isClockOut ? (result.isOnOutstation ? "Clocked Out (Outstation)" : "Clocked Out") : (result.isOnOutstation ? "Clocked In (Outstation)" : "Present"),
+          activityStatus: isClockOut ? "Clocked Out" : (result.isOnOutstation ? "Clocked In (Outstation)" : "Clocked In"),
           time: eventTime,
           timestamp: Date.now(),
         };

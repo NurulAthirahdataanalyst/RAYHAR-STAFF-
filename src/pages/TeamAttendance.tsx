@@ -122,8 +122,8 @@ export default function TeamAttendance() {
   });
 
   // Metrics computed from merged list to reflect displayed statuses
-  const presentCount = mergedList.filter(e => e.status === 'Present').length;
-  const lateCount = mergedList.filter(e => e.status === 'Present' && e.late !== '00:00' && e.late !== '--').length;
+  const presentCount = mergedList.filter(e => e.status === 'Present' || e.status === 'Outstation').length;
+  const lateCount = mergedList.filter(e => (e.status === 'Present' || e.status === 'Outstation') && e.late !== '00:00' && e.late !== '--').length;
   const absentCount = mergedList.filter(e => e.status === 'Absent').length;
 
   let filteredList = mergedList.filter(e => 
@@ -318,6 +318,7 @@ export default function TeamAttendance() {
                               ${emp.status === "Present" ? "bg-green-500 hover:bg-green-600" : ""} 
                               ${emp.status === "Company Leave" ? "bg-violet-500 hover:bg-violet-600 text-white" : ""} 
                               ${emp.status === "Leave" ? "bg-amber-500 hover:bg-amber-600 text-white" : ""} 
+                              ${emp.status === "Outstation" ? "bg-pink-500 hover:bg-pink-600 text-white" : ""}
                               ${emp.status === "Holiday" ? "bg-blue-500 hover:bg-blue-600 text-white" : ""}
                               ${emp.status === "Weekend" ? "bg-slate-400 hover:bg-slate-500 text-white" : ""}
                             `}
