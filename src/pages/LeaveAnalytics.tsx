@@ -1639,7 +1639,6 @@ export default function LeaveAnalytics() {
                       allowDecimals={false}
                     />
                     <Tooltip
-                      trigger="item"
                       cursor={false}
                       contentStyle={tooltipStyle}
                       labelStyle={{
