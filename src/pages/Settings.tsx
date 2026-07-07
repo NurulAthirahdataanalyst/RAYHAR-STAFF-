@@ -121,6 +121,30 @@ export default function SettingsPage() {
     }
   }, [user, role]);
 
+  const fetchLeaveEntitlements = useCallback(async () => {
+    setLeaveLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (selectedLeaveBranch) params.set("branch", selectedLeaveBranch);
+      if (selectedLeaveDept) params.set("department", selectedLeaveDept);
+      if (leaveSearch) params.set("search", leaveSearch);
+      if (selectedLeaveType) params.set("leaveType", selectedLeaveType);
+      if (selectedLeaveYear) params.set("year", selectedLeaveYear);
+      if (selectedLeaveStatus) params.set("status", selectedLeaveStatus);
+
+      const response = await fetch(`${API_BASE_URL}/api/leave-entitlements?${params.toString()}`);
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setLeaveRows(data.entitlements || []);
+        setLeaveSummary(data.summary || { totalEmployees: 0, carryForwardEligible: 0, pendingAdjustments: 0, expiringSoon: 0 });
+      }
+    } catch (err) {
+      console.error("Leave entitlement refresh error:", err);
+    } finally {
+      setLeaveLoading(false);
+    }
+  }, [leaveSearch, selectedLeaveBranch, selectedLeaveDept, selectedLeaveType, selectedLeaveYear, selectedLeaveStatus]);
+
   // Fetch Init Data
   useEffect(() => {
     const fetchData = async () => {
@@ -169,29 +193,7 @@ export default function SettingsPage() {
     void fetchData();
   }, [fetchLeaveEntitlements]);
 
-  const fetchLeaveEntitlements = useCallback(async () => {
-    setLeaveLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (selectedLeaveBranch) params.set("branch", selectedLeaveBranch);
-      if (selectedLeaveDept) params.set("department", selectedLeaveDept);
-      if (leaveSearch) params.set("search", leaveSearch);
-      if (selectedLeaveType) params.set("leaveType", selectedLeaveType);
-      if (selectedLeaveYear) params.set("year", selectedLeaveYear);
-      if (selectedLeaveStatus) params.set("status", selectedLeaveStatus);
-
-      const response = await fetch(`${API_BASE_URL}/api/leave-entitlements?${params.toString()}`);
-      const data = await response.json();
-      if (response.ok && data.success) {
-        setLeaveRows(data.entitlements || []);
-        setLeaveSummary(data.summary || { totalEmployees: 0, carryForwardEligible: 0, pendingAdjustments: 0, expiringSoon: 0 });
-      }
-    } catch (err) {
-      console.error("Leave entitlement refresh error:", err);
-    } finally {
-      setLeaveLoading(false);
-    }
-  }, [leaveSearch, selectedLeaveBranch, selectedLeaveDept, selectedLeaveType, selectedLeaveYear, selectedLeaveStatus]);
+  // Removed fetchLeaveEntitlements from here
 
   // SSE connection for real-time telemetry
   useEffect(() => {

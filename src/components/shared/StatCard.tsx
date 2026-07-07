@@ -36,10 +36,14 @@ export default function StatCard({
   if (variant === "gauge") {
     return (
       <div className={`rounded-md p-4 flex items-start justify-between h-full min-h-[130px] ${currentStyle}`}>
-        <div className="min-w-0">
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-normal break-words leading-tight">{title}</p>
-          <p className="mt-1.5 text-[28px] font-black text-slate-800 tracking-tight leading-none">{value}</p>
-          {subtitle && <p className="text-[10px] text-slate-500 mt-1 font-medium font-mono truncate">{subtitle}</p>}
+        <div className="min-w-0 flex flex-col h-full justify-between">
+          <div className="min-h-[28px] mb-3">
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-normal break-words leading-tight">{title}</p>
+          </div>
+          <div className="mt-auto">
+            <p className="text-[28px] font-black text-slate-800 tracking-tight leading-none">{value}</p>
+            {subtitle && <p className="text-[10px] text-slate-500 mt-1 font-medium font-mono truncate">{subtitle}</p>}
+          </div>
         </div>
         <div className="relative w-14 h-14 flex items-center justify-center shrink-0 ml-2">
           <svg className="w-full h-full transform -rotate-90">
