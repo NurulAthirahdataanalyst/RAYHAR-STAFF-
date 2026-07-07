@@ -4266,23 +4266,10 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
           clock_out = clockRow.clock_out;
           time_in = clockRow.time_in;
           time_out = clockRow.time_out;
-
+          // Do not calculate isLate, isEarlyLeaver, or isOvertime for Outstation employees.
+          // They are exempt from these strict time checks while outstation.
           const klTimeIn = new Date(new Date(clock_in).getTime() + 8 * 60 * 60 * 1000);
-          const clockInHour = klTimeIn.getUTCHours();
-          const clockInMinute = klTimeIn.getUTCMinutes();
-          isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
-
           if (clock_out) {
-            const klTimeOut = new Date(new Date(clock_out).getTime() + 8 * 60 * 60 * 1000);
-            const clockOutHour = klTimeOut.getUTCHours();
-            if (clockOutHour < 17) {
-              isEarlyLeaver = true;
-            }
-            
-            const diffMs = new Date(clock_out).getTime() - new Date(clock_in).getTime();
-            if (diffMs > 9 * 60 * 60 * 1000) {
-              isOvertime = true;
-            }
           } else {
             const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
             const isPastDate = klTimeIn.getUTCDate() !== nowKl.getUTCDate() || klTimeIn.getUTCMonth() !== nowKl.getUTCMonth() || klTimeIn.getUTCFullYear() !== nowKl.getUTCFullYear();

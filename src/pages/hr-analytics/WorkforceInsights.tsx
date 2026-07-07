@@ -660,7 +660,13 @@ export default function WorkforceInsights() {
                 </Button>
                 <p 
                   className="text-[10px] font-bold text-[#7B0099] cursor-pointer hover:underline flex items-center gap-1 justify-end mt-1"
-                  onClick={() => navigate('/hr-analytics/attendance')}
+                  onClick={() => {
+                    navigate('/hr-analytics/attendance');
+                    setTimeout(() => {
+                      const el = document.getElementById('admin-attendance');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }}
                 >
                   View All <ChevronRight className="w-3 h-3" />
                 </p>

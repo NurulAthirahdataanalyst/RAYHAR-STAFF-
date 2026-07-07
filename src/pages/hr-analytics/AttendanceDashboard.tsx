@@ -842,7 +842,21 @@ export default function AttendanceDashboard() {
   }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, searchTerm, selectedStatusFilter, outstationRecords, selectedDate]);
 
   const filteredAbsentEmployees = useMemo(() => {
-    return absentEmployees.filter((r) => {
+    return dailyAttendance.filter((r: any) => {
+      // We want to show Absent, Company Leave, and Outstation here.
+      // Compute the display status exactly like in Admin Attendance list.
+      let displayStatus = r.status || "Absent";
+      const isOutstation = outstationRecords.some((o: any) => 
+        o.user_id === r.user_id && 
+        o.start_date.slice(0,10) <= selectedDate && 
+        o.end_date.slice(0,10) >= selectedDate
+      );
+      if (isOutstation) displayStatus = "Outstation";
+
+      if (displayStatus !== "Absent" && displayStatus !== "Outstation" && displayStatus !== "Company Leave") {
+        return false;
+      }
+
       const matchesBranch = selectedBranchFilter === "all" || r.branch === selectedBranchFilter;
       const matchesDept = selectedDepartmentFilter === "all" || r.department === selectedDepartmentFilter;
       const matchesSearch = absentSearchTerm === "" || 
@@ -850,7 +864,7 @@ export default function AttendanceDashboard() {
         r.user_id?.toLowerCase().includes(absentSearchTerm.toLowerCase());
       return matchesBranch && matchesDept && matchesSearch;
     });
-  }, [absentEmployees, selectedBranchFilter, selectedDepartmentFilter, searchTerm]);
+  }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, absentSearchTerm, outstationRecords, selectedDate]);
 
 
   const allAnomalies = useMemo(() => {
@@ -1420,16 +1434,19 @@ export default function AttendanceDashboard() {
                 <tbody className="divide-y divide-gray-100">
                   {filteredAbsentEmployees.length > 0 ? (
                     filteredAbsentEmployees.slice((absentCurrentPage - 1) * parseInt(absentLimit), absentCurrentPage * parseInt(absentLimit)).map((emp) => {
+                      let displayStatus = (emp as any).status || "Absent";
                       const isOutstation = outstationRecords.some((o: any) => 
                         o.user_id === emp.user_id && 
                         o.start_date.slice(0,10) <= selectedDate && 
                         o.end_date.slice(0,10) >= selectedDate
                       );
+                      if (isOutstation) displayStatus = "Outstation";
+
                       return (
                       <tr key={emp.user_id} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-4 py-2">
                           <div className="flex items-center gap-2">
-                            <div className={`w-8 h-8 rounded-md font-bold flex items-center justify-center text-xs uppercase shadow-sm ${isOutstation ? 'bg-pink-100 text-pink-700' : 'bg-red-500/10 text-red-600'}`}>
+                            <div className={`w-8 h-8 rounded-md font-bold flex items-center justify-center text-xs uppercase shadow-sm ${displayStatus === 'Outstation' ? 'bg-pink-100 text-pink-700' : displayStatus === 'Company Leave' ? 'bg-purple-100 text-purple-700' : 'bg-red-500/10 text-red-600'}`}>
                               {emp.full_name.charAt(0)}
                             </div>
                             <div>
@@ -1444,10 +1461,15 @@ export default function AttendanceDashboard() {
                           {emp.role.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
                         </td>
                         <td className="px-4 py-2">
-                          {isOutstation ? (
+                          {displayStatus === 'Outstation' ? (
                             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-pink-50 text-pink-700 border border-pink-200 shadow-sm">
                               <span className="w-1 h-1 rounded-full mr-1 bg-[#EC4899] animate-pulse" />
                               Outstation
+                            </span>
+                          ) : displayStatus === 'Company Leave' ? (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-purple-50 text-purple-700 border border-purple-200 shadow-sm">
+                              <span className="w-1 h-1 rounded-full mr-1 bg-purple-500 animate-pulse" />
+                              Company Leave
                             </span>
                           ) : (
                             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-red-50 text-red-700 border border-red-100">
