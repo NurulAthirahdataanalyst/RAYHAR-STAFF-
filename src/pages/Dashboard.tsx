@@ -332,14 +332,14 @@ export default function Dashboard() {
           : `Clock in: ${stats.clockInTime || "--:--"}`;
 
   return (
-    <div className="space-y-5 animate-in fade-in duration-500 p-2 sm:p-4 md:p-6 max-w-[1600px] mx-auto">
+    <div className="space-y-3 animate-in fade-in duration-500">
       {/* Header - responsive */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div className="min-w-0">
-          <h1 className="text-[36px] font-bold tracking-tight text-[#1a0029] truncate leading-tight">
-            {getGreeting()}, <span className="text-[#7B0099]">{rawName}!</span>
+          <h1 className="text-responsive-2xl font-black tracking-tight text-foreground truncate">
+            {getGreeting()}, {rawName}!
           </h1>
-          <p className="text-muted-foreground font-medium mt-1 flex items-center gap-2 text-[14px]">
+          <p className="text-muted-foreground font-medium mt-1 flex items-center gap-2 text-responsive-sm">
             {new Date().toLocaleDateString("en-US", {
               weekday: "long",
               month: "long",
@@ -354,7 +354,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stat Cards - responsive grid */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 ${role === "employee" ? "lg:grid-cols-4" : (isCompanyLeave && stats.activeCompanyLeave && ["hr_admin", "managing_director", "finance_manager"].includes(role) ? "lg:grid-cols-4 xl:grid-cols-8" : "lg:grid-cols-3 xl:grid-cols-7")}`}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 ${role === "employee" ? "lg:grid-cols-4" : (isCompanyLeave && stats.activeCompanyLeave && ["hr_admin", "managing_director", "finance_manager"].includes(role) ? "lg:grid-cols-4 xl:grid-cols-8" : "lg:grid-cols-3 xl:grid-cols-7")}`}>
         {role === "employee" ? (
           <>
             <StatCard
@@ -848,19 +848,19 @@ export default function Dashboard() {
 
       {/* Who's Out Today - admin roles only */}
       {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role) && (
-        <Card className="border border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.02)] rounded-[20px] overflow-hidden bg-white">
-          <CardHeader className="border-b border-slate-100 pb-4 px-5 sm:px-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] rounded-[20px] overflow-hidden bg-card">
+          <CardHeader className="border-b border-border/50 pb-3 px-3 sm:px-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-[#7B0099] rounded-xl shadow-sm">
-                  <CalendarOff className="w-5 h-5 text-white" />
+                <div className="p-2 bg-rose-500/10 rounded-xl">
+                  <CalendarOff className="w-5 h-5 text-rose-500" />
                 </div>
                 <div>
-                  <CardTitle className="text-[24px] font-semibold text-slate-900 tracking-tight">
+                  <CardTitle className="text-base sm:text-lg font-black text-foreground tracking-tight">
                     Who's Out Today
                   </CardTitle>
-                  <p className="text-[14px] font-medium text-slate-500 mt-0.5">
-                    {whoOutToday.length} employee{whoOutToday.length !== 1 ? "s" : ""} currently on leave / outstation
+                  <p className="text-[10px] sm:text-xs font-bold text-muted-foreground mt-0.5">
+                    {whoOutToday.length} employee{whoOutToday.length !== 1 ? "s" : ""} currently on leave
                   </p>
                 </div>
               </div>
@@ -875,9 +875,9 @@ export default function Dashboard() {
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="p-5 sm:p-6 bg-slate-50/30">
+          <CardContent className="p-3 sm:p-3">
             {whoOutToday.length > 0 ? (
-              <div className={`grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5`}>
+              <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3`}>
                 {whoOutToday.map((emp) => {
                   const endDate = new Date(emp.end_date);
                   const today = new Date();
@@ -907,28 +907,28 @@ export default function Dashboard() {
                     <div
                       key={emp.leave_id}
                       onClick={() => navigate(`/leave/admin?leaveId=${emp.leave_id}`)}
-                      className="cursor-pointer group rounded-2xl border border-slate-200 bg-white hover:border-[#7B0099]/40 hover:shadow-[0_8px_24px_rgba(15,23,42,0.06)] transition-all duration-300 p-5 flex flex-col justify-between"
+                      className="cursor-pointer group rounded-[20px] border border-border/60 bg-card hover:border-[#7B0099]/30 hover:shadow-lg transition-all duration-300 p-3.5"
                     >
                       {/* Top: Avatar + Info */}
-                      <div className="flex items-start gap-4">
-                        <div className="w-[52px] h-[52px] rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-lg font-bold text-[#7B0099] group-hover:scale-105 transition-transform shrink-0">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-md bg-[#7B0099]/10 flex items-center justify-center text-base font-black text-[#7B0099] group-hover:scale-110 transition-transform shrink-0">
                           {emp.full_name?.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                         </div>
-                        <div className="min-w-0 flex-1 pt-1">
-                          <p className="text-[15px] font-semibold text-slate-900 uppercase tracking-tight truncate group-hover:text-[#7B0099] transition-colors">
+                        <div className="min-w-0">
+                          <p className="text-sm font-black text-foreground uppercase tracking-tight truncate group-hover:text-[#7B0099] transition-colors">
                             {emp.full_name}
                           </p>
-                          <p className="text-[13px] text-slate-500 mt-1">
+                          <p className="text-xs font-medium text-muted-foreground mt-0.5">
                             {emp.leave_type} • {endLabel}
                           </p>
                         </div>
                       </div>
                       {/* Bottom: Badge + Branch */}
-                      <div className="flex items-center justify-between mt-5">
-                        <Badge className={`${typeInfo.color} text-white text-[10px] font-bold px-3 py-1 uppercase tracking-wider border-none rounded-full shadow-sm`}>
+                      <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border/40">
+                        <Badge className={`${typeInfo.color} text-white text-[10px] font-black px-2.5 py-0.5 h-auto border-none rounded-md`}>
                           {typeInfo.short}
                         </Badge>
-                        <span className="text-[11px] font-bold text-[#7B0099] uppercase tracking-widest bg-[#7B0099]/10 px-2 py-0.5 rounded-md">
+                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                           {emp.branch}
                         </span>
                       </div>
@@ -947,29 +947,27 @@ export default function Dashboard() {
       )}
 
       {/* Enterprise Recent Activity Feed */}
-      <Card className="border border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.02)] rounded-[20px] overflow-hidden bg-white">
-        <CardHeader className="border-b border-slate-100 pb-4 px-5 sm:px-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-[#7B0099]/10 rounded-xl">
-                <Activity className="w-5 h-5 text-[#7B0099]" />
-              </div>
-              <CardTitle className="text-[20px] font-semibold text-slate-900 tracking-tight">
+      <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] rounded-[20px] overflow-hidden bg-card">
+        <CardHeader className="border-b border-border/50 pb-3 px-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-[#7B0099]" />
+              <CardTitle className="text-base sm:text-lg font-black text-foreground uppercase tracking-wider">
                 Recent Activity
               </CardTitle>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {lastUpdated && (
-                <span className="text-[12px] font-medium text-slate-500">{lastUpdated}</span>
+                <span className="text-[10px] font-bold text-muted-foreground">{lastUpdated}</span>
               )}
-              <Badge variant="outline" className="rounded-lg font-semibold border-slate-200 text-slate-600 text-[11px] px-3 py-1 bg-slate-50">
+              <Badge variant="outline" className="rounded-lg font-bold border-border text-muted-foreground text-[10px]">
                 Last 10 Events
               </Badge>
             </div>
           </div>
 
           {/* Tab Strip */}
-          <div className="flex gap-1.5 mt-5 bg-slate-100/50 rounded-xl p-1.5 border border-slate-100">
+          <div className="flex gap-1 mt-3 bg-muted/40 rounded-xl p-1">
             {([
               { key: "my", label: "My Activity" },
               ...(isElevatedRole ? [{ key: "team", label: "Team" }] : []),
@@ -979,10 +977,10 @@ export default function Dashboard() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex-1 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 ${
+                className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${
                   activeTab === tab.key
-                    ? "bg-white text-[#7B0099] shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-slate-200"
-                    : "text-slate-500 hover:text-slate-800 hover:bg-slate-50/80"
+                    ? "bg-[#7B0099] text-white shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {tab.label}
@@ -991,7 +989,7 @@ export default function Dashboard() {
           </div>
 
           {/* Filter Chips */}
-          <div className="flex gap-2 mt-3 flex-wrap">
+          <div className="flex gap-1.5 mt-2 flex-wrap">
             {([
               { key: "all", label: "All" },
               { key: "attendance", label: "Attendance" },
@@ -1002,10 +1000,10 @@ export default function Dashboard() {
               <button
                 key={chip.key}
                 onClick={() => setActivityFilter(chip.key)}
-                className={`px-3 py-1 rounded-full text-[12px] font-medium border transition-all duration-200 ${
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-all duration-200 ${
                   activityFilter === chip.key
-                    ? "bg-[#7B0099]/10 text-[#7B0099] border-[#7B0099]/20"
-                    : "bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50"
+                    ? "bg-[#7B0099]/10 text-[#7B0099] border-[#7B0099]/30"
+                    : "border-border/50 text-muted-foreground hover:border-[#7B0099]/30"
                 }`}
               >
                 {chip.label}
@@ -1014,7 +1012,7 @@ export default function Dashboard() {
           </div>
         </CardHeader>
 
-        <CardContent className="pt-4 px-5 sm:px-6 pb-6 bg-slate-50/30">
+        <CardContent className="pt-3 px-3">
           {(() => {
             // Determine which feed to show
             let feedItems: any[] = [];
@@ -1030,17 +1028,15 @@ export default function Dashboard() {
 
             if (feedItems.length === 0) {
               return (
-                <div className="py-12 text-center flex flex-col items-center justify-center gap-3">
-                  <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center">
-                    <Activity className="w-6 h-6 text-slate-400" />
-                  </div>
-                  <p className="text-[14px] text-slate-500 font-medium">No activity found for this view.</p>
+                <div className="py-8 text-center flex flex-col items-center justify-center gap-2">
+                  <Activity className="w-6 h-6 text-muted-foreground/30" />
+                  <p className="text-xs text-muted-foreground font-bold">No activity found for this view.</p>
                 </div>
               );
             }
 
             return (
-              <div className="space-y-3">
+              <div className="space-y-1">
                 {feedItems.map((item, i) => {
                   // Icon + colour by type
                   const typeConfig: Record<string, { icon: React.ReactNode; bg: string; text: string }> = {
@@ -1069,35 +1065,35 @@ export default function Dashboard() {
                   return (
                     <div
                       key={i}
-                      className="group flex items-start gap-4 py-4 px-5 bg-white border border-slate-100 rounded-[16px] hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)] hover:border-slate-200 transition-all duration-200"
+                      className="group flex items-start gap-3 py-2.5 px-3 rounded-2xl hover:bg-accent/50 transition-colors duration-200"
                     >
                       {/* Type icon */}
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cfg.bg} ${cfg.text}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${cfg.bg} ${cfg.text}`}>
                         {cfg.icon}
                       </div>
 
                       {/* Content */}
-                      <div className="flex-1 min-w-0 pt-0.5">
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                          <div className="min-w-0 space-y-1">
-                            <p className="text-[14px] text-slate-800 leading-tight">
-                              <span className="font-bold text-slate-900">{item.actor}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-foreground leading-tight">
+                              <span className="text-[#7B0099]">{item.actor}</span>
                               {" "}
-                              <span className="text-slate-600">{item.action}</span>
+                              <span className="text-foreground font-semibold">{item.action}</span>
                               {item.target && (
                                 <>
                                   {" → "}
-                                  <span className="font-semibold text-slate-800">{item.target}</span>
+                                  <span className="font-bold">{item.target}</span>
                                 </>
                               )}
                             </p>
                             {item.context && (
-                              <p className="text-[13px] text-slate-500 truncate">{item.context}</p>
+                              <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{item.context}</p>
                             )}
                           </div>
-                          <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 shrink-0 w-full sm:w-auto">
-                            <span className="text-[12px] text-slate-500 font-medium whitespace-nowrap">{item.time}</span>
-                            <span className={`text-[11px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider ${badgeCls}`}>
+                          <div className="flex flex-col items-end gap-1 shrink-0">
+                            <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">{item.time}</span>
+                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wide ${badgeCls}`}>
                               {item.badge}
                             </span>
                           </div>
@@ -1111,13 +1107,13 @@ export default function Dashboard() {
           })()}
 
           {/* View All footer */}
-          <div className="mt-5 pt-5 border-t border-slate-200 flex justify-center">
+          <div className="mt-3 pt-3 border-t border-border/40 flex justify-center">
             <button
               onClick={() => navigate("/attendance")}
-              className="flex items-center gap-1.5 text-[13px] font-semibold text-[#7B0099] hover:text-[#5a0070] transition-colors"
+              className="flex items-center gap-1.5 text-xs font-bold text-[#7B0099] hover:underline transition-all"
             >
               View All Activity
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </CardContent>
