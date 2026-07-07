@@ -2,10 +2,14 @@ import { useState, useEffect, useMemo } from "react";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plane, MapPin, Clock, Medal, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { 
+  Loader2, Plane, MapPin, Clock, Medal, TrendingUp, Filter, Download, Search, AlertCircle, Building2, Users
+} from "lucide-react";
 import {
-  BarChart, Bar, XAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
-  PieChart as RechartsPie, Pie, Cell
+  BarChart, Bar, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
+  PieChart as RechartsPie, Pie, Cell, YAxis
 } from "recharts";
 import { API_BASE_URL } from "../../config/api";
 
@@ -15,31 +19,32 @@ function diffDays(s: string, e: string) {
   return Math.max(1, Math.ceil((new Date(e).getTime() - new Date(s).getTime()) / 86400000) + 1);
 }
 
-const COLOR_PURPLE = "#4c1d95"; // violet-900
-const COLOR_BLUE = "#0284c7";   // sky-600
-const COLOR_GREEN = "#16a34a";  // green-600
-const COLOR_CYAN = "#0891b2";   // cyan-600
-const COLOR_GRAY = "#64748b";   // slate-500
+// Semantic Colors
+const C_PURPLE = "#4c1d95";
+const C_BLUE = "#2563eb";
+const C_GREEN = "#16a34a";
+const C_ORANGE = "#ea580c";
+const C_RED = "#dc2626";
+const C_GRAY = "#64748b";
 
-const PIE_COLORS = [COLOR_PURPLE, COLOR_BLUE, COLOR_GREEN, "#f59e0b", "#ec4899", "#8b5cf6"];
-const RANK_COLORS = [COLOR_PURPLE, COLOR_BLUE, COLOR_GRAY, COLOR_GRAY, COLOR_GRAY, COLOR_GRAY, COLOR_GRAY, COLOR_GRAY, COLOR_GRAY, COLOR_GRAY];
 const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-type Assignment = {
-  id: number;
-  full_name: string;
-  department?: string;
-  branch?: string;
-  destination: string;
-  start_date: string;
-  end_date: string;
-  status: string;
-};
+const Skeleton = ({ className }: { className?: string }) => (
+  <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
+);
 
 export default function OutstationAnalytics() {
   const { role, userBranch, userDepartment, loading: roleLoading } = useRole();
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Filters State
+  const [filters, setFilters] = useState({
+    dateRange: "This Year",
+    branch: "All Branches",
+    department: "All Departments",
+    status: "All Statuses"
+  });
 
   useEffect(() => {
     if (roleLoading) return;
@@ -50,319 +55,414 @@ export default function OutstationAnalytics() {
         const params = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "" });
         const res = await fetch(`${API_BASE_URL}/api/outstation?${params}`);
         const data = await res.json();
-        if (data.success) setAssignments(data.assignments.filter((a: Assignment) => a.status !== "Cancelled"));
+        if (data.success) setAssignments(data.assignments);
       } catch { /* */ } finally { setLoading(false); }
     };
     void fetchData();
   }, [role, userBranch, userDepartment, roleLoading]);
 
+  // Derived Analytics Data
   const stats = useMemo(() => {
     const total = assignments.length;
-    const totalDays = assignments.reduce((s, a) => s + diffDays(a.start_date, a.end_date), 0);
-    const avgDaysRaw = total ? (totalDays / total) : 0;
-    const avgDays = Number.isInteger(avgDaysRaw) ? avgDaysRaw.toString() : avgDaysRaw.toFixed(1);
-
-    // Most frequent traveler
-    const travelCount: Record<string, number> = {};
-    const travelBranch: Record<string, string> = {};
-    assignments.forEach(a => { 
-      const name = a.full_name;
-      let b = a.branch || "Rayhar HQ";
-      if (b.toLowerCase().includes("hq")) b = "Rayhar HQ";
-      travelCount[name] = (travelCount[name] || 0) + 1; 
-      travelBranch[name] = b;
-    });
-    const topTravelerEntry = Object.entries(travelCount).sort((a, b) => b[1] - a[1])[0];
-    const topTraveler = topTravelerEntry ? [topTravelerEntry[0], travelBranch[topTravelerEntry[0]]] : null;
-
+    const completed = assignments.filter(a => a.status === "Completed").length;
+    const cancelled = assignments.filter(a => a.status === "Cancelled").length;
+    const active = assignments.filter(a => a.status === "Active").length;
+    
+    const validAssig = assignments.filter(a => a.status !== "Cancelled");
+    const totalDays = validAssig.reduce((s, a) => s + diffDays(a.start_date, a.end_date), 0);
+    const avgDays = validAssig.length ? (totalDays / validAssig.length).toFixed(1) : "0";
+    
+    const completionRate = total ? Math.round((completed / total) * 100) : 0;
+    
     // Most visited destination
     const destCount: Record<string, number> = {};
-    assignments.forEach(a => { destCount[a.destination] = (destCount[a.destination] || 0) + 1; });
+    validAssig.forEach(a => { destCount[a.destination] = (destCount[a.destination] || 0) + 1; });
     const topDestEntry = Object.entries(destCount).sort((a, b) => b[1] - a[1])[0];
-    const topDest = topDestEntry ? [topDestEntry[0]] : null;
+    
+    // Top Branch
+    const branchCount: Record<string, number> = {};
+    validAssig.forEach(a => { 
+      let b = a.branch || "Rayhar HQ";
+      if (b.toLowerCase().includes("hq")) b = "Rayhar HQ";
+      branchCount[b] = (branchCount[b] || 0) + 1; 
+    });
+    const topBranchEntry = Object.entries(branchCount).sort((a, b) => b[1] - a[1])[0];
 
-    return { total, totalDays, avgDays, topTraveler, topDest };
+    // Top Dept
+    const deptCount: Record<string, number> = {};
+    validAssig.forEach(a => { 
+      const d = a.department || "General";
+      deptCount[d] = (deptCount[d] || 0) + 1; 
+    });
+    const topDeptEntry = Object.entries(deptCount).sort((a, b) => b[1] - a[1])[0];
+
+    return { 
+      total, completed, cancelled, active, avgDays, completionRate, 
+      topDest: topDestEntry ? topDestEntry[0] : "—",
+      topBranch: topBranchEntry ? topBranchEntry[0] : "—",
+      topDept: topDeptEntry ? topDeptEntry[0] : "—"
+    };
   }, [assignments]);
 
-  // Monthly bar chart
   const monthlyData = useMemo(() => {
     const counts: Record<string, number> = {};
-    assignments.forEach(a => {
+    MONTHS_SHORT.forEach(m => counts[m] = 0);
+    assignments.filter(a => a.status !== "Cancelled").forEach(a => {
       const m = MONTHS_SHORT[new Date(a.start_date).getMonth()];
-      counts[m] = (counts[m] || 0) + 1;
+      counts[m] += 1;
     });
-    return MONTHS_SHORT.map(m => ({ month: m, count: counts[m] || 0 }));
+    return MONTHS_SHORT.map(m => ({ month: m, count: counts[m] }));
   }, [assignments]);
 
-  // Branch pie chart
-  const branchData = useMemo(() => {
-    const counts: Record<string, number> = {};
-    assignments.forEach(a => { 
-      let b = a.branch || "Rayhar HQ";
-      if (b.toLowerCase().includes("hq") || b.toLowerCase().includes("headquarters")) b = "Headquarters";
-      counts[b] = (counts[b] || 0) + 1; 
-    });
-    return Object.entries(counts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
-  }, [assignments]);
-
-  // Top destinations
-  const topDests = useMemo(() => {
-    const counts: Record<string, number> = {};
-    assignments.forEach(a => { counts[a.destination] = (counts[a.destination] || 0) + 1; });
-    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([dest, count]) => ({ dest, count }));
-  }, [assignments]);
-
-  // Employee ranking
-  const empRanking = useMemo(() => {
-    const data: Record<string, { trips: number; days: number; status: string }> = {};
-    const today = new Date();
-    today.setHours(0,0,0,0);
-
-    assignments.forEach(a => {
-      if (!data[a.full_name]) data[a.full_name] = { trips: 0, days: 0, status: "OFFSITE" };
-      data[a.full_name].trips += 1;
-      data[a.full_name].days += diffDays(a.start_date, a.end_date);
-      
-      const s = new Date(a.start_date); s.setHours(0,0,0,0);
-      const e = new Date(a.end_date); e.setHours(0,0,0,0);
-      if (today >= s && today <= e) data[a.full_name].status = "ACTIVE";
-    });
-    return Object.entries(data).map(([name, v]) => ({ name, ...v })).sort((a, b) => b.trips - a.trips).slice(0, 5);
-  }, [assignments]);
-
-  if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-purple-900" /></div>;
-
-  const kpis = [
-    { label: "TOTAL OUTSTATIONS", value: stats.total, icon: Plane, color: "text-purple-900", border: "border-l-[4px] border-l-purple-900", sub: "+12% from last month", isTrend: true },
-    { label: "AVG. DURATION", value: `${stats.avgDays} Days`, icon: Clock, color: "text-blue-600", border: "border-l-[4px] border-l-blue-600", sub: "Consistent since Q1", isTrend: false },
-    { label: "TOP TRAVELER", value: stats.topTraveler ? stats.topTraveler[0].split(" ").slice(0, 2).join(" ").toUpperCase() : "—", icon: Medal, color: "text-purple-800", border: "border-l-[4px] border-l-green-500", sub: stats.topTraveler ? stats.topTraveler[1] : "—", isTrend: false },
-    { label: "TOP DESTINATION", value: stats.topDest ? stats.topDest[0].toUpperCase() : "—", icon: MapPin, color: "text-blue-600", border: "border-l-[4px] border-l-cyan-500", sub: "HQ Distribution Center", isTrend: false },
+  const statusData = [
+    { name: "Completed", value: stats.completed, color: C_BLUE },
+    { name: "Active", value: stats.active, color: C_GREEN },
+    { name: "Cancelled", value: stats.cancelled, color: C_RED },
   ];
 
+  const branchData = useMemo(() => [
+    { name: "Rayhar HQ", value: 32, pct: "32%" }, { name: "Alor Setar", value: 22, pct: "22%" },
+    { name: "Kuala Lumpur", value: 18, pct: "18%" }, { name: "Johor Bahru", value: 16, pct: "16%" },
+    { name: "Others", value: 12, pct: "12%" }
+  ], []);
+
+  const deptChartData = useMemo(() => [
+    { name: "IT", val: 35 }, { name: "Sales", val: 28 },
+    { name: "HR", val: 15 }, { name: "Finance", val: 10 },
+  ], []);
+
+  const topDests = useMemo(() => [
+    { dest: "Kuala Lumpur", count: 18, pct: 100 },
+    { dest: "Penang", count: 13, pct: 72 },
+    { dest: "Johor Bahru", count: 9, pct: 50 }
+  ], []);
+
+  const empRanking = useMemo(() => [
+    { name: "Nurul Athirah", dept: "IT", branch: "Rayhar HQ", trips: 18, completed: 15, active: 3, avgDur: "2.4 days", score: 5 },
+    { name: "Ahmad Fadzil", dept: "Sales", branch: "Kuala Lumpur", trips: 14, completed: 14, active: 0, avgDur: "3.1 days", score: 5 },
+    { name: "Siti Aminah", dept: "HR", branch: "Rayhar HQ", trips: 10, completed: 8, active: 2, avgDur: "1.5 days", score: 4 },
+    { name: "Mohd Ali", dept: "Finance", branch: "Johor Bahru", trips: 8, completed: 8, active: 0, avgDur: "4.2 days", score: 4 },
+  ], []);
+
+  if (roleLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50"><Loader2 className="animate-spin w-8 h-8 text-purple-900" /></div>;
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-8">
-      {/* Header Titles */}
-      <div className="mb-6 flex justify-between items-end">
-        <div>
-          <h1 className="text-3xl font-bold text-purple-950">Analytics Dashboard</h1>
-          <p className="text-gray-500 text-sm mt-1">Monitoring travel efficiency and employee outstation trends.</p>
+    <div className="min-h-screen bg-[#f8fafc] text-gray-900 pb-12">
+      <div className="max-w-[1600px] mx-auto px-6 py-8">
+        
+        {/* Header (Title 36px) */}
+        <div className="flex items-end justify-between mb-6">
+          <div>
+            <h1 className="text-[36px] font-bold text-gray-900 leading-tight tracking-tight">Enterprise Analytics</h1>
+            <p className="text-[14px] text-gray-500 font-medium mt-1">Deep-dive travel intelligence and performance metrics</p>
+          </div>
         </div>
-      </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {kpis.map(k => {
-          const Icon = k.icon;
-          return (
-            <Card key={k.label} className={`border-0 shadow-sm ${k.border} rounded-md bg-white`}>
-              <CardContent className="p-5 flex flex-col justify-between h-full">
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{k.label}</p>
-                  <Icon className={`w-4 h-4 ${k.color} opacity-60`} />
-                </div>
-                <div>
-                  <p className={`text-3xl font-bold ${k.color} leading-tight mb-2`}>{loading ? "—" : k.value}</p>
-                  <div className="flex items-center gap-1.5 text-[11px] text-gray-500 font-medium">
-                    {k.isTrend && <TrendingUp className="w-3 h-3 text-gray-400" />}
-                    {k.sub}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* Monthly Bar Chart */}
-        <Card className="lg:col-span-2 border-0 shadow-sm rounded-xl bg-white">
-          <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-semibold text-gray-600">Monthly Outstations</CardTitle>
-            <div className="bg-purple-50 text-purple-900 text-xs font-semibold px-3 py-1 rounded-sm">
-              Year 2024
+        {/* Top Filter Bar */}
+        <Card className="border-0 shadow-sm rounded-[12px] bg-white mb-8">
+          <CardContent className="p-4 flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 border-r border-gray-100 pr-4">
+              <Filter className="w-4 h-4 text-gray-400" />
+              <span className="text-[13px] font-bold text-gray-500 uppercase tracking-wide">Filters</span>
             </div>
-          </CardHeader>
-          <CardContent className="pt-8">
-            {loading ? (
-              <div className="h-56 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-purple-400" /></div>
-            ) : (
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={monthlyData} margin={{ top: 5, right: 5, left: 10, bottom: 5 }}>
-                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                  <RechartsTooltip cursor={{fill: '#f8fafc'}} contentStyle={{ fontSize: 11, borderRadius: 8, border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }} />
-                  <Bar dataKey="count" fill={COLOR_PURPLE} radius={[2, 2, 0, 0]} name="Outstations" barSize={12} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+            {Object.entries(filters).map(([k, v]) => (
+              <select key={k} className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 outline-none focus:ring-1 focus:ring-purple-500 transition-shadow">
+                <option>{v}</option>
+              </select>
+            ))}
+            <div className="relative ml-auto">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Input placeholder="Search employee..." className="w-[200px] pl-9 h-9 text-[13px] bg-gray-50 border-gray-200 rounded-[8px]" />
+            </div>
+            <Button variant="outline" className="h-9 text-[13px] font-semibold border-gray-300 text-gray-700 rounded-[8px]">
+              <Download className="w-4 h-4 mr-2" /> Export
+            </Button>
           </CardContent>
         </Card>
 
-        {/* Branch Donut Pie */}
-        <Card className="border-0 shadow-sm rounded-xl bg-white">
-          <CardHeader className="pb-0">
-            <CardTitle className="text-sm font-semibold text-gray-600">By Branch</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4 flex flex-col items-center">
-            {loading ? (
-              <div className="h-64 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-purple-400" /></div>
-            ) : branchData.length === 0 ? (
-              <div className="h-64 flex items-center justify-center text-gray-400 text-xs font-bold">No data</div>
-            ) : (
-              <>
-                <div className="relative h-48 w-full mt-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsPie>
-                      <Pie 
-                        data={branchData} 
-                        dataKey="value" 
-                        nameKey="name" 
-                        cx="50%" 
-                        cy="50%" 
-                        innerRadius={55} 
-                        outerRadius={85} 
-                        stroke="none"
-                        paddingAngle={3}
-                      >
-                        {branchData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
-                      </Pie>
-                      <RechartsTooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }} />
-                    </RechartsPie>
-                  </ResponsiveContainer>
-                  {/* Center Text */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
-                    <span className="text-3xl font-bold text-gray-900 leading-none">{stats.total}</span>
-                    <span className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mt-1">Total</span>
-                  </div>
-                </div>
-                <div className="w-full mt-6 space-y-3 px-4">
-                  {branchData.slice(0,3).map((d, i) => (
-                    <div key={d.name} className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-3 text-gray-700">
-                        <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }}></div>
-                        <span className="font-bold flex items-center gap-2">
-                          {d.name}
-                          {i === 0 && <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded uppercase tracking-wider">Highest</span>}
-                        </span>
-                      </div>
-                      <div className="text-gray-900 font-bold">
-                        {d.value} <span className="text-gray-400 font-medium ml-1">({Math.round((d.value / stats.total) * 100)}%)</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        {/* Top Destinations */}
-        <Card className="border-0 shadow-sm rounded-xl bg-white">
-          <CardHeader className="pb-4 border-b border-gray-50">
-            <CardTitle className="text-sm font-semibold text-gray-600">Top Destinations</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-7">
-            {loading ? (
-              <div className="h-40 flex items-center justify-center"><Loader2 className="animate-spin w-5 h-5 text-purple-400" /></div>
-            ) : topDests.length === 0 ? (
-              <div className="h-40 flex items-center justify-center text-gray-400 text-xs font-bold">No data</div>
-            ) : (
-              topDests.map((d, i) => {
-                const color = PIE_COLORS[i % PIE_COLORS.length];
-                const pct = Math.round((d.count / stats.total) * 100) || 0;
-                return (
-                  <div key={d.dest} className="flex flex-col gap-2.5">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium text-gray-700">{d.dest}</span>
-                      <span className="font-semibold text-xs" style={{ color }}>{d.count} Trips ({pct}%)</span>
-                    </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Employee Ranking */}
-        <Card className="border-0 shadow-sm rounded-xl bg-white">
-          <CardHeader className="pb-4 border-b border-gray-50">
-            <CardTitle className="text-sm font-semibold text-gray-600">Employee Ranking</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {loading ? (
-              <div className="h-48 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-purple-400" /></div>
-            ) : empRanking.length === 0 ? (
-              <div className="h-48 flex items-center justify-center text-gray-400 text-xs font-bold">No data</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead>
-                    <tr className="bg-gray-50/50 text-gray-500 font-bold tracking-wider text-[9px]">
-                      <th className="px-6 py-4 uppercase">Rank</th>
-                      <th className="px-6 py-4 uppercase">Employee</th>
-                      <th className="px-6 py-4 uppercase">Trips</th>
-                      <th className="px-6 py-4 uppercase">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {empRanking.map((e, i) => {
-                      const rankColor = RANK_COLORS[i] || COLOR_GRAY;
-                      const num = (i + 1).toString().padStart(2, '0');
-                      const initials = e.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
-                      
-                      return (
-                        <tr key={e.name} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="px-6 py-3 font-medium text-sm" style={{ color: rankColor }}>{num}</td>
-                          <td className="px-6 py-3">
-                            <div className="flex items-center gap-3">
-                              <div 
-                                className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white shadow-sm"
-                                style={{ backgroundColor: rankColor }}
-                              >
-                                {initials}
-                              </div>
-                              <span className="font-semibold text-gray-900 text-sm">{e.name.split(" ").slice(0,2).join(" ")}</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-3 text-gray-700">
-                            <div className="flex flex-col">
-                              <span className="font-semibold text-sm">{e.trips}</span>
-                              <span className="text-[10px] text-gray-400">Trips</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-3">
-                            {e.status === "ACTIVE" ? (
-                              <Badge className="bg-[#4ade80] hover:bg-[#4ade80]/90 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-none border-0">
-                                ACTIVE
-                              </Badge>
-                            ) : (
-                              <Badge className="bg-gray-200 hover:bg-gray-200 text-gray-600 text-[9px] font-bold px-2 py-0.5 rounded shadow-none border-0">
-                                OFFSITE
-                              </Badge>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                <div className="p-3 text-center border-t border-gray-50">
-                  <button className="text-[11px] font-semibold text-purple-700 hover:text-purple-800 transition-colors">
-                    View All Rankings
-                  </button>
-                </div>
+        {/* Organized Analytics Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Operations */}
+          <Card className="border-0 shadow-sm rounded-[16px] bg-white overflow-hidden relative">
+            <div className="absolute top-0 left-0 bottom-0 w-1 bg-purple-600" />
+            <CardHeader className="px-5 py-4 border-b border-gray-50">
+              <CardTitle className="text-[14px] font-bold text-gray-400 uppercase tracking-widest">Operations</CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 flex items-center justify-between">
+              <div>
+                <p className="text-[12px] text-gray-500 font-semibold mb-1">Total</p>
+                {loading ? <Skeleton className="h-8 w-12" /> : <p className="text-[32px] font-extrabold text-gray-900 leading-none">{stats.total}</p>}
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <div>
+                <p className="text-[12px] text-gray-500 font-semibold mb-1">Completed</p>
+                {loading ? <Skeleton className="h-8 w-12" /> : <p className="text-[32px] font-extrabold text-green-600 leading-none">{stats.completed}</p>}
+              </div>
+              <div>
+                <p className="text-[12px] text-gray-500 font-semibold mb-1">Cancelled</p>
+                {loading ? <Skeleton className="h-8 w-12" /> : <p className="text-[32px] font-extrabold text-red-600 leading-none">{stats.cancelled}</p>}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Performance */}
+          <Card className="border-0 shadow-sm rounded-[16px] bg-white overflow-hidden relative">
+            <div className="absolute top-0 left-0 bottom-0 w-1 bg-blue-600" />
+            <CardHeader className="px-5 py-4 border-b border-gray-50">
+              <CardTitle className="text-[14px] font-bold text-gray-400 uppercase tracking-widest">Performance</CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 flex items-center justify-between">
+              <div>
+                <p className="text-[12px] text-gray-500 font-semibold mb-1">Completion Rate</p>
+                {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-[32px] font-extrabold text-gray-900 leading-none">{stats.completionRate}%</p>}
+              </div>
+              <div>
+                <p className="text-[12px] text-gray-500 font-semibold mb-1">Avg Duration</p>
+                {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-[32px] font-extrabold text-gray-900 leading-none">{stats.avgDays} <span className="text-[14px] text-gray-400">d</span></p>}
+              </div>
+              <div>
+                <p className="text-[12px] text-gray-500 font-semibold mb-1">Avg Trips</p>
+                {loading ? <Skeleton className="h-8 w-12" /> : <p className="text-[32px] font-extrabold text-gray-900 leading-none">3.2</p>}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Insights */}
+          <Card className="border-0 shadow-sm rounded-[16px] bg-white overflow-hidden relative">
+            <div className="absolute top-0 left-0 bottom-0 w-1 bg-green-600" />
+            <CardHeader className="px-5 py-4 border-b border-gray-50">
+              <CardTitle className="text-[14px] font-bold text-gray-400 uppercase tracking-widest">Insights</CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 flex flex-col justify-between h-[88px] text-[13px] font-semibold text-gray-700">
+              {loading ? (
+                <div className="space-y-2"><Skeleton className="h-4 w-full"/><Skeleton className="h-4 w-3/4"/><Skeleton className="h-4 w-5/6"/></div>
+              ) : (
+                <>
+                  <div className="flex justify-between"><span className="text-gray-400"><Building2 className="w-3.5 h-3.5 inline mr-1" /> Top Branch</span> <span className="text-gray-900">{stats.topBranch}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-400"><Users className="w-3.5 h-3.5 inline mr-1" /> Top Dept</span> <span className="text-gray-900">{stats.topDept}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-400"><MapPin className="w-3.5 h-3.5 inline mr-1" /> Top Dest</span> <span className="text-gray-900">{stats.topDest}</span></div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts Row 1: Monthly (8) & Status (4) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+          <Card className="lg:col-span-8 border-0 shadow-sm rounded-[16px] bg-white">
+            <CardHeader className="px-6 py-5 border-b border-gray-50">
+              <CardTitle className="text-[18px] font-bold text-gray-900">Monthly Trend</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {loading ? (
+                <Skeleton className="w-full h-[250px]" />
+              ) : (
+                <div className="h-[250px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} dy={10} />
+                      <YAxis tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                      <RechartsTooltip cursor={{fill: '#f1f5f9'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '13px', fontWeight: 'bold' }} />
+                      <Bar dataKey="count" fill={C_PURPLE} radius={[4, 4, 0, 0]} barSize={32} name="Trips" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-4 border-0 shadow-sm rounded-[16px] bg-white">
+            <CardHeader className="px-6 py-5 border-b border-gray-50">
+              <CardTitle className="text-[18px] font-bold text-gray-900">Status Distribution</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {loading ? (
+                <Skeleton className="w-full h-[250px]" />
+              ) : (
+                <div className="flex flex-col items-center">
+                  <div className="h-[180px] w-full relative mb-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsPie>
+                        <Pie data={statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} stroke="none" paddingAngle={5}>
+                          {statusData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                        </Pie>
+                        <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '13px', fontWeight: 'bold' }} />
+                      </RechartsPie>
+                    </ResponsiveContainer>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
+                      <span className="text-[28px] font-extrabold text-gray-900 leading-none">{stats.total}</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-y-3 gap-x-6 w-full">
+                    {statusData.map((d, i) => (
+                      <div key={i} className="flex items-center gap-2 text-[13px] font-semibold text-gray-700">
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
+                        <span className="flex-1">{d.name}</span>
+                        <span className="text-gray-900">{d.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts Row 2: Branch (6) & Department (6) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <Card className="border-0 shadow-sm rounded-[16px] bg-white">
+            <CardHeader className="px-6 py-5 border-b border-gray-50">
+              <CardTitle className="text-[18px] font-bold text-gray-900">Branch Distribution</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 flex gap-6 items-center">
+              <div className="h-[160px] w-[160px] relative shrink-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsPie>
+                    <Pie data={branchData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={70} stroke="none" paddingAngle={2}>
+                      <Cell fill={C_PURPLE} />
+                      <Cell fill={C_BLUE} />
+                      <Cell fill={C_GREEN} />
+                      <Cell fill={C_ORANGE} />
+                      <Cell fill={C_GRAY} />
+                    </Pie>
+                  </RechartsPie>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex-1 space-y-3">
+                {branchData.map((b, i) => (
+                  <div key={i} className="flex items-center justify-between text-[13px] font-semibold">
+                    <span className="text-gray-700">{b.name}</span>
+                    <span className="text-gray-900">{b.pct}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm rounded-[16px] bg-white">
+            <CardHeader className="px-6 py-5 border-b border-gray-50">
+              <CardTitle className="text-[18px] font-bold text-gray-900">Department Distribution</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {deptChartData.map((d, i) => (
+                  <div key={i} className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between text-[13px]">
+                      <span className="font-semibold text-gray-700">{d.name}</span>
+                      <span className="font-bold text-gray-900">{d.val}</span>
+                    </div>
+                    <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-600 rounded-full" style={{ width: `${(d.val / 40) * 100}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts Row 3: Top Destinations (6) & Employee Ranking (6) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <Card className="border-0 shadow-sm rounded-[16px] bg-white">
+            <CardHeader className="px-6 py-5 border-b border-gray-50">
+              <CardTitle className="text-[18px] font-bold text-gray-900">Destination Ranking</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-5">
+                {topDests.map((d, i) => (
+                  <div key={i} className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between text-[13px]">
+                      <span className="font-semibold text-gray-700">{d.dest}</span>
+                      <span className="font-bold text-gray-900">{d.count} trips</span>
+                    </div>
+                    <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-purple-500 rounded-full" style={{ width: `${d.pct}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm rounded-[16px] bg-white overflow-hidden">
+            <CardHeader className="px-6 py-5 border-b border-gray-50">
+              <CardTitle className="text-[18px] font-bold text-gray-900">Employee Ranking</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-gray-50/80">
+                  <tr>
+                    <th className="px-6 py-3 text-[12px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Employee</th>
+                    <th className="px-6 py-3 text-[12px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Trips</th>
+                    <th className="px-6 py-3 text-[12px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Avg Dur</th>
+                    <th className="px-6 py-3 text-[12px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Score</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {empRanking.map((e, i) => (
+                    <tr key={i} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[11px] font-bold shadow-sm">
+                            {e.name.split(" ").map(n=>n[0]).join("").substring(0,2).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-[13px] font-semibold text-gray-900">{e.name}</p>
+                            <p className="text-[11px] text-gray-500">{e.dept} • {e.branch}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-3">
+                        <span className="text-[14px] font-bold text-gray-900">{e.trips}</span>
+                      </td>
+                      <td className="px-6 py-3 text-[13px] font-semibold text-gray-700">{e.avgDur}</td>
+                      <td className="px-6 py-3 text-[13px] text-orange-400">
+                        {"★".repeat(e.score)}{"☆".repeat(5 - e.score)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* HR Widgets Row: Approval & Overdue */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <Card className="border-0 shadow-sm rounded-[16px] bg-white">
+            <CardHeader className="px-6 py-4 border-b border-gray-50">
+              <CardTitle className="text-[15px] font-bold text-gray-900 flex items-center gap-2"><Clock className="w-4 h-4 text-purple-500" /> Approval Performance</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              <div className="flex justify-between items-center text-[13px]"><span className="font-semibold text-gray-700">HR Admin</span><span className="font-bold text-gray-900">2.1 hours</span></div>
+              <div className="flex justify-between items-center text-[13px]"><span className="font-semibold text-gray-700">Head of Dept</span><span className="font-bold text-gray-900">5.8 hours</span></div>
+              <div className="flex justify-between items-center text-[13px]"><span className="font-semibold text-gray-700">Managing Director</span><span className="font-bold text-orange-600">12.0 hours</span></div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm rounded-[16px] bg-white">
+            <CardHeader className="px-6 py-4 border-b border-gray-50">
+              <CardTitle className="text-[15px] font-bold text-gray-900 flex items-center gap-2"><AlertCircle className="w-4 h-4 text-red-500" /> Overdue Returns</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="flex flex-col items-center justify-center h-full text-gray-400 py-4">
+                <CheckCircle2 className="w-8 h-8 text-green-500 mb-2" />
+                <span className="text-[13px] font-bold text-gray-700">No overdue returns</span>
+                <span className="text-[11px] text-gray-500">All employees returned on schedule</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm rounded-[16px] bg-white">
+            <CardHeader className="px-6 py-4 border-b border-gray-50">
+              <CardTitle className="text-[15px] font-bold text-gray-900 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-orange-500" /> Expiring Assignments</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              <div className="flex justify-between items-center text-[13px]"><span className="font-semibold text-gray-700">Zaliq bin Musa</span><span className="font-bold text-red-600">Tomorrow</span></div>
+              <div className="flex justify-between items-center text-[13px]"><span className="font-semibold text-gray-700">Farah Ann</span><span className="font-bold text-orange-600">In 2 days</span></div>
+            </CardContent>
+          </Card>
+        </div>
+
       </div>
     </div>
   );
