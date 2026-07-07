@@ -63,6 +63,16 @@ export default function WorkforceInsights() {
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [day, setDay] = useState(new Date().getDate().toString().padStart(2, '0'));
   const [viewMode, setViewMode] = useState<'day' | 'month'>('day');
+  const [selectedRegion, setSelectedRegion] = useState<string>('All Regions');
+
+  const regionMap: Record<string, string> = {
+    'AOR': 'Northern', 'Alor Setar': 'Northern', 'BTM': 'Northern', 'Bertam': 'Northern', 'IPH': 'Northern', 'Ipoh': 'Northern', 'KKS': 'Northern', 'Kuala Kangsar': 'Northern', 'MJG': 'Northern', 'Manjung': 'Northern',
+    'HQ': 'Central', 'Rayhar HQ': 'Central', 'BBB': 'Central', 'Bandar Baru Bangi': 'Central', 'SHA': 'Central', 'Shah Alam': 'Central', 'KUL': 'Central', 'Kuala Lumpur': 'Central',
+    'BPT': 'Southern', 'Batu Pahat': 'Southern', 'JHB': 'Southern', 'Johor Bahru': 'Southern', 'MLK': 'Southern', 'Melaka': 'Southern', 'SNS': 'Southern', 'Seremban': 'Southern',
+    'KMM': 'East Coast', 'Kemaman': 'East Coast', 'CNH': 'East Coast', 'Cheneh': 'East Coast', 'DGN': 'East Coast', 'Dungun': 'East Coast', 'JTH': 'East Coast', 'Jertih': 'East Coast', 'KBG': 'East Coast', 'Kuala Berang': 'East Coast', 'TGG': 'East Coast', 'Kuala Terengganu': 'East Coast', 'KBR': 'East Coast', 'Kota Bharu': 'East Coast', 'MZM': 'East Coast', 'Muadzam Shah': 'East Coast', 'RMP': 'East Coast', 'Rompin': 'East Coast',
+    'TWU': 'East Malaysia', 'Tawau': 'East Malaysia', 'RRR': 'East Coast'
+  };
+  const regionOrder = ['Central', 'Northern', 'Southern', 'East Coast', 'East Malaysia'];
 
   const displayDate = viewMode === 'day' 
     ? `${day}/${month}/${year}` 
@@ -491,39 +501,72 @@ export default function WorkforceInsights() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           
-          {/* 2. Attendance Overview */}
-          <Card className={`col-span-1 lg:col-span-2 rounded-lg shadow-sm border-slate-200 bg-white flex flex-col ${cardHoverEffect}`}>
-            <CardHeader className="p-5 border-b border-slate-100 pb-4">
-              <CardTitle className="text-base font-bold text-slate-800">Attendance Overview</CardTitle>
-            </CardHeader>
-            <CardContent className="p-5 flex-1 flex flex-col">
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-slate-50 p-3 rounded-md border border-slate-100">
-                  <p className="text-xs text-slate-500 font-medium">Average Attendance</p>
-                  <p className="text-xl font-bold text-slate-800 mt-1">{data.attendanceOverview.averageAttendance}%</p>
-                </div>
-                <div className="bg-slate-50 p-3 rounded-md border border-slate-100">
-                  <p className="text-xs text-slate-500 font-medium">Late Arrivals</p>
-                  <p className="text-xl font-bold text-slate-800 mt-1">{data.attendanceOverview.lateArrivals}</p>
-                </div>
-                <div className="bg-slate-50 p-3 rounded-md border border-slate-100">
-                  <p className="text-xs text-slate-500 font-medium">Absences</p>
-                  <p className="text-xl font-bold text-slate-800 mt-1">{data.attendanceOverview.absences}</p>
-                </div>
-              </div>
-              <div className="flex-1 min-h-[250px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={data.attendanceOverview.monthlyTrend} margin={{ top: 5, right: 20, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} domain={[80, 100]} />
-                    <RechartsTooltip contentStyle={{ borderRadius: '6px', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }} />
-                    <Line type="monotone" dataKey="rate" name="Attendance Rate (%)" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6', strokeWidth: 0 }} activeDot={{ r: 6 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          {(() => {
+            const rawBranchMetrics = data?.branchMetrics || [];
+            const filteredBranches = selectedRegion === 'All Regions' 
+              ? rawBranchMetrics 
+              : rawBranchMetrics.filter((b:any) => regionMap[b.name] === selectedRegion || (b.name==='HQ' && selectedRegion==='Central'));
+            
+            return (
+              <Card className={`col-span-1 lg:col-span-2 rounded-lg shadow-sm border-slate-200 bg-white flex flex-col ${cardHoverEffect}`}>
+                <CardHeader className="p-5 border-b border-slate-100 pb-4 flex flex-row justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-slate-400" />
+                    <CardTitle className="text-[16px] font-semibold text-[#1A1F36]">Branch Workforce Distribution</CardTitle>
+                  </div>
+                  <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+                    <SelectTrigger className="w-[120px] h-7 text-[10px] font-bold border-slate-200 bg-white shadow-none focus:ring-0">
+                      <SelectValue placeholder="All Regions" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All Regions" className="text-[10px] font-bold">All Regions</SelectItem>
+                      {regionOrder.map(r => <SelectItem key={r} value={r} className="text-[10px] font-bold">{r}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </CardHeader>
+                <CardContent className="p-5 flex-1 flex flex-col">
+                  <div className={`space-y-4 flex-1 pr-2 overflow-y-auto max-h-[300px] custom-scrollbar`}>
+                    {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).map((branch: any, idx: number) => {
+                      const stats = branch.stats || { onTime: 0, late: 0, onLeave: 0, compLeave: 0, absent: 0, outstation: 0 };
+                      return (
+                        <div key={idx} className="flex flex-col gap-1">
+                          <div className="flex justify-between items-end">
+                            <div className="flex flex-col">
+                              <span className="text-[11px] font-bold text-[#1A1F36]">{branch.name}</span>
+                              <span className="text-[9px] text-slate-400">{branch.count} Employees</span>
+                            </div>
+                            <span className={`text-[10px] font-black ${branch.attendanceRate >= 95 ? 'text-emerald-500' : 'text-rose-500'}`}>{branch.attendanceRate}%</span>
+                          </div>
+                          <div className="w-full bg-slate-100 rounded-full h-2 relative group cursor-pointer">
+                            <div className={`h-2 rounded-full ${branch.attendanceRate >= 95 ? 'bg-[#10b981]' : 'bg-[#f43f5e]'}`} style={{ width: `${Math.min(100, branch.attendanceRate)}%` }}></div>
+                            <div className="absolute left-1/2 -top-8 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-2 pointer-events-none z-10 w-max whitespace-nowrap">
+                              <p className="text-[10px] font-bold text-slate-800 mb-1 border-b border-slate-100 pb-1">{branch.name}</p>
+                              <div className="flex flex-col gap-0.5">
+                                <p className="text-[9px] text-slate-600 flex justify-between gap-4"><span>Present (On Time):</span> <span className="font-bold text-emerald-600">{stats.onTime}</span></p>
+                                <p className="text-[9px] text-slate-600 flex justify-between gap-4"><span>Present (Late):</span> <span className="font-bold text-amber-500">{stats.late}</span></p>
+                                <p className="text-[9px] text-slate-600 flex justify-between gap-4"><span>Outstation:</span> <span className="font-bold text-sky-500">{stats.outstation}</span></p>
+                                <p className="text-[9px] text-slate-600 flex justify-between gap-4"><span>On Leave:</span> <span className="font-bold text-indigo-500">{stats.onLeave}</span></p>
+                                <p className="text-[9px] text-slate-600 flex justify-between gap-4"><span>Company Leave:</span> <span className="font-bold text-purple-500">{stats.compLeave}</span></p>
+                                <p className="text-[9px] text-slate-600 flex justify-between gap-4"><span>Absent:</span> <span className="font-bold text-rose-500">{stats.absent}</span></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {filteredBranches.length === 0 && (
+                      <div className="text-center text-slate-400 text-xs py-10 font-medium">No branches found in this region.</div>
+                    )}
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                    <span className="text-[10px] font-semibold text-slate-400">Showing {filteredBranches.length} locations</span>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
+
 
           <Card className={`col-span-1 rounded-lg shadow-sm border-slate-200 bg-white flex flex-col ${cardHoverEffect}`}>
             <CardHeader className="p-4 border-b border-slate-100 pb-3">

@@ -4789,11 +4789,66 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       [targetDateStr, ...pFilterParams]
     );
 
+    const branchStats = {};
+    branchRows.forEach(r => {
+      branchStats[r.branch] = { total: parseInt(r.count), onTime: 0, late: 0, onLeave: 0, compLeave: 0, absent: 0, outstation: 0 };
+    });
+
+    // 1. Process Attendances
     const branchMonthlyAttendance = {};
     attRows.forEach(a => {
       const b = a.branch || 'HQ';
       if (!branchMonthlyAttendance[b]) branchMonthlyAttendance[b] = 0;
       branchMonthlyAttendance[b]++;
+
+      const dateObj = new Date(a.clock_in);
+      const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
+      if (dateStr === targetDateStr && branchStats[b]) {
+        if (parseInt(a.is_late) === 1) branchStats[b].late++;
+        else branchStats[b].onTime++;
+      }
+    });
+
+    // 2. Process Leaves
+    leaveRows.forEach(lr => {
+      const startObj = new Date(lr.start_date);
+      const endObj = new Date(lr.end_date);
+      const start = new Date(startObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
+      const end = new Date(endObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
+      if (targetDateStr >= start && targetDateStr <= end && lr.status === 'Approved') {
+        const branch = allProfiles.find(p => p.user_id === lr.user_id)?.branch;
+        if (branch && branchStats[branch]) branchStats[branch].onLeave++;
+      }
+    });
+
+    // 3. Process Outstation
+    const [outstationRows] = await pool.query(
+      `SELECT p.branch, o.user_id 
+       FROM outstation_assignments o
+       JOIN profiles p ON p.user_id = o.user_id
+       WHERE o.status != 'Cancelled' AND ?::date BETWEEN DATE(o.start_date) AND DATE(o.end_date)`,
+      [targetDateStr]
+    );
+    outstationRows.forEach(r => {
+      if (branchStats[r.branch]) branchStats[r.branch].outstation++;
+    });
+
+    // 4. Process Company Leave & Absent
+    allProfiles.forEach(p => {
+      const b = p.branch;
+      if (b && branchStats[b]) {
+        if (companyLeaveEmployees.has(p.user_id)) {
+           branchStats[b].compLeave++;
+        } else {
+           const present = attRows.some(a => a.user_id === p.user_id && new Date(new Date(a.clock_in).getTime() + 8*3600*1000).toISOString().split('T')[0] === targetDateStr);
+           const onLeave = leaveRows.some(lr => lr.user_id === p.user_id && lr.status === 'Approved' && targetDateStr >= new Date(new Date(lr.start_date).getTime() + 8*3600*1000).toISOString().split('T')[0] && targetDateStr <= new Date(new Date(lr.end_date).getTime() + 8*3600*1000).toISOString().split('T')[0]);
+           const outstation = outstationRows.some(o => o.user_id === p.user_id);
+           
+           if (!present && !onLeave && !outstation) {
+             branchStats[b].absent++;
+           }
+        }
+      }
     });
 
     const [realLeaveAnalyticsRows] = await pool.query(
@@ -4889,17 +4944,24 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         leaveRequests: { current: 35, previous: 30 },
         outstation: { current: 15, previous: 11 }
       },
-      branchMetrics: branchRows.map(r => {
-        const total = parseInt(r.count || 0);
-        const monthlyPresent = branchMonthlyAttendance[r.branch] || 0;
-        const possibleBranchAttendances = total * workingDaysInMonth;
-        const rate = possibleBranchAttendances > 0 
-          ? Math.round((monthlyPresent / possibleBranchAttendances) * 100) 
-          : 0;
+      branchMetrics: Object.keys(branchStats).map(b => {
+        const s = branchStats[b];
+        const total = s.total;
+        let rate = 0;
+        if (isDayView) {
+          rate = total > 0 ? Math.round(((s.onTime + s.late + s.outstation) / total) * 100) : 0;
+        } else {
+          const monthlyPresent = branchMonthlyAttendance[b] || 0;
+          const possibleBranchAttendances = total * workingDaysInMonth;
+          rate = possibleBranchAttendances > 0 
+            ? Math.round((monthlyPresent / possibleBranchAttendances) * 100) 
+            : 0;
+        }
         return {
-          name: r.branch, 
+          name: b, 
           count: total, 
-          attendanceRate: Math.min(100, rate)
+          attendanceRate: Math.min(100, rate),
+          stats: s
         }
       }),
       leaveAnalytics: realLeaveAnalytics,
