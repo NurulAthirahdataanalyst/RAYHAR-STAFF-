@@ -1301,7 +1301,9 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
 
   const absentList = [];
   for (const p of allProfiles) {
-    if (!onLeaveIds.has(p.user_id) && !clockMap[p.user_id]) {
+    const isOutstation = outstationTodayMap.has(p.user_id);
+
+    if (!onLeaveIds.has(p.user_id) && (!clockMap[p.user_id] || isOutstation)) {
       const initials = (p.full_name || '??').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
       
       const isCompanyLeave = companyLeaveDays.some(cl => {
@@ -1320,7 +1322,6 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
         return false;
       });
 
-      const isOutstation = outstationTodayMap.has(p.user_id);
       let status = 'absent';
       if (isOutstation) status = 'outstation';
       else if (isCompanyLeave) status = 'companyLeave';
