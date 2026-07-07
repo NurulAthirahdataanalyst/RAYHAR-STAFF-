@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -92,6 +92,7 @@ const emptyForm = {
 export default function OutstationAssignment() {
   const { role, userBranch, userDepartment, userId, userName, loading: roleLoading } = useRole();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -115,26 +116,27 @@ export default function OutstationAssignment() {
     if (!roleLoading && !OUTSTATION_ROLES.includes(role)) navigate("/");
   }, [role, roleLoading, navigate]);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const scopeParams = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "" });
-      const [listRes, empRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/outstation?${scopeParams}`),
-        fetch(`${API_BASE_URL}/api/employees?role=${role}&branch=${userBranch || ""}&department=${userDepartment || ""}`),
-      ]);
-      const listData = await listRes.json();
-      const empData = await empRes.json();
-      if (listData.success) setAssignments(listData.assignments);
-      if (empData.success) setEmployees(empData.employees || empData.data || []);
-    } catch (err) {
-      console.error("OutstationAssignment fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { void fetchData(); }, [role, userBranch, userDepartment]);
+  useEffect(() => { 
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const scopeParams = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "" });
+        const [listRes, empRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/outstation?${scopeParams}`),
+          fetch(`${API_BASE_URL}/api/employees?role=${role}&branch=${userBranch || ""}&department=${userDepartment || ""}`),
+        ]);
+        const listData = await listRes.json();
+        const empData = await empRes.json();
+        if (listData.success) setAssignments(listData.assignments);
+        if (empData.success) setEmployees(empData.employees || empData.data || []);
+      } catch (err) {
+        console.error("OutstationAssignment fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    void fetchData(); 
+  }, [role, userBranch, userDepartment]);
 
   // Filtered employee list for multi-select dropdown
   const filteredEmps = useMemo(() => {
@@ -165,6 +167,15 @@ export default function OutstationAssignment() {
     setEmpSearch("");
     setDrawerOpen(true);
   };
+
+  useEffect(() => {
+    if (location.state?.openNew) {
+      // Clear state to avoid reopening on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+      // Slight delay to ensure the UI is ready
+      setTimeout(() => openNew(), 50);
+    }
+  }, [location.state, location.pathname, navigate]);
 
   const openEdit = (a: Assignment) => {
     setEditTarget(a);

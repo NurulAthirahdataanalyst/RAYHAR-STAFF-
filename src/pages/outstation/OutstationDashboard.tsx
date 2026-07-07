@@ -71,26 +71,27 @@ export default function OutstationDashboard() {
     if (!roleLoading && !OUTSTATION_ROLES.includes(role)) navigate("/");
   }, [role, roleLoading, navigate]);
 
-  const fetchAll = async () => {
-    setLoading(true);
-    try {
-      const scopeParams = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "" });
-      const [statsRes, listRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/outstation/stats?${scopeParams}`),
-        fetch(`${API_BASE_URL}/api/outstation?${scopeParams}`),
-      ]);
-      const statsData = await statsRes.json();
-      const listData = await listRes.json();
-      if (statsData.success) setStats(statsData.stats);
-      if (listData.success) setAssignments(listData.assignments);
-    } catch (err) {
-      console.error("Fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { void fetchAll(); }, [role, userBranch, userDepartment]);
+  useEffect(() => { 
+    const fetchAll = async () => {
+      setLoading(true);
+      try {
+        const scopeParams = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "" });
+        const [statsRes, listRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/outstation/stats?${scopeParams}`),
+          fetch(`${API_BASE_URL}/api/outstation?${scopeParams}`),
+        ]);
+        const statsData = await statsRes.json();
+        const listData = await listRes.json();
+        if (statsData.success) setStats(statsData.stats);
+        if (listData.success) setAssignments(listData.assignments);
+      } catch (err) {
+        console.error("Fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    void fetchAll(); 
+  }, [role, userBranch, userDepartment]);
 
   const activeNow = useMemo(() => assignments.filter(a => a.status === "Active"), [assignments]);
   const upcoming = useMemo(() => assignments.filter(a => a.status === "Upcoming"), [assignments]);
@@ -404,6 +405,7 @@ export default function OutstationDashboard() {
           
           {/* Empty column to keep layout balanced */}
           <div className="hidden md:block"></div>
+        </div>
       </div>
     </div>
   );
