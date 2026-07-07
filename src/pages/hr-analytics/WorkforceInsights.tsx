@@ -508,7 +508,7 @@ export default function WorkforceInsights() {
               : rawBranchMetrics.filter((b:any) => regionMap[b.name] === selectedRegion || (b.name==='HQ' && selectedRegion==='Central'));
             
             return (
-              <Card className={`col-span-1 lg:col-span-2 rounded-lg shadow-sm border-slate-200 bg-white flex flex-col ${cardHoverEffect}`}>
+              <Card className={`col-span-1 lg:col-span-2 rounded-lg shadow-sm border-slate-200 bg-white flex flex-col h-fit ${cardHoverEffect}`}>
                 <CardHeader className="p-5 border-b border-slate-100 pb-4 flex flex-row justify-between items-center">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-slate-400" />
@@ -524,9 +524,9 @@ export default function WorkforceInsights() {
                     </SelectContent>
                   </Select>
                 </CardHeader>
-                <CardContent className="p-5 flex-1 flex flex-col">
-                  <div className={`space-y-4 flex-1 pr-2 overflow-y-auto max-h-[300px] custom-scrollbar`}>
-                    {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).map((branch: any, idx: number) => {
+                <CardContent className="p-5 flex flex-col">
+                  <div className={`space-y-4`}>
+                    {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).slice(0, 5).map((branch: any, idx: number) => {
                       const stats = branch.stats || { onTime: 0, late: 0, onLeave: 0, compLeave: 0, absent: 0, outstation: 0 };
                       return (
                         <div key={idx} className="flex flex-col gap-1">
@@ -539,8 +539,8 @@ export default function WorkforceInsights() {
                           </div>
                           <div className="w-full bg-slate-100 rounded-full h-2 relative group cursor-pointer">
                             <div className={`h-2 rounded-full ${branch.attendanceRate >= 95 ? 'bg-[#10b981]' : 'bg-[#f43f5e]'}`} style={{ width: `${Math.min(100, branch.attendanceRate)}%` }}></div>
-                            <div className="absolute left-1/2 -top-8 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-2 pointer-events-none z-10 w-max whitespace-nowrap">
-                              <p className="text-[10px] font-bold text-slate-800 mb-1 border-b border-slate-100 pb-1">{branch.name}</p>
+                            <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-white border border-slate-200 shadow-xl rounded-lg p-3 pointer-events-none z-50 w-max min-w-[150px]">
+                              <p className="text-[11px] font-bold text-slate-800 mb-2 border-b border-slate-100 pb-1">{branch.name}</p>
                               <div className="flex flex-col gap-0.5">
                                 <p className="text-[9px] text-slate-600 flex justify-between gap-4"><span>Present (On Time):</span> <span className="font-bold text-emerald-600">{stats.onTime}</span></p>
                                 <p className="text-[9px] text-slate-600 flex justify-between gap-4"><span>Present (Late):</span> <span className="font-bold text-amber-500">{stats.late}</span></p>
@@ -560,7 +560,7 @@ export default function WorkforceInsights() {
                   </div>
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-1.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                    <span className="text-[10px] font-semibold text-slate-400">Showing {filteredBranches.length} locations</span>
+                    <span className="text-[10px] font-semibold text-slate-400">Showing {Math.min(5, filteredBranches.length)} locations</span>
                   </div>
                 </CardContent>
               </Card>
