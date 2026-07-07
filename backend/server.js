@@ -1248,6 +1248,16 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
     [dateStr]
   );
 
+  // Get active outstation for today
+  const [outstationTodayRows] = await pool.query(
+    `SELECT user_id, destination FROM outstation_assignments WHERE status != 'Cancelled' AND ?::date BETWEEN DATE(start_date) AND DATE(end_date)`,
+    [dateStr]
+  );
+  const outstationTodayMap = new Map();
+  for (const row of outstationTodayRows) {
+    outstationTodayMap.set(row.user_id, row.destination);
+  }
+
   // Get all active profiles to determine absentees
   const [allProfiles] = await pool.query(
     `SELECT user_id, full_name, branch, department, role FROM profiles WHERE status = 'Active' ${filterP}`,
@@ -1310,6 +1320,11 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
         return false;
       });
 
+      const isOutstation = outstationTodayMap.has(p.user_id);
+      let status = 'absent';
+      if (isOutstation) status = 'outstation';
+      else if (isCompanyLeave) status = 'companyLeave';
+
       absentList.push({
         user_id: p.user_id,
         full_name: p.full_name,
@@ -1317,7 +1332,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
         branch: p.branch || 'HQ',
         department: p.department || '—',
         role: p.role || '',
-        status: isCompanyLeave ? 'companyLeave' : 'absent'
+        status
       });
     }
   }
@@ -1403,6 +1418,8 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
     const initials = (r.full_name || '??').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
     outstationGroups[key].employees.push({ id: r.user_id, name: r.full_name, initials });
   }
+
+  const upcomingOutstationList = Object.values(outstationGroups);
   // Outstation Summary (for the month)
   const monthStart = dateStr.substring(0, 8) + '01';
   const nextMonthDate = new Date(monthStart);

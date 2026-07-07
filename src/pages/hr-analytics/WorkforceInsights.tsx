@@ -547,7 +547,7 @@ export default function WorkforceInsights() {
                       cy="50%"
                       innerRadius={50}
                       outerRadius={65}
-                      paddingAngle={2}
+                      paddingAngle={0}
                       dataKey="value"
                       stroke="none"
                     >
@@ -916,6 +916,11 @@ export default function WorkforceInsights() {
                       <>
                         <CalendarDays className="w-3.5 h-3.5 text-purple-400" />
                         <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-purple-600 text-white text-center leading-tight">Company<br />Leave</span>
+                      </>
+                    ) : emp.status === 'outstation' ? (
+                      <>
+                        <Plane className="w-3.5 h-3.5 text-sky-400" />
+                        <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-sky-500 text-white text-center leading-tight">Outstation</span>
                       </>
                     ) : (
                       <>
