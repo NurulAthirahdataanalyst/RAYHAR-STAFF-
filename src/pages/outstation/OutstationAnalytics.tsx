@@ -9,14 +9,14 @@ import {
 } from "recharts";
 import { API_BASE_URL } from "../../config/api";
 
-const PINK = "#EC4899";
+const PRIMARY_COLOR = "#0284c7"; // Power BI style sky-600
 const OUTSTATION_ROLES = ["hr_admin", "managing_director", "finance_manager", "branch_leader", "head_of_department"];
 
 function diffDays(s: string, e: string) {
   return Math.max(1, Math.ceil((new Date(e).getTime() - new Date(s).getTime()) / 86400000) + 1);
 }
 
-const PIE_COLORS = [PINK, "#f9a8d4", "#fbbf24", "#60a5fa", "#34d399", "#a78bfa", "#fb923c", "#94a3b8"];
+const PIE_COLORS = ["#118ab2", "#06d6a0", "#ffd166", "#ef476f", "#073b4c", "#118ab2", "#06d6a0", "#ffd166"];
 const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 type Assignment = {
@@ -53,11 +53,18 @@ export default function OutstationAnalytics() {
   const stats = useMemo(() => {
     const total = assignments.length;
     const totalDays = assignments.reduce((s, a) => s + diffDays(a.start_date, a.end_date), 0);
-    const avgDays = total ? (totalDays / total).toFixed(1) : "0";
+    const avgDaysRaw = total ? (totalDays / total) : 0;
+    const avgDays = Number.isInteger(avgDaysRaw) ? avgDaysRaw.toString() : avgDaysRaw.toFixed(1);
 
     // Most frequent traveler
     const travelCount: Record<string, number> = {};
-    assignments.forEach(a => { travelCount[a.full_name] = (travelCount[a.full_name] || 0) + 1; });
+    assignments.forEach(a => { 
+      const shortName = a.full_name.split(" ").slice(0, 2).join(" ");
+      let b = a.branch || "Rayhar HQ";
+      if (b.toLowerCase().includes("hq")) b = "Rayhar HQ";
+      const key = `${shortName}-${b}`;
+      travelCount[key] = (travelCount[key] || 0) + 1; 
+    });
     const topTraveler = Object.entries(travelCount).sort((a, b) => b[1] - a[1])[0];
 
     // Most visited destination
@@ -78,10 +85,14 @@ export default function OutstationAnalytics() {
     return MONTHS_SHORT.map(m => ({ month: m, count: counts[m] || 0 }));
   }, [assignments]);
 
-  // Department pie chart
-  const deptData = useMemo(() => {
+  // Branch pie chart
+  const branchData = useMemo(() => {
     const counts: Record<string, number> = {};
-    assignments.forEach(a => { const d = a.department || "Unknown"; counts[d] = (counts[d] || 0) + 1; });
+    assignments.forEach(a => { 
+      let b = a.branch || "Rayhar HQ";
+      if (b.toLowerCase().includes("hq")) b = "Rayhar HQ";
+      counts[b] = (counts[b] || 0) + 1; 
+    });
     return Object.entries(counts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   }, [assignments]);
 
@@ -106,10 +117,10 @@ export default function OutstationAnalytics() {
   if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-500" /></div>;
 
   const kpis = [
-    { label: "Total Outstations", value: stats.total, icon: Plane, color: "text-pink-600", bg: "bg-pink-50 border-pink-200" },
-    { label: "Average Duration", value: `${stats.avgDays} days`, icon: TrendingUp, color: "text-amber-600", bg: "bg-amber-50 border-amber-200" },
-    { label: "Top Traveler", value: stats.topTraveler ? stats.topTraveler[0].split(" ").slice(0, 2).join(" ") : "—", icon: Users, color: "text-purple-600", bg: "bg-purple-50 border-purple-200" },
-    { label: "Top Destination", value: stats.topDest ? stats.topDest[0] : "—", icon: MapPin, color: "text-blue-600", bg: "bg-blue-50 border-blue-200" },
+    { label: "Total Outstations", value: stats.total, icon: Plane, color: "text-sky-600", bg: "bg-sky-50 border-sky-200" },
+    { label: "Average Duration", value: `${stats.avgDays} days`, icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50 border-emerald-200" },
+    { label: "Top Traveler", value: stats.topTraveler ? stats.topTraveler[0].toUpperCase() : "—", icon: Users, color: "text-indigo-600", bg: "bg-indigo-50 border-indigo-200" },
+    { label: "Top Destination", value: stats.topDest ? stats.topDest[0] : "—", icon: MapPin, color: "text-amber-600", bg: "bg-amber-50 border-amber-200" },
   ];
 
   return (
@@ -140,43 +151,43 @@ export default function OutstationAnalytics() {
         <Card className="lg:col-span-2 border border-gray-200/80 shadow-sm">
           <CardHeader className="border-b border-gray-100 pb-3">
             <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
-              <BarChart2 className="w-4 h-4 text-pink-500" /> Monthly Outstations
+              <BarChart2 className="w-4 h-4 text-sky-600" /> Monthly Outstations
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
             {loading ? (
-              <div className="h-48 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-pink-400" /></div>
+              <div className="h-48 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-sky-500" /></div>
             ) : (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={monthlyData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="month" tick={{ fontSize: 10, fontWeight: 700, fill: "#9ca3af" }} />
                   <YAxis tick={{ fontSize: 10, fill: "#9ca3af" }} allowDecimals={false} />
-                  <Tooltip contentStyle={{ fontSize: 11, borderRadius: 10, borderColor: "#fce7f3" }} />
-                  <Bar dataKey="count" fill={PINK} radius={[4, 4, 0, 0]} name="Outstations" />
+                  <Tooltip contentStyle={{ fontSize: 11, borderRadius: 10, borderColor: "#bae6fd" }} />
+                  <Bar dataKey="count" fill={PRIMARY_COLOR} radius={[4, 4, 0, 0]} name="Outstations" />
                 </BarChart>
               </ResponsiveContainer>
             )}
           </CardContent>
         </Card>
 
-        {/* Department Pie */}
+        {/* Branch Pie */}
         <Card className="border border-gray-200/80 shadow-sm">
           <CardHeader className="border-b border-gray-100 pb-3">
             <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
-              <PieChart className="w-4 h-4 text-pink-500" /> By Department
+              <PieChart className="w-4 h-4 text-emerald-500" /> By Branch
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
             {loading ? (
-              <div className="h-48 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-pink-400" /></div>
-            ) : deptData.length === 0 ? (
+              <div className="h-48 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-emerald-500" /></div>
+            ) : branchData.length === 0 ? (
               <div className="h-48 flex items-center justify-center text-gray-400 text-xs font-bold">No data</div>
             ) : (
               <ResponsiveContainer width="100%" height={200}>
                 <RechartsPie>
-                  <Pie data={deptData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name.length > 8 ? name.slice(0, 8) + "…" : name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
-                    {deptData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                  <Pie data={branchData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name.length > 10 ? name.slice(0, 10) + "…" : name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                    {branchData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                   </Pie>
                   <Tooltip contentStyle={{ fontSize: 11, borderRadius: 10 }} />
                 </RechartsPie>
@@ -193,12 +204,12 @@ export default function OutstationAnalytics() {
         <Card className="border border-gray-200/80 shadow-sm">
           <CardHeader className="border-b border-gray-100 pb-3">
             <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-pink-500" /> Top Destinations
+              <MapPin className="w-4 h-4 text-sky-600" /> Top Destinations
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4 space-y-2">
             {loading ? (
-              <div className="h-32 flex items-center justify-center"><Loader2 className="animate-spin w-5 h-5 text-pink-400" /></div>
+              <div className="h-32 flex items-center justify-center"><Loader2 className="animate-spin w-5 h-5 text-sky-400" /></div>
             ) : topDests.length === 0 ? (
               <div className="h-32 flex items-center justify-center text-gray-400 text-xs font-bold">No data</div>
             ) : (
@@ -208,10 +219,10 @@ export default function OutstationAnalytics() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-0.5">
                       <span className="text-[11px] font-bold text-gray-700">{d.dest}</span>
-                      <span className="text-[10px] font-black text-pink-600">{d.count}</span>
+                      <span className="text-[10px] font-black text-sky-600">{d.count}</span>
                     </div>
                     <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${Math.round((d.count / (topDests[0]?.count || 1)) * 100)}%`, background: PINK }} />
+                      <div className="h-full rounded-full" style={{ width: `${Math.round((d.count / (topDests[0]?.count || 1)) * 100)}%`, background: PRIMARY_COLOR }} />
                     </div>
                   </div>
                 </div>
@@ -224,12 +235,12 @@ export default function OutstationAnalytics() {
         <Card className="border border-gray-200/80 shadow-sm">
           <CardHeader className="border-b border-gray-100 pb-3">
             <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
-              <Users className="w-4 h-4 text-pink-500" /> Employee Ranking
+              <Users className="w-4 h-4 text-indigo-500" /> Employee Ranking
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {loading ? (
-              <div className="h-48 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-pink-400" /></div>
+              <div className="h-48 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-indigo-400" /></div>
             ) : empRanking.length === 0 ? (
               <div className="h-48 flex items-center justify-center text-gray-400 text-xs font-bold">No data</div>
             ) : (
@@ -244,17 +255,17 @@ export default function OutstationAnalytics() {
                 </thead>
                 <tbody>
                   {empRanking.map((e, i) => (
-                    <tr key={e.name} className="border-b border-gray-50 hover:bg-pink-50/20 transition-colors">
+                    <tr key={e.name} className="border-b border-gray-50 hover:bg-sky-50/20 transition-colors">
                       <td className="px-4 py-2.5 font-black text-gray-400">{i + 1}</td>
                       <td className="px-4 py-2.5">
                         <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center text-[8px] font-black text-pink-800">
+                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-sky-200 to-sky-400 flex items-center justify-center text-[8px] font-black text-sky-800">
                             {e.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                           </div>
                           <span className="font-semibold text-gray-800 truncate max-w-[120px]">{e.name}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-2.5 text-center font-black text-pink-600">{e.trips}</td>
+                      <td className="px-4 py-2.5 text-center font-black text-sky-600">{e.trips}</td>
                       <td className="px-4 py-2.5 text-center font-bold text-gray-600">{e.days}</td>
                     </tr>
                   ))}

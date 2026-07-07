@@ -2939,7 +2939,7 @@ app.get("/api/attendance-status", async (req, res) => {
     }
 
       const [outstationRows] = await pool.query(
-        `SELECT destination FROM outstation_assignments WHERE user_id = ? AND status = 'Active' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
+        `SELECT destination FROM outstation_assignments WHERE user_id = ? AND status != 'Cancelled' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
         [empId]
       );
       const isOnOutstation = outstationRows.length > 0;
@@ -3019,7 +3019,7 @@ app.post("/api/attendance", async (req, res) => {
     );
 
     const [outstationRows] = await pool.query(
-      `SELECT destination FROM outstation_assignments WHERE user_id = ? AND status = 'Active' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
+      `SELECT destination FROM outstation_assignments WHERE user_id = ? AND status != 'Cancelled' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
       [user_id]
     );
 
@@ -3485,12 +3485,12 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       const outstationParams = queryDate ? [queryDate, ...queryParams] : queryParams;
       const [outstationTodayRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS outstation_today FROM outstation_assignments WHERE status = 'Active' AND ${dateCondition} BETWEEN DATE(start_date) AND DATE(end_date) ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS outstation_today FROM outstation_assignments WHERE status != 'Cancelled' AND ${dateCondition} BETWEEN DATE(start_date) AND DATE(end_date) ${attendanceFilter}`,
         outstationParams
       );
 
       const [upcomingOutstationRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS upcoming_outstation FROM outstation_assignments WHERE status = 'Active' AND DATE(start_date) > ${dateCondition} ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS upcoming_outstation FROM outstation_assignments WHERE status != 'Cancelled' AND DATE(start_date) > ${dateCondition} ${attendanceFilter}`,
         outstationParams
       );
 
@@ -3662,7 +3662,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       // OVERRIDE IF ON OUTSTATION TODAY
       const [onOutstationTodayRows] = await pool.query(
-        `SELECT destination FROM outstation_assignments WHERE user_id = ? AND status = 'Active' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
+        `SELECT destination FROM outstation_assignments WHERE user_id = ? AND status != 'Cancelled' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
         [userId]
       );
   
@@ -5776,24 +5776,37 @@ app.get('/api/outstation/stats', async (req, res) => {
 
     const today = new Date().toISOString().split('T')[0];
 
-    const [[activeRows], [upcomingRows], [completedRows], [cancelledRows], [todayDeptRows], [todayReturnRows]] = await Promise.all([
-      pool.query(`SELECT COUNT(*) as count FROM outstation_assignments WHERE ${scopeWhere} AND status = 'Active'`, params),
-      pool.query(`SELECT COUNT(*) as count FROM outstation_assignments WHERE ${scopeWhere} AND status = 'Upcoming'`, params),
-      pool.query(`SELECT COUNT(*) as count FROM outstation_assignments WHERE ${scopeWhere} AND status = 'Completed'`, params),
-      pool.query(`SELECT COUNT(*) as count FROM outstation_assignments WHERE ${scopeWhere} AND status = 'Cancelled'`, params),
-      pool.query(`SELECT COUNT(*) as count FROM outstation_assignments WHERE ${scopeWhere} AND status != 'Cancelled' AND start_date = $${params.length+1}`, [...params, today]),
-      pool.query(`SELECT COUNT(*) as count FROM outstation_assignments WHERE ${scopeWhere} AND status != 'Cancelled' AND end_date = $${params.length+1}`, [...params, today]),
-    ]);
+    const [allRows] = await pool.query(
+      `SELECT * FROM outstation_assignments WHERE ${scopeWhere}`, params
+    );
+
+    let active = 0, upcoming = 0, completed = 0, cancelled = 0, todayDepartures = 0, todayReturns = 0;
+
+    for (const r of allRows) {
+      const computed = computeOutstationStatus(r);
+      if (computed === 'Active') active++;
+      else if (computed === 'Upcoming') upcoming++;
+      else if (computed === 'Completed') completed++;
+      else if (computed === 'Cancelled') cancelled++;
+
+      if (computed !== 'Cancelled') {
+        // match how db returns date strings or objects
+        const startStr = new Date(r.start_date).toISOString().split('T')[0];
+        const endStr = new Date(r.end_date).toISOString().split('T')[0];
+        if (startStr === today) todayDepartures++;
+        if (endStr === today) todayReturns++;
+      }
+    }
 
     res.json({
       success: true,
       stats: {
-        active: parseInt(activeRows[0].count),
-        upcoming: parseInt(upcomingRows[0].count),
-        completed: parseInt(completedRows[0].count),
-        cancelled: parseInt(cancelledRows[0].count),
-        todayDepartures: parseInt(todayDeptRows[0].count),
-        todayReturns: parseInt(todayReturnRows[0].count)
+        active,
+        upcoming,
+        completed,
+        cancelled,
+        todayDepartures,
+        todayReturns
       }
     });
   } catch (err) {
