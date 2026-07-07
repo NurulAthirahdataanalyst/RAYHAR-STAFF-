@@ -120,29 +120,54 @@ export default function OutstationAnalytics() {
     { name: "Cancelled", value: stats.cancelled, color: C_RED },
   ];
 
-  const branchData = useMemo(() => [
-    { name: "Rayhar HQ", value: 32, pct: "32%" }, { name: "Alor Setar", value: 22, pct: "22%" },
-    { name: "Kuala Lumpur", value: 18, pct: "18%" }, { name: "Johor Bahru", value: 16, pct: "16%" },
-    { name: "Others", value: 12, pct: "12%" }
-  ], []);
+  const branchData = useMemo(() => {
+    const map: Record<string, number> = {};
+    let total = 0;
+    assignments.forEach(a => {
+      const b = a.branch || "Rayhar HQ";
+      map[b] = (map[b] || 0) + 1;
+      total += 1;
+    });
+    const colors = [C_PURPLE, C_BLUE, C_GREEN, C_ORANGE, C_GRAY, C_RED];
+    return Object.entries(map).map(([name, value], i) => ({
+      name, value, pct: total ? Math.round((value / total) * 100) + "%" : "0%", color: colors[i % colors.length]
+    })).sort((a,b) => b.value - a.value).slice(0, 6);
+  }, [assignments]);
 
-  const deptChartData = useMemo(() => [
-    { name: "IT", val: 35 }, { name: "Sales", val: 28 },
-    { name: "HR", val: 15 }, { name: "Finance", val: 10 },
-  ], []);
+  const deptChartData = useMemo(() => {
+    const map: Record<string, number> = {};
+    assignments.forEach(a => {
+      const d = a.department || "General";
+      map[d] = (map[d] || 0) + 1;
+    });
+    return Object.entries(map).map(([name, val]) => ({ name, val })).sort((a,b) => b.val - a.val).slice(0, 4);
+  }, [assignments]);
 
-  const topDests = useMemo(() => [
-    { dest: "Kuala Lumpur", count: 18, pct: 100 },
-    { dest: "Penang", count: 13, pct: 72 },
-    { dest: "Johor Bahru", count: 9, pct: 50 }
-  ], []);
+  const topDests = useMemo(() => {
+    const map: Record<string, number> = {};
+    assignments.forEach(a => {
+      if(a.destination) map[a.destination] = (map[a.destination] || 0) + 1;
+    });
+    const sorted = Object.entries(map).map(([dest, count]) => ({ dest, count })).sort((a,b) => b.count - a.count).slice(0, 5);
+    const max = sorted[0]?.count || 1;
+    return sorted.map(d => ({ ...d, pct: Math.round((d.count / max) * 100) }));
+  }, [assignments]);
 
-  const empRanking = useMemo(() => [
-    { name: "Nurul Athirah", dept: "IT", branch: "Rayhar HQ", trips: 18, completed: 15, active: 3, avgDur: "2.4 days", score: 5 },
-    { name: "Ahmad Fadzil", dept: "Sales", branch: "Kuala Lumpur", trips: 14, completed: 14, active: 0, avgDur: "3.1 days", score: 5 },
-    { name: "Siti Aminah", dept: "HR", branch: "Rayhar HQ", trips: 10, completed: 8, active: 2, avgDur: "1.5 days", score: 4 },
-    { name: "Mohd Ali", dept: "Finance", branch: "Johor Bahru", trips: 8, completed: 8, active: 0, avgDur: "4.2 days", score: 4 },
-  ], []);
+  const empRanking = useMemo(() => {
+    const map: Record<string, any> = {};
+    assignments.forEach(a => {
+      const name = a.employee_name || "Unknown";
+      if (!map[name]) {
+        map[name] = { name, dept: a.department || "General", branch: a.branch || "HQ", trips: 0, totalDur: 0 };
+      }
+      map[name].trips += 1;
+      map[name].totalDur += diffDays(a.start_date, a.end_date);
+    });
+    return Object.values(map)
+      .map(e => ({ ...e, avgDur: (e.totalDur / e.trips).toFixed(1) + " days" }))
+      .sort((a, b) => b.trips - a.trips)
+      .slice(0, 5);
+  }, [assignments]);
 
   if (roleLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50"><Loader2 className="animate-spin w-8 h-8 text-purple-900" /></div>;
 
@@ -150,26 +175,29 @@ export default function OutstationAnalytics() {
     <div className="min-h-screen bg-[#f8fafc] text-gray-900 pb-12">
       <div className="max-w-[1600px] mx-auto px-6 py-8">
         
-        {/* Header (Title 36px) */}
-        <div className="flex items-end justify-between mb-6">
-          <div>
-            <h1 className="text-[36px] font-bold text-gray-900 leading-tight tracking-tight">Enterprise Analytics</h1>
-            <p className="text-[14px] text-gray-500 font-medium mt-1">Deep-dive travel intelligence and performance metrics</p>
-          </div>
-        </div>
-
         {/* Top Filter Bar */}
-        <Card className="border-0 shadow-sm rounded-[12px] bg-white mb-8">
+        <Card className="border-0 shadow-sm rounded-[12px] bg-white mb-8 mt-2">
           <CardContent className="p-4 flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2 border-r border-gray-100 pr-4">
               <Filter className="w-4 h-4 text-gray-400" />
               <span className="text-[13px] font-bold text-gray-500 uppercase tracking-wide">Filters</span>
             </div>
-            {Object.entries(filters).map(([k, v]) => (
-              <select key={k} className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 outline-none focus:ring-1 focus:ring-purple-500 transition-shadow">
-                <option>{v}</option>
-              </select>
-            ))}
+            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 outline-none focus:ring-1 focus:ring-purple-500">
+              <option>All Time</option>
+              {Array.from(new Set(assignments.map(a => new Date(a.start_date).getFullYear()))).filter(Boolean).map(y => <option key={y}>{y}</option>)}
+            </select>
+            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 outline-none focus:ring-1 focus:ring-purple-500">
+              <option>All Branches</option>
+              {Array.from(new Set(assignments.map(a => a.branch))).filter(Boolean).map(b => <option key={String(b)}>{String(b)}</option>)}
+            </select>
+            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 outline-none focus:ring-1 focus:ring-purple-500">
+              <option>All Departments</option>
+              {Array.from(new Set(assignments.map(a => a.department))).filter(Boolean).map(d => <option key={String(d)}>{String(d)}</option>)}
+            </select>
+            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 outline-none focus:ring-1 focus:ring-purple-500">
+              <option>All Statuses</option>
+              {Array.from(new Set(assignments.map(a => a.status))).filter(Boolean).map(s => <option key={String(s)}>{String(s)}</option>)}
+            </select>
             <div className="relative ml-auto">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <Input placeholder="Search employee..." className="w-[200px] pl-9 h-9 text-[13px] bg-gray-50 border-gray-200 rounded-[8px]" />
@@ -237,9 +265,9 @@ export default function OutstationAnalytics() {
                 <div className="space-y-2"><Skeleton className="h-4 w-full"/><Skeleton className="h-4 w-3/4"/><Skeleton className="h-4 w-5/6"/></div>
               ) : (
                 <>
-                  <div className="flex justify-between"><span className="text-gray-400"><Building2 className="w-3.5 h-3.5 inline mr-1" /> Top Branch</span> <span className="text-gray-900">{stats.topBranch}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-400"><Users className="w-3.5 h-3.5 inline mr-1" /> Top Dept</span> <span className="text-gray-900">{stats.topDept}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-400"><MapPin className="w-3.5 h-3.5 inline mr-1" /> Top Dest</span> <span className="text-gray-900">{stats.topDest}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500 font-medium"><Building2 className="w-3.5 h-3.5 inline mr-1 text-gray-400" /> Top Branch</span> <span className="text-gray-900 font-bold">{stats.topBranch}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500 font-medium"><Users className="w-3.5 h-3.5 inline mr-1 text-gray-400" /> Top Dept</span> <span className="text-gray-900 font-bold">{stats.topDept}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500 font-medium"><MapPin className="w-3.5 h-3.5 inline mr-1 text-gray-400" /> Top Dest</span> <span className="text-gray-900 font-bold">{stats.topDest}</span></div>
                 </>
               )}
             </CardContent>
@@ -318,11 +346,9 @@ export default function OutstationAnalytics() {
                 <ResponsiveContainer width="100%" height="100%">
                   <RechartsPie>
                     <Pie data={branchData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={70} stroke="none" paddingAngle={2}>
-                      <Cell fill={C_PURPLE} />
-                      <Cell fill={C_BLUE} />
-                      <Cell fill={C_GREEN} />
-                      <Cell fill={C_ORANGE} />
-                      <Cell fill={C_GRAY} />
+                      {branchData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
                     </Pie>
                   </RechartsPie>
                 </ResponsiveContainer>
@@ -351,7 +377,7 @@ export default function OutstationAnalytics() {
                       <span className="font-bold text-gray-900">{d.val}</span>
                     </div>
                     <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-600 rounded-full" style={{ width: `${(d.val / 40) * 100}%` }} />
+                      <div className="h-full bg-blue-600 rounded-full" style={{ width: `${(d.val / Math.max(...deptChartData.map(c=>c.val), 1)) * 100}%` }} />
                     </div>
                   </div>
                 ))}
@@ -394,7 +420,6 @@ export default function OutstationAnalytics() {
                     <th className="px-6 py-3 text-[12px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Employee</th>
                     <th className="px-6 py-3 text-[12px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Trips</th>
                     <th className="px-6 py-3 text-[12px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Avg Dur</th>
-                    <th className="px-6 py-3 text-[12px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Score</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -415,9 +440,6 @@ export default function OutstationAnalytics() {
                         <span className="text-[14px] font-bold text-gray-900">{e.trips}</span>
                       </td>
                       <td className="px-6 py-3 text-[13px] font-semibold text-gray-700">{e.avgDur}</td>
-                      <td className="px-6 py-3 text-[13px] text-orange-400">
-                        {"★".repeat(e.score)}{"☆".repeat(5 - e.score)}
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -426,41 +448,6 @@ export default function OutstationAnalytics() {
           </Card>
         </div>
 
-        {/* HR Widgets Row: Approval & Overdue */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <Card className="border-0 shadow-sm rounded-[16px] bg-white">
-            <CardHeader className="px-6 py-4 border-b border-gray-50">
-              <CardTitle className="text-[15px] font-bold text-gray-900 flex items-center gap-2"><Clock className="w-4 h-4 text-purple-500" /> Approval Performance</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              <div className="flex justify-between items-center text-[13px]"><span className="font-semibold text-gray-700">HR Admin</span><span className="font-bold text-gray-900">2.1 hours</span></div>
-              <div className="flex justify-between items-center text-[13px]"><span className="font-semibold text-gray-700">Head of Dept</span><span className="font-bold text-gray-900">5.8 hours</span></div>
-              <div className="flex justify-between items-center text-[13px]"><span className="font-semibold text-gray-700">Managing Director</span><span className="font-bold text-orange-600">12.0 hours</span></div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-sm rounded-[16px] bg-white">
-            <CardHeader className="px-6 py-4 border-b border-gray-50">
-              <CardTitle className="text-[15px] font-bold text-gray-900 flex items-center gap-2"><AlertCircle className="w-4 h-4 text-red-500" /> Overdue Returns</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="flex flex-col items-center justify-center h-full text-gray-400 py-4">
-                <CheckCircle2 className="w-8 h-8 text-green-500 mb-2" />
-                <span className="text-[13px] font-bold text-gray-700">No overdue returns</span>
-                <span className="text-[11px] text-gray-500">All employees returned on schedule</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-sm rounded-[16px] bg-white">
-            <CardHeader className="px-6 py-4 border-b border-gray-50">
-              <CardTitle className="text-[15px] font-bold text-gray-900 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-orange-500" /> Expiring Assignments</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              <div className="flex justify-between items-center text-[13px]"><span className="font-semibold text-gray-700">Zaliq bin Musa</span><span className="font-bold text-red-600">Tomorrow</span></div>
-              <div className="flex justify-between items-center text-[13px]"><span className="font-semibold text-gray-700">Farah Ann</span><span className="font-bold text-orange-600">In 2 days</span></div>
-            </CardContent>
-          </Card>
         </div>
 
       </div>
