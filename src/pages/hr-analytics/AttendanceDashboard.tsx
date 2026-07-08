@@ -1155,9 +1155,22 @@ export default function AttendanceDashboard() {
       {/* ADMIN ATTENDANCE TABLE */}
       <Card id="admin-attendance" className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden mb-6 scroll-mt-24">
         <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-bold text-gray-800">Admin Attendance</h2>
-            <span title="Absent employees are shown in the 'Employee Absenteeism' table to avoid duplication" className="text-xs text-gray-400">(Absentees listed separately)</span>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-bold text-gray-800">Admin Attendance</h2>
+              <span title="Absent employees are shown in the 'Employee Absenteeism' table to avoid duplication" className="text-xs text-gray-400">(Absentees listed separately)</span>
+            </div>
+            
+            <div className="flex items-center gap-3 mt-1">
+              <div className="bg-pink-50/80 border border-pink-100 px-3 py-1.5 rounded-md flex items-center gap-2">
+                <span className="text-[10px] font-bold text-pink-500 uppercase tracking-wider">Total Outstation</span>
+                <span className="text-[13px] font-black text-pink-700">{new Set(outstationRecords.map(o => o.user_id)).size}</span>
+              </div>
+              <div className="bg-red-50/80 border border-red-100 px-3 py-1.5 rounded-md flex items-center gap-2">
+                <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider">Total Absent</span>
+                <span className="text-[13px] font-black text-red-700">{liveStats.absent || 0}</span>
+              </div>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
