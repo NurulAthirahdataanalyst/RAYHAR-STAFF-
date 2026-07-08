@@ -4236,8 +4236,154 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
       };
     });
 
+    const [leaveRows] = await pool.query(
+      `SELECT lr.user_id, lr.leave_type, lr.start_date, lr.end_date
+       FROM leave_requests lr
+       JOIN profiles p ON p.user_id = lr.user_id
+       WHERE lr.status = 'Approved' 
+         AND lr.start_date <= ?::date 
+         AND lr.end_date >= ?::date
+         ${profileFilter}`,
+      [endDate, startDate, ...queryParams.slice(2)]
+    );
+
+    const [companyLeaves] = await pool.query(
+      `SELECT * FROM company_leave_calendar 
+       WHERE status = 'Active' 
+         AND start_date <= ?::date 
+         AND end_date >= ?::date`,
+      [endDate, startDate]
+    );
+
+    // Get passed working days up to today (or end of month if it's in the past)
+    const passedWorkingDaysInMonth = [];
+    const nowStr = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
+    let loopDate = new Date(startDate);
+    const end = new Date(endDate);
+    
+    while (loopDate <= end) {
+      const loopDateStr = loopDate.toISOString().split('T')[0];
+      if (loopDateStr > nowStr) {
+        break; // Stop counting future days as expected attendance
+      }
+      
+      const dayOfWeek = loopDate.getDay();
+      const dateNum = loopDate.getDate();
+      const isWeekend = (dayOfWeek === 5) || (dayOfWeek === 6 && dateNum <= 7);
+      const isHoliday = malaysiaHolidays.some(h => h.date === loopDateStr);
+      
+      if (!isWeekend && !isHoliday) {
+        passedWorkingDaysInMonth.push(loopDateStr);
+      }
+      loopDate.setDate(loopDate.getDate() + 1);
+    }
+
+    let summary = {
+      totalEmployees: allProfiles.length,
+      workingDays: passedWorkingDaysInMonth.length,
+      expectedAttendance: allProfiles.length * passedWorkingDaysInMonth.length,
+      present: 0,
+      late: 0,
+      outstation: 0,
+      leave: 0,
+      missingClockOut: 0,
+      absent: 0,
+      complianceRate: 0
+    };
+
+    allProfiles.forEach(p => {
+      passedWorkingDaysInMonth.forEach(dateStr => {
+        // Is Company Leave?
+        const isCompanyLeave = companyLeaves.some(cl => {
+          const clStart = new Date(cl.start_date).toISOString().split('T')[0];
+          const clEnd = new Date(cl.end_date).toISOString().split('T')[0];
+          if (dateStr >= clStart && dateStr <= clEnd) {
+            if (cl.applies_to === 'all') return true;
+            if (cl.applies_to === 'branch' && cl.branch_id) return cl.branch_id.split(',').map(s=>s.trim()).includes(p.branch);
+            if (cl.applies_to === 'department' && cl.department_id) {
+              const depts = cl.department_id.split(',').map(s=>s.trim());
+              const normEmpDept = (p.department||'').toLowerCase().replace(/\bdepartment\b/g,'').trim();
+              return depts.some(d => {
+                const normClDept = d.toLowerCase().replace(/\bdepartment\b/g,'').trim();
+                return normEmpDept === normClDept || p.department === d;
+              });
+            }
+          }
+          return false;
+        });
+
+        if (isCompanyLeave) {
+          summary.leave++;
+          return;
+        }
+
+        const isApprovedLeave = leaveRows.some(lr => {
+          if (lr.user_id !== p.user_id) return false;
+          const lrStart = new Date(lr.start_date).toISOString().split('T')[0];
+          const lrEnd = new Date(lr.end_date).toISOString().split('T')[0];
+          return dateStr >= lrStart && dateStr <= lrEnd;
+        });
+
+        if (isApprovedLeave) {
+          summary.leave++;
+          return;
+        }
+
+        const isOutstation = outstationRows.some(o => {
+          if (o.user_id !== p.user_id) return false;
+          const oStart = new Date(o.start_date).toISOString().split('T')[0];
+          const oEnd = new Date(o.end_date).toISOString().split('T')[0];
+          return dateStr >= oStart && dateStr <= oEnd;
+        });
+
+        if (isOutstation) {
+          summary.outstation++;
+          return;
+        }
+
+        // Check if clocked in
+        const clockDataList = clockRows.filter(c => c.user_id === p.user_id);
+        const clockData = clockDataList.find(c => {
+          const klTimeIn = new Date(new Date(c.clock_in).getTime() + 8 * 60 * 60 * 1000);
+          return klTimeIn.toISOString().split('T')[0] === dateStr;
+        });
+
+        if (clockData) {
+          if (!clockData.clock_out) {
+            const klTimeIn = new Date(new Date(clockData.clock_in).getTime() + 8 * 60 * 60 * 1000);
+            const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
+            const isPastDate = dateStr !== nowKl.toISOString().split('T')[0];
+            const isPastEndOfWorkTime = !isPastDate && nowKl.getUTCHours() >= 17;
+            if (isPastDate || isPastEndOfWorkTime) {
+              summary.missingClockOut++;
+            } else {
+              const clockInHour = klTimeIn.getUTCHours();
+              const clockInMinute = klTimeIn.getUTCMinutes();
+              const isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
+              if (isLate) summary.late++;
+              else summary.present++;
+            }
+          } else {
+            const klTimeIn = new Date(new Date(clockData.clock_in).getTime() + 8 * 60 * 60 * 1000);
+            const clockInHour = klTimeIn.getUTCHours();
+            const clockInMinute = klTimeIn.getUTCMinutes();
+            const isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
+            if (isLate) summary.late++;
+            else summary.present++;
+          }
+        } else {
+          summary.absent++;
+        }
+      });
+    });
+
+    const attendedDays = summary.present + summary.late + summary.outstation + summary.missingClockOut;
+    const workingEmployeeDays = summary.expectedAttendance - summary.leave;
+    summary.complianceRate = workingEmployeeDays > 0 ? Math.round((attendedDays / workingEmployeeDays) * 100) : 0;
+
     res.json({
       success: true,
+      summary: summary,
       data: reportData
     });
   } catch (err) {

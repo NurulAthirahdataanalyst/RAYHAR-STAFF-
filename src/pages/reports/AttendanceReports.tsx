@@ -56,6 +56,7 @@ export default function AttendanceReports() {
   const { role, userBranch, userDepartment } = useRole();
   const [loading, setLoading] = useState(true);
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
+  const [monthlySummary, setMonthlySummary] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   
@@ -107,8 +108,14 @@ export default function AttendanceReports() {
           return { ...r, status: calcStatus };
         });
         setAttendanceData(processedData);
+        if (data.summary) {
+          setMonthlySummary(data.summary);
+        } else {
+          setMonthlySummary(null);
+        }
       } else {
         setAttendanceData([]);
+        setMonthlySummary(null);
       }
     } catch (error) {
       console.error("Error fetching attendance report:", error);
@@ -128,18 +135,29 @@ export default function AttendanceReports() {
     return matchesSearch && matchesStatus;
   });
 
-  // KPI Calculations
-  const totalEmployees = filteredList.length;
-  const presentCount = filteredList.filter(a => a.status === "Present (On Time)" || a.status === "Present (Late)").length;
-  const lateCount = filteredList.filter(a => a.status === "Present (Late)").length;
-  const outstationCount = filteredList.filter(a => a.status === "Outstation").length;
-  const leaveCount = filteredList.filter(a => a.status === "Company Leave" || a.status === "Approved Leave").length;
-  const missingClockOutCount = filteredList.filter(a => a.status === "Missing Clock-Out").length;
-  const absentCount = filteredList.filter(a => a.status === "Absent").length;
+  // KPI Calculations (Daily)
+  const totalEmployeesDay = filteredList.length;
+  const presentCountDay = filteredList.filter(a => a.status === "Present (On Time)" || a.status === "Present (Late)").length;
+  const lateCountDay = filteredList.filter(a => a.status === "Present (Late)").length;
+  const outstationCountDay = filteredList.filter(a => a.status === "Outstation").length;
+  const leaveCountDay = filteredList.filter(a => a.status === "Company Leave" || a.status === "Approved Leave").length;
+  const missingClockOutCountDay = filteredList.filter(a => a.status === "Missing Clock-Out").length;
+  const absentCountDay = filteredList.filter(a => a.status === "Absent").length;
   
-  const workingEmployees = totalEmployees - leaveCount;
-  const attendedEmployees = presentCount + outstationCount + missingClockOutCount;
-  const attendanceRate = workingEmployees > 0 ? Math.round((attendedEmployees / workingEmployees) * 100) : 0;
+  const workingEmployeesDay = totalEmployeesDay - leaveCountDay;
+  const attendedEmployeesDay = presentCountDay + outstationCountDay + missingClockOutCountDay;
+  const attendanceRateDay = workingEmployeesDay > 0 ? Math.round((attendedEmployeesDay / workingEmployeesDay) * 100) : 0;
+
+  // Selected KPI Data
+  const totalEmployees = viewType === "day" ? totalEmployeesDay : (monthlySummary?.totalEmployees || 0);
+  const presentCount = viewType === "day" ? presentCountDay : (monthlySummary?.present || 0);
+  const lateCount = viewType === "day" ? lateCountDay : (monthlySummary?.late || 0);
+  const outstationCount = viewType === "day" ? outstationCountDay : (monthlySummary?.outstation || 0);
+  const leaveCount = viewType === "day" ? leaveCountDay : (monthlySummary?.leave || 0);
+  const missingClockOutCount = viewType === "day" ? missingClockOutCountDay : (monthlySummary?.missingClockOut || 0);
+  const absentCount = viewType === "day" ? absentCountDay : (monthlySummary?.absent || 0);
+  const attendanceRate = viewType === "day" ? attendanceRateDay : (monthlySummary?.complianceRate || 0);
+
 
 
   const handleExportCSV = () => {
@@ -261,8 +279,7 @@ export default function AttendanceReports() {
           </div>
         </div>
 
-        {viewType === "day" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
             <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -346,41 +363,12 @@ export default function AttendanceReports() {
                   <Percent className="w-6 h-6 text-teal-500" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Attendance Rate</p>
+                  <p className="text-sm font-medium text-muted-foreground">Attendance Compliance</p>
                   <h3 className="text-2xl font-bold mt-1 text-teal-600 dark:text-teal-400">{attendanceRate}%</h3>
                 </div>
               </CardContent>
             </Card>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Records</p>
-                  <h3 className="text-3xl font-bold mt-1">{filteredList.length}</h3>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Clocked In (Total)</p>
-                  <h3 className="text-3xl font-bold mt-1 text-green-600 dark:text-green-400">
-                    {filteredList.filter(a => a.status.startsWith("Present")).length}
-                  </h3>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
 
         <Card className="border-border shadow-sm">
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
