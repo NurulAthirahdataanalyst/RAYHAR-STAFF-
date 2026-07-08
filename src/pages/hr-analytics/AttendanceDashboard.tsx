@@ -961,7 +961,7 @@ export default function AttendanceDashboard() {
           </div>
 
           {/* Redesigned Standalone KPI Cards Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 p-4 md:p-6 bg-slate-50/50 border-t border-gray-100">
+          <div className="grid grid-cols-2 lg:grid-cols-7 gap-4 p-4 md:p-6 bg-slate-50/50 border-t border-gray-100">
             {/* Card 1: Present Today */}
             <div className="bg-white border border-gray-200/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
               <div>
@@ -1071,6 +1071,24 @@ export default function AttendanceDashboard() {
                 </div>
                 <span className="text-[10px] font-bold text-slate-400">
                   {liveStats.companyLeave || 0} / {liveStats.total} {(liveStats.companyLeave || 0) === 1 ? 'Employee' : 'Employees'}
+                </span>
+              </div>
+            </div>
+
+            {/* Card 7: Outstation */}
+            <div className="bg-white border border-gray-200/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
+              <div>
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Outstation</span>
+                <div className="text-[32px] font-black text-pink-500 leading-none mt-2">
+                  {liveStats.total > 0 ? Math.round((new Set(outstationRecords.map(o => o.user_id)).size / liveStats.total) * 100) : 0}%
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="w-full bg-slate-100 rounded-full h-1.5 mb-2">
+                  <div className="h-1.5 rounded-full bg-pink-500" style={{ width: `${liveStats.total > 0 ? (new Set(outstationRecords.map(o => o.user_id)).size / liveStats.total) * 100 : 0}%` }} />
+                </div>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {new Set(outstationRecords.map(o => o.user_id)).size} / {liveStats.total} {new Set(outstationRecords.map(o => o.user_id)).size === 1 ? 'Employee' : 'Employees'}
                 </span>
               </div>
             </div>
