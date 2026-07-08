@@ -16,11 +16,11 @@ function fmtDate(d: string) {
 
 function statusColor(status: string) {
   switch (status) {
-    case "Active":    return { bg: "bg-pink-100",  text: "text-pink-700",  border: "border-pink-200",  dot: "bg-pink-500"  };
-    case "Upcoming":  return { bg: "bg-amber-100", text: "text-amber-700", border: "border-amber-200", dot: "bg-amber-400" };
-    case "Completed": return { bg: "bg-blue-100",  text: "text-blue-700",  border: "border-blue-200",  dot: "bg-blue-400"  };
-    case "Cancelled": return { bg: "bg-gray-100",  text: "text-gray-500",  border: "border-gray-200",  dot: "bg-gray-400"  };
-    default:          return { bg: "bg-gray-100",  text: "text-gray-500",  border: "border-gray-200",  dot: "bg-gray-400"  };
+    case "Active":    return { bg: "bg-pink-100 dark:bg-pink-500/20",  text: "text-pink-700 dark:text-pink-300",  border: "border-pink-200 dark:border-pink-500/30",  dot: "bg-pink-500"  };
+    case "Upcoming":  return { bg: "bg-amber-100 dark:bg-amber-500/20", text: "text-amber-700 dark:text-amber-300", border: "border-amber-200 dark:border-amber-500/30", dot: "bg-amber-400" };
+    case "Completed": return { bg: "bg-blue-100 dark:bg-blue-500/20",  text: "text-blue-700 dark:text-blue-300",  border: "border-blue-200 dark:border-blue-500/30",  dot: "bg-blue-400"  };
+    case "Cancelled": return { bg: "bg-gray-100 dark:bg-gray-500/20",  text: "text-gray-500 dark:text-gray-300",  border: "border-gray-200 dark:border-gray-500/30",  dot: "bg-gray-400"  };
+    default:          return { bg: "bg-gray-100 dark:bg-gray-500/20",  text: "text-gray-500 dark:text-gray-300",  border: "border-gray-200 dark:border-gray-500/30",  dot: "bg-gray-400"  };
   }
 }
 
@@ -118,7 +118,7 @@ export default function OutstationCalendar() {
         <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
-            <h2 className="text-base font-black text-gray-800 min-w-[180px] text-center">{MONTHS[viewMonth]} {viewYear}</h2>
+            <h2 className="text-base font-black text-gray-800 dark:text-gray-100 min-w-[180px] text-center">{MONTHS[viewMonth]} {viewYear}</h2>
             <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronRight className="w-4 h-4" /></button>
             <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { setViewMonth(today.getMonth()); setViewYear(today.getFullYear()); }}>Today</Button>
           </div>
@@ -147,7 +147,7 @@ export default function OutstationCalendar() {
           return (
             <div key={status} className="flex items-center gap-1.5">
               <div className={`w-2.5 h-2.5 rounded-sm ${c.dot}`} />
-              <span className="text-[10px] font-bold text-gray-500">{label}</span>
+              <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400">{label}</span>
             </div>
           );
         })}
@@ -177,7 +177,7 @@ export default function OutstationCalendar() {
                   >
                     {day && (
                       <>
-                        <div className={`w-6 h-6 flex items-center justify-center rounded-full text-[11px] font-black mb-1 ${isToday(day) ? "text-white" : "text-gray-700"}`}
+                        <div className={`w-6 h-6 flex items-center justify-center rounded-full text-[11px] font-black mb-1 ${isToday(day) ? "text-white" : "text-gray-700 dark:text-gray-200"}`}
                           style={isToday(day) ? { background: PINK } : {}}>
                           {day}
                         </div>
@@ -220,7 +220,7 @@ export default function OutstationCalendar() {
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Outstation</p>
-                  <h3 className="font-black text-gray-800">{selectedEvent.full_name}</h3>
+                  <h3 className="font-black text-gray-800 dark:text-gray-100">{selectedEvent.full_name}</h3>
                 </div>
               </div>
               <button onClick={() => setSelectedEvent(null)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"><X className="w-4 h-4" /></button>
@@ -230,7 +230,7 @@ export default function OutstationCalendar() {
                 <MapPin className="w-3.5 h-3.5 text-pink-400 shrink-0" />
                 <div>
                   <p className="text-[9px] font-black uppercase text-gray-400">Destination</p>
-                  <p className="text-[12px] font-bold text-gray-800">{selectedEvent.destination}</p>
+                  <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{selectedEvent.destination}</p>
                 </div>
               </div>
               {selectedEvent.purpose && (
@@ -238,7 +238,7 @@ export default function OutstationCalendar() {
                   <Plane className="w-3.5 h-3.5 text-pink-400 shrink-0" />
                   <div>
                     <p className="text-[9px] font-black uppercase text-gray-400">Purpose</p>
-                    <p className="text-[12px] font-bold text-gray-700">{selectedEvent.purpose}</p>
+                    <p className="text-[12px] font-bold text-gray-700 dark:text-gray-200">{selectedEvent.purpose}</p>
                   </div>
                 </div>
               )}
@@ -246,7 +246,7 @@ export default function OutstationCalendar() {
                 <Calendar className="w-3.5 h-3.5 text-pink-400 shrink-0" />
                 <div>
                   <p className="text-[9px] font-black uppercase text-gray-400">Duration</p>
-                  <p className="text-[12px] font-bold text-gray-800">{fmtDate(selectedEvent.start_date)} → {fmtDate(selectedEvent.end_date)}</p>
+                  <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{fmtDate(selectedEvent.start_date)} → {fmtDate(selectedEvent.end_date)}</p>
                 </div>
               </div>
               {selectedEvent.department && (
@@ -254,7 +254,7 @@ export default function OutstationCalendar() {
                   <Users className="w-3.5 h-3.5 text-pink-400 shrink-0" />
                   <div>
                     <p className="text-[9px] font-black uppercase text-gray-400">Department</p>
-                    <p className="text-[12px] font-bold text-gray-700">{selectedEvent.department}</p>
+                    <p className="text-[12px] font-bold text-gray-700 dark:text-gray-200">{selectedEvent.department}</p>
                   </div>
                 </div>
               )}
@@ -263,7 +263,7 @@ export default function OutstationCalendar() {
                   <Clock className="w-3.5 h-3.5 text-pink-400 shrink-0" />
                   <div>
                     <p className="text-[9px] font-black uppercase text-gray-400">Assigned By</p>
-                    <p className="text-[12px] font-bold text-gray-700">{selectedEvent.assigned_by_name}</p>
+                    <p className="text-[12px] font-bold text-gray-700 dark:text-gray-200">{selectedEvent.assigned_by_name}</p>
                   </div>
                 </div>
               )}
@@ -285,3 +285,4 @@ export default function OutstationCalendar() {
     </div>
   );
 }
+

@@ -22,10 +22,10 @@ function diffDays(s: string, e: string) {
 
 function statusBadge(status: string) {
   switch (status) {
-    case "Active":    return <Badge className="bg-pink-100 text-pink-700 border border-pink-200 font-bold text-[10px] whitespace-nowrap">🟣 Active</Badge>;
-    case "Upcoming":  return <Badge className="bg-amber-100 text-amber-700 border border-amber-200 font-bold text-[10px] whitespace-nowrap">🟡 Upcoming</Badge>;
-    case "Completed": return <Badge className="bg-blue-100 text-blue-700 border border-blue-200 font-bold text-[10px] whitespace-nowrap">🔵 Completed</Badge>;
-    case "Cancelled": return <Badge className="bg-gray-100 text-gray-600 border border-gray-200 font-bold text-[10px] whitespace-nowrap">⬜ Cancelled</Badge>;
+    case "Active":    return <Badge className="bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-500/30 font-bold text-[10px] whitespace-nowrap">🟣 Active</Badge>;
+    case "Upcoming":  return <Badge className="bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 font-bold text-[10px] whitespace-nowrap">🟡 Upcoming</Badge>;
+    case "Completed": return <Badge className="bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 font-bold text-[10px] whitespace-nowrap">🔵 Completed</Badge>;
+    case "Cancelled": return <Badge className="bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-500/30 font-bold text-[10px] whitespace-nowrap">⬜ Cancelled</Badge>;
     default:          return <Badge variant="outline" className="whitespace-nowrap">{status}</Badge>;
   }
 }
@@ -111,7 +111,7 @@ export default function OutstationReports() {
     <div className="space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-8">
 
       {/* Filters */}
-      <Card className="border border-gray-200/80 shadow-sm">
+      <Card className="border border-gray-200 dark:border-gray-500/30/80 shadow-sm">
         <CardContent className="p-4 flex flex-col sm:flex-row items-center gap-3 justify-between">
           <div className="flex items-center gap-3 flex-wrap">
             <Filter className="w-4 h-4 text-gray-400" />
@@ -152,12 +152,12 @@ export default function OutstationReports() {
       </Card>
 
       {/* Table */}
-      <Card className="border border-gray-200/80 shadow-sm overflow-hidden">
+      <Card className="border border-gray-200 dark:border-gray-500/30/80 shadow-sm overflow-hidden">
         <CardHeader className="border-b border-gray-100 pb-3">
           <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
             <Plane className="w-4 h-4 text-pink-500" />
             Outstation Report
-            <Badge className="bg-pink-100 text-pink-700 border border-pink-200 text-[10px] font-black">{filtered.length}</Badge>
+            <Badge className="bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-500/30 text-[10px] font-black">{filtered.length}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -187,26 +187,26 @@ export default function OutstationReports() {
                           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center text-[9px] font-black text-pink-800 shrink-0">
                             {(a.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0,2).toUpperCase()}
                           </div>
-                          <span className="font-semibold text-gray-800">{a.full_name}</span>
+                          <span className="font-semibold text-gray-800 dark:text-gray-100">{a.full_name}</span>
                         </div>
                       </td>
-                      <td className="px-3 py-3 text-gray-600">{a.department || "—"}</td>
-                      <td className="px-3 py-3 text-gray-600">{a.branch || "—"}</td>
+                      <td className="px-3 py-3 text-gray-600 dark:text-gray-300">{a.department || "—"}</td>
+                      <td className="px-3 py-3 text-gray-600 dark:text-gray-300">{a.branch || "—"}</td>
                       <td className="px-3 py-3">
-                        <div className="flex items-center gap-1 font-semibold text-gray-800">
+                        <div className="flex items-center gap-1 font-semibold text-gray-800 dark:text-gray-100">
                           <MapPin className="w-3 h-3 text-pink-400 shrink-0" />{a.destination}
                         </div>
                       </td>
-                      <td className="px-3 py-3 text-gray-500 max-w-[200px]">
-                        {a.purpose && a.purpose !== '-' && <p className="text-xs font-semibold text-gray-700 whitespace-normal break-words leading-tight">{a.purpose}</p>}
-                        {a.project && a.project !== '-' && <p className="text-xs font-semibold text-gray-700 whitespace-normal break-words leading-tight mt-0.5">{a.project}</p>}
+                      <td className="px-3 py-3 text-gray-500 dark:text-gray-400 max-w-[200px]">
+                        {a.purpose && a.purpose !== '-' && <p className="text-xs font-semibold text-gray-700 dark:text-gray-200 whitespace-normal break-words leading-tight">{a.purpose}</p>}
+                        {a.project && a.project !== '-' && <p className="text-xs font-semibold text-gray-700 dark:text-gray-200 whitespace-normal break-words leading-tight mt-0.5">{a.project}</p>}
                         {(!a.purpose || a.purpose === '-') && (!a.project || a.project === '-') && <span className="text-gray-400">—</span>}
                       </td>
-                      <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{fmtDate(a.start_date)}</td>
-                      <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{fmtDate(a.end_date)}</td>
+                      <td className="px-3 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{fmtDate(a.start_date)}</td>
+                      <td className="px-3 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{fmtDate(a.end_date)}</td>
                       <td className="px-3 py-3 text-center font-black text-pink-600">{diffDays(a.start_date, a.end_date)}</td>
                       <td className="px-3 py-3">{statusBadge(a.status)}</td>
-                      <td className="px-3 py-3 text-gray-500">{a.assigned_by_name || "—"}</td>
+                      <td className="px-3 py-3 text-gray-500 dark:text-gray-400">{a.assigned_by_name || "—"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -220,12 +220,12 @@ export default function OutstationReports() {
       {!loading && filtered.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: "Total Records", value: filtered.length, color: "text-gray-800" },
+            { label: "Total Records", value: filtered.length, color: "text-gray-800 dark:text-gray-100" },
             { label: "Total Days",    value: filtered.reduce((s, a) => s + diffDays(a.start_date, a.end_date), 0), color: "text-pink-600" },
             { label: "Active Now",    value: filtered.filter(a => a.status === "Active").length, color: "text-pink-600" },
             { label: "Completed",     value: filtered.filter(a => a.status === "Completed").length, color: "text-blue-600" },
           ].map(s => (
-            <Card key={s.label} className="border border-gray-200/80 shadow-sm">
+            <Card key={s.label} className="border border-gray-200 dark:border-gray-500/30/80 shadow-sm">
               <CardContent className="p-4">
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{s.label}</p>
                 <p className={`text-2xl font-black ${s.color} mt-1`}>{s.value}</p>
@@ -237,3 +237,5 @@ export default function OutstationReports() {
     </div>
   );
 }
+
+

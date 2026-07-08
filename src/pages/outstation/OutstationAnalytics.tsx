@@ -180,21 +180,21 @@ export default function OutstationAnalytics() {
           <CardContent className="p-4 flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2 border-r border-gray-100 pr-4">
               <Filter className="w-4 h-4 text-gray-400" />
-              <span className="text-[13px] font-bold text-gray-500 uppercase tracking-wide">Filters</span>
+              <span className="text-[13px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Filters</span>
             </div>
-            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 outline-none focus:ring-1 focus:ring-purple-500">
+            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 dark:text-gray-200 outline-none focus:ring-1 focus:ring-purple-500">
               <option>All Time</option>
               {Array.from(new Set(assignments.map(a => new Date(a.start_date).getFullYear()))).filter(Boolean).map(y => <option key={y}>{y}</option>)}
             </select>
-            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 outline-none focus:ring-1 focus:ring-purple-500">
+            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 dark:text-gray-200 outline-none focus:ring-1 focus:ring-purple-500">
               <option>All Branches</option>
               {Array.from(new Set(assignments.map(a => a.branch))).filter(Boolean).map(b => <option key={String(b)}>{String(b)}</option>)}
             </select>
-            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 outline-none focus:ring-1 focus:ring-purple-500">
+            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 dark:text-gray-200 outline-none focus:ring-1 focus:ring-purple-500">
               <option>All Departments</option>
               {Array.from(new Set(assignments.map(a => a.department))).filter(Boolean).map(d => <option key={String(d)}>{String(d)}</option>)}
             </select>
-            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 outline-none focus:ring-1 focus:ring-purple-500">
+            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 dark:text-gray-200 outline-none focus:ring-1 focus:ring-purple-500">
               <option>All Statuses</option>
               {Array.from(new Set(assignments.map(a => a.status))).filter(Boolean).map(s => <option key={String(s)}>{String(s)}</option>)}
             </select>
@@ -202,7 +202,7 @@ export default function OutstationAnalytics() {
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <Input placeholder="Search employee..." className="w-[200px] pl-9 h-9 text-[13px] bg-gray-50 border-gray-200 rounded-[8px]" />
             </div>
-            <Button variant="outline" className="h-9 text-[13px] font-semibold border-gray-300 text-gray-700 rounded-[8px]">
+            <Button variant="outline" className="h-9 text-[13px] font-semibold border-gray-300 text-gray-700 dark:text-gray-200 rounded-[8px]">
               <Download className="w-4 h-4 mr-2" /> Export
             </Button>
           </CardContent>
@@ -218,15 +218,15 @@ export default function OutstationAnalytics() {
             </CardHeader>
             <CardContent className="p-5 flex items-center justify-between">
               <div>
-                <p className="text-[12px] text-gray-500 font-semibold mb-1">Total</p>
+                <p className="text-[12px] text-gray-500 dark:text-gray-400 font-semibold mb-1">Total</p>
                 {loading ? <Skeleton className="h-8 w-12" /> : <p className="text-[32px] font-extrabold text-gray-900 leading-none">{stats.total}</p>}
               </div>
               <div>
-                <p className="text-[12px] text-gray-500 font-semibold mb-1">Completed</p>
+                <p className="text-[12px] text-gray-500 dark:text-gray-400 font-semibold mb-1">Completed</p>
                 {loading ? <Skeleton className="h-8 w-12" /> : <p className="text-[32px] font-extrabold text-green-600 leading-none">{stats.completed}</p>}
               </div>
               <div>
-                <p className="text-[12px] text-gray-500 font-semibold mb-1">Cancelled</p>
+                <p className="text-[12px] text-gray-500 dark:text-gray-400 font-semibold mb-1">Cancelled</p>
                 {loading ? <Skeleton className="h-8 w-12" /> : <p className="text-[32px] font-extrabold text-red-600 leading-none">{stats.cancelled}</p>}
               </div>
             </CardContent>
@@ -240,15 +240,15 @@ export default function OutstationAnalytics() {
             </CardHeader>
             <CardContent className="p-5 flex items-center justify-between">
               <div>
-                <p className="text-[12px] text-gray-500 font-semibold mb-1">Completion Rate</p>
+                <p className="text-[12px] text-gray-500 dark:text-gray-400 font-semibold mb-1">Completion Rate</p>
                 {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-[32px] font-extrabold text-gray-900 leading-none">{stats.completionRate}%</p>}
               </div>
               <div>
-                <p className="text-[12px] text-gray-500 font-semibold mb-1">Avg Duration</p>
+                <p className="text-[12px] text-gray-500 dark:text-gray-400 font-semibold mb-1">Avg Duration</p>
                 {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-[32px] font-extrabold text-gray-900 leading-none">{stats.avgDays} <span className="text-[14px] text-gray-400">d</span></p>}
               </div>
               <div>
-                <p className="text-[12px] text-gray-500 font-semibold mb-1">Avg Trips</p>
+                <p className="text-[12px] text-gray-500 dark:text-gray-400 font-semibold mb-1">Avg Trips</p>
                 {loading ? <Skeleton className="h-8 w-12" /> : <p className="text-[32px] font-extrabold text-gray-900 leading-none">3.2</p>}
               </div>
             </CardContent>
@@ -260,14 +260,14 @@ export default function OutstationAnalytics() {
             <CardHeader className="px-5 py-4 border-b border-gray-50">
               <CardTitle className="text-[14px] font-bold text-gray-400 uppercase tracking-widest">Insights</CardTitle>
             </CardHeader>
-            <CardContent className="p-5 flex flex-col justify-between h-[88px] text-[13px] font-semibold text-gray-700">
+            <CardContent className="p-5 flex flex-col justify-between h-[88px] text-[13px] font-semibold text-gray-700 dark:text-gray-200">
               {loading ? (
                 <div className="space-y-2"><Skeleton className="h-4 w-full"/><Skeleton className="h-4 w-3/4"/><Skeleton className="h-4 w-5/6"/></div>
               ) : (
                 <>
-                  <div className="flex justify-between"><span className="text-gray-500 font-medium"><Building2 className="w-3.5 h-3.5 inline mr-1 text-gray-400" /> Top Branch</span> <span className="text-gray-900 font-bold">{stats.topBranch}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-500 font-medium"><Users className="w-3.5 h-3.5 inline mr-1 text-gray-400" /> Top Dept</span> <span className="text-gray-900 font-bold">{stats.topDept}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-500 font-medium"><MapPin className="w-3.5 h-3.5 inline mr-1 text-gray-400" /> Top Dest</span> <span className="text-gray-900 font-bold">{stats.topDest}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400 font-medium"><Building2 className="w-3.5 h-3.5 inline mr-1 text-gray-400" /> Top Branch</span> <span className="text-gray-900 font-bold">{stats.topBranch}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400 font-medium"><Users className="w-3.5 h-3.5 inline mr-1 text-gray-400" /> Top Dept</span> <span className="text-gray-900 font-bold">{stats.topDept}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400 font-medium"><MapPin className="w-3.5 h-3.5 inline mr-1 text-gray-400" /> Top Dest</span> <span className="text-gray-900 font-bold">{stats.topDest}</span></div>
                 </>
               )}
             </CardContent>
@@ -322,7 +322,7 @@ export default function OutstationAnalytics() {
                   </div>
                   <div className="grid grid-cols-2 gap-y-3 gap-x-6 w-full">
                     {statusData.map((d, i) => (
-                      <div key={i} className="flex items-center gap-2 text-[13px] font-semibold text-gray-700">
+                      <div key={i} className="flex items-center gap-2 text-[13px] font-semibold text-gray-700 dark:text-gray-200">
                         <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
                         <span className="flex-1">{d.name}</span>
                         <span className="text-gray-900">{d.value}</span>
@@ -356,7 +356,7 @@ export default function OutstationAnalytics() {
               <div className="flex-1 space-y-3">
                 {branchData.map((b, i) => (
                   <div key={i} className="flex items-center justify-between text-[13px] font-semibold">
-                    <span className="text-gray-700">{b.name}</span>
+                    <span className="text-gray-700 dark:text-gray-200">{b.name}</span>
                     <span className="text-gray-900">{b.pct}</span>
                   </div>
                 ))}
@@ -373,7 +373,7 @@ export default function OutstationAnalytics() {
                 {deptChartData.map((d, i) => (
                   <div key={i} className="flex flex-col gap-1.5">
                     <div className="flex items-center justify-between text-[13px]">
-                      <span className="font-semibold text-gray-700">{d.name}</span>
+                      <span className="font-semibold text-gray-700 dark:text-gray-200">{d.name}</span>
                       <span className="font-bold text-gray-900">{d.val}</span>
                     </div>
                     <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
@@ -397,7 +397,7 @@ export default function OutstationAnalytics() {
                 {topDests.map((d, i) => (
                   <div key={i} className="flex flex-col gap-1.5">
                     <div className="flex items-center justify-between text-[13px]">
-                      <span className="font-semibold text-gray-700">{d.dest}</span>
+                      <span className="font-semibold text-gray-700 dark:text-gray-200">{d.dest}</span>
                       <span className="font-bold text-gray-900">{d.count} trips</span>
                     </div>
                     <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
@@ -417,9 +417,9 @@ export default function OutstationAnalytics() {
               <table className="w-full text-left">
                 <thead className="bg-gray-50/80">
                   <tr>
-                    <th className="px-6 py-3 text-[12px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Employee</th>
-                    <th className="px-6 py-3 text-[12px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Trips</th>
-                    <th className="px-6 py-3 text-[12px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Avg Dur</th>
+                    <th className="px-6 py-3 text-[12px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200">Employee</th>
+                    <th className="px-6 py-3 text-[12px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200">Trips</th>
+                    <th className="px-6 py-3 text-[12px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200">Avg Dur</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -432,14 +432,14 @@ export default function OutstationAnalytics() {
                           </div>
                           <div>
                             <p className="text-[13px] font-semibold text-gray-900">{e.name}</p>
-                            <p className="text-[11px] text-gray-500">{e.dept} • {e.branch}</p>
+                            <p className="text-[11px] text-gray-500 dark:text-gray-400">{e.dept} • {e.branch}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-3">
                         <span className="text-[14px] font-bold text-gray-900">{e.trips}</span>
                       </td>
-                      <td className="px-6 py-3 text-[13px] font-semibold text-gray-700">{e.avgDur}</td>
+                      <td className="px-6 py-3 text-[13px] font-semibold text-gray-700 dark:text-gray-200">{e.avgDur}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -452,3 +452,4 @@ export default function OutstationAnalytics() {
     </div>
   );
 }
+
