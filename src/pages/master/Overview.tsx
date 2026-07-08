@@ -56,13 +56,7 @@ export default function MasterOverview() {
     }
   }, [role, roleLoading, navigate]);
 
-  if (roleLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7B0099]" />
-      </div>
-    );
-  }
+
 
   const fetchData = async () => {
     setLoading(true);
@@ -147,6 +141,14 @@ export default function MasterOverview() {
       active: deptEmployees.filter(e => e.status === "Active").length,
     };
   }).sort((a, b) => b.count - a.count);
+
+  if (roleLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7B0099]" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-1 sm:px-4">

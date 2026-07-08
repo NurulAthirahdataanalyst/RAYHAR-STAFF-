@@ -354,13 +354,7 @@ export default function LeaveAnalytics() {
     }
   }, [role, roleLoading, navigate]);
 
-  if (roleLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7B0099]" />
-      </div>
-    );
-  }
+
 
   // ─ Filter state ─
   const [selectedMonth, setSelectedMonth] = useState("all");
@@ -770,6 +764,14 @@ export default function LeaveAnalytics() {
     backdropFilter: "blur(10px)",
     padding: "12px",
   };
+
+  if (roleLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7B0099]" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-6">
