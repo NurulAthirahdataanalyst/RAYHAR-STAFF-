@@ -172,13 +172,13 @@ export default function OutstationAnalytics() {
   if (roleLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50"><Loader2 className="animate-spin w-8 h-8 text-purple-900" /></div>;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-gray-900 pb-12">
+    <div className="min-h-screen bg-[#f8fafc] text-gray-900 dark:text-gray-100 pb-12">
       <div className="max-w-[1600px] mx-auto px-6 py-8">
         
         {/* Top Filter Bar */}
-        <Card className="border-0 shadow-sm rounded-[12px] bg-white mb-8 mt-2">
+        <Card className="border-0 shadow-sm rounded-[12px] bg-white dark:bg-card mb-8 mt-2">
           <CardContent className="p-4 flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 border-r border-gray-100 pr-4">
+            <div className="flex items-center gap-2 border-r border-gray-100 dark:border-slate-800 pr-4">
               <Filter className="w-4 h-4 text-gray-400" />
               <span className="text-[13px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Filters</span>
             </div>
@@ -211,7 +211,7 @@ export default function OutstationAnalytics() {
         {/* Organized Analytics Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Operations */}
-          <Card className="border-0 shadow-sm rounded-[16px] bg-white overflow-hidden relative">
+          <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden relative">
             <div className="absolute top-0 left-0 bottom-0 w-1 bg-purple-600" />
             <CardHeader className="px-5 py-4 border-b border-gray-50">
               <CardTitle className="text-[14px] font-bold text-gray-400 uppercase tracking-widest">Operations</CardTitle>
@@ -219,7 +219,7 @@ export default function OutstationAnalytics() {
             <CardContent className="p-5 flex items-center justify-between">
               <div>
                 <p className="text-[12px] text-gray-500 dark:text-gray-400 font-semibold mb-1">Total</p>
-                {loading ? <Skeleton className="h-8 w-12" /> : <p className="text-[32px] font-extrabold text-gray-900 leading-none">{stats.total}</p>}
+                {loading ? <Skeleton className="h-8 w-12" /> : <p className="text-[32px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{stats.total}</p>}
               </div>
               <div>
                 <p className="text-[12px] text-gray-500 dark:text-gray-400 font-semibold mb-1">Completed</p>
@@ -233,7 +233,7 @@ export default function OutstationAnalytics() {
           </Card>
 
           {/* Performance */}
-          <Card className="border-0 shadow-sm rounded-[16px] bg-white overflow-hidden relative">
+          <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden relative">
             <div className="absolute top-0 left-0 bottom-0 w-1 bg-blue-600" />
             <CardHeader className="px-5 py-4 border-b border-gray-50">
               <CardTitle className="text-[14px] font-bold text-gray-400 uppercase tracking-widest">Performance</CardTitle>
@@ -241,21 +241,21 @@ export default function OutstationAnalytics() {
             <CardContent className="p-5 flex items-center justify-between">
               <div>
                 <p className="text-[12px] text-gray-500 dark:text-gray-400 font-semibold mb-1">Completion Rate</p>
-                {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-[32px] font-extrabold text-gray-900 leading-none">{stats.completionRate}%</p>}
+                {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-[32px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{stats.completionRate}%</p>}
               </div>
               <div>
                 <p className="text-[12px] text-gray-500 dark:text-gray-400 font-semibold mb-1">Avg Duration</p>
-                {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-[32px] font-extrabold text-gray-900 leading-none">{stats.avgDays} <span className="text-[14px] text-gray-400">d</span></p>}
+                {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-[32px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{stats.avgDays} <span className="text-[14px] text-gray-400">d</span></p>}
               </div>
               <div>
                 <p className="text-[12px] text-gray-500 dark:text-gray-400 font-semibold mb-1">Avg Trips</p>
-                {loading ? <Skeleton className="h-8 w-12" /> : <p className="text-[32px] font-extrabold text-gray-900 leading-none">3.2</p>}
+                {loading ? <Skeleton className="h-8 w-12" /> : <p className="text-[32px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">3.2</p>}
               </div>
             </CardContent>
           </Card>
 
           {/* Insights */}
-          <Card className="border-0 shadow-sm rounded-[16px] bg-white overflow-hidden relative">
+          <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden relative">
             <div className="absolute top-0 left-0 bottom-0 w-1 bg-green-600" />
             <CardHeader className="px-5 py-4 border-b border-gray-50">
               <CardTitle className="text-[14px] font-bold text-gray-400 uppercase tracking-widest">Insights</CardTitle>
@@ -265,9 +265,9 @@ export default function OutstationAnalytics() {
                 <div className="space-y-2"><Skeleton className="h-4 w-full"/><Skeleton className="h-4 w-3/4"/><Skeleton className="h-4 w-5/6"/></div>
               ) : (
                 <>
-                  <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400 font-medium"><Building2 className="w-3.5 h-3.5 inline mr-1 text-gray-400" /> Top Branch</span> <span className="text-gray-900 font-bold">{stats.topBranch}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400 font-medium"><Users className="w-3.5 h-3.5 inline mr-1 text-gray-400" /> Top Dept</span> <span className="text-gray-900 font-bold">{stats.topDept}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400 font-medium"><MapPin className="w-3.5 h-3.5 inline mr-1 text-gray-400" /> Top Dest</span> <span className="text-gray-900 font-bold">{stats.topDest}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400 font-medium"><Building2 className="w-3.5 h-3.5 inline mr-1 text-gray-400" /> Top Branch</span> <span className="text-gray-900 dark:text-gray-100 font-bold">{stats.topBranch}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400 font-medium"><Users className="w-3.5 h-3.5 inline mr-1 text-gray-400" /> Top Dept</span> <span className="text-gray-900 dark:text-gray-100 font-bold">{stats.topDept}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400 font-medium"><MapPin className="w-3.5 h-3.5 inline mr-1 text-gray-400" /> Top Dest</span> <span className="text-gray-900 dark:text-gray-100 font-bold">{stats.topDest}</span></div>
                 </>
               )}
             </CardContent>
@@ -276,9 +276,9 @@ export default function OutstationAnalytics() {
 
         {/* Charts Row 1: Monthly (8) & Status (4) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
-          <Card className="lg:col-span-8 border-0 shadow-sm rounded-[16px] bg-white">
+          <Card className="lg:col-span-8 border-0 shadow-sm rounded-[16px] bg-white dark:bg-card">
             <CardHeader className="px-6 py-5 border-b border-gray-50">
-              <CardTitle className="text-[18px] font-bold text-gray-900">Monthly Trend</CardTitle>
+              <CardTitle className="text-[18px] font-bold text-gray-900 dark:text-gray-100">Monthly Trend</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
               {loading ? (
@@ -298,9 +298,9 @@ export default function OutstationAnalytics() {
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-4 border-0 shadow-sm rounded-[16px] bg-white">
+          <Card className="lg:col-span-4 border-0 shadow-sm rounded-[16px] bg-white dark:bg-card">
             <CardHeader className="px-6 py-5 border-b border-gray-50">
-              <CardTitle className="text-[18px] font-bold text-gray-900">Status Distribution</CardTitle>
+              <CardTitle className="text-[18px] font-bold text-gray-900 dark:text-gray-100">Status Distribution</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
               {loading ? (
@@ -317,7 +317,7 @@ export default function OutstationAnalytics() {
                       </RechartsPie>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
-                      <span className="text-[28px] font-extrabold text-gray-900 leading-none">{stats.total}</span>
+                      <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{stats.total}</span>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-y-3 gap-x-6 w-full">
@@ -325,7 +325,7 @@ export default function OutstationAnalytics() {
                       <div key={i} className="flex items-center gap-2 text-[13px] font-semibold text-gray-700 dark:text-gray-200">
                         <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
                         <span className="flex-1">{d.name}</span>
-                        <span className="text-gray-900">{d.value}</span>
+                        <span className="text-gray-900 dark:text-gray-100">{d.value}</span>
                       </div>
                     ))}
                   </div>
@@ -337,9 +337,9 @@ export default function OutstationAnalytics() {
 
         {/* Charts Row 2: Branch (6) & Department (6) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <Card className="border-0 shadow-sm rounded-[16px] bg-white">
+          <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card">
             <CardHeader className="px-6 py-5 border-b border-gray-50">
-              <CardTitle className="text-[18px] font-bold text-gray-900">Branch Distribution</CardTitle>
+              <CardTitle className="text-[18px] font-bold text-gray-900 dark:text-gray-100">Branch Distribution</CardTitle>
             </CardHeader>
             <CardContent className="p-6 flex gap-6 items-center">
               <div className="h-[160px] w-[160px] relative shrink-0">
@@ -357,16 +357,16 @@ export default function OutstationAnalytics() {
                 {branchData.map((b, i) => (
                   <div key={i} className="flex items-center justify-between text-[13px] font-semibold">
                     <span className="text-gray-700 dark:text-gray-200">{b.name}</span>
-                    <span className="text-gray-900">{b.pct}</span>
+                    <span className="text-gray-900 dark:text-gray-100">{b.pct}</span>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-sm rounded-[16px] bg-white">
+          <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card">
             <CardHeader className="px-6 py-5 border-b border-gray-50">
-              <CardTitle className="text-[18px] font-bold text-gray-900">Department Distribution</CardTitle>
+              <CardTitle className="text-[18px] font-bold text-gray-900 dark:text-gray-100">Department Distribution</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
               <div className="space-y-4">
@@ -374,7 +374,7 @@ export default function OutstationAnalytics() {
                   <div key={i} className="flex flex-col gap-1.5">
                     <div className="flex items-center justify-between text-[13px]">
                       <span className="font-semibold text-gray-700 dark:text-gray-200">{d.name}</span>
-                      <span className="font-bold text-gray-900">{d.val}</span>
+                      <span className="font-bold text-gray-900 dark:text-gray-100">{d.val}</span>
                     </div>
                     <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
                       <div className="h-full bg-blue-600 rounded-full" style={{ width: `${(d.val / Math.max(...deptChartData.map(c=>c.val), 1)) * 100}%` }} />
@@ -388,9 +388,9 @@ export default function OutstationAnalytics() {
 
         {/* Charts Row 3: Top Destinations (6) & Employee Ranking (6) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <Card className="border-0 shadow-sm rounded-[16px] bg-white">
+          <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card">
             <CardHeader className="px-6 py-5 border-b border-gray-50">
-              <CardTitle className="text-[18px] font-bold text-gray-900">Destination Ranking</CardTitle>
+              <CardTitle className="text-[18px] font-bold text-gray-900 dark:text-gray-100">Destination Ranking</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
               <div className="space-y-5">
@@ -398,7 +398,7 @@ export default function OutstationAnalytics() {
                   <div key={i} className="flex flex-col gap-1.5">
                     <div className="flex items-center justify-between text-[13px]">
                       <span className="font-semibold text-gray-700 dark:text-gray-200">{d.dest}</span>
-                      <span className="font-bold text-gray-900">{d.count} trips</span>
+                      <span className="font-bold text-gray-900 dark:text-gray-100">{d.count} trips</span>
                     </div>
                     <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
                       <div className="h-full bg-purple-500 rounded-full" style={{ width: `${d.pct}%` }} />
@@ -409,9 +409,9 @@ export default function OutstationAnalytics() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-sm rounded-[16px] bg-white overflow-hidden">
+          <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden">
             <CardHeader className="px-6 py-5 border-b border-gray-50">
-              <CardTitle className="text-[18px] font-bold text-gray-900">Employee Ranking</CardTitle>
+              <CardTitle className="text-[18px] font-bold text-gray-900 dark:text-gray-100">Employee Ranking</CardTitle>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
               <table className="w-full text-left">
@@ -431,13 +431,13 @@ export default function OutstationAnalytics() {
                             {e.name.split(" ").map((n: string)=>n[0]).join("").substring(0,2).toUpperCase()}
                           </div>
                           <div>
-                            <p className="text-[13px] font-semibold text-gray-900">{e.name}</p>
+                            <p className="text-[13px] font-semibold text-gray-900 dark:text-gray-100">{e.name}</p>
                             <p className="text-[11px] text-gray-500 dark:text-gray-400">{e.dept} • {e.branch}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-3">
-                        <span className="text-[14px] font-bold text-gray-900">{e.trips}</span>
+                        <span className="text-[14px] font-bold text-gray-900 dark:text-gray-100">{e.trips}</span>
                       </td>
                       <td className="px-6 py-3 text-[13px] font-semibold text-gray-700 dark:text-gray-200">{e.avgDur}</td>
                     </tr>

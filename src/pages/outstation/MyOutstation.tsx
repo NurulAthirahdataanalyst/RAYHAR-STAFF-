@@ -31,7 +31,7 @@ function statusBadge(status: string) {
     case "Active":    return <Badge className="bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-500/30 font-bold">🟣 Active</Badge>;
     case "Upcoming":  return <Badge className="bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 font-bold">🟡 Upcoming</Badge>;
     case "Completed": return <Badge className="bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 font-bold">🔵 Completed</Badge>;
-    case "Cancelled": return <Badge className="bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-500/30 font-bold">⬜ Cancelled</Badge>;
+    case "Cancelled": return <Badge className="bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-800 dark:border-gray-500/30 font-bold">⬜ Cancelled</Badge>;
     default:          return <Badge variant="outline">{status}</Badge>;
   }
 }
@@ -155,7 +155,7 @@ export default function MyOutstation() {
 
       {/* No assignments */}
       {!active && !nextUpcoming && !loading && assignments.length === 0 && (
-        <Card className="border border-dashed border-gray-200 dark:border-gray-500/30 shadow-sm">
+        <Card className="border border-dashed border-gray-200 dark:border-slate-800 dark:border-gray-500/30 shadow-sm">
           <CardContent className="py-12 flex flex-col items-center justify-center gap-3 text-slate-400">
             <Plane className="w-12 h-12 opacity-20" />
             <p className="text-[11px] font-black uppercase tracking-widest">No outstation assignments</p>
@@ -177,7 +177,7 @@ export default function MyOutstation() {
                     s === "Upcoming" ? "bg-amber-500 text-white border-amber-500 shadow-sm" :
                     s === "Completed" ? "bg-blue-500 text-white border-blue-500 shadow-sm" :
                     "bg-gray-500 text-white border-gray-500 shadow-sm"
-                  : "bg-white text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-500/30 hover:border-gray-300"
+                  : "bg-white dark:bg-card text-gray-600 dark:text-gray-300 border-gray-200 dark:border-slate-800 dark:border-gray-500/30 hover:border-gray-300"
               }`}
             >
               {s} <span className="ml-1 opacity-80">({counts[s]})</span>
@@ -188,14 +188,14 @@ export default function MyOutstation() {
         {loading ? (
           <div className="h-32 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-pink-400" /></div>
         ) : filtered.length === 0 ? (
-          <div className="h-32 flex flex-col items-center justify-center gap-2 text-slate-400 border border-dashed border-gray-200 dark:border-gray-500/30 rounded-xl">
+          <div className="h-32 flex flex-col items-center justify-center gap-2 text-slate-400 border border-dashed border-gray-200 dark:border-slate-800 dark:border-gray-500/30 rounded-xl">
             <AlertCircle className="w-6 h-6 opacity-30" />
             <p className="text-[10px] font-black uppercase tracking-widest">No {tab.toLowerCase()} outstations</p>
           </div>
         ) : (
           <div className="space-y-3">
             {filtered.map(a => (
-              <Card key={a.id} className="border border-gray-200 dark:border-gray-500/30/80 shadow-sm hover:shadow-md transition-shadow">
+              <Card key={a.id} className="border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/80 shadow-sm hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">

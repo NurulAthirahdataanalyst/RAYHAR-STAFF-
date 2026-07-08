@@ -38,7 +38,7 @@ function statusBadge(status: string) {
     case "Active":    return <Badge className="bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-500/30 font-bold text-[10px] whitespace-nowrap">🟣 Active</Badge>;
     case "Upcoming":  return <Badge className="bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 font-bold text-[10px] whitespace-nowrap">🟡 Upcoming</Badge>;
     case "Completed": return <Badge className="bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 font-bold text-[10px] whitespace-nowrap">🔵 Completed</Badge>;
-    case "Cancelled": return <Badge className="bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-500/30 font-bold text-[10px] whitespace-nowrap">⬜ Cancelled</Badge>;
+    case "Cancelled": return <Badge className="bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-800 dark:border-gray-500/30 font-bold text-[10px] whitespace-nowrap">⬜ Cancelled</Badge>;
     default:          return <Badge variant="outline" className="whitespace-nowrap">{status}</Badge>;
   }
 }
@@ -275,7 +275,7 @@ export default function OutstationAssignment() {
     <div className="space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-8">
 
       {/* Filter Bar */}
-      <Card className="border border-gray-200 dark:border-gray-500/30/80 shadow-sm">
+      <Card className="border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/80 shadow-sm">
         <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2">
@@ -301,7 +301,7 @@ export default function OutstationAssignment() {
               </SelectContent>
             </Select>
             {(filterStatus !== "All" || filterSearch) && (
-              <Badge className="cursor-pointer bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-300 text-[10px] border border-gray-200 dark:border-gray-500/30 hover:bg-gray-200"
+              <Badge className="cursor-pointer bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-300 text-[10px] border border-gray-200 dark:border-slate-800 dark:border-gray-500/30 hover:bg-gray-200"
                 onClick={() => { setFilterStatus("All"); setFilterSearch(""); }}>
                 Clear ×
               </Badge>
@@ -315,7 +315,7 @@ export default function OutstationAssignment() {
       </Card>
 
       {/* Table */}
-      <Card className="border border-gray-200 dark:border-gray-500/30/80 shadow-sm overflow-hidden">
+      <Card className="border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/80 shadow-sm overflow-hidden">
         <CardHeader className="pb-0 border-b border-gray-100">
           <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
             <Plane className="w-4 h-4 text-pink-500" />
@@ -331,7 +331,7 @@ export default function OutstationAssignment() {
               <p className="text-[10px] font-black uppercase tracking-widest">No assignments found</p>
             </div>
           ) : (
-            <div className="rounded-md border border-gray-200 dark:border-gray-500/30/60 bg-white">
+            <div className="rounded-md border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/60 bg-white dark:bg-card">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50/60 hover:bg-slate-50/60">
@@ -415,7 +415,7 @@ export default function OutstationAssignment() {
                 {selectedEmps.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 p-2 bg-pink-50 rounded-lg border border-pink-100">
                     {selectedEmps.map(e => (
-                      <span key={e.user_id} className="inline-flex items-center gap-1 bg-white border border-pink-200 dark:border-pink-500/30 text-pink-700 dark:text-pink-300 text-[10px] font-bold px-2 py-1 rounded-md">
+                      <span key={e.user_id} className="inline-flex items-center gap-1 bg-white dark:bg-card border border-pink-200 dark:border-pink-500/30 text-pink-700 dark:text-pink-300 text-[10px] font-bold px-2 py-1 rounded-md">
                         {e.full_name}
                         <button onClick={() => toggleEmp(e)} className="hover:text-red-500 transition-colors"><X className="w-2.5 h-2.5" /></button>
                       </span>
@@ -431,7 +431,7 @@ export default function OutstationAssignment() {
                 </div>
 
                 {/* Employee List */}
-                <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-500/30 rounded-lg divide-y divide-gray-50">
+                <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-slate-800 dark:border-gray-500/30 rounded-lg divide-y divide-gray-50">
                   {filteredEmps.length === 0 ? (
                     <div className="py-4 text-center text-[10px] text-gray-400 font-bold uppercase">No employees found</div>
                   ) : (

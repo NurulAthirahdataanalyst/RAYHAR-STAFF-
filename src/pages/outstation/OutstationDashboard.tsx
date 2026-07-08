@@ -237,7 +237,7 @@ export default function OutstationDashboard() {
   if (roleLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50"><Loader2 className="animate-spin w-8 h-8 text-purple-900" /></div>;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-gray-900 pb-12">
+    <div className="min-h-screen bg-[#f8fafc] text-gray-900 dark:text-gray-100 pb-12">
       {/* 
         Spacing System: 8, 16, 24, 32, 48px
         Using standard Tailwind: 2 (8px), 4 (16px), 6 (24px), 8 (32px), 12 (48px)
@@ -259,7 +259,7 @@ export default function OutstationDashboard() {
             { label: "Total Assignments", val: activeCount + completedCount + upcomingCount, trend: dynamicTrends.total, subtitle: "Year to date", color: C_PURPLE, trendColor: dynamicTrends.totalColor },
             { label: "Completion Rate", val: dynamicTrends.completionValue, trend: dynamicTrends.completionTrend, subtitle: "Trips concluded successfully", color: C_BLUE, trendColor: dynamicTrends.completionColor }
           ].map((kpi, i) => (
-            <Card key={i} className="border-0 shadow-sm rounded-[16px] bg-white overflow-hidden hover:shadow-md transition-shadow relative">
+            <Card key={i} className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative">
               <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: kpi.color }} />
               <CardContent className="p-6">
                 <p className="text-[14px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">{kpi.label}</p>
@@ -267,7 +267,7 @@ export default function OutstationDashboard() {
                   <Skeleton className="h-[48px] w-20 mb-2 mt-2" />
                 ) : (
                   <div className="flex items-baseline gap-3 mt-1 mb-2">
-                    <span className="text-[42px] font-extrabold text-gray-900 leading-none">{kpi.val}</span>
+                    <span className="text-[42px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{kpi.val}</span>
                     <span className={`text-[12px] font-bold ${kpi.trendColor}`}>{kpi.trend}</span>
                   </div>
                 )}
@@ -281,10 +281,10 @@ export default function OutstationDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
           
           {/* Active Outstations Table */}
-          <Card className="lg:col-span-8 border-0 shadow-sm rounded-[16px] bg-white overflow-hidden flex flex-col min-h-[400px]">
-            <CardHeader className="px-6 py-5 border-b border-gray-100 bg-white flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
+          <Card className="lg:col-span-8 border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex flex-col min-h-[400px]">
+            <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
               <div>
-                <CardTitle className="text-[18px] font-bold text-gray-900">Active Outstations</CardTitle>
+                <CardTitle className="text-[18px] font-bold text-gray-900 dark:text-gray-100">Active Outstations</CardTitle>
                 <p className="text-[13px] text-gray-500 dark:text-gray-400 font-medium mt-0.5">Real-time status of employees currently on assignment</p>
               </div>
               <div className="flex items-center gap-2">
@@ -303,7 +303,7 @@ export default function OutstationDashboard() {
                 </div>
               ) : activeNow.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full py-16 text-gray-400 text-center px-4">
-                  <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-4 border border-gray-100">
+                  <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-4 border border-gray-100 dark:border-slate-800">
                     <CheckCircle className="w-8 h-8 text-green-500" />
                   </div>
                   <h3 className="text-[16px] font-bold text-gray-800 dark:text-gray-100 mb-1">No Active Outstations</h3>
@@ -315,11 +315,11 @@ export default function OutstationDashboard() {
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-gray-50/80 sticky top-0 z-0">
                     <tr>
-                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100">Destination</th>
-                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100">Status</th>
-                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100">Employee</th>
-                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100">Duration</th>
-                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 text-right">Actions</th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Destination</th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Status</th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Employee</th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Duration</th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -333,7 +333,7 @@ export default function OutstationDashboard() {
                                 <MapPin className="w-4 h-4 text-purple-600" />
                               </div>
                               <div>
-                                <p className="text-[12px] font-bold text-gray-900 uppercase tracking-wide">{g.destination}</p>
+                                <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">{g.destination}</p>
                                 <p className="text-[10px] text-gray-500 dark:text-gray-400">{g.department || "Domestic Branch"}</p>
                               </div>
                             </div>
@@ -345,7 +345,7 @@ export default function OutstationDashboard() {
                           </td>
                           <td className="px-4 py-3">
                             <div>
-                              <p className="text-[12px] font-bold text-gray-900">
+                              <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100">
                                 {g.employees.length} Employee{g.employees.length !== 1 ? 's' : ''}
                               </p>
                               {g.employees.length === 1 && (
@@ -378,13 +378,13 @@ export default function OutstationDashboard() {
                                 </DialogHeader>
                                 <div className="py-2 space-y-2 max-h-[400px] overflow-y-auto pr-1">
                                   {g.employees.map((e, idx) => (
-                                    <div key={idx} className="flex items-center justify-between bg-gray-50/80 p-3 rounded-lg border border-gray-100">
+                                    <div key={idx} className="flex items-center justify-between bg-gray-50/80 p-3 rounded-lg border border-gray-100 dark:border-slate-800">
                                       <div className="flex items-center gap-3">
                                         <div className="w-9 h-9 rounded-full bg-purple-100/80 text-purple-700 flex items-center justify-center font-bold text-xs shadow-sm">
                                           {e.full_name ? e.full_name.substring(0, 2).toUpperCase() : "U"}
                                         </div>
                                         <div>
-                                          <p className="text-sm font-bold text-gray-900 leading-tight mb-0.5">{e.full_name || "Unknown"}</p>
+                                          <p className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-tight mb-0.5">{e.full_name || "Unknown"}</p>
                                           <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{e.user_id || "EMP-8821"}</p>
                                         </div>
                                       </div>
@@ -399,7 +399,7 @@ export default function OutstationDashboard() {
                     })}
                   </tbody>
                 </table>
-                <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-white">
+                <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-card">
                   <span className="text-[12px] text-gray-500 dark:text-gray-400 font-medium">Showing {activeNowGrouped.length > 0 ? 1 : 0}-{activeNowGrouped.length} of {activeNowGrouped.length} Active Outstations</span>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" className="h-8 text-[12px] font-medium border-gray-200">Previous</Button>
@@ -415,9 +415,9 @@ export default function OutstationDashboard() {
           <div className="lg:col-span-4 flex flex-col gap-6">
             
             {/* Alerts & Upcoming List */}
-            <Card className="border-0 shadow-sm rounded-[16px] bg-white overflow-hidden flex-1">
+            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex-1">
               <CardHeader className="px-5 py-4 border-b border-gray-50">
-                <CardTitle className="text-[16px] font-bold text-gray-900 flex items-center gap-2">
+                <CardTitle className="text-[16px] font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-orange-500" /> Alerts & Upcoming
                 </CardTitle>
               </CardHeader>
@@ -430,7 +430,7 @@ export default function OutstationDashboard() {
                         <Plane className="w-4 h-4 text-orange-600 transform rotate-45" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-bold text-gray-900 truncate">{a.full_name}</p>
+                        <p className="text-[13px] font-bold text-gray-900 dark:text-gray-100 truncate">{a.full_name}</p>
                         <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{a.destination} • {formatShortDate(a.start_date)}</p>
                       </div>
                     </div>
@@ -444,7 +444,7 @@ export default function OutstationDashboard() {
                         <Plane className="w-4 h-4 text-blue-600 transform -rotate-45" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-bold text-gray-900 truncate">{a.full_name}</p>
+                        <p className="text-[13px] font-bold text-gray-900 dark:text-gray-100 truncate">{a.full_name}</p>
                         <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">From {a.destination}</p>
                       </div>
                     </div>
@@ -454,9 +454,9 @@ export default function OutstationDashboard() {
             </Card>
 
             {/* Quick Actions */}
-            <Card className="border-0 shadow-sm rounded-[16px] bg-white">
+            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card">
               <CardHeader className="px-5 py-4 border-b border-gray-50">
-                <CardTitle className="text-[16px] font-bold text-gray-900">Quick Actions</CardTitle>
+                <CardTitle className="text-[16px] font-bold text-gray-900 dark:text-gray-100">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="p-2 grid grid-cols-2 gap-2">
                 {[
