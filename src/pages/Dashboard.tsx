@@ -686,14 +686,14 @@ export default function Dashboard() {
       </div>
 
       {isCompanyLeave && stats.activeCompanyLeave && ["hr_admin", "managing_director", "finance_manager"].includes(role) && (
-        <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] rounded-[20px] overflow-hidden bg-white mb-6 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 fill-mode-both">
-          <CardHeader className="border-b border-border/50 pb-3 px-4 flex flex-col md:flex-row md:items-center justify-between bg-white gap-4">
+        <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] rounded-[20px] overflow-hidden bg-white dark:bg-card mb-6 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 fill-mode-both">
+          <CardHeader className="border-b border-border/50 pb-3 px-4 flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-card gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-[#7B0099]/10 rounded-xl">
                 <Scale className="w-5 h-5 text-[#7B0099]" />
               </div>
               <div>
-                <CardTitle className="text-base font-black text-slate-800 tracking-tight uppercase">
+                <CardTitle className="text-base font-black text-slate-800 dark:text-slate-100 tracking-tight uppercase">
                   Attendance Comparison
                 </CardTitle>
                 <p className="text-[10px] font-bold text-slate-500 mt-0.5">
@@ -738,7 +738,7 @@ export default function Dashboard() {
                       <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                         <Users className="w-3.5 h-3.5" />
                       </div>
-                      <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Total Employees</span>
+                      <span className="text-[10px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest">Total Employees</span>
                       <Info className="w-3 h-3 text-slate-400 ml-auto" />
                     </div>
                     <div className="flex justify-between items-end mb-4 flex-1 px-2">
@@ -747,7 +747,7 @@ export default function Dashboard() {
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
                       </div>
                       <div className="flex flex-col items-center">
-                        <span className="text-xl font-black text-slate-800">{typicalTotal}</span>
+                        <span className="text-xl font-black text-slate-800 dark:text-slate-100">{typicalTotal}</span>
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
@@ -764,7 +764,7 @@ export default function Dashboard() {
                       <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                       </div>
-                      <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Present <span className="hidden lg:inline">(Clocked In)</span></span>
+                      <span className="text-[10px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest">Present <span className="hidden lg:inline">(Clocked In)</span></span>
                       <Info className="w-3 h-3 text-slate-400 ml-auto shrink-0" />
                     </div>
                     <div className="flex justify-between items-end mb-4 flex-1 px-2">
@@ -773,7 +773,7 @@ export default function Dashboard() {
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
                       </div>
                       <div className="flex flex-col items-center">
-                        <span className="text-xl font-black text-slate-800">{typicalPresent}</span>
+                        <span className="text-xl font-black text-slate-800 dark:text-slate-100">{typicalPresent}</span>
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
@@ -795,7 +795,7 @@ export default function Dashboard() {
                       <div className="w-6 h-6 rounded-md bg-[#7B0099]/10 text-[#7B0099] flex items-center justify-center shrink-0">
                         <Users className="w-3.5 h-3.5" />
                       </div>
-                      <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest leading-tight">Affected By<br/>Company Leave</span>
+                      <span className="text-[10px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest leading-tight">Affected By<br/>Company Leave</span>
                       <Info className="w-3 h-3 text-slate-400 ml-auto shrink-0" />
                     </div>
                     <div className="flex justify-between items-end mb-4 flex-1 px-2">
@@ -804,7 +804,7 @@ export default function Dashboard() {
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
                       </div>
                       <div className="flex flex-col items-center">
-                        <span className="text-xl font-black text-slate-800">{typicalAffected}</span>
+                        <span className="text-xl font-black text-slate-800 dark:text-slate-100">{typicalAffected}</span>
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
@@ -826,7 +826,7 @@ export default function Dashboard() {
                       <div className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                         <BarChart className="w-3.5 h-3.5" />
                       </div>
-                      <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Attendance Rate</span>
+                      <span className="text-[10px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest">Attendance Rate</span>
                       <Info className="w-3 h-3 text-slate-400 ml-auto" />
                     </div>
                     <div className="flex justify-between items-end mb-4 flex-1 px-2">
@@ -835,7 +835,7 @@ export default function Dashboard() {
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
                       </div>
                       <div className="flex flex-col items-center">
-                        <span className="text-xl font-black text-slate-800">{typicalAttendanceRate.toFixed(1)}%</span>
+                        <span className="text-xl font-black text-slate-800 dark:text-slate-100">{typicalAttendanceRate.toFixed(1)}%</span>
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
@@ -857,7 +857,7 @@ export default function Dashboard() {
                       <div className="w-6 h-6 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
                         <Clock className="w-3.5 h-3.5" />
                       </div>
-                      <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Late Arrivals</span>
+                      <span className="text-[10px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest">Late Arrivals</span>
                       <Info className="w-3 h-3 text-slate-400 ml-auto" />
                     </div>
                     <div className="flex justify-between items-end mb-4 flex-1 px-2">
@@ -866,7 +866,7 @@ export default function Dashboard() {
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
                       </div>
                       <div className="flex flex-col items-center">
-                        <span className="text-xl font-black text-slate-800">{typicalLate}</span>
+                        <span className="text-xl font-black text-slate-800 dark:text-slate-100">{typicalLate}</span>
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
@@ -905,13 +905,13 @@ export default function Dashboard() {
         <div className="xl:col-span-2 space-y-4">
           {/* Who's Out Today - admin roles only */}
           {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role) && (
-            <Card className="border border-slate-200 shadow-none rounded-md overflow-hidden bg-white">
+            <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card">
               <CardHeader className="border-b border-slate-100 pb-3 px-4 pt-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                   <div className="flex items-start gap-2">
                     <CalendarOff className="w-5 h-5 text-purple-600 mt-0.5" />
                     <div>
-                      <CardTitle className="text-lg font-bold text-slate-800 tracking-tight">
+                      <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                         Who's Out Today
                       </CardTitle>
                       <p className="text-xs text-slate-500 mt-0.5">
@@ -968,7 +968,7 @@ export default function Dashboard() {
                               {emp.full_name?.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-[11px] font-bold text-slate-800 uppercase tracking-tight truncate">
+                              <p className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-tight truncate">
                                 {emp.full_name}
                               </p>
                               <p className="text-[11px] text-slate-500 mt-0.5 truncate">
@@ -1000,12 +1000,12 @@ export default function Dashboard() {
           )}
 
           {/* Enterprise Recent Activity Feed */}
-          <Card className="border border-slate-200 shadow-none rounded-md overflow-hidden bg-white">
+          <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card">
             <CardHeader className="border-b border-slate-100 pb-0 px-4 pt-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                 <div className="flex items-center gap-2">
                   <Activity className="w-5 h-5 text-purple-600" />
-                  <CardTitle className="text-lg font-bold text-slate-800">
+                  <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-100">
                     Recent Activity
                   </CardTitle>
                 </div>
@@ -1033,7 +1033,7 @@ export default function Dashboard() {
                     className={`pb-2 text-sm font-bold transition-all duration-200 border-b-2 ${
                       activeTab === tab.key
                         ? "border-purple-700 text-purple-700"
-                        : "border-transparent text-slate-500 hover:text-slate-800"
+                        : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-100"
                     }`}
                   >
                     {tab.label}
@@ -1056,7 +1056,7 @@ export default function Dashboard() {
                     className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-all duration-200 ${
                       activityFilter === chip.key
                         ? "bg-purple-700 text-white border-purple-700"
-                        : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
+                        : "bg-white dark:bg-card border-slate-200 dark:border-slate-800 text-slate-600 hover:border-slate-300"
                     }`}
                   >
                     {chip.label}
@@ -1127,7 +1127,7 @@ export default function Dashboard() {
                           <div className="col-span-3 text-[11px] text-slate-600">
                             {item.time}
                           </div>
-                          <div className="col-span-5 text-[11px] text-slate-800 truncate pr-4">
+                          <div className="col-span-5 text-[11px] text-slate-800 dark:text-slate-100 truncate pr-4">
                             <span className="font-bold">{item.actor}</span> {item.action} {item.target && item.target}
                             {item.context && <span className="block text-slate-500 truncate">{item.context}</span>}
                           </div>
@@ -1159,11 +1159,11 @@ export default function Dashboard() {
         <div className="xl:col-span-1 space-y-4">
           
           {/* Quick Actions */}
-          <Card className="border border-slate-200 shadow-none rounded-md overflow-hidden bg-white">
+          <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card">
             <CardHeader className="border-b border-slate-100 pb-3 px-4 pt-4">
               <div className="flex items-center gap-2">
                 <Zap className="w-5 h-5 text-purple-600" />
-                <CardTitle className="text-[11px] font-bold text-slate-800 uppercase tracking-widest">
+                <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest">
                   Quick Actions
                 </CardTitle>
               </div>
@@ -1189,9 +1189,9 @@ export default function Dashboard() {
           </Card>
 
           {/* Upcoming Outstation */}
-          <Card className="border border-slate-200 shadow-none rounded-md overflow-hidden bg-white">
+          <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card">
             <CardHeader className="border-b border-slate-100 pb-3 px-4 pt-4 flex flex-row items-center justify-between">
-              <CardTitle className="text-[11px] font-bold text-slate-800 uppercase tracking-widest">
+              <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest">
                 Upcoming Outstation
               </CardTitle>
               <span onClick={() => navigate("/outstation/calendar")} className="text-[10px] font-bold text-purple-600 uppercase cursor-pointer hover:underline">
@@ -1211,7 +1211,7 @@ export default function Dashboard() {
                         <span className="text-lg font-black text-purple-900 leading-none mt-0.5">{day}</span>
                       </div>
                       <div className="min-w-0">
-                        <h4 className="text-sm font-bold text-slate-800 truncate">{a.destination}</h4>
+                        <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{a.destination}</h4>
                         <p className="text-[11px] text-slate-500 mt-0.5 truncate">{a.purpose || "Outstation"} • {d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</p>
                       </div>
                     </div>
@@ -1246,7 +1246,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Server Status */}
-          <Card className="border border-slate-200 shadow-none rounded-md overflow-hidden bg-white">
+          <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card">
             <CardContent className="p-4 flex items-center justify-between">
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                 Server Status
