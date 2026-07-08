@@ -135,7 +135,7 @@ export default function LeaveReports() {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white h-10"
+                className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white dark:bg-card h-10"
               />
             ) : (
               <input
@@ -148,7 +148,7 @@ export default function LeaveReports() {
                     setSelectedMonth(parseInt(mm).toString());
                   }
                 }}
-                className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white h-10"
+                className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white dark:bg-card h-10"
               />
             )}
             <ExportDropdown onExportCSV={handleExportCSV} />

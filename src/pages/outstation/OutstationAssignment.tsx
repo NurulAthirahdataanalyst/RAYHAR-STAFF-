@@ -316,7 +316,7 @@ export default function OutstationAssignment() {
 
       {/* Table */}
       <Card className="border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/80 shadow-sm overflow-hidden">
-        <CardHeader className="pb-0 border-b border-gray-100">
+        <CardHeader className="pb-0 border-b border-gray-100 dark:border-slate-800">
           <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
             <Plane className="w-4 h-4 text-pink-500" />
             Outstation Assignments
@@ -440,7 +440,7 @@ export default function OutstationAssignment() {
                       return (
                         <div key={e.user_id}
                           onClick={() => toggleEmp(e)}
-                          className={`flex items-center justify-between px-3 py-2 cursor-pointer transition-colors ${isSelected ? "bg-pink-50" : "hover:bg-gray-50"}`}>
+                          className={`flex items-center justify-between px-3 py-2 cursor-pointer transition-colors ${isSelected ? "bg-pink-50" : "hover:bg-gray-50 dark:bg-slate-900/50"}`}>
                           <div className="flex items-center gap-2.5">
                             <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isSelected ? "bg-pink-500 border-pink-500" : "border-gray-300"}`}>
                               {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
@@ -526,7 +526,7 @@ export default function OutstationAssignment() {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100 dark:border-slate-800">
               <Button variant="outline" size="sm" onClick={() => setDrawerOpen(false)}>Cancel</Button>
               <Button size="sm" onClick={handleSubmit} disabled={submitting} style={{ background: PINK }} className="text-white gap-1.5">
                 {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plane className="w-3.5 h-3.5" />}

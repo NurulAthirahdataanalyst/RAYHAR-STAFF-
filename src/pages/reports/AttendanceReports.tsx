@@ -242,7 +242,7 @@ export default function AttendanceReports() {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white h-10"
+                className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white dark:bg-card h-10"
               />
             ) : (
               <input
@@ -255,12 +255,12 @@ export default function AttendanceReports() {
                     setSelectedMonth(parseInt(mm).toString());
                   }
                 }}
-                className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white h-10"
+                className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white dark:bg-card h-10"
               />
             )}
             
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[160px] bg-white">
+              <SelectTrigger className="w-[160px] bg-white dark:bg-card">
                 <SelectValue placeholder="Select Status" />
               </SelectTrigger>
               <SelectContent>

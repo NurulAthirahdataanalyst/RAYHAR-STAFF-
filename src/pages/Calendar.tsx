@@ -695,10 +695,10 @@ export default function Calendar() {
             <div className="flex items-center gap-3">
               <Button variant="outline" className="h-9 px-4 font-bold bg-muted/30" onClick={() => setSelectedDate(new Date())}>Today</Button>
               <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-0.5 border border-border/50">
-                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white dark:hover:bg-card" onClick={() => setSelectedDate(subMonths(selectedDate, 1))}>
+                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white dark:bg-card dark:hover:bg-card" onClick={() => setSelectedDate(subMonths(selectedDate, 1))}>
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white dark:hover:bg-card" onClick={() => setSelectedDate(addMonths(selectedDate, 1))}>
+                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white dark:bg-card dark:hover:bg-card" onClick={() => setSelectedDate(addMonths(selectedDate, 1))}>
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
@@ -1078,12 +1078,12 @@ export default function Calendar() {
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in" onClick={() => setSelectedEvent(null)}>
             <div 
-              className="w-full max-w-[420px] rounded-2xl shadow-2xl border border-border overflow-hidden animate-in zoom-in-95 duration-200 bg-white"
+              className="w-full max-w-[420px] rounded-2xl shadow-2xl border border-border overflow-hidden animate-in zoom-in-95 duration-200 bg-white dark:bg-card"
               onClick={e => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between p-5 border-b border-slate-100">
+              <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-3">
-                  <h3 className="font-bold text-lg text-slate-900 tracking-tight">Event Details</h3>
+                  <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 tracking-tight">Event Details</h3>
                   <span className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-bold ${tagColorClass}`}>
                     {categoryName}
                   </span>
@@ -1097,7 +1097,7 @@ export default function Calendar() {
               </div>
               <div className="p-6">
                 <div className="mb-6">
-                  <h3 className="text-2xl font-extrabold text-slate-900 leading-tight">{modalEventName}</h3>
+                  <h3 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 leading-tight">{modalEventName}</h3>
                 </div>
 
                 <div className="flex flex-col">
@@ -1106,7 +1106,7 @@ export default function Calendar() {
                     <CalendarIcon className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
                     <div className="flex flex-col">
                       <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Date</span>
-                      <span className="text-[15px] text-slate-900 font-semibold">{finalDateDisplay}</span>
+                      <span className="text-[15px] text-slate-900 dark:text-slate-100 font-semibold">{finalDateDisplay}</span>
                     </div>
                   </div>
                   
@@ -1116,7 +1116,7 @@ export default function Calendar() {
                       <Clock className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
                       <div className="flex flex-col">
                         <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Time</span>
-                        <span className="text-[15px] text-slate-900 font-semibold">{finalTimeDisplay}</span>
+                        <span className="text-[15px] text-slate-900 dark:text-slate-100 font-semibold">{finalTimeDisplay}</span>
                         {durationDisplay && <span className="text-[13px] text-slate-500 font-medium mt-0.5">({durationDisplay})</span>}
                       </div>
                     </div>
@@ -1128,7 +1128,7 @@ export default function Calendar() {
                       <MapPin className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
                       <div className="flex flex-col">
                         <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Location</span>
-                        <div className="text-[15px] text-slate-900 font-semibold">{renderLocation(modalLocation)}</div>
+                        <div className="text-[15px] text-slate-900 dark:text-slate-100 font-semibold">{renderLocation(modalLocation)}</div>
                       </div>
                     </div>
                   )}
@@ -1139,13 +1139,13 @@ export default function Calendar() {
                       <FileText className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
                       <div className="flex flex-col">
                         <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Description</span>
-                        <span className="text-[15px] text-slate-800 font-medium whitespace-pre-wrap leading-relaxed">{modalDescription}</span>
+                        <span className="text-[15px] text-slate-800 dark:text-slate-200 font-medium whitespace-pre-wrap leading-relaxed">{modalDescription}</span>
                       </div>
                     </div>
                   )}
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 mt-2 border-t border-slate-100">
+                <div className="flex justify-end gap-3 pt-4 mt-2 border-t border-slate-100 dark:border-slate-800">
                   <Button 
                     variant="outline" 
                     onClick={() => {
@@ -1158,7 +1158,7 @@ export default function Calendar() {
                   >
                     Delete
                   </Button>
-                  <Button variant="outline" onClick={() => setSelectedEvent(null)} className="font-semibold px-6 rounded-lg border-slate-300 text-slate-700 hover:bg-slate-50">
+                  <Button variant="outline" onClick={() => setSelectedEvent(null)} className="font-semibold px-6 rounded-lg border-slate-300 text-slate-700 hover:bg-slate-50 dark:bg-slate-900/50">
                     Close
                   </Button>
                 </div>
@@ -1172,14 +1172,14 @@ export default function Calendar() {
       {categoryToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in" onClick={() => setCategoryToDelete(null)}>
           <div 
-            className="w-full max-w-sm rounded-2xl shadow-xl border border-border bg-white overflow-hidden animate-in zoom-in-95 duration-200"
+            className="w-full max-w-sm rounded-2xl shadow-xl border border-border bg-white dark:bg-card overflow-hidden animate-in zoom-in-95 duration-200"
             onClick={e => e.stopPropagation()}
           >
             <div className="p-6">
               <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
                 <Trash2 className="w-6 h-6 text-red-600" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Delete Category?</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">Delete Category?</h3>
               <p className="text-sm text-slate-500 mb-6">
                 Are you sure you want to delete <span className="font-bold text-slate-700">"{categoryToDelete.name}"</span>? Any existing events assigned to this category will be changed to "Notes".
               </p>

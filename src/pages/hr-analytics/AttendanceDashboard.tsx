@@ -919,20 +919,20 @@ export default function AttendanceDashboard() {
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-6">
 
       {/* ── LIVE PRESENCE PANEL ─────────────────────────────────────────── */}
-      <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden ring-1 ring-black/5">
+      <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden ring-1 ring-black/5">
         <CardContent className="p-0">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 md:px-6 pt-4 pb-3 border-b border-gray-100 bg-white">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 md:px-6 pt-4 pb-3 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
             <div className="flex items-center gap-4">
               <div className="p-2.5 bg-gradient-to-br from-[#800A7A] to-[#a855f7] rounded-xl shadow-md">
                 <Activity className="w-5 h-5 text-white" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-[15px] font-black text-gray-800 uppercase tracking-wide">Live Attendance Status</h2>
+                  <h2 className="text-[15px] font-black text-gray-800 dark:text-gray-200 uppercase tracking-wide">Live Attendance Status</h2>
                   {liveConnected ? (
                     <span className="flex items-center gap-1.5 bg-red-500 text-white border border-red-400 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-widest shadow-sm shadow-red-500/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-card animate-pulse" />
                       LIVE
                     </span>
                   ) : (
@@ -955,9 +955,9 @@ export default function AttendanceDashboard() {
           </div>
 
           {/* Redesigned Standalone KPI Cards Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-7 gap-4 p-4 md:p-6 bg-slate-50/50 border-t border-gray-100">
+          <div className="grid grid-cols-2 lg:grid-cols-7 gap-4 p-4 md:p-6 bg-slate-50/50 border-t border-gray-100 dark:border-slate-800">
             {/* Card 1: Present Today */}
-            <div className="bg-white border border-gray-200/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
               <div>
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Present Today</span>
                 <div className="text-[32px] font-black text-[#7B0099] leading-none mt-2">
@@ -980,7 +980,7 @@ export default function AttendanceDashboard() {
             </div>
 
             {/* Card 2: On Time */}
-            <div className="bg-white border border-gray-200/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
               <div>
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">On Time</span>
                 <div className="text-[32px] font-black text-emerald-500 leading-none mt-2">
@@ -998,7 +998,7 @@ export default function AttendanceDashboard() {
             </div>
 
             {/* Card 3: Late */}
-            <div className="bg-white border border-gray-200/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
               <div>
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Late</span>
                 <div className="text-[32px] font-black text-[#ffbf00] leading-none mt-2">
@@ -1016,7 +1016,7 @@ export default function AttendanceDashboard() {
             </div>
 
             {/* Card 4: Absent */}
-            <div className="bg-white border border-gray-200/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
               <div>
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Absent</span>
                 <div className="text-[32px] font-black text-[#ef4444] leading-none mt-2">
@@ -1034,7 +1034,7 @@ export default function AttendanceDashboard() {
             </div>
 
             {/* Card 5: Leave */}
-            <div className="bg-white border border-gray-200/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
               <div>
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Leave</span>
                 <div className="text-[32px] font-black text-[#3b82f6] leading-none mt-2">
@@ -1052,7 +1052,7 @@ export default function AttendanceDashboard() {
             </div>
 
             {/* Card 6: Company Leave */}
-            <div className="bg-white border border-gray-200/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
               <div>
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Company Leave</span>
                 <div className="text-[32px] font-black text-indigo-500 leading-none mt-2">
@@ -1070,7 +1070,7 @@ export default function AttendanceDashboard() {
             </div>
 
             {/* Card 7: Outstation */}
-            <div className="bg-white border border-gray-200/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800/60 rounded-[16px] p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300">
               <div>
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Outstation</span>
                 <div className="text-[32px] font-black text-pink-500 leading-none mt-2">
@@ -1091,10 +1091,10 @@ export default function AttendanceDashboard() {
       </Card>
 
       {/* FILTER BAR SECTION */}
-      <Card className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+      <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-lg shadow-sm overflow-hidden mb-6">
         <div className="p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
+            <h2 className="text-base font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
               <Filter className="w-4 h-4 text-gray-500" /> Analytics Filters
             </h2>
             <p className="text-[10px] text-gray-400 font-medium ml-6 mt-0.5 uppercase tracking-widest">
@@ -1109,14 +1109,14 @@ export default function AttendanceDashboard() {
                   type="date" 
                   value={selectedDate} 
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="pl-3 pr-3 py-1.5 text-xs font-medium border border-gray-200 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#7B0099] h-8 shadow-sm"
+                  className="pl-3 pr-3 py-1.5 text-xs font-medium border border-gray-200 dark:border-slate-800 rounded-md bg-white dark:bg-card text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#7B0099] h-8 shadow-sm"
                 />
               </div>
 
               {/* Department Filter */}
               {role !== "head_of_department" && (
                 <Select value={selectedDepartmentFilter} onValueChange={setSelectedDepartmentFilter}>
-                  <SelectTrigger className="w-[130px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+                  <SelectTrigger className="w-[130px] h-8 text-xs font-medium rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm">
                     <SelectValue placeholder="Department" />
                   </SelectTrigger>
                   <SelectContent className="rounded-md">
@@ -1131,7 +1131,7 @@ export default function AttendanceDashboard() {
               {/* Branch Filter */}
               {role !== "branch_leader" && (
                 <Select value={selectedBranchFilter} onValueChange={setSelectedBranchFilter}>
-                  <SelectTrigger className="w-[120px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+                  <SelectTrigger className="w-[120px] h-8 text-xs font-medium rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm">
                     <SelectValue placeholder="Branch" />
                   </SelectTrigger>
                   <SelectContent className="rounded-md">
@@ -1145,7 +1145,7 @@ export default function AttendanceDashboard() {
 
               {/* Status Filter */}
               <Select value={selectedStatusFilter} onValueChange={setSelectedStatusFilter}>
-                <SelectTrigger className="w-[120px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+                <SelectTrigger className="w-[120px] h-8 text-xs font-medium rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm">
                   <SelectValue placeholder="Select Status" />
                 </SelectTrigger>
                 <SelectContent className="rounded-md">
@@ -1165,11 +1165,11 @@ export default function AttendanceDashboard() {
       </Card>
 
       {/* ADMIN ATTENDANCE TABLE */}
-      <Card id="admin-attendance" className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden mb-6 scroll-mt-24">
-        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <Card id="admin-attendance" className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-lg shadow-sm overflow-hidden mb-6 scroll-mt-24">
+        <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-gray-800">Admin Attendance</h2>
+              <h2 className="text-base font-bold text-gray-800 dark:text-gray-200">Admin Attendance</h2>
               <span title="Absent employees are shown in the 'Employee Absenteeism' table to avoid duplication" className="text-xs text-gray-400">(Absentees listed separately)</span>
             </div>
             
@@ -1188,7 +1188,7 @@ export default function AttendanceDashboard() {
             <div className="flex items-center gap-2">
               <span className="text-[11px] text-gray-500">Row Per Page</span>
               <Select value={limit} onValueChange={setLimit}>
-                <SelectTrigger className="w-[60px] h-7 text-[11px] font-semibold rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+                <SelectTrigger className="w-[60px] h-7 text-[11px] font-semibold rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm">
                   <SelectValue placeholder="10" />
                 </SelectTrigger>
                 <SelectContent className="rounded-md">
@@ -1206,7 +1206,7 @@ export default function AttendanceDashboard() {
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 pr-3 py-1 w-full text-[11px] border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#7B0099] h-7 shadow-sm"
+                className="pl-8 pr-3 py-1 w-full text-[11px] border border-gray-200 dark:border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-[#7B0099] h-7 shadow-sm"
               />
             </div>
           </div>
@@ -1221,7 +1221,7 @@ export default function AttendanceDashboard() {
           ) : (
             <div className="relative overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50/80 text-gray-500 uppercase text-[9px] font-bold tracking-wider border-b border-gray-100">
+                <thead className="bg-gray-50/80 text-gray-500 uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800">
                   <tr>
                     <th className="px-4 py-2 w-4">
                       <input type="checkbox" className="rounded border-gray-300 text-[#7B0099] focus:ring-[#7B0099]" />
@@ -1284,14 +1284,14 @@ export default function AttendanceDashboard() {
                         : attStatus === "Outstation"
                         ? "bg-pink-50 text-pink-700 border border-pink-200 shadow-sm"
                         : attStatus === "Weekend"
-                        ? "bg-gray-50 text-gray-700 border border-gray-100"
+                        ? "bg-gray-50 dark:bg-slate-900/50 text-gray-700 border border-gray-100 dark:border-slate-800"
                         : "bg-red-50 text-red-700 border border-red-100";
 
                       const workStatusClass = workStatus === "Checked In"
                         ? "bg-blue-50 text-blue-700 border border-blue-100"
                         : workStatus === "Clocked Out Early"
                         ? "bg-rose-50 text-rose-700 border border-rose-100"
-                        : "bg-gray-50 text-gray-700 border border-gray-100";
+                        : "bg-gray-50 dark:bg-slate-900/50 text-gray-700 border border-gray-100 dark:border-slate-800";
 
                       return (
                         <tr key={record.user_id} className="hover:bg-gray-50/50 transition-colors">
@@ -1304,7 +1304,7 @@ export default function AttendanceDashboard() {
                                 {record.full_name.charAt(0)}
                               </div>
                               <div>
-                                <span className="font-semibold text-gray-800 block text-xs">{record.full_name}</span>
+                                <span className="font-semibold text-gray-800 dark:text-gray-200 block text-xs">{record.full_name}</span>
                                 <span className="text-[10px] text-gray-400 capitalize">{((record as any).role || "").replace(/_/g, ' ')} • {record.branch}{record.branch === "HQ" && record.department ? `, • ${record.department}` : ""}</span>
                               </div>
                             </div>
@@ -1361,7 +1361,7 @@ export default function AttendanceDashboard() {
           )}
           
           {filteredDailyAttendance.length > parseInt(limit) && !loadingDaily && (
-            <div className="flex justify-between items-center px-4 py-3 border-t border-gray-100 bg-gray-50/50">
+            <div className="flex justify-between items-center px-4 py-3 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50">
               <span className="text-[11px] text-gray-500">
                 Showing {((currentPage - 1) * parseInt(limit)) + 1} to {Math.min(currentPage * parseInt(limit), filteredDailyAttendance.length)} of {filteredDailyAttendance.length} entries
               </span>
@@ -1371,7 +1371,7 @@ export default function AttendanceDashboard() {
                   disabled={currentPage === 1}
                   variant="outline"
                   size="sm"
-                  className="h-7 rounded-md text-[11px] font-medium border-gray-200 bg-white"
+                  className="h-7 rounded-md text-[11px] font-medium border-gray-200 dark:border-slate-800 bg-white dark:bg-card"
                 >
                   Previous
                 </Button>
@@ -1381,7 +1381,7 @@ export default function AttendanceDashboard() {
                     onClick={() => setCurrentPage(i + 1)}
                     variant={currentPage === i + 1 ? "default" : "outline"}
                     size="sm"
-                    className={`h-7 w-7 rounded-md text-[11px] font-medium ${currentPage === i + 1 ? 'bg-[#7B0099] hover:bg-[#5e0080] text-white border-[#7B0099]' : 'border-gray-200 bg-white'}`}
+                    className={`h-7 w-7 rounded-md text-[11px] font-medium ${currentPage === i + 1 ? 'bg-[#7B0099] hover:bg-[#5e0080] text-white border-[#7B0099]' : 'border-gray-200 dark:border-slate-800 bg-white dark:bg-card'}`}
                   >
                     {i + 1}
                   </Button>
@@ -1391,7 +1391,7 @@ export default function AttendanceDashboard() {
                   disabled={currentPage === Math.ceil(filteredDailyAttendance.length / parseInt(limit))}
                   variant="outline"
                   size="sm"
-                  className="h-7 rounded-md text-[11px] font-medium border-gray-200 bg-white"
+                  className="h-7 rounded-md text-[11px] font-medium border-gray-200 dark:border-slate-800 bg-white dark:bg-card"
                 >
                   Next
                 </Button>
@@ -1402,10 +1402,10 @@ export default function AttendanceDashboard() {
       </Card>
 
       {/* EMPLOYEE ABSENTEEISM TABLE */}
-      <Card id="employee-absenteeism" className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden mb-6 scroll-mt-24">
-        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <Card id="employee-absenteeism" className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-lg shadow-sm overflow-hidden mb-6 scroll-mt-24">
+        <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
-            <h2 className="text-base font-bold text-gray-800">Employee Absenteeism</h2>
+            <h2 className="text-base font-bold text-gray-800 dark:text-gray-200">Employee Absenteeism</h2>
             <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-red-50 text-red-600 border border-red-100">
               {filteredAbsentEmployees.length} Absent Today
             </span>
@@ -1415,7 +1415,7 @@ export default function AttendanceDashboard() {
             <div className="flex items-center gap-2">
               <span className="text-[11px] text-gray-500">Row Per Page</span>
               <Select value={absentLimit} onValueChange={setAbsentLimit}>
-                <SelectTrigger className="w-[60px] h-7 text-[11px] font-semibold rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+                <SelectTrigger className="w-[60px] h-7 text-[11px] font-semibold rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm">
                   <SelectValue placeholder="10" />
                 </SelectTrigger>
                 <SelectContent className="rounded-md">
@@ -1433,7 +1433,7 @@ export default function AttendanceDashboard() {
                 placeholder="Search..."
                 value={absentSearchTerm}
                 onChange={(e) => setAbsentSearchTerm(e.target.value)}
-                className="pl-8 pr-3 py-1 w-full text-[11px] border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#7B0099] h-7 shadow-sm"
+                className="pl-8 pr-3 py-1 w-full text-[11px] border border-gray-200 dark:border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-[#7B0099] h-7 shadow-sm"
               />
             </div>
           </div>
@@ -1448,7 +1448,7 @@ export default function AttendanceDashboard() {
           ) : (
             <div className="relative overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50/80 text-gray-500 uppercase text-[9px] font-bold tracking-wider border-b border-gray-100">
+                <thead className="bg-gray-50/80 text-gray-500 uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800">
                   <tr>
                     <th className="px-4 py-2">Employee</th>
                     <th className="px-4 py-2">Branch</th>
@@ -1476,7 +1476,7 @@ export default function AttendanceDashboard() {
                               {emp.full_name.charAt(0)}
                             </div>
                             <div>
-                              <span className="font-semibold text-gray-800 block text-xs">{emp.full_name}</span>
+                              <span className="font-semibold text-gray-800 dark:text-gray-200 block text-xs">{emp.full_name}</span>
                               <span className="text-[10px] text-gray-400 mt-0.5 block">{emp.user_id}</span>
                             </div>
                           </div>
@@ -1525,14 +1525,14 @@ export default function AttendanceDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         
         {/* Branch Workforce Distribution */}
-        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden lg:col-span-6 flex flex-col h-fit">
-          <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 flex flex-row items-center justify-between gap-1">
+        <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden lg:col-span-6 flex flex-col h-fit">
+          <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-center justify-between gap-1">
             <div className="flex items-center gap-2">
               <MapPin className="w-5 h-5 text-gray-700" />
-              <CardTitle className="text-[16px] font-semibold text-gray-900">Branch Workforce Distribution</CardTitle>
+              <CardTitle className="text-[16px] font-semibold text-gray-900 dark:text-gray-100">Branch Workforce Distribution</CardTitle>
             </div>
             <Select value={liveRegion} onValueChange={setLiveRegion}>
-              <SelectTrigger className="w-[200px] h-8 text-[11px] font-bold border-gray-200 bg-white shadow-none focus:ring-0">
+              <SelectTrigger className="w-[200px] h-8 text-[11px] font-bold border-gray-200 dark:border-slate-800 bg-white dark:bg-card shadow-none focus:ring-0">
                 <SelectValue placeholder="All Regions" />
               </SelectTrigger>
               <SelectContent>
@@ -1574,8 +1574,8 @@ export default function AttendanceDashboard() {
                             )}
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent side="top" align="center" className="bg-white border border-slate-200 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[150px]">
-                          <p className="text-[11px] font-bold text-slate-800 mb-2 border-b border-slate-100 pb-1">{branch.branch}</p>
+                        <TooltipContent side="top" align="center" className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[150px]">
+                          <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{branch.branch}</p>
                           <div className="flex flex-col gap-1 text-[9px] text-slate-600">
                             <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
                             <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{branch.presentLate}</span></p>
@@ -1594,7 +1594,7 @@ export default function AttendanceDashboard() {
                 <div className="text-center text-slate-400 text-xs py-10 font-medium">No branches found in this region.</div>
               )}
             </div>
-            <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
+            <div className="mt-4 pt-3 border-t border-gray-100 dark:border-slate-800 flex justify-between items-center">
               <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                 Showing {liveBranchRanking.length} locations
@@ -1610,16 +1610,16 @@ export default function AttendanceDashboard() {
         </Card>
 
         {/* Attendance Overview */}
-        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden lg:col-span-6 flex flex-col h-fit">
-          <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 flex flex-row items-start justify-between">
+        <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden lg:col-span-6 flex flex-col h-fit">
+          <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <PieChart className="w-5 h-5 text-gray-700" />
-                <CardTitle className="text-[16px] font-semibold text-gray-900">Attendance Overview</CardTitle>
+                <CardTitle className="text-[16px] font-semibold text-gray-900 dark:text-gray-100">Attendance Overview</CardTitle>
               </div>
               <p className="text-[12px] text-gray-500 pl-7">Track and monitor attendance statistics for today.</p>
             </div>
-            <Button variant="outline" size="sm" className="h-8 text-[12px] px-3 border-gray-200 bg-white text-gray-700 shadow-[0_1px_2px_rgba(0,0,0,0.04)] flex items-center gap-1.5 rounded-md">
+            <Button variant="outline" size="sm" className="h-8 text-[12px] px-3 border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-[0_1px_2px_rgba(0,0,0,0.04)] flex items-center gap-1.5 rounded-md">
               <Calendar className="w-3.5 h-3.5 text-gray-500" />
               <span>Today</span>
               <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
@@ -1628,30 +1628,30 @@ export default function AttendanceDashboard() {
           <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col">
             
             {/* KPI micro-header */}
-            <div className="grid grid-cols-6 gap-2 mb-6 border-b border-gray-100 pb-4">
+            <div className="grid grid-cols-6 gap-2 mb-6 border-b border-gray-100 dark:border-slate-800 pb-4">
               <div className="flex flex-col items-center">
                 <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Total<br/>Employees</span>
-                <span className="text-[18px] font-bold text-gray-900">{liveStats.total || 0}</span>
+                <span className="text-[18px] font-bold text-gray-900 dark:text-gray-100">{liveStats.total || 0}</span>
               </div>
               <div className="flex flex-col items-center">
                 <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Total<br/>Present</span>
-                <span className="text-[18px] font-bold text-gray-900">{liveStats.present || 0}</span>
+                <span className="text-[18px] font-bold text-gray-900 dark:text-gray-100">{liveStats.present || 0}</span>
               </div>
               <div className="flex flex-col items-center">
                 <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Present<br/>(On Time)</span>
-                <span className="text-[18px] font-bold text-gray-900">{Math.max(0, (liveStats.present || 0) - (liveStats.late || 0))}</span>
+                <span className="text-[18px] font-bold text-gray-900 dark:text-gray-100">{Math.max(0, (liveStats.present || 0) - (liveStats.late || 0))}</span>
               </div>
               <div className="flex flex-col items-center">
                 <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Present<br/>(Late)</span>
-                <span className="text-[18px] font-bold text-gray-900">{liveStats.late || 0}</span>
+                <span className="text-[18px] font-bold text-gray-900 dark:text-gray-100">{liveStats.late || 0}</span>
               </div>
               <div className="flex flex-col items-center">
                 <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Absent<br/>&nbsp;</span>
-                <span className="text-[18px] font-bold text-gray-900">{liveStats.absent || 0}</span>
+                <span className="text-[18px] font-bold text-gray-900 dark:text-gray-100">{liveStats.absent || 0}</span>
               </div>
               <div className="flex flex-col items-center">
                 <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Outstation<br/>&nbsp;</span>
-                <span className="text-[18px] font-bold text-gray-900">{liveStats.outstation || 0}</span>
+                <span className="text-[18px] font-bold text-gray-900 dark:text-gray-100">{liveStats.outstation || 0}</span>
               </div>
             </div>
 
@@ -1697,7 +1697,7 @@ export default function AttendanceDashboard() {
                     </RechartsPieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-[28px] font-black text-gray-900 leading-none">
+                    <span className="text-[28px] font-black text-gray-900 dark:text-gray-100 leading-none">
                       {hoveredSlice ? hoveredSlice.value : (liveStats.total || 0)}
                     </span>
                     <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 mt-1 text-center max-w-[90px] truncate">
@@ -1727,7 +1727,7 @@ export default function AttendanceDashboard() {
                         </span>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-[13px] font-black text-gray-900">
+                        <span className="text-[13px] font-black text-gray-900 dark:text-gray-100">
                           {entry.value}
                         </span>
                         <span className="text-[11px] font-bold text-gray-400 min-w-[32px] text-right">

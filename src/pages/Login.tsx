@@ -171,7 +171,7 @@ export default function Login() {
         <div className="flex flex-col items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
           <img src={rayharLogo} alt="Rayhar Logo" className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl shadow-xl" />
           <div className="text-center">
-            <h1 className="font-heading font-black text-slate-900 text-xl sm:text-2xl tracking-tight">Rayhar Group</h1>
+            <h1 className="font-heading font-black text-slate-900 dark:text-slate-100 text-xl sm:text-2xl tracking-tight">Rayhar Group</h1>
             <p className="text-[10px] sm:text-xs font-extrabold text-[#7B0099] uppercase tracking-widest">Staff Admin Panel</p>
           </div>
         </div>
@@ -236,7 +236,7 @@ export default function Login() {
                               placeholder="you@rayhar.com"
                               value={resetEmail}
                               onChange={(e) => setResetEmail(e.target.value)}
-                              className="h-8 text-xs bg-white border-[#7B0099]/20 focus-visible:ring-[#7B0099]"
+                              className="h-8 text-xs bg-white dark:bg-card border-[#7B0099]/20 focus-visible:ring-[#7B0099]"
                             />
                             <Button
                               type="button"
@@ -258,7 +258,7 @@ export default function Login() {
 
 
                     {/* Secure Footer */}
-                    <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-400 font-extrabold uppercase tracking-wider pt-2 border-t border-slate-100/50">
+                    <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-400 font-extrabold uppercase tracking-wider pt-2 border-t border-slate-100 dark:border-slate-800/50">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
                       <span>Secure Password Login</span>
                     </div>

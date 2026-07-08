@@ -259,7 +259,7 @@ export default function DepartmentReports() {
                       ) : (
                         hqList.map((req, idx) => (
                           <TableRow key={idx}>
-                            <TableCell className="font-medium text-xs font-bold text-slate-800 uppercase">{req.department}</TableCell>
+                            <TableCell className="font-medium text-xs font-bold text-slate-800 dark:text-slate-200 uppercase">{req.department}</TableCell>
                             <TableCell>{req.headcount}</TableCell>
                             <TableCell>{req.active}</TableCell>
                           </TableRow>
@@ -301,7 +301,7 @@ export default function DepartmentReports() {
                       ) : (
                         branchList.map((req, idx) => (
                           <TableRow key={idx}>
-                            <TableCell className="font-medium text-xs font-bold text-slate-800 uppercase">{req.branch}</TableCell>
+                            <TableCell className="font-medium text-xs font-bold text-slate-800 dark:text-slate-200 uppercase">{req.branch}</TableCell>
                             <TableCell>{req.headcount}</TableCell>
                             <TableCell>{req.active}</TableCell>
                           </TableRow>

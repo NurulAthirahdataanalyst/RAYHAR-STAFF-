@@ -213,8 +213,8 @@ export default function WorkforceInsights() {
   const CustomDeptTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white border border-slate-200 rounded-md shadow-lg p-2 flex flex-col gap-1 min-w-[100px]">
-          <p className="text-[11px] font-bold text-slate-600 bg-slate-50 px-2 py-1 rounded-sm border-b border-slate-100">{label}</p>
+        <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md shadow-lg p-2 flex flex-col gap-1 min-w-[100px]">
+          <p className="text-[11px] font-bold text-slate-600 bg-slate-50 dark:bg-slate-900/50 px-2 py-1 rounded-sm border-b border-slate-100 dark:border-slate-800">{label}</p>
           <div className="flex items-center gap-1.5 px-2 py-1">
             <div className="w-2 h-2 rounded-full bg-[#ff5b37]"></div>
             <p className="text-[11px] text-slate-700">Employee: <span className="font-bold">{payload[0].value}</span></p>
@@ -228,8 +228,8 @@ export default function WorkforceInsights() {
   const CustomEmployeeTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white border border-slate-200 rounded-md shadow-lg p-2 flex flex-col gap-1 min-w-[100px]">
-          <p className="text-[11px] font-bold text-slate-600 bg-slate-50 px-2 py-1 rounded-sm border-b border-slate-100">{label}</p>
+        <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md shadow-lg p-2 flex flex-col gap-1 min-w-[100px]">
+          <p className="text-[11px] font-bold text-slate-600 bg-slate-50 dark:bg-slate-900/50 px-2 py-1 rounded-sm border-b border-slate-100 dark:border-slate-800">{label}</p>
           <div className="flex items-center gap-1.5 px-2 py-1">
             <div className="w-2 h-2 rounded-full bg-[#7B0099]"></div>
             <p className="text-[11px] text-slate-700">Attendance: <span className="font-bold">{payload[0].value}%</span></p>
@@ -247,7 +247,7 @@ export default function WorkforceInsights() {
             <div className="flex items-center gap-3">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="h-10 px-5 text-sm font-bold text-slate-800 bg-slate-50 border-slate-200 hover:bg-slate-100 uppercase tracking-widest rounded-lg flex items-center gap-3">
+                  <Button variant="outline" className="h-10 px-5 text-sm font-bold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 hover:bg-slate-100 uppercase tracking-widest rounded-lg flex items-center gap-3">
                     {displayDate} <CalendarDays className="w-4 h-4 text-slate-600" />
                   </Button>
                 </PopoverTrigger>
@@ -321,7 +321,7 @@ export default function WorkforceInsights() {
                 </PopoverContent>
               </Popover>
 
-              <div className="flex items-center bg-slate-50 rounded-lg p-1 border border-slate-100">
+              <div className="flex items-center bg-slate-50 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-100 dark:border-slate-800">
                 <button 
                   className={`h-8 px-5 text-[11px] font-bold tracking-widest rounded-md transition-all ${viewMode === 'day' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
                   onClick={() => setViewMode('day')}
@@ -348,13 +348,13 @@ export default function WorkforceInsights() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 mb-6">
           
           {/* Column 1: Attendance Overview */}
-          <Card className={`col-span-1 xl:col-span-1 rounded-lg shadow-sm border-slate-200 bg-white flex flex-col p-6 justify-between ${cardHoverEffect}`}>
+          <Card className={`col-span-1 xl:col-span-1 rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex flex-col p-6 justify-between ${cardHoverEffect}`}>
             <div>
               <div className="w-12 h-12 rounded-full bg-[#ff5b37] flex items-center justify-center text-white shadow-sm mb-4">
                 <UserCheck className="w-6 h-6" />
               </div>
               <p className="text-[14px] font-semibold text-slate-500">Attendance Overview</p>
-              <h3 className="text-[34px] font-black text-slate-800 leading-none mt-2">
+              <h3 className="text-[34px] font-black text-slate-800 dark:text-slate-200 leading-none mt-2">
                 {data.teamAvailability.present}/{data.topKpi.activeEmployees || data.topKpi.totalHeadcount}
               </h3>
             </div>
@@ -366,53 +366,53 @@ export default function WorkforceInsights() {
           {/* Column 2 (middle): 2x2 Grid of KPIs */}
           <div className="col-span-1 xl:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* KPI 1: Total Headcount */}
-            <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
+            <Card className={`rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex ${cardHoverEffect}`}>
               <CardContent className="p-5 flex items-center gap-4 h-full w-full">
                 <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                   <Users className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Headcount</p>
-                  <h3 className="text-xl font-bold text-slate-800 leading-tight mt-1">{data.topKpi.totalHeadcount}</h3>
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 leading-tight mt-1">{data.topKpi.totalHeadcount}</h3>
                 </div>
               </CardContent>
             </Card>
 
             {/* KPI 2: Active Employees */}
-            <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
+            <Card className={`rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex ${cardHoverEffect}`}>
               <CardContent className="p-5 flex items-center gap-4 h-full w-full">
                 <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
                   <UserCheck className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Employees</p>
-                  <h3 className="text-xl font-bold text-slate-800 leading-tight mt-1">{data.topKpi.activeEmployees}</h3>
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 leading-tight mt-1">{data.topKpi.activeEmployees}</h3>
                 </div>
               </CardContent>
             </Card>
 
             {/* KPI 3: Attendance Rate */}
-            <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
+            <Card className={`rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex ${cardHoverEffect}`}>
               <CardContent className="p-5 flex items-center gap-4 h-full w-full">
                 <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
                   <CheckCircle2 className="w-5 h-5 text-indigo-600" />
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Attendance Rate</p>
-                  <h3 className="text-xl font-bold text-slate-800 leading-tight mt-1">{data.topKpi.attendanceRate}%</h3>
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 leading-tight mt-1">{data.topKpi.attendanceRate}%</h3>
                 </div>
               </CardContent>
             </Card>
 
             {/* KPI 4: On Leave Today */}
-            <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex ${cardHoverEffect}`}>
+            <Card className={`rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex ${cardHoverEffect}`}>
               <CardContent className="p-5 flex items-center gap-4 h-full w-full">
                 <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
                   <CalendarDays className="w-5 h-5 text-orange-600" />
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">On Leave Today</p>
-                  <h3 className="text-xl font-bold text-slate-800 leading-tight mt-1">{data.topKpi.onLeaveToday}</h3>
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 leading-tight mt-1">{data.topKpi.onLeaveToday}</h3>
                 </div>
               </CardContent>
             </Card>
@@ -420,10 +420,10 @@ export default function WorkforceInsights() {
 
           {/* Column 3: Employees By Department or Employee Attendance */}
           {['branch_leader', 'head_of_department'].includes(role) ? (
-            <Card className={`col-span-1 md:col-span-2 xl:col-span-2 rounded-lg shadow-sm border-slate-200 bg-white p-5 flex flex-col justify-between ${cardHoverEffect}`}>
+            <Card className={`col-span-1 md:col-span-2 xl:col-span-2 rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card p-5 flex flex-col justify-between ${cardHoverEffect}`}>
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[12px] font-bold text-slate-800">Employee Attendance Rates</span>
-                <span className="text-[10px] bg-slate-50 border border-slate-150 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 font-semibold">
+                <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Employee Attendance Rates</span>
+                <span className="text-[10px] bg-slate-50 dark:bg-slate-900/50 border border-slate-150 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 font-semibold">
                   This Month <ChevronDown className="w-3 h-3" />
                 </span>
               </div>
@@ -450,7 +450,7 @@ export default function WorkforceInsights() {
                 </ResponsiveContainer>
               </div>
 
-              <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-100">
+              <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#7B0099]"></div>
                 <span className="text-[9px] font-bold text-slate-400">
                   Showing all staff in your {role === 'branch_leader' ? 'branch' : 'department'}
@@ -458,10 +458,10 @@ export default function WorkforceInsights() {
               </div>
             </Card>
           ) : (
-            <Card className={`col-span-1 md:col-span-2 xl:col-span-2 rounded-lg shadow-sm border-slate-200 bg-white p-5 flex flex-col justify-between ${cardHoverEffect}`}>
+            <Card className={`col-span-1 md:col-span-2 xl:col-span-2 rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card p-5 flex flex-col justify-between ${cardHoverEffect}`}>
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[12px] font-bold text-slate-800">Employees By Department</span>
-                <span className="text-[10px] bg-slate-50 border border-slate-150 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 font-semibold">
+                <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Employees By Department</span>
+                <span className="text-[10px] bg-slate-50 dark:bg-slate-900/50 border border-slate-150 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 font-semibold">
                   This Month <ChevronDown className="w-3 h-3" />
                 </span>
               </div>
@@ -488,7 +488,7 @@ export default function WorkforceInsights() {
                 </ResponsiveContainer>
               </div>
 
-              <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-100">
+              <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#ff5b37]"></div>
                 <span className="text-[9px] font-bold text-slate-400">
                   No of Employees increased by <span className="text-emerald-500">+20%</span> from last Month
@@ -508,14 +508,14 @@ export default function WorkforceInsights() {
               : rawBranchMetrics.filter((b:any) => regionMap[b.name] === selectedRegion || (b.name==='HQ' && selectedRegion==='Central'));
             
             return (
-              <Card className={`col-span-1 lg:col-span-2 rounded-lg shadow-sm border-slate-200 bg-white flex flex-col h-fit ${cardHoverEffect}`}>
-                <CardHeader className="p-5 border-b border-slate-100 pb-4 flex flex-row justify-between items-center">
+              <Card className={`col-span-1 lg:col-span-2 rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex flex-col h-fit ${cardHoverEffect}`}>
+                <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4 flex flex-row justify-between items-center">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-slate-400" />
                     <CardTitle className="text-[16px] font-semibold text-[#1A1F36]">Branch Workforce Distribution</CardTitle>
                   </div>
                   <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                    <SelectTrigger className="w-[120px] h-7 text-[10px] font-bold border-slate-200 bg-white shadow-none focus:ring-0">
+                    <SelectTrigger className="w-[120px] h-7 text-[10px] font-bold border-slate-200 dark:border-slate-800 bg-white dark:bg-card shadow-none focus:ring-0">
                       <SelectValue placeholder="All Regions" />
                     </SelectTrigger>
                     <SelectContent>
@@ -550,8 +550,8 @@ export default function WorkforceInsights() {
                             ) : (
                               <div className="h-full w-full bg-slate-200"></div>
                             )}
-                            <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-white border border-slate-200 shadow-xl rounded-lg p-3 pointer-events-none z-50 w-max min-w-[150px]">
-                              <p className="text-[11px] font-bold text-slate-800 mb-2 border-b border-slate-100 pb-1">{branch.name}</p>
+                            <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-white dark:bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded-lg p-3 pointer-events-none z-50 w-max min-w-[150px]">
+                              <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{branch.name}</p>
                               <div className="flex flex-col gap-1 text-[9px] text-slate-600">
                                 <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{stats.onTime}</span></p>
                                 <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{stats.late}</span></p>
@@ -569,7 +569,7 @@ export default function WorkforceInsights() {
                       <div className="text-center text-slate-400 text-xs py-10 font-medium">No branches found in this region.</div>
                     )}
                   </div>
-                  <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                  <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                       <span className="text-[10px] font-semibold text-slate-400">Showing {Math.min(5, filteredBranches.length)} locations</span>
@@ -585,11 +585,11 @@ export default function WorkforceInsights() {
           })()}
 
 
-          <Card className={`col-span-1 rounded-lg shadow-sm border-slate-200 bg-white flex flex-col ${cardHoverEffect}`}>
-            <CardHeader className="p-4 border-b border-slate-100 pb-3">
+          <Card className={`col-span-1 rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex flex-col ${cardHoverEffect}`}>
+            <CardHeader className="p-4 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex flex-row items-start justify-between">
                 <div>
-                  <CardTitle className="text-base font-bold text-slate-800">Team Availability</CardTitle>
+                  <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Team Availability</CardTitle>
                   <CardDescription className="text-xs text-slate-500 mt-0.5">Real-time status for the current shift</CardDescription>
                 </div>
                 <span className="bg-indigo-100 text-indigo-700 text-[10px] font-semibold px-2 py-0.5 rounded-md">Live</span>
@@ -624,7 +624,7 @@ export default function WorkforceInsights() {
                 
                 {/* Center KPI Overlay */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-2xl font-bold text-slate-800 tracking-tight leading-none">{availabilityRate}%</span>
+                  <span className="text-2xl font-bold text-slate-800 dark:text-slate-200 tracking-tight leading-none">{availabilityRate}%</span>
                   <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Current Rate</span>
                 </div>
               </div>
@@ -640,12 +640,12 @@ export default function WorkforceInsights() {
               {/* 6-Shape Compact Legend */}
               <div className="grid grid-cols-2 gap-2 w-full mt-auto mb-4">
                 {donutData.map((entry, index) => (
-                  <div key={entry.name} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border ${index === 0 ? 'bg-indigo-50/70 border-indigo-100' : 'bg-slate-50 border-slate-100'} transition-colors`}>
+                  <div key={entry.name} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border ${index === 0 ? 'bg-indigo-50/70 border-indigo-100' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800'} transition-colors`}>
                     <div className="flex items-center gap-1 mb-1">
                       <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
                       <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider truncate">{entry.name}</span>
                     </div>
-                    <span className="text-lg font-bold text-slate-800 leading-none">{entry.value}</span>
+                    <span className="text-lg font-bold text-slate-800 dark:text-slate-200 leading-none">{entry.value}</span>
                   </div>
                 ))}
               </div>
@@ -677,9 +677,9 @@ export default function WorkforceInsights() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* 3. Leave Monitoring */}
-          <Card className={`col-span-1 rounded-lg shadow-sm border-slate-200 bg-white ${cardHoverEffect}`}>
-            <CardHeader className="p-5 border-b border-slate-100 pb-4">
-              <CardTitle className="text-base font-bold text-slate-800">Leave Monitoring</CardTitle>
+          <Card className={`col-span-1 rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card ${cardHoverEffect}`}>
+            <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Leave Monitoring</CardTitle>
             </CardHeader>
             <CardContent className="p-4 sm:p-5">
               <div className="flex flex-col gap-3">
@@ -692,7 +692,7 @@ export default function WorkforceInsights() {
                       <Clock className="w-5 h-5 text-yellow-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 group-hover:text-[#7B0099] transition-colors">Pending Requests</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#7B0099] transition-colors">Pending Requests</p>
                       <p className="text-xs text-slate-500 font-medium">Awaiting Approval</p>
                     </div>
                   </div>
@@ -711,7 +711,7 @@ export default function WorkforceInsights() {
                       <FileCheck className="w-5 h-5 text-emerald-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 group-hover:text-[#7B0099] transition-colors">Approved Leave</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#7B0099] transition-colors">Approved Leave</p>
                       <p className="text-xs text-slate-500 font-medium">This Month</p>
                     </div>
                   </div>
@@ -730,7 +730,7 @@ export default function WorkforceInsights() {
                       <Users className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 group-hover:text-[#7B0099] transition-colors">Staff on Leave</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#7B0099] transition-colors">Staff on Leave</p>
                       <p className="text-xs text-slate-500 font-medium">Out of Office (Today)</p>
                     </div>
                   </div>
@@ -744,9 +744,9 @@ export default function WorkforceInsights() {
           </Card>
 
           {/* 6. Employee Performance Attendance Ranking */}
-          <Card className={`col-span-1 lg:col-span-2 rounded-lg shadow-sm border-slate-200 bg-white ${cardHoverEffect}`}>
-            <CardHeader className="p-5 border-b border-slate-100 pb-4">
-              <CardTitle className="text-base font-bold text-slate-800">Employee Performance & Attendance</CardTitle>
+          <Card className={`col-span-1 lg:col-span-2 rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card ${cardHoverEffect}`}>
+            <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Employee Performance & Attendance</CardTitle>
             </CardHeader>
             <CardContent className="p-5 grid grid-cols-1 md:grid-cols-2 gap-6">
               
@@ -756,12 +756,12 @@ export default function WorkforceInsights() {
                 </h4>
                 <div className="space-y-3">
                   {data.performance.topAttendance.length > 0 ? data.performance.topAttendance.map((emp: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-md transition-colors">
+                    <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:bg-slate-900/50 rounded-md transition-colors">
                       <div className="flex items-center gap-3">
                         <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-600">
                           {i + 1}
                         </div>
-                        <span className="text-sm font-medium text-slate-800">{emp.name}</span>
+                        <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{emp.name}</span>
                       </div>
                       <span className="text-sm font-bold text-emerald-600">{emp.attendanceRate}%</span>
                     </div>
@@ -777,12 +777,12 @@ export default function WorkforceInsights() {
                 </h4>
                 <div className="space-y-3">
                   {data.performance.topLate.length > 0 ? data.performance.topLate.map((emp: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-md transition-colors">
+                    <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:bg-slate-900/50 rounded-md transition-colors">
                       <div className="flex items-center gap-3">
                         <div className="w-6 h-6 rounded bg-red-50 flex items-center justify-center text-xs font-bold text-red-600">
                           {i + 1}
                         </div>
-                        <span className="text-sm font-medium text-slate-800">{emp.name}</span>
+                        <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{emp.name}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <span className="text-sm font-bold text-red-600">{emp.lateCount}</span>
@@ -806,15 +806,15 @@ export default function WorkforceInsights() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
 
           {/* Card 1: Clock-In/Out â€” LIVE SSE */}
-          <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+          <Card className={`rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex flex-col p-4 ${cardHoverEffect}`}>
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-slate-800">Clock-In/Out</h3>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Clock-In/Out</h3>
                 {feedConnected
-                  ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
+                  ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white dark:bg-card animate-pulse" />LIVE</span>
                   : <span className="text-[8px] text-slate-400 font-bold uppercase">Connectingâ€¦</span>}
               </div>
-              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-200 rounded text-slate-500 flex items-center gap-1">
+              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded text-slate-500 flex items-center gap-1">
                 <CalendarDays className="w-3 h-3" /> {displayDate}
               </span>
             </div>
@@ -839,14 +839,14 @@ export default function WorkforceInsights() {
                     </div>
                   )}
                   {allClockIns.map((emp) => (
-                    <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                    <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:bg-slate-900/50 rounded-lg transition-colors">
                       <div className="flex items-center gap-2.5">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
                           {emp.initials}
                         </div>
                         <div>
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
+                            <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
                             {emp.is_late && (
                               <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
                             )}
@@ -872,22 +872,22 @@ export default function WorkforceInsights() {
             <Button
               variant="outline"
               onClick={() => navigate('/hr-analytics/attendance#admin-attendance')}
-              className="w-full mt-4 h-9 bg-white hover:bg-slate-50 text-slate-700 font-semibold border-slate-200"
+              className="w-full mt-4 h-9 bg-white dark:bg-card hover:bg-slate-50 dark:bg-slate-900/50 text-slate-700 font-semibold border-slate-200 dark:border-slate-800"
             >
               View All Attendance
             </Button>
           </Card>
 
           {/* Card 2: Late â€” LIVE SSE */}
-          <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+          <Card className={`rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex flex-col p-4 ${cardHoverEffect}`}>
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-slate-800">Late</h3>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Late</h3>
                 {feedConnected
-                  ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
+                  ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white dark:bg-card animate-pulse" />LIVE</span>
                   : <span className="text-[8px] text-slate-400 font-bold uppercase">Connectingâ€¦</span>}
               </div>
-              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-200 rounded text-slate-500 flex items-center gap-1">
+              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded text-slate-500 flex items-center gap-1">
                 <CalendarDays className="w-3 h-3" /> {displayDate}
               </span>
             </div>
@@ -906,14 +906,14 @@ export default function WorkforceInsights() {
                 </div>
               )}
               {lateList.map((emp) => (
-                <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:bg-slate-900/50 rounded-lg transition-colors">
                   <div className="flex items-center gap-2.5">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
                       {emp.initials}
                     </div>
                     <div>
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
+                        <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
                         <span className="px-1.5 py-0.5 text-[8px] font-bold rounded bg-red-500 text-white">
                           {Math.floor(emp.late_minutes / 60)} H {(emp.late_minutes % 60).toString().padStart(2, '0')} Min
                         </span>
@@ -937,22 +937,22 @@ export default function WorkforceInsights() {
             <Button
               variant="outline"
               onClick={() => navigate('/hr-analytics/attendance#admin-attendance')}
-              className="w-full mt-4 h-9 bg-white hover:bg-slate-50 text-slate-700 font-semibold border-slate-200"
+              className="w-full mt-4 h-9 bg-white dark:bg-card hover:bg-slate-50 dark:bg-slate-900/50 text-slate-700 font-semibold border-slate-200 dark:border-slate-800"
             >
               View All Attendance
             </Button>
           </Card>
 
           {/* Card 3: Absent â€” LIVE SSE */}
-          <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+          <Card className={`rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex flex-col p-4 ${cardHoverEffect}`}>
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-slate-800">Absent / Company Leave</h3>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Absent / Company Leave</h3>
                 {feedConnected
-                  ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
+                  ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white dark:bg-card animate-pulse" />LIVE</span>
                   : <span className="text-[8px] text-slate-400 font-bold uppercase">Connectingâ€¦</span>}
               </div>
-              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-200 rounded text-slate-500 flex items-center gap-1">
+              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded text-slate-500 flex items-center gap-1">
                 <CalendarDays className="w-3 h-3" /> {displayDate}
               </span>
             </div>
@@ -971,14 +971,14 @@ export default function WorkforceInsights() {
                 </div>
               )}
               {absentList.map((emp) => (
-                <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:bg-slate-900/50 rounded-lg transition-colors">
                   <div className="flex items-center gap-2.5">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
                       {emp.initials}
                     </div>
                     <div>
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
+                        <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
                       </div>
                       <p className="text-[10px] text-slate-400 font-medium">{emp.department !== 'â€”' ? emp.department : emp.branch}</p>
                     </div>
@@ -1008,7 +1008,7 @@ export default function WorkforceInsights() {
             <Button
               variant="outline"
               onClick={() => navigate('/hr-analytics/attendance#employee-absenteeism')}
-              className="w-full mt-4 h-9 bg-white hover:bg-slate-50 text-slate-700 font-semibold border-slate-200"
+              className="w-full mt-4 h-9 bg-white dark:bg-card hover:bg-slate-50 dark:bg-slate-900/50 text-slate-700 font-semibold border-slate-200 dark:border-slate-800"
             >
               View All Attendance
             </Button>
@@ -1019,10 +1019,10 @@ export default function WorkforceInsights() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
 
           {/* Card 4: Pending Approvals â€” LIVE SSE */}
-          <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+          <Card className={`rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex flex-col p-4 ${cardHoverEffect}`}>
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-slate-800">Pending Approvals</h3>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Pending Approvals</h3>
                 {pendingApprovalsList.length > 0 && (
                   <span className="px-1.5 py-0.5 text-[8px] font-black bg-amber-500 text-white rounded">{pendingApprovalsList.length}</span>
                 )}
@@ -1030,7 +1030,7 @@ export default function WorkforceInsights() {
               <Button
                 onClick={() => navigate("/leave/admin?tab=pending")}
                 variant="outline"
-                className="h-7 px-2.5 text-[10px] font-bold border-slate-200 bg-white text-slate-600 rounded"
+                className="h-7 px-2.5 text-[10px] font-bold border-slate-200 dark:border-slate-800 bg-white dark:bg-card text-slate-600 rounded"
               >
                 View All
               </Button>
@@ -1051,13 +1051,13 @@ export default function WorkforceInsights() {
                 </div>
               ) : (
                 pendingApprovalsList.map((item) => (
-                  <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-slate-100 rounded-lg hover:bg-slate-50 transition-all gap-3">
+                  <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-slate-100 dark:border-slate-800 rounded-lg hover:bg-slate-50 dark:bg-slate-900/50 transition-all gap-3">
                     <div className="flex items-start gap-2.5">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm shrink-0 mt-0.5 ${getAvatarColor(item.name)}`}>
                         {item.initials}
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-800 leading-tight">{item.name}</p>
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">{item.name}</p>
                         <p className="text-[10px] text-slate-500 font-medium mt-1 flex items-center gap-1.5">
                           <CalendarDays className="w-3 h-3 text-slate-400" /> {item.dates} <span className="text-slate-300">|</span> <span className="text-[#ff5b37] font-semibold">{item.days}</span>
                         </p>
@@ -1085,10 +1085,10 @@ export default function WorkforceInsights() {
           </Card>
 
           {/* Card 4: Upcoming Outstation */}
-          <Card className={`rounded-lg shadow-sm border-slate-200 bg-white flex flex-col p-4 ${cardHoverEffect}`}>
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
-              <h3 className="text-sm font-bold text-slate-800">Upcoming Outstation</h3>
-              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 border border-slate-150 rounded text-slate-505 flex items-center gap-1">
+          <Card className={`rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex flex-col p-4 ${cardHoverEffect}`}>
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Upcoming Outstation</h3>
+              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-150 rounded text-slate-505 flex items-center gap-1">
                 <CalendarDays className="w-3 h-3" /> {displayDate}
               </span>
             </div>
@@ -1128,7 +1128,7 @@ export default function WorkforceInsights() {
                   <div key={item.id} className={`border-l-4 ${borderColor} pl-3 py-1 space-y-2`}>
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-xs font-bold text-slate-800">{item.title}</p>
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{item.title}</p>
                         <div className="mt-1 space-y-0.5">
                           {dateDisplay && (
                             <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
@@ -1164,10 +1164,10 @@ export default function WorkforceInsights() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 bg-white text-slate-600 rounded flex items-center gap-1 hover:bg-slate-50 transition-colors">
+                      <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 dark:border-slate-800 bg-white dark:bg-card text-slate-600 rounded flex items-center gap-1 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
                         <CalendarDays className="w-3 h-3" /> Add to Calendar
                       </Button>
-                      <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 bg-white text-slate-600 rounded hover:bg-slate-50 transition-colors">
+                      <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 dark:border-slate-800 bg-white dark:bg-card text-slate-600 rounded hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
                         Join Now
                       </Button>
                     </div>
@@ -1176,7 +1176,7 @@ export default function WorkforceInsights() {
               })}
             </div>
             
-            <button onClick={() => navigate('/outstation/assignment')} className="text-xs font-semibold text-[#7B0099] hover:text-[#5c0073] text-center mt-4 flex items-center justify-center gap-1 w-full pt-2 border-t border-slate-100">
+            <button onClick={() => navigate('/outstation/assignment')} className="text-xs font-semibold text-[#7B0099] hover:text-[#5c0073] text-center mt-4 flex items-center justify-center gap-1 w-full pt-2 border-t border-slate-100 dark:border-slate-800">
               View All <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </Card>
@@ -1247,9 +1247,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
     <div className="space-y-8">
        {/* PRIMARY SECTION */}
        <div>
-         <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Primary</h2>
+         <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">Primary</h2>
          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white rounded-[12px] group">
+            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-slate-800 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group">
                <div className="w-12 h-12 rounded-xl bg-[#F0F4FA] text-[#3B66A7] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
                  <Users className="w-5 h-5" />
                </div>
@@ -1258,7 +1258,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.totalHeadcount || 0}</h3>
                </div>
             </Card>
-            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white rounded-[12px] group">
+            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-slate-800 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group">
                <div className="w-12 h-12 rounded-xl bg-[#EEF8F4] text-[#10B981] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
                  <UserCheck className="w-5 h-5" />
                </div>
@@ -1267,8 +1267,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.activeEmployees || 0}</h3>
                </div>
             </Card>
-            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white rounded-[12px] group relative">
-               {feedConnected && <span className="absolute top-3 right-3 flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>}
+            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-slate-800 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group relative">
+               {feedConnected && <span className="absolute top-3 right-3 flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white dark:bg-card animate-pulse" />LIVE</span>}
                <div className="w-12 h-12 rounded-xl bg-[#F0F2FB] text-[#6366F1] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
                  <CheckCircle2 className="w-5 h-5" />
                </div>
@@ -1277,7 +1277,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.attendanceRate || 0}%</h3>
                </div>
             </Card>
-            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white rounded-[12px] group">
+            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-slate-800 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group">
                <div className="w-12 h-12 rounded-xl bg-[#FFF5EE] text-[#F59E0B] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
                  <CalendarDays className="w-5 h-5" />
                </div>
@@ -1289,7 +1289,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
          </div>
 
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-           <Card className="p-5 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+           <Card className="p-5 shadow-sm border-slate-200 dark:border-slate-800 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
                  <TrendingUp className="w-4 h-4 text-slate-400" />
@@ -1313,12 +1313,12 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  </AreaChart>
                </ResponsiveContainer>
              </div>
-             <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
+             <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">View Details <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
            
-           <Card className="p-5 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+           <Card className="p-5 shadow-sm border-slate-200 dark:border-slate-800 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
                  <FileCheck className="w-4 h-4 text-slate-400" />
@@ -1348,8 +1348,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                      const isNeutral = row.diff === 0;
                      const diffFormatted = Math.abs(row.diff).toFixed(row.label.includes('Rate') ? 1 : 0);
                      return (
-                       <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                         <td className="px-4 py-3 font-medium text-slate-800">{row.label}</td>
+                       <tr key={idx} className="hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
+                         <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-200">{row.label}</td>
                          <td className="px-4 py-3 text-slate-600 font-semibold text-right">{row.cur}</td>
                          <td className="px-4 py-3 text-slate-500 text-right">{row.prev}</td>
                          <td className="px-4 py-3 text-right">
@@ -1364,7 +1364,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  </tbody>
                </table>
              </div>
-             <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
+             <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
@@ -1373,18 +1373,18 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
 
        {/* SECONDARY SECTION */}
        <div>
-         <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Workforce Analytics</h2>
+         <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">Workforce Analytics</h2>
          
          {/* Row 1: 2 Columns */}
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
            {/* Department Workforce Distribution */}
-           <Card className="p-4 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+           <Card className="p-4 shadow-sm border-slate-200 dark:border-slate-800 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
                  <Building2 className="w-4 h-4 text-slate-400" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">Department Workforce Distribution</h3>
                </div>
-               <div className="text-[10px] font-bold border border-slate-200 rounded px-2 py-1 flex items-center gap-1 text-slate-500 cursor-pointer hover:bg-slate-50">
+               <div className="text-[10px] font-bold border border-slate-200 dark:border-slate-800 rounded px-2 py-1 flex items-center gap-1 text-slate-500 cursor-pointer hover:bg-slate-50 dark:bg-slate-900/50">
                  This Month <ChevronDown className="w-3 h-3" />
                </div>
              </div>
@@ -1400,8 +1400,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                      </div>
                      <div className="flex-1 relative group flex items-center">
                        <div className="h-2 rounded-full bg-[#FF5722] transition-all duration-300 cursor-pointer" style={{ width: `${Math.max(2, widthPercent)}%` }}></div>
-                       <div className="absolute left-1/2 -top-8 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-1.5 pointer-events-none z-10 w-max whitespace-nowrap">
-                         <p className="text-[9px] font-bold text-slate-800 mb-0.5">{dept.name}</p>
+                       <div className="absolute left-1/2 -top-8 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-1.5 pointer-events-none z-10 w-max whitespace-nowrap">
+                         <p className="text-[9px] font-bold text-slate-800 dark:text-slate-200 mb-0.5">{dept.name}</p>
                          <p className="text-[9px] text-slate-600 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#FF5722]"></span> Employee: <span className="font-bold">{dept.value}</span></p>
                        </div>
                      </div>
@@ -1410,7 +1410,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                })}
              </div>
              
-             <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center">
+             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
                <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1.5">
                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF5722]"></span>
                  HQ operations represent {(departmentMetrics.reduce((sum:number,d:any)=>sum+d.value,0)/topKpi.totalHeadcount*100 || 0).toFixed(0)}% of workforce
@@ -1420,14 +1420,14 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
            </Card>
 
            {/* Branch Workforce Distribution */}
-           <Card className="p-4 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+           <Card className="p-4 shadow-sm border-slate-200 dark:border-slate-800 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
                  <MapPin className="w-4 h-4 text-slate-400" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">Branch Workforce Distribution</h3>
                </div>
                <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                 <SelectTrigger className="w-[120px] h-7 text-[10px] font-bold border-slate-200 bg-white shadow-none focus:ring-0">
+                 <SelectTrigger className="w-[120px] h-7 text-[10px] font-bold border-slate-200 dark:border-slate-800 bg-white dark:bg-card shadow-none focus:ring-0">
                    <SelectValue placeholder="All Regions" />
                  </SelectTrigger>
                  <SelectContent>
@@ -1450,8 +1450,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                      </div>
                      <div className="w-full bg-slate-100 rounded-full h-2 relative group cursor-pointer">
                        <div className={`h-2 rounded-full ${branch.attendanceRate >= 95 ? 'bg-[#10b981]' : 'bg-[#f59e0b]'}`} style={{ width: `${Math.min(100, branch.attendanceRate)}%` }}></div>
-                       <div className="absolute left-1/2 -top-8 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-1.5 pointer-events-none z-10 w-max whitespace-nowrap">
-                         <p className="text-[9px] font-bold text-slate-800 mb-0.5">{branch.name}</p>
+                       <div className="absolute left-1/2 -top-8 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-1.5 pointer-events-none z-10 w-max whitespace-nowrap">
+                         <p className="text-[9px] font-bold text-slate-800 dark:text-slate-200 mb-0.5">{branch.name}</p>
                          <p className="text-[9px] text-slate-600">Present: <span className="font-bold text-emerald-600">{Math.floor(branch.count * (branch.attendanceRate/100))}</span> | Late: <span className="font-bold text-amber-500">{branch.count - Math.floor(branch.count * (branch.attendanceRate/100))}</span></p>
                        </div>
                      </div>
@@ -1463,7 +1463,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                )}
              </div>
 
-             <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center">
+             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
                <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1.5">
                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                  Showing {filteredBranches.length} locations
@@ -1476,7 +1476,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
          {/* Row 2: 3 Columns */}
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
            {/* Leave Distribution (Donut Chart) */}
-           <Card className="p-4 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+           <Card className="p-4 shadow-sm border-slate-200 dark:border-slate-800 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-2">
                <div className="flex items-center gap-2">
                  <FileText className="w-4 h-4 text-slate-400" />
@@ -1504,7 +1504,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                      </PieChart>
                    </ResponsiveContainer>
                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                     <span className="text-lg font-black text-slate-800 leading-none">{totalLeaveCount}</span>
+                     <span className="text-lg font-black text-slate-800 dark:text-slate-200 leading-none">{totalLeaveCount}</span>
                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total</span>
                    </div>
                  </div>
@@ -1515,27 +1515,27 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }}></span>
                          <span className="text-[10px] font-semibold text-slate-700">{entry.name}</span>
                        </div>
-                       <span className="text-[10px] font-black text-slate-800">{entry.value}%</span>
+                       <span className="text-[10px] font-black text-slate-800 dark:text-slate-200">{entry.value}%</span>
                      </div>
                    ))}
                  </div>
                </div>
              ) : (
-               <div className="flex items-center justify-center flex-1 h-[140px] text-slate-400 text-xs italic bg-slate-50/50 rounded-lg border border-slate-100 border-dashed">
+               <div className="flex items-center justify-center flex-1 h-[140px] text-slate-400 text-xs italic bg-slate-50/50 rounded-lg border border-slate-100 dark:border-slate-800 border-dashed">
                  No Leave Request History Available
                </div>
              )}
 
-             <div className="mt-3 pt-3 border-t border-slate-100 flex justify-end">
+             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">View Details <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
 
            {/* Travel & Outstation Summary */}
-           <Card className="p-4 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col relative overflow-hidden">
+           <Card className="p-4 shadow-sm border-slate-200 dark:border-slate-800 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col relative overflow-hidden">
              {feedConnected && (
                <div className="absolute top-2 right-2 flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest z-10 shadow-sm">
-                 <span className="w-1 h-1 rounded-full bg-white animate-pulse" /> LIVE
+                 <span className="w-1 h-1 rounded-full bg-white dark:bg-card animate-pulse" /> LIVE
                </div>
              )}
              <div className="flex justify-between items-center mb-4 relative z-10">
@@ -1585,13 +1585,13 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                })}
              </div>
 
-             <div className="mt-3 pt-3 border-t border-slate-100 flex justify-end">
+             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">Explore <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
 
            {/* Workforce Movement */}
-           <Card className="p-4 shadow-sm border-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+           <Card className="p-4 shadow-sm border-slate-200 dark:border-slate-800 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
                  <Users className="w-4 h-4 text-slate-400" />
@@ -1610,7 +1610,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  <p className="text-[10px] font-bold text-rose-900 uppercase tracking-wider">Resigned</p>
                  <p className="text-[8px] font-bold text-rose-600 mt-0.5">This Month</p>
                </div>
-               <div className="flex flex-col justify-center items-center py-2 bg-[#F8FAFC] rounded-xl border border-slate-200 text-center">
+               <div className="flex flex-col justify-center items-center py-2 bg-[#F8FAFC] rounded-xl border border-slate-200 dark:border-slate-800 text-center">
                  <span className="text-xl font-black text-slate-700 mb-0.5">{movement.transferred || 0}</span>
                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Transferred</p>
                </div>
@@ -1620,7 +1620,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                </div>
              </div>
 
-             <div className="mt-3 pt-3 border-t border-slate-100 flex justify-end">
+             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
@@ -1629,7 +1629,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
 
        {/* SUPPORTING SECTION */}
        <div>
-         <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Notices</h2>
+         <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">Notices</h2>
          <div className="grid grid-cols-1 gap-6">
            <Card className="p-4 shadow-sm border-l-4 border-l-[#7B0099] border-y-slate-200 border-r-slate-200 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4">
@@ -1641,10 +1641,10 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
              
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
                {hrAlerts.map((alert: any, i: number) => {
-                 let bgColor = 'bg-slate-50';
-                 let borderColor = 'border-slate-200';
+                 let bgColor = 'bg-slate-50 dark:bg-slate-900/50';
+                 let borderColor = 'border-slate-200 dark:border-slate-800';
                  let iconColor = 'text-slate-500';
-                 let titleColor = 'text-slate-800';
+                 let titleColor = 'text-slate-800 dark:text-slate-200';
                  
                  if (alert.type === 'critical') {
                    bgColor = 'bg-[#FEE2E2]'; borderColor = 'border-red-200'; iconColor = 'text-red-600'; titleColor = 'text-red-900';
@@ -1673,7 +1673,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                })}
              </div>
 
-             <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
+             <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">See All <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>

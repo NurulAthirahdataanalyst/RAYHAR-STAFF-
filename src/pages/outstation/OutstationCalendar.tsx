@@ -114,7 +114,7 @@ export default function OutstationCalendar() {
     <div className="space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-8">
 
       {/* Controls */}
-      <Card className="border border-gray-200/80 shadow-sm">
+      <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm">
         <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
@@ -154,13 +154,13 @@ export default function OutstationCalendar() {
       </div>
 
       {/* Calendar Grid */}
-      <Card className="border border-gray-200/80 shadow-sm overflow-hidden">
+      <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm overflow-hidden">
         {loading ? (
           <div className="h-80 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-400" /></div>
         ) : (
           <>
             {/* Day Headers */}
-            <div className="grid grid-cols-7 border-b border-gray-100">
+            <div className="grid grid-cols-7 border-b border-gray-100 dark:border-slate-800">
               {DAYS.map(d => (
                 <div key={d} className="px-2 py-2.5 text-center text-[10px] font-black uppercase tracking-widest text-gray-400 bg-slate-50/60">{d}</div>
               ))}
@@ -212,7 +212,7 @@ export default function OutstationCalendar() {
       {/* Event Detail Popup */}
       {selectedEvent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setSelectedEvent(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
+          <div className="bg-white dark:bg-card rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl" style={{ background: `linear-gradient(135deg, ${PINK}, #f9a8d4)` }}>
@@ -225,7 +225,7 @@ export default function OutstationCalendar() {
               </div>
               <button onClick={() => setSelectedEvent(null)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"><X className="w-4 h-4" /></button>
             </div>
-            <div className="space-y-3 border-t border-gray-100 pt-4">
+            <div className="space-y-3 border-t border-gray-100 dark:border-slate-800 pt-4">
               <div className="flex items-center gap-2.5">
                 <MapPin className="w-3.5 h-3.5 text-pink-400 shrink-0" />
                 <div>

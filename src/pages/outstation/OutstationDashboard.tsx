@@ -234,7 +234,7 @@ export default function OutstationDashboard() {
   ], []);
 
 
-  if (roleLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50"><Loader2 className="animate-spin w-8 h-8 text-purple-900" /></div>;
+  if (roleLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900/50"><Loader2 className="animate-spin w-8 h-8 text-purple-900" /></div>;
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-gray-900 dark:text-gray-100 pb-12">
@@ -288,10 +288,10 @@ export default function OutstationDashboard() {
                 <p className="text-[13px] text-gray-500 dark:text-gray-400 font-medium mt-0.5">Real-time status of employees currently on assignment</p>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" className="h-9 w-9 border-gray-200 text-gray-600 dark:text-gray-300 rounded-[8px]">
+                <Button variant="outline" size="icon" className="h-9 w-9 border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-300 rounded-[8px]">
                   <Filter className="w-4 h-4" />
                 </Button>
-                <Button variant="outline" size="icon" className="h-9 w-9 border-gray-200 text-gray-600 dark:text-gray-300 rounded-[8px]">
+                <Button variant="outline" size="icon" className="h-9 w-9 border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-300 rounded-[8px]">
                   <MoreHorizontal className="w-4 h-4" />
                 </Button>
               </div>
@@ -303,7 +303,7 @@ export default function OutstationDashboard() {
                 </div>
               ) : activeNow.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full py-16 text-gray-400 text-center px-4">
-                  <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-4 border border-gray-100 dark:border-slate-800">
+                  <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-slate-900/50 flex items-center justify-center mb-4 border border-gray-100 dark:border-slate-800">
                     <CheckCircle className="w-8 h-8 text-green-500" />
                   </div>
                   <h3 className="text-[16px] font-bold text-gray-800 dark:text-gray-100 mb-1">No Active Outstations</h3>
@@ -402,8 +402,8 @@ export default function OutstationDashboard() {
                 <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-card">
                   <span className="text-[12px] text-gray-500 dark:text-gray-400 font-medium">Showing {activeNowGrouped.length > 0 ? 1 : 0}-{activeNowGrouped.length} of {activeNowGrouped.length} Active Outstations</span>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="h-8 text-[12px] font-medium border-gray-200">Previous</Button>
-                    <Button variant="outline" size="sm" className="h-8 text-[12px] font-medium border-gray-200">Next</Button>
+                    <Button variant="outline" size="sm" className="h-8 text-[12px] font-medium border-gray-200 dark:border-slate-800">Previous</Button>
+                    <Button variant="outline" size="sm" className="h-8 text-[12px] font-medium border-gray-200 dark:border-slate-800">Next</Button>
                   </div>
                 </div>
                 </>
@@ -465,7 +465,7 @@ export default function OutstationDashboard() {
                   { label: "Analytics", icon: Activity, path: "/outstation/analytics" },
                   { label: "Reports", icon: Map, path: "/outstation/reports" },
                 ].map((action, i) => (
-                  <Button key={i} variant="ghost" className="h-12 justify-start px-3 text-[13px] font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 hover:text-purple-700 rounded-[12px] group transition-colors" onClick={() => navigate(action.path)}>
+                  <Button key={i} variant="ghost" className="h-12 justify-start px-3 text-[13px] font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:bg-slate-900/50 hover:text-purple-700 rounded-[12px] group transition-colors" onClick={() => navigate(action.path)}>
                     <action.icon className="w-4 h-4 mr-2 text-gray-400 group-hover:text-purple-600" /> {action.label}
                   </Button>
                 ))}

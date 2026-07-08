@@ -159,20 +159,20 @@ export default function Role() {
           document.getElementById("page-header-actions")!
         )}
 
-      <Card className="border-0 shadow-sm rounded-xl overflow-hidden bg-white">
+      <Card className="border-0 shadow-sm rounded-xl overflow-hidden bg-white dark:bg-card">
         <CardContent className="p-0">
           {/* Table Header Filters */}
-          <div className="p-4 border-b border-gray-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold text-gray-800">Roles List</h2>
+          <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Roles List</h2>
             
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-md px-3 h-10 text-sm text-gray-600 shadow-sm">
+              <div className="flex items-center gap-2 bg-white dark:bg-card border border-gray-200 dark:border-slate-800 rounded-md px-3 h-10 text-sm text-gray-600 shadow-sm">
                 <Calendar className="w-4 h-4 text-gray-400" />
                 <span>06/16/2026 - 06/22/2026</span>
               </div>
               
               <Select defaultValue="status">
-                <SelectTrigger className="w-[130px] bg-white border-gray-200 shadow-sm h-10">
+                <SelectTrigger className="w-[130px] bg-white dark:bg-card border-gray-200 dark:border-slate-800 shadow-sm h-10">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -183,7 +183,7 @@ export default function Role() {
               </Select>
               
               <Select defaultValue="7days">
-                <SelectTrigger className="w-[180px] bg-white border-gray-200 shadow-sm h-10">
+                <SelectTrigger className="w-[180px] bg-white dark:bg-card border-gray-200 dark:border-slate-800 shadow-sm h-10">
                   <SelectValue placeholder="Sort By" />
                 </SelectTrigger>
                 <SelectContent>
@@ -195,11 +195,11 @@ export default function Role() {
           </div>
 
           {/* Sub Filters */}
-          <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 bg-gray-50/30">
+          <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-slate-800 bg-gray-50/30">
             <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
               <span>Row Per Page</span>
               <Select defaultValue="10">
-                <SelectTrigger className="w-[70px] bg-white border-gray-200 h-9 shadow-sm">
+                <SelectTrigger className="w-[70px] bg-white dark:bg-card border-gray-200 dark:border-slate-800 h-9 shadow-sm">
                   <SelectValue placeholder="10" />
                 </SelectTrigger>
                 <SelectContent>
@@ -215,7 +215,7 @@ export default function Role() {
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <Input 
                 placeholder="Search" 
-                className="pl-9 bg-white border-gray-200 h-9 w-full sm:w-[250px] shadow-sm"
+                className="pl-9 bg-white dark:bg-card border-gray-200 dark:border-slate-800 h-9 w-full sm:w-[250px] shadow-sm"
               />
             </div>
           </div>
@@ -223,7 +223,7 @@ export default function Role() {
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left whitespace-nowrap">
-              <thead className="text-gray-700 font-semibold bg-gray-50/80 border-b border-gray-100">
+              <thead className="text-gray-700 font-semibold bg-gray-50/80 border-b border-gray-100 dark:border-slate-800">
                 <tr>
                   <th className="px-6 py-4">Role</th>
                   <th className="px-6 py-4">Created Date</th>
@@ -247,7 +247,7 @@ export default function Role() {
                   </tr>
                 ) : (
                   roles.map((role) => (
-                    <tr key={role.id} className="hover:bg-gray-50/50 transition-colors bg-white group">
+                    <tr key={role.id} className="hover:bg-gray-50/50 transition-colors bg-white dark:bg-card group">
                       <td className="px-6 py-4 font-semibold text-gray-700">{role.name}</td>
                       <td className="px-6 py-4 text-gray-500 font-medium">
                         {new Date(role.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -267,7 +267,7 @@ export default function Role() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1.5 text-gray-400 opacity-60 group-hover:opacity-100 transition-opacity">
-                          <button className="p-1.5 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors">
+                          <button className="p-1.5 hover:text-gray-800 dark:text-gray-200 hover:bg-gray-100 rounded-md transition-colors">
                             <Shield className="w-4 h-4" />
                           </button>
                           <button 
@@ -300,8 +300,8 @@ export default function Role() {
       {/* Add Role Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
         <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden border-0 shadow-xl rounded-xl">
-          <DialogHeader className="p-6 pb-4 border-b border-gray-100">
-            <DialogTitle className="text-xl font-bold text-gray-900">Add Role</DialogTitle>
+          <DialogHeader className="p-6 pb-4 border-b border-gray-100 dark:border-slate-800">
+            <DialogTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">Add Role</DialogTitle>
           </DialogHeader>
           <div className="grid gap-5 p-6">
             <div className="space-y-2.5">
@@ -311,13 +311,13 @@ export default function Role() {
                 value={newRoleName}
                 onChange={(e) => setNewRoleName(e.target.value)}
                 placeholder="e.g. Finance Manager"
-                className="border-gray-200 focus-visible:ring-[#7B0099] h-11"
+                className="border-gray-200 dark:border-slate-800 focus-visible:ring-[#7B0099] h-11"
               />
             </div>
             <div className="space-y-2.5">
               <Label htmlFor="new-status" className="text-sm font-semibold text-gray-700">Status</Label>
               <Select value={newRoleStatus} onValueChange={setNewRoleStatus}>
-                <SelectTrigger className="border-gray-200 focus:ring-[#7B0099] h-11">
+                <SelectTrigger className="border-gray-200 dark:border-slate-800 focus:ring-[#7B0099] h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -327,8 +327,8 @@ export default function Role() {
               </Select>
             </div>
           </div>
-          <DialogFooter className="p-6 pt-4 border-t border-gray-100 bg-gray-50/50 gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setIsAddModalOpen(false)} className="border-gray-200 text-gray-700 bg-white">
+          <DialogFooter className="p-6 pt-4 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50 gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsAddModalOpen(false)} className="border-gray-200 dark:border-slate-800 text-gray-700 bg-white dark:bg-card">
               Cancel
             </Button>
             <Button onClick={handleAddRole} className="bg-[#7B0099] hover:bg-[#60007A] text-white">
@@ -341,8 +341,8 @@ export default function Role() {
       {/* Edit Role Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden border-0 shadow-xl rounded-xl">
-          <DialogHeader className="p-6 pb-4 border-b border-gray-100">
-            <DialogTitle className="text-xl font-bold text-gray-900">Edit Role</DialogTitle>
+          <DialogHeader className="p-6 pb-4 border-b border-gray-100 dark:border-slate-800">
+            <DialogTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">Edit Role</DialogTitle>
           </DialogHeader>
           <div className="grid gap-5 p-6">
             <div className="space-y-2.5">
@@ -352,13 +352,13 @@ export default function Role() {
                 value={editRoleName}
                 onChange={(e) => setEditRoleName(e.target.value)}
                 placeholder="e.g. Finance Manager"
-                className="border-gray-200 focus-visible:ring-[#7B0099] h-11"
+                className="border-gray-200 dark:border-slate-800 focus-visible:ring-[#7B0099] h-11"
               />
             </div>
             <div className="space-y-2.5">
               <Label htmlFor="edit-status" className="text-sm font-semibold text-gray-700">Status</Label>
               <Select value={editRoleStatus} onValueChange={setEditRoleStatus}>
-                <SelectTrigger className="border-gray-200 focus:ring-[#7B0099] h-11">
+                <SelectTrigger className="border-gray-200 dark:border-slate-800 focus:ring-[#7B0099] h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -368,8 +368,8 @@ export default function Role() {
               </Select>
             </div>
           </div>
-          <DialogFooter className="p-6 pt-4 border-t border-gray-100 bg-gray-50/50 gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setIsEditModalOpen(false)} className="border-gray-200 text-gray-700 bg-white">
+          <DialogFooter className="p-6 pt-4 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50 gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsEditModalOpen(false)} className="border-gray-200 dark:border-slate-800 text-gray-700 bg-white dark:bg-card">
               Cancel
             </Button>
             <Button onClick={handleUpdateRole} disabled={isSaving} className="bg-[#7B0099] hover:bg-[#60007A] text-white">

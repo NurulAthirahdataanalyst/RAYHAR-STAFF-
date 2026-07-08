@@ -1159,7 +1159,7 @@ export default function Attendance() {
                     } else if (log.status === "Holiday") {
                       statusBadge = "bg-blue-100/50 text-blue-700 border-blue-200/50 dark:bg-blue-900/20 dark:text-blue-400";
                     } else if (log.status === "Weekend") {
-                      statusBadge = "bg-slate-100/50 text-slate-700 border-slate-200/50 dark:bg-slate-900/20 dark:text-slate-400";
+                      statusBadge = "bg-slate-100/50 text-slate-700 border-slate-200 dark:border-slate-800/50 dark:bg-slate-900/20 dark:text-slate-400";
                     } else if (log.status === "Absent") {
                       statusBadge = "bg-red-100/50 text-red-700 border-red-200/50 dark:bg-red-900/20 dark:text-red-400";
                     }

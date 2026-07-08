@@ -243,7 +243,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         {formattedRole}
                       </p>
                     </div>
-                    <div className="h-9 w-9 rounded-xl bg-white text-[#7B0099] flex items-center justify-center font-black text-xs shadow-lg shadow-purple-950/40 group-hover:scale-105 transition-transform border border-white/20">
+                    <div className="h-9 w-9 rounded-xl bg-white dark:bg-card text-[#7B0099] flex items-center justify-center font-black text-xs shadow-lg shadow-purple-950/40 group-hover:scale-105 transition-transform border border-white/20">
                       {displayAvatar}
                     </div>
                   </div>
@@ -309,7 +309,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <NotificationBell />
               <DropdownMenu>
                 <DropdownMenuTrigger className="outline-none">
-                <div className="h-8 w-8 rounded-lg bg-white text-[#7B0099] flex items-center justify-center font-black text-xs shadow-md hover:scale-105 active:scale-95 transition-transform border border-white/20">
+                <div className="h-8 w-8 rounded-lg bg-white dark:bg-card text-[#7B0099] flex items-center justify-center font-black text-xs shadow-md hover:scale-105 active:scale-95 transition-transform border border-white/20">
                   {displayAvatar}
                 </div>
               </DropdownMenuTrigger>

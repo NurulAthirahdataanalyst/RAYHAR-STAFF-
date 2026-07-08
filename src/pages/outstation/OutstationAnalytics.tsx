@@ -169,7 +169,7 @@ export default function OutstationAnalytics() {
       .slice(0, 5);
   }, [assignments]);
 
-  if (roleLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50"><Loader2 className="animate-spin w-8 h-8 text-purple-900" /></div>;
+  if (roleLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900/50"><Loader2 className="animate-spin w-8 h-8 text-purple-900" /></div>;
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-gray-900 dark:text-gray-100 pb-12">
@@ -182,25 +182,25 @@ export default function OutstationAnalytics() {
               <Filter className="w-4 h-4 text-gray-400" />
               <span className="text-[13px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Filters</span>
             </div>
-            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 dark:text-gray-200 outline-none focus:ring-1 focus:ring-purple-500">
+            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 dark:bg-slate-900/50 border-gray-200 dark:border-slate-800 rounded-[8px] text-gray-700 dark:text-gray-200 outline-none focus:ring-1 focus:ring-purple-500">
               <option>All Time</option>
               {Array.from(new Set(assignments.map(a => new Date(a.start_date).getFullYear()))).filter(Boolean).map(y => <option key={y}>{y}</option>)}
             </select>
-            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 dark:text-gray-200 outline-none focus:ring-1 focus:ring-purple-500">
+            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 dark:bg-slate-900/50 border-gray-200 dark:border-slate-800 rounded-[8px] text-gray-700 dark:text-gray-200 outline-none focus:ring-1 focus:ring-purple-500">
               <option>All Branches</option>
               {Array.from(new Set(assignments.map(a => a.branch))).filter(Boolean).map(b => <option key={String(b)}>{String(b)}</option>)}
             </select>
-            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 dark:text-gray-200 outline-none focus:ring-1 focus:ring-purple-500">
+            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 dark:bg-slate-900/50 border-gray-200 dark:border-slate-800 rounded-[8px] text-gray-700 dark:text-gray-200 outline-none focus:ring-1 focus:ring-purple-500">
               <option>All Departments</option>
               {Array.from(new Set(assignments.map(a => a.department))).filter(Boolean).map(d => <option key={String(d)}>{String(d)}</option>)}
             </select>
-            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 border-gray-200 rounded-[8px] text-gray-700 dark:text-gray-200 outline-none focus:ring-1 focus:ring-purple-500">
+            <select className="h-9 px-3 text-[13px] font-medium bg-gray-50 dark:bg-slate-900/50 border-gray-200 dark:border-slate-800 rounded-[8px] text-gray-700 dark:text-gray-200 outline-none focus:ring-1 focus:ring-purple-500">
               <option>All Statuses</option>
               {Array.from(new Set(assignments.map(a => a.status))).filter(Boolean).map(s => <option key={String(s)}>{String(s)}</option>)}
             </select>
             <div className="relative ml-auto">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <Input placeholder="Search employee..." className="w-[200px] pl-9 h-9 text-[13px] bg-gray-50 border-gray-200 rounded-[8px]" />
+              <Input placeholder="Search employee..." className="w-[200px] pl-9 h-9 text-[13px] bg-gray-50 dark:bg-slate-900/50 border-gray-200 dark:border-slate-800 rounded-[8px]" />
             </div>
             <Button variant="outline" className="h-9 text-[13px] font-semibold border-gray-300 text-gray-700 dark:text-gray-200 rounded-[8px]">
               <Download className="w-4 h-4 mr-2" /> Export
@@ -417,9 +417,9 @@ export default function OutstationAnalytics() {
               <table className="w-full text-left">
                 <thead className="bg-gray-50/80">
                   <tr>
-                    <th className="px-6 py-3 text-[12px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200">Employee</th>
-                    <th className="px-6 py-3 text-[12px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200">Trips</th>
-                    <th className="px-6 py-3 text-[12px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200">Avg Dur</th>
+                    <th className="px-6 py-3 text-[12px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-slate-800">Employee</th>
+                    <th className="px-6 py-3 text-[12px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-slate-800">Trips</th>
+                    <th className="px-6 py-3 text-[12px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-slate-800">Avg Dur</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">

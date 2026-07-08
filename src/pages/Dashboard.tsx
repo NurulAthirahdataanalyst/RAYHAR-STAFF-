@@ -431,11 +431,11 @@ export default function Dashboard() {
                 {["hr_admin", "managing_director", "finance_manager"].includes(role) ? (
                   <>
                     <div onClick={() => navigate("/calendar/company-leave")} className="cursor-pointer col-span-1 sm:col-span-2 lg:col-span-2 flex h-full">
-                      <Card className="w-full border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] bg-white overflow-hidden flex flex-col relative group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 rounded-[20px] ring-1 ring-slate-100">
+                      <Card className="w-full border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] bg-white dark:bg-card overflow-hidden flex flex-col relative group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 rounded-[20px] ring-1 ring-slate-100">
                         <CardContent className="p-4 sm:p-5 flex items-center justify-between h-full relative z-10 w-full">
                           <div className="flex items-center gap-4 min-w-0">
                             <div className="w-16 h-16 shrink-0 drop-shadow-sm transition-transform duration-500 group-hover:scale-105">
-                              <div className="w-full h-full bg-white rounded-xl shadow-sm border border-purple-100 flex flex-col overflow-hidden">
+                              <div className="w-full h-full bg-white dark:bg-card rounded-xl shadow-sm border border-purple-100 flex flex-col overflow-hidden">
                                 <div className="bg-[#7B0099] py-1 flex justify-center items-center gap-2 relative">
                                   <span className="text-[9px] font-black text-white uppercase tracking-widest">{new Date().toLocaleDateString('en-US', { month: 'short' })}</span>
                                 </div>
@@ -447,7 +447,7 @@ export default function Dashboard() {
                             </div>
                             <div className="space-y-1 min-w-0">
                               <p className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest truncate">Company Leave</p>
-                              <h3 className="text-lg font-black text-slate-800 tracking-tighter truncate">
+                              <h3 className="text-lg font-black text-slate-800 dark:text-slate-200 tracking-tighter truncate">
                                 {stats.activeCompanyLeave.title || stats.activeCompanyLeave.leave_name || "COMPANY TRIP"}
                               </h3>
                               <Badge className="bg-[#7B0099] hover:bg-[#60007A] text-white uppercase text-[9px] tracking-wider font-black border-none shadow-sm rounded-full px-2.5 py-0.5 mt-1">
@@ -521,7 +521,7 @@ export default function Dashboard() {
                       <CardContent className="p-4 sm:p-5 flex items-center justify-between h-full relative z-10 w-full">
                         <div className="flex items-center gap-4 sm:gap-6 min-w-0">
                           <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 drop-shadow-md transition-transform duration-500 group-hover:scale-105 group-hover:-rotate-3">
-                            <div className="w-full h-full bg-white rounded-xl shadow-md border border-purple-100 flex flex-col overflow-hidden">
+                            <div className="w-full h-full bg-white dark:bg-card rounded-xl shadow-md border border-purple-100 flex flex-col overflow-hidden">
                               <div className="bg-[#7B0099] py-1 sm:py-1.5 flex justify-center items-center gap-3 relative overflow-hidden">
                                 <div className="absolute inset-0 bg-white/10" />
                                 <div className="w-1.5 h-1.5 rounded-full bg-white/80 shadow-sm z-10" />
@@ -733,7 +733,7 @@ export default function Dashboard() {
               return (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
                   {/* Total Employees */}
-                  <div className="bg-white rounded-xl border border-slate-100 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
+                  <div className="bg-white dark:bg-card rounded-xl border border-slate-100 dark:border-slate-800 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                         <Users className="w-3.5 h-3.5" />
@@ -751,7 +751,7 @@ export default function Dashboard() {
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
-                    <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200">
+                    <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200 dark:border-slate-800">
                       <div className="w-8 bg-[#7B0099] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
                       <div className="w-8 bg-slate-300 rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
                     </div>
@@ -759,7 +759,7 @@ export default function Dashboard() {
                   </div>
 
                   {/* Present */}
-                  <div className="bg-white rounded-xl border border-slate-100 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
+                  <div className="bg-white dark:bg-card rounded-xl border border-slate-100 dark:border-slate-800 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                         <CheckCircle2 className="w-3.5 h-3.5" />
@@ -777,7 +777,7 @@ export default function Dashboard() {
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
-                    <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200">
+                    <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200 dark:border-slate-800">
                       <div className="w-8 bg-[#7B0099] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: typicalPresent ? `${(todayPresent/typicalPresent)*100}%` : '0%' }}></div>
                       <div className="w-8 bg-slate-300 rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
                     </div>
@@ -790,7 +790,7 @@ export default function Dashboard() {
                   </div>
 
                   {/* Affected By Company Leave */}
-                  <div className="bg-white rounded-xl border border-slate-100 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
+                  <div className="bg-white dark:bg-card rounded-xl border border-slate-100 dark:border-slate-800 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-6 h-6 rounded-md bg-[#7B0099]/10 text-[#7B0099] flex items-center justify-center shrink-0">
                         <Users className="w-3.5 h-3.5" />
@@ -808,7 +808,7 @@ export default function Dashboard() {
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
-                    <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200">
+                    <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200 dark:border-slate-800">
                       <div className="w-8 bg-[#7B0099] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
                       <div className="w-8 bg-slate-300 rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '2%' }}></div>
                     </div>
@@ -821,7 +821,7 @@ export default function Dashboard() {
                   </div>
 
                   {/* Attendance Rate */}
-                  <div className="bg-white rounded-xl border border-slate-100 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
+                  <div className="bg-white dark:bg-card rounded-xl border border-slate-100 dark:border-slate-800 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                         <BarChart className="w-3.5 h-3.5" />
@@ -839,7 +839,7 @@ export default function Dashboard() {
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
-                    <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200">
+                    <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200 dark:border-slate-800">
                       <div className="w-8 bg-[#7B0099] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: typicalAttendanceRate ? `${(todayAttendanceRate/typicalAttendanceRate)*100}%` : '0%' }}></div>
                       <div className="w-8 bg-slate-300 rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
                     </div>
@@ -852,7 +852,7 @@ export default function Dashboard() {
                   </div>
 
                   {/* Late Arrivals */}
-                  <div className="bg-white rounded-xl border border-slate-100 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
+                  <div className="bg-white dark:bg-card rounded-xl border border-slate-100 dark:border-slate-800 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-6 h-6 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
                         <Clock className="w-3.5 h-3.5" />
@@ -870,7 +870,7 @@ export default function Dashboard() {
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
-                    <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200">
+                    <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200 dark:border-slate-800">
                       <div className="w-8 bg-[#7B0099] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: todayLate > 0 ? `${(todayLate/typicalLate)*100}%` : '2%' }}></div>
                       <div className="w-8 bg-slate-300 rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
                     </div>
@@ -886,13 +886,13 @@ export default function Dashboard() {
             })()}
 
             <div className="mt-10 bg-gradient-to-r from-purple-50/80 to-purple-50/50 rounded-xl p-3 sm:p-4 border border-purple-100 flex items-start gap-3 sm:gap-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-              <div className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center shrink-0 border border-purple-100">
+              <div className="w-8 h-8 rounded-full bg-white dark:bg-card shadow-sm flex items-center justify-center shrink-0 border border-purple-100">
                 <Info className="w-4 h-4 text-[#7B0099]" />
               </div>
               <div className="pt-0.5">
                 <p className="text-xs font-black text-[#1a0029] mb-1">Why the difference?</p>
                 <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
-                  Today's attendance is lower because <span className="font-bold text-[#7B0099] bg-white px-1 py-0.5 rounded shadow-sm border border-slate-100">{stats.companyLeave || 0} employees</span> are on Company Leave (<span className="font-bold">{stats.activeCompanyLeave.title || "Company Trip"}</span>) which applies to <span className="font-bold text-[#7B0099] bg-white px-1 py-0.5 rounded shadow-sm border border-slate-100 uppercase">{stats.activeCompanyLeave.applies_to === 'all' ? 'ALL STAFF' : stats.activeCompanyLeave.applies_to === 'branch' ? `BRANCH ${stats.activeCompanyLeave.branch_id}` : `DEPT ${stats.activeCompanyLeave.department_id}`}</span>.
+                  Today's attendance is lower because <span className="font-bold text-[#7B0099] bg-white dark:bg-card px-1 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800">{stats.companyLeave || 0} employees</span> are on Company Leave (<span className="font-bold">{stats.activeCompanyLeave.title || "Company Trip"}</span>) which applies to <span className="font-bold text-[#7B0099] bg-white dark:bg-card px-1 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800 uppercase">{stats.activeCompanyLeave.applies_to === 'all' ? 'ALL STAFF' : stats.activeCompanyLeave.applies_to === 'branch' ? `BRANCH ${stats.activeCompanyLeave.branch_id}` : `DEPT ${stats.activeCompanyLeave.department_id}`}</span>.
                 </p>
               </div>
             </div>
@@ -906,7 +906,7 @@ export default function Dashboard() {
           {/* Who's Out Today - admin roles only */}
           {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role) && (
             <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card">
-              <CardHeader className="border-b border-slate-100 pb-3 px-4 pt-4">
+              <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 px-4 pt-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                   <div className="flex items-start gap-2">
                     <CalendarOff className="w-5 h-5 text-purple-600 mt-0.5" />
@@ -961,7 +961,7 @@ export default function Dashboard() {
                         <div
                           key={emp.leave_id}
                           onClick={() => navigate(`/leave/admin?leaveId=${emp.leave_id}`)}
-                          className="cursor-pointer group rounded-sm border border-slate-200 bg-white hover:border-purple-300 transition-colors duration-200 p-3"
+                          className="cursor-pointer group rounded-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-card hover:border-purple-300 transition-colors duration-200 p-3"
                         >
                           <div className="flex items-start gap-3">
                             <div className="w-10 h-10 rounded bg-purple-100 flex items-center justify-center text-sm font-bold text-purple-700 shrink-0">
@@ -1001,7 +1001,7 @@ export default function Dashboard() {
 
           {/* Enterprise Recent Activity Feed */}
           <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card">
-            <CardHeader className="border-b border-slate-100 pb-0 px-4 pt-4">
+            <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-0 px-4 pt-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                 <div className="flex items-center gap-2">
                   <Activity className="w-5 h-5 text-purple-600" />
@@ -1013,14 +1013,14 @@ export default function Dashboard() {
                   {lastUpdated && (
                     <span className="text-xs italic text-slate-500">Updated a few seconds ago</span>
                   )}
-                  <div className="border border-slate-200 rounded px-2 py-1 text-[10px] font-bold text-slate-600">
+                  <div className="border border-slate-200 dark:border-slate-800 rounded px-2 py-1 text-[10px] font-bold text-slate-600">
                     Last 10 Events
                   </div>
                 </div>
               </div>
 
               {/* Tab Strip */}
-              <div className="flex gap-4 border-b border-slate-200">
+              <div className="flex gap-4 border-b border-slate-200 dark:border-slate-800">
                 {([
                   { key: "my", label: "My Activity" },
                   ...(isElevatedRole ? [{ key: "team", label: "Team" }] : []),
@@ -1087,8 +1087,8 @@ export default function Dashboard() {
                 }
 
                 return (
-                  <div className="w-full text-left border-t border-slate-100">
-                    <div className="grid grid-cols-12 px-4 py-2 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100">
+                  <div className="w-full text-left border-t border-slate-100 dark:border-slate-800">
+                    <div className="grid grid-cols-12 px-4 py-2 bg-slate-50 dark:bg-slate-900/50 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
                       <div className="col-span-2">Type</div>
                       <div className="col-span-3">Timestamp</div>
                       <div className="col-span-5">Description</div>
@@ -1097,16 +1097,16 @@ export default function Dashboard() {
                     {feedItems.map((item, i) => {
                       const badgeColor: Record<string, string> = {
                         Present: "text-purple-700 border-purple-200",
-                        "Clocked Out": "text-slate-600 border-slate-200",
+                        "Clocked Out": "text-slate-600 border-slate-200 dark:border-slate-800",
                         Approved: "text-emerald-700 border-emerald-200",
                         Rejected: "text-red-700 border-red-200",
                         Late: "text-rose-700 border-rose-200",
                         Active: "text-violet-700 border-violet-200",
                         System: "text-blue-700 border-blue-200",
                         Reminder: "text-yellow-700 border-yellow-200",
-                        Note: "text-slate-600 border-slate-200",
+                        Note: "text-slate-600 border-slate-200 dark:border-slate-800",
                       };
-                      const badgeCls = badgeColor[item.badge] || "text-slate-500 border-slate-200";
+                      const badgeCls = badgeColor[item.badge] || "text-slate-500 border-slate-200 dark:border-slate-800";
                       
                       const typeIcon: Record<string, string> = {
                         attendance: "text-purple-700",
@@ -1118,7 +1118,7 @@ export default function Dashboard() {
                       return (
                         <div
                           key={i}
-                          className="grid grid-cols-12 px-4 py-3 border-b border-slate-50 items-center hover:bg-slate-50 transition-colors"
+                          className="grid grid-cols-12 px-4 py-3 border-b border-slate-50 items-center hover:bg-slate-50 dark:bg-slate-900/50 transition-colors"
                         >
                           <div className="col-span-2 flex items-center gap-2 text-xs font-bold text-slate-700 capitalize">
                             <div className={`w-1.5 h-1.5 rounded-full bg-current ${typeIcon[item.type] || 'text-slate-400'}`}></div>
@@ -1143,7 +1143,7 @@ export default function Dashboard() {
                 );
               })()}
 
-              <div className="p-3 border-t border-slate-100 flex justify-center">
+              <div className="p-3 border-t border-slate-100 dark:border-slate-800 flex justify-center">
                 <button
                   onClick={() => navigate("/attendance")}
                   className="text-[11px] font-bold text-purple-700 hover:underline"
@@ -1160,7 +1160,7 @@ export default function Dashboard() {
           
           {/* Quick Actions */}
           <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card">
-            <CardHeader className="border-b border-slate-100 pb-3 px-4 pt-4">
+            <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 px-4 pt-4">
               <div className="flex items-center gap-2">
                 <Zap className="w-5 h-5 text-purple-600" />
                 <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest">
@@ -1170,16 +1170,16 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="p-4">
               <div className="grid grid-cols-2 gap-3">
-                <div onClick={() => navigate("/attendance")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-purple-300 hover:bg-slate-50 transition-colors">
+                <div onClick={() => navigate("/attendance")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
                   <Clock className="w-6 h-6 text-purple-700 mb-2" />
                   <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Clock In/Out</span>
                 </div>
-                <div onClick={() => navigate("/leave/apply")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-purple-300 hover:bg-slate-50 transition-colors">
+                <div onClick={() => navigate("/leave/apply")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
                   <CalendarCheck className="w-6 h-6 text-purple-700 mb-2" />
                   <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Apply Leave</span>
                 </div>
                 {["hr_admin", "managing_director", "finance_manager", "head_of_department", "branch_leader"].includes(role) && (
-                  <div onClick={() => navigate("/outstation")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 rounded-md hover:border-purple-300 hover:bg-slate-50 transition-colors col-span-2">
+                  <div onClick={() => navigate("/outstation")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors col-span-2">
                     <MapPin className="w-6 h-6 text-purple-700 mb-2" />
                     <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Outstation</span>
                   </div>
@@ -1190,7 +1190,7 @@ export default function Dashboard() {
 
           {/* Upcoming Outstation */}
           <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card">
-            <CardHeader className="border-b border-slate-100 pb-3 px-4 pt-4 flex flex-row items-center justify-between">
+            <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 px-4 pt-4 flex flex-row items-center justify-between">
               <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest">
                 Upcoming Outstation
               </CardTitle>
@@ -1205,7 +1205,7 @@ export default function Dashboard() {
                   const month = d.toLocaleDateString("en-US", { month: "short" });
                   const day = d.toLocaleDateString("en-US", { day: "2-digit" });
                   return (
-                    <div key={i} className={`flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors cursor-pointer ${i !== upcomingOutstations.length - 1 ? "border-b border-slate-50" : ""}`}>
+                    <div key={i} className={`flex items-center gap-4 p-4 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer ${i !== upcomingOutstations.length - 1 ? "border-b border-slate-50" : ""}`}>
                       <div className="w-12 h-12 bg-purple-50 rounded flex flex-col items-center justify-center shrink-0">
                         <span className="text-[9px] font-bold text-purple-700 uppercase">{month}</span>
                         <span className="text-lg font-black text-purple-900 leading-none mt-0.5">{day}</span>

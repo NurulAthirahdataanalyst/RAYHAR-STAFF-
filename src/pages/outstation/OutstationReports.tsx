@@ -153,7 +153,7 @@ export default function OutstationReports() {
 
       {/* Table */}
       <Card className="border border-gray-200 dark:border-gray-500/30/80 shadow-sm overflow-hidden">
-        <CardHeader className="border-b border-gray-100 pb-3">
+        <CardHeader className="border-b border-gray-100 dark:border-slate-800 pb-3">
           <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
             <Plane className="w-4 h-4 text-pink-500" />
             Outstation Report
@@ -172,7 +172,7 @@ export default function OutstationReports() {
             <div className="overflow-x-auto">
               <table className="w-full text-[12px]">
                 <thead>
-                  <tr className="border-b border-gray-100 bg-slate-50/60">
+                  <tr className="border-b border-gray-100 dark:border-slate-800 bg-slate-50/60">
                     {["#","Employee","Department","Branch","Destination","Event","Start","End","Days","Status","Assigned By"].map(h => (
                       <th key={h} className="px-3 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
                     ))}

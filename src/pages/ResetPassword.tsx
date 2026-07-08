@@ -81,7 +81,7 @@ export default function ResetPassword() {
         <div className="flex flex-col items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
           <img src={rayharLogo} alt="Rayhar Logo" className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl shadow-xl" />
           <div className="text-center">
-            <h1 className="font-heading font-black text-slate-900 text-xl sm:text-2xl tracking-tight">Rayhar Group</h1>
+            <h1 className="font-heading font-black text-slate-900 dark:text-slate-100 text-xl sm:text-2xl tracking-tight">Rayhar Group</h1>
             <p className="text-[10px] sm:text-xs font-extrabold text-[#7B0099] uppercase tracking-widest">Password Reset</p>
           </div>
         </div>
@@ -146,7 +146,7 @@ export default function ResetPassword() {
                 </button>
               </div>
 
-              <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-400 font-extrabold uppercase tracking-wider pt-2 border-t border-slate-100/50 w-full">
+              <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-400 font-extrabold uppercase tracking-wider pt-2 border-t border-slate-100 dark:border-slate-800/50 w-full">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
                 <span>Secure Password Setup</span>
               </div>

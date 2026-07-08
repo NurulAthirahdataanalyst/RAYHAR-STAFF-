@@ -791,7 +791,7 @@ export default function LeaveAnalytics() {
               <p className="text-[10px] font-black uppercase tracking-[0.15em] text-purple-600/70">
                 {isBranchLeader ? "Branch Scope" : "Department Scope"}
               </p>
-              <p className="text-[15px] font-black text-gray-800 leading-tight">
+              <p className="text-[15px] font-black text-gray-800 dark:text-gray-200 leading-tight">
                 {isBranchLeader
                   ? `Branch ${userBranch} — Leave Analytics`
                   : `${userDepartment} Department — Leave Analytics`}
@@ -799,11 +799,11 @@ export default function LeaveAnalytics() {
             </div>
           </div>
           <div className="sm:ml-auto flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 bg-white border border-purple-200 text-purple-700 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm uppercase tracking-widest">
+            <span className="inline-flex items-center gap-1.5 bg-white dark:bg-card border border-purple-200 text-purple-700 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm uppercase tracking-widest">
               <UserCheck className="w-3 h-3" />
               {isBranchLeader ? `Viewing: ${userBranch}` : `Dept: ${userDepartment}`}
             </span>
-            <span className="inline-flex items-center gap-1.5 bg-white border border-blue-200 text-blue-700 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm uppercase tracking-widest">
+            <span className="inline-flex items-center gap-1.5 bg-white dark:bg-card border border-blue-200 text-blue-700 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm uppercase tracking-widest">
               <Users className="w-3 h-3" />
               {records.length} Records
             </span>
@@ -815,21 +815,21 @@ export default function LeaveAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-6 items-stretch">
         
         {/* Section 1: Live Leave Overview (takes 8 cols) */}
-        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden ring-1 ring-black/5 lg:col-span-8 flex flex-col justify-between">
+        <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden ring-1 ring-black/5 lg:col-span-8 flex flex-col justify-between">
           <CardContent className="p-0 flex-1 flex flex-col justify-between">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 md:px-6 pt-4 pb-3 border-b border-gray-100 bg-white">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 md:px-6 pt-4 pb-3 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
               <div className="flex items-center gap-4">
                 <div className="p-2.5 bg-gradient-to-br from-[#800A7A] to-[#a855f7] rounded-xl shadow-md">
                   <CalendarCheck className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-[15px] font-black text-gray-800 uppercase tracking-wide">
+                    <h2 className="text-[15px] font-black text-gray-800 dark:text-gray-200 uppercase tracking-wide">
                       Live Leave Overview
                     </h2>
                     <span className="flex items-center gap-1.5 bg-purple-500 text-white border border-purple-400 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-widest shadow-sm shadow-purple-500/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-card animate-pulse" />
                       LIVE
                     </span>
                   </div>
@@ -846,7 +846,7 @@ export default function LeaveAnalytics() {
                   variant="outline"
                   size="sm"
                   onClick={() => void fetchData()}
-                  className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-8 rounded-md px-3 flex items-center gap-1.5 shadow-sm text-xs font-medium"
+                  className="bg-white dark:bg-card border-gray-200 dark:border-slate-800 text-gray-700 hover:bg-gray-50 dark:bg-slate-900/50 h-8 rounded-md px-3 flex items-center gap-1.5 shadow-sm text-xs font-medium"
                 >
                   <RefreshCw className="w-3.5 h-3.5 text-gray-500" />
                   <span>Refresh</span>
@@ -859,15 +859,15 @@ export default function LeaveAnalytics() {
             </div>
 
             {/* KPI Cards inside Live Leave Overview */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 md:p-6 bg-slate-50/30 flex-1 border-t border-gray-100">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 md:p-6 bg-slate-50/30 flex-1 border-t border-gray-100 dark:border-slate-800">
               
               {/* Card 1: Total Applications */}
-              <div className="bg-white border border-gray-200/60 rounded-xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800/60 rounded-xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex flex-col">
                   <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                     Total Applications
                   </span>
-                  <span className="text-[32px] font-black text-gray-900 leading-none mt-1">
+                  <span className="text-[32px] font-black text-gray-900 dark:text-gray-100 leading-none mt-1">
                     {loading ? "—" : total}
                   </span>
                   <span className="text-[10px] font-bold text-slate-400 mt-2">
@@ -880,12 +880,12 @@ export default function LeaveAnalytics() {
               </div>
 
               {/* Card 2: Approved */}
-              <div className="bg-white border border-gray-200/60 rounded-xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800/60 rounded-xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex flex-col">
                   <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                     Approved
                   </span>
-                  <span className="text-[32px] font-black text-gray-900 leading-none mt-1">
+                  <span className="text-[32px] font-black text-gray-900 dark:text-gray-100 leading-none mt-1">
                     {loading ? "—" : approved}
                   </span>
                   <span className="text-[10px] font-bold text-slate-400 mt-2">
@@ -900,12 +900,12 @@ export default function LeaveAnalytics() {
               </div>
 
               {/* Card 3: Rejected */}
-              <div className="bg-white border border-gray-200/60 rounded-xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800/60 rounded-xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex flex-col">
                   <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                     Rejected
                   </span>
-                  <span className="text-[32px] font-black text-gray-900 leading-none mt-1">
+                  <span className="text-[32px] font-black text-gray-900 dark:text-gray-100 leading-none mt-1">
                     {loading ? "—" : rejected}
                   </span>
                   <span className="text-[10px] font-bold text-slate-400 mt-2">
@@ -920,12 +920,12 @@ export default function LeaveAnalytics() {
               </div>
 
               {/* Card 4: Most Common Type */}
-              <div className="bg-white border border-gray-200/60 rounded-xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+              <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800/60 rounded-xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow overflow-hidden">
                 <div className="flex flex-col min-w-0 flex-1 pr-2">
                   <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                     Most Common Type
                   </span>
-                  <span className="text-[15px] font-black text-gray-900 leading-tight mt-2 mb-1 truncate" title={mostCommonType}>
+                  <span className="text-[15px] font-black text-gray-900 dark:text-gray-100 leading-tight mt-2 mb-1 truncate" title={mostCommonType}>
                     {loading ? "—" : mostCommonType}
                   </span>
                   <span className="text-[10px] font-bold text-slate-400 mt-1">
@@ -944,20 +944,20 @@ export default function LeaveAnalytics() {
         </Card>
 
         {/* Section 2: Quick Insights (takes 4 cols - rightmost) */}
-        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden ring-1 ring-black/5 lg:col-span-4 flex flex-col justify-between">
+        <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden ring-1 ring-black/5 lg:col-span-4 flex flex-col justify-between">
           <CardContent className="p-0 flex-1 flex flex-col justify-between">
             {/* Header */}
-            <div className="flex items-center gap-3 px-4 md:px-6 pt-5 pb-[15px] border-b border-gray-100 bg-white h-[69px]">
+            <div className="flex items-center gap-3 px-4 md:px-6 pt-5 pb-[15px] border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card h-[69px]">
               <div className="p-1.5 bg-purple-50 text-purple-600 rounded-lg">
                 <Sparkles className="w-4 h-4" />
               </div>
-              <h2 className="text-[15px] font-black text-gray-800 uppercase tracking-wide">
+              <h2 className="text-[15px] font-black text-gray-800 dark:text-gray-200 uppercase tracking-wide">
                 Quick Insights
               </h2>
             </div>
 
             {/* Content: 4 Columns with Progress Bars */}
-            <div className="grid grid-cols-4 gap-3 p-4 md:p-6 bg-slate-50/30 flex-1 border-t border-gray-100 items-start">
+            <div className="grid grid-cols-4 gap-3 p-4 md:p-6 bg-slate-50/30 flex-1 border-t border-gray-100 dark:border-slate-800 items-start">
               
               {/* Insight 1: Approval Rate */}
               <div className="flex flex-col h-full justify-between">
@@ -1046,10 +1046,10 @@ export default function LeaveAnalytics() {
       </div>
 
       {/* FILTER BAR SECTION */}
-      <Card className="border border-gray-200/80 bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+      <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-lg shadow-sm overflow-hidden mb-6">
         <div className="p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
+            <h2 className="text-base font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
               <Filter className="w-4 h-4 text-gray-500" /> Analytics Filters
             </h2>
             <p className="text-[10px] text-gray-400 font-medium ml-6 mt-0.5 uppercase tracking-widest">
@@ -1064,7 +1064,7 @@ export default function LeaveAnalytics() {
           <div className="flex flex-wrap items-center gap-3">
             {/* Year */}
             <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-[90px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+              <SelectTrigger className="w-[90px] h-8 text-xs font-medium rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="rounded-md">
@@ -1078,7 +1078,7 @@ export default function LeaveAnalytics() {
 
             {/* Month */}
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-[120px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+              <SelectTrigger className="w-[120px] h-8 text-xs font-medium rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="rounded-md">
@@ -1093,7 +1093,7 @@ export default function LeaveAnalytics() {
             {/* Branch — shown only for HR Admin / MD */}
             {!isScopedRole && (
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="w-[130px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+                <SelectTrigger className="w-[130px] h-8 text-xs font-medium rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-md max-h-60">
@@ -1108,7 +1108,7 @@ export default function LeaveAnalytics() {
 
             {/* Leave Type */}
             <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger className="w-[160px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+              <SelectTrigger className="w-[160px] h-8 text-xs font-medium rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="rounded-md">
@@ -1123,7 +1123,7 @@ export default function LeaveAnalytics() {
 
             {/* Status */}
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-[110px] h-8 text-xs font-medium rounded-md border-gray-200 bg-white text-gray-700 shadow-sm">
+              <SelectTrigger className="w-[110px] h-8 text-xs font-medium rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="rounded-md">
@@ -1161,8 +1161,8 @@ export default function LeaveAnalytics() {
         {/* Left Column */}
         <div className="lg:col-span-2 flex flex-col gap-6">
           {/* Pie Chart */}
-        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col h-fit">
-          <CardHeader className="pb-0 border-b border-gray-100 bg-white">
+        <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden flex flex-col h-fit">
+          <CardHeader className="pb-0 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
             <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
               <div className="p-2 bg-[#3B82F6]/10 rounded-xl">
                 <PieChartIcon className="w-4 h-4 text-[#3B82F6]" />
@@ -1267,8 +1267,8 @@ export default function LeaveAnalytics() {
         </Card>
 
           {/* Leave Balance Usage */}
-        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden">
-          <CardHeader className="pb-0 border-b border-gray-100 bg-white">
+        <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden">
+          <CardHeader className="pb-0 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
             <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
               <div className="p-2 bg-blue-500/10 rounded-xl">
                 <Users className="w-4 h-4 text-blue-500" />
@@ -1369,8 +1369,8 @@ export default function LeaveAnalytics() {
           {/* Top Row Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Approved vs Rejected per Leave Type Bar Chart */}
-            <Card className="md:col-span-2 border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col justify-between">
-              <CardHeader className="pb-0 border-b border-gray-100 bg-white">
+            <Card className="md:col-span-2 border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden flex flex-col justify-between">
+              <CardHeader className="pb-0 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
                 <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
                   <div className="p-2 bg-[#16A34A]/10 rounded-xl">
                     <TrendingUp className="w-4 h-4 text-[#16A34A]" />
@@ -1514,8 +1514,8 @@ export default function LeaveAnalytics() {
             </Card>
 
             {/* Top Leave Reasons Card */}
-            <Card className="md:col-span-1 border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col justify-between">
-              <CardHeader className="pb-0 border-b border-gray-100 bg-white">
+            <Card className="md:col-span-1 border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden flex flex-col justify-between">
+              <CardHeader className="pb-0 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
                 <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
                   <div className="p-2 bg-[#3B82F6]/10 rounded-xl">
                     <FileBarChart2 className="w-4 h-4 text-[#3B82F6]" />
@@ -1569,7 +1569,7 @@ export default function LeaveAnalytics() {
                       })}
                     </div>
 
-                    <div className="pt-3 border-t border-gray-100 mt-2">
+                    <div className="pt-3 border-t border-gray-100 dark:border-slate-800 mt-2">
                       <button
                         onClick={() => navigate("/reports/leave")}
                         className="text-[10px] font-black text-[#3B82F6] hover:text-[#2563EB] flex items-center gap-1.5 transition-colors uppercase tracking-wider"
@@ -1585,8 +1585,8 @@ export default function LeaveAnalytics() {
           </div>
 
           {/* Approvals trend chart */}
-        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col h-fit">
-          <CardHeader className="pb-0 border-b border-gray-100 bg-white">
+        <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden flex flex-col h-fit">
+          <CardHeader className="pb-0 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
             <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
               <div className="p-2 bg-[#3B82F6]/10 rounded-xl">
                 <TrendingUp className="w-4 h-4 text-[#3B82F6]" />
@@ -1704,7 +1704,7 @@ export default function LeaveAnalytics() {
       </div>
 
       {/* ── Status Summary Strip ── */}
-      <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden">
+      <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden">
         <CardContent className="p-5">
           <div className="flex flex-wrap items-center gap-4 sm:gap-8">
             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">
@@ -1754,8 +1754,8 @@ export default function LeaveAnalytics() {
       </Card>
 
       {/* ── Workforce Health Overview ── */}
-      <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden">
-        <CardHeader className="pb-0 border-b border-gray-100 bg-white">
+      <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden">
+        <CardHeader className="pb-0 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
           <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
             <div className="p-2 bg-indigo-500/10 rounded-xl">
               <CheckCircle2 className="w-4 h-4 text-indigo-500" />
@@ -1816,8 +1816,8 @@ export default function LeaveAnalytics() {
 
       {/* ── STAFF LEAVE SUMMARY TABLE (Branch Leader / HOD only) ── */}
       {isScopedRole && (
-        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden">
-          <CardHeader className="pb-0 border-b border-gray-100 bg-white">
+        <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden">
+          <CardHeader className="pb-0 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
             <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
               <div className="p-2 bg-purple-500/10 rounded-xl">
                 <Users className="w-4 h-4 text-purple-600" />
@@ -1841,7 +1841,7 @@ export default function LeaveAnalytics() {
               <div className="overflow-x-auto">
                 <table className="w-full text-[12px]">
                   <thead>
-                    <tr className="border-b border-gray-100 bg-slate-50/60">
+                    <tr className="border-b border-gray-100 dark:border-slate-800 bg-slate-50/60">
                       <th className="px-5 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Staff Member</th>
                       <th className="px-4 py-3 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Applications</th>
                       <th className="px-4 py-3 text-center text-[10px] font-black text-emerald-600 uppercase tracking-widest">Approved</th>
@@ -1865,7 +1865,7 @@ export default function LeaveAnalytics() {
                               <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#7B0099]/20 to-purple-300 flex items-center justify-center text-[10px] font-black text-purple-700 shrink-0">
                                 {staff.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                               </div>
-                              <span className="font-bold text-gray-800 truncate max-w-[160px]" title={staff.name}>{staff.name}</span>
+                              <span className="font-bold text-gray-800 dark:text-gray-200 truncate max-w-[160px]" title={staff.name}>{staff.name}</span>
                             </div>
                           </td>
                           {/* Total */}
@@ -1922,7 +1922,7 @@ export default function LeaveAnalytics() {
                 </table>
 
                 {/* Footer Summary Row */}
-                <div className="px-5 py-3 bg-slate-50/80 border-t border-gray-100 flex flex-wrap items-center gap-4">
+                <div className="px-5 py-3 bg-slate-50/80 border-t border-gray-100 dark:border-slate-800 flex flex-wrap items-center gap-4">
                   <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Team Totals:</span>
                   <span className="text-[11px] font-black text-gray-700">{staffSummary.length} Staff Members</span>
                   <span className="text-[11px] font-black text-gray-700">·</span>
