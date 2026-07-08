@@ -86,7 +86,7 @@ export default function StatCard({
       </div>
 
       <div className="min-w-0">
-        <p className={`text-[28px] font-black tracking-tight leading-tight truncate ${
+        <p className={`text-[28px] font-black tracking-tight leading-tight whitespace-pre-wrap break-words ${
           variant === 'maroon' ? 'text-rose-700' : 
           variant === 'warning' ? 'text-amber-700' : 'text-slate-800'
         }`}>

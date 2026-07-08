@@ -345,7 +345,8 @@ export default function Dashboard() {
   
   const displayStatus = stats.todayStatus
     .replace("Clocked In (Outstation)", "Outstation")
-    .replace("Present (Outstation)", "Outstation");
+    .replace("Present (Outstation)", "Outstation")
+    .replace(" (", "\n(");
   const todayStatusSubtitle = isPresent
     ? `Clock in: ${stats.todayStatusTime || stats.clockInTime}`
     : isClockedOut
