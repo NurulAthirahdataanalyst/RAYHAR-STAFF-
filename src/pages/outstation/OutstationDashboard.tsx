@@ -134,22 +134,16 @@ export default function OutstationDashboard() {
         Spacing System: 8, 16, 24, 32, 48px
         Using standard Tailwind: 2 (8px), 4 (16px), 6 (24px), 8 (32px), 12 (48px)
       */}
-      <div className="max-w-[1600px] mx-auto px-6 py-8">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6">
         
-        {/* Header (Title 36px) */}
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <h1 className="text-[36px] font-bold text-gray-900 leading-tight tracking-tight">Outstation Dashboard</h1>
-            <p className="text-[14px] text-gray-500 font-medium mt-1">Enterprise travel & assignment management overview</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" className="h-10 px-4 text-[14px] font-semibold border-gray-300 text-gray-700 shadow-sm" onClick={fetchAll}>
-              <RefreshCw className="w-4 h-4 mr-2" /> Refresh
-            </Button>
-            <Button className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#4c1d95] hover:bg-[#3b0764]" onClick={() => navigate("/outstation/assignment", { state: { openNew: true } })}>
-              <Plane className="w-4 h-4 mr-2" /> New Assignment
-            </Button>
-          </div>
+        {/* Header Actions */}
+        <div className="flex items-center justify-end gap-3 mb-6">
+          <Button variant="outline" className="h-9 px-4 text-[13px] font-semibold border-gray-300 text-gray-700 shadow-sm" onClick={fetchAll}>
+            <RefreshCw className="w-4 h-4 mr-2" /> Refresh
+          </Button>
+          <Button className="h-9 px-5 text-[13px] font-semibold text-white shadow-sm bg-[#4c1d95] hover:bg-[#3b0764]" onClick={() => navigate("/outstation/assignment", { state: { openNew: true } })}>
+            <Plane className="w-4 h-4 mr-2" /> New Assignment
+          </Button>
         </div>
 
         {/* ROW 1: KPI Cards */}
