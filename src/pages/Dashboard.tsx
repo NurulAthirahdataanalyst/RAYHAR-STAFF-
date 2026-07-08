@@ -268,7 +268,7 @@ export default function Dashboard() {
       window.removeEventListener("focus", handleUpdate);
       window.removeEventListener("attendanceUpdated", handleUpdate);
     };
-  }, [applyAttendanceUpdate, fetchDashboardData]);
+  }, [applyAttendanceUpdate, fetchDashboardData, fetchUpcomingOutstations, fetchWhoOutToday, role]);
 
   // Auto refresh via SSE and 60-second fallback
   useEffect(() => {

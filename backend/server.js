@@ -6142,18 +6142,22 @@ app.get('/api/outstation', async (req, res) => {
 
     if (role === 'branch_leader' && branch) {
       params.push(branch);
-      whereClause += ` AND branch = $${params.length}`;
+      whereClause += ` AND oa.branch = $${params.length}`;
     } else if (role === 'head_of_department' && department) {
       params.push(department);
-      whereClause += ` AND department = $${params.length}`;
+      whereClause += ` AND oa.department = $${params.length}`;
     } else if (role === 'employee' && user_id) {
       params.push(user_id);
-      whereClause += ` AND user_id = $${params.length}`;
+      whereClause += ` AND oa.user_id = $${params.length}`;
     }
     // hr_admin, managing_director, finance_manager → see all (no extra filter)
 
     const [rawRows] = await pool.query(
-      `SELECT * FROM outstation_assignments ${whereClause} ORDER BY start_date DESC, created_at DESC`,
+      `SELECT oa.*, p.full_name 
+       FROM outstation_assignments oa 
+       LEFT JOIN profiles p ON oa.user_id = p.user_id 
+       ${whereClause} 
+       ORDER BY oa.start_date DESC, oa.created_at DESC`,
       params
     );
     const rows = rawRows.map(r => ({ ...r, status: computeOutstationStatus(r) }));
