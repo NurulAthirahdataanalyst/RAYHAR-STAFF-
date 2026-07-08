@@ -471,7 +471,7 @@ export default function EmployeeAnalytics() {
           </div>
 
           {/* Leaderboard */}
-          <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
+          <Card className="border border-border/60 shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden transition-all duration-200 hover:shadow-[0_25px_60px_rgba(0,0,0,0.10)] dark:hover:shadow-[0_25px_60px_rgba(0,0,0,0.35)] hover:border-border">
             <CardHeader className="border-b border-border/40">
               <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
                 <div className="p-2 bg-[#7B0099]/10 rounded-xl"><Award className="w-4 h-4 text-[#7B0099]" /></div>
@@ -646,7 +646,7 @@ export default function EmployeeAnalytics() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
 
             {/* Employee Overtime Bar */}
-            <Card className="border-none shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
+            <Card className="border border-border/60 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden transition-all duration-200 hover:shadow-[0_20px_50px_rgba(0,0,0,0.10)] dark:hover:shadow-[0_20px_50px_rgba(0,0,0,0.35)] hover:border-border">
               <CardHeader className="border-b border-border/40">
                 <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
                   <div className="p-2 bg-amber-500/10 rounded-xl"><Timer className="w-4 h-4 text-amber-500" /></div>
@@ -689,7 +689,7 @@ export default function EmployeeAnalytics() {
             </Card>
 
             {/* Department Overtime Trend */}
-            <Card className="border-none shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
+            <Card className="border border-border/60 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden transition-all duration-200 hover:shadow-[0_20px_50px_rgba(0,0,0,0.10)] dark:hover:shadow-[0_20px_50px_rgba(0,0,0,0.35)] hover:border-border">
               <CardHeader className="border-b border-border/40">
                 <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
                   <div className="p-2 bg-blue-500/10 rounded-xl"><TrendingUp className="w-4 h-4 text-blue-500" /></div>
@@ -748,7 +748,7 @@ export default function EmployeeAnalytics() {
 
           {/* ── Summary Strip ── */}
           {!loadingTeam && teamMetrics.length > 0 && (
-            <Card className="border-none shadow-[0_8px_30px_rgba(0,0,0,0.03)] bg-card/80 backdrop-blur-md rounded-[24px]">
+            <Card className="border border-border/60 shadow-[0_8px_30px_rgba(0,0,0,0.03)] bg-card/80 backdrop-blur-md rounded-[24px] transition-all duration-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:border-border">
               <CardContent className="p-5">
                 <div className="flex flex-wrap items-center gap-4 sm:gap-8">
                   <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">Team Summary:</span>

@@ -3186,11 +3186,23 @@ app.get("/api/attendance/history", async (req, res) => {
       [userId, requestedYear]
     );
 
-    // 3. Fetch approved leaves for this user in requestedYear
+    // 4. Fetch approved leaves for this user in requestedYear
     const [leaveRows] = await pool.query(
       `SELECT start_date, end_date, leave_type
       FROM leave_requests
       WHERE user_id = ? AND status = 'Approved'
+      AND (
+        EXTRACT(YEAR FROM start_date) = ?
+        OR EXTRACT(YEAR FROM end_date) = ?
+      )`,
+      [userId, requestedYear, requestedYear]
+    );
+
+    // 4b. Fetch outstation assignments for this user in requestedYear
+    const [outstationRows] = await pool.query(
+      `SELECT start_date, end_date, status
+      FROM outstation_assignments
+      WHERE user_id = ? AND status != 'Cancelled'
       AND (
         EXTRACT(YEAR FROM start_date) = ?
         OR EXTRACT(YEAR FROM end_date) = ?
@@ -3309,6 +3321,7 @@ app.get("/api/attendance/history", async (req, res) => {
       let duration = "--";
       let clock_in = null;
       let clock_out = null;
+      let is_late = false;
       let location_type = "office";
       let location_name = "Main Office, Floor 4";
 
@@ -3349,8 +3362,24 @@ app.get("/api/attendance/history", async (req, res) => {
       const dateNum = dateObj.getDate();
       const isWeekend = (dayOfWeek === 5) || (dayOfWeek === 6 && dateNum <= 7);
 
+      // Match outstation assignment (has highest priority after company leave)
+      const matchingOutstation = outstationRows.find(o => {
+        const startStr = new Date(o.start_date).toISOString().split('T')[0];
+        const endStr = new Date(o.end_date).toISOString().split('T')[0];
+        return dateStr >= startStr && dateStr <= endStr;
+      });
+
       if (matchingCompanyLeave) {
         status = "Company Leave";
+      } else if (matchingOutstation) {
+        status = "Outstation";
+        // Still populate clock_in/out times if they exist
+        if (clockRow) {
+          clock_in = clockRow.clock_in;
+          clock_out = clockRow.clock_out;
+          time_in = clockRow.time_in || "--";
+          time_out = clockRow.time_out || "--";
+        }
       } else if (clockRow) {
         clock_in = clockRow.clock_in;
         clock_out = clockRow.clock_out;
@@ -3364,12 +3393,14 @@ app.get("/api/attendance/history", async (req, res) => {
         const clockInHour = klTime.getUTCHours();
         const clockInMinute = klTime.getUTCMinutes();
         const isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
+        is_late = isLate;
 
         if (isLate) {
           const clockInMins = clockInHour * 60 + clockInMinute;
           const thresholdMins = lateH * 60 + lateM;
           const diff = clockInMins - thresholdMins;
           late = `${diff} mins`;
+          status = "LATE";
         } else {
           late = "00:00";
         }
@@ -3449,6 +3480,7 @@ app.get("/api/attendance/history", async (req, res) => {
         time_out: time_out,
         date: dateStr,
         status: status,
+        is_late: is_late ? 1 : 0,
         late: late,
         duration: duration,
         location_type: location_type,
