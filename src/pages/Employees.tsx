@@ -69,11 +69,21 @@ export default function Employees() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [analytics, setAnalytics] = useState<any>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+  const [analyticsMonth, setAnalyticsMonth] = useState<string>("all");
+  const [analyticsYear, setAnalyticsYear] = useState<string>(new Date().getFullYear().toString());
 
-  const fetchAnalytics = async (userId: string) => {
+  const fetchAnalytics = async (userId: string, month = analyticsMonth, year = analyticsYear) => {
     setLoadingAnalytics(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/employees/${userId}/analytics`);
+      const params = new URLSearchParams();
+      if (month && month !== "all" && year && year !== "all") {
+        params.append("month", `${year}-${month}`);
+      } else if (month && month !== "all") {
+        params.append("month", `${new Date().getFullYear()}-${month}`);
+      }
+      if (year && year !== "all") params.append("year", year);
+      
+      const res = await fetch(`${API_BASE_URL}/api/employees/${userId}/analytics?${params}`);
       const data = await res.json();
       if (data.success) {
         setAnalytics(data.analytics);
@@ -86,11 +96,11 @@ export default function Employees() {
 
   useEffect(() => {
     if (selectedEmployee && isModalOpen) {
-      fetchAnalytics(selectedEmployee.user_id);
+      fetchAnalytics(selectedEmployee.user_id, analyticsMonth, analyticsYear);
     } else {
       setAnalytics(null);
     }
-  }, [selectedEmployee, isModalOpen]);
+  }, [selectedEmployee, isModalOpen, analyticsMonth, analyticsYear]);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [viewLeaveStatus, setViewLeaveStatus] = useState<"Approved" | "Pending" | "Rejected" | null>(null);
@@ -690,7 +700,7 @@ export default function Employees() {
 
       {/* Employee Details Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-6xl w-full overflow-y-auto max-h-[90vh] p-0 gap-0 bg-slate-50/50">
+        <DialogContent className="max-w-6xl w-full overflow-y-auto max-h-[90vh] p-0 gap-0 bg-slate-50 dark:bg-slate-900">
           <DialogHeader className="p-6 pb-4 border-b bg-white sticky top-0 z-10 shadow-sm">
             <DialogTitle className="text-2xl font-black text-slate-800 tracking-tight">Staff Profile & Analytics</DialogTitle>
           </DialogHeader>
@@ -701,7 +711,7 @@ export default function Employees() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                   {/* Left Column: Bio & Info (4 cols) */}
                   <div className="lg:col-span-4 space-y-6">
-                    <div className="bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm flex flex-col items-center text-center">
+                    <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl border border-slate-200/60 dark:border-slate-700 shadow-sm flex flex-col items-center text-center">
                       <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#7B0099] to-indigo-600 flex items-center justify-center text-white text-4xl font-black shadow-md shadow-[#7B0099]/20 mb-5 border-4 border-white">
                         {selectedEmployee.name.charAt(0)}
                       </div>
@@ -738,7 +748,7 @@ export default function Employees() {
                   {/* Right Columns: Advanced Analytics (8 cols) */}
                   <div className="lg:col-span-8 space-y-8">
                     {loadingAnalytics ? (
-                      <div className="flex flex-col items-center justify-center py-32 text-slate-400 bg-white rounded-3xl border border-slate-200/60 shadow-sm">
+                      <div className="flex flex-col items-center justify-center py-32 text-slate-400 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200/60 dark:border-slate-700 shadow-sm">
                         <Loader2 className="w-10 h-10 animate-spin mb-4 text-[#7B0099]" />
                         <p className="text-sm font-bold tracking-wide">Loading enterprise analytics...</p>
                       </div>
@@ -746,12 +756,42 @@ export default function Employees() {
                       <>
                         {/* Attendance Performance Section */}
                         <section>
-                          <div className="flex items-center justify-between mb-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
                             <div className="flex items-center gap-2">
                               <div className="p-1.5 bg-blue-50 text-blue-600 rounded-md">
                                 <TrendingUp className="h-4 w-4" />
                               </div>
-                              <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">Attendance Performance</h3>
+                              <h3 className="text-sm font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">Attendance Performance</h3>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <Select value={analyticsMonth} onValueChange={setAnalyticsMonth}>
+                                <SelectTrigger className="w-32 h-9 text-xs font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border-slate-200/60 dark:border-slate-700">
+                                  <SelectValue placeholder="Month" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all" className="text-xs font-bold uppercase tracking-widest">All Months</SelectItem>
+                                  {Array.from({ length: 12 }, (_, i) => {
+                                    const d = new Date(2000, i, 1);
+                                    return (
+                                      <SelectItem key={i} value={(i + 1).toString().padStart(2, '0')} className="text-xs font-bold uppercase tracking-widest">
+                                        {d.toLocaleString('default', { month: 'long' })}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectContent>
+                              </Select>
+
+                              <Select value={analyticsYear} onValueChange={setAnalyticsYear}>
+                                <SelectTrigger className="w-28 h-9 text-xs font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border-slate-200/60 dark:border-slate-700">
+                                  <SelectValue placeholder="Year" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all" className="text-xs font-bold uppercase tracking-widest">All Years</SelectItem>
+                                  {[2024, 2025, 2026].map(y => (
+                                    <SelectItem key={y} value={y.toString()} className="text-xs font-bold uppercase tracking-widest">{y}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </div>
                           </div>
                           
@@ -869,11 +909,11 @@ export default function Employees() {
                           </div>
                           
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-                            <div className="rounded-2xl border border-slate-200/60 p-5 bg-white shadow-sm flex flex-col justify-between">
+                            <div className="rounded-2xl border border-slate-200/60 p-5 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
                               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Total Entitled</p>
                               <p className="text-3xl font-black text-slate-800 tracking-tighter">{analytics.leave.entitlement}</p>
                             </div>
-                            <div className="rounded-2xl border border-slate-200/60 p-5 bg-white shadow-sm flex flex-col justify-between">
+                            <div className="rounded-2xl border border-slate-200/60 p-5 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
                               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Approved Taken</p>
                               <p className="text-3xl font-black text-slate-800 tracking-tighter">{analytics.leave.used}</p>
                             </div>
@@ -881,7 +921,7 @@ export default function Employees() {
                               <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 mb-2">Remaining Balance</p>
                               <p className="text-3xl font-black text-emerald-600 tracking-tighter">{analytics.leave.remaining}</p>
                             </div>
-                            <div className="rounded-2xl border border-slate-200/60 p-5 bg-white shadow-sm flex flex-col justify-between">
+                            <div className="rounded-2xl border border-slate-200/60 p-5 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
                               <Tooltip>
                                 <TooltipTrigger className="text-left w-full h-full flex flex-col justify-between">
                                   <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center justify-between w-full">
@@ -942,7 +982,7 @@ export default function Employees() {
                         </section>
                       </>
                     ) : (
-                      <div className="flex flex-col items-center justify-center py-32 text-slate-400 bg-white rounded-3xl border border-slate-200/60 shadow-sm">
+                      <div className="flex flex-col items-center justify-center py-32 text-slate-400 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200/60 dark:border-slate-700 shadow-sm">
                         <Users className="w-12 h-12 opacity-20 mb-4" />
                         <p className="text-sm font-bold">Analytics unavailable.</p>
                       </div>
@@ -996,7 +1036,7 @@ export default function Employees() {
                     const fromStr = new Date(req.start_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     const toStr = new Date(req.end_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     return (
-                      <div key={req.leave_id} className="rounded-lg border p-4 space-y-4 bg-white shadow-sm mb-4">
+                      <div key={req.leave_id} className="rounded-lg border p-4 space-y-4 bg-white dark:bg-slate-800 shadow-sm mb-4">
                         <div className="text-center border-b-2 border-foreground pb-4">
                           <h2 className="text-2xl font-black tracking-tight text-foreground">RAYHAR GROUP</h2>
                           <p className="text-sm font-bold tracking-widest uppercase">Permohonan Cuti Kakitangan</p>
@@ -1032,7 +1072,7 @@ export default function Employees() {
                             <p className="text-[10px] uppercase font-bold text-muted-foreground">Tarikh Akhir</p>
                             <p className="font-bold text-base">{toStr}</p>
                           </div>
-                          <div className="text-center bg-white rounded-lg border flex flex-col justify-center py-1">
+                          <div className="text-center bg-white dark:bg-slate-800 rounded-lg border dark:border-slate-700 flex flex-col justify-center py-1">
                             <p className="text-[10px] uppercase font-bold text-primary">Bilangan Hari</p>
                             <p className="font-black text-lg text-primary">{req.days} Hari</p>
                           </div>
@@ -1246,3 +1286,4 @@ export default function Employees() {
     </div>
   );
 }
+

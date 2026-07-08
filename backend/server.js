@@ -2467,20 +2467,33 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
     if (empRows.length === 0) return res.status(404).json({ success: false, error: "Employee not found" });
     const employee = empRows[0];
 
+    const { month, year } = req.query;
     const now = new Date();
-    const currentMonthStart = startOfMonth(now);
-    const currentMonthEnd = endOfMonth(now);
-    const currentYearStart = startOfYear(now);
-    const currentYearEnd = endOfYear(now);
+    
+    // Parse month (format: "YYYY-MM" or "all")
+    const monthDate = month && month !== "all" ? new Date(`${month}-01T00:00:00Z`) : now;
+    const currentMonthStart = startOfMonth(monthDate);
+    const currentMonthEnd = endOfMonth(monthDate);
+    
+    // Parse year (format: "YYYY" or "all")
+    const yearNum = year && year !== "all" ? parseInt(year) : now.getFullYear();
+    const currentYearStart = new Date(`${yearNum}-01-01T00:00:00Z`);
+    const currentYearEnd = new Date(`${yearNum}-12-31T23:59:59.999Z`);
 
-    const [companyLeaves] = await pool.query("SELECT * FROM company_leave_calendar WHERE status = 'Active' AND EXTRACT(YEAR FROM start_date) = ?", [now.getFullYear()]);
-    const [allLeaves] = await pool.query("SELECT * FROM leave_requests WHERE user_id = ? AND EXTRACT(YEAR FROM start_date) = ?", [userId, now.getFullYear()]);
+    // Fetch data for the requested years
+    const yearsToFetch = Array.from(new Set([monthDate.getFullYear(), yearNum]));
+
+    const [companyLeaves] = await pool.query("SELECT * FROM company_leave_calendar WHERE status = 'Active' AND EXTRACT(YEAR FROM start_date) IN (?)", [yearsToFetch]);
+    const [allLeaves] = await pool.query("SELECT * FROM leave_requests WHERE user_id = ? AND EXTRACT(YEAR FROM start_date) IN (?)", [userId, yearsToFetch]);
     const userLeaves = allLeaves.filter(l => l.status === 'Approved');
 
-    const [attendances] = await pool.query("SELECT clock_in, clock_out FROM attendances WHERE user_id = ? AND EXTRACT(YEAR FROM clock_in) = ?", [userId, now.getFullYear()]);
+    const [attendances] = await pool.query("SELECT clock_in, clock_out FROM attendances WHERE user_id = ? AND EXTRACT(YEAR FROM clock_in) IN (?)", [userId, yearsToFetch]);
 
-    const monthEndToUse = isBefore(now, currentMonthEnd) ? now : currentMonthEnd;
-    const yearEndToUse = now;
+    const isCurrentMonth = monthDate.getMonth() === now.getMonth() && monthDate.getFullYear() === now.getFullYear();
+    const isCurrentYear = yearNum === now.getFullYear();
+    
+    const monthEndToUse = isCurrentMonth && isBefore(now, currentMonthEnd) ? now : currentMonthEnd;
+    const yearEndToUse = isCurrentYear ? now : currentYearEnd;
 
     const monthlyExpected = calculateExpectedWorkingDays(currentMonthStart, monthEndToUse, employee, companyLeaves, userLeaves, malaysiaHolidays);
     const yearlyExpected = calculateExpectedWorkingDays(currentYearStart, yearEndToUse, employee, companyLeaves, userLeaves, malaysiaHolidays);
@@ -2501,12 +2514,15 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
       const lm = parseInt(lmStr);
       const isLate = hh > lh || (hh === lh && mm > lm);
 
-      if (d.startsWith(now.toISOString().substring(0, 7))) {
+      if (d.startsWith(monthDate.toISOString().substring(0, 7))) {
         monthlyPresent++;
         if (isLate) monthlyLate++;
       }
-      yearlyPresent++;
-      if (isLate) yearlyLate++;
+      
+      if (d.startsWith(yearNum.toString())) {
+        yearlyPresent++;
+        if (isLate) yearlyLate++;
+      }
     });
 
     const monthlyAttendanceRate = monthlyExpected > 0 ? Math.round((monthlyPresent / monthlyExpected) * 100) : 0;
@@ -2516,11 +2532,14 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
 
     let annualTaken = 0, sickTaken = 0, unpaidTaken = 0, emergencyTaken = 0;
     userLeaves.forEach(l => {
-      const days = parseInt(l.duration_days || 0);
-      if (l.leave_type.toLowerCase().includes('annual')) annualTaken += days;
-      else if (l.leave_type.toLowerCase().includes('medical') || l.leave_type.toLowerCase().includes('sick')) sickTaken += days;
-      else if (l.leave_type.toLowerCase().includes('emergency')) emergencyTaken += days;
-      else unpaidTaken += days;
+      const leaveYear = new Date(l.start_date).getFullYear();
+      if (leaveYear === yearNum) {
+        const days = parseInt(l.duration_days || 0);
+        if (l.leave_type.toLowerCase().includes('annual')) annualTaken += days;
+        else if (l.leave_type.toLowerCase().includes('medical') || l.leave_type.toLowerCase().includes('sick')) sickTaken += days;
+        else if (l.leave_type.toLowerCase().includes('emergency')) emergencyTaken += days;
+        else unpaidTaken += days;
+      }
     });
 
     let pendingLeaves = 0, rejectedLeaves = 0;

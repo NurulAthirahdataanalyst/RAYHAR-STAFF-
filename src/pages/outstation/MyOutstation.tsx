@@ -200,10 +200,9 @@ export default function MyOutstation() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <MapPin className="w-3.5 h-3.5 text-pink-400 shrink-0" />
                         <span className="font-black text-gray-800 dark:text-gray-100 text-[13px]">
-                          {a.purpose
-                            ? <>{a.purpose} <span className="text-pink-400 mx-0.5">·</span> {a.destination}</>
+                          📋 {a.purpose
+                            ? <>{a.purpose} - {a.destination}</>
                             : a.destination
                           }
                         </span>
@@ -212,7 +211,7 @@ export default function MyOutstation() {
                       <div className="flex flex-wrap gap-3 ml-5">
                         <span className="text-[10px] text-gray-500 dark:text-gray-400 flex items-center gap-1"><Calendar className="w-3 h-3" /> {fmtDate(a.start_date)} → {fmtDate(a.end_date)}</span>
                         <span className="text-[10px] font-bold text-pink-600">{diffDays(a.start_date, a.end_date)} day(s)</span>
-                        {a.project && <span className="text-[10px] text-gray-400">📋 {a.project}</span>}
+                        {a.project && <span className="text-[10px] text-gray-400">· {a.project}</span>}
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
