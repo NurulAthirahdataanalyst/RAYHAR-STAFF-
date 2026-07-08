@@ -4172,6 +4172,17 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
       queryParams
     );
 
+    const [outstationRows] = await pool.query(
+      `SELECT o.user_id, o.start_date, o.end_date
+       FROM outstation_assignments o
+       JOIN profiles p ON p.user_id = o.user_id
+       WHERE o.status != 'Cancelled' 
+         AND o.start_date <= ?::date 
+         AND o.end_date >= ?::date
+         ${profileFilter}`,
+      [endDate, startDate, ...queryParams.slice(2)]
+    );
+
     const lateThreshold = typeof getLateThresholdTime === 'function' ? getLateThresholdTime() : "09:00:00";
     const [lateH, lateM] = lateThreshold.split(':').map(Number);
 
@@ -4185,10 +4196,21 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
       const isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
       const dateStr = klTimeIn.toISOString().split('T')[0];
 
+      // Check if employee is outstation on this date
+      const isOutstation = outstationRows.some(o => {
+        if (o.user_id !== clock.user_id) return false;
+        const oStart = new Date(o.start_date).toISOString().split('T')[0];
+        const oEnd = new Date(o.end_date).toISOString().split('T')[0];
+        return dateStr >= oStart && dateStr <= oEnd;
+      });
+
       let status = isLate ? "Present (Late)" : "Present (On Time)";
       let missingClockOut = false;
 
-      if (!clock.clock_out) {
+      if (isOutstation) {
+        status = "Outstation";
+        missingClockOut = false;
+      } else if (!clock.clock_out) {
         const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
         const isPastDate = klTimeIn.getUTCDate() !== nowKl.getUTCDate() || klTimeIn.getUTCMonth() !== nowKl.getUTCMonth() || klTimeIn.getUTCFullYear() !== nowKl.getUTCFullYear();
         const isPastEndOfWorkTime = !isPastDate && nowKl.getUTCHours() >= 17;
