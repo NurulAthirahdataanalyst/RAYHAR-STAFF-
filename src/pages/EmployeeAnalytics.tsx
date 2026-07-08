@@ -471,7 +471,7 @@ export default function EmployeeAnalytics() {
           </div>
 
           {/* Leaderboard */}
-          <Card className="border border-border/60 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-[#7B0099]/20 shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
+          <Card className="border-2 border-slate-200 dark:border-slate-700 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-[#7B0099]/20 shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
             <CardHeader className="border-b border-border/40">
               <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
                 <div className="p-2 bg-[#7B0099]/10 rounded-xl"><Award className="w-4 h-4 text-[#7B0099]" /></div>
@@ -646,7 +646,7 @@ export default function EmployeeAnalytics() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
 
             {/* Employee Overtime Bar */}
-            <Card className="border border-border/60 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-amber-500/20 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)]">
+            <Card className="border-2 border-slate-200 dark:border-slate-700 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-amber-500/20 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)]">
               <CardHeader className="border-b border-border/40">
                 <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
                   <div className="p-2 bg-amber-500/10 rounded-xl"><Timer className="w-4 h-4 text-amber-500" /></div>
@@ -689,7 +689,7 @@ export default function EmployeeAnalytics() {
             </Card>
 
             {/* Department Overtime Trend */}
-            <Card className="border border-border/60 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-blue-500/20 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)]">
+            <Card className="border-2 border-slate-200 dark:border-slate-700 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-blue-500/20 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)]">
               <CardHeader className="border-b border-border/40">
                 <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
                   <div className="p-2 bg-blue-500/10 rounded-xl"><TrendingUp className="w-4 h-4 text-blue-500" /></div>
@@ -748,7 +748,7 @@ export default function EmployeeAnalytics() {
 
           {/* ── Summary Strip ── */}
           {!loadingTeam && teamMetrics.length > 0 && (
-            <Card className="border border-border/60 bg-card/80 backdrop-blur-md rounded-[24px] group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 shadow-[0_8px_30px_rgba(0,0,0,0.03)]">
+            <Card className="border-2 border-slate-200 dark:border-slate-700 bg-card/80 backdrop-blur-md rounded-[24px] group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 shadow-[0_8px_30px_rgba(0,0,0,0.03)]">
               <CardContent className="p-5">
                 <div className="flex flex-wrap items-center gap-4 sm:gap-8">
                   <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">Team Summary:</span>
@@ -777,3 +777,4 @@ export default function EmployeeAnalytics() {
     </div>
   );
 }
+
