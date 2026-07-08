@@ -388,6 +388,17 @@ export default function Dashboard() {
               value={displayStatus}
               subtitle={todayStatusSubtitle}
               variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
+              onClick={() => {
+                if (stats.todayStatus.includes("Absent")) {
+                  navigate("/hr-analytics/attendance#employee-absenteeism");
+                } else if (displayStatus.includes("Outstation")) {
+                  navigate("/outstation");
+                } else if (isOnLeave) {
+                  navigate("/leave/admin");
+                } else if (isPresent || isClockedOut) {
+                  navigate("/hr-analytics/attendance#admin-attendance");
+                }
+              }}
             />
             <StatCard
               icon={CalendarCheck}
@@ -563,6 +574,17 @@ export default function Dashboard() {
                     value={displayStatus}
                     subtitle={todayStatusSubtitle}
                     variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
+                    onClick={() => {
+                      if (stats.todayStatus.includes("Absent")) {
+                        navigate("/hr-analytics/attendance#employee-absenteeism");
+                      } else if (displayStatus.includes("Outstation")) {
+                        navigate("/outstation");
+                      } else if (isOnLeave) {
+                        navigate("/leave/admin");
+                      } else if (isPresent || isClockedOut) {
+                        navigate("/hr-analytics/attendance#admin-attendance");
+                      }
+                    }}
                   />
                 )}
                 {stats.activeCompanyLeave ? (

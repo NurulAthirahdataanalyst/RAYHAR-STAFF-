@@ -129,9 +129,6 @@ export default function LeaveEntitlementManagement() {
       {/* Top Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
         <div className="space-y-2">
-          <Badge className="w-fit bg-[#7B0099]/10 text-[#7B0099] hover:bg-[#7B0099]/10 border border-[#7B0099]/15">
-            HR Master Module
-          </Badge>
           <h1 className="text-3xl sm:text-4xl font-black font-heading text-foreground tracking-tight">
             Leave Entitlement Management
           </h1>

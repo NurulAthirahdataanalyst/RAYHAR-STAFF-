@@ -500,11 +500,13 @@ export default function Branches() {
                                 className={`text-[9px] font-black px-2.5 h-5 ${
                                   employee.today_status === "Present"
                                     ? "bg-emerald-500 text-white"
-                                    : employee.today_status === "On Leave"
-                                      ? "bg-amber-500 text-white"
-                                      : employee.today_status === "Company Leave"
-                                        ? "bg-purple-500 text-white"
-                                        : "bg-rose-500 text-white"
+                                    : employee.today_status === "Outstation"
+                                      ? "bg-blue-500 text-white"
+                                      : employee.today_status === "On Leave"
+                                        ? "bg-amber-500 text-white"
+                                        : employee.today_status === "Company Leave"
+                                          ? "bg-purple-500 text-white"
+                                          : "bg-rose-500 text-white"
                                 }`}
                               >
                                 {employee.today_status}
@@ -554,11 +556,13 @@ export default function Branches() {
                               className={`text-[9px] font-black h-5 shrink-0 ${
                                 employee.today_status === "Present"
                                   ? "bg-emerald-500"
-                                  : employee.today_status === "On Leave"
-                                    ? "bg-amber-500"
-                                    : employee.today_status === "Company Leave"
-                                      ? "bg-purple-500"
-                                      : "bg-rose-500"
+                                  : employee.today_status === "Outstation"
+                                    ? "bg-blue-500"
+                                    : employee.today_status === "On Leave"
+                                      ? "bg-amber-500"
+                                      : employee.today_status === "Company Leave"
+                                        ? "bg-purple-500"
+                                        : "bg-rose-500"
                               }`}
                             >
                               {employee.today_status}
@@ -810,9 +814,10 @@ export default function Branches() {
                 const totalEmployees = stat ? stat.total_employees : 0;
                 const presentToday = stat ? stat.present_today : 0;
                 const onLeave = stat ? stat.on_leave : 0;
+                const outstation = stat ? stat.outstation || 0 : 0;
                 const absent = Math.max(
                   0,
-                  totalEmployees - presentToday - onLeave,
+                  totalEmployees - presentToday - onLeave - outstation,
                 );
                 const attendanceRate =
                   totalEmployees > 0
@@ -879,7 +884,7 @@ export default function Branches() {
                             </Button>
                           </div>
                         </div>
-                        <div className="grid grid-cols-3 gap-2 mt-6">
+                        <div className="grid grid-cols-4 gap-2 mt-6">
                           <div className="bg-emerald-500/10 rounded-[16px] p-3 border border-emerald-500/20 text-center">
                             <p className="text-xl font-black text-emerald-600 dark:text-emerald-400 leading-none">
                               {presentToday}
@@ -894,6 +899,14 @@ export default function Branches() {
                             </p>
                             <p className="text-[9px] font-black text-amber-600/70 dark:text-amber-400/70 uppercase mt-1">
                               Leave
+                            </p>
+                          </div>
+                          <div className="bg-blue-500/10 rounded-[16px] p-3 border border-blue-500/20 text-center">
+                            <p className="text-xl font-black text-blue-600 dark:text-blue-400 leading-none">
+                              {outstation}
+                            </p>
+                            <p className="text-[9px] font-black text-blue-600/70 dark:text-blue-400/70 uppercase mt-1">
+                              Outstation
                             </p>
                           </div>
                           <div className="bg-rose-500/10 rounded-[16px] p-3 border border-rose-500/20 text-center">
@@ -947,6 +960,7 @@ export default function Branches() {
                         <TableHead className="py-4 pl-6">Branch Name</TableHead>
                         <TableHead className="text-center">Present</TableHead>
                         <TableHead className="text-center">Leave</TableHead>
+                        <TableHead className="text-center">Outstation</TableHead>
                         <TableHead className="text-center">Absent</TableHead>
                         <TableHead className="text-center">Staff</TableHead>
                         <TableHead className="text-center">
@@ -966,9 +980,10 @@ export default function Branches() {
                         const totalEmployees = stat ? stat.total_employees : 0;
                         const presentToday = stat ? stat.present_today : 0;
                         const onLeave = stat ? stat.on_leave : 0;
+                        const outstation = stat ? stat.outstation || 0 : 0;
                         const absent = Math.max(
                           0,
-                          totalEmployees - presentToday - onLeave,
+                          totalEmployees - presentToday - onLeave - outstation,
                         );
                         const attendanceRate =
                           totalEmployees > 0
@@ -1045,6 +1060,20 @@ export default function Branches() {
                                   className="bg-amber-500/5 text-amber-600 border-amber-500/20"
                                 >
                                   {onLeave}
+                                </Badge>
+                              ) : (
+                                <span className="text-sm font-medium text-muted-foreground">
+                                  0
+                                </span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-center font-bold">
+                              {outstation > 0 ? (
+                                <Badge
+                                  variant="outline"
+                                  className="bg-blue-500/5 text-blue-600 border-blue-500/20"
+                                >
+                                  {outstation}
                                 </Badge>
                               ) : (
                                 <span className="text-sm font-medium text-muted-foreground">

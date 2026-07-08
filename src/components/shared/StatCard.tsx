@@ -8,6 +8,7 @@ interface StatCardProps {
   trend?: { value: string; positive: boolean };
   variant?: "default" | "maroon" | "gold" | "success" | "gauge" | "warning" | "purple";
   progress?: number; 
+  onClick?: () => void;
 }
 
 const variantStyles = {
@@ -27,15 +28,17 @@ export default function StatCard({
   icon: Icon, 
   trend, 
   variant = "default",
-  progress = 0 
+  progress = 0,
+  onClick
 }: StatCardProps) {
   
   const currentStyle = variantStyles[variant] || variantStyles.default;
+  const clickableStyle = onClick ? "cursor-pointer transition-transform hover:-translate-y-1 hover:shadow-md" : "";
 
   // Render for Circular Gauge (Attendance Rate)
   if (variant === "gauge") {
     return (
-      <div className={`rounded-md p-4 flex items-start justify-between h-full min-h-[130px] ${currentStyle}`}>
+      <div onClick={onClick} className={`rounded-md p-4 flex items-start justify-between h-full min-h-[130px] ${currentStyle} ${clickableStyle}`}>
         <div className="min-w-0 flex flex-col h-full justify-between">
           <div className="min-h-[28px] mb-3">
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-normal break-words leading-tight">{title}</p>
@@ -62,7 +65,7 @@ export default function StatCard({
   }
 
   return (
-    <div className={`rounded-md p-4 h-full min-h-[130px] flex flex-col ${currentStyle}`}>
+    <div onClick={onClick} className={`rounded-md p-4 h-full min-h-[130px] flex flex-col ${currentStyle} ${clickableStyle}`}>
       <div className="flex items-start justify-between gap-2 mb-3 min-h-[28px]">
         <p className={`text-[10px] font-bold uppercase tracking-widest break-words leading-snug w-[75%] ${
           variant === 'maroon' ? 'text-rose-700' : 
