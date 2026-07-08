@@ -269,6 +269,8 @@ export default function AttendanceReports() {
                 <SelectItem value="Present (Late)">Present (Late)</SelectItem>
                 <SelectItem value="Approved Leave">Approved Leave</SelectItem>
                 <SelectItem value="Company Leave">Company Leave</SelectItem>
+                <SelectItem value="Outstation">Outstation</SelectItem>
+                <SelectItem value="Missing Clock-Out">Missing Clock-Out</SelectItem>
                 <SelectItem value="Absent">Absent</SelectItem>
                 <SelectItem value="Weekend">Weekend</SelectItem>
                 <SelectItem value="Clocked Out">Clocked Out</SelectItem>
@@ -291,40 +293,52 @@ export default function AttendanceReports() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+            <Card 
+              className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-green-500/50"
+              onClick={() => setStatusFilter("Present (On Time)")}
+            >
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
                   <CheckCircle className="w-6 h-6 text-green-500" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Present</p>
+                  <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Present</p>
                   <h3 className="text-2xl font-bold mt-1 text-green-600 dark:text-green-400">{presentCount}</h3>
                 </div>
               </CardContent>
             </Card>
-            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+            <Card 
+              className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-yellow-500/50"
+              onClick={() => setStatusFilter("Present (Late)")}
+            >
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-yellow-500/10 flex items-center justify-center">
                   <Clock className="w-6 h-6 text-yellow-500" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Late</p>
+                  <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Late</p>
                   <h3 className="text-2xl font-bold mt-1 text-yellow-600 dark:text-yellow-400">{lateCount}</h3>
                 </div>
               </CardContent>
             </Card>
-            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+            <Card 
+              className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-blue-500/50"
+              onClick={() => setStatusFilter("Outstation")}
+            >
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
                   <Briefcase className="w-6 h-6 text-blue-500" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Outstation</p>
+                  <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Outstation</p>
                   <h3 className="text-2xl font-bold mt-1 text-blue-600 dark:text-blue-400">{outstationCount}</h3>
                 </div>
               </CardContent>
             </Card>
-            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+            <Card 
+              className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-purple-500/50"
+              onClick={() => setStatusFilter("Approved Leave")}
+            >
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
                   <CalendarOff className="w-6 h-6 text-purple-500" />
@@ -335,18 +349,24 @@ export default function AttendanceReports() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+            <Card 
+              className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-orange-500/50"
+              onClick={() => setStatusFilter("Missing Clock-Out")}
+            >
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center">
                   <AlertCircle className="w-6 h-6 text-orange-500" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Missing Clock-Out</p>
+                  <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Missing Clock-Out</p>
                   <h3 className="text-2xl font-bold mt-1 text-orange-600 dark:text-orange-400">{missingClockOutCount}</h3>
                 </div>
               </CardContent>
             </Card>
-            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+            <Card 
+              className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-red-500/50"
+              onClick={() => setStatusFilter("Absent")}
+            >
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center">
                   <XCircle className="w-6 h-6 text-red-500" />
