@@ -332,6 +332,28 @@ export default function Dashboard() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [applyAttendanceUpdate, fetchDashboardData]);
 
+  const groupedUpcomingOutstations: any[] = [];
+  upcomingOutstations.forEach(a => {
+    const title = a.project || a.purpose || a.meeting_title || a.destination;
+    const key = `${a.destination}_${title}_${a.start_date}`;
+    let g = groupedUpcomingOutstations.find((x:any) => x.key === key);
+    if (!g) {
+      g = {
+        key,
+        title,
+        destination: a.destination,
+        start_date: a.start_date,
+        end_date: a.end_date,
+        employees: []
+      };
+      groupedUpcomingOutstations.push(g);
+    }
+    if (a.full_name && !g.employees.find((e:any)=>e.name===a.full_name)) {
+      const initials = a.full_name.split(' ').map((n:string)=>n[0]).join('').substring(0,2).toUpperCase();
+      g.employees.push({ name: a.full_name, initials });
+    }
+  });
+
   if (loading && !dashboardUserId) {
     return (
       <div className="flex flex-col h-[80vh] items-center justify-center space-y-4">
@@ -394,6 +416,7 @@ export default function Dashboard() {
               icon={Clock}
               title="Today's Status"
               value={displayStatus}
+              valueClassName="text-lg font-bold"
               subtitle={todayStatusSubtitle}
               variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
               onClick={() => {
@@ -583,6 +606,7 @@ export default function Dashboard() {
                     icon={Clock}
                     title="Today's Status"
                     value={displayStatus}
+                    valueClassName="text-lg font-bold"
                     subtitle={todayStatusSubtitle}
                     variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
                     onClick={() => {
@@ -1212,30 +1236,8 @@ export default function Dashboard() {
               </span>
             </CardHeader>
             <CardContent className="p-0">
-              {upcomingOutstations.length > 0 ? (
-                const grouped: any[] = [];
-                upcomingOutstations.forEach(a => {
-                  const title = a.project || a.purpose || a.meeting_title || a.destination;
-                  const key = `${a.destination}_${title}_${a.start_date}`;
-                  let g = grouped.find((x:any) => x.key === key);
-                  if (!g) {
-                    g = {
-                      key,
-                      title,
-                      destination: a.destination,
-                      start_date: a.start_date,
-                      end_date: a.end_date,
-                      employees: []
-                    };
-                    grouped.push(g);
-                  }
-                  if (a.full_name && !g.employees.find((e:any)=>e.name===a.full_name)) {
-                    const initials = a.full_name.split(' ').map((n:string)=>n[0]).join('').substring(0,2).toUpperCase();
-                    g.employees.push({ name: a.full_name, initials });
-                  }
-                });
-
-                return grouped.map((g, i) => {
+              {groupedUpcomingOutstations.length > 0 ? (
+                groupedUpcomingOutstations.map((g, i) => {
                   const displayEmps = g.employees.slice(0, 3);
                   const extraCount = Math.max(0, g.employees.length - 3);
 

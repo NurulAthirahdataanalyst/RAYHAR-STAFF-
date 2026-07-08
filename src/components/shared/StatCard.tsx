@@ -9,6 +9,7 @@ interface StatCardProps {
   variant?: "default" | "maroon" | "gold" | "success" | "gauge" | "warning" | "purple";
   progress?: number; 
   onClick?: () => void;
+  valueClassName?: string;
 }
 
 const variantStyles = {
@@ -29,7 +30,8 @@ export default function StatCard({
   trend, 
   variant = "default",
   progress = 0,
-  onClick
+  onClick,
+  valueClassName
 }: StatCardProps) {
   
   const currentStyle = variantStyles[variant] || variantStyles.default;
@@ -86,9 +88,7 @@ export default function StatCard({
       </div>
 
       <div className="min-w-0">
-        <p className={`font-black tracking-tight leading-tight whitespace-pre-wrap break-words ${
-          String(value).length > 12 ? 'text-lg' : String(value).length > 8 ? 'text-xl' : 'text-[28px]'
-        } ${
+        <p className={`${valueClassName ? valueClassName : `font-black ${String(value).length > 12 ? 'text-lg' : String(value).length > 8 ? 'text-xl' : 'text-[28px]'}`} tracking-tight leading-tight whitespace-pre-wrap break-words ${
           variant === 'maroon' ? 'text-rose-700 dark:text-rose-300' : 
           variant === 'warning' ? 'text-amber-700 dark:text-amber-300' : 'text-slate-800 dark:text-slate-100'
         }`}>
