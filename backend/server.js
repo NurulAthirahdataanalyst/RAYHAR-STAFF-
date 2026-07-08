@@ -1663,7 +1663,8 @@ app.get("/api/branch-employees", async (req, res) => {
         LEAST(100, ROUND((COALESCE(att.days_present, 0)::numeric / NULLIF(EXTRACT(DAY FROM CURRENT_DATE), 0)) * 100)) AS attendance_rate,
         today.clock_in AS today_clock_in,
         today.clock_out AS today_clock_out,
-        CASE WHEN COALESCE(leave_today.leave_count, 0) > 0 THEN 1 ELSE 0 END AS is_on_leave
+        CASE WHEN COALESCE(leave_today.leave_count, 0) > 0 THEN 1 ELSE 0 END AS is_on_leave,
+        CASE WHEN COALESCE(outstation_today.outstation_count, 0) > 0 THEN 1 ELSE 0 END AS is_outstation
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
       LEFT JOIN (
@@ -1704,6 +1705,13 @@ app.get("/api/branch-employees", async (req, res) => {
         AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
         GROUP BY user_id
       ) leave_today ON leave_today.user_id = p.user_id
+      LEFT JOIN (
+        SELECT user_id, COUNT(*) as outstation_count
+        FROM outstation_assignments
+        WHERE status = 'Active'
+        AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+        GROUP BY user_id
+      ) outstation_today ON outstation_today.user_id = p.user_id
       WHERE p.branch = ? AND p.status = 'Active'
       ORDER BY 
         CASE 
@@ -1745,6 +1753,8 @@ app.get("/api/branch-employees", async (req, res) => {
       let todayStatus = "Absent";
       if (matchingLeave) {
         todayStatus = "Company Leave";
+      } else if (employee.is_outstation) {
+        todayStatus = "Outstation";
       } else if (employee.is_on_leave) {
         todayStatus = "On Leave";
       } else if (employee.today_clock_in) {
@@ -2551,6 +2561,7 @@ app.get("/api/employees", async (req, res) => {
         COALESCE(att.days_present, 0) AS days_present,
         LEAST(100, ROUND((COALESCE(att.days_present, 0)::numeric / NULLIF(EXTRACT(DAY FROM CURRENT_DATE), 0)) * 100)) AS attendance_rate,
         COALESCE(leave_today.is_on_leave_today, 0) AS is_on_leave_today,
+        COALESCE(outstation_today.is_outstation_today, 0) AS is_outstation_today,
         today.clock_in AS today_clock_in,
         today.clock_out AS today_clock_out
       FROM profiles p
@@ -2593,6 +2604,13 @@ app.get("/api/employees", async (req, res) => {
         AND ${date ? '?::date' : 'CURRENT_DATE'} BETWEEN DATE(start_date) AND DATE(end_date)
         GROUP BY user_id
       ) leave_today ON leave_today.user_id = p.user_id
+      LEFT JOIN (
+        SELECT user_id, 1 AS is_outstation_today
+        FROM outstation_assignments
+        WHERE status = 'Active' 
+        AND ${date ? '?::date' : 'CURRENT_DATE'} BETWEEN DATE(start_date) AND DATE(end_date)
+        GROUP BY user_id
+      ) outstation_today ON outstation_today.user_id = p.user_id
       ${branchFilter}
       ORDER BY 
         CASE 
@@ -2607,18 +2625,20 @@ app.get("/api/employees", async (req, res) => {
         END ASC,
         p.full_name ASC
       `,
-      [...(date ? [date, date, date, date] : []), ...params]
+      [...(date ? [date, date, date, date, date] : []), ...params]
     );
 
     const employees = rows.map((employee) => ({
       ...employee,
-      today_status: employee.is_on_leave_today
-        ? "On Leave"
-        : employee.today_clock_in
-          ? employee.today_clock_out
-            ? "Clocked Out"
-            : "Present"
-          : "Absent",
+      today_status: employee.is_outstation_today
+        ? "Outstation"
+        : employee.is_on_leave_today
+          ? "On Leave"
+          : employee.today_clock_in
+            ? employee.today_clock_out
+              ? "Clocked Out"
+              : "Present"
+            : "Absent",
     }));
 
     res.json({ success: true, employees });
@@ -5181,8 +5201,9 @@ app.get("/api/branches-stats", async (req, res) => {
       SELECT 
         b.code AS branch,
         COUNT(DISTINCT p.user_id) AS total_employees,
-        COUNT(DISTINCT att.user_id) AS present_today,
-        COUNT(DISTINCT lr.leave_id) AS on_leave
+        COUNT(DISTINCT CASE WHEN att.user_id IS NOT NULL AND oa.id IS NULL AND lr.leave_id IS NULL THEN att.user_id END) AS present_today,
+        COUNT(DISTINCT lr.leave_id) AS on_leave,
+        COUNT(DISTINCT oa.id) AS outstation
       FROM branches b
       LEFT JOIN profiles p 
         ON p.branch = b.code AND p.status = 'Active'
@@ -5193,6 +5214,10 @@ app.get("/api/branches-stats", async (req, res) => {
         ON lr.user_id = p.user_id
         AND lr.status = 'Approved'
         AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date
+      LEFT JOIN outstation_assignments oa
+        ON oa.user_id = p.user_id
+        AND oa.status = 'Active'
+        AND CURRENT_DATE BETWEEN oa.start_date AND oa.end_date
       GROUP BY b.code
     `);
     res.json({ success: true, stats: rows });
