@@ -1562,9 +1562,8 @@ export default function AttendanceDashboard() {
                         </TooltipContent>
                       </UITooltip>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
               </TooltipProvider>
               {liveBranchRanking.length === 0 && (
                 <div className="text-center text-slate-400 text-xs py-10 font-medium">No branches found in this region.</div>

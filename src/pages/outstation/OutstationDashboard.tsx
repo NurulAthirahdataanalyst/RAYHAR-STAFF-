@@ -138,9 +138,6 @@ export default function OutstationDashboard() {
         
         {/* Header Actions */}
         <div className="flex items-center justify-end gap-3 mb-6">
-          <Button variant="outline" className="h-9 px-4 text-[13px] font-semibold border-gray-300 text-gray-700 shadow-sm" onClick={fetchAll}>
-            <RefreshCw className="w-4 h-4 mr-2" /> Refresh
-          </Button>
           <Button className="h-9 px-5 text-[13px] font-semibold text-white shadow-sm bg-[#4c1d95] hover:bg-[#3b0764]" onClick={() => navigate("/outstation/assignment", { state: { openNew: true } })}>
             <Plane className="w-4 h-4 mr-2" /> New Assignment
           </Button>
@@ -179,16 +176,15 @@ export default function OutstationDashboard() {
           <Card className="lg:col-span-8 border-0 shadow-sm rounded-[16px] bg-white overflow-hidden flex flex-col min-h-[400px]">
             <CardHeader className="px-6 py-5 border-b border-gray-100 bg-white flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
               <div>
-                <CardTitle className="text-[22px] font-bold text-gray-900">Active Outstations</CardTitle>
-                <p className="text-[12px] text-gray-500 font-medium mt-0.5">Employees currently travelling</p>
+                <CardTitle className="text-[18px] font-bold text-gray-900">Active Outstations</CardTitle>
+                <p className="text-[13px] text-gray-500 font-medium mt-0.5">Real-time status of employees currently on assignment</p>
               </div>
               <div className="flex items-center gap-2">
-                <div className="relative">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <Input placeholder="Search employee..." value={search} onChange={e => setSearch(e.target.value)} className="w-[200px] pl-9 h-9 text-[13px] bg-gray-50 border-gray-200 rounded-[8px]" />
-                </div>
-                <Button variant="outline" size="sm" className="h-9 w-9 p-0 border-gray-200 text-gray-600 rounded-[8px]">
+                <Button variant="outline" size="icon" className="h-9 w-9 border-gray-200 text-gray-600 rounded-[8px]">
                   <Filter className="w-4 h-4" />
+                </Button>
+                <Button variant="outline" size="icon" className="h-9 w-9 border-gray-200 text-gray-600 rounded-[8px]">
+                  <MoreHorizontal className="w-4 h-4" />
                 </Button>
               </div>
             </CardHeader>
@@ -207,51 +203,71 @@ export default function OutstationDashboard() {
                   <Button variant="outline" className="border-gray-300 shadow-sm" onClick={() => navigate("/outstation/assignment")}>View Assignments</Button>
                 </div>
               ) : (
+                <>
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-gray-50/80 sticky top-0 z-0">
                     <tr>
-                      <th className="px-6 py-3 text-[12px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Employee</th>
-                      <th className="px-6 py-3 text-[12px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Status</th>
-                      <th className="px-6 py-3 text-[12px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Destination</th>
-                      <th className="px-6 py-3 text-[12px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Duration</th>
-                      <th className="px-6 py-3 text-[12px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">Progress</th>
-                      <th className="px-6 py-3 text-[12px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200 text-right">Actions</th>
+                      <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">Destination</th>
+                      <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">Status</th>
+                      <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">Employee</th>
+                      <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">Duration</th>
+                      <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">Progress</th>
+                      <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {activeNow.filter(a => (a.full_name || "").toLowerCase().includes(search.toLowerCase())).map((a, i) => {
                       const prog = calcProgress(a.start_date, a.end_date);
+                      const totalDays = Math.max(1, Math.ceil((new Date(a.end_date).getTime() - new Date(a.start_date).getTime()) / (1000 * 3600 * 24)));
                       return (
-                        <tr key={i} className="hover:bg-gray-50/50 transition-colors group">
-                          <td className="px-6 py-3">
+                        <tr key={i} className="hover:bg-gray-50/50 transition-colors group border-b border-gray-50 last:border-0">
+                          <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-[11px] font-bold shadow-sm">
-                                {(a.full_name || "?").split(" ").map((n:string)=>n[0]).join("").substring(0,2).toUpperCase()}
+                              <div className="w-10 h-10 rounded-xl bg-purple-100/50 text-purple-700 flex items-center justify-center shadow-sm">
+                                <MapPin className="w-5 h-5 text-purple-600" />
                               </div>
                               <div>
-                                <p className="text-[14px] font-semibold text-gray-900">{a.full_name || "Unknown"}</p>
-                                <p className="text-[12px] text-gray-500">{a.department || "—"}</p>
+                                <p className="text-[13px] font-bold text-gray-900 uppercase tracking-wide">{a.destination}</p>
+                                <p className="text-[11px] text-gray-500">{a.department || "Domestic Branch"}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-3">{getStatusBadge(a.status)}</td>
-                          <td className="px-6 py-3 text-[13px] text-gray-700 font-medium">
-                            <div className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-gray-400" />{a.destination}</div>
+                          <td className="px-6 py-4">
+                            <Badge variant="outline" className="bg-green-50/50 text-green-600 border-green-200 text-[10px] font-bold shadow-none px-2.5 py-0.5 gap-1 uppercase tracking-wider">
+                              <CheckCircle2 className="w-3 h-3" /> Active
+                            </Badge>
                           </td>
-                          <td className="px-6 py-3 text-[12px] text-gray-500">
-                            {formatShortDate(a.start_date)} - {formatShortDate(a.end_date)}
-                          </td>
-                          <td className="px-6 py-3 w-[140px]">
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                <div className="h-full bg-green-500 rounded-full" style={{ width: `${prog}%` }} />
-                              </div>
-                              <span className="text-[11px] font-bold text-gray-600 w-8">{prog}%</span>
+                          <td className="px-6 py-4">
+                            <div>
+                              <p className="text-[13px] font-bold text-gray-900">{a.full_name || "Unknown"}</p>
+                              <p className="text-[11px] text-gray-500 font-medium">{a.user_id || "EMP-8821"}</p>
                             </div>
                           </td>
-                          <td className="px-6 py-3 text-right">
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => navigate("/outstation/assignment")}>
-                              <MoreHorizontal className="w-4 h-4 text-gray-500" />
+                          <td className="px-6 py-4">
+                            <div className="flex items-start gap-2">
+                              <Calendar className="w-4 h-4 text-gray-400 mt-0.5" />
+                              <div>
+                                <p className="text-[12px] font-semibold text-gray-700">{formatShortDate(a.start_date)} - {formatShortDate(a.end_date)}</p>
+                                <p className="text-[11px] font-medium text-purple-600">
+                                  {totalDays} {totalDays === 1 ? 'Day' : 'Days'} Total
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 w-[160px]">
+                            <div className="flex flex-col gap-1.5">
+                              <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
+                                <span className="text-gray-500">Completion</span>
+                                <span className="text-purple-700">{prog}%</span>
+                              </div>
+                              <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-purple-700 rounded-full" style={{ width: `${prog}%` }} />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-purple-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => navigate("/outstation/assignment")}>
+                              <ArrowRight className="w-4 h-4" />
                             </Button>
                           </td>
                         </tr>
@@ -259,6 +275,14 @@ export default function OutstationDashboard() {
                     })}
                   </tbody>
                 </table>
+                <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-white">
+                  <span className="text-[12px] text-gray-500 font-medium">Showing {activeNow.length > 0 ? 1 : 0}-{activeNow.length} of {activeNow.length} Active Outstations</span>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" className="h-8 text-[12px] font-medium border-gray-200">Previous</Button>
+                    <Button variant="outline" size="sm" className="h-8 text-[12px] font-medium border-gray-200">Next</Button>
+                  </div>
+                </div>
+                </>
               )}
             </CardContent>
           </Card>
