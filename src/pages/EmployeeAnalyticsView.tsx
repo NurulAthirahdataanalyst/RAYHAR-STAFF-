@@ -615,7 +615,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       {/* ROW 1: Key Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Attendance Rate */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card transition-all duration-200 hover:shadow-md hover:border-border">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-[#7B0099]/20">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-12 h-12 rounded-[14px] bg-[#7B0099]/10 flex items-center justify-center shrink-0">
               <CalendarCheck2 className="w-6 h-6 text-[#7B0099]" />
@@ -645,7 +645,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Average Work Hours */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card transition-all duration-200 hover:shadow-md hover:border-border">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-amber-500/20">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-12 h-12 rounded-[14px] bg-amber-500/10 flex items-center justify-center shrink-0">
               <Clock className="w-6 h-6 text-amber-500" />
@@ -676,7 +676,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Leave Balance */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card transition-all duration-200 hover:shadow-md hover:border-border">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-emerald-500/20">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-12 h-12 rounded-[14px] bg-emerald-500/10 flex items-center justify-center shrink-0">
               <Briefcase className="w-6 h-6 text-emerald-500" />
@@ -696,7 +696,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Attendance Rank */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card transition-all duration-200 hover:shadow-md hover:border-border">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-blue-500/20">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-12 h-12 rounded-[14px] bg-blue-500/10 flex items-center justify-center shrink-0">
               <Trophy className="w-6 h-6 text-blue-500" />
@@ -722,7 +722,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         
         {/* Attendance Summary */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card h-full flex flex-col transition-all duration-200 hover:shadow-md hover:border-border">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card h-full flex flex-col group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-[#7B0099]/20">
           <CardContent className="p-4 flex-1 flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground mb-3">ATTENDANCE SUMMARY ({monthNameFull})</h3>
             
@@ -778,7 +778,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Leave Utilization (PIE CHART - AS REQUESTED) */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card h-full flex flex-col">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card h-full flex flex-col group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-blue-500/20">
           <CardContent className="p-4 flex-1 flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground mb-3">LEAVE UTILIZATION ({monthNameFull})</h3>
             
@@ -838,7 +838,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Attendance Calendar */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card transition-all duration-200 hover:shadow-md hover:border-border">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-[#7B0099]/20">
           <CardContent className="p-5 h-full flex flex-col">
              <div className="flex items-center justify-between mb-4">
                 <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground">ATTENDANCE CALENDAR ({monthNameFull} {year})</h3>
@@ -912,7 +912,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         
         {/* Clock In Analysis */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card transition-all duration-200 hover:shadow-md hover:border-border">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-[#7B0099]/20">
           <CardContent className="p-5 h-full flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5 mb-4">
               <Clock className="w-3.5 h-3.5 text-[#7B0099]" /> CLOCK-IN ANALYSIS
@@ -951,7 +951,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Punctuality Trend Line Chart */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card transition-all duration-200 hover:shadow-md hover:border-border">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-amber-500/20">
           <CardContent className="p-5 h-full flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground mb-6">PUNCTUALITY TREND ({monthNameFull})</h3>
             
@@ -1002,7 +1002,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Attendance Score Breakdown */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card transition-all duration-200 hover:shadow-md hover:border-border">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-[#7B0099]/20">
           <CardContent className="p-5 h-full flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground mb-4">ATTENDANCE SCORE BREAKDOWN</h3>
             
