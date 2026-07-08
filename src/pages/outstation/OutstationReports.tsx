@@ -52,6 +52,7 @@ export default function OutstationReports() {
 
   const [filterSearch, setFilterSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
+  const [filterBranch, setFilterBranch] = useState("All");
   const [filterDept, setFilterDept] = useState("All");
 
   useEffect(() => {
@@ -70,10 +71,12 @@ export default function OutstationReports() {
   }, [role, userBranch, userDepartment, roleLoading]);
 
   const departments = useMemo(() => ["All", ...Array.from(new Set(assignments.map(a => a.department || "").filter(Boolean))).sort()], [assignments]);
+  const branches = useMemo(() => ["All", ...Array.from(new Set(assignments.map(a => a.branch || "").filter(Boolean))).sort()], [assignments]);
 
   const filtered = useMemo(() => {
     return assignments.filter(a => {
       if (filterStatus !== "All" && a.status !== filterStatus) return false;
+      if (filterBranch !== "All" && a.branch !== filterBranch) return false;
       if (filterDept !== "All" && a.department !== filterDept) return false;
       if (filterSearch) {
         const q = filterSearch.toLowerCase();
@@ -117,12 +120,28 @@ export default function OutstationReports() {
               <Input placeholder="Search employee, destination…" value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-56" />
             </div>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent>{["All","Active","Upcoming","Completed","Cancelled"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+              <SelectTrigger className="w-[130px] h-8 text-xs">
+                <SelectValue placeholder="Status">{filterStatus === "All" ? "All Status" : filterStatus}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {["All","Active","Upcoming","Completed","Cancelled"].map(s => <SelectItem key={s} value={s}>{s === "All" ? "All Status" : s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filterBranch} onValueChange={setFilterBranch}>
+              <SelectTrigger className="w-[150px] h-8 text-xs">
+                <SelectValue placeholder="Branch">{filterBranch === "All" ? "All Branch" : filterBranch}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {branches.map(b => <SelectItem key={b} value={b}>{b === "All" ? "All Branch" : b}</SelectItem>)}
+              </SelectContent>
             </Select>
             <Select value={filterDept} onValueChange={setFilterDept}>
-              <SelectTrigger className="w-[150px] h-8 text-xs"><SelectValue placeholder="Department" /></SelectTrigger>
-              <SelectContent>{departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+              <SelectTrigger className="w-[150px] h-8 text-xs">
+                <SelectValue placeholder="Department">{filterDept === "All" ? "All Department" : filterDept}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {departments.map(d => <SelectItem key={d} value={d}>{d === "All" ? "All Department" : d}</SelectItem>)}
+              </SelectContent>
             </Select>
             <span className="text-[10px] text-gray-400 font-bold">{filtered.length} records</span>
           </div>
@@ -154,7 +173,7 @@ export default function OutstationReports() {
               <table className="w-full text-[12px]">
                 <thead>
                   <tr className="border-b border-gray-100 bg-slate-50/60">
-                    {["#","Employee","Department","Branch","Destination","Purpose","Start","End","Days","Status","Assigned By"].map(h => (
+                    {["#","Employee","Department","Branch","Destination","Event","Start","End","Days","Status","Assigned By"].map(h => (
                       <th key={h} className="px-3 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -178,9 +197,10 @@ export default function OutstationReports() {
                           <MapPin className="w-3 h-3 text-pink-400 shrink-0" />{a.destination}
                         </div>
                       </td>
-                      <td className="px-3 py-3 text-gray-500 max-w-[150px]">
-                        <p className="truncate" title={a.purpose}>{a.purpose || "—"}</p>
-                        {a.project && <p className="text-[9px] text-gray-400 truncate">{a.project}</p>}
+                      <td className="px-3 py-3 text-gray-500 max-w-[200px]">
+                        {a.purpose && a.purpose !== '-' && <p className="text-xs font-semibold text-gray-700 whitespace-normal break-words leading-tight">{a.purpose}</p>}
+                        {a.project && a.project !== '-' && <p className="text-xs font-semibold text-gray-700 whitespace-normal break-words leading-tight mt-0.5">{a.project}</p>}
+                        {(!a.purpose || a.purpose === '-') && (!a.project || a.project === '-') && <span className="text-gray-400">—</span>}
                       </td>
                       <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{fmtDate(a.start_date)}</td>
                       <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{fmtDate(a.end_date)}</td>

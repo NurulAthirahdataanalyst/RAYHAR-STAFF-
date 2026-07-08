@@ -132,6 +132,88 @@ export default function OutstationDashboard() {
   const upcomingCount = Number(stats.upcoming || 0);
   const cancelledCount = Number(stats.cancelled || 0);
 
+  const dynamicTrends = useMemo(() => {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    const currentWeekStart = new Date(today);
+    const day = currentWeekStart.getDay();
+    const diff = currentWeekStart.getDate() - day + (day === 0 ? -6 : 1);
+    currentWeekStart.setDate(diff);
+
+    const thisMonth = today.getMonth();
+    const thisYear = today.getFullYear();
+    const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+    const lastMonthYear = thisMonth === 0 ? thisYear - 1 : thisYear;
+
+    let startedThisWeek = 0;
+    let departingToday = 0;
+    let thisMonthCount = 0;
+    let lastMonthCount = 0;
+    let thisMonthCompleted = 0;
+    let lastMonthCompleted = 0;
+    let thisMonthCancelled = 0;
+    let lastMonthCancelled = 0;
+
+    assignments.forEach(a => {
+      if (!a.start_date) return;
+      const startDate = new Date(a.start_date);
+      startDate.setHours(0,0,0,0);
+      const m = startDate.getMonth();
+      const y = startDate.getFullYear();
+      
+      if (a.status === 'Active' && startDate >= currentWeekStart && startDate <= today) {
+        startedThisWeek++;
+      }
+      if (a.status === 'Upcoming' && startDate.getTime() === today.getTime()) {
+        departingToday++;
+      }
+
+      if (y === thisYear && m === thisMonth) {
+        thisMonthCount++;
+        if (a.status === 'Completed') thisMonthCompleted++;
+        if (a.status === 'Cancelled') thisMonthCancelled++;
+      } else if (y === lastMonthYear && m === lastMonth) {
+        lastMonthCount++;
+        if (a.status === 'Completed') lastMonthCompleted++;
+        if (a.status === 'Cancelled') lastMonthCancelled++;
+      }
+    });
+
+    const totalFinished = completedCount + cancelledCount;
+    const rate = totalFinished > 0 ? Math.round((completedCount / totalFinished) * 100) : 100;
+
+    let monthDiff = 0;
+    if (lastMonthCount > 0) {
+      monthDiff = Math.round(((thisMonthCount - lastMonthCount) / lastMonthCount) * 100);
+    } else if (thisMonthCount > 0) {
+      monthDiff = 100;
+    }
+
+    const thisMonthFinished = thisMonthCompleted + thisMonthCancelled;
+    const lastMonthFinished = lastMonthCompleted + lastMonthCancelled;
+    let rateDiff = 0;
+    if (lastMonthFinished > 0) {
+      const thisMonthRate = thisMonthFinished > 0 ? (thisMonthCompleted / thisMonthFinished) * 100 : 0;
+      const lastMonthRate = lastMonthFinished > 0 ? (lastMonthCompleted / lastMonthFinished) * 100 : 0;
+      rateDiff = Math.round(thisMonthRate - lastMonthRate);
+    } else {
+       rateDiff = thisMonthFinished > 0 ? 100 : 0;
+    }
+
+    return {
+      active: startedThisWeek > 0 ? `↑ +${startedThisWeek} this week` : `- 0 this week`,
+      activeColor: startedThisWeek > 0 ? "text-green-600" : "text-gray-400",
+      upcoming: departingToday > 0 ? `↑ +${departingToday} today` : `- 0 today`,
+      upcomingColor: departingToday > 0 ? "text-orange-600" : "text-gray-400",
+      total: monthDiff > 0 ? `↑ +${monthDiff}% vs last month` : (monthDiff < 0 ? `↓ ${monthDiff}% vs last month` : `- 0% vs last month`),
+      totalColor: monthDiff > 0 ? "text-purple-600" : (monthDiff < 0 ? "text-red-500" : "text-gray-400"),
+      completionValue: `${rate}%`,
+      completionTrend: rateDiff > 0 ? `↑ +${rateDiff}% vs last month` : (rateDiff < 0 ? `↓ ${rateDiff}% vs last month` : `- 0% vs last month`),
+      completionColor: rateDiff > 0 ? "text-green-600" : (rateDiff < 0 ? "text-red-500" : "text-gray-400")
+    };
+  }, [assignments, completedCount, cancelledCount]);
+
   // Derived Analytics Data
   const monthlyTrendData = useMemo(() => [
     { name: "Jan", val: 12 }, { name: "Feb", val: 19 }, { name: "Mar", val: 15 },
@@ -172,10 +254,10 @@ export default function OutstationDashboard() {
         {/* ROW 1: KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           {[
-            { label: "Active Outstations", val: activeCount, trend: "↑ +4 this week", subtitle: "Currently travelling", color: C_GREEN, trendColor: "text-green-600" },
-            { label: "Upcoming Departures", val: upcomingCount, trend: "↑ +2 today", subtitle: "Scheduled within 7 days", color: C_ORANGE, trendColor: "text-orange-600" },
-            { label: "Total Assignments", val: activeCount + completedCount + upcomingCount, trend: "↑ +12% vs last month", subtitle: "Year to date", color: C_PURPLE, trendColor: "text-purple-600" },
-            { label: "Completion Rate", val: "94%", trend: "↓ -1% vs last month", subtitle: "Trips concluded successfully", color: C_BLUE, trendColor: "text-red-500" }
+            { label: "Active Outstations", val: activeCount, trend: dynamicTrends.active, subtitle: "Currently travelling", color: C_GREEN, trendColor: dynamicTrends.activeColor },
+            { label: "Upcoming Departures", val: upcomingCount, trend: dynamicTrends.upcoming, subtitle: "Scheduled within 7 days", color: C_ORANGE, trendColor: dynamicTrends.upcomingColor },
+            { label: "Total Assignments", val: activeCount + completedCount + upcomingCount, trend: dynamicTrends.total, subtitle: "Year to date", color: C_PURPLE, trendColor: dynamicTrends.totalColor },
+            { label: "Completion Rate", val: dynamicTrends.completionValue, trend: dynamicTrends.completionTrend, subtitle: "Trips concluded successfully", color: C_BLUE, trendColor: dynamicTrends.completionColor }
           ].map((kpi, i) => (
             <Card key={i} className="border-0 shadow-sm rounded-[16px] bg-white overflow-hidden hover:shadow-md transition-shadow relative">
               <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: kpi.color }} />
