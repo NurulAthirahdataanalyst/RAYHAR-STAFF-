@@ -715,24 +715,24 @@ export default function Employees() {
                         {selectedEmployee.name.charAt(0)}
                       </div>
                       <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 leading-tight mb-1">{selectedEmployee.name}</h2>
-                      <p className="text-sm font-semibold text-slate-500 mb-4">{selectedEmployee.email}</p>
+                      <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-4">{selectedEmployee.email}</p>
                       
-                      <Badge variant="secondary" className="text-[11px] uppercase font-bold tracking-wider px-4 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200">
+                      <Badge variant="secondary" className="text-[11px] uppercase font-bold tracking-wider px-4 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200">
                         {selectedEmployee.position?.replace(/_/g, ' ')}
                       </Badge>
                       
                       <div className="mt-8 w-full flex flex-col gap-3">
                         <div className="flex justify-between items-center px-4 py-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
                           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">User ID</span>
-                          <span className="text-sm font-black text-slate-700">{selectedEmployee.user_id}</span>
+                          <span className="text-sm font-black text-slate-700 dark:text-slate-200">{selectedEmployee.user_id}</span>
                         </div>
                         <div className="flex justify-between items-center px-4 py-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
                           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Branch</span>
-                          <span className="text-sm font-black text-slate-700">{selectedEmployee.branch}</span>
+                          <span className="text-sm font-black text-slate-700 dark:text-slate-200">{selectedEmployee.branch}</span>
                         </div>
                         <div className="flex justify-between items-center px-4 py-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
                           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Department</span>
-                          <span className="text-sm font-black text-slate-700 truncate max-w-[120px]">{selectedEmployee.department}</span>
+                          <span className="text-sm font-black text-slate-700 dark:text-slate-200 truncate max-w-[120px]">{selectedEmployee.department}</span>
                         </div>
                         <div className="flex justify-between items-center px-4 py-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
                           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</span>
@@ -778,14 +778,14 @@ export default function Employees() {
                               <CardContent className="p-5">
                                 <div className="flex justify-between items-center mb-6">
                                   <div className="flex items-center gap-2">
-                                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Monthly Rate</p>
+                                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Monthly Rate</p>
                                     <Tooltip>
                                       <TooltipTrigger>
-                                        <div className="w-4 h-4 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-[9px] font-bold cursor-help hover:bg-slate-200 transition-colors">?</div>
+                                        <div className="w-4 h-4 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-[9px] font-bold cursor-help hover:bg-slate-200 transition-colors">?</div>
                                       </TooltipTrigger>
                                       <TooltipContent className="max-w-[250px] p-3 text-xs leading-relaxed">
                                         <p className="font-bold mb-1 text-slate-800 dark:text-slate-200">Formula:</p>
-                                        <p className="text-slate-600">(Present Days / Expected Working Days) × 100</p>
+                                        <p className="text-slate-600 dark:text-slate-300">(Present Days / Expected Working Days) × 100</p>
                                       </TooltipContent>
                                     </Tooltip>
                                   </div>
@@ -793,7 +793,7 @@ export default function Employees() {
                                     analytics.attendance.monthly.rate >= 95 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 
                                     analytics.attendance.monthly.rate >= 85 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 
                                     analytics.attendance.monthly.rate >= 70 ? 'text-amber-700 bg-amber-50 border-amber-200' : 
-                                    'text-slate-600 bg-slate-100 border-slate-200 dark:border-slate-800'
+                                    'text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-800'
                                   }`}>
                                     {analytics.attendance.monthly.rate >= 95 ? 'Excellent' : analytics.attendance.monthly.rate >= 85 ? 'Good' : analytics.attendance.monthly.rate >= 70 ? 'Warning' : 'Review'}
                                   </Badge>
@@ -803,7 +803,7 @@ export default function Employees() {
                                   <span className={`text-4xl font-black tracking-tighter ${
                                     analytics.attendance.monthly.rate >= 85 ? 'text-emerald-600' : 
                                     analytics.attendance.monthly.rate >= 70 ? 'text-amber-500' : 
-                                    analytics.attendance.monthly.rate === 0 ? 'text-slate-300' : 'text-slate-700'
+                                    analytics.attendance.monthly.rate === 0 ? 'text-slate-300' : 'text-slate-700 dark:text-slate-200'
                                   }`}>
                                     {analytics.attendance.monthly.rate}
                                   </span>
@@ -819,9 +819,9 @@ export default function Employees() {
                                     <p className="text-xl font-black text-amber-600 leading-none mb-1">{analytics.attendance.monthly.late}</p>
                                     <p className="text-[9px] font-bold text-amber-600/70 uppercase tracking-wider">Late</p>
                                   </div>
-                                  <div className="bg-slate-50/80 border border-slate-200 dark:border-slate-800/60 rounded-xl p-3 text-center">
-                                    <p className="text-xl font-black text-slate-600 leading-none mb-1">{analytics.attendance.monthly.absent}</p>
-                                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Absent</p>
+                                  <div className="bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800/60 rounded-xl p-3 text-center">
+                                    <p className="text-xl font-black text-slate-600 dark:text-slate-300 leading-none mb-1">{analytics.attendance.monthly.absent}</p>
+                                    <p className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Absent</p>
                                   </div>
                                 </div>
                               </CardContent>
@@ -832,13 +832,13 @@ export default function Employees() {
                               <CardContent className="p-5">
                                 <div className="flex justify-between items-center mb-6">
                                   <div className="flex items-center gap-2">
-                                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Yearly Rate</p>
+                                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Yearly Rate</p>
                                   </div>
                                   <Badge variant="secondary" className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 border ${
                                     analytics.attendance.yearly.rate >= 95 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 
                                     analytics.attendance.yearly.rate >= 85 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 
                                     analytics.attendance.yearly.rate >= 70 ? 'text-amber-700 bg-amber-50 border-amber-200' : 
-                                    'text-slate-600 bg-slate-100 border-slate-200 dark:border-slate-800'
+                                    'text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-800'
                                   }`}>
                                     {analytics.attendance.yearly.rate >= 95 ? 'Excellent' : analytics.attendance.yearly.rate >= 85 ? 'Good' : analytics.attendance.yearly.rate >= 70 ? 'Warning' : 'Review'}
                                   </Badge>
@@ -848,7 +848,7 @@ export default function Employees() {
                                   <span className={`text-4xl font-black tracking-tighter ${
                                     analytics.attendance.yearly.rate >= 85 ? 'text-emerald-600' : 
                                     analytics.attendance.yearly.rate >= 70 ? 'text-amber-500' : 
-                                    analytics.attendance.yearly.rate === 0 ? 'text-slate-300' : 'text-slate-700'
+                                    analytics.attendance.yearly.rate === 0 ? 'text-slate-300' : 'text-slate-700 dark:text-slate-200'
                                   }`}>
                                     {analytics.attendance.yearly.rate}
                                   </span>
@@ -864,9 +864,9 @@ export default function Employees() {
                                     <p className="text-xl font-black text-amber-600 leading-none mb-1">{analytics.attendance.yearly.late}</p>
                                     <p className="text-[9px] font-bold text-amber-600/70 uppercase tracking-wider">Late</p>
                                   </div>
-                                  <div className="bg-slate-50/80 border border-slate-200 dark:border-slate-800/60 rounded-xl p-3 text-center">
-                                    <p className="text-xl font-black text-slate-600 leading-none mb-1">{analytics.attendance.yearly.absent}</p>
-                                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Absent</p>
+                                  <div className="bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800/60 rounded-xl p-3 text-center">
+                                    <p className="text-xl font-black text-slate-600 dark:text-slate-300 leading-none mb-1">{analytics.attendance.yearly.absent}</p>
+                                    <p className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Absent</p>
                                   </div>
                                 </div>
                               </CardContent>
@@ -887,11 +887,11 @@ export default function Employees() {
                           
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
                             <div className="rounded-2xl border border-slate-200 dark:border-slate-800/60 p-5 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Total Entitled</p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Total Entitled</p>
                               <p className="text-3xl font-black text-slate-800 dark:text-slate-200 tracking-tighter">{analytics.leave.entitlement}</p>
                             </div>
                             <div className="rounded-2xl border border-slate-200 dark:border-slate-800/60 p-5 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Approved Taken</p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Approved Taken</p>
                               <p className="text-3xl font-black text-slate-800 dark:text-slate-200 tracking-tighter">{analytics.leave.used}</p>
                             </div>
                             <div className="rounded-2xl border-2 border-emerald-500/20 p-5 bg-emerald-50/30 shadow-sm flex flex-col justify-between">
@@ -901,9 +901,9 @@ export default function Employees() {
                             <div className="rounded-2xl border border-slate-200 dark:border-slate-800/60 p-5 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
                               <Tooltip>
                                 <TooltipTrigger className="text-left w-full h-full flex flex-col justify-between">
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center justify-between w-full">
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2 flex items-center justify-between w-full">
                                     Utilization
-                                    <span className="w-3 h-3 rounded-full bg-slate-100 flex items-center justify-center text-[7px] text-slate-400">?</span>
+                                    <span className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[7px] text-slate-400">?</span>
                                   </p>
                                   <p className={`text-3xl font-black tracking-tighter ${analytics.leave.utilizationRate >= 90 ? 'text-amber-500' : 'text-slate-800 dark:text-slate-200'}`}>
                                     {analytics.leave.utilizationRate}%
@@ -944,16 +944,16 @@ export default function Employees() {
                             </button>
 
                             <button 
-                              className="group flex flex-col items-start p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 hover:border-slate-300 transition-all duration-200 opacity-90 hover:opacity-100"
+                              className="group flex flex-col items-start p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:bg-slate-800 hover:border-slate-300 transition-all duration-200 opacity-90 hover:opacity-100"
                               onClick={() => setViewLeaveStatus("Rejected")}
                             >
                               <div className="flex justify-between items-center w-full mb-3">
-                                <div className="p-2 bg-slate-200 rounded-lg text-slate-600 group-hover:scale-110 transition-transform">
+                                <div className="p-2 bg-slate-200 rounded-lg text-slate-600 dark:text-slate-300 group-hover:scale-110 transition-transform">
                                   <FileText className="w-4 h-4" />
                                 </div>
-                                <span className="text-xl font-black text-slate-700">{analytics.leave.rejected}</span>
+                                <span className="text-xl font-black text-slate-700 dark:text-slate-200">{analytics.leave.rejected}</span>
                               </div>
-                              <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Rejected Requests</span>
+                              <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest">Rejected Requests</span>
                             </button>
                           </div>
                         </section>
@@ -968,7 +968,7 @@ export default function Employees() {
                 </div>
               </TooltipProvider>
             ) : (
-              <div className="py-20 text-center text-slate-500">
+              <div className="py-20 text-center text-slate-500 dark:text-slate-400">
                 <p>Loading profile details...</p>
               </div>
             )}
@@ -1057,7 +1057,7 @@ export default function Employees() {
 
                         <div className="text-sm">
                           <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Tujuan / Sebab Cuti</p>
-                          <p className="rounded-lg border p-3 italic text-slate-700 bg-slate-50/50">
+                          <p className="rounded-lg border p-3 italic text-slate-700 dark:text-slate-200 bg-slate-50/50">
                             "{getCleanReason(req.reason) || "-"}"
                           </p>
                         </div>
@@ -1152,7 +1152,7 @@ export default function Employees() {
                             </div>
                             <div className="space-y-1">
                               <label className="text-[10px] font-bold text-muted-foreground uppercase">Alamat Waris</label>
-                              <p className="text-xs leading-relaxed text-slate-700 border-b border-dotted pb-1">
+                              <p className="text-xs leading-relaxed text-slate-700 dark:text-slate-200 border-b border-dotted pb-1">
                                 {req.waris_alamat || "-"}
                               </p>
                             </div>
