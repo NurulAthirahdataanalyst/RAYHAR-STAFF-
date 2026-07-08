@@ -1163,14 +1163,7 @@ export default function WorkforceInsights() {
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 dark:border-slate-800 bg-white dark:bg-card text-slate-600 rounded flex items-center gap-1 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                        <CalendarDays className="w-3 h-3" /> Add to Calendar
-                      </Button>
-                      <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 dark:border-slate-800 bg-white dark:bg-card text-slate-600 rounded hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                        Join Now
-                      </Button>
-                    </div>
+
                   </div>
                 );
               })}
