@@ -132,6 +132,35 @@ function getLateThresholdTime() {
   return `${hours.padStart(2, '0')}:${minutes}:00`;
 }
 
+// Global Helper to compute employee status uniformly (Outstation > Company Leave > On Leave > Present > Absent)
+function computeEmployeeTodayStatus(employee, lateThresholdOverride = null) {
+  if (employee.company_leave_match) return "Company Leave";
+  if (employee.is_outstation) return "Outstation";
+  if (employee.is_on_leave) return "On Leave";
+  
+  if (employee.today_clock_in) {
+    if (employee.today_clock_out) return "Clocked Out";
+    
+    const checkInTime = new Date(employee.today_clock_in).getTime();
+    const startOfDay = new Date(employee.today_clock_in).setHours(0, 0, 0, 0);
+    const hours = (checkInTime - startOfDay) / (1000 * 60 * 60);
+    
+    let threshold = 9.25; // default 9:15 AM
+    if (lateThresholdOverride) {
+      const parts = lateThresholdOverride.split(':');
+      threshold = parseInt(parts[0], 10) + parseInt(parts[1], 10) / 60;
+    } else {
+      const parts = getLateThresholdTime().split(':');
+      threshold = parseInt(parts[0], 10) + parseInt(parts[1], 10) / 60;
+    }
+    
+    return hours > threshold ? "Present (Late)" : "Present (On Time)";
+  }
+  
+  return "Absent";
+}
+
+
 const allowedOrigins = [
   "https://rayharstaffportal.vercel.app",
   "http://localhost:5173",
@@ -991,7 +1020,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
       `SELECT DISTINCT o.user_id, o.destination
        FROM outstation_assignments o
        JOIN profiles p ON p.user_id = o.user_id
-       WHERE o.status = 'Active' AND ? BETWEEN o.start_date AND o.end_date
+       WHERE o.status != 'Cancelled' AND ? BETWEEN o.start_date AND o.end_date
        AND p.status = 'Active' ${filterP}`,
       outstationParams
     );
@@ -1023,6 +1052,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
     const leaveList = [];
     const companyLeaveList = [];
     const absentList = [];
+    const outstationList = [];
 
     for (const p of allProfiles) {
       const uid = p.user_id;
@@ -1056,11 +1086,34 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
           leave_name: matchingLeave.leave_name
         });
       }
-      // 2. On Approved Personal Leave
+      // 2. Outstation
+      else if (outstationMap.has(uid)) {
+        const outstationDest = outstationMap.get(uid);
+        let timeInFmt = null;
+        let timeOutFmt = null;
+        if (clockMap[uid]) {
+           const row = clockMap[uid];
+           const klTime = new Date(new Date(row.clock_in).getTime() + 8 * 60 * 60 * 1000);
+           timeInFmt = klTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+           timeOutFmt = row.clock_out ? new Date(new Date(row.clock_out).getTime() + 8 * 60 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : null;
+        }
+        outstationList.push({ 
+           user_id: uid, 
+           full_name: p.full_name, 
+           branch: p.branch || 'HQ', 
+           department: p.department || '—', 
+           clock_in: timeInFmt, 
+           clock_out: timeOutFmt, 
+           status: 'outstation',
+           is_outstation: true, 
+           outstation_destination: outstationDest 
+        });
+      }
+      // 3. On Approved Personal Leave
       else if (onLeaveIds.has(uid)) {
         leaveList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'onLeave' });
       }
-      // 3. Clocked In
+      // 4. Clocked In
       else if (clockMap[uid]) {
         const row = clockMap[uid];
         const klTime = new Date(new Date(row.clock_in).getTime() + 8 * 60 * 60 * 1000);
@@ -1075,14 +1128,11 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
           ? new Date(new Date(row.clock_out).getTime() + 8 * 60 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
           : null;
 
-        const isOutstation = outstationMap.has(uid);
-        const outstationDest = outstationMap.get(uid);
-
-        const emp = { user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', role: p.role || '', clock_in: timeInFmt, clock_out: timeOutFmt, is_outstation: isOutstation, outstation_destination: outstationDest };
+        const emp = { user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', role: p.role || '', clock_in: timeInFmt, clock_out: timeOutFmt, is_outstation: false };
         if (isLate) lateList.push({ ...emp, status: 'late', late_minutes: lateMinutes });
         else presentList.push({ ...emp, status: 'present', late_minutes: 0 });
       }
-      // 4. Absent
+      // 5. Absent
       else {
         absentList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'absent' });
       }
@@ -1097,6 +1147,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
         absent: absentList.length,
         onLeave: leaveList.length,
         companyLeave: companyLeaveList.length,
+        outstation: outstationList.length,
         total
       },
       employees: [
@@ -1104,12 +1155,13 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
         ...lateList,
         ...leaveList,
         ...companyLeaveList,
+        ...outstationList,
         ...absentList
       ]
     };
   } catch (err) {
     console.error('getLiveAttendanceStats error:', err);
-    return { type: 'presence_update', timestamp: new Date().toISOString(), stats: { present: 0, late: 0, absent: 0, onLeave: 0, total: 0 }, employees: [] };
+    return { type: 'presence_update', timestamp: new Date().toISOString(), stats: { present: 0, late: 0, absent: 0, onLeave: 0, outstation: 0, total: 0 }, employees: [] };
   }
 }
 
@@ -1272,6 +1324,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
 
   for (const [uid, row] of Object.entries(clockMap)) {
     if (onLeaveIds.has(uid)) continue;
+    if (outstationTodayMap.has(uid)) continue;
     const klTime = new Date(new Date(row.clock_in).getTime() + 8 * 60 * 60 * 1000);
     const hh = klTime.getUTCHours();
     const mm = klTime.getUTCMinutes();
@@ -1708,7 +1761,7 @@ app.get("/api/branch-employees", async (req, res) => {
       LEFT JOIN (
         SELECT user_id, COUNT(*) as outstation_count
         FROM outstation_assignments
-        WHERE status = 'Active'
+        WHERE status != 'Cancelled'
         AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
         GROUP BY user_id
       ) outstation_today ON outstation_today.user_id = p.user_id
@@ -1750,16 +1803,8 @@ app.get("/api/branch-employees", async (req, res) => {
         return false;
       });
 
-      let todayStatus = "Absent";
-      if (matchingLeave) {
-        todayStatus = "Company Leave";
-      } else if (employee.is_outstation) {
-        todayStatus = "Outstation";
-      } else if (employee.is_on_leave) {
-        todayStatus = "On Leave";
-      } else if (employee.today_clock_in) {
-        todayStatus = employee.today_clock_out ? "Clocked Out" : "Present";
-      }
+      employee.company_leave_match = matchingLeave;
+      const todayStatus = computeEmployeeTodayStatus(employee);
 
       return {
         ...employee,
@@ -2607,7 +2652,7 @@ app.get("/api/employees", async (req, res) => {
       LEFT JOIN (
         SELECT user_id, 1 AS is_outstation_today
         FROM outstation_assignments
-        WHERE status = 'Active' 
+        WHERE status != 'Cancelled' 
         AND ${date ? '?::date' : 'CURRENT_DATE'} BETWEEN DATE(start_date) AND DATE(end_date)
         GROUP BY user_id
       ) outstation_today ON outstation_today.user_id = p.user_id
@@ -2630,15 +2675,11 @@ app.get("/api/employees", async (req, res) => {
 
     const employees = rows.map((employee) => ({
       ...employee,
-      today_status: employee.is_outstation_today
-        ? "Outstation"
-        : employee.is_on_leave_today
-          ? "On Leave"
-          : employee.today_clock_in
-            ? employee.today_clock_out
-              ? "Clocked Out"
-              : "Present"
-            : "Absent",
+      today_status: computeEmployeeTodayStatus({
+        ...employee,
+        is_outstation: employee.is_outstation_today,
+        is_on_leave: employee.is_on_leave_today
+      })
     }));
 
     res.json({ success: true, employees });
@@ -4227,7 +4268,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       `SELECT DISTINCT o.user_id, o.destination
        FROM outstation_assignments o
        JOIN profiles p ON p.user_id = o.user_id
-       WHERE o.status = 'Active' AND ?::date BETWEEN o.start_date AND o.end_date ${profileFilter}`,
+       WHERE o.status != 'Cancelled' AND ?::date BETWEEN o.start_date AND o.end_date ${profileFilter}`,
       [queryDate, ...queryParams]
     );
     const outstationMap = new Map();
@@ -5216,7 +5257,7 @@ app.get("/api/branches-stats", async (req, res) => {
         AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date
       LEFT JOIN outstation_assignments oa
         ON oa.user_id = p.user_id
-        AND oa.status = 'Active'
+        AND oa.status != 'Cancelled'
         AND CURRENT_DATE BETWEEN oa.start_date AND oa.end_date
       GROUP BY b.code
     `);

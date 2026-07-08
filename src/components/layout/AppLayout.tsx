@@ -166,6 +166,41 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pageTitle = getRouteLabel(location.pathname);
   const breadcrumb = getBreadcrumb();
 
+  const getFormattedRoleDisplay = () => {
+    if (!resolvedRole) return "EMPLOYEE";
+    
+    const roleStr = resolvedRole.replace(/_/g, ' ').toUpperCase();
+    const branchStr = (userBranch || '').toUpperCase();
+    const deptStr = (userDepartment || '').toUpperCase();
+    
+    if (roleStr === 'BRANCH LEADER') {
+      return `BRANCH LEADER • ${branchStr}`;
+    }
+    
+    if (roleStr === 'HEAD OF DEPARTMENT') {
+      return `HEAD OF DEPARTMENT • ${deptStr} • HQ`;
+    }
+    
+    if (roleStr === 'MANAGING DIRECTOR') {
+      return `MANAGING DIRECTOR • ${deptStr} • HQ`;
+    }
+    
+    if (roleStr === 'FINANCE MANAGER') {
+      return `FINANCE MANAGER • ${deptStr} • HQ`;
+    }
+    
+    // Employee or others
+    if (branchStr === 'HQ') {
+      return `${roleStr} • ${deptStr} • HQ`;
+    } else if (branchStr) {
+      return `${roleStr} • ${branchStr}`;
+    }
+    
+    return roleStr;
+  };
+  
+  const formattedRole = getFormattedRoleDisplay();
+
   return (
     <div className="flex min-h-screen bg-background transition-colors duration-300 max-w-full overflow-x-hidden">
       <AppSidebar mobileOpen={mobileMenuOpen} onMobileClose={() => setMobileMenuOpen(false)} />
@@ -201,7 +236,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <div className="text-right hidden sm:block space-y-0.5">
                       <p className="text-xs font-black text-white group-hover:text-purple-200 transition-colors">{displayName}</p>
                       <p className="text-[9px] font-black text-purple-200/60 uppercase tracking-widest opacity-80 leading-none">
-                        {resolvedRole.replace(/_/g, ' ')}
+                        {formattedRole}
                       </p>
                     </div>
                     <div className="h-9 w-9 rounded-xl bg-white text-[#7B0099] flex items-center justify-center font-black text-xs shadow-lg shadow-purple-950/40 group-hover:scale-105 transition-transform border border-white/20">
@@ -213,7 +248,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <DropdownMenuLabel className="px-3 py-2 border-b border-white/5">
                     <div className="flex flex-col space-y-0.5">
                       <p className="text-sm font-black text-white">{displayName}</p>
-                      <p className="text-[10px] text-purple-300 font-bold truncate opacity-70">{user?.email}</p>
+                      <p className="text-[10px] text-purple-300 font-bold truncate opacity-90">{formattedRole}</p>
+                      <p className="text-[9px] text-purple-300 font-medium truncate opacity-60">{user?.email}</p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuItem onClick={() => navigate("/profile")} className="rounded-xl px-3 py-2.5 focus:bg-white/10 focus:text-white cursor-pointer transition-colors text-white/90">
@@ -277,7 +313,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <DropdownMenuLabel className="px-3 py-2 border-b border-white/5">
                   <div className="flex flex-col space-y-0.5">
                     <p className="text-sm font-black text-white">{displayName}</p>
-                    <p className="text-[10px] text-purple-300 font-bold truncate opacity-70">{user?.email}</p>
+                    <p className="text-[10px] text-purple-300 font-bold truncate opacity-90">{formattedRole}</p>
+                    <p className="text-[9px] text-purple-300 font-medium truncate opacity-60">{user?.email}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-white/5" />

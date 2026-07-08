@@ -735,17 +735,11 @@ export default function AttendanceDashboard() {
     .map(b => {
       const branchEmployees = liveEmployees.filter(emp => emp.branch === b.branch);
       
-      const outstationIds = new Set(
-        outstationRecords
-          .filter((o: any) => branchEmployees.some(emp => emp.user_id === o.user_id))
-          .map((o: any) => o.user_id)
-      );
-      
-      const outstation = outstationIds.size;
-      const presentOnTime = branchEmployees.filter(emp => emp.status === 'present' && !outstationIds.has(emp.user_id)).length;
-      const presentLate = branchEmployees.filter(emp => emp.status === 'late' && !outstationIds.has(emp.user_id)).length;
-      const onLeave = branchEmployees.filter(emp => emp.status === 'onLeave' && !outstationIds.has(emp.user_id)).length;
-      const companyLeave = branchEmployees.filter(emp => emp.status === 'companyLeave' && !outstationIds.has(emp.user_id)).length;
+      const outstation = branchEmployees.filter(emp => emp.status === 'outstation').length;
+      const presentOnTime = branchEmployees.filter(emp => emp.status === 'present').length;
+      const presentLate = branchEmployees.filter(emp => emp.status === 'late').length;
+      const onLeave = branchEmployees.filter(emp => emp.status === 'onLeave').length;
+      const companyLeave = branchEmployees.filter(emp => emp.status === 'companyLeave').length;
       
       const totalEmployees = b.totalEmployees || 0;
       const absent = Math.max(0, totalEmployees - (presentOnTime + presentLate + outstation + onLeave + companyLeave));
@@ -1080,15 +1074,15 @@ export default function AttendanceDashboard() {
               <div>
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Outstation</span>
                 <div className="text-[32px] font-black text-pink-500 leading-none mt-2">
-                  {liveStats.total > 0 ? Math.round((new Set(outstationRecords.map(o => o.user_id)).size / liveStats.total) * 100) : 0}%
+                  {liveStats.total > 0 ? Math.round(((liveStats.outstation || 0) / liveStats.total) * 100) : 0}%
                 </div>
               </div>
               <div className="mt-4">
                 <div className="w-full bg-slate-100 rounded-full h-1.5 mb-2">
-                  <div className="h-1.5 rounded-full bg-pink-500" style={{ width: `${liveStats.total > 0 ? (new Set(outstationRecords.map(o => o.user_id)).size / liveStats.total) * 100 : 0}%` }} />
+                  <div className="h-1.5 rounded-full bg-pink-500" style={{ width: `${liveStats.total > 0 ? ((liveStats.outstation || 0) / liveStats.total) * 100 : 0}%` }} />
                 </div>
                 <span className="text-[10px] font-bold text-slate-400">
-                  {new Set(outstationRecords.map(o => o.user_id)).size} / {liveStats.total} {new Set(outstationRecords.map(o => o.user_id)).size === 1 ? 'Employee' : 'Employees'}
+                  {liveStats.outstation || 0} / {liveStats.total} {(liveStats.outstation || 0) === 1 ? 'Employee' : 'Employees'}
                 </span>
               </div>
             </div>
@@ -1182,7 +1176,7 @@ export default function AttendanceDashboard() {
             <div className="flex items-center gap-3 mt-1">
               <div className="bg-pink-50/80 border border-pink-100 px-3 py-1.5 rounded-md flex items-center gap-2">
                 <span className="text-[10px] font-bold text-pink-500 uppercase tracking-wider">Total Outstation</span>
-                <span className="text-[13px] font-black text-pink-700">{new Set(outstationRecords.map(o => o.user_id)).size}</span>
+                <span className="text-[13px] font-black text-pink-700">{liveStats.outstation || 0}</span>
               </div>
               <div className="bg-red-50/80 border border-red-100 px-3 py-1.5 rounded-md flex items-center gap-2">
                 <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider">Total Absent</span>
@@ -1641,11 +1635,11 @@ export default function AttendanceDashboard() {
               </div>
               <div className="flex flex-col items-center">
                 <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Total<br/>Present</span>
-                <span className="text-[18px] font-bold text-gray-900">{Math.max(0, (liveStats.present || 0) - new Set(outstationRecords.map(o => o.user_id)).size)}</span>
+                <span className="text-[18px] font-bold text-gray-900">{liveStats.present || 0}</span>
               </div>
               <div className="flex flex-col items-center">
                 <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Present<br/>(On Time)</span>
-                <span className="text-[18px] font-bold text-gray-900">{Math.max(0, (liveStats.present || 0) - new Set(outstationRecords.map(o => o.user_id)).size - (liveStats.late || 0))}</span>
+                <span className="text-[18px] font-bold text-gray-900">{Math.max(0, (liveStats.present || 0) - (liveStats.late || 0))}</span>
               </div>
               <div className="flex flex-col items-center">
                 <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Present<br/>(Late)</span>
@@ -1657,7 +1651,7 @@ export default function AttendanceDashboard() {
               </div>
               <div className="flex flex-col items-center">
                 <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Outstation<br/>&nbsp;</span>
-                <span className="text-[18px] font-bold text-gray-900">{new Set(outstationRecords.map(o => o.user_id)).size}</span>
+                <span className="text-[18px] font-bold text-gray-900">{liveStats.outstation || 0}</span>
               </div>
             </div>
 
@@ -1671,12 +1665,12 @@ export default function AttendanceDashboard() {
                     <RechartsPieChart>
                       <Pie
                         data={[
-                          { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - new Set(outstationRecords.map(o => o.user_id)).size - (liveStats.late || 0)), color: '#16A34A' },
+                          { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
                           { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
-                          { name: 'Outstation', value: new Set(outstationRecords.map(o => o.user_id)).size, color: '#EC4899' },
+                          { name: 'Outstation', value: liveStats.outstation || 0, color: '#EC4899' },
                           { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
                           { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
-                          { name: 'Absent', value: Math.max(0, (liveStats.absent || 0) - new Set(outstationRecords.map(o => o.user_id)).size), color: '#DC2626' },
+                          { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
                         ]}
                         cx="50%"
                         cy="50%"
@@ -1690,9 +1684,9 @@ export default function AttendanceDashboard() {
                         onMouseLeave={() => setHoveredSlice(null)}
                       >
                         {[
-                          { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - new Set(outstationRecords.map(o => o.user_id)).size - (liveStats.late || 0)), color: '#16A34A' },
+                          { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
                           { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
-                          { name: 'Outstation', value: new Set(outstationRecords.map(o => o.user_id)).size, color: '#EC4899' },
+                          { name: 'Outstation', value: liveStats.outstation || 0, color: '#EC4899' },
                           { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
                           { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
                           { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
@@ -1715,9 +1709,9 @@ export default function AttendanceDashboard() {
                 {/* Status Legend */}
                 <div className="flex-1 flex flex-col justify-center space-y-2">
                   {[
-                    { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - new Set(outstationRecords.map(o => o.user_id)).size - (liveStats.late || 0)), color: '#16A34A' },
+                    { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
                     { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
-                    { name: 'Outstation', value: new Set(outstationRecords.map(o => o.user_id)).size, color: '#EC4899' },
+                    { name: 'Outstation', value: liveStats.outstation || 0, color: '#EC4899' },
                     { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
                     { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
                     { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
