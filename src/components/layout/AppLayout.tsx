@@ -174,24 +174,28 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const deptStr = (userDepartment || '').toUpperCase();
     
     if (roleStr === 'BRANCH LEADER') {
-      return `BRANCH LEADER • ${branchStr}`;
+      return branchStr ? `BRANCH LEADER • ${branchStr}` : roleStr;
     }
     
     if (roleStr === 'HEAD OF DEPARTMENT') {
-      return `HEAD OF DEPARTMENT • ${deptStr} • HQ`;
+      return deptStr ? `HEAD OF DEPARTMENT • ${deptStr} • HQ` : `HEAD OF DEPARTMENT • HQ`;
     }
     
     if (roleStr === 'MANAGING DIRECTOR') {
-      return `MANAGING DIRECTOR • ${deptStr} • HQ`;
+      return deptStr ? `MANAGING DIRECTOR • ${deptStr} • HQ` : `MANAGING DIRECTOR • HQ`;
     }
     
     if (roleStr === 'FINANCE MANAGER') {
-      return `FINANCE MANAGER • ${deptStr} • HQ`;
+      return deptStr ? `FINANCE MANAGER • ${deptStr} • HQ` : `FINANCE MANAGER • HQ`;
+    }
+
+    if (roleStr === 'HR ADMIN') {
+      return deptStr ? `HR ADMIN • ${deptStr} • HQ` : `HR ADMIN • HQ`;
     }
     
     // Employee or others
     if (branchStr === 'HQ') {
-      return `${roleStr} • ${deptStr} • HQ`;
+      return deptStr ? `${roleStr} • ${deptStr} • HQ` : `${roleStr} • HQ`;
     } else if (branchStr) {
       return `${roleStr} • ${branchStr}`;
     }
