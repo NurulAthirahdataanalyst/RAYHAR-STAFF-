@@ -1638,8 +1638,8 @@ export default function AttendanceDashboard() {
                 <span className="text-[18px] font-bold text-gray-900">{liveStats.absent || 0}</span>
               </div>
               <div className="flex flex-col items-center">
-                <span className="text-[11px] font-medium text-pink-500 uppercase text-center leading-tight">Outstation<br/>&nbsp;</span>
-                <span className="text-[18px] font-bold text-pink-600">{new Set(outstationRecords.map(o => o.user_id)).size}</span>
+                <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Outstation<br/>&nbsp;</span>
+                <span className="text-[18px] font-bold text-gray-900">{new Set(outstationRecords.map(o => o.user_id)).size}</span>
               </div>
             </div>
 
