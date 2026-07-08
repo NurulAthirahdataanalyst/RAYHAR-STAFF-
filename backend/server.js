@@ -4185,6 +4185,20 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
       const isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
       const dateStr = klTimeIn.toISOString().split('T')[0];
 
+      let status = isLate ? "Present (Late)" : "Present (On Time)";
+      let missingClockOut = false;
+
+      if (!clock.clock_out) {
+        const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
+        const isPastDate = klTimeIn.getUTCDate() !== nowKl.getUTCDate() || klTimeIn.getUTCMonth() !== nowKl.getUTCMonth() || klTimeIn.getUTCFullYear() !== nowKl.getUTCFullYear();
+        const isPastEndOfWorkTime = !isPastDate && nowKl.getUTCHours() >= 17;
+        
+        if (isPastDate || isPastEndOfWorkTime) {
+          missingClockOut = true;
+          status = "Missing Clock-Out";
+        }
+      }
+
       return {
         user_id: clock.user_id,
         full_name: emp.full_name || 'Unknown',
@@ -4195,7 +4209,8 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
         clock_in: clock.clock_in,
         clock_out: clock.clock_out,
         is_late: isLate,
-        status: isLate ? "Present (Late)" : "Present (On Time)"
+        missing_clock_out: missingClockOut,
+        status: status
       };
     });
 
@@ -4333,34 +4348,19 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
 
       const matchingHoliday = malaysiaHolidays.find(h => h.date === queryDate);
 
-      if (matchingLeave) {
-        status = "Company Leave";
-      } else if (outstationMap.has(uid)) {
+      if (outstationMap.has(uid)) {
         status = "Outstation";
         if (clockRow) {
           clock_in = clockRow.clock_in;
           clock_out = clockRow.clock_out;
           time_in = clockRow.time_in;
           time_out = clockRow.time_out;
-          // Do not calculate isLate, isEarlyLeaver, or isOvertime for Outstation employees.
-          // They are exempt from these strict time checks while outstation.
-          const klTimeIn = new Date(new Date(clock_in).getTime() + 8 * 60 * 60 * 1000);
-          if (clock_out) {
-          } else {
-            const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
-            const isPastDate = klTimeIn.getUTCDate() !== nowKl.getUTCDate() || klTimeIn.getUTCMonth() !== nowKl.getUTCMonth() || klTimeIn.getUTCFullYear() !== nowKl.getUTCFullYear();
-            if (isPastDate) {
-              missingClockOut = true;
-            }
-          }
         }
+      } else if (matchingLeave) {
+        status = "Company Leave";
       } else if (leaveRow) {
-        // Second priority: Approved Personal Leave
         status = "Approved Leave";
-      } else if (matchingHoliday) {
-        status = "Holiday";
       } else if (clockRow) {
-        // Third priority: Attendance Record
         clock_in = clockRow.clock_in;
         clock_out = clockRow.clock_out;
         time_in = clockRow.time_in;
@@ -4370,9 +4370,21 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         const clockInHour = klTimeIn.getUTCHours();
         const clockInMinute = klTimeIn.getUTCMinutes();
         isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
-        status = isLate ? "Present (Late)" : "Present (On Time)";
 
-        if (clock_out) {
+        if (!clock_out) {
+          const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
+          const isPastDate = klTimeIn.getUTCDate() !== nowKl.getUTCDate() || klTimeIn.getUTCMonth() !== nowKl.getUTCMonth() || klTimeIn.getUTCFullYear() !== nowKl.getUTCFullYear();
+          const isPastEndOfWorkTime = !isPastDate && nowKl.getUTCHours() >= 17;
+          
+          if (isPastDate || isPastEndOfWorkTime) {
+            missingClockOut = true;
+            status = "Missing Clock-Out";
+          } else {
+            status = isLate ? "Present (Late)" : "Present (On Time)";
+          }
+        } else {
+          status = isLate ? "Present (Late)" : "Present (On Time)";
+          
           const klTimeOut = new Date(new Date(clock_out).getTime() + 8 * 60 * 60 * 1000);
           const clockOutHour = klTimeOut.getUTCHours();
           if (clockOutHour < 17) {
@@ -4383,18 +4395,12 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
           if (diffMs > 9 * 60 * 60 * 1000) {
             isOvertime = true;
           }
-        } else {
-          const nowKl = new Date(Date.now() + 8 * 60 * 60 * 1000);
-          const isPastDate = klTimeIn.getUTCDate() !== nowKl.getUTCDate() || klTimeIn.getUTCMonth() !== nowKl.getUTCMonth() || klTimeIn.getUTCFullYear() !== nowKl.getUTCFullYear();
-          if (isPastDate) {
-            missingClockOut = true;
-          }
         }
       } else if (isWeekend) {
-        // Fourth priority: Weekend
         status = "Weekend";
+      } else if (matchingHoliday) {
+        status = "Holiday";
       } else {
-        // Fifth priority: Absent
         status = "Absent";
       }
 

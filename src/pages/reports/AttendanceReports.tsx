@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Download, Search, Clock, FileText, X } from "lucide-react";
+import { Loader2, Download, Search, Clock, FileText, X, Users, CheckCircle, Briefcase, CalendarOff, AlertCircle, XCircle, Percent } from "lucide-react";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -128,6 +128,20 @@ export default function AttendanceReports() {
     return matchesSearch && matchesStatus;
   });
 
+  // KPI Calculations
+  const totalEmployees = filteredList.length;
+  const presentCount = filteredList.filter(a => a.status === "Present (On Time)" || a.status === "Present (Late)").length;
+  const lateCount = filteredList.filter(a => a.status === "Present (Late)").length;
+  const outstationCount = filteredList.filter(a => a.status === "Outstation").length;
+  const leaveCount = filteredList.filter(a => a.status === "Company Leave" || a.status === "Approved Leave").length;
+  const missingClockOutCount = filteredList.filter(a => a.status === "Missing Clock-Out").length;
+  const absentCount = filteredList.filter(a => a.status === "Absent").length;
+  
+  const workingEmployees = totalEmployees - leaveCount;
+  const attendedEmployees = presentCount + outstationCount + missingClockOutCount;
+  const attendanceRate = workingEmployees > 0 ? Math.round((attendedEmployees / workingEmployees) * 100) : 0;
+
+
   const handleExportCSV = () => {
     const headers = viewType === "day"
       ? ["Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours"]
@@ -247,33 +261,126 @@ export default function AttendanceReports() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <Card className="border-border shadow-sm">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <FileText className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Records</p>
-                <h3 className="text-3xl font-bold mt-1">{filteredList.length}</h3>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-border shadow-sm">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-                <Clock className="w-6 h-6 text-green-500" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Clocked In (Total)</p>
-                <h3 className="text-3xl font-bold mt-1 text-green-600 dark:text-green-400">
-                  {filteredList.filter(a => a.status.startsWith("Present")).length}
-                </h3>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {viewType === "day" ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Users className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Employees</p>
+                  <h3 className="text-2xl font-bold mt-1">{totalEmployees}</h3>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
+                  <CheckCircle className="w-6 h-6 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Present</p>
+                  <h3 className="text-2xl font-bold mt-1 text-green-600 dark:text-green-400">{presentCount}</h3>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-yellow-500/10 flex items-center justify-center">
+                  <Clock className="w-6 h-6 text-yellow-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Late</p>
+                  <h3 className="text-2xl font-bold mt-1 text-yellow-600 dark:text-yellow-400">{lateCount}</h3>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                  <Briefcase className="w-6 h-6 text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Outstation</p>
+                  <h3 className="text-2xl font-bold mt-1 text-blue-600 dark:text-blue-400">{outstationCount}</h3>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                  <CalendarOff className="w-6 h-6 text-purple-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Leave</p>
+                  <h3 className="text-2xl font-bold mt-1 text-purple-600 dark:text-purple-400">{leaveCount}</h3>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center">
+                  <AlertCircle className="w-6 h-6 text-orange-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Missing Clock-Out</p>
+                  <h3 className="text-2xl font-bold mt-1 text-orange-600 dark:text-orange-400">{missingClockOutCount}</h3>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center">
+                  <XCircle className="w-6 h-6 text-red-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Absent</p>
+                  <h3 className="text-2xl font-bold mt-1 text-red-600 dark:text-red-400">{absentCount}</h3>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center">
+                  <Percent className="w-6 h-6 text-teal-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Attendance Rate</p>
+                  <h3 className="text-2xl font-bold mt-1 text-teal-600 dark:text-teal-400">{attendanceRate}%</h3>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Records</p>
+                  <h3 className="text-3xl font-bold mt-1">{filteredList.length}</h3>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
+                  <Clock className="w-6 h-6 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Clocked In (Total)</p>
+                  <h3 className="text-3xl font-bold mt-1 text-green-600 dark:text-green-400">
+                    {filteredList.filter(a => a.status.startsWith("Present")).length}
+                  </h3>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         <Card className="border-border shadow-sm">
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -338,6 +445,8 @@ export default function AttendanceReports() {
                             <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full ${
                               req.status === 'Present (On Time)' ? 'bg-green-100 text-green-700' :
                               req.status === 'Present (Late)' ? 'bg-yellow-100 text-yellow-700' :
+                              req.status === 'Missing Clock-Out' ? 'bg-orange-100 text-orange-700' :
+                              req.status === 'Outstation' ? 'bg-blue-100 text-blue-700' :
                               'bg-red-100 text-red-700'
                             }`}>
                               {req.status}
