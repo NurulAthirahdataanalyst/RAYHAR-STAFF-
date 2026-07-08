@@ -960,7 +960,13 @@ export default function Dashboard() {
                       return (
                         <div
                           key={emp.leave_id}
-                          onClick={() => navigate(`/leave/admin?leaveId=${emp.leave_id}`)}
+                          onClick={() => {
+                            if (emp.leave_type === "Outstation") {
+                              navigate(`/outstation/assignment`);
+                            } else {
+                              navigate(`/leave/admin?leaveId=${emp.leave_id}`);
+                            }
+                          }}
                           className="cursor-pointer group rounded-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-card hover:border-purple-300 transition-colors duration-200 p-3"
                         >
                           <div className="flex items-start gap-3">
