@@ -207,65 +207,52 @@ export default function OutstationDashboard() {
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-gray-50/80 sticky top-0 z-0">
                     <tr>
-                      <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">Destination</th>
-                      <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">Status</th>
-                      <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">Employee</th>
-                      <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">Duration</th>
-                      <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">Progress</th>
-                      <th className="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 text-right">Actions</th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">Destination</th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">Status</th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">Employee</th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">Duration</th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {activeNow.filter(a => (a.full_name || "").toLowerCase().includes(search.toLowerCase())).map((a, i) => {
-                      const prog = calcProgress(a.start_date, a.end_date);
                       const totalDays = Math.max(1, Math.ceil((new Date(a.end_date).getTime() - new Date(a.start_date).getTime()) / (1000 * 3600 * 24)));
                       return (
                         <tr key={i} className="hover:bg-gray-50/50 transition-colors group border-b border-gray-50 last:border-0">
-                          <td className="px-6 py-4">
+                          <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-purple-100/50 text-purple-700 flex items-center justify-center shadow-sm">
-                                <MapPin className="w-5 h-5 text-purple-600" />
+                              <div className="w-8 h-8 rounded-lg bg-purple-100/50 text-purple-700 flex items-center justify-center shadow-sm">
+                                <MapPin className="w-4 h-4 text-purple-600" />
                               </div>
                               <div>
-                                <p className="text-[13px] font-bold text-gray-900 uppercase tracking-wide">{a.destination}</p>
-                                <p className="text-[11px] text-gray-500">{a.department || "Domestic Branch"}</p>
+                                <p className="text-[12px] font-bold text-gray-900 uppercase tracking-wide">{a.destination}</p>
+                                <p className="text-[10px] text-gray-500">{a.department || "Domestic Branch"}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
-                            <Badge variant="outline" className="bg-green-50/50 text-green-600 border-green-200 text-[10px] font-bold shadow-none px-2.5 py-0.5 gap-1 uppercase tracking-wider">
+                          <td className="px-4 py-3">
+                            <Badge variant="outline" className="bg-green-50/50 text-green-600 border-green-200 text-[10px] font-bold shadow-none px-2 py-0.5 gap-1 uppercase tracking-wider">
                               <CheckCircle2 className="w-3 h-3" /> Active
                             </Badge>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-4 py-3">
                             <div>
-                              <p className="text-[13px] font-bold text-gray-900">{a.full_name || "Unknown"}</p>
-                              <p className="text-[11px] text-gray-500 font-medium">{a.user_id || "EMP-8821"}</p>
+                              <p className="text-[12px] font-bold text-gray-900">{a.full_name || "Unknown"}</p>
+                              <p className="text-[10px] text-gray-500 font-medium">{a.user_id || "EMP-8821"}</p>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-4 py-3">
                             <div className="flex items-start gap-2">
-                              <Calendar className="w-4 h-4 text-gray-400 mt-0.5" />
+                              <Calendar className="w-3.5 h-3.5 text-gray-400 mt-0.5" />
                               <div>
-                                <p className="text-[12px] font-semibold text-gray-700">{formatShortDate(a.start_date)} - {formatShortDate(a.end_date)}</p>
-                                <p className="text-[11px] font-medium text-purple-600">
+                                <p className="text-[11px] font-semibold text-gray-700">{formatShortDate(a.start_date)} - {formatShortDate(a.end_date)}</p>
+                                <p className="text-[10px] font-medium text-purple-600">
                                   {totalDays} {totalDays === 1 ? 'Day' : 'Days'} Total
                                 </p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 w-[160px]">
-                            <div className="flex flex-col gap-1.5">
-                              <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
-                                <span className="text-gray-500">Completion</span>
-                                <span className="text-purple-700">{prog}%</span>
-                              </div>
-                              <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                                <div className="h-full bg-purple-700 rounded-full" style={{ width: `${prog}%` }} />
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-right">
+                          <td className="px-4 py-3 text-right">
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-purple-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => navigate("/outstation/assignment")}>
                               <ArrowRight className="w-4 h-4" />
                             </Button>
