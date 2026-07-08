@@ -210,78 +210,96 @@ export default function OutstationCalendar() {
       </Card>
 
       {/* Event Detail Popup */}
-      {selectedEvent && (
+      {selectedEvent && (() => {
+        const relatedAssignments = assignments.filter(a => 
+          a.destination === selectedEvent.destination && 
+          a.start_date === selectedEvent.start_date &&
+          a.end_date === selectedEvent.end_date
+        );
+        return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setSelectedEvent(null)}>
-          <div className="bg-white dark:bg-card rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
+          <div className="bg-white dark:bg-card rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4 flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl" style={{ background: `linear-gradient(135deg, ${PINK}, #f9a8d4)` }}>
                   <Plane className="w-5 h-5 text-white" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Outstation</p>
-                  <h3 className="font-black text-gray-800 dark:text-gray-100">{selectedEvent.full_name}</h3>
+                  <h3 className="font-black text-gray-800 dark:text-gray-100 truncate">{selectedEvent.project || selectedEvent.purpose || selectedEvent.destination}</h3>
                 </div>
               </div>
-              <button onClick={() => setSelectedEvent(null)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"><X className="w-4 h-4" /></button>
+              <button onClick={() => setSelectedEvent(null)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 transition-colors"><X className="w-4 h-4" /></button>
             </div>
-            <div className="space-y-3 border-t border-gray-100 dark:border-slate-800 pt-4">
-              <div className="flex items-center gap-2.5">
-                <MapPin className="w-3.5 h-3.5 text-pink-400 shrink-0" />
-                <div>
-                  <p className="text-[9px] font-black uppercase text-gray-400">Destination</p>
-                  <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{selectedEvent.destination}</p>
+            
+            <div className="overflow-y-auto pr-1 space-y-4 custom-scrollbar">
+              <div className="space-y-3 border-t border-gray-100 dark:border-slate-800 pt-4">
+                <div className="flex items-center gap-2.5">
+                  <MapPin className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                  <div>
+                    <p className="text-[9px] font-black uppercase text-gray-400">Destination</p>
+                    <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{selectedEvent.destination}</p>
+                  </div>
+                </div>
+                {selectedEvent.purpose && (
+                  <div className="flex items-center gap-2.5">
+                    <Plane className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-gray-400">Purpose / Project</p>
+                      <p className="text-[12px] font-bold text-gray-700 dark:text-gray-200">{selectedEvent.purpose} {selectedEvent.project ? `· ${selectedEvent.project}` : ''}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-center gap-2.5">
+                  <Calendar className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                  <div>
+                    <p className="text-[9px] font-black uppercase text-gray-400">Duration</p>
+                    <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{fmtDate(selectedEvent.start_date)} → {fmtDate(selectedEvent.end_date)}</p>
+                  </div>
+                </div>
+                {selectedEvent.assigned_by_name && (
+                  <div className="flex items-center gap-2.5">
+                    <Clock className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-gray-400">Assigned By</p>
+                      <p className="text-[12px] font-bold text-gray-700 dark:text-gray-200">{selectedEvent.assigned_by_name}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="mt-2">
+                  {(() => {
+                    const c = statusColor(selectedEvent.status);
+                    return (
+                      <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-black ${c.bg} ${c.text} border ${c.border}`}>
+                        <div className={`w-2 h-2 rounded-full ${c.dot}`} />
+                        {selectedEvent.status}
+                      </span>
+                    );
+                  })()}
                 </div>
               </div>
-              {selectedEvent.purpose && (
-                <div className="flex items-center gap-2.5">
-                  <Plane className="w-3.5 h-3.5 text-pink-400 shrink-0" />
-                  <div>
-                    <p className="text-[9px] font-black uppercase text-gray-400">Purpose</p>
-                    <p className="text-[12px] font-bold text-gray-700 dark:text-gray-200">{selectedEvent.purpose}</p>
-                  </div>
+
+              <div className="pt-4 border-t border-gray-100 dark:border-slate-800">
+                <p className="text-[10px] font-black uppercase text-gray-400 mb-3">Assigned Employees ({relatedAssignments.length})</p>
+                <div className="space-y-2">
+                  {relatedAssignments.map((a: any) => (
+                    <div key={a.id} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-colors ${a.id === selectedEvent.id ? 'border-pink-200 dark:border-pink-900/50 bg-pink-50/50 dark:bg-pink-900/10' : 'border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50'}`}>
+                      <div className="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-[10px] font-bold flex items-center justify-center shrink-0">
+                        {a.full_name?.split(' ').map((n:string)=>n[0]).join('').substring(0,2).toUpperCase()}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100 truncate leading-tight">{a.full_name}</p>
+                        <p className="text-[10px] text-gray-400 truncate mt-0.5">{a.user_id || a.department}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
-              <div className="flex items-center gap-2.5">
-                <Calendar className="w-3.5 h-3.5 text-pink-400 shrink-0" />
-                <div>
-                  <p className="text-[9px] font-black uppercase text-gray-400">Duration</p>
-                  <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{fmtDate(selectedEvent.start_date)} → {fmtDate(selectedEvent.end_date)}</p>
-                </div>
-              </div>
-              {selectedEvent.department && (
-                <div className="flex items-center gap-2.5">
-                  <Users className="w-3.5 h-3.5 text-pink-400 shrink-0" />
-                  <div>
-                    <p className="text-[9px] font-black uppercase text-gray-400">Department</p>
-                    <p className="text-[12px] font-bold text-gray-700 dark:text-gray-200">{selectedEvent.department}</p>
-                  </div>
-                </div>
-              )}
-              {selectedEvent.assigned_by_name && (
-                <div className="flex items-center gap-2.5">
-                  <Clock className="w-3.5 h-3.5 text-pink-400 shrink-0" />
-                  <div>
-                    <p className="text-[9px] font-black uppercase text-gray-400">Assigned By</p>
-                    <p className="text-[12px] font-bold text-gray-700 dark:text-gray-200">{selectedEvent.assigned_by_name}</p>
-                  </div>
-                </div>
-              )}
-              <div className="mt-2">
-                {(() => {
-                  const c = statusColor(selectedEvent.status);
-                  return (
-                    <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-black ${c.bg} ${c.text} border ${c.border}`}>
-                      <div className={`w-2 h-2 rounded-full ${c.dot}`} />
-                      {selectedEvent.status}
-                    </span>
-                  );
-                })()}
               </div>
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
