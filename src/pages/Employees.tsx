@@ -69,19 +69,18 @@ export default function Employees() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [analytics, setAnalytics] = useState<any>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
-  const [analyticsMonth, setAnalyticsMonth] = useState<string>("all");
-  const [analyticsYear, setAnalyticsYear] = useState<string>(new Date().getFullYear().toString());
+  const [analyticsDate, setAnalyticsDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
-  const fetchAnalytics = async (userId: string, month = analyticsMonth, year = analyticsYear) => {
+  const fetchAnalytics = async (userId: string, dateStr = analyticsDate) => {
     setLoadingAnalytics(true);
     try {
       const params = new URLSearchParams();
-      if (month && month !== "all" && year && year !== "all") {
-        params.append("month", `${year}-${month}`);
-      } else if (month && month !== "all") {
-        params.append("month", `${new Date().getFullYear()}-${month}`);
+      if (dateStr) {
+        const monthStr = dateStr.substring(0, 7); // YYYY-MM
+        const yearStr = dateStr.substring(0, 4);  // YYYY
+        params.append("month", monthStr);
+        params.append("year", yearStr);
       }
-      if (year && year !== "all") params.append("year", year);
       
       const res = await fetch(`${API_BASE_URL}/api/employees/${userId}/analytics?${params}`);
       const data = await res.json();
@@ -96,7 +95,7 @@ export default function Employees() {
 
   useEffect(() => {
     if (selectedEmployee && isModalOpen) {
-      fetchAnalytics(selectedEmployee.user_id, analyticsMonth, analyticsYear);
+      fetchAnalytics(selectedEmployee.user_id, analyticsDate);
     } else {
       setAnalytics(null);
     }
@@ -764,34 +763,12 @@ export default function Employees() {
                               <h3 className="text-sm font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">Attendance Performance</h3>
                             </div>
                             <div className="flex items-center gap-3">
-                              <Select value={analyticsMonth} onValueChange={setAnalyticsMonth}>
-                                <SelectTrigger className="w-32 h-9 text-xs font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-800/60 dark:border-slate-700">
-                                  <SelectValue placeholder="Month" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="all" className="text-xs font-bold uppercase tracking-widest">All Months</SelectItem>
-                                  {Array.from({ length: 12 }, (_, i) => {
-                                    const d = new Date(2000, i, 1);
-                                    return (
-                                      <SelectItem key={i} value={(i + 1).toString().padStart(2, '0')} className="text-xs font-bold uppercase tracking-widest">
-                                        {d.toLocaleString('default', { month: 'long' })}
-                                      </SelectItem>
-                                    );
-                                  })}
-                                </SelectContent>
-                              </Select>
-
-                              <Select value={analyticsYear} onValueChange={setAnalyticsYear}>
-                                <SelectTrigger className="w-28 h-9 text-xs font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-800/60 dark:border-slate-700">
-                                  <SelectValue placeholder="Year" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="all" className="text-xs font-bold uppercase tracking-widest">All Years</SelectItem>
-                                  {[2024, 2025, 2026].map(y => (
-                                    <SelectItem key={y} value={y.toString()} className="text-xs font-bold uppercase tracking-widest">{y}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <Input 
+                                type="date" 
+                                value={analyticsDate}
+                                onChange={(e) => setAnalyticsDate(e.target.value)}
+                                className="w-36 h-9 text-xs font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-800/60 dark:border-slate-700"
+                              />
                             </div>
                           </div>
                           
