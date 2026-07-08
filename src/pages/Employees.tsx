@@ -701,8 +701,8 @@ export default function Employees() {
       {/* Employee Details Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-6xl w-full overflow-y-auto max-h-[90vh] p-0 gap-0 bg-slate-50 dark:bg-slate-900">
-          <DialogHeader className="p-6 pb-4 border-b bg-white sticky top-0 z-10 shadow-sm">
-            <DialogTitle className="text-2xl font-black text-slate-800 tracking-tight">Staff Profile & Analytics</DialogTitle>
+          <DialogHeader className="p-6 pb-4 border-b bg-white dark:bg-slate-900 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
+            <DialogTitle className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Staff Profile & Analytics</DialogTitle>
           </DialogHeader>
           
           <div className="p-6">
