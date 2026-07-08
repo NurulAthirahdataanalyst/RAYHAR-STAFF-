@@ -15,6 +15,7 @@ import {
   BarChart, Bar, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart as RechartsPie, Pie, Cell, LineChart, Line, YAxis
 } from "recharts";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { API_BASE_URL } from "../../config/api";
 
 const OUTSTATION_ROLES = ["hr_admin", "managing_director", "finance_manager", "branch_leader", "head_of_department"];
@@ -93,6 +94,31 @@ export default function OutstationDashboard() {
   useEffect(() => { 
     void fetchAll(); 
   }, [fetchAll]);
+
+  const activeNowGrouped = useMemo(() => {
+    const active = assignments.filter(a => a.status === "Active");
+    const groups: Record<string, {
+      destination: string; department: string; start_date: string; end_date: string; status: string;
+      employees: any[];
+    }> = {};
+
+    active.forEach(a => {
+      const key = `${a.destination}_${a.start_date}_${a.end_date}_${a.status}`;
+      if (!groups[key]) {
+        groups[key] = {
+          destination: a.destination,
+          department: a.department,
+          start_date: a.start_date,
+          end_date: a.end_date,
+          status: a.status,
+          employees: []
+        };
+      }
+      groups[key].employees.push(a);
+    });
+
+    return Object.values(groups);
+  }, [assignments]);
 
   const activeNow = useMemo(() => assignments.filter(a => a.status === "Active"), [assignments]);
   const upcoming = useMemo(() => assignments.filter(a => a.status === "Upcoming"), [assignments]);
@@ -215,8 +241,8 @@ export default function OutstationDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {activeNow.filter(a => (a.full_name || "").toLowerCase().includes(search.toLowerCase())).map((a, i) => {
-                      const totalDays = Math.max(1, Math.ceil((new Date(a.end_date).getTime() - new Date(a.start_date).getTime()) / (1000 * 3600 * 24)));
+                    {activeNowGrouped.filter(g => g.destination.toLowerCase().includes(search.toLowerCase()) || g.employees.some(e => (e.full_name || "").toLowerCase().includes(search.toLowerCase()))).map((g, i) => {
+                      const totalDays = Math.max(1, Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)));
                       return (
                         <tr key={i} className="hover:bg-gray-50/50 transition-colors group border-b border-gray-50 last:border-0">
                           <td className="px-4 py-3">
@@ -225,8 +251,8 @@ export default function OutstationDashboard() {
                                 <MapPin className="w-4 h-4 text-purple-600" />
                               </div>
                               <div>
-                                <p className="text-[12px] font-bold text-gray-900 uppercase tracking-wide">{a.destination}</p>
-                                <p className="text-[10px] text-gray-500">{a.department || "Domestic Branch"}</p>
+                                <p className="text-[12px] font-bold text-gray-900 uppercase tracking-wide">{g.destination}</p>
+                                <p className="text-[10px] text-gray-500">{g.department || "Domestic Branch"}</p>
                               </div>
                             </div>
                           </td>
@@ -237,15 +263,19 @@ export default function OutstationDashboard() {
                           </td>
                           <td className="px-4 py-3">
                             <div>
-                              <p className="text-[12px] font-bold text-gray-900">{a.full_name || "Unknown"}</p>
-                              <p className="text-[10px] text-gray-500 font-medium">{a.user_id || "EMP-8821"}</p>
+                              <p className="text-[12px] font-bold text-gray-900">
+                                {g.employees.length} Employee{g.employees.length !== 1 ? 's' : ''}
+                              </p>
+                              {g.employees.length === 1 && (
+                                <p className="text-[10px] text-gray-500 font-medium">{g.employees[0].user_id || "EMP-8821"}</p>
+                              )}
                             </div>
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-start gap-2">
                               <Calendar className="w-3.5 h-3.5 text-gray-400 mt-0.5" />
                               <div>
-                                <p className="text-[11px] font-semibold text-gray-700">{formatShortDate(a.start_date)} - {formatShortDate(a.end_date)}</p>
+                                <p className="text-[11px] font-semibold text-gray-700">{formatShortDate(g.start_date)} - {formatShortDate(g.end_date)}</p>
                                 <p className="text-[10px] font-medium text-purple-600">
                                   {totalDays} {totalDays === 1 ? 'Day' : 'Days'} Total
                                 </p>
@@ -253,9 +283,34 @@ export default function OutstationDashboard() {
                             </div>
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-purple-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => navigate("/outstation/assignment")}>
-                              <ArrowRight className="w-4 h-4" />
-                            </Button>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 text-xs font-semibold text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-md">
+                                  View Details
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                  <DialogTitle className="uppercase tracking-wider">{g.destination}</DialogTitle>
+                                  <p className="text-sm text-gray-500 mt-1">Assigned Employees ({g.employees.length})</p>
+                                </DialogHeader>
+                                <div className="py-2 space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                                  {g.employees.map((e, idx) => (
+                                    <div key={idx} className="flex items-center justify-between bg-gray-50/80 p-3 rounded-lg border border-gray-100">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-full bg-purple-100/80 text-purple-700 flex items-center justify-center font-bold text-xs shadow-sm">
+                                          {e.full_name ? e.full_name.substring(0, 2).toUpperCase() : "U"}
+                                        </div>
+                                        <div>
+                                          <p className="text-sm font-bold text-gray-900 leading-tight mb-0.5">{e.full_name || "Unknown"}</p>
+                                          <p className="text-xs text-gray-500 font-medium">{e.user_id || "EMP-8821"}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
                           </td>
                         </tr>
                       );
@@ -263,7 +318,7 @@ export default function OutstationDashboard() {
                   </tbody>
                 </table>
                 <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-white">
-                  <span className="text-[12px] text-gray-500 font-medium">Showing {activeNow.length > 0 ? 1 : 0}-{activeNow.length} of {activeNow.length} Active Outstations</span>
+                  <span className="text-[12px] text-gray-500 font-medium">Showing {activeNowGrouped.length > 0 ? 1 : 0}-{activeNowGrouped.length} of {activeNowGrouped.length} Active Outstations</span>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" className="h-8 text-[12px] font-medium border-gray-200">Previous</Button>
                     <Button variant="outline" size="sm" className="h-8 text-[12px] font-medium border-gray-200">Next</Button>
