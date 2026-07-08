@@ -217,7 +217,14 @@ export default function Dashboard() {
   const fetchUpcomingOutstations = useCallback(async () => {
     try {
       if (!dashboardUserId) return;
-      const res = await fetch(`${API_BASE_URL}/api/outstation?role=employee&user_id=${dashboardUserId}`);
+      const outstationRole = ["hr_admin", "managing_director", "finance_manager", "head_of_department", "branch_leader"].includes(role || "") ? role : "employee";
+      const params = new URLSearchParams({
+        role: outstationRole || "employee",
+        user_id: dashboardUserId.toString(),
+        branch: userBranch || "",
+        department: userDepartment || "",
+      });
+      const res = await fetch(`${API_BASE_URL}/api/outstation?${params}`);
       const data = await res.json();
       if (data.success && data.assignments) {
         const upcoming = data.assignments.filter((a: any) => a.status === "Upcoming");
@@ -226,7 +233,7 @@ export default function Dashboard() {
     } catch (err) {
       console.error("Fetch Upcoming Outstations Error:", err);
     }
-  }, [dashboardUserId]);
+  }, [dashboardUserId, role, userBranch, userDepartment]);
 
   // Initial fetch + refresh when focus + Custom Event Listener
   useEffect(() => {
@@ -1206,19 +1213,81 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="p-0">
               {upcomingOutstations.length > 0 ? (
-                upcomingOutstations.map((a, i) => {
-                  const d = new Date(a.start_date);
-                  const month = d.toLocaleDateString("en-US", { month: "short" });
-                  const day = d.toLocaleDateString("en-US", { day: "2-digit" });
+                const grouped: any[] = [];
+                upcomingOutstations.forEach(a => {
+                  const title = a.project || a.purpose || a.meeting_title || a.destination;
+                  const key = `${a.destination}_${title}_${a.start_date}`;
+                  let g = grouped.find((x:any) => x.key === key);
+                  if (!g) {
+                    g = {
+                      key,
+                      title,
+                      destination: a.destination,
+                      start_date: a.start_date,
+                      end_date: a.end_date,
+                      employees: []
+                    };
+                    grouped.push(g);
+                  }
+                  if (a.full_name && !g.employees.find((e:any)=>e.name===a.full_name)) {
+                    const initials = a.full_name.split(' ').map((n:string)=>n[0]).join('').substring(0,2).toUpperCase();
+                    g.employees.push({ name: a.full_name, initials });
+                  }
+                });
+
+                return grouped.map((g, i) => {
+                  const displayEmps = g.employees.slice(0, 3);
+                  const extraCount = Math.max(0, g.employees.length - 3);
+
                   return (
-                    <div key={i} className={`flex items-center gap-4 p-4 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer ${i !== upcomingOutstations.length - 1 ? "border-b border-slate-50" : ""}`}>
-                      <div className="w-12 h-12 bg-purple-50 rounded flex flex-col items-center justify-center shrink-0">
-                        <span className="text-[9px] font-bold text-purple-700 uppercase">{month}</span>
-                        <span className="text-lg font-black text-purple-900 leading-none mt-0.5">{day}</span>
+                    <div key={i} className={`flex items-start gap-3 p-4 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer ${i !== grouped.length - 1 ? "border-b border-slate-50 dark:border-slate-800" : ""}`}>
+                      <div className="w-[3px] rounded-full self-stretch bg-[#0088cc] mr-1" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate uppercase">{g.title}</p>
+                        <div className="mt-1 space-y-1">
+                          <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
+                            <CalendarDays className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {new Date(g.start_date).toLocaleDateString("en-MY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })} - {new Date(g.end_date).toLocaleDateString("en-MY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })}
+                          </p>
+                          <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" /> All Day
+                          </p>
+                          {g.destination && g.title !== g.destination && (
+                            <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 truncate">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {g.destination}
+                            </p>
+                          )}
+                          {g.title === g.destination && (
+                            <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 truncate">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {g.destination}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-2 mt-3">
+                          <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 dark:border-slate-800 bg-white dark:bg-card text-slate-600 rounded flex items-center gap-1 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
+                            <CalendarDays className="w-3 h-3" /> Add to Calendar
+                          </Button>
+                          <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold border-slate-200 dark:border-slate-800 bg-white dark:bg-card text-slate-600 rounded hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
+                            Join Now
+                          </Button>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{a.destination}</h4>
-                        <p className="text-[11px] text-slate-500 mt-0.5 truncate">{a.purpose || "Outstation"} • {d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</p>
+                      <div className="flex flex-col items-end">
+                        <div className="flex -space-x-1.5 mt-0.5">
+                          {displayEmps.map((e: any, idx: number) => {
+                            const AVATAR_COLORS = ["bg-purple-100 text-purple-700", "bg-blue-100 text-blue-700", "bg-emerald-100 text-emerald-700", "bg-pink-100 text-pink-700", "bg-amber-100 text-amber-700", "bg-cyan-100 text-cyan-700", "bg-indigo-100 text-indigo-700", "bg-rose-100 text-rose-700"];
+                            const color = AVATAR_COLORS[(e.name || '').charCodeAt(0) % AVATAR_COLORS.length];
+                            return (
+                              <div key={idx} title={e.name} className={`w-5 h-5 rounded-full border border-white dark:border-slate-800 text-[8px] font-bold flex items-center justify-center shadow-sm ${color}`}>
+                                {e.initials}
+                              </div>
+                            );
+                          })}
+                          {extraCount > 0 && (
+                            <div className="w-5 h-5 rounded-full bg-indigo-500 border border-white dark:border-slate-800 text-[8px] font-bold text-white flex items-center justify-center shadow-sm">
+                              +{extraCount}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
