@@ -1499,7 +1499,7 @@ export default function AttendanceDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         
         {/* Branch Workforce Distribution */}
-        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden lg:col-span-7 flex flex-col h-fit">
+        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden lg:col-span-6 flex flex-col h-fit">
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 flex flex-row items-center justify-between gap-1">
             <div className="flex items-center gap-2">
               <MapPin className="w-5 h-5 text-gray-700" />
@@ -1580,7 +1580,7 @@ export default function AttendanceDashboard() {
         </Card>
 
         {/* Attendance Overview */}
-        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden lg:col-span-5 flex flex-col h-fit">
+        <Card className="border border-gray-200/80 bg-white rounded-xl shadow-sm overflow-hidden lg:col-span-6 flex flex-col h-fit">
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 flex flex-row items-start justify-between">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
@@ -1598,7 +1598,7 @@ export default function AttendanceDashboard() {
           <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col">
             
             {/* KPI micro-header */}
-            <div className="grid grid-cols-5 gap-2 mb-6 border-b border-gray-100 pb-4">
+            <div className="grid grid-cols-6 gap-2 mb-6 border-b border-gray-100 pb-4">
               <div className="flex flex-col items-center">
                 <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Total<br/>Employees</span>
                 <span className="text-[18px] font-bold text-gray-900">{liveStats.total || 0}</span>
@@ -1617,7 +1617,11 @@ export default function AttendanceDashboard() {
               </div>
               <div className="flex flex-col items-center">
                 <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Absent<br/>&nbsp;</span>
-                <span className="text-[18px] font-bold text-gray-900">{liveStats.absent || 0}</span>
+                <span className="text-[18px] font-bold text-gray-900">{Math.max(0, (liveStats.absent || 0) - new Set(outstationRecords.map(o => o.user_id)).size)}</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-[11px] font-medium text-pink-500 uppercase text-center leading-tight">Outstation<br/>&nbsp;</span>
+                <span className="text-[18px] font-bold text-pink-600">{new Set(outstationRecords.map(o => o.user_id)).size}</span>
               </div>
             </div>
 
@@ -1633,9 +1637,10 @@ export default function AttendanceDashboard() {
                         data={[
                           { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
                           { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
+                          { name: 'Outstation', value: new Set(outstationRecords.map(o => o.user_id)).size, color: '#EC4899' },
                           { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
                           { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
-                          { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
+                          { name: 'Absent', value: Math.max(0, (liveStats.absent || 0) - new Set(outstationRecords.map(o => o.user_id)).size), color: '#DC2626' },
                         ]}
                         cx="50%"
                         cy="50%"
@@ -1651,9 +1656,10 @@ export default function AttendanceDashboard() {
                         {[
                           { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
                           { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
+                          { name: 'Outstation', value: new Set(outstationRecords.map(o => o.user_id)).size, color: '#EC4899' },
                           { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
                           { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
-                          { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
+                          { name: 'Absent', value: Math.max(0, (liveStats.absent || 0) - new Set(outstationRecords.map(o => o.user_id)).size), color: '#DC2626' },
                         ].map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
@@ -1671,13 +1677,14 @@ export default function AttendanceDashboard() {
                 </div>
 
                 {/* Status Legend */}
-                <div className="flex-1 flex flex-col justify-center space-y-3">
+                <div className="flex-1 flex flex-col justify-center space-y-2">
                   {[
                     { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
                     { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
+                    { name: 'Outstation', value: new Set(outstationRecords.map(o => o.user_id)).size, color: '#EC4899' },
                     { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
                     { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
-                    { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
+                    { name: 'Absent', value: Math.max(0, (liveStats.absent || 0) - new Set(outstationRecords.map(o => o.user_id)).size), color: '#DC2626' },
                   ].map((entry, idx) => (
                     <div key={idx} className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5 min-w-0">
