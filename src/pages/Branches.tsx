@@ -498,15 +498,17 @@ export default function Branches() {
                             <td className="py-4 px-6">
                               <Badge
                                 className={`text-[9px] font-black px-2.5 h-5 ${
-                                  employee.today_status === "Present"
+                                  employee.today_status === "Present (On Time)" || employee.today_status === "Present"
                                     ? "bg-emerald-500 text-white"
-                                    : employee.today_status === "Outstation"
-                                      ? "bg-blue-500 text-white"
-                                      : employee.today_status === "On Leave"
-                                        ? "bg-amber-500 text-white"
-                                        : employee.today_status === "Company Leave"
-                                          ? "bg-purple-500 text-white"
-                                          : "bg-rose-500 text-white"
+                                    : employee.today_status === "Present (Late)"
+                                      ? "bg-amber-500 text-white"
+                                      : employee.today_status === "Outstation"
+                                        ? "bg-pink-500 text-white"
+                                        : employee.today_status === "On Leave"
+                                          ? "bg-blue-500 text-white"
+                                          : employee.today_status === "Company Leave"
+                                            ? "bg-purple-500 text-white"
+                                            : "bg-rose-500 text-white"
                                 }`}
                               >
                                 {employee.today_status}
@@ -554,15 +556,17 @@ export default function Branches() {
                             </p>
                             <Badge
                               className={`text-[9px] font-black h-5 shrink-0 ${
-                                employee.today_status === "Present"
-                                  ? "bg-emerald-500"
-                                  : employee.today_status === "Outstation"
-                                    ? "bg-blue-500"
-                                    : employee.today_status === "On Leave"
-                                      ? "bg-amber-500"
-                                      : employee.today_status === "Company Leave"
-                                        ? "bg-purple-500"
-                                        : "bg-rose-500"
+                                employee.today_status === "Present (On Time)" || employee.today_status === "Present"
+                                  ? "bg-emerald-500 text-white"
+                                  : employee.today_status === "Present (Late)"
+                                    ? "bg-amber-500 text-white"
+                                    : employee.today_status === "Outstation"
+                                      ? "bg-pink-500 text-white"
+                                      : employee.today_status === "On Leave"
+                                        ? "bg-blue-500 text-white"
+                                        : employee.today_status === "Company Leave"
+                                          ? "bg-purple-500 text-white"
+                                          : "bg-rose-500 text-white"
                               }`}
                             >
                               {employee.today_status}
