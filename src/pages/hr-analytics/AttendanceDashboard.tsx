@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { API_BASE_URL } from "../../config/api";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const fallbackMonthlyData = [
   { month: "Jan", attendance: 94, leave_request: 18 },
@@ -1520,46 +1521,51 @@ export default function AttendanceDashboard() {
           </CardHeader>
           <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col justify-between">
             <div className={`space-y-4 flex-1 pr-2 ${liveBranchRanking.length > 5 ? 'overflow-y-auto max-h-[220px]' : 'overflow-y-visible'}`}>
-              {liveBranchRanking.map((branch: any, idx: number) => {
-                return (
-                  <div key={idx} className="flex flex-col gap-1">
-                    <div className="flex justify-between items-end">
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-[#1A1F36]">{branch.branch}</span>
-                        <span className="text-[9px] text-slate-400">{branch.totalEmployees} Employees</span>
-                      </div>
-                      <span className={`text-[10px] font-black ${branch.rate >= 90 ? 'text-emerald-500' : branch.rate >= 75 ? 'text-amber-500' : 'text-red-500'}`}>{branch.rate}%</span>
-                    </div>
-                    <div className="relative group cursor-pointer">
-                      <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
-                        {branch.totalEmployees > 0 ? (
-                          <>
-                            <div className="h-full bg-[#10b981]" style={{ width: `${(branch.presentOnTime / branch.totalEmployees) * 100}%` }}></div>
-                            <div className="h-full bg-[#f59e0b]" style={{ width: `${(branch.presentLate / branch.totalEmployees) * 100}%` }}></div>
-                            <div className="h-full bg-pink-500" style={{ width: `${(branch.outstation / branch.totalEmployees) * 100}%` }}></div>
-                            <div className="h-full bg-blue-500" style={{ width: `${(branch.onLeave / branch.totalEmployees) * 100}%` }}></div>
-                            <div className="h-full bg-purple-500" style={{ width: `${(branch.companyLeave / branch.totalEmployees) * 100}%` }}></div>
-                            <div className="h-full bg-red-500" style={{ width: `${(branch.absent / branch.totalEmployees) * 100}%` }}></div>
-                          </>
-                        ) : (
-                          <div className="h-full w-full bg-slate-200"></div>
-                        )}
-                      </div>
-                      <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-xl rounded p-3 pointer-events-none z-50 w-max whitespace-nowrap text-left min-w-[150px]">
-                        <p className="text-[11px] font-bold text-slate-800 mb-2 border-b border-slate-100 pb-1">{branch.branch}</p>
-                        <div className="flex flex-col gap-1 text-[9px] text-slate-600">
-                          <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
-                          <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{branch.presentLate}</span></p>
-                          <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-500">{branch.outstation}</span></p>
-                          <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>On Leave:</span> <span className="font-bold text-blue-500">{branch.onLeave}</span></p>
-                          <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-500">{branch.companyLeave}</span></p>
-                          <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-red-500">{branch.absent}</span></p>
+              <TooltipProvider>
+                {liveBranchRanking.map((branch: any, idx: number) => {
+                  return (
+                    <div key={idx} className="flex flex-col gap-1">
+                      <div className="flex justify-between items-end">
+                        <div className="flex flex-col">
+                          <span className="text-[11px] font-bold text-[#1A1F36]">{branch.branch}</span>
+                          <span className="text-[9px] text-slate-400">{branch.totalEmployees} Employees</span>
                         </div>
+                        <span className={`text-[10px] font-black ${branch.rate >= 90 ? 'text-emerald-500' : branch.rate >= 75 ? 'text-amber-500' : 'text-red-500'}`}>{branch.rate}%</span>
                       </div>
+                      <UITooltip delayDuration={100}>
+                        <TooltipTrigger asChild>
+                          <div className="cursor-pointer w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
+                            {branch.totalEmployees > 0 ? (
+                              <>
+                                <div className="h-full bg-[#10b981]" style={{ width: `${(branch.presentOnTime / branch.totalEmployees) * 100}%` }}></div>
+                                <div className="h-full bg-[#f59e0b]" style={{ width: `${(branch.presentLate / branch.totalEmployees) * 100}%` }}></div>
+                                <div className="h-full bg-pink-500" style={{ width: `${(branch.outstation / branch.totalEmployees) * 100}%` }}></div>
+                                <div className="h-full bg-blue-500" style={{ width: `${(branch.onLeave / branch.totalEmployees) * 100}%` }}></div>
+                                <div className="h-full bg-purple-500" style={{ width: `${(branch.companyLeave / branch.totalEmployees) * 100}%` }}></div>
+                                <div className="h-full bg-red-500" style={{ width: `${(branch.absent / branch.totalEmployees) * 100}%` }}></div>
+                              </>
+                            ) : (
+                              <div className="h-full w-full bg-slate-200"></div>
+                            )}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" align="center" className="bg-white border border-slate-200 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[150px]">
+                          <p className="text-[11px] font-bold text-slate-800 mb-2 border-b border-slate-100 pb-1">{branch.branch}</p>
+                          <div className="flex flex-col gap-1 text-[9px] text-slate-600">
+                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
+                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{branch.presentLate}</span></p>
+                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-500">{branch.outstation}</span></p>
+                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>On Leave:</span> <span className="font-bold text-blue-500">{branch.onLeave}</span></p>
+                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-500">{branch.companyLeave}</span></p>
+                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-red-500">{branch.absent}</span></p>
+                          </div>
+                        </TooltipContent>
+                      </UITooltip>
                     </div>
                   </div>
                 );
               })}
+              </TooltipProvider>
               {liveBranchRanking.length === 0 && (
                 <div className="text-center text-slate-400 text-xs py-10 font-medium">No branches found in this region.</div>
               )}
@@ -1605,11 +1611,11 @@ export default function AttendanceDashboard() {
               </div>
               <div className="flex flex-col items-center">
                 <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Total<br/>Present</span>
-                <span className="text-[18px] font-bold text-gray-900">{liveStats.present || 0}</span>
+                <span className="text-[18px] font-bold text-gray-900">{Math.max(0, (liveStats.present || 0) - new Set(outstationRecords.map(o => o.user_id)).size)}</span>
               </div>
               <div className="flex flex-col items-center">
                 <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Present<br/>(On Time)</span>
-                <span className="text-[18px] font-bold text-gray-900">{Math.max(0, (liveStats.present || 0) - (liveStats.late || 0))}</span>
+                <span className="text-[18px] font-bold text-gray-900">{Math.max(0, (liveStats.present || 0) - new Set(outstationRecords.map(o => o.user_id)).size - (liveStats.late || 0))}</span>
               </div>
               <div className="flex flex-col items-center">
                 <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Present<br/>(Late)</span>
@@ -1617,7 +1623,7 @@ export default function AttendanceDashboard() {
               </div>
               <div className="flex flex-col items-center">
                 <span className="text-[11px] font-medium text-gray-500 uppercase text-center leading-tight">Absent<br/>&nbsp;</span>
-                <span className="text-[18px] font-bold text-gray-900">{Math.max(0, (liveStats.absent || 0) - new Set(outstationRecords.map(o => o.user_id)).size)}</span>
+                <span className="text-[18px] font-bold text-gray-900">{liveStats.absent || 0}</span>
               </div>
               <div className="flex flex-col items-center">
                 <span className="text-[11px] font-medium text-pink-500 uppercase text-center leading-tight">Outstation<br/>&nbsp;</span>
@@ -1635,7 +1641,7 @@ export default function AttendanceDashboard() {
                     <RechartsPieChart>
                       <Pie
                         data={[
-                          { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
+                          { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - new Set(outstationRecords.map(o => o.user_id)).size - (liveStats.late || 0)), color: '#16A34A' },
                           { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
                           { name: 'Outstation', value: new Set(outstationRecords.map(o => o.user_id)).size, color: '#EC4899' },
                           { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
@@ -1654,12 +1660,12 @@ export default function AttendanceDashboard() {
                         onMouseLeave={() => setHoveredSlice(null)}
                       >
                         {[
-                          { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
+                          { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - new Set(outstationRecords.map(o => o.user_id)).size - (liveStats.late || 0)), color: '#16A34A' },
                           { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
                           { name: 'Outstation', value: new Set(outstationRecords.map(o => o.user_id)).size, color: '#EC4899' },
                           { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
                           { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
-                          { name: 'Absent', value: Math.max(0, (liveStats.absent || 0) - new Set(outstationRecords.map(o => o.user_id)).size), color: '#DC2626' },
+                          { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
                         ].map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
@@ -1679,12 +1685,12 @@ export default function AttendanceDashboard() {
                 {/* Status Legend */}
                 <div className="flex-1 flex flex-col justify-center space-y-2">
                   {[
-                    { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
+                    { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - new Set(outstationRecords.map(o => o.user_id)).size - (liveStats.late || 0)), color: '#16A34A' },
                     { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
                     { name: 'Outstation', value: new Set(outstationRecords.map(o => o.user_id)).size, color: '#EC4899' },
                     { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
                     { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
-                    { name: 'Absent', value: Math.max(0, (liveStats.absent || 0) - new Set(outstationRecords.map(o => o.user_id)).size), color: '#DC2626' },
+                    { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
                   ].map((entry, idx) => (
                     <div key={idx} className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5 min-w-0">

@@ -473,6 +473,7 @@ export default function Dashboard() {
                       value={String(stats.presentToday ?? 0)}
                       subtitle="Clocked In Today"
                       variant="success"
+                      onClick={() => navigate("/hr-analytics/attendance#admin-attendance")}
                     />
                     <StatCard
                       icon={MapPin}
@@ -480,6 +481,7 @@ export default function Dashboard() {
                       value={String(stats.outstationToday ?? 0)}
                       subtitle={`${stats.upcomingOutstation ?? 0} Upcoming`}
                       variant="purple"
+                      onClick={() => navigate("/outstation")}
                     />
                     <StatCard
                       icon={AlertTriangle}
@@ -487,6 +489,7 @@ export default function Dashboard() {
                       value={String(stats.absentToday ?? 0)}
                       subtitle="Not Clocked In"
                       variant="maroon"
+                      onClick={() => navigate("/hr-analytics/attendance#employee-absenteeism")}
                     />
                     <StatCard
                       icon={Users}
@@ -643,6 +646,7 @@ export default function Dashboard() {
                   value={String(stats.presentToday ?? 0)}
                   subtitle="Clocked In Today"
                   variant="success"
+                  onClick={() => navigate("/hr-analytics/attendance#admin-attendance")}
                 />
                 <StatCard
                   icon={MapPin}
@@ -657,6 +661,7 @@ export default function Dashboard() {
                   value={String(stats.onLeave ?? 0)}
                   subtitle="Approved Leaves"
                   variant="default"
+                  onClick={() => navigate("/leave/admin")}
                 />
                 <StatCard
                   icon={AlertTriangle}
@@ -664,6 +669,7 @@ export default function Dashboard() {
                   value={String(stats.absentToday ?? 0)}
                   subtitle="Not Clocked In"
                   variant="maroon"
+                  onClick={() => navigate("/hr-analytics/attendance#employee-absenteeism")}
                 />
                 <StatCard
                   icon={AlertTriangle}
