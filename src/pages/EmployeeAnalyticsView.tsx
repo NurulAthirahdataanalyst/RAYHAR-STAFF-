@@ -217,7 +217,23 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   }, [avgWorkHours, lastMonthAvgWorkHours, lastMonthLogsWithDuration.length]);
 
   // Monthly summary — count DISTINCT days where the employee clocked in (not total entries)
-  const presentLogs = myLogs.filter(l => l.clock_in != null && (l.status === 'Present' || l.status === 'LATE' || l.status === 'Late'));
+  const presentLogs = myLogs.filter(l => {
+    if (l.clock_in == null || (l.status !== 'Present' && l.status !== 'LATE' && l.status !== 'Late')) return false;
+    
+    let dateStr = l.date;
+    if (!dateStr) {
+      const d = new Date(l.clock_in);
+      dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    
+    const isOutstation = outstations.some(o => {
+      const startStr = getLocalDateString(o.start_date);
+      const endStr = getLocalDateString(o.end_date);
+      return dateStr >= startStr && dateStr <= endStr && o.status !== 'Cancelled';
+    });
+    
+    return !isOutstation;
+  });
   // Deduplicate by date string so multiple clock-ins on the same day count as 1
   const presentDaySet = new Set(presentLogs.map(l => {
     if (l.date) return l.date;
@@ -420,7 +436,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     return Math.min(100, Math.round(((present + late) / workingDays) * 100));
   };
   
-  const attendanceRate = calcRate(presentDays - lateArrivals, lateArrivals, totalWorkingDaysPassed);
+  const attendanceRate = calcRate(presentDays - lateArrivals + outstationDaysCount, lateArrivals, totalWorkingDaysPassed);
   
   // Last month/year rate
   let prevWorkingDaysPassed = 0;

@@ -3824,10 +3824,24 @@ app.get("/api/dashboard-stats", async (req, res) => {
     );
 
     const daysPresent = parseInt(monthlyRows[0].days_present || 0);
-    const [todayDayRows] = await pool.query(`SELECT EXTRACT(DAY FROM CURRENT_DATE) AS today_day`);
-    const totalDays = parseInt(todayDayRows[0].today_day || 1);
-    const totalDaysExcludingCoLeave = Math.max(totalDays - companyLeaveCountCurrentMonth, 1);
-    const attendanceRate = totalDaysExcludingCoLeave > 0 ? Math.round((daysPresent / totalDaysExcludingCoLeave) * 100) : 0;
+    
+    const currentYearNum = new Date().getFullYear();
+    const currentMonthNum = new Date().getMonth();
+    const todayDayNum = new Date().getDate();
+    let totalWorkingDaysPassed = 0;
+    
+    for (let d = 1; d <= todayDayNum; d++) {
+      const checkDate = new Date(currentYearNum, currentMonthNum, d);
+      const dayOfWeek = checkDate.getDay();
+      // Rayhar Work Days: Sunday to Thursday. Weekend: Friday (5) and Saturday (6) except 1st Saturday
+      const isWeekendDay = (dayOfWeek === 5) || (dayOfWeek === 6 && d > 7);
+      if (!isWeekendDay) {
+        totalWorkingDaysPassed++;
+      }
+    }
+    
+    const totalDaysExcludingCoLeave = Math.max(totalWorkingDaysPassed - companyLeaveCountCurrentMonth, 1);
+    const attendanceRate = Math.min(100, Math.round((daysPresent / totalDaysExcludingCoLeave) * 100));
 
     // 3. PENDING LEAVES & LEAVE BALANCE
     const [leaveRows] = await pool.query(

@@ -178,14 +178,9 @@ export default function Login() {
 
         <Card className="border-white/40 shadow-2xl bg-white/80 backdrop-blur-xl rounded-[20px] sm:rounded-[30px] overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <CardHeader className="pb-4 bg-white/50">
-              <TabsList className="grid w-full grid-cols-2 bg-slate-100/50">
-                <TabsTrigger value="login" className="rounded-xl data-[state=active]:bg-[#7B0099] data-[state=active]:text-white touch-target">Sign In</TabsTrigger>
-                <TabsTrigger value="signup" className="rounded-xl data-[state=active]:bg-[#7B0099] data-[state=active]:text-white touch-target">Sign Up</TabsTrigger>
-              </TabsList>
-            </CardHeader>
 
-            <TabsContent value="login">
+
+            <TabsContent value="login" className="mt-0">
               <form onSubmit={handleLogin}>
                 <CardContent className="space-y-4 pt-4">
                   <div className="space-y-2">
@@ -260,17 +255,7 @@ export default function Login() {
                       )}
                     </div>
 
-                    {/* Register Link */}
-                    <div className="text-center text-xs text-slate-500 font-bold">
-                      Don't have account?{" "}
-                      <button
-                        type="button"
-                        onClick={() => setActiveTab("signup")}
-                        className="text-[#7B0099] font-black hover:underline ml-1 uppercase"
-                      >
-                        REGISTER
-                      </button>
-                    </div>
+
 
                     {/* Secure Footer */}
                     <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-400 font-extrabold uppercase tracking-wider pt-2 border-t border-slate-100/50">

@@ -85,8 +85,8 @@ export default function StatCard({
         </div>
       </div>
 
-      <div>
-        <p className={`text-[28px] font-black tracking-tight leading-tight ${
+      <div className="min-w-0">
+        <p className={`text-[28px] font-black tracking-tight leading-tight truncate ${
           variant === 'maroon' ? 'text-rose-700' : 
           variant === 'warning' ? 'text-amber-700' : 'text-slate-800'
         }`}>
