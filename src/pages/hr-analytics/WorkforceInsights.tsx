@@ -94,6 +94,7 @@ export default function WorkforceInsights() {
   const [absentList, setAbsentList] = useState<LiveEmp[]>([]);
   const [pendingApprovalsList, setPendingApprovalsList] = useState<PendingItem[]>([]);
   const [upcomingOutstationList, setUpcomingOutstationList] = useState<any[]>([]);
+  const [activeOutstationList, setActiveOutstationList] = useState<any[]>([]);
   const [outstationSummary, setOutstationSummary] = useState<any>(null);
   const [feedConnected, setFeedConnected] = useState(false);
 
@@ -121,6 +122,7 @@ export default function WorkforceInsights() {
           setAbsentList(d.absentList || []);
           setPendingApprovalsList(d.pendingApprovals || []);
           setUpcomingOutstationList(d.upcomingOutstationList || []);
+          setActiveOutstationList(d.activeOutstationList || []);
           setOutstationSummary(d.outstationSummary || null);
           setFeedConnected(true);
         }
@@ -1017,6 +1019,101 @@ export default function WorkforceInsights() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+
+            <div className="flex flex-col gap-6">
+              {/* Card: Active Outstation */}
+              <Card className={`rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex flex-col p-4 ${cardHoverEffect}`}>
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Active Outstation</h3>
+                    {feedConnected
+                      ? <span className="flex items-center gap-1 bg-pink-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white dark:bg-card animate-pulse" />LIVE</span>
+                      : <span className="text-[8px] text-slate-400 font-bold uppercase">Connecting…</span>}
+                  </div>
+                  <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-150 rounded text-slate-505 flex items-center gap-1 cursor-pointer hover:underline" onClick={() => navigate("/outstation")}>
+                    <CalendarDays className="w-3 h-3" /> {displayDate}
+                  </span>
+                </div>
+                
+                <div className="flex-1 space-y-4 max-h-[300px] overflow-y-auto pr-0.5">
+                  {activeOutstationList.length === 0 && !feedConnected && (
+                    <div className="flex flex-col items-center justify-center py-8 text-slate-300">
+                      <Loader2 className="w-5 h-5 animate-spin mb-2" />
+                      <p className="text-[10px] font-medium">Loading live data…</p>
+                    </div>
+                  )}
+                  {activeOutstationList.length === 0 && feedConnected && (
+                    <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                      <Plane className="w-6 h-6 opacity-40 mb-1" />
+                      <p className="text-[10px] font-semibold">No active outstations today.</p>
+                    </div>
+                  )}
+                  {activeOutstationList.map((item, idx) => {
+                    const borderColors = ['border-purple-500', 'border-indigo-500', 'border-blue-500', 'border-sky-500'];
+                    const borderColor = borderColors[idx % borderColors.length];
+                    const displayEmps = item.employees.slice(0, 3);
+                    const extraCount = Math.max(0, item.employees.length - 3);
+                    
+                    const formatDate = (ds: string) => {
+                      if (!ds) return "";
+                      const d = new Date(ds);
+                      return d.toLocaleDateString("en-MY", { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+                    };
+                    let dateDisplay = "";
+                    if (item.startDate) {
+                      const sd = formatDate(item.startDate);
+                      const ed = item.endDate ? formatDate(item.endDate) : sd;
+                      dateDisplay = sd === ed ? sd : `${sd} - ${ed}`;
+                    }
+
+                    const days = Math.max(1, Math.ceil((new Date(item.endDate || item.startDate).getTime() - new Date(item.startDate).getTime()) / (1000 * 3600 * 24)));
+
+                    return (
+                      <div key={item.id} onClick={() => navigate("/outstation")} className={`border-l-4 ${borderColor} pl-3 py-1 space-y-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-r-lg transition-colors`}>
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{item.title}</p>
+                            <div className="mt-1 space-y-0.5">
+                              {dateDisplay && (
+                                <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
+                                  <CalendarDays className="w-3 h-3 text-slate-400 shrink-0" /> {dateDisplay}
+                                </p>
+                              )}
+                              <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
+                                <Clock className="w-3 h-3 text-slate-400 shrink-0" /> {days} Day{days === 1 ? '' : 's'} Total
+                              </p>
+                              {item.destination && item.title !== item.destination && (
+                                <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
+                                  <MapPin className="w-3 h-3 text-slate-400 shrink-0" /> {item.destination}
+                                </p>
+                              )}
+                              {item.title === item.destination && (
+                                <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
+                                  <MapPin className="w-3 h-3 text-slate-400 shrink-0" /> {item.destination}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <div className="flex -space-x-1.5 mt-0.5">
+                              {displayEmps.map((e: any, eIdx: number) => (
+                                <div key={eIdx} title={e.name} className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[8px] uppercase shadow-sm border-2 border-white dark:border-card ${getAvatarColor(e.name)}`}>
+                                  {e.initials}
+                                </div>
+                              ))}
+                              {extraCount > 0 && (
+                                <div className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold text-[8px] shadow-sm border-2 border-white dark:border-card">
+                                  +{extraCount}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
 
           {/* Card 4: Pending Approvals â€” LIVE SSE */}
           <Card className={`rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex flex-col p-4 ${cardHoverEffect}`}>

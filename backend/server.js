@@ -1473,7 +1473,21 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
     outstationGroups[key].employees.push({ id: r.user_id, name: r.full_name, initials });
   }
 
-  const upcomingOutstationList = Object.values(outstationGroups);
+  const activeOutstationList = [];
+  const upcomingOutstationList = [];
+  const targetDateObj = new Date(dateStr);
+  targetDateObj.setHours(0,0,0,0);
+
+  for (const group of Object.values(outstationGroups)) {
+    const startObj = new Date(group.startDate);
+    startObj.setHours(0,0,0,0);
+    if (startObj <= targetDateObj) {
+      activeOutstationList.push(group);
+    } else {
+      upcomingOutstationList.push(group);
+    }
+  }
+
   // Outstation Summary (for the month)
   const monthStart = dateStr.substring(0, 8) + '01';
   const nextMonthDate = new Date(monthStart);
@@ -1530,6 +1544,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
     lateList,
     absentList,
     pendingApprovals,
+    activeOutstationList,
     upcomingOutstationList,
     outstationSummary
   };
