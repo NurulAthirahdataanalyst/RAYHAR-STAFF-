@@ -213,27 +213,32 @@ export default function OutstationReports() {
               </table>
             </div>
           )}
+          
+          {/* Summary Cards */}
+          {!loading && filtered.length > 0 && (
+            <div className="bg-slate-50/50 dark:bg-slate-900/50 border-t border-gray-100 dark:border-slate-800 p-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {[
+                  { label: "Total Records", value: filtered.length, color: "text-gray-800 dark:text-gray-100" },
+                  { label: "Total Days",    value: Object.values(filtered.reduce((acc, a) => { 
+                      const key = a.destination + "_" + a.start_date + "_" + a.end_date; 
+                      if (!acc[key]) acc[key] = diffDays(a.start_date, a.end_date); 
+                      return acc; 
+                    }, {} as Record<string, number>)).reduce((sum, d) => sum + (d as number), 0), color: "text-pink-600" },
+                  { label: "Active Now",    value: filtered.filter(a => a.status === "Active").length, color: "text-pink-600" },
+                  { label: "Upcoming Event",value: filtered.filter(a => a.status === "Upcoming").length, color: "text-amber-500" },
+                  { label: "Completed",     value: filtered.filter(a => a.status === "Completed").length, color: "text-blue-600" },
+                ].map(s => (
+                  <div key={s.label} className="bg-white dark:bg-card border border-gray-200 dark:border-gray-500/30 shadow-sm rounded-lg p-3">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{s.label}</p>
+                    <p className={`text-xl font-black ${s.color} mt-1`}>{s.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      {/* Summary Cards */}
-      {!loading && filtered.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: "Total Records", value: filtered.length, color: "text-gray-800 dark:text-gray-100" },
-            { label: "Total Days",    value: filtered.reduce((s, a) => s + diffDays(a.start_date, a.end_date), 0), color: "text-pink-600" },
-            { label: "Active Now",    value: filtered.filter(a => a.status === "Active").length, color: "text-pink-600" },
-            { label: "Completed",     value: filtered.filter(a => a.status === "Completed").length, color: "text-blue-600" },
-          ].map(s => (
-            <Card key={s.label} className="border border-gray-200 dark:border-gray-500/30/80 shadow-sm">
-              <CardContent className="p-4">
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{s.label}</p>
-                <p className={`text-2xl font-black ${s.color} mt-1`}>{s.value}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

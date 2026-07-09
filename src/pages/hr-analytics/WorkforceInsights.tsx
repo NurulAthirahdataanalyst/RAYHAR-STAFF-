@@ -1180,6 +1180,7 @@ export default function WorkforceInsights() {
               )}
             </div>
           </Card>
+          </div>
 
           {/* Card 4: Upcoming Outstation */}
           <Card className={`rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex flex-col p-4 ${cardHoverEffect}`}>
@@ -1274,7 +1275,7 @@ export default function WorkforceInsights() {
           </div>
           </>
         )}
-          </>
+        </>
         ) : (
           <MonthViewDashboard data={data} outstationSummary={outstationSummary} feedConnected={feedConnected} />
         )}
