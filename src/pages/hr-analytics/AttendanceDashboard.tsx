@@ -3,8 +3,10 @@ import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { 
-  Download, FileBarChart, Loader2, Users, TrendingUp, History, Calendar, Filter, 
+  Download, FileBarChart, Loader2, Users, TrendingUp, History, Calendar as CalendarIcon, Filter, CalendarDays, 
   Activity, Clock, AlertCircle, Sparkles, Plus, Check, CheckCircle2, Trash2, Building2, UserPlus, 
   Settings2, RefreshCw, BarChart2, PieChart, Info, ShieldAlert, MapPin, ChevronDown, FileText, FileSpreadsheet, Search, ChevronRight
 } from "lucide-react";
@@ -1105,12 +1107,23 @@ export default function AttendanceDashboard() {
             <div className="flex flex-wrap items-center gap-3">
               {/* Date Filter */}
               <div className="relative">
-                <input 
-                  type="date" 
-                  value={selectedDate} 
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="pl-3 pr-3 py-1.5 text-xs font-medium border border-gray-200 dark:border-slate-800 rounded-md bg-white dark:bg-card text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#7B0099] h-8 shadow-sm"
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="appearance-none flex items-center justify-center px-3 py-1.5 bg-white dark:bg-card border border-gray-200 dark:border-slate-800 text-gray-700 text-xs font-medium rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:bg-gray-50 dark:hover:bg-slate-800 focus:ring-1 focus:ring-[#7B0099]">
+                      {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-3.5 h-3.5 text-gray-400" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-1" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={new Date(selectedDate)}
+                      onSelect={(d) => {
+                        if (d) setSelectedDate(new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0]);
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               {/* Department Filter */}

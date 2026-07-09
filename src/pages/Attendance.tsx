@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Clock, Fingerprint, Hand, Timer, MapPin, Home, SlidersHorizontal, Download, ChevronDown, FileText, FileSpreadsheet, Sparkles } from "lucide-react";
+import { Loader2, Clock, Fingerprint, Hand, Timer, MapPin, Home, SlidersHorizontal, Download, ChevronDown, FileText, FileSpreadsheet, Sparkles, CalendarDays } from "lucide-react";
 import { API_BASE_URL } from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -1049,14 +1051,23 @@ export default function Attendance() {
               {/* Date Filter */}
               <div className="relative">
                 {viewMode === "day" ? (
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => {
-                      if (e.target.value) setSelectedDate(e.target.value);
-                    }}
-                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest"
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] gap-2 hover:bg-muted/80">
+                        {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-1" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={new Date(selectedDate)}
+                        onSelect={(d) => {
+                          if (d) setSelectedDate(new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0]);
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 ) : (
                   <input
                     type="month"

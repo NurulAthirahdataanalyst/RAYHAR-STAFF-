@@ -9,7 +9,8 @@ import { Loader2, Users, UserCheck, CalendarDays, Clock, FileCheck, CheckCircle2
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector, AreaChart, Area } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 
 const COLORS = ['#4f46e5', '#eab308', '#94a3b8', '#DC2626', '#a855f7', '#ec4899']; // Present, Late, On Leave, Absent, Comp Leave, Outstation
@@ -249,14 +250,21 @@ export default function WorkforceInsights() {
             <div className="flex items-center gap-3">
               <div className="relative">
                 {viewMode === "day" ? (
-                  <input
-                    type="date"
-                    value={selectedDate ? new Date(selectedDate.getTime() - (selectedDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0] : ''}
-                    onChange={(e) => {
-                      if (e.target.value) handleDateSelect(new Date(e.target.value));
-                    }}
-                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10"
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 gap-2 hover:bg-slate-100 dark:hover:bg-slate-800">
+                        {displayDate} <CalendarDays className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-1" align="end">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={handleDateSelect}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 ) : (
                   <input
                     type="month"
