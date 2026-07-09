@@ -417,7 +417,6 @@ export default function Dashboard() {
               icon={Clock}
               title="Today's Status"
               value={displayStatus}
-              valueClassName="text-lg font-bold"
               subtitle={todayStatusSubtitle}
               variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
               onClick={() => {
@@ -609,7 +608,6 @@ export default function Dashboard() {
                     icon={Clock}
                     title="Today's Status"
                     value={displayStatus}
-                    valueClassName="text-lg font-bold"
                     subtitle={todayStatusSubtitle}
                     variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
                     onClick={() => {
