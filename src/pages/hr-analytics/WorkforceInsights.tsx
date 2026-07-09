@@ -8,8 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Loader2, Users, UserCheck, CalendarDays, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight, ChevronDown, Wifi, WifiOff, TrendingUp, MapPin, Plane, FileText, AlertCircle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector, AreaChart, Area } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+
+
 import { Button } from "@/components/ui/button";
 
 const COLORS = ['#4f46e5', '#eab308', '#94a3b8', '#DC2626', '#a855f7', '#ec4899']; // Present, Late, On Leave, Absent, Comp Leave, Outstation
@@ -247,81 +247,31 @@ export default function WorkforceInsights() {
         {/* Header Controls */}
         <div className="flex flex-wrap items-center justify-end w-full gap-3 pb-2 pt-2">
             <div className="flex items-center gap-3">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="h-10 px-5 text-sm font-bold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 hover:bg-slate-100 uppercase tracking-widest rounded-lg flex items-center gap-3">
-                    {displayDate} <CalendarDays className="w-4 h-4 text-slate-600" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-3" align="end">
-                  {viewMode === 'day' ? (
-                    <div className="p-1">
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={handleDateSelect}
-                        initialFocus
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-[260px] flex flex-col gap-3">
-                      {/* Year Input/Display */}
-                      <div className="bg-slate-100 rounded-sm">
-                        <Select value={year} onValueChange={setYear}>
-                          <SelectTrigger className="w-full bg-transparent border-none shadow-none h-9 text-sm focus:ring-0">
-                            <SelectValue placeholder="Year" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Month Grid */}
-                      <div className="grid grid-cols-4 gap-1">
-                        {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, i) => {
-                          const mValue = (i + 1).toString().padStart(2, '0');
-                          const isSelected = month === mValue;
-                          return (
-                            <button
-                              key={m}
-                              onClick={() => setMonth(mValue)}
-                              className={`py-1.5 px-1 text-sm text-center transition-colors ${
-                                isSelected 
-                                  ? 'bg-[#5f6368] text-white border-[2px] border-[#202124]' 
-                                  : 'text-slate-700 hover:bg-slate-100 border-[2px] border-transparent'
-                              }`}
-                            >
-                              {m}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      {/* Footer Actions */}
-                      <div className="flex items-center justify-between pt-1">
-                        <button 
-                          className="text-sm text-sky-500 hover:underline"
-                          onClick={() => {
-                            setMonth((new Date().getMonth() + 1).toString().padStart(2, '0'));
-                          }}
-                        >
-                          Clear
-                        </button>
-                        <button 
-                          className="text-sm text-sky-500 hover:underline"
-                          onClick={() => {
-                            setMonth((new Date().getMonth() + 1).toString().padStart(2, '0'));
-                            setYear(new Date().getFullYear().toString());
-                          }}
-                        >
-                          This month
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </PopoverContent>
-              </Popover>
+              <div className="relative">
+                {viewMode === "day" ? (
+                  <input
+                    type="date"
+                    value={selectedDate ? new Date(selectedDate.getTime() - (selectedDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0] : ''}
+                    onChange={(e) => {
+                      if (e.target.value) handleDateSelect(new Date(e.target.value));
+                    }}
+                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10"
+                  />
+                ) : (
+                  <input
+                    type="month"
+                    value={`${year}-${month}`}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        const [newYear, newMonth] = e.target.value.split('-');
+                        setYear(newYear);
+                        setMonth(newMonth);
+                      }
+                    }}
+                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10"
+                  />
+                )}
+              </div>
 
               <div className="flex items-center bg-slate-50 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-100 dark:border-slate-800">
                 <button 
