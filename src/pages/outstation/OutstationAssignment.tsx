@@ -12,9 +12,10 @@ import {
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Plane, Plus, Filter, Loader2, MapPin, Edit2, XCircle, Trash2,
-  Users, Search, Calendar, CheckCircle2, X,
+  Users, Search, Calendar, CheckCircle2, X, CalendarDays, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { API_BASE_URL } from "../../config/api";
 
@@ -111,6 +112,13 @@ export default function OutstationAssignment() {
   // Filters
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterSearch, setFilterSearch] = useState("");
+  const currentDate = new Date();
+  const [filterMonth, setFilterMonth] = useState((currentDate.getMonth() + 1).toString().padStart(2, '0'));
+  const [filterYear, setFilterYear] = useState(currentDate.getFullYear().toString());
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
 
   useEffect(() => {
     if (!roleLoading && !OUTSTATION_ROLES.includes(role)) navigate("/");
@@ -152,6 +160,14 @@ export default function OutstationAssignment() {
   // Filtered assignments
   const filtered = useMemo(() => {
     return assignments.filter(a => {
+      // Month & Year logic
+      if (a.start_date && filterYear && filterMonth) {
+        const d = new Date(a.start_date);
+        if (d.getFullYear().toString() !== filterYear || (d.getMonth() + 1).toString().padStart(2, '0') !== filterMonth) {
+          return false;
+        }
+      }
+
       if (filterStatus !== "All" && a.status !== filterStatus) return false;
       if (filterSearch) {
         const q = filterSearch.toLowerCase();
@@ -159,7 +175,17 @@ export default function OutstationAssignment() {
       }
       return true;
     });
-  }, [assignments, filterStatus, filterSearch]);
+  }, [assignments, filterStatus, filterSearch, filterMonth, filterYear]);
+
+  // Pagination
+  const totalPages = Math.ceil(filtered.length / entriesPerPage) || 1;
+  const indexOfLastItem = currentPage * entriesPerPage;
+  const indexOfFirstItem = indexOfLastItem - entriesPerPage;
+  const currentItems = filtered.slice(indexOfFirstItem, indexOfLastItem);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus, filterSearch, filterMonth, filterYear, entriesPerPage]);
 
   const openNew = () => {
     setEditTarget(null);
@@ -288,9 +314,54 @@ export default function OutstationAssignment() {
                 placeholder="Search employee, destination…"
                 value={filterSearch}
                 onChange={e => setFilterSearch(e.target.value)}
-                className="pl-8 h-8 text-xs w-48 sm:w-56"
+                className="pl-8 h-8 text-xs w-40 sm:w-48"
               />
             </div>
+            
+            {/* Month/Year Filter */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="h-8 px-3 text-[11px] font-bold text-gray-700 bg-gray-50 border-gray-200 hover:bg-gray-100 uppercase tracking-widest rounded flex items-center gap-2">
+                  {filterMonth && filterYear 
+                    ? `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][parseInt(filterMonth) - 1]}, ${filterYear}`
+                    : "All Time"} <CalendarDays className="w-3.5 h-3.5 text-gray-500" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[240px] p-3" align="start">
+                <div className="flex flex-col gap-3">
+                  <Select value={filterYear} onValueChange={setFilterYear}>
+                    <SelectTrigger className="h-8 text-xs font-bold rounded bg-slate-100 border-none">
+                      <SelectValue placeholder="Year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <div className="grid grid-cols-4 gap-1">
+                    {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, i) => {
+                      const mVal = (i + 1).toString().padStart(2, '0');
+                      const isSelected = filterMonth === mVal;
+                      return (
+                        <button
+                          key={m}
+                          onClick={() => setFilterMonth(mVal)}
+                          className={`py-1.5 px-1 text-[11px] font-bold text-center rounded transition-colors ${
+                            isSelected ? 'bg-pink-500 text-white' : 'text-gray-600 hover:bg-gray-100'
+                          }`}
+                        >
+                          {m}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex justify-between pt-2 border-t border-gray-100">
+                    <button onClick={() => { setFilterMonth(""); setFilterYear(""); }} className="text-[10px] font-bold text-gray-400 hover:text-gray-600">Clear</button>
+                    <button onClick={() => { setFilterMonth((currentDate.getMonth() + 1).toString().padStart(2, '0')); setFilterYear(currentDate.getFullYear().toString()); }} className="text-[10px] font-bold text-pink-500 hover:text-pink-600">This Month</button>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -300,9 +371,9 @@ export default function OutstationAssignment() {
                 ))}
               </SelectContent>
             </Select>
-            {(filterStatus !== "All" || filterSearch) && (
+            {(filterStatus !== "All" || filterSearch || !filterMonth) && (
               <Badge className="cursor-pointer bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-300 text-[10px] border border-gray-200 dark:border-slate-800 dark:border-gray-500/30 hover:bg-gray-200"
-                onClick={() => { setFilterStatus("All"); setFilterSearch(""); }}>
+                onClick={() => { setFilterStatus("All"); setFilterSearch(""); setFilterMonth((currentDate.getMonth() + 1).toString().padStart(2, '0')); setFilterYear(currentDate.getFullYear().toString()); }}>
                 Clear ×
               </Badge>
             )}
@@ -331,7 +402,7 @@ export default function OutstationAssignment() {
               <p className="text-[10px] font-black uppercase tracking-widest">No assignments found</p>
             </div>
           ) : (
-            <div className="rounded-md border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/60 bg-white dark:bg-card">
+            <div className="rounded-md border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/60 bg-white dark:bg-card [&_.overflow-auto::-webkit-scrollbar]:hidden [&_.overflow-auto]:[-ms-overflow-style:none] [&_.overflow-auto]:[scrollbar-width:none]">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50/60 hover:bg-slate-50/60">
@@ -348,7 +419,7 @@ export default function OutstationAssignment() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map(a => (
+                  {currentItems.map(a => (
                     <TableRow key={a.id} className="hover:bg-pink-50/20 transition-colors">
                       <TableCell className="py-3">
                         <div className="flex items-center gap-2">
@@ -384,6 +455,68 @@ export default function OutstationAssignment() {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+          )}
+          
+          {/* Pagination Controls */}
+          {!loading && filtered.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="flex items-center gap-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                <span>
+                  Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filtered.length)} of {filtered.length} Entries
+                </span>
+                <div className="flex items-center gap-2">
+                  <span>Show</span>
+                  <Select 
+                    value={entriesPerPage.toString()} 
+                    onValueChange={(val) => { setEntriesPerPage(Number(val)); setCurrentPage(1); }}
+                  >
+                    <SelectTrigger className="h-7 text-[10px] font-bold rounded border-gray-200 dark:border-slate-700 w-[60px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="h-7 px-2 text-[10px] font-bold rounded"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </Button>
+                <div className="flex items-center gap-1 overflow-x-auto max-w-[150px] sm:max-w-none scrollbar-hide">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`h-7 w-7 p-0 text-[10px] font-bold rounded ${currentPage === pageNum ? 'bg-pink-500 text-white border-pink-500 hover:bg-pink-600' : 'text-gray-600'}`}
+                    >
+                      {pageNum}
+                    </Button>
+                  ))}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="h-7 px-2 text-[10px] font-bold rounded"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
