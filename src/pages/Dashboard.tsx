@@ -377,6 +377,13 @@ export default function Dashboard() {
     .replace("Clocked In (Outstation)", "Outstation")
     .replace("Present (Outstation)", "Outstation")
     .replace(" (", "\n(");
+    
+  let todayStatusTextClass = "text-[28px] sm:text-3xl font-black tracking-tight leading-tight";
+  if (displayStatus.includes("Outstation")) {
+    todayStatusTextClass = "text-[24px] sm:text-[26px] font-black tracking-tight leading-tight";
+  } else if (displayStatus.length > 10) {
+    todayStatusTextClass = "text-[22px] sm:text-[24px] font-black tracking-tight leading-tight";
+  }
   const todayStatusSubtitle = isPresent
     ? `Clock in: ${stats.todayStatusTime || stats.clockInTime || "--:--"}`
     : isClockedOut
@@ -417,6 +424,7 @@ export default function Dashboard() {
               icon={Clock}
               title="Today's Status"
               value={displayStatus}
+              valueClassName={todayStatusTextClass}
               subtitle={todayStatusSubtitle}
               variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
               onClick={() => {
@@ -608,6 +616,7 @@ export default function Dashboard() {
                     icon={Clock}
                     title="Today's Status"
                     value={displayStatus}
+                    valueClassName={todayStatusTextClass}
                     subtitle={todayStatusSubtitle}
                     variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
                     onClick={() => {
