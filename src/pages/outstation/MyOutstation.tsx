@@ -48,6 +48,7 @@ type Assignment = {
   status: string;
   assigned_by_name?: string;
   assigned_at: string;
+  meeting_title?: string;
 };
 
 export default function MyOutstation() {

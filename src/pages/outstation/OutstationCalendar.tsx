@@ -39,6 +39,7 @@ type Assignment = {
   end_date: string;
   status: string;
   assigned_by_name?: string;
+  project?: string;
 };
 
 export default function OutstationCalendar() {

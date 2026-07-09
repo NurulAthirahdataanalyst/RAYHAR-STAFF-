@@ -99,7 +99,7 @@ export default function Employees() {
     } else {
       setAnalytics(null);
     }
-  }, [selectedEmployee, isModalOpen, analyticsMonth, analyticsYear]);
+  }, [selectedEmployee, isModalOpen, analyticsDate]);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [viewLeaveStatus, setViewLeaveStatus] = useState<"Approved" | "Pending" | "Rejected" | null>(null);

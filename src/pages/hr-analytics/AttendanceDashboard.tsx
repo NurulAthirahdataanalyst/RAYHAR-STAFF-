@@ -145,7 +145,7 @@ export default function AttendanceDashboard() {
 
   // ── LIVE SSE PRESENCE STATE ──────────────────────────────────────────
   const [liveStats, setLiveStats] = useState<{
-    present: number; late: number; absent: number; onLeave: number; companyLeave: number; total: number;
+    present: number; late: number; absent: number; onLeave: number; companyLeave: number; outstation?: number; total: number;
   }>({ present: 0, late: 0, absent: 0, onLeave: 0, companyLeave: 0, total: 0 });
   const [liveEmployees, setLiveEmployees] = useState<Array<{
     user_id: string; full_name: string; branch: string; department: string;
