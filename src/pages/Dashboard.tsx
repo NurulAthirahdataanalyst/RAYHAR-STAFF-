@@ -421,7 +421,7 @@ export default function Dashboard() {
               subtitle={todayStatusSubtitle}
               variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
               onClick={() => {
-                if (stats.todayStatus.includes("Absent")) {
+                if (safeTodayStatus.includes("Absent")) {
                   navigate("/hr-analytics/attendance#employee-absenteeism");
                 } else if (displayStatus.includes("Outstation")) {
                   navigate("/outstation");
@@ -613,7 +613,7 @@ export default function Dashboard() {
                     subtitle={todayStatusSubtitle}
                     variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
                     onClick={() => {
-                      if (stats.todayStatus.includes("Absent")) {
+                      if (safeTodayStatus.includes("Absent")) {
                         navigate("/hr-analytics/attendance#employee-absenteeism");
                       } else if (displayStatus.includes("Outstation")) {
                         navigate("/outstation");
