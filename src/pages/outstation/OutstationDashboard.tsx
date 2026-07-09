@@ -93,6 +93,32 @@ export default function OutstationDashboard() {
 
   useEffect(() => { 
     void fetchAll(); 
+
+    // Establish real-time EventSource connection
+    const streamUrl = `${API_BASE_URL}/api/presence/stream`;
+    const eventSource = new EventSource(streamUrl);
+
+    eventSource.onmessage = (event) => {
+      try {
+        // Refetch on any event to keep outstation status in sync
+        void fetchAll();
+      } catch (err) {
+        void fetchAll();
+      }
+    };
+
+    eventSource.onerror = (err) => {
+      console.error("Presence stream connection error:", err);
+    };
+
+    const interval = setInterval(() => {
+      void fetchAll();
+    }, 5 * 60 * 1000); // 5 min fallback polling
+
+    return () => {
+      eventSource.close();
+      clearInterval(interval);
+    };
   }, [fetchAll]);
 
   const activeNowGrouped = useMemo(() => {
