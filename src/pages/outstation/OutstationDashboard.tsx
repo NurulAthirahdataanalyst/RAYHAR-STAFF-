@@ -120,6 +120,31 @@ export default function OutstationDashboard() {
     return Object.values(groups);
   }, [assignments]);
 
+  const upcomingGrouped = useMemo(() => {
+    const upcomingList = assignments.filter(a => a.status === "Upcoming");
+    const groups: Record<string, {
+      destination: string; department: string; start_date: string; end_date: string; status: string;
+      employees: any[];
+    }> = {};
+
+    upcomingList.forEach(a => {
+      const key = `${a.destination}_${a.start_date}_${a.end_date}_${a.status}`;
+      if (!groups[key]) {
+        groups[key] = {
+          destination: a.destination,
+          department: a.department,
+          start_date: a.start_date,
+          end_date: a.end_date,
+          status: a.status,
+          employees: []
+        };
+      }
+      groups[key].employees.push(a);
+    });
+
+    return Object.values(groups);
+  }, [assignments]);
+
   const activeNow = useMemo(() => assignments.filter(a => a.status === "Active"), [assignments]);
   const upcoming = useMemo(() => assignments.filter(a => a.status === "Upcoming"), [assignments]);
   const returns = useMemo(() => {
@@ -233,6 +258,39 @@ export default function OutstationDashboard() {
     { name: "HR", value: 15 }, { name: "Finance", value: 10 },
   ], []);
 
+  // NEW KPI CALCULATIONS
+  const activeDomestic = activeNow.filter(a => !a.destination.toLowerCase().includes("singapore") && !a.destination.toLowerCase().includes("indonesia") && !a.destination.toLowerCase().includes("overseas")).length;
+  const activeInternational = activeCount - activeDomestic;
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const departingTodayList = assignments.filter(a => a.status === "Upcoming" && a.start_date && a.start_date.startsWith(todayStr));
+  const departingTodayCount = departingTodayList.length;
+  const departingDomestic = departingTodayList.filter(a => !a.destination.toLowerCase().includes("singapore") && !a.destination.toLowerCase().includes("indonesia") && !a.destination.toLowerCase().includes("overseas")).length;
+  const departingInternational = departingTodayCount - departingDomestic;
+
+  const returningTodayCount = returns.length;
+
+  const upcomingNext7Days = assignments.filter(a => {
+    if (a.status !== "Upcoming" || !a.start_date) return false;
+    const start = new Date(a.start_date).getTime();
+    const now = new Date().getTime();
+    const diffDays = (start - now) / (1000 * 3600 * 24);
+    return diffDays >= 0 && diffDays <= 7;
+  });
+
+  const upcomingGroupedNext7Days = useMemo(() => {
+    const groups: Record<string, any[]> = {};
+    upcomingNext7Days.forEach(a => {
+      const key = `${a.destination}_${a.start_date}_${a.end_date}_${a.status}`;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(a);
+    });
+    return Object.values(groups);
+  }, [upcomingNext7Days]);
+
+  const upcomingAssignmentsCount = upcomingGroupedNext7Days.length;
+  const employeesScheduledCount = upcomingNext7Days.length;
+  const approvalPendingCount = 8; // mock
 
   if (roleLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900/50"><Loader2 className="animate-spin w-8 h-8 text-purple-900" /></div>;
 
@@ -245,44 +303,168 @@ export default function OutstationDashboard() {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6">
         
         {/* Header Actions */}
-        <div className="flex items-center justify-end gap-3 mb-6">
-          <Button className="h-9 px-5 text-[13px] font-semibold text-white shadow-sm bg-[#4c1d95] hover:bg-[#3b0764]" onClick={() => navigate("/outstation/assignment", { state: { openNew: true } })}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <p className="text-[14px] text-gray-500 dark:text-gray-400">Monitor employee business travel across all branches.</p>
+          <Button className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#4c1d95] hover:bg-[#3b0764]" onClick={() => navigate("/outstation/assignment", { state: { openNew: true } })}>
             <Plane className="w-4 h-4 mr-2" /> New Assignment
           </Button>
         </div>
 
-        {/* ROW 1: KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {[
-            { label: "Active Outstations", val: activeCount, trend: dynamicTrends.active, subtitle: "Currently travelling", color: C_GREEN, trendColor: dynamicTrends.activeColor },
-            { label: "Upcoming Departures", val: upcomingCount, trend: dynamicTrends.upcoming, subtitle: "Scheduled within 7 days", color: C_ORANGE, trendColor: dynamicTrends.upcomingColor },
-            { label: "Total Assignments", val: activeCount + completedCount + upcomingCount, trend: dynamicTrends.total, subtitle: "Year to date", color: C_PURPLE, trendColor: dynamicTrends.totalColor },
-            { label: "Completion Rate", val: dynamicTrends.completionValue, trend: dynamicTrends.completionTrend, subtitle: "Trips concluded successfully", color: C_BLUE, trendColor: dynamicTrends.completionColor }
-          ].map((kpi, i) => (
-            <Card key={i} className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative">
-              <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: kpi.color }} />
-              <CardContent className="p-6">
-                <p className="text-[14px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">{kpi.label}</p>
+        {/* ROW 1: Enterprise KPI Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+            {/* 1. Active Outstation */}
+            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-green-500" />
+              <CardContent className="p-4 flex flex-col flex-1">
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">Active Outstation</p>
                 {loading ? (
-                  <Skeleton className="h-[48px] w-20 mb-2 mt-2" />
+                  <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
                 ) : (
-                  <div className="flex items-baseline gap-3 mt-1 mb-2">
-                    <span className="text-[42px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{kpi.val}</span>
-                    <span className={`text-[12px] font-bold ${kpi.trendColor}`}>{kpi.trend}</span>
+                  <div className="flex flex-col mt-1 mb-3">
+                    <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{activeCount}</span>
+                    <span className="text-[11px] font-bold text-green-600 mt-1">↑ +3 vs Yesterday</span>
                   </div>
                 )}
-                <p className="text-[12px] text-gray-400 font-medium">{kpi.subtitle}</p>
+                <div className="mt-auto pt-3 border-t border-gray-50 dark:border-slate-800/50">
+                  <p className="text-[11px] text-gray-500 font-medium flex justify-between">
+                    <span>Domestic</span> <span className="font-bold text-gray-900 dark:text-gray-100">{activeDomestic}</span>
+                  </p>
+                  <p className="text-[11px] text-gray-500 font-medium flex justify-between mt-1">
+                    <span>International</span> <span className="font-bold text-gray-900 dark:text-gray-100">{activeInternational}</span>
+                  </p>
+                </div>
               </CardContent>
             </Card>
-          ))}
+
+            {/* 2. Departing Today */}
+            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-orange-500" />
+              <CardContent className="p-4 flex flex-col flex-1">
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">Departing Today</p>
+                {loading ? (
+                  <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
+                ) : (
+                  <div className="flex flex-col mt-1 mb-3">
+                    <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{departingTodayCount}</span>
+                    <span className="text-[11px] font-medium text-gray-500 mt-1">Starts Today</span>
+                  </div>
+                )}
+                <div className="mt-auto pt-3 border-t border-gray-50 dark:border-slate-800/50">
+                  <p className="text-[11px] text-gray-500 font-medium flex justify-between">
+                    <span>Domestic</span> <span className="font-bold text-gray-900 dark:text-gray-100">{departingDomestic}</span>
+                  </p>
+                  <p className="text-[11px] text-gray-500 font-medium flex justify-between mt-1">
+                    <span>Overseas</span> <span className="font-bold text-gray-900 dark:text-gray-100">{departingInternational}</span>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 3. Returning Today */}
+            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-blue-500" />
+              <CardContent className="p-4 flex flex-col flex-1">
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">Returning Today</p>
+                {loading ? (
+                  <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
+                ) : (
+                  <div className="flex flex-col mt-1 mb-3">
+                    <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{returningTodayCount}</span>
+                    <span className="text-[11px] font-medium text-gray-500 mt-1">Expected Back</span>
+                  </div>
+                )}
+                <div className="mt-auto pt-3 border-t border-gray-50 dark:border-slate-800/50">
+                  <p className="text-[11px] font-bold text-blue-600 flex items-center">
+                    <Clock className="w-3 h-3 mr-1" /> Before 6 PM
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 4. Upcoming Events */}
+            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-purple-500" />
+              <CardContent className="p-4 flex flex-col flex-1">
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">Upcoming Events</p>
+                {loading ? (
+                  <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
+                ) : (
+                  <div className="flex flex-col mt-1 mb-3">
+                    <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{upcomingAssignmentsCount}</span>
+                    <span className="text-[11px] font-medium text-gray-500 mt-1">Next 7 Days</span>
+                  </div>
+                )}
+                <div className="mt-auto pt-3 border-t border-gray-50 dark:border-slate-800/50">
+                  <p className="text-[11px] text-gray-500 font-medium">
+                    {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric'})} - {new Date(Date.now() + 7 * 24 * 3600 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric'})}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 5. Employees Scheduled */}
+            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-yellow-500" />
+              <CardContent className="p-4 flex flex-col flex-1">
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1 whitespace-nowrap">Employees Scheduled</p>
+                {loading ? (
+                  <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
+                ) : (
+                  <div className="flex flex-col mt-1 mb-3">
+                    <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{employeesScheduledCount}</span>
+                    <span className="text-[11px] font-medium text-gray-500 mt-1 whitespace-nowrap">Across Upcoming Trips</span>
+                  </div>
+                )}
+                <div className="mt-auto pt-3 border-t border-gray-50 dark:border-slate-800/50">
+                  <p className="text-[11px] text-gray-500 font-medium flex justify-between">
+                    <span>Assignments</span> <span className="font-bold text-gray-900 dark:text-gray-100">{upcomingAssignmentsCount}</span>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 6. Approval Pending */}
+            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-red-500" />
+              <CardContent className="p-4 flex flex-col flex-1">
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3 text-red-500" /> Approval Pending
+                </p>
+                {loading ? (
+                  <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
+                ) : (
+                  <div className="flex flex-col mt-1 mb-2">
+                    <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{approvalPendingCount}</span>
+                    <span className="text-[11px] font-medium text-gray-500 mt-1">Waiting Approval</span>
+                  </div>
+                )}
+                <div className="mt-auto pt-2 border-t border-gray-50 dark:border-slate-800/50 grid grid-cols-3 gap-1">
+                  <div className="text-center bg-red-50/50 rounded py-1">
+                    <p className="text-[9px] text-gray-500 uppercase">HR</p>
+                    <p className="text-[11px] font-bold text-gray-900">4</p>
+                  </div>
+                  <div className="text-center bg-red-50/50 rounded py-1">
+                    <p className="text-[9px] text-gray-500 uppercase">HOD</p>
+                    <p className="text-[11px] font-bold text-gray-900">3</p>
+                  </div>
+                  <div className="text-center bg-red-50/50 rounded py-1">
+                    <p className="text-[9px] text-gray-500 uppercase">MD</p>
+                    <p className="text-[11px] font-bold text-gray-900">1</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
         </div>
 
         {/* ROW 2: Active Outstations (8) & Sidebar (4) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
           
-          {/* Active Outstations Table */}
-          <Card className="lg:col-span-8 border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex flex-col min-h-[400px]">
-            <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
+          {/* Outstations Tables Column */}
+          <div className="lg:col-span-8 flex flex-col gap-6">
+            
+            {/* Active Outstations Table */}
+            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex flex-col min-h-[400px]">
+              <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
               <div>
                 <CardTitle className="text-[18px] font-bold text-gray-900 dark:text-gray-100">Active Outstations</CardTitle>
                 <p className="text-[13px] text-gray-500 dark:text-gray-400 font-medium mt-0.5">Real-time status of employees currently on assignment</p>
@@ -409,7 +591,247 @@ export default function OutstationDashboard() {
                 </>
               )}
             </CardContent>
-          </Card>
+            </Card>
+
+            {/* Upcoming Outstations Table */}
+            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex flex-col min-h-[400px]">
+              <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
+                <div>
+                  <CardTitle className="text-[18px] font-bold text-gray-900 dark:text-gray-100">Upcoming Outstations</CardTitle>
+                  <p className="text-[13px] text-gray-500 dark:text-gray-400 font-medium mt-0.5">Scheduled travels and assignments</p>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 flex-1 overflow-x-auto">
+                {loading ? (
+                  <div className="p-6 space-y-4">
+                    {[1,2,3,4].map(n => <Skeleton key={n} className="h-12 w-full rounded-[8px]" />)}
+                  </div>
+                ) : upcomingGrouped.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full py-16 text-gray-400 text-center px-4">
+                    <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-slate-900/50 flex items-center justify-center mb-4 border border-gray-100 dark:border-slate-800">
+                      <Calendar className="w-8 h-8 text-orange-500" />
+                    </div>
+                    <h3 className="text-[16px] font-bold text-gray-800 dark:text-gray-100 mb-1">No Upcoming Outstations</h3>
+                    <p className="text-[13px] text-gray-500 dark:text-gray-400 max-w-sm mb-6">There are no scheduled travels.</p>
+                  </div>
+                ) : (
+                  <>
+                  <table className="w-full text-left border-collapse">
+                    <thead className="bg-gray-50/80 sticky top-0 z-0">
+                      <tr>
+                        <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Destination</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Status</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Employee</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Duration</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {upcomingGrouped.filter(g => g.destination.toLowerCase().includes(search.toLowerCase()) || g.employees.some(e => (e.full_name || "").toLowerCase().includes(search.toLowerCase()))).map((g, i) => {
+                        const totalDays = Math.max(1, Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)));
+                        return (
+                          <tr key={i} className="hover:bg-gray-50/50 transition-colors group border-b border-gray-50 last:border-0">
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-orange-100/50 text-orange-700 flex items-center justify-center shadow-sm">
+                                  <MapPin className="w-4 h-4 text-orange-600" />
+                                </div>
+                                <div>
+                                  <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">{g.destination}</p>
+                                  <p className="text-[10px] text-gray-500 dark:text-gray-400">{g.department || "Domestic Branch"}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <Badge variant="outline" className="bg-orange-50/50 text-orange-600 border-orange-200 text-[10px] font-bold shadow-none px-2 py-0.5 gap-1 uppercase tracking-wider">
+                                <Clock className="w-3 h-3" /> Upcoming
+                              </Badge>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div>
+                                <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100">
+                                  {g.employees.length} Employee{g.employees.length !== 1 ? 's' : ''}
+                                </p>
+                                {g.employees.length === 1 && (
+                                  <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">{g.employees[0].user_id || "EMP-8821"}</p>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-start gap-2">
+                                <Calendar className="w-3.5 h-3.5 text-gray-400 mt-0.5" />
+                                <div>
+                                  <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-200">{formatShortDate(g.start_date)} - {formatShortDate(g.end_date)}</p>
+                                  <p className="text-[10px] font-medium text-orange-600">
+                                    {totalDays} {totalDays === 1 ? 'Day' : 'Days'} Total
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 text-xs font-semibold text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-md">
+                                    View Details
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[425px]">
+                                  <DialogHeader>
+                                    <DialogTitle className="uppercase tracking-wider">{g.destination}</DialogTitle>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Assigned Employees ({g.employees.length})</p>
+                                  </DialogHeader>
+                                  <div className="py-2 space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                                    {g.employees.map((e, idx) => (
+                                      <div key={idx} className="flex items-center justify-between bg-gray-50/80 p-3 rounded-lg border border-gray-100 dark:border-slate-800">
+                                        <div className="flex items-center gap-3">
+                                          <div className="w-9 h-9 rounded-full bg-orange-100/80 text-orange-700 flex items-center justify-center font-bold text-xs shadow-sm">
+                                            {e.full_name ? e.full_name.substring(0, 2).toUpperCase() : "U"}
+                                          </div>
+                                          <div>
+                                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-tight mb-0.5">{e.full_name || "Unknown"}</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{e.user_id || "EMP-8821"}</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-card">
+                    <span className="text-[12px] text-gray-500 dark:text-gray-400 font-medium">Showing {upcomingGrouped.length > 0 ? 1 : 0}-{upcomingGrouped.length} of {upcomingGrouped.length} Upcoming Outstations</span>
+                  </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+          </div>
+            {/* Upcoming Outstations Table */}
+            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex flex-col min-h-[400px]">
+              <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
+                <div>
+                  <CardTitle className="text-[18px] font-bold text-gray-900 dark:text-gray-100">Upcoming Outstations</CardTitle>
+                  <p className="text-[13px] text-gray-500 dark:text-gray-400 font-medium mt-0.5">Scheduled travels and assignments</p>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 flex-1 overflow-x-auto">
+                {loading ? (
+                  <div className="p-6 space-y-4">
+                    {[1,2,3,4].map(n => <Skeleton key={n} className="h-12 w-full rounded-[8px]" />)}
+                  </div>
+                ) : upcomingGrouped.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full py-16 text-gray-400 text-center px-4">
+                    <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-slate-900/50 flex items-center justify-center mb-4 border border-gray-100 dark:border-slate-800">
+                      <Calendar className="w-8 h-8 text-orange-500" />
+                    </div>
+                    <h3 className="text-[16px] font-bold text-gray-800 dark:text-gray-100 mb-1">No Upcoming Outstations</h3>
+                    <p className="text-[13px] text-gray-500 dark:text-gray-400 max-w-sm mb-6">There are no scheduled travels.</p>
+                  </div>
+                ) : (
+                  <>
+                  <table className="w-full text-left border-collapse">
+                    <thead className="bg-gray-50/80 sticky top-0 z-0">
+                      <tr>
+                        <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Destination</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Status</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Employee</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Duration</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {upcomingGrouped.filter(g => g.destination.toLowerCase().includes(search.toLowerCase()) || g.employees.some(e => (e.full_name || "").toLowerCase().includes(search.toLowerCase()))).map((g, i) => {
+                        const totalDays = Math.max(1, Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)));
+                        return (
+                          <tr key={i} className="hover:bg-gray-50/50 transition-colors group border-b border-gray-50 last:border-0">
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-orange-100/50 text-orange-700 flex items-center justify-center shadow-sm">
+                                  <MapPin className="w-4 h-4 text-orange-600" />
+                                </div>
+                                <div>
+                                  <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">{g.destination}</p>
+                                  <p className="text-[10px] text-gray-500 dark:text-gray-400">{g.department || "Domestic Branch"}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <Badge variant="outline" className="bg-orange-50/50 text-orange-600 border-orange-200 text-[10px] font-bold shadow-none px-2 py-0.5 gap-1 uppercase tracking-wider">
+                                <Clock className="w-3 h-3" /> Upcoming
+                              </Badge>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div>
+                                <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100">
+                                  {g.employees.length} Employee{g.employees.length !== 1 ? 's' : ''}
+                                </p>
+                                {g.employees.length === 1 && (
+                                  <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">{g.employees[0].user_id || "EMP-8821"}</p>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-start gap-2">
+                                <Calendar className="w-3.5 h-3.5 text-gray-400 mt-0.5" />
+                                <div>
+                                  <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-200">{formatShortDate(g.start_date)} - {formatShortDate(g.end_date)}</p>
+                                  <p className="text-[10px] font-medium text-orange-600">
+                                    {totalDays} {totalDays === 1 ? 'Day' : 'Days'} Total
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 text-xs font-semibold text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-md">
+                                    View Details
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[425px]">
+                                  <DialogHeader>
+                                    <DialogTitle className="uppercase tracking-wider">{g.destination}</DialogTitle>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Assigned Employees ({g.employees.length})</p>
+                                  </DialogHeader>
+                                  <div className="py-2 space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                                    {g.employees.map((e, idx) => (
+                                      <div key={idx} className="flex items-center justify-between bg-gray-50/80 p-3 rounded-lg border border-gray-100 dark:border-slate-800">
+                                        <div className="flex items-center gap-3">
+                                          <div className="w-9 h-9 rounded-full bg-orange-100/80 text-orange-700 flex items-center justify-center font-bold text-xs shadow-sm">
+                                            {e.full_name ? e.full_name.substring(0, 2).toUpperCase() : "U"}
+                                          </div>
+                                          <div>
+                                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-tight mb-0.5">{e.full_name || "Unknown"}</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{e.user_id || "EMP-8821"}</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-card">
+                    <span className="text-[12px] text-gray-500 dark:text-gray-400 font-medium">Showing {upcomingGrouped.length > 0 ? 1 : 0}-{upcomingGrouped.length} of {upcomingGrouped.length} Upcoming Outstations</span>
+                  </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+          </div>
+
 
           {/* Sidebar */}
           <div className="lg:col-span-4 flex flex-col gap-6">
