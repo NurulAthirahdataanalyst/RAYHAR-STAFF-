@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import AppLayout from "@/components/layout/AppLayout";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 import Dashboard from "./pages/Dashboard";
 import Attendance from "./pages/Attendance";
@@ -64,8 +65,9 @@ function ProtectedRoutes() {
 
   return (
     <RoleProvider>
-      <AppLayout>
-        <Routes>
+      <ErrorBoundary>
+        <AppLayout>
+          <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/attendance" element={<Attendance />} />
           <Route path="/calendar/company-leave" element={<CompanyLeaveCalendar />} />
@@ -115,6 +117,7 @@ function ProtectedRoutes() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppLayout>
+      </ErrorBoundary>
     </RoleProvider>
   );
 }
