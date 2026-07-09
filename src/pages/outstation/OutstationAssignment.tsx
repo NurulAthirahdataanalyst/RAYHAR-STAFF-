@@ -12,10 +12,9 @@ import {
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Plane, Plus, Filter, Loader2, MapPin, Edit2, XCircle, Trash2,
-  Users, Search, Calendar, CheckCircle2, X, CalendarDays, ChevronLeft, ChevronRight
+  Users, Search, Calendar, CheckCircle2, X, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { API_BASE_URL } from "../../config/api";
 
@@ -113,8 +112,7 @@ export default function OutstationAssignment() {
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterSearch, setFilterSearch] = useState("");
   const currentDate = new Date();
-  const [filterMonth, setFilterMonth] = useState((currentDate.getMonth() + 1).toString().padStart(2, '0'));
-  const [filterYear, setFilterYear] = useState(currentDate.getFullYear().toString());
+  const [filterMonthYear, setFilterMonthYear] = useState(`${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -161,9 +159,10 @@ export default function OutstationAssignment() {
   const filtered = useMemo(() => {
     return assignments.filter(a => {
       // Month & Year logic
-      if (a.start_date && filterYear && filterMonth) {
+      if (a.start_date && filterMonthYear) {
+        const [fYear, fMonth] = filterMonthYear.split('-');
         const d = new Date(a.start_date);
-        if (d.getFullYear().toString() !== filterYear || (d.getMonth() + 1).toString().padStart(2, '0') !== filterMonth) {
+        if (d.getFullYear().toString() !== fYear || (d.getMonth() + 1).toString().padStart(2, '0') !== fMonth) {
           return false;
         }
       }
@@ -185,7 +184,7 @@ export default function OutstationAssignment() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterStatus, filterSearch, filterMonth, filterYear, entriesPerPage]);
+  }, [filterStatus, filterSearch, filterMonthYear, entriesPerPage]);
 
   const openNew = () => {
     setEditTarget(null);
@@ -319,48 +318,12 @@ export default function OutstationAssignment() {
             </div>
             
             {/* Month/Year Filter */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="h-8 px-3 text-[11px] font-bold text-gray-700 bg-gray-50 border-gray-200 hover:bg-gray-100 uppercase tracking-widest rounded flex items-center gap-2">
-                  {filterMonth && filterYear 
-                    ? `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][parseInt(filterMonth) - 1]}, ${filterYear}`
-                    : "All Time"} <CalendarDays className="w-3.5 h-3.5 text-gray-500" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[240px] p-3" align="start">
-                <div className="flex flex-col gap-3">
-                  <Select value={filterYear} onValueChange={setFilterYear}>
-                    <SelectTrigger className="h-8 text-xs font-bold rounded bg-slate-100 border-none">
-                      <SelectValue placeholder="Year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[2024, 2025, 2026, 2027].map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <div className="grid grid-cols-4 gap-1">
-                    {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, i) => {
-                      const mVal = (i + 1).toString().padStart(2, '0');
-                      const isSelected = filterMonth === mVal;
-                      return (
-                        <button
-                          key={m}
-                          onClick={() => setFilterMonth(mVal)}
-                          className={`py-1.5 px-1 text-[11px] font-bold text-center rounded transition-colors ${
-                            isSelected ? 'bg-pink-500 text-white' : 'text-gray-600 hover:bg-gray-100'
-                          }`}
-                        >
-                          {m}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="flex justify-between pt-2 border-t border-gray-100">
-                    <button onClick={() => { setFilterMonth(""); setFilterYear(""); }} className="text-[10px] font-bold text-gray-400 hover:text-gray-600">Clear</button>
-                    <button onClick={() => { setFilterMonth((currentDate.getMonth() + 1).toString().padStart(2, '0')); setFilterYear(currentDate.getFullYear().toString()); }} className="text-[10px] font-bold text-pink-500 hover:text-pink-600">This Month</button>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
+            <input
+              type="month"
+              value={filterMonthYear}
+              onChange={(e) => setFilterMonthYear(e.target.value)}
+              className="appearance-none flex items-center justify-center px-3 py-1.5 h-8 bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 text-[11px] font-bold rounded shadow-sm outline-none cursor-pointer uppercase tracking-widest"
+            />
 
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
@@ -371,9 +334,9 @@ export default function OutstationAssignment() {
                 ))}
               </SelectContent>
             </Select>
-            {(filterStatus !== "All" || filterSearch || !filterMonth) && (
+            {(filterStatus !== "All" || filterSearch || !filterMonthYear) && (
               <Badge className="cursor-pointer bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-300 text-[10px] border border-gray-200 dark:border-slate-800 dark:border-gray-500/30 hover:bg-gray-200"
-                onClick={() => { setFilterStatus("All"); setFilterSearch(""); setFilterMonth((currentDate.getMonth() + 1).toString().padStart(2, '0')); setFilterYear(currentDate.getFullYear().toString()); }}>
+                onClick={() => { setFilterStatus("All"); setFilterSearch(""); setFilterMonthYear(`${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`); }}>
                 Clear ×
               </Badge>
             )}
