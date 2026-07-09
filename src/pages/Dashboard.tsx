@@ -1246,7 +1246,7 @@ export default function Dashboard() {
                   const extraCount = Math.max(0, g.employees.length - 3);
 
                   return (
-                    <div key={i} className={`flex items-start gap-3 p-4 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer ${i !== grouped.length - 1 ? "border-b border-slate-50 dark:border-slate-800" : ""}`}>
+                    <div key={i} className={`flex items-start gap-3 p-4 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer ${i !== groupedUpcomingOutstations.length - 1 ? "border-b border-slate-50 dark:border-slate-800" : ""}`}>
                       <div className="w-[3px] rounded-full self-stretch bg-[#0088cc] mr-1" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate uppercase">{g.title}</p>
