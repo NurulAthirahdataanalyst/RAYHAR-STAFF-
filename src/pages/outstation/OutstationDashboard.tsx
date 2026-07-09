@@ -399,11 +399,24 @@ export default function OutstationDashboard() {
                   </div>
                 )}
                 <div className="mt-auto pt-3 border-t border-gray-50 dark:border-slate-800/50">
-                  <p className="text-[11px] text-gray-500 font-medium">
-                    {upcomingNext7Days.length > 0 
-                      ? formatShortDate(upcomingNext7Days.sort((a,b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())[0].start_date)
-                      : "No upcoming events"}
-                  </p>
+                  {(() => {
+                    if (upcomingNext7Days.length === 0) {
+                      return <p className="text-[11px] text-gray-500 font-medium">No upcoming events</p>;
+                    }
+                    const nearest = [...upcomingNext7Days].sort((a,b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())[0];
+                    const days = Math.max(1, Math.ceil((new Date(nearest.end_date).getTime() - new Date(nearest.start_date).getTime()) / (1000 * 3600 * 24)));
+                    return (
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-700 dark:text-gray-200">
+                          <Calendar className="w-3 h-3 text-gray-400" />
+                          <span>{formatShortDate(nearest.start_date)} - {formatShortDate(nearest.end_date)}</span>
+                        </div>
+                        <p className="text-[10px] font-medium text-orange-600 pl-[18px]">
+                          {days} {days === 1 ? 'Day' : 'Days'} Total
+                        </p>
+                      </div>
+                    );
+                  })()}
                 </div>
               </CardContent>
             </Card>
