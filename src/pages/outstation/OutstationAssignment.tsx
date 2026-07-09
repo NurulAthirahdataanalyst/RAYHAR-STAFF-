@@ -174,7 +174,7 @@ export default function OutstationAssignment() {
       }
       return true;
     });
-  }, [assignments, filterStatus, filterSearch, filterMonth, filterYear]);
+  }, [assignments, filterStatus, filterSearch, filterMonthYear]);
 
   // Pagination
   const totalPages = Math.ceil(filtered.length / entriesPerPage) || 1;
