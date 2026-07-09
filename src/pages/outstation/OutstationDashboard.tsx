@@ -337,92 +337,72 @@ export default function OutstationDashboard() {
         </div>
 
         {/* ROW 1: Enterprise KPI Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
             {/* 1. Active Outstation */}
             <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
               <div className="absolute top-0 left-0 right-0 h-1 bg-green-500" />
-              <CardContent className="p-4 flex flex-col flex-1">
+              <CardContent className="p-4 flex flex-col flex-1 justify-center">
                 <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">Active Outstation</p>
                 {loading ? (
                   <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
                 ) : (
-                  <div className="flex flex-col mt-1 mb-3">
+                  <div className="flex flex-col mt-1 mb-1">
                     <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{activeCount}</span>
-                    <span className="text-[11px] font-bold text-green-600 mt-1">↑ +3 vs Yesterday</span>
                   </div>
                 )}
-                <div className="mt-auto pt-3 border-t border-gray-50 dark:border-slate-800/50">
-                  <p className="text-[11px] text-gray-500 font-medium flex justify-between">
-                    <span>Domestic</span> <span className="font-bold text-gray-900 dark:text-gray-100">{activeDomestic}</span>
-                  </p>
-                  <p className="text-[11px] text-gray-500 font-medium flex justify-between mt-1">
-                    <span>International</span> <span className="font-bold text-gray-900 dark:text-gray-100">{activeInternational}</span>
-                  </p>
-                </div>
               </CardContent>
             </Card>
 
             {/* 2. Departing Today */}
             <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
               <div className="absolute top-0 left-0 right-0 h-1 bg-orange-500" />
-              <CardContent className="p-4 flex flex-col flex-1">
+              <CardContent className="p-4 flex flex-col flex-1 justify-center">
                 <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">Departing Today</p>
                 {loading ? (
                   <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
                 ) : (
-                  <div className="flex flex-col mt-1 mb-3">
+                  <div className="flex flex-col mt-1 mb-1">
                     <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{departingTodayCount}</span>
                     <span className="text-[11px] font-medium text-gray-500 mt-1">Starts Today</span>
                   </div>
                 )}
-                <div className="mt-auto pt-3 border-t border-gray-50 dark:border-slate-800/50">
-                  <p className="text-[11px] text-gray-500 font-medium flex justify-between">
-                    <span>Domestic</span> <span className="font-bold text-gray-900 dark:text-gray-100">{departingDomestic}</span>
-                  </p>
-                  <p className="text-[11px] text-gray-500 font-medium flex justify-between mt-1">
-                    <span>Overseas</span> <span className="font-bold text-gray-900 dark:text-gray-100">{departingInternational}</span>
-                  </p>
-                </div>
               </CardContent>
             </Card>
 
             {/* 3. Returning Today */}
             <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
               <div className="absolute top-0 left-0 right-0 h-1 bg-blue-500" />
-              <CardContent className="p-4 flex flex-col flex-1">
+              <CardContent className="p-4 flex flex-col flex-1 justify-center">
                 <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">Returning Today</p>
                 {loading ? (
                   <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
                 ) : (
-                  <div className="flex flex-col mt-1 mb-3">
+                  <div className="flex flex-col mt-1 mb-1">
                     <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{returningTodayCount}</span>
                     <span className="text-[11px] font-medium text-gray-500 mt-1">Expected Back</span>
                   </div>
                 )}
-                <div className="mt-auto pt-3 border-t border-gray-50 dark:border-slate-800/50">
-                  <p className="text-[11px] font-bold text-blue-600 flex items-center">
-                    <Clock className="w-3 h-3 mr-1" /> Before 6 PM
-                  </p>
-                </div>
               </CardContent>
             </Card>
 
             {/* 4. Upcoming Events */}
             <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
               <div className="absolute top-0 left-0 right-0 h-1 bg-purple-500" />
-              <CardContent className="p-4 flex flex-col flex-1">
+              <CardContent className="p-4 flex flex-col flex-1 justify-center">
                 <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">Upcoming Events</p>
                 {loading ? (
                   <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
                 ) : (
-                  <div className="flex flex-col mt-1 mb-3">
+                  <div className="flex flex-col mt-1 mb-1">
                     <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{upcomingAssignmentsCount}</span>
                     <span className="text-[11px] font-medium text-gray-500 mt-1">Next 7 Days</span>
                   </div>
                 )}
                 <div className="mt-auto pt-3 border-t border-gray-50 dark:border-slate-800/50">
                   <p className="text-[11px] text-gray-500 font-medium">
-                    {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric'})} - {new Date(Date.now() + 7 * 24 * 3600 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric'})}
+                    {upcomingNext7Days.length > 0 
+                      ? formatShortDate(upcomingNext7Days.sort((a,b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())[0].start_date)
+                      : "No upcoming events"}
                   </p>
                 </div>
               </CardContent>
@@ -431,53 +411,16 @@ export default function OutstationDashboard() {
             {/* 5. Employees Scheduled */}
             <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
               <div className="absolute top-0 left-0 right-0 h-1 bg-yellow-500" />
-              <CardContent className="p-4 flex flex-col flex-1">
+              <CardContent className="p-4 flex flex-col flex-1 justify-center">
                 <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1 whitespace-nowrap">Employees Scheduled</p>
                 {loading ? (
                   <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
                 ) : (
-                  <div className="flex flex-col mt-1 mb-3">
+                  <div className="flex flex-col mt-1 mb-1">
                     <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{employeesScheduledCount}</span>
                     <span className="text-[11px] font-medium text-gray-500 mt-1 whitespace-nowrap">Across Upcoming Trips</span>
                   </div>
                 )}
-                <div className="mt-auto pt-3 border-t border-gray-50 dark:border-slate-800/50">
-                  <p className="text-[11px] text-gray-500 font-medium flex justify-between">
-                    <span>Assignments</span> <span className="font-bold text-gray-900 dark:text-gray-100">{upcomingAssignmentsCount}</span>
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 6. Approval Pending */}
-            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-red-500" />
-              <CardContent className="p-4 flex flex-col flex-1">
-                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3 text-red-500" /> Approval Pending
-                </p>
-                {loading ? (
-                  <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
-                ) : (
-                  <div className="flex flex-col mt-1 mb-2">
-                    <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{approvalPendingCount}</span>
-                    <span className="text-[11px] font-medium text-gray-500 mt-1">Waiting Approval</span>
-                  </div>
-                )}
-                <div className="mt-auto pt-2 border-t border-gray-50 dark:border-slate-800/50 grid grid-cols-3 gap-1">
-                  <div className="text-center bg-red-50/50 rounded py-1">
-                    <p className="text-[9px] text-gray-500 uppercase">HR</p>
-                    <p className="text-[11px] font-bold text-gray-900">4</p>
-                  </div>
-                  <div className="text-center bg-red-50/50 rounded py-1">
-                    <p className="text-[9px] text-gray-500 uppercase">HOD</p>
-                    <p className="text-[11px] font-bold text-gray-900">3</p>
-                  </div>
-                  <div className="text-center bg-red-50/50 rounded py-1">
-                    <p className="text-[9px] text-gray-500 uppercase">MD</p>
-                    <p className="text-[11px] font-bold text-gray-900">1</p>
-                  </div>
-                </div>
               </CardContent>
             </Card>
         </div>
@@ -489,7 +432,7 @@ export default function OutstationDashboard() {
           <div className="lg:col-span-8 flex flex-col gap-6">
             
             {/* Active Outstations Table */}
-            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex flex-col min-h-[400px]">
+            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex flex-col">
               <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
               <div>
                 <CardTitle className="text-[18px] font-bold text-gray-900 dark:text-gray-100">Active Outstations</CardTitle>
@@ -620,7 +563,7 @@ export default function OutstationDashboard() {
             </Card>
 
             {/* Upcoming Outstations Table */}
-            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex flex-col min-h-[400px]">
+            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex flex-col">
               <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
                 <div>
                   <CardTitle className="text-[18px] font-bold text-gray-900 dark:text-gray-100">Upcoming Outstations</CardTitle>
