@@ -46,8 +46,8 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const response = await fetch(`${API_BASE_URL}/api/user-details/${resolvedUserId || user.email}`);
         const data = await response.json();
 
-        if (response.ok && data.success) {
-          setUserName(data.profile.full_name);
+        if (response.ok && data.success && data.profile) {
+          setUserName(data.profile.full_name || user.full_name || user.name || user.email || "User");
           setUserBranch(data.profile.branch || "HQ");
           setUserDepartment(data.profile.department || "");
           let parsedRole = (data.role ? data.role.trim().toLowerCase() : "employee");

@@ -365,21 +365,22 @@ export default function Dashboard() {
     );
   }
 
-  const isPresent = stats.todayStatus.includes("Present");
-  const isClockedOut = stats.todayStatus.includes("Clocked Out");
-  const isOnLeave = stats.todayStatus === "On Leave";
-  const isCompanyLeave = stats.todayStatus === "Company Leave";
+  const safeTodayStatus = stats.todayStatus || "Absent";
+  const isPresent = safeTodayStatus.includes("Present");
+  const isClockedOut = safeTodayStatus.includes("Clocked Out");
+  const isOnLeave = safeTodayStatus === "On Leave";
+  const isCompanyLeave = safeTodayStatus === "Company Leave";
   const isElevatedRole = ["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role);
   const canSeeSystem = ["hr_admin", "managing_director", "finance_manager", "head_of_department"].includes(role);
   
-  const displayStatus = stats.todayStatus
+  const displayStatus = safeTodayStatus
     .replace("Clocked In (Outstation)", "Outstation")
     .replace("Present (Outstation)", "Outstation")
     .replace(" (", "\n(");
   const todayStatusSubtitle = isPresent
-    ? `Clock in: ${stats.todayStatusTime || stats.clockInTime}`
+    ? `Clock in: ${stats.todayStatusTime || stats.clockInTime || "--:--"}`
     : isClockedOut
-      ? `Clock out: ${stats.todayStatusTime || stats.clockOutTime}`
+      ? `Clock out: ${stats.todayStatusTime || stats.clockOutTime || "--:--"}`
       : isOnLeave
         ? "Enjoy your leave!"
         : isCompanyLeave
@@ -482,6 +483,7 @@ export default function Dashboard() {
                               </h3>
                               <Badge className="bg-[#7B0099] hover:bg-[#60007A] text-white uppercase text-[9px] tracking-wider font-black border-none shadow-sm rounded-full px-2.5 py-0.5 mt-1">
                                 {(() => {
+                                  if (!stats.activeCompanyLeave?.start_date) return "COMPANY TRIP";
                                   const start = new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
                                   const end = stats.activeCompanyLeave.end_date ? new Date(stats.activeCompanyLeave.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : start;
                                   return start === end ? start : `${start} - ${end}`;
@@ -572,6 +574,7 @@ export default function Dashboard() {
                             <div className="flex items-center gap-2 mt-1">
                               <Badge className="bg-[#7B0099] hover:bg-[#60007A] text-white uppercase text-[9px] sm:text-[10px] tracking-wider font-black border-none shadow-sm rounded-full px-2.5 py-0.5">
                                 {(() => {
+                                  if (!stats.activeCompanyLeave?.start_date) return "COMPANY TRIP";
                                   const start = new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
                                   const end = stats.activeCompanyLeave.end_date ? new Date(stats.activeCompanyLeave.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : start;
                                   return start === end ? start : `${start} - ${end}`;
@@ -644,6 +647,7 @@ export default function Dashboard() {
                           <div className="flex flex-col gap-1 mt-1">
                             <Badge variant="outline" className="w-fit border-[#7B0099]/20 text-[#7B0099] bg-[#7B0099]/5 uppercase text-[8px] tracking-wider font-black">
                               📅 {(() => {
+                                if (!stats.activeCompanyLeave?.start_date) return "COMPANY TRIP";
                                 const start = new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
                                 const end = stats.activeCompanyLeave.end_date ? new Date(stats.activeCompanyLeave.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : start;
                                 return start === end ? start : `${start} - ${end}`;
