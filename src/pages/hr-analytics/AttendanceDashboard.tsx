@@ -464,7 +464,13 @@ export default function AttendanceDashboard() {
 
     const headers = ["Employee Name", "Branch", "Time In", "Time Out", "Attendance Status", "Work Status"];
     const rows = dailyAttendance.map(r => {
-      const attStatus = (r as any).status || "Absent";
+      let attStatus = (r as any).status || "Absent";
+      const isOutstation = outstationRecords.some((o: any) => 
+        o.user_id === r.user_id && 
+        o.start_date.slice(0,10) <= selectedDate && 
+        o.end_date.slice(0,10) >= selectedDate
+      );
+      if (isOutstation) attStatus = "Outstation";
       
       let workStatus = "Checked In";
       if (r.clock_out) {
@@ -522,7 +528,13 @@ export default function AttendanceDashboard() {
       const timeIn = r.clock_in ? formatAttendanceTime(r.clock_in) : "--:--";
       const timeOut = r.clock_out ? formatAttendanceTime(r.clock_out) : "--:--";
       
-      const attStatus = (r as any).status || "Absent";
+      let attStatus = (r as any).status || "Absent";
+      const isOutstation = outstationRecords.some((o: any) => 
+        o.user_id === r.user_id && 
+        o.start_date.slice(0,10) <= selectedDate && 
+        o.end_date.slice(0,10) >= selectedDate
+      );
+      if (isOutstation) attStatus = "Outstation";
       
       let workStatus = "Checked In";
       if (r.clock_out) {
@@ -808,14 +820,6 @@ export default function AttendanceDashboard() {
           }
         }
         
-        let attStatus = "Absent";
-        if (r.clock_in) {
-          attStatus = isLate ? "Present (Late)" : "Present (On Time)";
-        }
-
-        // Exclude Absent employees from Admin Attendance listing (they appear in Employee Absenteeism)
-        if (attStatus === 'Absent') return false;
-
         let displayStatus = (r as any).status || "Absent";
         const isOutstation = outstationRecords.some((o: any) => 
           o.user_id === r.user_id && 
@@ -823,6 +827,10 @@ export default function AttendanceDashboard() {
           o.end_date.slice(0,10) >= selectedDate
         );
         if (isOutstation) displayStatus = "Outstation";
+
+        // Exclude Absent employees from Admin Attendance listing (they appear in Employee Absenteeism)
+        // Allow Outstation employees even if they didn't clock in
+        if (!r.clock_in && displayStatus !== 'Outstation') return false;
 
         const matchesStatus = selectedStatusFilter === "all" || 
           (selectedStatusFilter === "present_on_time" && displayStatus === "Present (On Time)") ||
@@ -850,7 +858,7 @@ export default function AttendanceDashboard() {
       );
       if (isOutstation) displayStatus = "Outstation";
 
-      if (displayStatus !== "Absent" && displayStatus !== "Outstation" && displayStatus !== "Company Leave") {
+      if (displayStatus !== "Absent" && displayStatus !== "Company Leave") {
         return false;
       }
 
