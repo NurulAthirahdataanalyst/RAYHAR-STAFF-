@@ -362,7 +362,6 @@ export default function OutstationAnalytics() {
           </Card>
         </div>
       </div>
-    </div>
   );
 }
 
