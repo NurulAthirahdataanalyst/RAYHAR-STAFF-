@@ -70,7 +70,7 @@ export default function OutstationAnalytics() {
 
   const totalAssignments = assignments.length;
   const activeStaffCount = useMemo(() => new Set(assignments.filter(a => a.status === "Active").map(a => a.user_id)).size, [assignments]);
-  const totalDestinations = useMemo(() => new Set(assignments.map(a => a.destination || "")).size, [assignments]);
+  const totalDestinations = useMemo(() => new Set(assignments.map(a => a.destination || "Unknown")).size, [assignments]);
   const activeCount = stats.active || 0;
   const completedCount = stats.completed || 0;
   const upcomingCount = stats.upcoming || 0;
@@ -85,7 +85,7 @@ export default function OutstationAnalytics() {
     return Object.entries(counts)
       .map(([destination, count]) => ({ destination, count }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 8);
+      .slice(0, 5);
   }, [assignments]);
 
   const statusData = useMemo(() => {
@@ -192,7 +192,7 @@ export default function OutstationAnalytics() {
           {/* Left: Destinations (bigger) */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg font-semibold">Outstation by Destination</CardTitle>
+              <CardTitle className="text-lg font-semibold">Top Destinations</CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-2">
               {destinationData.length === 0 ? (
@@ -211,6 +211,11 @@ export default function OutstationAnalytics() {
                 </div>
               )}
             </CardContent>
+            {totalDestinations > destinationData.length && (
+              <div className="border-t border-slate-200 px-4 py-3 text-right text-sm text-slate-500">
+                View All {totalDestinations} destinations
+              </div>
+            )}
           </Card>
 
           {/* Middle: Status + quick summary */}
@@ -230,7 +235,7 @@ export default function OutstationAnalytics() {
                           <Cell key={entry.status} fill={STATUS_COLORS[entry.status] || STATUS_COLORS.Unknown} />
                         ))}
                       </Pie>
-                      <RechartsTooltip formatter={(value: number) => [`${value}`, "Assignments"]} />
+                      <RechartsTooltip formatter={(value: number, name: string) => [`${value}`, name]} />
                     </PieChart>
                   </ResponsiveContainer>
                 )}
@@ -268,16 +273,6 @@ export default function OutstationAnalytics() {
           </div>
 
           {/* Right: Map */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Outstation Map</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="h-64 rounded-2xl border border-slate-200 bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-slate-500">
-                Map placeholder
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
