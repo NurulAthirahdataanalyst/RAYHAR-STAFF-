@@ -13,13 +13,13 @@ interface StatCardProps {
 }
 
 const variantStyles = {
-  default: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100",
-  maroon: "bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-200",
-  gold: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100",
-  success: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100",
-  gauge: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100",
-  warning: "bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 text-amber-800 dark:text-amber-200",
-  purple: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100",
+  default: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-[0_2px_10px_rgba(15,23,42,0.05)] border-l-4 border-l-slate-400",
+  maroon: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-[0_2px_10px_rgba(15,23,42,0.05)] border-l-4 border-l-rose-500",
+  gold: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-[0_2px_10px_rgba(15,23,42,0.05)] border-l-4 border-l-amber-400",
+  success: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-[0_2px_10px_rgba(15,23,42,0.05)] border-l-4 border-l-emerald-500",
+  gauge: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-[0_2px_10px_rgba(15,23,42,0.05)] border-l-4 border-l-[#7B0099]",
+  warning: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-[0_2px_10px_rgba(15,23,42,0.05)] border-l-4 border-l-amber-500",
+  purple: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-[0_2px_10px_rgba(15,23,42,0.05)] border-l-4 border-l-[#7B0099]",
 };
 
 export default function StatCard({ 

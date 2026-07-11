@@ -14,7 +14,7 @@
   }
 
   :root {
-    --background: 210 20% 98%;
+    --background: 210 40% 96.1%;
     --foreground: 270 25% 10%;
 
     --card: 0 0% 100%;
@@ -47,7 +47,7 @@
     --info: 217 91% 60%;
     --info-foreground: 0 0% 100%;
 
-    --border: 270 20% 90%;
+    --border: 214.3 31.8% 91.4%;
     --input: 270 20% 90%;
     --ring: 289 100% 30%;
 
@@ -97,7 +97,7 @@
   }
 
   .force-light {
-    --background: 210 20% 98%;
+    --background: 210 40% 96.1%;
     --foreground: 270 25% 10%;
     --card: 0 0% 100%;
     --card-foreground: 270 25% 10%;
@@ -113,7 +113,7 @@
     --accent-foreground: 289 100% 25%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 270 20% 90%;
+    --border: 214.3 31.8% 91.4%;
     --input: 270 20% 90%;
     --ring: 289 100% 30%;
   }
