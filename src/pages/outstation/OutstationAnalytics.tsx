@@ -4,7 +4,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { API_BASE_URL } from "@/config/api";
-import { Loader2, RefreshCw, MapPin, Users, Briefcase, Calendar, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, RefreshCw, MapPin, Users, Briefcase, Calendar, CheckCircle2 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
 
 const ALLOWED_ROLES = ["hr_admin", "managing_director", "finance_manager", "branch_leader", "head_of_department"];
@@ -98,7 +98,6 @@ export default function OutstationAnalytics() {
   const activeCount = stats.active || 0;
   const completedCount = stats.completed || 0;
   const upcomingCount = stats.upcoming || 0;
-  const cancelledCount = stats.cancelled || 0;
 
   const destinationData = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -241,59 +240,58 @@ export default function OutstationAnalytics() {
             )}
           </Card>
 
-          {/* Middle: Status + quick summary */}
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold">Outstation Status</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                {statusData.length === 0 ? (
-                  <div className="py-5 text-center text-slate-500">No data yet.</div>
-                ) : (
-                  <ResponsiveContainer width="100%" height={220}>
-                    <PieChart>
-                      <Pie data={statusData} dataKey="value" nameKey="status" innerRadius={52} outerRadius={80} paddingAngle={2}>
-                        {statusData.map(entry => (
-                          <Cell key={entry.status} fill={STATUS_COLORS[entry.status] || STATUS_COLORS.Unknown} />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip formatter={(value: number, name: string) => [`${value}`, name]} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
-                <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-600">
-                  {statusData.map(item => (
-                    <div key={item.status} className="flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[item.status] || STATUS_COLORS.Unknown }} />
-                      <span>{item.status}</span>
-                      <strong className="ml-auto">{item.value}</strong>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+          {/* Middle: Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Outstation Status</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              {statusData.length === 0 ? (
+                <div className="py-5 text-center text-slate-500">No data yet.</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie data={statusData} dataKey="value" nameKey="status" innerRadius={52} outerRadius={80} paddingAngle={2}>
+                      {statusData.map(entry => (
+                        <Cell key={entry.status} fill={STATUS_COLORS[entry.status] || STATUS_COLORS.Unknown} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip formatter={(value: number, name: string) => [`${value}`, name]} />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+              <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-600">
+                {statusData.map(item => (
+                  <div key={item.status} className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[item.status] || STATUS_COLORS.Unknown }} />
+                    <span>{item.status}</span>
+                    <strong className="ml-auto">{item.value}</strong>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold">Quick Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 grid gap-3">
-                <div className="rounded-md bg-slate-100 p-3 text-sm">
-                  <div className="text-slate-500">Departures today</div>
-                  <div className="mt-1 text-xl font-bold">{stats.todayDepartures || 0}</div>
-                </div>
-                <div className="rounded-md bg-slate-100 p-3 text-sm">
-                  <div className="text-slate-500">Returns today</div>
-                  <div className="mt-1 text-xl font-bold">{stats.todayReturns || 0}</div>
-                </div>
-                <div className="rounded-md bg-slate-100 p-3 text-sm">
-                  <div className="text-slate-500">Upcoming assignments</div>
-                  <div className="mt-1 text-xl font-bold">{upcomingCount}</div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Right: Quick summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Quick Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 grid gap-3">
+              <div className="rounded-md bg-slate-100 p-3 text-sm">
+                <div className="text-slate-500">Departures today</div>
+                <div className="mt-1 text-xl font-bold">{stats.todayDepartures || 0}</div>
+              </div>
+              <div className="rounded-md bg-slate-100 p-3 text-sm">
+                <div className="text-slate-500">Returns today</div>
+                <div className="mt-1 text-xl font-bold">{stats.todayReturns || 0}</div>
+              </div>
+              <div className="rounded-md bg-slate-100 p-3 text-sm">
+                <div className="text-slate-500">Upcoming assignments</div>
+                <div className="mt-1 text-xl font-bold">{upcomingCount}</div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Right: Map */}
         </div>
