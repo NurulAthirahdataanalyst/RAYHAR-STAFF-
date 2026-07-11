@@ -325,6 +325,17 @@ export default function WorkforceInsights() {
                 {data.teamAvailability.present}/{Math.max(0, (data.topKpi.activeEmployees || data.topKpi.totalHeadcount || 0) - (data.topKpi.outstationToday || 0))}
               </h3>
             </div>
+            
+            <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Outstation</p>
+                <p className="text-xl font-bold text-slate-800 dark:text-slate-200 leading-tight mt-1">{data.topKpi.outstationToday || 0}</p>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-pink-50 flex items-center justify-center">
+                <Plane className="w-5 h-5 text-pink-600" />
+              </div>
+            </div>
+
             <button className="text-[12px] font-semibold text-slate-400 hover:text-slate-600 text-left mt-6 flex items-center gap-1">
               View Details <ChevronRight className="w-3.5 h-3.5" />
             </button>
@@ -384,18 +395,6 @@ export default function WorkforceInsights() {
               </CardContent>
             </Card>
 
-            {/* KPI 5: Total Outstation */}
-            <Card className={`rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex sm:col-span-2 ${cardHoverEffect}`}>
-              <CardContent className="p-5 flex items-center gap-4 h-full w-full">
-                <div className="w-10 h-10 rounded-lg bg-pink-50 flex items-center justify-center shrink-0">
-                  <Plane className="w-5 h-5 text-pink-600" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Outstation</p>
-                  <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 leading-tight mt-1">{data.topKpi.outstationToday || 0}</h3>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Column 3: Employees By Department or Employee Attendance */}
@@ -1261,12 +1260,12 @@ export default function WorkforceInsights() {
         )}
         </>
         ) : (
-          <MonthViewDashboard data={data} outstationSummary={outstationSummary} feedConnected={feedConnected} />
+          <MonthViewDashboard data={data} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} />
         )}
       </div>
   );
 }
-function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApprovalsList, feedConnected, outstationSummary }: any) {
+function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp }: any) {
   const topKpi = data.topKpi || {};
   const monthlyComp = data.monthlyComparison || { attendance: {}, lateArrivals: {}, absences: {}, leaveRequests: {}, outstation: {} };
   
