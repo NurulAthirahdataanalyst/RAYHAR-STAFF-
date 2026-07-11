@@ -150,22 +150,22 @@ export default function OutstationAnalytics() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
-          <Card className="lg:col-span-1">
+          <Card className="lg:col-span-1 min-h-[180px]">
             <CardContent className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-violet-100 p-3 text-violet-700"><Briefcase className="h-6 w-5" /></div>
+              <div className="flex h-full flex-col justify-between p-6">
+                <div className="rounded-2xl bg-violet-100 p-3 text-violet-700"><Briefcase className="h-6 w-6" /></div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Total Outstation</p>
-                  <p className="mt-1 text-3xl font-bold">{totalAssignments}</p>
+                  <p className="mt-2 text-3xl font-bold">{totalAssignments}</p>
                 </div>
               </div>
-              <p className="text-sm text-slate-500">Active outstation requests across all branches.</p>
+              <p className="text-sm leading-6 text-slate-500">Active outstation requests across all branches.</p>
             </CardContent>
           </Card>
           <Card className="lg:col-span-1">
             <CardContent className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-sky-100 p-3 text-sky-700"><Users className="h-6 w-5" /></div>
+                <div className="rounded-2xl bg-sky-100 p-3 text-sky-700"><Users className="h-6 w-6" /></div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Staff on Outstation</p>
                   <p className="mt-1 text-3xl font-bold">{activeStaffCount}</p>
@@ -174,10 +174,10 @@ export default function OutstationAnalytics() {
               <p className="text-sm text-slate-500">Unique team members currently away on assignment.</p>
             </CardContent>
           </Card>
-          <Card className="lg:col-span-1">
+          <Card className="lg:col-span-1 min-h-[180px]">
             <CardContent className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-emerald-100 p-3 text-emerald-700"><MapPin className="h-6 w-5" /></div>
+                <div className="rounded-2xl bg-emerald-100 p-3 text-emerald-700"><MapPin className="h-6 w-6" /></div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Destinations</p>
                   <p className="mt-1 text-3xl font-bold">{totalDestinations}</p>
