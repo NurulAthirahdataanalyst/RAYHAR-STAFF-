@@ -1260,12 +1260,12 @@ export default function WorkforceInsights() {
         )}
         </>
         ) : (
-          <MonthViewDashboard data={data} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} />
+          <MonthViewDashboard data={data} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} />
         )}
       </div>
   );
 }
-function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp }: any) {
+function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts }: any) {
   const topKpi = data.topKpi || {};
   const monthlyComp = data.monthlyComparison || { attendance: {}, lateArrivals: {}, absences: {}, leaveRequests: {}, outstation: {} };
   
