@@ -138,7 +138,6 @@ export default function OutstationAnalytics() {
 
   return (
     <div className="space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-12">
-      <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
           <div>
             <div className="text-sm font-bold uppercase tracking-[0.24em] text-slate-500">Outstation Insight</div>
