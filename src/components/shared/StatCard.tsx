@@ -41,12 +41,12 @@ export default function StatCard({
   if (variant === "gauge") {
     return (
       <div onClick={onClick} className={`rounded-md p-4 flex items-start justify-between h-full min-h-[130px] ${currentStyle} ${clickableStyle}`}>
-        <div className="min-w-0 flex flex-col h-full justify-between">
+        <div className="min-w-0 flex flex-col">
           <div className="min-h-[28px] mb-3">
             <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-normal break-words leading-tight">{title}</p>
           </div>
-          <div className="mt-auto">
-            <p className="text-[28px] font-black text-slate-800 dark:text-slate-100 tracking-tight leading-none">{value}</p>
+          <div>
+            <p className="text-[28px] font-black text-slate-800 dark:text-slate-100 tracking-tight leading-tight whitespace-pre-wrap break-words">{value}</p>
             {subtitle && <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-medium font-mono truncate">{subtitle}</p>}
           </div>
         </div>
