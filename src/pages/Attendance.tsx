@@ -85,6 +85,8 @@ export default function Attendance() {
   const [workingHrs, setWorkingHrs] = useState("--:--");
   const [historyLogs, setHistoryLogs] = useState<any[]>([]);
   const [visibleLogsCount, setVisibleLogsCount] = useState(10);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [fetchingHistory, setFetchingHistory] = useState(false);
 
   // Derived stats from historyLogs
@@ -480,6 +482,35 @@ export default function Attendance() {
             </div>
             <button onclick="window.print();" style="background: #7B0099; color: white; border: none; padding: 10px 20px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: 12px; transition: background 0.2s;">PRINT REPORT</button>
           </div>
+
+          {/* Month-only KPI Cards */}
+          {viewMode === "month" && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mt-2">
+              <div className="bg-card dark:bg-card border border-border/40 shadow-sm rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
+                <div className="w-8 h-8 rounded-full bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center mb-2 shadow-sm">
+                  <CalendarDays className="w-4 h-4 text-violet-700" />
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-foreground">{companyLeaveCount}</div>
+                <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Company Leave</div>
+              </div>
+
+              <div className="bg-card dark:bg-card border border-border/40 shadow-sm rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
+                <div className="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center mb-2 shadow-sm">
+                  <FileText className="w-4 h-4 text-amber-700" />
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-foreground">{approvedLeaveCount}</div>
+                <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Approved Leave KPI</div>
+              </div>
+
+              <div className="bg-card dark:bg-card border border-border/40 shadow-sm rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
+                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center mb-2 shadow-sm">
+                  <Timer className="w-4 h-4 text-blue-600" />
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-foreground">{totalWorkdays}</div>
+                <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Total Workdays (to date)</div>
+              </div>
+            </div>
+          )}
           
           <div class="meta-grid">
             <div class="meta-item"><strong>Employee Name:</strong> ${user?.full_name || 'N/A'}</div>
@@ -723,6 +754,45 @@ export default function Attendance() {
       if (viewMode === "month") return true;
       return log.date === selectedDate;
     });
+
+  // Pagination calculations
+  const totalRows = displayedLogs.length;
+  const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+  const pagedLogs = displayedLogs.slice((page - 1) * pageSize, page * pageSize);
+
+  // Reset page when filters or month change
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, selectedMonth, selectedYear, pageSize, viewMode]);
+
+  // KPI calculations for Month view
+  const companyLeaveCount = historyLogs.filter(l => l.status === "Company Leave").length;
+  const approvedLeaveCount = historyLogs.filter(l => {
+    if (l.status !== "Leave") return false;
+    if (l.leave_status) return (String(l.leave_status).toLowerCase() === "approved");
+    return true; // assume backend marks only approved leaves as 'Leave' when leave_status absent
+  }).length;
+
+  const calculateTotalWorkdaysUpTo = (year: number, month: number) => {
+    const today = new Date();
+    const isCurrentMonth = (today.getFullYear() === year && (today.getMonth() + 1) === month);
+    const lastDay = new Date(year, month, 0).getDate();
+    const endDay = isCurrentMonth ? today.getDate() : lastDay;
+
+    let count = 0;
+    for (let d = 1; d <= endDay; d++) {
+      const dt = new Date(year, month - 1, d);
+      const wk = dt.getDay(); // 0 Sun - 6 Sat
+      // Friday (5) is always off
+      if (wk === 5) continue;
+      // Saturday (6) is off only in Week 1 (days 1-7)
+      if (wk === 6 && d <= 7) continue;
+      count++;
+    }
+    return count;
+  };
+
+  const totalWorkdays = calculateTotalWorkdaysUpTo(selectedYear, selectedMonth);
 
   if (initialFetch) {
     return (
@@ -1152,7 +1222,7 @@ export default function Attendance() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  displayedLogs.slice(0, visibleLogsCount).map((log, index) => {
+                  pagedLogs.map((log, index) => {
                     const logDate = new Date(log.date);
                     const dateStr = logDate.toLocaleString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' });
                     
@@ -1200,15 +1270,23 @@ export default function Attendance() {
             </div>
           </CardContent>
 
-          {/* Load More Button */}
-          {displayedLogs.length > visibleLogsCount && (
-            <div className="flex justify-center py-4 border-t border-border/50 bg-muted/10">
-              <button 
-                onClick={() => setVisibleLogsCount(prev => prev + 10)}
-                className="px-6 py-2.5 bg-background hover:bg-muted text-foreground text-[11px] font-black rounded-md shadow-sm uppercase tracking-widest transition-all active:scale-95 border border-border"
-              >
-                Load More Rows
-              </button>
+          {/* Pagination Controls */}
+          {totalRows > pageSize && (
+            <div className="flex items-center justify-between py-3 px-4 border-t border-border/50 bg-muted/10">
+              <div className="text-sm text-muted-foreground">Showing {(page-1)*pageSize + 1} - {Math.min(page*pageSize, totalRows)} of {totalRows}</div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1 text-[11px] font-black rounded-md border border-border bg-background hover:bg-muted disabled:opacity-50"
+                >Prev</button>
+                <div className="text-sm font-bold">{page} / {totalPages}</div>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1 text-[11px] font-black rounded-md border border-border bg-background hover:bg-muted disabled:opacity-50"
+                >Next</button>
+              </div>
             </div>
           )}
 

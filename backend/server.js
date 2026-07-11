@@ -6094,6 +6094,12 @@ app.post("/api/company-leaves", async (req, res) => {
     const newLeaveId = result.insertId;
 
     // Dynamically generated notification will be served via GET /api/notifications
+    // Broadcast SSE so clients pick up the new company leave and refresh their views
+    try {
+      broadcastPresenceUpdate({ type: 'company_leave', action: 'created', id: newLeaveId });
+    } catch (e) {
+      console.error('Error broadcasting company_leave create:', e);
+    }
 
     res.json({ success: true, id: newLeaveId });
   } catch (err) {
@@ -6130,6 +6136,12 @@ app.put("/api/company-leaves/:id", async (req, res) => {
         remarks || '', id
       ]
     );
+    // Notify clients via SSE so they can refresh presence/history
+    try {
+      broadcastPresenceUpdate({ type: 'company_leave', action: 'updated', id });
+    } catch (e) {
+      console.error('Error broadcasting company_leave update:', e);
+    }
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -6140,6 +6152,11 @@ app.delete("/api/company-leaves/:id", async (req, res) => {
   const { id } = req.params;
   try {
     await pool.query(`DELETE FROM company_leave_calendar WHERE id = ?`, [id]);
+    try {
+      broadcastPresenceUpdate({ type: 'company_leave', action: 'deleted', id });
+    } catch (e) {
+      console.error('Error broadcasting company_leave delete:', e);
+    }
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
