@@ -1278,9 +1278,10 @@ async function computeDynamicWorkforceMetrics(dateStr, role, branch, department)
   const [empRows] = await pool.query(`SELECT COUNT(*) as total FROM profiles p WHERE p.status = 'Active' ${profileFilter}`, pFilterParams);
   const totalEmployees = parseInt(empRows[0].total || 0);
 
-  const attQuery = `SELECT COUNT(*) as total, SUM(CASE WHEN is_late = 1 THEN 1 ELSE 0 END) as lates FROM attendances a JOIN profiles p ON p.user_id = a.user_id WHERE DATE(a.clock_in) BETWEEN ? AND ? AND p.status = 'Active' ${profileFilter}`;
-  const [attRowsCur] = await pool.query(attQuery, [...pFilterParams, curStart, curEnd]);
-  const [attRowsPrev] = await pool.query(attQuery, [...pFilterParams, prevStart, prevEnd]);
+  const lateTimeStr = typeof getLateThresholdTime === 'function' ? getLateThresholdTime() : "09:00:00";
+  const attQuery = `SELECT COUNT(*) as total, SUM(CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END) as lates FROM attendances a JOIN profiles p ON p.user_id = a.user_id WHERE DATE(a.clock_in) BETWEEN ? AND ? AND p.status = 'Active' ${profileFilter}`;
+  const [attRowsCur] = await pool.query(attQuery, [lateTimeStr, ...pFilterParams, curStart, curEnd]);
+  const [attRowsPrev] = await pool.query(attQuery, [lateTimeStr, ...pFilterParams, prevStart, prevEnd]);
 
   const leaveQuery = `SELECT COUNT(*) as total FROM leave_requests lr JOIN profiles p ON p.user_id = lr.user_id WHERE lr.status = 'Approved' AND (DATE(lr.start_date) BETWEEN ? AND ? OR DATE(lr.end_date) BETWEEN ? AND ?) AND p.status = 'Active' ${profileFilter}`;
   const [leaveCur] = await pool.query(leaveQuery, [...pFilterParams, curStart, curEnd, curStart, curEnd]);

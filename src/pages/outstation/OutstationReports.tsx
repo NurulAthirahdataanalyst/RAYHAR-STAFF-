@@ -4,9 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Plane, Download, Search, Filter, MapPin, Calendar } from "lucide-react";
+import { Loader2, Plane, Download, Search, Filter, MapPin, ArrowLeft } from "lucide-react";
 import { API_BASE_URL } from "../../config/api";
 
 const OUTSTATION_ROLES = ["hr_admin", "managing_director", "finance_manager", "branch_leader", "head_of_department"];
@@ -45,6 +44,16 @@ type Assignment = {
   assigned_at?: string;
 };
 
+type EventGroup = {
+  eventName: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  totalDays: number;
+  status: string;
+  assignments: Assignment[];
+};
+
 export default function OutstationReports() {
   const { role, userBranch, userDepartment, loading: roleLoading } = useRole();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -54,6 +63,8 @@ export default function OutstationReports() {
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterBranch, setFilterBranch] = useState("All");
   const [filterDept, setFilterDept] = useState("All");
+
+  const [selectedEventName, setSelectedEventName] = useState<string | null>(null);
 
   useEffect(() => {
     if (roleLoading) return;
@@ -70,80 +81,230 @@ export default function OutstationReports() {
     void fetchData();
   }, [role, userBranch, userDepartment, roleLoading]);
 
+  // Group into events
+  const eventGroups = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    const groups: Record<string, EventGroup> = {};
+    assignments.forEach(a => {
+      const eventName = (a.project && a.project !== '-') ? a.project : (a.purpose && a.purpose !== '-') ? a.purpose : 'General';
+      if (!groups[eventName]) {
+        groups[eventName] = {
+          eventName,
+          destination: a.destination,
+          startDate: a.start_date,
+          endDate: a.end_date,
+          totalDays: 0,
+          status: "Upcoming",
+          assignments: []
+        };
+      }
+      
+      const g = groups[eventName];
+      g.assignments.push(a);
+      
+      // Expand dates
+      if (!g.startDate || a.start_date < g.startDate) g.startDate = a.start_date;
+      if (!g.endDate || a.end_date > g.endDate) g.endDate = a.end_date;
+      
+      // Use destination from the latest assignment or most frequent
+      if (a.destination) g.destination = a.destination;
+    });
+
+    return Object.values(groups).map(g => {
+      const s = g.startDate?.slice(0, 10) || today;
+      const e = g.endDate?.slice(0, 10) || today;
+      g.totalDays = diffDays(s, e);
+      
+      if (today > e) g.status = "Completed";
+      else if (today >= s && today <= e) g.status = "Active";
+      else g.status = "Upcoming";
+
+      return g;
+    });
+  }, [assignments]);
+
   const departments = useMemo(() => ["All", ...Array.from(new Set(assignments.map(a => a.department || "").filter(Boolean))).sort()], [assignments]);
   const branches = useMemo(() => ["All", ...Array.from(new Set(assignments.map(a => a.branch || "").filter(Boolean))).sort()], [assignments]);
 
-  const filtered = useMemo(() => {
-    return assignments.filter(a => {
-      if (filterStatus !== "All" && a.status !== filterStatus) return false;
+  const filteredEvents = useMemo(() => {
+    return eventGroups.filter(e => {
+      if (filterStatus !== "All" && e.status !== filterStatus) return false;
+      if (filterSearch) {
+        const q = filterSearch.toLowerCase();
+        return (e.eventName || "").toLowerCase().includes(q) || (e.destination || "").toLowerCase().includes(q);
+      }
+      return true;
+    });
+  }, [eventGroups, filterStatus, filterSearch]);
+
+  const selectedEvent = useMemo(() => {
+    return eventGroups.find(e => e.eventName === selectedEventName) || null;
+  }, [eventGroups, selectedEventName]);
+
+  const filteredAssignments = useMemo(() => {
+    if (!selectedEvent) return [];
+    return selectedEvent.assignments.filter(a => {
       if (filterBranch !== "All" && a.branch !== filterBranch) return false;
       if (filterDept !== "All" && a.department !== filterDept) return false;
       if (filterSearch) {
         const q = filterSearch.toLowerCase();
-        return (a.full_name || "").toLowerCase().includes(q) || (a.destination || "").toLowerCase().includes(q) || (a.purpose || "").toLowerCase().includes(q);
+        return (a.full_name || "").toLowerCase().includes(q);
       }
       return true;
     });
-  }, [assignments, filterStatus, filterDept, filterSearch]);
+  }, [selectedEvent, filterBranch, filterDept, filterSearch]);
 
   const exportCSV = () => {
-    const headers = ["Employee","Department","Branch","Destination","Purpose","Project","Start Date","End Date","Days","Status","Assigned By"];
-    const rows = filtered.map(a => [
-      a.full_name, a.department || "", a.branch || "",
-      a.destination, a.purpose || "", a.project || "",
-      a.start_date?.slice(0,10), a.end_date?.slice(0,10),
-      diffDays(a.start_date, a.end_date),
-      a.status, a.assigned_by_name || ""
-    ]);
-    const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `outstation_report_${new Date().toISOString().slice(0,10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+    if (selectedEvent) {
+      const headers = ["Employee","Department","Branch","Destination","Purpose","Project","Start Date","End Date","Days","Status","Assigned By"];
+      const rows = filteredAssignments.map(a => [
+        a.full_name, a.department || "", a.branch || "",
+        a.destination, a.purpose || "", a.project || "",
+        a.start_date?.slice(0,10), a.end_date?.slice(0,10),
+        diffDays(a.start_date, a.end_date),
+        a.status, a.assigned_by_name || ""
+      ]);
+      const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `event_${selectedEvent.eventName}_${new Date().toISOString().slice(0,10)}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } else {
+      const headers = ["Event Name","Destination","Start Date","End Date","Days","Status","Total Staff"];
+      const rows = filteredEvents.map(e => [
+        e.eventName, e.destination || "",
+        e.startDate?.slice(0,10), e.endDate?.slice(0,10),
+        e.totalDays, e.status, e.assignments.length
+      ]);
+      const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `events_report_${new Date().toISOString().slice(0,10)}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
   };
 
   if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-500" /></div>;
 
+  const totalEventsCount = eventGroups.length;
+  const totalDaysCount = eventGroups.reduce((acc, e) => acc + e.totalDays, 0);
+  const activeEventsCount = eventGroups.filter(e => e.status === "Active").length;
+  const upcomingEventsCount = eventGroups.filter(e => e.status === "Upcoming").length;
+  const completedEventsCount = eventGroups.filter(e => e.status === "Completed").length;
+
   return (
     <div className="space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-8">
 
+      {/* Dynamic Header */}
+      <div className="flex items-center gap-3 mb-2">
+        {selectedEventName && (
+          <Button variant="outline" size="sm" onClick={() => setSelectedEventName(null)} className="h-8 gap-2">
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Events
+          </Button>
+        )}
+      </div>
+
+      {/* Global or Event KPIs */}
+      {!loading && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {!selectedEventName ? (
+            <>
+              <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800 shadow-sm rounded-lg p-4 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Total Events</p>
+                <p className="text-3xl font-black text-gray-800 dark:text-gray-100 mt-2">{totalEventsCount}</p>
+              </div>
+              <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800 shadow-sm rounded-lg p-4 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Total Days</p>
+                <p className="text-3xl font-black text-pink-600 mt-2">{totalDaysCount}</p>
+              </div>
+              <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800 shadow-sm rounded-lg p-4 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Active Now</p>
+                <p className="text-3xl font-black text-pink-600 mt-2">{activeEventsCount}</p>
+              </div>
+              <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800 shadow-sm rounded-lg p-4 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Upcoming Events</p>
+                <p className="text-3xl font-black text-amber-500 mt-2">{upcomingEventsCount}</p>
+              </div>
+              <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800 shadow-sm rounded-lg p-4 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Completed Events</p>
+                <p className="text-3xl font-black text-blue-600 mt-2">{completedEventsCount}</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800 shadow-sm rounded-lg p-4 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Event Name</p>
+                <p className="text-xl font-black text-gray-800 dark:text-gray-100 mt-2 truncate" title={selectedEvent!.eventName}>{selectedEvent!.eventName}</p>
+              </div>
+              <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800 shadow-sm rounded-lg p-4 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Total Staff</p>
+                <p className="text-3xl font-black text-gray-800 dark:text-gray-100 mt-2">{selectedEvent!.assignments.length}</p>
+              </div>
+              <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800 shadow-sm rounded-lg p-4 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Total Days</p>
+                <p className="text-3xl font-black text-pink-600 mt-2">{selectedEvent!.totalDays}</p>
+              </div>
+              <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800 shadow-sm rounded-lg p-4 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Status</p>
+                <div className="mt-2">{statusBadge(selectedEvent!.status)}</div>
+              </div>
+              <div className="bg-white dark:bg-card border border-gray-200 dark:border-slate-800 shadow-sm rounded-lg p-4 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Destination</p>
+                <p className="text-xl font-bold text-gray-700 dark:text-gray-300 mt-2 truncate" title={selectedEvent!.destination}>{selectedEvent!.destination}</p>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Filters */}
-      <Card className="border border-gray-200 dark:border-gray-500/30/80 shadow-sm">
+      <Card className="border border-gray-200 dark:border-slate-800 shadow-sm">
         <CardContent className="p-4 flex flex-col sm:flex-row items-center gap-3 justify-between">
           <div className="flex items-center gap-3 flex-wrap">
             <Filter className="w-4 h-4 text-gray-400" />
             <div className="relative">
               <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-              <Input placeholder="Search employee, destination…" value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-56" />
+              <Input placeholder={selectedEventName ? "Search employee..." : "Search event..."} value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-56" />
             </div>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[130px] h-8 text-xs">
-                <SelectValue placeholder="Status">{filterStatus === "All" ? "All Status" : filterStatus}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {["All","Active","Upcoming","Completed","Cancelled"].map(s => <SelectItem key={s} value={s}>{s === "All" ? "All Status" : s}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={filterBranch} onValueChange={setFilterBranch}>
-              <SelectTrigger className="w-[150px] h-8 text-xs">
-                <SelectValue placeholder="Branch">{filterBranch === "All" ? "All Branch" : filterBranch}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {branches.map(b => <SelectItem key={b} value={b}>{b === "All" ? "All Branch" : b}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={filterDept} onValueChange={setFilterDept}>
-              <SelectTrigger className="w-[150px] h-8 text-xs">
-                <SelectValue placeholder="Department">{filterDept === "All" ? "All Department" : filterDept}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {departments.map(d => <SelectItem key={d} value={d}>{d === "All" ? "All Department" : d}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <span className="text-[10px] text-gray-400 font-bold">{filtered.length} records</span>
+            
+            {!selectedEventName ? (
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[130px] h-8 text-xs">
+                  <SelectValue placeholder="Status">{filterStatus === "All" ? "All Status" : filterStatus}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {["All","Active","Upcoming","Completed","Cancelled"].map(s => <SelectItem key={s} value={s}>{s === "All" ? "All Status" : s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            ) : (
+              <>
+                <Select value={filterBranch} onValueChange={setFilterBranch}>
+                  <SelectTrigger className="w-[150px] h-8 text-xs">
+                    <SelectValue placeholder="Branch">{filterBranch === "All" ? "All Branch" : filterBranch}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {branches.map(b => <SelectItem key={b} value={b}>{b === "All" ? "All Branch" : b}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={filterDept} onValueChange={setFilterDept}>
+                  <SelectTrigger className="w-[150px] h-8 text-xs">
+                    <SelectValue placeholder="Department">{filterDept === "All" ? "All Department" : filterDept}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departments.map(d => <SelectItem key={d} value={d}>{d === "All" ? "All Department" : d}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+            
+            <span className="text-[10px] text-gray-400 font-bold">{selectedEventName ? filteredAssignments.length : filteredEvents.length} records</span>
           </div>
           <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5 shrink-0" onClick={exportCSV}>
             <Download className="w-3.5 h-3.5" /> Export CSV
@@ -152,18 +313,20 @@ export default function OutstationReports() {
       </Card>
 
       {/* Table */}
-      <Card className="border border-gray-200 dark:border-gray-500/30/80 shadow-sm overflow-hidden">
-        <CardHeader className="border-b border-gray-100 dark:border-slate-800 pb-3">
+      <Card className="border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <CardHeader className="border-b border-gray-100 dark:border-slate-800 pb-3 bg-slate-50/50 dark:bg-slate-900/50">
           <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
             <Plane className="w-4 h-4 text-pink-500" />
-            Outstation Report
-            <Badge className="bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-500/30 text-[10px] font-black">{filtered.length}</Badge>
+            {selectedEventName ? `Event Details: ${selectedEventName}` : "Events Overview"}
+            <Badge className="bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-500/30 text-[10px] font-black">
+              {selectedEventName ? filteredAssignments.length : filteredEvents.length}
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
             <div className="h-48 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-400" /></div>
-          ) : filtered.length === 0 ? (
+          ) : (!selectedEventName && filteredEvents.length === 0) || (selectedEventName && filteredAssignments.length === 0) ? (
             <div className="h-48 flex flex-col items-center justify-center gap-2 text-slate-400">
               <Plane className="w-10 h-10 opacity-20" />
               <p className="text-[10px] font-black uppercase tracking-widest">No records found</p>
@@ -172,83 +335,67 @@ export default function OutstationReports() {
             <div className="overflow-x-auto">
               <table className="w-full text-[12px]">
                 <thead>
-                  <tr className="border-b border-gray-100 dark:border-slate-800 bg-slate-50/60">
-                    {["#","Employee","Department","Branch","Destination","Event","Start","End","Days","Status","Assigned By"].map(h => (
-                      <th key={h} className="px-3 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
-                    ))}
+                  <tr className="border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
+                    {selectedEventName ? (
+                      ["#","Employee","Department","Branch","Destination","Start","End","Days","Status","Assigned By"].map(h => (
+                        <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
+                      ))
+                    ) : (
+                      ["#","Event Name","Destination","Start Date","End Date","Days","Status","Participants"].map(h => (
+                        <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
+                      ))
+                    )}
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((a, i) => (
-                    <tr key={a.id} className="border-b border-gray-50 hover:bg-pink-50/20 transition-colors">
-                      <td className="px-3 py-3 text-gray-400 font-bold text-[10px]">{i + 1}</td>
-                      <td className="px-3 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center text-[9px] font-black text-pink-800 shrink-0">
-                            {(a.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0,2).toUpperCase()}
+                  {!selectedEventName ? (
+                    filteredEvents.map((e, i) => (
+                      <tr 
+                        key={e.eventName} 
+                        onClick={() => setSelectedEventName(e.eventName)}
+                        className="border-b border-gray-50 dark:border-slate-800 hover:bg-pink-50/30 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
+                      >
+                        <td className="px-4 py-3 text-gray-400 font-bold text-[10px] group-hover:text-pink-500">{i + 1}</td>
+                        <td className="px-4 py-3 font-bold text-gray-800 dark:text-gray-100 max-w-[200px] truncate">{e.eventName}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1 font-semibold text-gray-600 dark:text-gray-300">
+                            <MapPin className="w-3 h-3 text-pink-400 shrink-0" />{e.destination}
                           </div>
-                          <span className="font-semibold text-gray-800 dark:text-gray-100">{a.full_name}</span>
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 text-gray-600 dark:text-gray-300">{a.department || "—"}</td>
-                      <td className="px-3 py-3 text-gray-600 dark:text-gray-300">{a.branch || "—"}</td>
-                      <td className="px-3 py-3">
-                        <div className="flex items-center gap-1 font-semibold text-gray-800 dark:text-gray-100">
-                          <MapPin className="w-3 h-3 text-pink-400 shrink-0" />{a.destination}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 text-gray-500 dark:text-gray-400 max-w-[200px]">
-                        {a.purpose && a.purpose !== '-' && <p className="text-xs font-semibold text-gray-700 dark:text-gray-200 whitespace-normal break-words leading-tight">{a.purpose}</p>}
-                        {a.project && a.project !== '-' && <p className="text-xs font-semibold text-gray-700 dark:text-gray-200 whitespace-normal break-words leading-tight mt-0.5">{a.project}</p>}
-                        {(!a.purpose || a.purpose === '-') && (!a.project || a.project === '-') && <span className="text-gray-400">—</span>}
-                      </td>
-                      <td className="px-3 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{fmtDate(a.start_date)}</td>
-                      <td className="px-3 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{fmtDate(a.end_date)}</td>
-                      <td className="px-3 py-3 text-center font-black text-pink-600">{diffDays(a.start_date, a.end_date)}</td>
-                      <td className="px-3 py-3">{statusBadge(a.status)}</td>
-                      <td className="px-3 py-3 text-gray-500 dark:text-gray-400">{a.assigned_by_name || "—"}</td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{fmtDate(e.startDate)}</td>
+                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{fmtDate(e.endDate)}</td>
+                        <td className="px-4 py-3 text-center font-black text-pink-600">{e.totalDays}</td>
+                        <td className="px-4 py-3">{statusBadge(e.status)}</td>
+                        <td className="px-4 py-3">
+                          <Badge variant="outline" className="text-slate-600 dark:text-slate-300">{e.assignments.length} Staff</Badge>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    filteredAssignments.map((a, i) => (
+                      <tr key={a.id} className="border-b border-gray-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                        <td className="px-4 py-3 text-gray-400 font-bold text-[10px]">{i + 1}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center text-[9px] font-black text-pink-800 shrink-0">
+                              {(a.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0,2).toUpperCase()}
+                            </div>
+                            <span className="font-semibold text-gray-800 dark:text-gray-100">{a.full_name}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{a.department || "—"}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{a.branch || "—"}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{a.destination}</td>
+                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{fmtDate(a.start_date)}</td>
+                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{fmtDate(a.end_date)}</td>
+                        <td className="px-4 py-3 text-center font-black text-pink-600">{diffDays(a.start_date, a.end_date)}</td>
+                        <td className="px-4 py-3">{statusBadge(a.status)}</td>
+                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{a.assigned_by_name || "—"}</td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
-            </div>
-          )}
-          
-          {/* Summary Cards by Event */}
-          {!loading && filtered.length > 0 && (
-            <div className="bg-slate-50/50 dark:bg-slate-900/50 border-t border-gray-100 dark:border-slate-800 p-4 space-y-6">
-              {Object.entries(
-                filtered.reduce((acc, a) => {
-                  const eventName = (a.project && a.project !== '-') ? a.project : (a.purpose && a.purpose !== '-') ? a.purpose : 'General';
-                  if (!acc[eventName]) acc[eventName] = [];
-                  acc[eventName].push(a);
-                  return acc;
-                }, {} as Record<string, Assignment[]>)
-              ).map(([eventName, eventRecords]) => (
-                <div key={eventName} className="space-y-3">
-                  <h3 className="text-sm font-black text-slate-700 uppercase tracking-wide border-b border-gray-200 pb-1">
-                    Event: <span className="text-pink-600">{eventName}</span>
-                  </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    {[
-                      { label: "Total Staff", value: eventRecords.length, color: "text-gray-800 dark:text-gray-100" },
-                      { label: "Total Days",    value: Object.values(eventRecords.reduce((acc, a) => { 
-                          const key = a.destination + "_" + a.start_date + "_" + a.end_date; 
-                          if (!acc[key]) acc[key] = diffDays(a.start_date, a.end_date); 
-                          return acc; 
-                        }, {} as Record<string, number>)).reduce((sum, d) => sum + (d as number), 0), color: "text-pink-600" },
-                      { label: "Active Now",    value: eventRecords.filter(a => a.status === "Active").length, color: "text-pink-600" },
-                      { label: "Upcoming Event",value: eventRecords.filter(a => a.status === "Upcoming").length, color: "text-amber-500" },
-                      { label: "Completed",     value: eventRecords.filter(a => a.status === "Completed").length, color: "text-blue-600" },
-                    ].map(s => (
-                      <div key={s.label} className="bg-white dark:bg-card border border-gray-200 dark:border-gray-500/30 shadow-sm rounded-lg p-3">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{s.label}</p>
-                        <p className={`text-xl font-black ${s.color} mt-1`}>{s.value}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
             </div>
           )}
         </CardContent>
@@ -256,5 +403,3 @@ export default function OutstationReports() {
     </div>
   );
 }
-
-

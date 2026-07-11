@@ -1640,11 +1640,6 @@ export default function AttendanceDashboard() {
               </div>
               <p className="text-[12px] text-gray-500 pl-7">Track and monitor attendance statistics for today.</p>
             </div>
-            <Button variant="outline" size="sm" className="h-8 text-[12px] px-3 border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-[0_1px_2px_rgba(0,0,0,0.04)] flex items-center gap-1.5 rounded-md">
-              <Calendar className="w-3.5 h-3.5 text-gray-500" />
-              <span>Today</span>
-              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
-            </Button>
           </CardHeader>
           <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col">
             
