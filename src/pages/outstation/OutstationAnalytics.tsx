@@ -142,7 +142,7 @@ export default function OutstationAnalytics() {
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
           <div>
             <div className="text-sm font-bold uppercase tracking-[0.24em] text-slate-500">Outstation Insight</div>
-            <h1 className="mt-2 text-3xl font-extrabold">Overview of outstation activities and staff on assignment.</h1>
+            <h1 className="mt-2 text-3xl font-bold">Overview of outstation activities and staff on assignment.</h1>
           </div>
           <Button onClick={() => void fetchData()} className="h-11 px-5">
             <RefreshCw className="mr-2 h-4 w-4" /> Refresh
@@ -153,7 +153,7 @@ export default function OutstationAnalytics() {
           <Card className="lg:col-span-1">
             <CardContent className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-violet-100 p-3 text-violet-700"><Briefcase className="h-5 w-5" /></div>
+                <div className="rounded-2xl bg-violet-100 p-3 text-violet-700"><Briefcase className="h-6 w-5" /></div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Total Outstation</p>
                   <p className="mt-1 text-3xl font-bold">{totalAssignments}</p>
@@ -165,7 +165,7 @@ export default function OutstationAnalytics() {
           <Card className="lg:col-span-1">
             <CardContent className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-sky-100 p-3 text-sky-700"><Users className="h-5 w-5" /></div>
+                <div className="rounded-2xl bg-sky-100 p-3 text-sky-700"><Users className="h-6 w-5" /></div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Staff on Outstation</p>
                   <p className="mt-1 text-3xl font-bold">{activeStaffCount}</p>
@@ -177,7 +177,7 @@ export default function OutstationAnalytics() {
           <Card className="lg:col-span-1">
             <CardContent className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-emerald-100 p-3 text-emerald-700"><MapPin className="h-5 w-5" /></div>
+                <div className="rounded-2xl bg-emerald-100 p-3 text-emerald-700"><MapPin className="h-6 w-5" /></div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Destinations</p>
                   <p className="mt-1 text-3xl font-bold">{totalDestinations}</p>
@@ -189,7 +189,7 @@ export default function OutstationAnalytics() {
           <Card className="lg:col-span-1">
             <CardContent className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-orange-100 p-3 text-orange-700"><Calendar className="h-5 w-5" /></div>
+                <div className="rounded-2xl bg-orange-100 p-3 text-orange-700"><Calendar className="h-6 w-5" /></div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Ongoing</p>
                   <p className="mt-1 text-3xl font-bold">{activeCount}</p>
@@ -201,7 +201,7 @@ export default function OutstationAnalytics() {
           <Card className="lg:col-span-1">
             <CardContent className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-rose-100 p-3 text-rose-700"><CheckCircle2 className="h-5 w-5" /></div>
+                <div className="rounded-2xl bg-rose-100 p-3 text-rose-700"><CheckCircle2 className="h-6 w-5" /></div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Completed</p>
                   <p className="mt-1 text-3xl font-bold">{completedCount}</p>
