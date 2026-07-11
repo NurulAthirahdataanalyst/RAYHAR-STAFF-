@@ -278,17 +278,17 @@ export default function OutstationAnalytics() {
               <CardTitle className="text-lg font-semibold">Quick Summary</CardTitle>
             </CardHeader>
             <CardContent className="p-4 grid gap-3">
-              <div className="rounded-md bg-slate-100 p-3 text-sm">
-                <div className="text-slate-500">Departures today</div>
-                <div className="mt-1 text-xl font-bold">{stats.todayDepartures || 0}</div>
+              <div className="rounded-md bg-slate-100 dark:bg-slate-800/50 p-3 text-sm">
+                <div className="text-slate-500 dark:text-slate-400">Departures today</div>
+                <div className="mt-1 text-xl font-bold text-slate-900 dark:text-slate-100">{stats.todayDepartures || 0}</div>
               </div>
-              <div className="rounded-md bg-slate-100 p-3 text-sm">
-                <div className="text-slate-500">Returns today</div>
-                <div className="mt-1 text-xl font-bold">{stats.todayReturns || 0}</div>
+              <div className="rounded-md bg-slate-100 dark:bg-slate-800/50 p-3 text-sm">
+                <div className="text-slate-500 dark:text-slate-400">Returns today</div>
+                <div className="mt-1 text-xl font-bold text-slate-900 dark:text-slate-100">{stats.todayReturns || 0}</div>
               </div>
-              <div className="rounded-md bg-slate-100 p-3 text-sm">
-                <div className="text-slate-500">Upcoming assignments</div>
-                <div className="mt-1 text-xl font-bold">{upcomingCount}</div>
+              <div className="rounded-md bg-slate-100 dark:bg-slate-800/50 p-3 text-sm">
+                <div className="text-slate-500 dark:text-slate-400">Upcoming assignments</div>
+                <div className="mt-1 text-xl font-bold text-slate-900 dark:text-slate-100">{upcomingCount}</div>
               </div>
             </CardContent>
           </Card>
