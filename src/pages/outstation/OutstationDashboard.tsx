@@ -321,7 +321,7 @@ export default function OutstationDashboard() {
   if (roleLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900/50"><Loader2 className="animate-spin w-8 h-8 text-purple-900" /></div>;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-gray-900 dark:text-gray-100 pb-12">
+    <div className="animate-in fade-in duration-500 pb-12">
       {/* 
         Spacing System: 8, 16, 24, 32, 48px
         Using standard Tailwind: 2 (8px), 4 (16px), 6 (24px), 8 (32px), 12 (48px)
