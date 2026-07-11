@@ -6374,6 +6374,13 @@ app.post('/api/outstation', async (req, res) => {
       inserted.push(returnedRow);
     }
 
+    // Broadcast SSE so clients refresh outstation data
+    try {
+      const ids = inserted.map(r => r.id || r.assignment_id).filter(Boolean);
+      broadcastPresenceUpdate({ type: 'outstation', action: 'created', ids, count: inserted.length });
+    } catch (e) {
+      console.error('Error broadcasting outstation create:', e);
+    }
     res.json({ success: true, assignments: inserted, message: `${inserted.length} outstation assignment(s) created` });
   } catch (err) {
     console.error('POST /api/outstation error:', err);
@@ -6402,6 +6409,9 @@ app.put('/api/outstation/:id', async (req, res) => {
     );
 
     if (rows.length === 0) return res.status(404).json({ success: false, error: 'Assignment not found' });
+    try {
+      broadcastPresenceUpdate({ type: 'outstation', action: 'updated', id: rows[0].id || rows[0].assignment_id });
+    } catch (e) { console.error('Error broadcasting outstation update:', e); }
     res.json({ success: true, assignment: rows[0] });
   } catch (err) {
     console.error('PUT /api/outstation/:id error:', err);
@@ -6418,6 +6428,7 @@ app.put('/api/outstation/:id/cancel', async (req, res) => {
       [id]
     );
     if (rows.length === 0) return res.status(404).json({ success: false, error: 'Assignment not found' });
+    try { broadcastPresenceUpdate({ type: 'outstation', action: 'cancelled', id: rows[0].id || rows[0].assignment_id }); } catch (e) { console.error('Error broadcasting outstation cancel:', e); }
     res.json({ success: true, assignment: rows[0] });
   } catch (err) {
     console.error('PUT /api/outstation/:id/cancel error:', err);
@@ -6430,6 +6441,7 @@ app.delete('/api/outstation/:id', async (req, res) => {
   try {
     const { id } = req.params;
     await pool.query('DELETE FROM outstation_assignments WHERE id=$1', [id]);
+    try { broadcastPresenceUpdate({ type: 'outstation', action: 'deleted', id }); } catch (e) { console.error('Error broadcasting outstation delete:', e); }
     res.json({ success: true, message: 'Assignment deleted' });
   } catch (err) {
     console.error('DELETE /api/outstation/:id error:', err);
