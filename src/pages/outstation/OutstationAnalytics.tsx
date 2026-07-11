@@ -188,23 +188,24 @@ export default function OutstationAnalytics() {
           </Card>
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr] mb-6">
+        <div className="grid gap-4 xl:grid-cols-[1.4fr_0.9fr_0.9fr] mb-6">
+          {/* Left: Destinations (bigger) */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg font-semibold">Outstation by Destination</CardTitle>
             </CardHeader>
-            <CardContent className="p-4">
+            <CardContent className="p-4 space-y-2">
               {destinationData.length === 0 ? (
-                <div className="py-12 text-center text-slate-500">No destinations available.</div>
+                <div className="py-8 text-center text-slate-500">No destinations available.</div>
               ) : (
                 <div className="space-y-3">
                   {destinationData.map((item, index) => (
                     <div key={index} className="flex items-center justify-between gap-3">
-                      <div className="min-w-[160px] text-sm font-medium text-slate-700">{item.destination}</div>
-                      <div className="flex-1 bg-slate-100 h-3 rounded-full overflow-hidden">
-                        <div className="h-3 rounded-full bg-violet-600" style={{ width: `${Math.min(100, (item.count / destinationData[0].count) * 100)}%` }} />
+                      <div className="min-w-[140px] text-sm font-medium text-slate-700">{item.destination}</div>
+                      <div className="flex-1 bg-slate-100 h-3 rounded-full overflow-hidden mx-4">
+                        <div className="h-3 rounded-full bg-violet-600" style={{ width: `${Math.min(100, (item.count / (destinationData[0]?.count || 1)) * 100)}%` }} />
                       </div>
-                      <div className="w-14 text-right text-sm font-semibold text-slate-700">{item.count}</div>
+                      <div className="w-12 text-right text-sm font-semibold text-slate-700">{item.count}</div>
                     </div>
                   ))}
                 </div>
@@ -212,18 +213,19 @@ export default function OutstationAnalytics() {
             </CardContent>
           </Card>
 
-          <div className="grid gap-4">
+          {/* Middle: Status + quick summary */}
+          <div className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg font-semibold">Outstation Status</CardTitle>
               </CardHeader>
-              <CardContent className="h-72">
+              <CardContent className="p-4">
                 {statusData.length === 0 ? (
-                  <div className="py-12 text-center text-slate-500">No data yet.</div>
+                  <div className="py-8 text-center text-slate-500">No data yet.</div>
                 ) : (
-                  <ResponsiveContainer width="100%" height={240}>
+                  <ResponsiveContainer width="100%" height={220}>
                     <PieChart>
-                      <Pie data={statusData} dataKey="value" nameKey="status" innerRadius={60} outerRadius={90} paddingAngle={2}>
+                      <Pie data={statusData} dataKey="value" nameKey="status" innerRadius={52} outerRadius={80} paddingAngle={2}>
                         {statusData.map(entry => (
                           <Cell key={entry.status} fill={STATUS_COLORS[entry.status] || STATUS_COLORS.Unknown} />
                         ))}
@@ -232,7 +234,7 @@ export default function OutstationAnalytics() {
                     </PieChart>
                   </ResponsiveContainer>
                 )}
-                <div className="mt-4 grid grid-cols-2 gap-2 text-sm text-slate-600">
+                <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-600">
                   {statusData.map(item => (
                     <div key={item.status} className="flex items-center gap-2">
                       <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[item.status] || STATUS_COLORS.Unknown }} />
@@ -243,26 +245,39 @@ export default function OutstationAnalytics() {
                 </div>
               </CardContent>
             </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg font-semibold">Quick Summary</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="rounded-2xl bg-slate-900/5 p-4">
-                  <div className="text-sm text-slate-500">Departures today</div>
-                  <div className="mt-2 text-2xl font-bold">{stats.todayDepartures || 0}</div>
+              <CardContent className="p-4 grid gap-3">
+                <div className="rounded-md bg-slate-100 p-3 text-sm">
+                  <div className="text-slate-500">Departures today</div>
+                  <div className="mt-1 text-xl font-bold">{stats.todayDepartures || 0}</div>
                 </div>
-                <div className="rounded-2xl bg-slate-900/5 p-4">
-                  <div className="text-sm text-slate-500">Returns today</div>
-                  <div className="mt-2 text-2xl font-bold">{stats.todayReturns || 0}</div>
+                <div className="rounded-md bg-slate-100 p-3 text-sm">
+                  <div className="text-slate-500">Returns today</div>
+                  <div className="mt-1 text-xl font-bold">{stats.todayReturns || 0}</div>
                 </div>
-                <div className="rounded-2xl bg-slate-900/5 p-4">
-                  <div className="text-sm text-slate-500">Upcoming assignments</div>
-                  <div className="mt-2 text-2xl font-bold">{upcomingCount}</div>
+                <div className="rounded-md bg-slate-100 p-3 text-sm">
+                  <div className="text-slate-500">Upcoming assignments</div>
+                  <div className="mt-1 text-xl font-bold">{upcomingCount}</div>
                 </div>
               </CardContent>
             </Card>
           </div>
+
+          {/* Right: Map */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Outstation Map</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="h-64 rounded-2xl border border-slate-200 bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-slate-500">
+                Map placeholder
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
