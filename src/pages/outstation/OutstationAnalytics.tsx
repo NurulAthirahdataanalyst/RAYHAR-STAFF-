@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { API_BASE_URL } from "@/config/api";
-import { Loader2, RefreshCw, MapPin, Users, Briefcase, Calendar, CheckCircle2 } from "lucide-react";
-import { BarChart, Bar, XAxis, PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
+import { Loader2, RefreshCw, MapPin, Users, Briefcase, Calendar, CheckCircle2, AlertCircle } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
 
+const ALLOWED_ROLES = ["hr_admin", "managing_director", "finance_manager", "branch_leader", "head_of_department"];
 const STATUS_COLORS: Record<string, string> = {
   Active: "#16a34a",
   Upcoming: "#f97316",
@@ -28,16 +31,37 @@ function statusBadge(status: string) {
 }
 
 export default function OutstationAnalytics() {
+  const navigate = useNavigate();
+  const { role, userBranch, userDepartment } = useRole();
   const [assignments, setAssignments] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({});
   const [loading, setLoading] = useState(true);
 
+  // Role authorization check
+  useEffect(() => {
+    if (role && !ALLOWED_ROLES.includes(role)) {
+      navigate("/");
+    }
+  }, [role, navigate]);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
+      // Build query params based on role
+      const params = new URLSearchParams();
+      if (role === "branch_leader") {
+        params.append("role", "branch_leader");
+        if (userBranch) params.append("branch", userBranch);
+      } else if (role === "head_of_department") {
+        params.append("role", "head_of_department");
+        if (userDepartment) params.append("department", userDepartment);
+      } else if (["hr_admin", "managing_director", "finance_manager"].includes(role || "")) {
+        params.append("role", role);
+      }
+
       const [statsRes, assignmentsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/outstation/stats`),
-        fetch(`${API_BASE_URL}/api/outstation`),
+        fetch(`${API_BASE_URL}/api/outstation/stats?${params.toString()}`),
+        fetch(`${API_BASE_URL}/api/outstation?${params.toString()}`),
       ]);
       const statsData = await statsRes.json();
       const assignmentsData = await assignmentsRes.json();
@@ -48,7 +72,7 @@ export default function OutstationAnalytics() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [role, userBranch, userDepartment]);
 
   useEffect(() => {
     void fetchData();
