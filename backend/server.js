@@ -1244,6 +1244,90 @@ app.get("/api/presence/live-stats", async (req, res) => {
 });
 
 // ============================================================
+// DYNAMIC METRICS HELPER (Monthly Comparison, HR Alerts, Outstation Analytics)
+// ============================================================
+async function computeDynamicWorkforceMetrics(dateStr, role, branch, department) {
+  let profileFilter = "";
+  let pFilterParams = [];
+  if (role === 'branch_leader') {
+    const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+    profileFilter = " AND p.branch = ?";
+    pFilterParams.push(safeBranch);
+  } else if (role === 'head_of_department') {
+    const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+    profileFilter = " AND p.department = ?";
+    pFilterParams.push(safeDept);
+  }
+
+  const targetDateObj = new Date(dateStr);
+  const targetMonth = targetDateObj.getMonth() + 1;
+  const targetYear = targetDateObj.getFullYear();
+  
+  const curStart = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-01`;
+  const curEndObj = new Date(targetYear, targetMonth, 0);
+  const curEnd = curEndObj.toISOString().split('T')[0];
+  const curWorkingDays = curEndObj.getDate();
+
+  const pMonth = targetMonth === 1 ? 12 : targetMonth - 1;
+  const pYear = targetMonth === 1 ? targetYear - 1 : targetYear;
+  const prevStart = `${pYear}-${pMonth.toString().padStart(2, '0')}-01`;
+  const prevEndObj = new Date(pYear, pMonth, 0);
+  const prevEnd = prevEndObj.toISOString().split('T')[0];
+  const prevWorkingDays = prevEndObj.getDate();
+
+  const [empRows] = await pool.query(`SELECT COUNT(*) as total FROM profiles p WHERE p.status = 'Active' ${profileFilter}`, pFilterParams);
+  const totalEmployees = parseInt(empRows[0].total || 0);
+
+  const attQuery = `SELECT COUNT(*) as total, SUM(CASE WHEN is_late = 1 THEN 1 ELSE 0 END) as lates FROM attendances a JOIN profiles p ON p.user_id = a.user_id WHERE DATE(a.clock_in) BETWEEN ? AND ? AND p.status = 'Active' ${profileFilter}`;
+  const [attRowsCur] = await pool.query(attQuery, [...pFilterParams, curStart, curEnd]);
+  const [attRowsPrev] = await pool.query(attQuery, [...pFilterParams, prevStart, prevEnd]);
+
+  const leaveQuery = `SELECT COUNT(*) as total FROM leave_requests lr JOIN profiles p ON p.user_id = lr.user_id WHERE lr.status = 'Approved' AND (DATE(lr.start_date) BETWEEN ? AND ? OR DATE(lr.end_date) BETWEEN ? AND ?) AND p.status = 'Active' ${profileFilter}`;
+  const [leaveCur] = await pool.query(leaveQuery, [...pFilterParams, curStart, curEnd, curStart, curEnd]);
+  const [leavePrev] = await pool.query(leaveQuery, [...pFilterParams, prevStart, prevEnd, prevStart, prevEnd]);
+
+  const outQuery = `SELECT COUNT(*) as total, SUM(CASE WHEN o.status = 'Completed' THEN 1 ELSE 0 END) as completed, SUM(CASE WHEN o.status = 'Active' THEN 1 ELSE 0 END) as active, SUM(CASE WHEN o.status = 'Cancelled' THEN 1 ELSE 0 END) as cancelled FROM outstation_assignments o JOIN profiles p ON p.user_id = o.user_id WHERE (DATE(o.start_date) BETWEEN ? AND ? OR DATE(o.end_date) BETWEEN ? AND ?) AND p.status = 'Active' ${profileFilter}`;
+  const [outCur] = await pool.query(outQuery, [...pFilterParams, curStart, curEnd, curStart, curEnd]);
+  const [outPrev] = await pool.query(outQuery, [...pFilterParams, prevStart, prevEnd, prevStart, prevEnd]);
+
+  const curAttRate = totalEmployees > 0 ? ((parseInt(attRowsCur[0].total) / (totalEmployees * curWorkingDays)) * 100).toFixed(1) : 0;
+  const prevAttRate = totalEmployees > 0 ? ((parseInt(attRowsPrev[0].total) / (totalEmployees * prevWorkingDays)) * 100).toFixed(1) : 0;
+  const attendanceDiff = (curAttRate - prevAttRate).toFixed(1);
+
+  const curAbsences = Math.max(0, (totalEmployees * curWorkingDays) - parseInt(attRowsCur[0].total) - parseInt(leaveCur[0].total) - parseInt(outCur[0].total));
+  const prevAbsences = Math.max(0, (totalEmployees * prevWorkingDays) - parseInt(attRowsPrev[0].total) - parseInt(leavePrev[0].total) - parseInt(outPrev[0].total));
+
+  const monthlyComparison = {
+    attendance: { current: parseFloat(curAttRate), previous: parseFloat(prevAttRate) },
+    lateArrivals: { current: parseInt(attRowsCur[0].lates || 0), previous: parseInt(attRowsPrev[0].lates || 0) },
+    absences: { current: curAbsences, previous: prevAbsences },
+    leaveRequests: { current: parseInt(leaveCur[0].total || 0), previous: parseInt(leavePrev[0].total || 0) },
+    outstation: { current: parseInt(outCur[0].total || 0), previous: parseInt(outPrev[0].total || 0) }
+  };
+
+  const [pendingLeaves] = await pool.query(`SELECT COUNT(*) as total FROM leave_requests lr JOIN profiles p ON p.user_id = lr.user_id WHERE lr.status = 'Pending' AND p.status = 'Active' ${profileFilter}`, pFilterParams);
+  const pendingLeavesCount = parseInt(pendingLeaves[0].total || 0);
+
+  const hrAlerts = [];
+  if (curAbsences > 5) hrAlerts.push({ title: `${curAbsences} Absences`, description: 'High absences this month', type: 'critical' });
+  if (pendingLeavesCount > 0) hrAlerts.push({ title: `${pendingLeavesCount} Leave Requests`, description: 'Awaiting Approval', type: 'info' });
+  if (attendanceDiff > 0) hrAlerts.push({ title: 'Attendance', description: `↑${attendanceDiff}% vs Last Month`, type: 'success' });
+  else if (attendanceDiff < 0) hrAlerts.push({ title: 'Attendance', description: `↓${Math.abs(attendanceDiff)}% vs Last Month`, type: 'warning' });
+  else hrAlerts.push({ title: 'Attendance', description: `Same as Last Month`, type: 'success' });
+
+  const [routes] = await pool.query(`SELECT o.destination, COUNT(*) as trips FROM outstation_assignments o JOIN profiles p ON p.user_id = o.user_id WHERE (DATE(o.start_date) BETWEEN ? AND ? OR DATE(o.end_date) BETWEEN ? AND ?) AND p.status = 'Active' ${profileFilter} GROUP BY o.destination ORDER BY trips DESC LIMIT 3`, [...pFilterParams, curStart, curEnd, curStart, curEnd]);
+
+  const outstationAnalytics = {
+    completed: parseInt(outCur[0].completed || 0),
+    upcoming: parseInt(outCur[0].active || 0),
+    cancelled: parseInt(outCur[0].cancelled || 0),
+    popularRoutes: routes.map(r => ({ route: r.destination || 'Unknown', trips: parseInt(r.trips || 0) }))
+  };
+
+  return { monthlyComparison, hrAlerts, outstationAnalytics };
+}
+
+// ============================================================
 // WORKFORCE LIVE FEED SSE
 // Streams: clockInOut (present), late (with minutes), pendingApprovals
 // For: hr_admin, managing_director, finance_manager
@@ -5242,6 +5326,8 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     // Combine them, putting company leaves first
     const finalAbsentList = [...simulatedCompanyLeave, ...simulatedAbsent].slice(0, 10);
 
+    const dynamicMetrics = await computeDynamicWorkforceMetrics(targetDateStr, role, branch, department);
+
     const sseInitialPayload = {
       attendance: attRows.filter(a => {
         const dateObj = new Date(a.clock_in);
@@ -5273,13 +5359,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     res.json({
       success: true,
       departmentMetrics: deptRows.map(r => ({ name: r.department, value: parseInt(r.count || 0) })),
-      monthlyComparison: {
-        attendance: { current: 95.4, previous: 93.3 },
-        lateArrivals: { current: 28, previous: 41 },
-        absences: { current: 12, previous: 18 },
-        leaveRequests: { current: 35, previous: 30 },
-        outstation: { current: 15, previous: 11 }
-      },
+      monthlyComparison: dynamicMetrics.monthlyComparison,
       branchMetrics: Object.keys(branchStats).map(b => {
         const s = branchStats[b];
         const total = s.total;
@@ -5301,28 +5381,14 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         }
       }),
       leaveAnalytics: realLeaveAnalytics,
-      outstationAnalytics: {
-        completed: 25,
-        upcoming: 8,
-        cancelled: 2,
-        popularRoutes: [
-          { route: 'KL → Penang', trips: 8 },
-          { route: 'KL → Johor', trips: 6 },
-          { route: 'KL → Sabah', trips: 4 }
-        ]
-      },
+      outstationAnalytics: dynamicMetrics.outstationAnalytics,
       workforceMovement: {
         newJoiners: 4,
         resigned: 2,
         transferred: 3,
         promotions: 1
       },
-      hrAlerts: [
-        { title: '4 Employees', description: 'Absent 3 Consecutive Days', type: 'critical' },
-        { title: '2 Contracts', description: 'Expiring in 30 Days', type: 'warning' },
-        { title: '7 Leave Requests', description: 'Awaiting Approval', type: 'info' },
-        { title: 'Attendance', description: '↑4% vs Last Month', type: 'success' }
-      ],
+      hrAlerts: dynamicMetrics.hrAlerts,
       topKpi: {
         totalHeadcount,
         activeEmployees,

@@ -98,6 +98,8 @@ export default function WorkforceInsights() {
   const [upcomingOutstationList, setUpcomingOutstationList] = useState<any[]>([]);
   const [activeOutstationList, setActiveOutstationList] = useState<any[]>([]);
   const [outstationSummary, setOutstationSummary] = useState<any>(null);
+  const [liveMonthlyComp, setLiveMonthlyComp] = useState<any>(null);
+  const [liveHrAlerts, setLiveHrAlerts] = useState<any[]>(null);
   const [feedConnected, setFeedConnected] = useState(false);
 
   const isAdminRole = ["hr_admin", "managing_director", "finance_manager"].includes(role || "");
@@ -109,6 +111,8 @@ export default function WorkforceInsights() {
       role: role || "",
       branch: userBranch || "",
       department: userDepartment || "",
+      month: month.toString(),
+      year: year.toString()
     });
     if (viewMode === 'day') {
       params.append('date', `${year}-${month}-${day}`);
@@ -125,7 +129,9 @@ export default function WorkforceInsights() {
           setPendingApprovalsList(d.pendingApprovals || []);
           setUpcomingOutstationList(d.upcomingOutstationList || []);
           setActiveOutstationList(d.activeOutstationList || []);
-          setOutstationSummary(d.outstationSummary || null);
+          setOutstationSummary(d.outstationSummary || d.outstationAnalytics || null);
+          setLiveMonthlyComp(d.monthlyComparison || null);
+          setLiveHrAlerts(d.hrAlerts || null);
           setFeedConnected(true);
         }
       } catch {}
@@ -1386,18 +1392,18 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  <thead className="text-xs text-slate-500 bg-slate-50/50 uppercase">
                    <tr>
                      <th className="px-4 py-3 font-semibold">Metric</th>
-                     <th className="px-4 py-3 font-semibold text-right">This Month</th>
+                     <th className="px-4 py-3 font-semibold text-right">This Month {feedConnected && <span className="ml-1 text-[8px] bg-red-500 text-white px-1 rounded animate-pulse">LIVE</span>}</th>
                      <th className="px-4 py-3 font-semibold text-right">Last Month</th>
                      <th className="px-4 py-3 font-semibold text-right">Change</th>
                    </tr>
                  </thead>
                  <tbody className="divide-y divide-slate-100">
                    {[
-                     { label: 'Attendance Rate', cur: `${monthlyComp.attendance?.current || 0}%`, prev: `${monthlyComp.attendance?.previous || 0}%`, diff: (monthlyComp.attendance?.current || 0) - (monthlyComp.attendance?.previous || 0) },
-                     { label: 'Late Arrivals', cur: monthlyComp.lateArrivals?.current || 0, prev: monthlyComp.lateArrivals?.previous || 0, diff: (monthlyComp.lateArrivals?.current || 0) - (monthlyComp.lateArrivals?.previous || 0), invert: true },
-                     { label: 'Absences', cur: monthlyComp.absences?.current || 0, prev: monthlyComp.absences?.previous || 0, diff: (monthlyComp.absences?.current || 0) - (monthlyComp.absences?.previous || 0), invert: true },
-                     { label: 'Leave Requests', cur: monthlyComp.leaveRequests?.current || 0, prev: monthlyComp.leaveRequests?.previous || 0, diff: (monthlyComp.leaveRequests?.current || 0) - (monthlyComp.leaveRequests?.previous || 0), invert: true },
-                     { label: 'Outstation Trips', cur: monthlyComp.outstation?.current || 0, prev: monthlyComp.outstation?.previous || 0, diff: (monthlyComp.outstation?.current || 0) - (monthlyComp.outstation?.previous || 0) },
+                     { label: 'Attendance Rate', cur: `${(liveMonthlyComp || monthlyComp).attendance?.current || 0}%`, prev: `${(liveMonthlyComp || monthlyComp).attendance?.previous || 0}%`, diff: ((liveMonthlyComp || monthlyComp).attendance?.current || 0) - ((liveMonthlyComp || monthlyComp).attendance?.previous || 0) },
+                     { label: 'Late Arrivals', cur: (liveMonthlyComp || monthlyComp).lateArrivals?.current || 0, prev: (liveMonthlyComp || monthlyComp).lateArrivals?.previous || 0, diff: ((liveMonthlyComp || monthlyComp).lateArrivals?.current || 0) - ((liveMonthlyComp || monthlyComp).lateArrivals?.previous || 0), invert: true },
+                     { label: 'Absences', cur: (liveMonthlyComp || monthlyComp).absences?.current || 0, prev: (liveMonthlyComp || monthlyComp).absences?.previous || 0, diff: ((liveMonthlyComp || monthlyComp).absences?.current || 0) - ((liveMonthlyComp || monthlyComp).absences?.previous || 0), invert: true },
+                     { label: 'Leave Requests', cur: (liveMonthlyComp || monthlyComp).leaveRequests?.current || 0, prev: (liveMonthlyComp || monthlyComp).leaveRequests?.previous || 0, diff: ((liveMonthlyComp || monthlyComp).leaveRequests?.current || 0) - ((liveMonthlyComp || monthlyComp).leaveRequests?.previous || 0), invert: true },
+                     { label: 'Outstation Trips', cur: (liveMonthlyComp || monthlyComp).outstation?.current || 0, prev: (liveMonthlyComp || monthlyComp).outstation?.previous || 0, diff: ((liveMonthlyComp || monthlyComp).outstation?.current || 0) - ((liveMonthlyComp || monthlyComp).outstation?.previous || 0) },
                    ].map((row, idx) => {
                      let isPositive = row.diff > 0;
                      if (row.invert) isPositive = row.diff < 0;
@@ -1693,10 +1699,15 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  <AlertCircle className="w-4 h-4 text-[#7B0099]" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">HR Alerts</h3>
                </div>
+               {feedConnected && (
+                 <div className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest z-10 shadow-sm">
+                   <span className="w-1 h-1 rounded-full bg-white dark:bg-card animate-pulse" /> LIVE
+                 </div>
+               )}
              </div>
              
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
-               {hrAlerts.map((alert: any, i: number) => {
+               {(liveHrAlerts || hrAlerts || []).map((alert: any, i: number) => {
                  let bgColor = 'bg-slate-50 dark:bg-slate-900/50';
                  let borderColor = 'border-slate-200 dark:border-slate-800';
                  let iconColor = 'text-slate-500';
