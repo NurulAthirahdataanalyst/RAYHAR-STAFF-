@@ -163,51 +163,51 @@ export default function OutstationAnalytics() {
             </CardContent>
           </Card>
           <Card className="lg:col-span-1">
-            <CardContent className="space-y-3">
+            <CardContent className="p-5">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-sky-100 p-3 text-sky-700"><Users className="h-6 w-6" /></div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><Users className="h-6 w-6" /></div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Staff on Outstation</p>
-                  <p className="mt-1 text-3xl font-bold">{activeStaffCount}</p>
+                  <p className="mt-2 text-3xl font-bold">{activeStaffCount}</p>
                 </div>
               </div>
-              <p className="text-sm text-slate-500">Unique team members currently away on assignment.</p>
+              <p className="mt-4 text-sm text-slate-500">Unique team members currently away on assignment.</p>
             </CardContent>
           </Card>
-          <Card className="lg:col-span-1 min-h-[180px]">
-            <CardContent className="space-y-3">
+          <Card className="lg:col-span-1">
+            <CardContent className="p-5">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-emerald-100 p-3 text-emerald-700"><MapPin className="h-6 w-6" /></div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><MapPin className="h-6 w-6" /></div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Destinations</p>
-                  <p className="mt-1 text-3xl font-bold">{totalDestinations}</p>
+                  <p className="mt-2 text-3xl font-bold">{totalDestinations}</p>
                 </div>
               </div>
-              <p className="text-sm text-slate-500">Distinct cities or sites visited by staff.</p>
+              <p className="mt-4 text-sm text-slate-500">Distinct cities or sites visited by staff.</p>
             </CardContent>
           </Card>
           <Card className="lg:col-span-1">
-            <CardContent className="space-y-3">
+            <CardContent className="p-5">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-orange-100 p-3 text-orange-700"><Calendar className="h-6 w-5" /></div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><Calendar className="h-6 w-5" /></div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Ongoing</p>
-                  <p className="mt-1 text-3xl font-bold">{activeCount}</p>
+                  <p className="mt-2 text-3xl font-bold">{activeCount}</p>
                 </div>
               </div>
-              <p className="text-sm text-slate-500">Assignments currently in progress.</p>
+              <p className="mt-4 text-sm text-slate-500">Assignments currently in progress.</p>
             </CardContent>
           </Card>
           <Card className="lg:col-span-1">
-            <CardContent className="space-y-3">
+            <CardContent className="p-5">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-rose-100 p-3 text-rose-700"><CheckCircle2 className="h-6 w-5" /></div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><CheckCircle2 className="h-6 w-5" /></div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Completed</p>
-                  <p className="mt-1 text-3xl font-bold">{completedCount}</p>
+                  <p className="mt-2 text-3xl font-bold">{completedCount}</p>
                 </div>
               </div>
-              <p className="text-sm text-slate-500">Assignments finished in your current scope.</p>
+              <p className="mt-4 text-sm text-slate-500">Assignments finished in your current scope.</p>
             </CardContent>
           </Card>
         </div>
