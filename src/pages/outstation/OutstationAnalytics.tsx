@@ -151,7 +151,7 @@ export default function OutstationAnalytics() {
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
           <Card className="lg:col-span-1 min-h-[180px]">
-            <CardContent className="flex h-full flex-col justify-between p-5">
+            <CardContent className="p-5">
               <div className="flex item-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700 flex-shrink-0"><Briefcase className="h-6 w-6" /></div>
                 <div>
