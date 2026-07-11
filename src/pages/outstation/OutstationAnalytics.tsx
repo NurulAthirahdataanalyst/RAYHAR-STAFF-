@@ -137,7 +137,7 @@ export default function OutstationAnalytics() {
   }, [assignments]);
 
   return (
-    <div className="min-h-screen text-slate-900 dark:bg-slate-950 dark:text-slate-100 pb-12">
+    <div className="space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-12">
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
           <div>
