@@ -250,7 +250,7 @@ export default function OutstationAnalytics() {
               </CardHeader>
               <CardContent className="p-4">
                 {statusData.length === 0 ? (
-                  <div className="py-8 text-center text-slate-500">No data yet.</div>
+                  <div className="py-5 text-center text-slate-500">No data yet.</div>
                 ) : (
                   <ResponsiveContainer width="100%" height={220}>
                     <PieChart>

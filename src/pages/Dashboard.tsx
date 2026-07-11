@@ -2,6 +2,7 @@ import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import StatCard from "@/components/shared/StatCard";
+import { getEmployeeLeaveBalances } from "@/lib/leaveStorage";
 import {
   Users,
   Clock,
@@ -71,6 +72,37 @@ export default function Dashboard() {
       window.removeEventListener("presenceSidebarCollapsedChanged", handleSidebarChange);
     };
   }, []);
+
+  // Initialize and listen for leave balance updates from localStorage
+  useEffect(() => {
+    const updateLeaveBalance = () => {
+      const balances = getEmployeeLeaveBalances(dashboardUserId);
+      setStats((current) => ({
+        ...current,
+        leaveBalance: balances["Annual & Emergency Leave"] || 14,
+      }));
+    };
+
+    // Initial load
+    updateLeaveBalance();
+
+    // Listen for BroadcastChannel messages (cross-tab sync)
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel("rayhar_leave_refresh");
+      bc.onmessage = (event) => {
+        if (event.data === "refresh") {
+          updateLeaveBalance();
+        }
+      };
+    } catch (e) {
+      // BroadcastChannel might not be supported
+    }
+
+    return () => {
+      if (bc) bc.close();
+    };
+  }, [dashboardUserId]);
 
   const [stats, setStats] = useState({
     leaveBalance: 14,
@@ -293,11 +325,21 @@ export default function Dashboard() {
           data.type === 'presence-update' || 
           data.type === 'leave-status' || 
           data.type === 'leave-request' || 
+          data.type === 'leave-balance' ||
           data.type === 'refresh'
         ) {
           // If the event is from another branch, ignore if role is restricted
           if (role === "branch_leader" || role === "branch_officer" || !["hr_admin", "managing_director", "finance_manager"].includes(role)) {
             if (data.branch && data.branch !== userBranch) return;
+          }
+          
+          // Handle leave balance updates
+          if (data.type === 'leave-balance') {
+            const balances = getEmployeeLeaveBalances(dashboardUserId);
+            setStats((current) => ({
+              ...current,
+              leaveBalance: balances["Annual & Emergency Leave"] || 14,
+            }));
           }
           
           fetchDashboardData(true);
@@ -328,12 +370,21 @@ export default function Dashboard() {
           sessionStorage.removeItem("latestAttendanceUpdate");
         }
       }
+
+      // Listen for leave balance updates from LeaveEntitlementManagement
+      if (event.key === "rayhar_employee_leave_balances") {
+        const balances = getEmployeeLeaveBalances(dashboardUserId);
+        setStats((current) => ({
+          ...current,
+          leaveBalance: balances["Annual & Emergency Leave"] || 14,
+        }));
+      }
     };
 
     window.addEventListener("storage", handleStorageChange);
 
     return () => window.removeEventListener("storage", handleStorageChange);
-  }, [applyAttendanceUpdate, fetchDashboardData]);
+  }, [applyAttendanceUpdate, fetchDashboardData, dashboardUserId]);
 
   const groupedUpcomingOutstations: any[] = [];
   upcomingOutstations.forEach(a => {

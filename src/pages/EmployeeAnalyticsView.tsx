@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { API_BASE_URL } from "../config/api";
+import { getEmployeeLeaveBalances } from "@/lib/leaveStorage";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ReferenceLine
