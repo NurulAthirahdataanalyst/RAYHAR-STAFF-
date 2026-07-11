@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Loader2, Download, Search, Clock, FileText, X, Users, CheckCircle, Briefcase, CalendarOff, AlertCircle, XCircle, Percent } from "lucide-react";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -59,6 +60,8 @@ export default function AttendanceReports() {
   const [monthlySummary, setMonthlySummary] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
   
   // New State variables
   const [viewType, setViewType] = useState<"day" | "month">("day");
@@ -134,6 +137,13 @@ export default function AttendanceReports() {
     
     return matchesSearch && matchesStatus;
   });
+
+  const pageCount = Math.max(1, Math.ceil(filteredList.length / pageSize));
+  const pagedList = filteredList.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, viewType, date, selectedMonth, selectedYear, pageSize]);
 
   // KPI Calculations (Daily)
   const totalEmployeesDay = filteredList.length;
@@ -436,14 +446,14 @@ export default function AttendanceReports() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredList.length === 0 ? (
+                    {pagedList.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={viewType === "month" ? 8 : 7} className="text-center py-8 text-muted-foreground">
                           No attendance records found for this {viewType}.
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredList.map((req, idx) => (
+                      pagedList.map((req, idx) => (
                         <TableRow key={idx}>
                           {viewType === "month" && <TableCell>{formatDate(req.date)}</TableCell>}
                           <TableCell className="font-medium">{req.user_id}</TableCell>
@@ -471,6 +481,43 @@ export default function AttendanceReports() {
               </div>
             )}
           </CardContent>
+
+          {!loading && filteredList.length > 0 && (
+            <div className="flex flex-col gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 dark:bg-slate-950 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                <span>Showing</span>
+                <span className="font-semibold">{pagedList.length}</span>
+                <span>of</span>
+                <span className="font-semibold">{filteredList.length}</span>
+                <span>records</span>
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                  <span>Rows:</span>
+                  <Select value={String(pageSize)} onValueChange={(value) => setPageSize(Number(value))}>
+                    <SelectTrigger className="w-20 bg-white dark:bg-slate-900">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="15">15</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                  <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                    Prev
+                  </Button>
+                  <span>Page {currentPage} of {pageCount}</span>
+                  <Button variant="outline" size="sm" disabled={currentPage === pageCount} onClick={() => setCurrentPage((prev) => Math.min(prev + 1, pageCount))}>
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </Card>
 
       </div>
