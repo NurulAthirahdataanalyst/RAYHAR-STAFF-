@@ -322,7 +322,7 @@ export default function WorkforceInsights() {
               </div>
               <p className="text-[14px] font-semibold text-slate-500">Attendance Overview</p>
               <h3 className="text-[34px] font-black text-slate-800 dark:text-slate-200 leading-none mt-2">
-                {data.teamAvailability.present}/{data.topKpi.activeEmployees || data.topKpi.totalHeadcount}
+                {data.teamAvailability.present}/{Math.max(0, (data.topKpi.activeEmployees || data.topKpi.totalHeadcount || 0) - (data.topKpi.outstationToday || 0))}
               </h3>
             </div>
             <button className="text-[12px] font-semibold text-slate-400 hover:text-slate-600 text-left mt-6 flex items-center gap-1">
@@ -330,7 +330,7 @@ export default function WorkforceInsights() {
             </button>
           </Card>
 
-          {/* Column 2 (middle): 2x2 Grid of KPIs */}
+          {/* Column 2 (middle): Grid of KPIs */}
           <div className="col-span-1 xl:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* KPI 1: Total Headcount */}
             <Card className={`rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex ${cardHoverEffect}`}>
@@ -380,6 +380,19 @@ export default function WorkforceInsights() {
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">On Leave Today</p>
                   <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 leading-tight mt-1">{data.topKpi.onLeaveToday}</h3>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* KPI 5: Total Outstation */}
+            <Card className={`rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card flex sm:col-span-2 ${cardHoverEffect}`}>
+              <CardContent className="p-5 flex items-center gap-4 h-full w-full">
+                <div className="w-10 h-10 rounded-lg bg-pink-50 flex items-center justify-center shrink-0">
+                  <Plane className="w-5 h-5 text-pink-600" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Outstation</p>
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 leading-tight mt-1">{data.topKpi.outstationToday || 0}</h3>
                 </div>
               </CardContent>
             </Card>
