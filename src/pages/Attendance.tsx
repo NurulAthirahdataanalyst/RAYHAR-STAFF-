@@ -982,7 +982,7 @@ export default function Attendance() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             
             {/* Stat Card 1: Total Hours Today */}
-            <div className="bg-card dark:bg-card border border-border/40 shadow-sm rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden group">
+            <div className="bg-card dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors p-4 flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-2 opacity-10">
                 <Clock className="w-10 h-10 text-[#7B0099]" />
               </div>
@@ -998,7 +998,7 @@ export default function Attendance() {
             </div>
 
             {/* Stat Card 2: Total Hours Week */}
-            <div className="bg-card dark:bg-card border border-border/40 shadow-sm rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
+            <div className="bg-card dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors p-4 flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-2 opacity-10">
                 <Timer className="w-10 h-10 text-[#7B0099]" />
               </div>
@@ -1014,7 +1014,7 @@ export default function Attendance() {
             </div>
 
             {/* Stat Card 3: Total Hours Month */}
-            <div className="bg-card dark:bg-card border border-border/40 shadow-sm rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
+            <div className="bg-card dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors p-4 flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-2 opacity-10">
                 <FileText className="w-10 h-10 text-[#7B0099]" />
               </div>
@@ -1030,7 +1030,7 @@ export default function Attendance() {
             </div>
 
             {/* Stat Card 4: Overtime This Month */}
-            <div className="bg-card dark:bg-card border border-border/40 shadow-sm rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
+            <div className="bg-card dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors p-4 flex flex-col items-center justify-center relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-2 opacity-10">
                 <Fingerprint className="w-10 h-10 text-[#7B0099]" />
               </div>

@@ -148,7 +148,7 @@ export default function OutstationAnalytics() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
-          <Card className="lg:col-span-1">
+          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors shadow-none">
             <CardContent className="p-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700 "><Briefcase className="h-6 w-6" /></div>
@@ -160,7 +160,7 @@ export default function OutstationAnalytics() {
               <p className="mt-4 text-sm leading-5 text-slate-500">Active outstation requests across all branches.</p>
             </CardContent>
           </Card>
-          <Card className="lg:col-span-1">
+          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors shadow-none">
             <CardContent className="p-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><Users className="h-7 w-7" /></div>
@@ -172,7 +172,7 @@ export default function OutstationAnalytics() {
               <p className="mt-4 text-sm text-slate-500">Unique team members currently away on assignment.</p>
             </CardContent>
           </Card>
-          <Card className="lg:col-span-1">
+          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors shadow-none">
             <CardContent className="p-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><MapPin className="h-6 w-6" /></div>
@@ -184,7 +184,7 @@ export default function OutstationAnalytics() {
               <p className="mt-4 text-sm text-slate-500">Distinct cities or sites visited by staff.</p>
             </CardContent>
           </Card>
-          <Card className="lg:col-span-1">
+          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors shadow-none">
             <CardContent className="p-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><Calendar className="h-6 w-5" /></div>
@@ -196,7 +196,7 @@ export default function OutstationAnalytics() {
               <p className="mt-4 text-sm text-slate-500">Assignments currently in progress.</p>
             </CardContent>
           </Card>
-          <Card className="lg:col-span-1">
+          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors shadow-none">
             <CardContent className="p-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><CheckCircle2 className="h-6 w-5" /></div>
