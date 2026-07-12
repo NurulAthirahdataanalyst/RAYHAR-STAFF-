@@ -13,13 +13,13 @@ interface StatCardProps {
 }
 
 const variantStyles = {
-  default: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-[0_2px_10px_rgba(15,23,42,0.05)] border-l-4 border-l-slate-400",
-  maroon: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-[0_2px_10px_rgba(15,23,42,0.05)] border-l-4 border-l-rose-500",
-  gold: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-[0_2px_10px_rgba(15,23,42,0.05)] border-l-4 border-l-amber-400",
-  success: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-[0_2px_10px_rgba(15,23,42,0.05)] border-l-4 border-l-emerald-500",
-  gauge: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-[0_2px_10px_rgba(15,23,42,0.05)] border-l-4 border-l-[#7B0099]",
-  warning: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-[0_2px_10px_rgba(15,23,42,0.05)] border-l-4 border-l-amber-500",
-  purple: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-[0_2px_10px_rgba(15,23,42,0.05)] border-l-4 border-l-[#7B0099]",
+  default: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 hover:border-purple-300 transition-colors hover:bg-slate-50 dark:bg-slate-900/50",
+  maroon: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 hover:border-purple-300 transition-colors hover:bg-slate-50 dark:bg-slate-900/50",
+  gold: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 hover:border-purple-300 transition-colors hover:bg-slate-50 dark:bg-slate-900/50",
+  success: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 hover:border-purple-300 transition-colors hover:bg-slate-50 dark:bg-slate-900/50",
+  gauge: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 hover:border-purple-300 transition-colors hover:bg-slate-50 dark:bg-slate-900/50",
+  warning: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 hover:border-purple-300 transition-colors hover:bg-slate-50 dark:bg-slate-900/50",
+  purple: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 hover:border-purple-300 transition-colors hover:bg-slate-50 dark:bg-slate-900/50",
 };
 
 export default function StatCard({ 

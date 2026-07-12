@@ -1085,7 +1085,7 @@ export default function Dashboard() {
                               navigate(`/leave/admin?leaveId=${emp.leave_id}`);
                             }
                           }}
-                          className="cursor-pointer group rounded-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-card hover:border-purple-300 transition-colors duration-200 p-3"
+                          className="cursor-pointer group rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-card hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors p-3"
                         >
                           <div className="flex items-start gap-3">
                             <div className="w-10 h-10 rounded bg-purple-100 flex items-center justify-center text-sm font-bold text-purple-700 shrink-0">
@@ -1319,7 +1319,7 @@ export default function Dashboard() {
                 Active Outstation
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-4 flex flex-col gap-3">
               {groupedActiveOutstations.length > 0 ? (
                 groupedActiveOutstations.map((g, i) => {
                   const displayEmps = g.employees.slice(0, 3);
@@ -1328,7 +1328,7 @@ export default function Dashboard() {
                   const days = Math.max(1, Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)));
 
                   return (
-                    <div key={i} onClick={() => navigate("/outstation")} className={`flex items-start gap-3 p-4 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer ${i !== groupedActiveOutstations.length - 1 ? "border-b border-slate-50 dark:border-slate-800" : ""}`}>
+                    <div key={i} onClick={() => navigate("/outstation")} className="flex items-start gap-3 p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer">
                       <div className="w-[3px] rounded-full self-stretch bg-[#ff5b37] mr-1" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate uppercase">{g.title}</p>
@@ -1391,14 +1391,14 @@ export default function Dashboard() {
                 Calendar
               </span>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-4 flex flex-col gap-3">
               {groupedUpcomingOutstations.length > 0 ? (
                 groupedUpcomingOutstations.map((g, i) => {
                   const displayEmps = g.employees.slice(0, 3);
                   const extraCount = Math.max(0, g.employees.length - 3);
 
                   return (
-                    <div key={i} onClick={() => navigate("/outstation")} className={`flex items-start gap-3 p-4 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer ${i !== groupedUpcomingOutstations.length - 1 ? "border-b border-slate-50 dark:border-slate-800" : ""}`}>
+                    <div key={i} onClick={() => navigate("/outstation")} className="flex items-start gap-3 p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer">
                       <div className="w-[3px] rounded-full self-stretch bg-[#0088cc] mr-1" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate uppercase">{g.title}</p>
