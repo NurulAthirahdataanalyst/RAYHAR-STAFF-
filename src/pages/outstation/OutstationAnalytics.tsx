@@ -165,7 +165,7 @@ export default function OutstationAnalytics() {
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><Users className="h-7 w-7" /></div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Staff on Outstation</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Staff on Outstation</p>
                   <p className="mt-2 text-3xl font-bold">{activeStaffCount}</p>
                 </div>
               </div>
@@ -177,7 +177,7 @@ export default function OutstationAnalytics() {
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><MapPin className="h-6 w-6" /></div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Destinations</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Destinations</p>
                   <p className="mt-2 text-3xl font-bold">{totalDestinations}</p>
                 </div>
               </div>
@@ -189,7 +189,7 @@ export default function OutstationAnalytics() {
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><Calendar className="h-6 w-5" /></div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Ongoing</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Ongoing</p>
                   <p className="mt-2 text-3xl font-bold">{activeCount}</p>
                 </div>
               </div>
@@ -201,7 +201,7 @@ export default function OutstationAnalytics() {
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><CheckCircle2 className="h-6 w-5" /></div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Completed</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Completed</p>
                   <p className="mt-2 text-3xl font-bold">{completedCount}</p>
                 </div>
               </div>
