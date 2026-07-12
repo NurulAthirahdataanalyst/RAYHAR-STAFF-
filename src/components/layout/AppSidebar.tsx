@@ -140,6 +140,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "My Leave Requests", icon: FileSearch, path: "/leave/forms", roles: HOD_BL_ROLES },
         { title: "Team Leave Requests", icon: FileCheck, path: "/leave/team", roles: HOD_BL_ROLES },
         { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", roles: HOD_BL_ROLES },
+        { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar", roles: HOD_BL_ROLES },
       ],
     },
     { title: "Employee Analytics", icon: BarChart3, path: "/analytics", roles: HOD_BL_ROLES },
@@ -165,6 +166,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "Attendance Analytics", icon: BarChart3, path: "/hr-analytics/attendance", roles: HOD_BL_ROLES },
         { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave", roles: HOD_BL_ROLES },
         { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce", roles: HOD_BL_ROLES },
+        { title: "Workforce Calendar", icon: Calendar, path: "/hr-analytics/calendar", roles: HOD_BL_ROLES },
       ],
     },
   ];
@@ -228,6 +230,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       roles: FULL_ADMIN_ROLES,
       children: [
         { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", roles: FULL_ADMIN_ROLES },
+        { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar", roles: FULL_ADMIN_ROLES },
         { title: "Leave Entitlement Management", icon: CalendarDays, path: "/leave/entitlement", roles: ["hr_admin"] },
       ],
     },
@@ -252,6 +255,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "Attendance Dashboard", icon: BarChart3, path: "/hr-analytics/attendance", roles: FULL_ADMIN_ROLES },
         { title: "Leave Analytics", icon: BarChart3, path: "/hr-analytics/leave", roles: FULL_ADMIN_ROLES },
         { title: "Workforce Insights", icon: PieChart, path: "/hr-analytics/workforce", roles: FULL_ADMIN_ROLES },
+        { title: "Workforce Calendar", icon: Calendar, path: "/hr-analytics/calendar", roles: FULL_ADMIN_ROLES },
       ]
     },
     {

@@ -1166,7 +1166,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
 }
 
 function broadcastPresenceUpdate(payload = { type: 'refresh' }) {
-  console.log(`ðŸ“¡ Broadcasting presence update to ${sseClients.length} clients...`);
+  console.log(`📡 Broadcasting presence update to ${sseClients.length} clients...`);
   sseClients.forEach((client) => {
     client.write(`data: ${JSON.stringify(payload)}\n\n`);
   });
@@ -1178,6 +1178,10 @@ function broadcastPresenceUpdate(payload = { type: 'refresh' }) {
         c.res.write(`data: ${JSON.stringify(data)}\n\n`);
       }).catch(console.error);
     });
+  }
+  // Also notify workforce calendar clients (they will re-fetch themselves)
+  if (typeof broadcastWorkforceCalendarUpdate === 'function') {
+    try { broadcastWorkforceCalendarUpdate(payload); } catch (e) { /* defined later */ }
   }
 }
 
@@ -6453,9 +6457,217 @@ app.delete('/api/outstation/:id', async (req, res) => {
 // END OUTSTATION MANAGEMENT API
 // =================================================================
 
+// =================================================================
+// WORKFORCE CALENDAR API
+// =================================================================
+
+// SSE clients for workforce calendar real-time updates
+let workforceCalendarClients = [];
+
+function broadcastWorkforceCalendarUpdate(payload = { type: 'refresh' }) {
+  console.log(`📡 Broadcasting workforce-calendar update to ${workforceCalendarClients.length} clients...`);
+  workforceCalendarClients.forEach((client) => {
+    try { client.write(`data: ${JSON.stringify(payload)}\n\n`); } catch (e) { /* swallow */ }
+  });
+}
+
+// Helper to compute workforce calendar data for a given role/branch/dept
+async function getWorkforceCalendarData(role, branch, department) {
+  const params = [];
+  let leaveWhere = '';
+  let outstationWhere = 'WHERE 1=1';
+
+  if (role === 'branch_leader' && branch) {
+    leaveWhere = `AND p.branch = $${params.length + 1}`;
+    params.push(branch);
+    outstationWhere = `WHERE oa.branch = $${params.length}`;
+  } else if (role === 'head_of_department' && department) {
+    leaveWhere = `AND p.department = $${params.length + 1}`;
+    params.push(department);
+    outstationWhere = `WHERE oa.department = $${params.length}`;
+  } else if (role === 'head_of_department' && !department) {
+    // Safety: HOD without dept sees nothing
+    return [];
+  }
+  // hr_admin, managing_director, finance_manager → see all
+
+  const events = [];
+
+  // 1. Personal leaves (Approved only for calendar - pending shown separately)
+  try {
+    const leaveParamsCopy = [...params];
+    const [leaveRows] = await pool.query(
+      `SELECT lr.leave_id AS id, lr.user_id, p.full_name, p.branch, p.department,
+              lr.leave_type, lr.start_date, lr.end_date, lr.days, lr.status
+       FROM leave_requests lr
+       JOIN profiles p ON p.user_id = lr.user_id
+       WHERE lr.status IN ('Approved')
+       ${leaveWhere}
+       ORDER BY lr.start_date DESC`,
+      leaveParamsCopy
+    );
+    for (const r of leaveRows) {
+      events.push({
+        id: `leave-${r.id}`,
+        source: 'leave',
+        employee: r.full_name || r.user_id,
+        user_id: r.user_id,
+        branch: r.branch,
+        department: r.department,
+        type: r.leave_type || 'Leave',
+        start_date: r.start_date ? new Date(r.start_date).toISOString().split('T')[0] : null,
+        end_date: r.end_date ? new Date(r.end_date).toISOString().split('T')[0] : null,
+        status: r.status,
+        days: r.days,
+      });
+    }
+    // Also include pending leaves
+    const [pendingRows] = await pool.query(
+      `SELECT lr.leave_id AS id, lr.user_id, p.full_name, p.branch, p.department,
+              lr.leave_type, lr.start_date, lr.end_date, lr.days, lr.status
+       FROM leave_requests lr
+       JOIN profiles p ON p.user_id = lr.user_id
+       WHERE lr.status LIKE 'Pending%'
+       ${leaveWhere}
+       ORDER BY lr.start_date DESC`,
+      [...params]
+    );
+    for (const r of pendingRows) {
+      events.push({
+        id: `leave-pending-${r.id}`,
+        source: 'leave',
+        employee: r.full_name || r.user_id,
+        user_id: r.user_id,
+        branch: r.branch,
+        department: r.department,
+        type: r.leave_type || 'Leave',
+        start_date: r.start_date ? new Date(r.start_date).toISOString().split('T')[0] : null,
+        end_date: r.end_date ? new Date(r.end_date).toISOString().split('T')[0] : null,
+        status: r.status,
+        days: r.days,
+      });
+    }
+  } catch (e) { console.error('workforce-calendar leave fetch error:', e); }
+
+  // 2. Outstation (Active + Upcoming)
+  try {
+    const outstationParamsCopy = [...params];
+    const [outstationRows] = await pool.query(
+      `SELECT oa.id, oa.user_id, p.full_name, oa.branch, oa.department,
+              oa.destination, oa.purpose, oa.start_date, oa.end_date, oa.status
+       FROM outstation_assignments oa
+       LEFT JOIN profiles p ON oa.user_id = p.user_id
+       ${outstationWhere}
+       ORDER BY oa.start_date DESC`,
+      outstationParamsCopy
+    );
+    for (const r of outstationRows) {
+      // compute live status
+      const today = new Date().toISOString().split('T')[0];
+      const start = new Date(r.start_date).toISOString().split('T')[0];
+      const end = new Date(r.end_date).toISOString().split('T')[0];
+      let computedStatus = r.status;
+      if (r.status !== 'Cancelled') {
+        if (today < start) computedStatus = 'Upcoming';
+        else if (today >= start && today <= end) computedStatus = 'Active';
+        else computedStatus = 'Completed';
+      }
+      if (computedStatus === 'Cancelled' || computedStatus === 'Completed') continue;
+      events.push({
+        id: `outstation-${r.id}`,
+        source: 'outstation',
+        employee: r.full_name || r.user_id,
+        user_id: r.user_id,
+        branch: r.branch,
+        department: r.department,
+        type: 'Outstation',
+        destination: r.destination,
+        purpose: r.purpose,
+        start_date: start,
+        end_date: end,
+        status: computedStatus,
+        days: null,
+      });
+    }
+  } catch (e) { console.error('workforce-calendar outstation fetch error:', e); }
+
+  // 3. Company leaves (Active status)
+  try {
+    const [companyRows] = await pool.query(
+      `SELECT id, leave_name, leave_type, start_date, end_date, applies_to, branch_id, department_id, status
+       FROM company_leave_calendar
+       WHERE status = 'Active'
+       ORDER BY start_date DESC`
+    );
+    for (const r of companyRows) {
+      // Filter company leaves based on role scope
+      if (role === 'branch_leader' && branch && r.applies_to === 'branch') {
+        const branchList = (r.branch_id || '').split(',').map(s => s.trim());
+        if (!branchList.includes(branch)) continue;
+      }
+      if (role === 'head_of_department' && department && r.applies_to === 'department') {
+        const deptList = (r.department_id || '').split(',').map(s => s.trim());
+        if (!deptList.includes(department)) continue;
+      }
+      events.push({
+        id: `company-${r.id}`,
+        source: 'company_leave',
+        employee: 'All Staff',
+        user_id: null,
+        branch: r.branch_id || 'All',
+        department: r.department_id || 'All',
+        type: r.leave_type || 'Company Leave',
+        name: r.leave_name,
+        start_date: r.start_date ? new Date(r.start_date).toISOString().split('T')[0] : null,
+        end_date: r.end_date ? new Date(r.end_date).toISOString().split('T')[0] : null,
+        status: 'Active',
+        applies_to: r.applies_to,
+        days: null,
+      });
+    }
+  } catch (e) { console.error('workforce-calendar company_leave fetch error:', e); }
+
+  return events;
+}
+
+// GET /api/workforce-calendar — consolidated workforce availability
+app.get('/api/workforce-calendar', async (req, res) => {
+  try {
+    const { role, branch, department } = req.query;
+    const events = await getWorkforceCalendarData(role, branch, department);
+    res.json({ success: true, events });
+  } catch (err) {
+    console.error('GET /api/workforce-calendar error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// SSE stream for workforce calendar real-time updates
+app.get('/api/workforce-calendar/stream', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.flushHeaders();
+
+  res.write(': connected\n\n');
+  workforceCalendarClients.push(res);
+  console.log(`📌 Workforce-Calendar SSE Client connected. Total: ${workforceCalendarClients.length}`);
+
+  req.on('close', () => {
+    workforceCalendarClients = workforceCalendarClients.filter((c) => c !== res);
+    console.log(`📌 Workforce-Calendar SSE Client disconnected. Total: ${workforceCalendarClients.length}`);
+  });
+});
+
+// =================================================================
+// END WORKFORCE CALENDAR API
+// =================================================================
+
 // ROUTES
 // ===============================
 const PORT = process.env.PORT || 8080;
+
 
 console.log("PORT FROM ENV:", process.env.PORT);
 

@@ -15,6 +15,7 @@ import Attendance from "./pages/Attendance";
 import LeaveOverview from "./pages/LeaveOverview";
 import LeaveManagement from "./pages/LeaveManagement";
 import LeaveAdmin from "./pages/LeaveAdmin";
+import LeaveCalendar from "./pages/LeaveCalendar";
 import LeaveAnalytics from "./pages/LeaveAnalytics";
 import EmployeeAnalytics from "./pages/EmployeeAnalytics";
 import LeaveFormView from "./pages/LeaveFormView";
@@ -37,6 +38,7 @@ import AttendanceDashboard from "./pages/hr-analytics/AttendanceDashboard";
 import TeamAttendance from "./pages/TeamAttendance";
 import TeamLeaveRequests from "./pages/TeamLeaveRequests";
 import WorkforceInsights from "./pages/hr-analytics/WorkforceInsights";
+import WorkforceCalendar from "./pages/hr-analytics/WorkforceCalendar";
 import AttendanceReports from "./pages/reports/AttendanceReports";
 import LeaveReports from "./pages/reports/LeaveReports";
 import DepartmentReports from "./pages/reports/DepartmentReports";
@@ -76,6 +78,7 @@ function ProtectedRoutes() {
           <Route path="/leave" element={<LeaveOverview />} />
           <Route path="/leave/apply" element={<LeaveManagement />} />
           <Route path="/leave/admin" element={<LeaveAdmin />} />
+          <Route path="/leave/calendar" element={<LeaveCalendar />} />
           <Route path="/leave/entitlement" element={<LeaveEntitlementManagement />} />
           <Route path="/leave/forms" element={<LeaveFormView />} />
 
@@ -94,6 +97,7 @@ function ProtectedRoutes() {
           <Route path="/team-attendance" element={<TeamAttendance />} />
           <Route path="/leave/team" element={<TeamLeaveRequests />} />
           <Route path="/hr-analytics/workforce" element={<WorkforceInsights />} />
+          <Route path="/hr-analytics/calendar" element={<WorkforceCalendar />} />
           <Route path="/reports/attendance" element={<AttendanceReports />} />
           <Route path="/reports/leave" element={<LeaveReports />} />
           <Route path="/reports/department" element={<DepartmentReports />} />
