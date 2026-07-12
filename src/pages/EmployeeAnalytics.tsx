@@ -328,7 +328,7 @@ export default function EmployeeAnalytics() {
     setLoadingTeam(true);
     setCurrentPage(1);
     try {
-      const empRes = await fetch(`${API_BASE_URL}/api/employees?role=${role}&branch=${userBranch}&department=${userDepartment || ""}&status=Active`);
+      const empRes = await fetch(`${API_BASE_URL}/api/employees?role=${encodeURIComponent(role)}&branch=${encodeURIComponent(userBranch)}&department=${encodeURIComponent(userDepartment || "")}&status=Active`);
       const empData = await empRes.json();
       const emps: Employee[] = empData.success ? empData.employees : [];
       setEmployees(emps);

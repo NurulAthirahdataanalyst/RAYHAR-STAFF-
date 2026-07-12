@@ -278,10 +278,10 @@ export default function AttendanceDashboard() {
     setLoadingAbsent(true);
     try {
       const [resDaily, resStats, resAbsent, resOutstation] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${selectedDate}&role=${role || ""}&branch=${userBranch || ""}&department=${userDepartment || ""}`),
-        fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=${role || ""}&branch=${userBranch || "All"}&department=${userDepartment || "All"}&date=${selectedDate}`),
-        fetch(`${API_BASE_URL}/api/reports/absent-employees?date=${selectedDate}&role=${role || ""}&branch=${userBranch || ""}&department=${userDepartment || ""}`),
-        fetch(`${API_BASE_URL}/api/outstation?role=${role || ""}&branch=${userBranch || ""}&department=${userDepartment || ""}`)
+        fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
+        fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "All")}&department=${encodeURIComponent(userDepartment || "All")}&date=${encodeURIComponent(selectedDate)}`),
+        fetch(`${API_BASE_URL}/api/reports/absent-employees?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
+        fetch(`${API_BASE_URL}/api/outstation?role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`)
       ]);
       const data = await resDaily.json();
       const statsData = await resStats.json();
@@ -404,7 +404,7 @@ export default function AttendanceDashboard() {
   // ── LIVE-STATS SSE CONNECTION ─────────────────────────────────────────
   useEffect(() => {
     if (loading) return;
-    const url = `${API_BASE_URL}/api/presence/live-stats?date=${selectedDate}&role=${role || ""}&branch=${userBranch || ""}&department=${userDepartment || ""}`;
+    const url = `${API_BASE_URL}/api/presence/live-stats?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`;
     const es = new EventSource(url);
     liveEsRef.current = es;
 

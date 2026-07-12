@@ -128,7 +128,7 @@ export default function OutstationAssignment() {
       const scopeParams = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "" });
       const [assRes, empRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/outstation?${scopeParams}`),
-        fetch(`${API_BASE_URL}/api/employees?role=${role}&branch=${userBranch || ""}&department=${userDepartment || ""}`),
+        fetch(`${API_BASE_URL}/api/employees?role=${encodeURIComponent(role)}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
       ]);
       const [assData, empData] = await Promise.all([assRes.json(), empRes.json()]);
       if (assData.success) setAssignments(assData.data || assData.assignments || []);
