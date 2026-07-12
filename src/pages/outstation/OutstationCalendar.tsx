@@ -218,8 +218,8 @@ export default function OutstationCalendar() {
           a.end_date === selectedEvent.end_date
         );
         return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setSelectedEvent(null)}>
-          <div className="bg-white dark:bg-card rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4 flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedEvent(null)}>
+          <div className="bg-white dark:bg-card rounded-2xl shadow-2xl p-6 max-w-md w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl" style={{ background: `linear-gradient(135deg, ${PINK}, #f9a8d4)` }}>

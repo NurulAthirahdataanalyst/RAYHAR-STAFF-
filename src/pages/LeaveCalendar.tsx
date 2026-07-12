@@ -218,8 +218,8 @@ export default function LeaveCalendar() {
           (a.status === filterStatus || filterStatus === "All" || (filterStatus === "Pending" && a.status.startsWith("Pending")))
         );
         return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setSelectedEvent(null)}>
-          <div className="bg-white dark:bg-card rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4 flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedEvent(null)}>
+          <div className="bg-white dark:bg-card rounded-2xl shadow-2xl p-6 max-w-sm w-full flex flex-col relative" onClick={e => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl" style={{ background: `linear-gradient(135deg, ${PRIMARY_COLOR}, #b366ff)` }}>

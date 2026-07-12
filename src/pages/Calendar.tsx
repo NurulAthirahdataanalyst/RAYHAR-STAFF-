@@ -835,7 +835,7 @@ export default function Calendar() {
 
       {/* Add New Event Modal Overlay */}
       {isAddEventModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in transition-all duration-300">
           <div className="bg-card w-full max-w-md rounded-2xl shadow-2xl border border-border/60 overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-5 border-b border-border/60">
               <h3 className="font-bold text-lg text-foreground">Add New Event</h3>
@@ -1076,7 +1076,7 @@ export default function Calendar() {
         }
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in" onClick={() => setSelectedEvent(null)}>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in transition-all duration-300" onClick={() => setSelectedEvent(null)}>
             <div 
               className="w-full max-w-[420px] rounded-2xl shadow-2xl border border-border overflow-hidden animate-in zoom-in-95 duration-200 bg-white dark:bg-card"
               onClick={e => e.stopPropagation()}
@@ -1170,7 +1170,7 @@ export default function Calendar() {
 
       {/* Delete Category Confirmation Modal */}
       {categoryToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in" onClick={() => setCategoryToDelete(null)}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in transition-all duration-300" onClick={() => setCategoryToDelete(null)}>
           <div 
             className="w-full max-w-sm rounded-2xl shadow-xl border border-border bg-white dark:bg-card overflow-hidden animate-in zoom-in-95 duration-200"
             onClick={e => e.stopPropagation()}
@@ -1224,7 +1224,7 @@ export default function Calendar() {
 
       {/* Company Leave Detail Modal */}
       {selectedCompanyLeave && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setSelectedCompanyLeave(null)}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl transition-all duration-300" onClick={() => setSelectedCompanyLeave(null)}>
           <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
             {/* Header */}
             <div className="bg-gradient-to-r from-[#5e0080] via-[#7B0099] to-purple-500 px-6 py-5">

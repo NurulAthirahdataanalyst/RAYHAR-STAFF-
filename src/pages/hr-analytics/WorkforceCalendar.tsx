@@ -349,7 +349,7 @@ export default function WorkforceCalendar() {
         }).sort((a, b) => getEventPriority(a) - getEventPriority(b));
         const c = getEventColor(selectedEvent);
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4" onClick={() => setSelectedEvent(null)}>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedEvent(null)}>
             <div className="bg-white dark:bg-card rounded-2xl shadow-2xl p-6 max-w-md w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
