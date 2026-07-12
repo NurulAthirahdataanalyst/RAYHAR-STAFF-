@@ -32,12 +32,16 @@ export default function NotificationBell() {
       const data = await res.json();
       if (data.success) {
         const readCompanyLeaves = JSON.parse(localStorage.getItem('readCompanyLeaves') || '[]');
-        const mapped = data.notifications.map((n: any) => {
-          if (typeof n.id === 'string' && n.id.startsWith('cl-') && readCompanyLeaves.includes(n.id)) {
-            return { ...n, is_read: true };
-          }
-          return n;
-        });
+        const deletedCompanyLeaves = JSON.parse(localStorage.getItem('deletedCompanyLeaves') || '[]');
+        
+        const mapped = data.notifications
+          .filter((n: any) => !(typeof n.id === 'string' && n.id.startsWith('cl-') && deletedCompanyLeaves.includes(n.id)))
+          .map((n: any) => {
+            if (typeof n.id === 'string' && n.id.startsWith('cl-') && readCompanyLeaves.includes(n.id)) {
+              return { ...n, is_read: true };
+            }
+            return n;
+          });
         setNotifications(mapped);
         setUnreadCount(mapped.filter((n: Notification) => !n.is_read).length);
       }
@@ -104,6 +108,29 @@ export default function NotificationBell() {
       setUnreadCount(0);
     } catch (err) {
       console.error("Error marking all as read:", err);
+    }
+  };
+
+  const deleteNotification = async (e: React.MouseEvent, id: number | string) => {
+    e.stopPropagation();
+    try {
+      if (typeof id === 'string' && id.startsWith('cl-')) {
+        const deletedList = JSON.parse(localStorage.getItem('deletedCompanyLeaves') || '[]');
+        if (!deletedList.includes(id)) {
+          deletedList.push(id);
+          localStorage.setItem('deletedCompanyLeaves', JSON.stringify(deletedList));
+        }
+      } else {
+        await fetch(`${API_BASE_URL}/api/notifications/${id}`, { method: "DELETE" });
+      }
+      
+      setNotifications(prev => {
+        const filtered = prev.filter(n => n.id !== id);
+        setUnreadCount(filtered.filter(n => !n.is_read).length);
+        return filtered;
+      });
+    } catch (err) {
+      console.error("Error deleting notification:", err);
     }
   };
 
@@ -185,7 +212,7 @@ export default function NotificationBell() {
                       <div className="w-2 h-2 rounded-full border border-white/20 mt-1" />
                     )}
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 pr-6 relative">
                     <h4 className={`text-xs font-bold mb-1 ${!notif.is_read ? 'text-white' : 'text-white/70'}`}>
                       {notif.title}
                     </h4>
@@ -197,6 +224,13 @@ export default function NotificationBell() {
                         month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                       })}
                     </span>
+                    <button 
+                      onClick={(e) => deleteNotification(e, notif.id)}
+                      className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-white/10 text-white/40 hover:text-rose-400 transition-all"
+                      title="Delete notification"
+                    >
+                      <Trash className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               ))}

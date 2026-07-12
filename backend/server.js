@@ -2562,6 +2562,17 @@ app.patch("/api/notifications/read-all", async (req, res) => {
   }
 });
 
+app.delete("/api/notifications/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query(`DELETE FROM notifications WHERE id = ?`, [id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Delete Notification Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ===============================
 
 app.get("/api/employees/:userId/analytics", async (req, res) => {
