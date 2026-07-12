@@ -143,7 +143,7 @@ export default function OutstationAnalytics() {
             <h1 className="mt-2 text-3xl font-bold">Overview of outstation activities and staff on assignment.</h1>
           </div>
           <Button onClick={() => void fetchData()} className="h-11 px-5">
-            <RefreshCw className="mr-2 h-4 w-4" /> Refresh
+            <RefreshCw className="w-3.5 h-3.5" /> Refresh
           </Button>
         </div>
 
