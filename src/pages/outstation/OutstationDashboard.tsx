@@ -21,7 +21,7 @@ import { API_BASE_URL } from "../../config/api";
 const OUTSTATION_ROLES = ["hr_admin", "managing_director", "finance_manager", "branch_leader", "head_of_department"];
 
 // Semantic Colors
-const C_PURPLE = "#4c1d95"; // Brand
+const C_PURPLE =  "#7B0099]"; // Brand
 const C_BLUE = "#2563eb";   // Info
 const C_GREEN = "#16a34a";  // Completed
 const C_ORANGE = "#ea580c"; // Upcoming
@@ -331,8 +331,8 @@ export default function OutstationDashboard() {
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <p className="text-[14px] text-gray-500 dark:text-gray-400">Monitor employee business travel across all branches.</p>
-          <Button className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#4c1d95] hover:bg-[#3b0764]" onClick={() => navigate("/outstation/assignment", { state: { openNew: true } })}>
-            <Plane className="w-4 h-4 mr-2" /> New Assignment
+          <Button className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#7B0099] hover:bg-[#3b0764]" onClick={() => navigate("/outstation/assignment", { state: { openNew: true } })}>
+            <Plane className="w-4 h-4 mr-2" /> New Assignment 
           </Button>
         </div>
 
