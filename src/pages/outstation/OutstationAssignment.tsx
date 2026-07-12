@@ -342,7 +342,7 @@ export default function OutstationAssignment() {
             )}
             <span className="text-[10px] text-gray-400 font-bold">{filtered.length} records</span>
           </div>
-          <Button size="sm" className="h-8 text-xs gap-1.5 shrink-0" style={{ background: PINK }} onClick={openNew}>
+          <Button size="sm" className="h-8 text-xs gap-1.5 shrink-0" style={{ background: "#7B0099" }} onClick={openNew}>
             <Plus className="w-3.5 h-3.5" /> New Assignment
           </Button>
         </CardContent>
