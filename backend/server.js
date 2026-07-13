@@ -2788,7 +2788,7 @@ app.get("/api/employees", async (req, res) => {
         COALESCE(lr.rejected_leaves, 0) AS rejected_leaves,
         COALESCE(lr.total_leave_requests, 0) AS total_leave_requests,
         COALESCE(lr.mc_leaves, 0) AS mc_leaves,
-        GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.total_adjustment, 0)) - COALESCE(lr.annual_days_used, 0), 0) AS annual_leave_balance,
+        GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.total_adjustment, 0)) - COALESCE(lr.annual_days_used, 0), 0)::int AS annual_leave_balance,
         COALESCE(att.days_present, 0) AS days_present,
         LEAST(100, ROUND((COALESCE(att.days_present, 0)::numeric / NULLIF(EXTRACT(DAY FROM CURRENT_DATE), 0)) * 100)) AS attendance_rate,
         COALESCE(leave_today.is_on_leave_today, 0) AS is_on_leave_today,
@@ -3099,8 +3099,8 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         p.status,
         p.branch,
         p.department,
-        COALESCE(p.annual_leave_entitlement, 14) AS annual_leave_entitlement,
-        COALESCE(adj.total_adjustment, 0) AS total_adjustment,
+        COALESCE(p.annual_leave_entitlement, 14)::int AS annual_leave_entitlement,
+        COALESCE(adj.total_adjustment, 0)::int AS total_adjustment,
         COALESCE(ur.role, 'employee') AS role
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
@@ -3953,7 +3953,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
          p.branch, 
          p.department,
          p.annual_leave_entitlement,
-         COALESCE((SELECT SUM(adjustment_days) FROM leave_balance_adjustments WHERE employee_id = p.user_id), 0) AS total_adjustment
+         COALESCE((SELECT SUM(adjustment_days) FROM leave_balance_adjustments WHERE employee_id = p.user_id), 0)::int AS total_adjustment
        FROM profiles p WHERE p.user_id = ?`,
       [userId]
     );
@@ -4091,8 +4091,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
     );
     const quotaLeavesUsed = parseFloat(leaveRows[0].used_days || 0);
     const empData = empProfile[0] || {};
-    const baseEntitlement = empData.annual_leave_entitlement || 14;
-    const leaveBalance = Math.max((baseEntitlement + (empData.total_adjustment || 0)) - quotaLeavesUsed, 0);
+    const baseEntitlement = parseFloat(empData.annual_leave_entitlement || 14);
+    const totalAdjustment = parseFloat(empData.total_adjustment || 0);
+    const leaveBalance = Math.max((baseEntitlement + totalAdjustment) - quotaLeavesUsed, 0);
 
     const [pendingRows] = await pool.query(
       `SELECT COUNT(*) AS pending FROM leave_requests WHERE user_id = ? AND status LIKE 'Pending%'`,
