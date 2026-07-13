@@ -1694,15 +1694,21 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  <p className="text-[9px] font-bold text-purple-500 uppercase tracking-wider">Promotions</p>
                </div>
              </div>
-
              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
-         </div>
-       </div>
+          </div>
+        </div>
 
-       {/* SUPPORTING SECTION */}
+         {/* Row 3: Employees Requiring Attention */}
+         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+           <div className="h-full">
+             <EmployeesRequiringAttentionCard />
+           </div>
+         </div>
+
+         {/* SUPPORTING SECTION */}
        <div>
          <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">Notices</h2>
          <div className="grid grid-cols-1 gap-6">

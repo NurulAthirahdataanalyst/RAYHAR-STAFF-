@@ -935,8 +935,8 @@ export default function LeaveAnalytics() {
         </div>
       </Card>
 
-      {/* 2. Executive KPI Cards (8 Columns) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-4">
+      {/* 2. Executive KPI Cards (Row 1 & 2) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-4 gap-3 mb-4">
         {[
           { label: "Total Leave Applications", val: total, color: "text-blue-600", bg: "bg-blue-50", icon: <FileText className="w-5 h-5"/>, trend: "↑ 12% vs last month" },
           { label: "Approval Rate", val: `${total > 0 ? Math.round((approved / total) * 100) : 0}%`, color: "text-emerald-600", bg: "bg-emerald-50", icon: <CheckCircle2 className="w-5 h-5"/>, trend: "↑ 5% vs last month" },
