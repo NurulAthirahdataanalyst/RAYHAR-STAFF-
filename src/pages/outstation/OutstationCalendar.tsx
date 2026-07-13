@@ -161,24 +161,24 @@ export default function OutstationCalendar() {
         ) : (
           <>
             {/* Day Headers */}
-            <div className="grid grid-cols-7 border-b border-gray-100 dark:border-slate-800 divide-x divide-gray-100 dark:divide-slate-800">
+            <div className="grid grid-cols-7 border-b border-border/60 bg-slate-50/30 dark:bg-slate-900/30 divide-x divide-border/40">
               {DAYS.map(d => (
-                <div key={d} className="px-2 py-2.5 text-center text-[10px] font-black uppercase tracking-widest text-gray-400 bg-slate-50/60">{d}</div>
+                <div key={d} className="px-2 py-3 text-center text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">{d}</div>
               ))}
             </div>
 
             {/* Cells */}
-            <div className="grid grid-cols-7">
+            <div className="grid grid-cols-7 divide-x divide-border/40">
               {calDays.map((day, idx) => {
                 const evts = getAssignmentsForDay(day);
                 return (
                   <div
                     key={idx}
-                    className={`min-h-[90px] border-b border-r border-gray-50 p-1.5 transition-colors ${!day ? "bg-gray-50/30" : "hover:bg-gray-50/50"}`}
+                    className={`min-h-[100px] border-b border-border/40 p-2 transition-colors ${!day ? "bg-muted/20" : "hover:bg-muted/30"}`}
                   >
                     {day && (
                       <>
-                        <div className={`w-6 h-6 flex items-center justify-center text-[11px] font-black mb-1 ${isToday(day) ? "bg-[#7B0099]/15 text-[#7B0099] dark:text-purple-300 rounded-md shadow-sm" : "rounded-full text-gray-700 dark:text-gray-200"}`}>
+                        <div className={`w-7 h-7 flex items-center justify-center text-[12px] font-bold mb-1.5 ${isToday(day) ? "bg-purple-100/60 text-[#7B0099] dark:bg-purple-900/30 dark:text-purple-300 rounded-lg shadow-sm border border-purple-200/60 dark:border-purple-800/50" : "rounded-lg text-foreground/80 hover:bg-muted/50"}`}>
                           {day}
                         </div>
                         <div className="space-y-0.5">

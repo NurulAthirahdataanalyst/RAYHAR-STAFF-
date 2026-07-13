@@ -765,7 +765,7 @@ export default function Calendar() {
                   className={`bg-card p-1.5 flex flex-col transition-colors hover:bg-muted/10 ${!isCurrentMonth ? 'bg-muted/10 opacity-70' : ''}`}
                 >
                   <div className="text-right mb-1.5 p-1">
-                    <span className={`text-sm font-bold inline-flex items-center justify-center w-7 h-7 ${isSameDay(day, new Date()) ? 'bg-[#7B0099]/15 text-[#7B0099] dark:text-purple-300 rounded-md shadow-sm' : 'rounded-full text-foreground/80 hover:bg-muted'}`}>
+                    <span className={`text-sm font-bold inline-flex items-center justify-center w-7 h-7 ${isSameDay(day, new Date()) ? 'bg-purple-100/60 text-[#7B0099] dark:bg-purple-900/30 dark:text-purple-300 rounded-lg shadow-sm border border-purple-200/60 dark:border-purple-800/50' : 'rounded-lg text-foreground/80 hover:bg-muted/50'}`}>
                       {format(day, 'd')}
                     </span>
                   </div>
