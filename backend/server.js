@@ -2649,7 +2649,7 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
     userLeaves.forEach(l => {
       const leaveYear = new Date(l.start_date).getFullYear();
       if (leaveYear === yearNum) {
-        const days = parseInt(l.duration_days || 0);
+        const days = parseInt(l.days || 0);
         if (l.leave_type.toLowerCase().includes('annual')) annualTaken += days;
         else if (l.leave_type.toLowerCase().includes('medical') || l.leave_type.toLowerCase().includes('sick')) sickTaken += days;
         else if (l.leave_type.toLowerCase().includes('emergency')) emergencyTaken += days;
