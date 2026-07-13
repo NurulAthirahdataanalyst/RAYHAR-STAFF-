@@ -1145,17 +1145,21 @@ export default function LeaveAnalytics() {
           </div>
         </Card>
 
-        {/* Workforce Health */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col justify-center items-center h-[280px]">
-          <h3 className="text-sm font-bold text-slate-800 mb-2 w-full text-left">14. Health Index</h3>
-          <div className="relative w-28 h-28 mt-2">
-            <svg viewBox="0 0 36 36" className="w-full h-full">
-              <path className="text-slate-100" strokeWidth="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-              <path className="text-emerald-500" strokeWidth="4" strokeDasharray={`${attendanceStats.attendanceRate}, 100`} stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-black text-slate-800">{attendanceStats.attendanceRate}%</span>
-              <span className="text-[10px] text-emerald-600 font-bold uppercase mt-0.5">Healthy</span>
+        {/* Action Center */}
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col h-[280px]">
+          <h3 className="text-sm font-bold text-slate-800 mb-2">14. Action Center</h3>
+          <div className="space-y-3 flex-1 flex flex-col justify-center">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 cursor-pointer hover:bg-amber-100 transition-colors border border-amber-100">
+              <span className="text-xs font-semibold text-amber-800">Pending Approval</span>
+              <span className="text-sm font-black text-amber-700">{pending}</span>
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors border border-slate-200">
+              <span className="text-xs font-semibold text-slate-700">Expiring Leave</span>
+              <span className="text-sm font-black text-slate-800">0</span>
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 cursor-pointer hover:bg-blue-100 transition-colors border border-blue-100">
+              <span className="text-xs font-semibold text-blue-800">MC Verify</span>
+              <span className="text-sm font-black text-blue-700">0</span>
             </div>
           </div>
         </Card>
@@ -1233,30 +1237,7 @@ export default function LeaveAnalytics() {
         </div>
       </div>
 
-      {/* 8. Action Center */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col lg:col-span-1">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">16. Action Center</h3>
-          <div className="space-y-2 flex-1">
-            <div className="flex items-center justify-between p-2 rounded bg-amber-50 cursor-pointer hover:bg-amber-100 transition-colors">
-              <span className="text-[11px] font-semibold text-amber-800">Pending Approval</span>
-              <span className="text-xs font-black text-amber-700">{pending}</span>
-            </div>
-            <div className="flex items-center justify-between p-2 rounded bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors">
-              <span className="text-[11px] font-semibold text-slate-700">Expiring Leave</span>
-              <span className="text-xs font-black text-slate-800">0</span>
-            </div>
-            <div className="flex items-center justify-between p-2 rounded bg-rose-50 cursor-pointer hover:bg-rose-100 transition-colors">
-              <span className="text-[11px] font-semibold text-rose-800">Over Quota</span>
-              <span className="text-xs font-black text-rose-700">{balanceRisk.overQuota}</span>
-            </div>
-            <div className="flex items-center justify-between p-2 rounded bg-blue-50 cursor-pointer hover:bg-blue-100 transition-colors">
-              <span className="text-[11px] font-semibold text-blue-800">MC Verify</span>
-              <span className="text-xs font-black text-blue-700">0</span>
-            </div>
-          </div>
-        </Card>
-      </div>
+
 
     </div>
   );
