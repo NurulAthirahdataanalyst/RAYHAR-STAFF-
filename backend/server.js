@@ -2169,13 +2169,16 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
   const signature_val = cuti_tanpa_gaji_signature === "true";
   
   try {
-    const [empRows] = await pool.query("SELECT branch, department, full_name FROM profiles p
+    const [empRows] = await pool.query(`SELECT p.branch, p.department, p.full_name,
+      COALESCE(p.annual_leave_entitlement, 14) AS annual_leave_entitlement,
+      COALESCE(adj.total_adjustment, 0) AS total_adjustment
+      FROM profiles p
       LEFT JOIN (
-        SELECT employee_id, SUM(adjustment_days) as total_adjustment 
-        FROM leave_balance_adjustments 
-        WHERE leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan') 
+        SELECT employee_id, SUM(adjustment_days) AS total_adjustment
+        FROM leave_balance_adjustments
+        WHERE leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan')
         GROUP BY employee_id
-      ) adj ON adj.employee_id = p.user_id WHERE p.user_id = ?", [user_id]);
+      ) adj ON adj.employee_id = p.user_id WHERE p.user_id = ?`, [user_id]);
     const employeeBranch = empRows[0]?.branch || "HQ";
     const employeeDept = empRows[0]?.department || "";
     const employeeName = empRows[0]?.full_name || user_id;
