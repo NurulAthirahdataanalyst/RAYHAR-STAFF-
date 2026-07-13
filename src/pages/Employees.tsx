@@ -67,6 +67,10 @@ export default function Employees() {
   const [dbEmployees, setDbEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [employeeLeaves, setEmployeeLeaves] = useState<any[]>([]);
+  const [viewLeaveStatus, setViewLeaveStatus] = useState<string | null>(null);
+  const [printingLeaveId, setPrintingLeaveId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [analytics, setAnalytics] = useState<any>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
@@ -1014,184 +1018,178 @@ export default function Employees() {
                     const fromStr = new Date(req.start_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     const toStr = new Date(req.end_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     return (
-                      <div key={req.leave_id} id={`leave-form-${req.leave_id}`} className="relative rounded-lg border p-4 space-y-4 bg-white dark:bg-slate-800 shadow-sm mb-4">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => {
-                            const content = document.getElementById(`leave-form-${req.leave_id}`)?.innerHTML;
-                            if (!content) return;
-                            const printWindow = window.open('', '', 'width=800,height=800');
-                            if (printWindow) {
-                              printWindow.document.write(`
-                                <html>
-                                  <head>
-                                    <title>Leave Form - ${selectedEmployee?.name}</title>
-                                    <script src="https://cdn.tailwindcss.com"></script>
-                                    <style>
-                                      @media print { .print-hidden { display: none !important; } }
-                                    </style>
-                                  </head>
-                                  <body class="p-8 font-sans text-slate-800">
-                                    <div class="max-w-2xl mx-auto border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
-                                      ${content}
-                                    </div>
-                                    <script>
-                                      setTimeout(() => { window.print(); window.close(); }, 1500);
-                                    </script>
-                                  </body>
-                                </html>
-                              `);
-                              printWindow.document.close();
-                            }
-                          }}
-                          className="print-hidden absolute right-4 top-4 bg-primary text-primary-foreground hover:bg-primary/90 h-8 px-3 text-xs font-bold shadow-sm"
-                        >
-                          <Printer className="w-3.5 h-3.5 mr-1.5" /> Save to PDF
-                        </Button>
-                        <div className="text-center border-b-2 border-foreground pb-4 pt-2">
-                          <h2 className="text-2xl font-black tracking-tight text-foreground">RAYHAR GROUP</h2>
-                          <p className="text-sm font-bold tracking-widest uppercase">Permohonan Cuti Kakitangan</p>
-                        </div>
+                      <div key={req.leave_id} id={printingLeaveId === req.leave_id ? "leave-form-print" : undefined} className={`relative p-4 sm:p-6 space-y-4 bg-card rounded-lg border shadow-sm mb-4 ${printingLeaveId && printingLeaveId !== req.leave_id ? 'print:hidden' : ''}`}>
+                        <div className="rounded-[24px] border border-border/50 p-4 sm:p-6 space-y-4 bg-card shadow-sm relative">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="absolute right-4 top-4 bg-[#7B0099] text-white hover:bg-[#5c0073] h-8 px-3 text-xs font-bold shadow-sm print:hidden"
+                            onClick={() => {
+                              setPrintingLeaveId(req.leave_id);
+                              const originalTitle = document.title;
+                              document.title = `Leave Request - ${selectedEmployee?.name}`;
+                              setTimeout(() => {
+                                window.print();
+                                document.title = originalTitle;
+                                setTimeout(() => setPrintingLeaveId(null), 100);
+                              }, 100);
+                            }}
+                          >
+                            <Printer className="w-3.5 h-3.5 mr-1.5" /> Save to PDF
+                          </Button>
 
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div className="space-y-1">
-                            <span className="text-[10px] uppercase font-bold text-muted-foreground">Nama Penuh</span>
-                            <p className="font-semibold border-b pb-1 border-slate-100 dark:border-slate-800">{selectedEmployee?.name}</p>
+                          <div className="text-center border-b-2 border-foreground/50 dark:border-purple-500/50 pb-4">
+                            <h2 className="text-2xl font-black tracking-tighter text-foreground dark:text-purple-400">RAYHAR GROUP</h2>
+                            <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">Permohonan Cuti Kakitangan</p>
                           </div>
-                          <div className="space-y-1">
-                            <span className="text-[10px] uppercase font-bold text-muted-foreground">Cawangan</span>
-                            <p className="font-semibold border-b pb-1 border-slate-100 dark:border-slate-800">{selectedEmployee?.branch || "HQ"}</p>
+
+                          <div className="grid grid-cols-2 gap-4 text-xs font-bold">
+                            <div className="space-y-1">
+                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Nama Penuh</span>
+                              <p className="border-b pb-1 border-border/40 truncate">{selectedEmployee?.name}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Cawangan</span>
+                              <p className="border-b pb-1 border-border/40">{selectedEmployee?.branch || "HQ"}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Jenis Cuti</span>
+                              <p className="border-b pb-1 border-border/40">{req.leave_type}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Status</span>
+                              <p className={`font-black uppercase ${req.status === "Rejected" ? "text-rose-600" : "text-[#7B0099]"}`}>
+                                {req.status}
+                              </p>
+                            </div>
                           </div>
-                          <div className="space-y-1">
-                            <span className="text-[10px] uppercase font-bold text-muted-foreground">Jenis Cuti</span>
-                            <p className="font-semibold border-b pb-1 border-slate-100 dark:border-slate-800">{req.leave_type}</p>
+
+                          <div className="grid grid-cols-3 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
+                            <div className="text-center">
+                              <p className="text-[9px] uppercase font-black text-muted-foreground opacity-50 mb-1">Dari</p>
+                              <p className="font-black text-xs sm:text-sm">{fromStr}</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-[9px] uppercase font-black text-muted-foreground opacity-50 mb-1">Hingga</p>
+                              <p className="font-black text-xs sm:text-sm">{toStr}</p>
+                            </div>
+                            <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
+                              <p className="text-[9px] uppercase font-black text-[#7B0099]">Hari</p>
+                              <p className="font-black text-lg text-[#7B0099] leading-none mt-0.5">{req.days}</p>
+                            </div>
                           </div>
-                          <div className="space-y-1">
-                            <span className="text-[10px] uppercase font-bold text-muted-foreground">Status</span>
-                            <p className={`font-bold border-b pb-1 border-slate-100 dark:border-slate-800 uppercase ${req.status === "Rejected" ? "text-red-600" : "text-primary"}`}>
-                              {req.status}
+
+                          <div className="space-y-2">
+                            <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50 tracking-widest">Sebab / Tujuan</p>
+                            <p className="rounded-[16px] border border-border/40 p-4 italic text-foreground/80 bg-muted/10 text-xs leading-relaxed">
+                              "{getCleanReason(req.reason) || "-"}"
                             </p>
                           </div>
-                        </div>
 
-                        <div className="grid grid-cols-3 gap-4 text-sm border rounded-xl p-4 bg-muted/20">
-                          <div>
-                            <p className="text-[10px] uppercase font-bold text-muted-foreground">Tarikh Mula</p>
-                            <p className="font-bold text-base">{fromStr}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] uppercase font-bold text-muted-foreground">Tarikh Akhir</p>
-                            <p className="font-bold text-base">{toStr}</p>
-                          </div>
-                          <div className="text-center bg-white dark:bg-slate-800 rounded-lg border dark:border-slate-700 flex flex-col justify-center py-1">
-                            <p className="text-[10px] uppercase font-bold text-primary">Bilangan Hari</p>
-                            <p className="font-black text-lg text-primary">{req.days} Hari</p>
-                          </div>
-                        </div>
-
-                        <div className="text-sm">
-                          <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Tujuan / Sebab Cuti</p>
-                          <p className="rounded-lg border p-3 italic text-slate-700 dark:text-slate-200 bg-slate-50/50">
-                            "{getCleanReason(req.reason) || "-"}"
-                          </p>
-                        </div>
-
-                         {/* Conditional Fields: Cuti Ganti */}
-                        {(req.leave_type === "Replacement Leave" || req.leave_type === "Cuti Ganti") && (() => {
-                          const rows = parseCutiGantiRows(
-                            req.reason,
-                            req.cuti_ganti_tarikh,
-                            req.cuti_ganti_hari,
-                            req.cuti_ganti_jam
-                          );
-                          return (
-                            <div className="space-y-3">
-                              <p className="text-[10px] uppercase font-bold text-blue-600 tracking-wider">Butiran Cuti Ganti</p>
-                              <div className="border border-blue-100 rounded-xl overflow-hidden bg-blue-50/30">
-                                <Table>
-                                  <TableHeader>
-                                    <TableRow className="bg-blue-100/50 hover:bg-blue-100/50 border-b border-blue-100">
-                                      <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh Cuti</TableHead>
-                                      <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh/Hari Cuti Ganti</TableHead>
-                                      <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase text-right">Jam Bekerja</TableHead>
-                                    </TableRow>
-                                  </TableHeader>
-                                  <TableBody className="divide-y divide-blue-100 font-medium text-slate-800 dark:text-slate-200">
-                                    {rows.map((row, idx) => (
-                                      <TableRow key={idx} className="hover:bg-blue-50/50">
-                                        <TableCell className="py-2 px-4">{row.tarikh || "-"}</TableCell>
-                                        <TableCell className="py-2 px-4">{row.hari || "-"}</TableCell>
-                                        <TableCell className="py-2 px-4 text-right">{row.jam || 0} Jam</TableCell>
+                          {/* Conditional Fields: Cuti Ganti */}
+                          {(req.leave_type === "Replacement Leave" || req.leave_type === "Cuti Ganti") && (() => {
+                            const rows = parseCutiGantiRows(
+                              req.reason,
+                              req.cuti_ganti_tarikh,
+                              req.cuti_ganti_hari,
+                              req.cuti_ganti_jam
+                            );
+                            return (
+                              <div className="space-y-3">
+                                <p className="text-[9px] font-black uppercase text-blue-600 opacity-80 tracking-widest px-1">Butiran Cuti Ganti</p>
+                                <div className="border border-blue-500/20 rounded-[20px] overflow-hidden bg-blue-500/5">
+                                  <Table>
+                                    <TableHeader>
+                                      <TableRow className="bg-blue-500/10 hover:bg-blue-500/10 border-b border-blue-500/20">
+                                        <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh Cuti</TableHead>
+                                        <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh/Hari Cuti Ganti</TableHead>
+                                        <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase text-right">Jam Bekerja</TableHead>
                                       </TableRow>
-                                    ))}
-                                  </TableBody>
-                                </Table>
+                                    </TableHeader>
+                                    <TableBody className="divide-y divide-blue-500/10 font-bold text-foreground/80">
+                                      {rows.map((row, idx) => (
+                                        <TableRow key={idx} className="hover:bg-blue-500/5">
+                                          <TableCell className="py-2 px-4">{row.tarikh || "-"}</TableCell>
+                                          <TableCell className="py-2 px-4">{row.hari || "-"}</TableCell>
+                                          <TableCell className="py-2 px-4 text-right">{row.jam || 0} Jam</TableCell>
+                                        </TableRow>
+                                      ))}
+                                    </TableBody>
+                                  </Table>
+                                </div>
+                              </div>
+                            );
+                          })()}
+
+                          {/* Conditional Fields: Cuti Tanpa Gaji */}
+                          {(req.leave_type === "Unpaid Leave" || req.leave_type === "Cuti Tanpa Gaji") && (
+                            <div className="grid grid-cols-2 gap-4 text-[10px] border rounded-[20px] p-4 bg-rose-500/5 border-rose-500/20">
+                              <div>
+                                <p className="uppercase font-black text-rose-600 opacity-60">No. Tel H/P</p>
+                                <p className="font-black mt-0.5">{req.cuti_tanpa_gaji_phone || "-"}</p>
+                              </div>
+                              <div>
+                                <p className="uppercase font-black text-rose-600 opacity-60">Tandatangan</p>
+                                <p className="font-black mt-0.5 text-rose-700">
+                                  {req.cuti_tanpa_gaji_signature ? "✓ DISAHKAN" : "TIADA PENGESAHAN"}
+                                </p>
                               </div>
                             </div>
-                          );
-                        })()}
+                          )}
 
-                        {/* Conditional Fields: Cuti Tanpa Gaji */}
-                        {(req.leave_type === "Unpaid Leave" || req.leave_type === "Cuti Tanpa Gaji") && (
-                          <div className="grid grid-cols-2 gap-4 text-sm border rounded-xl p-4 bg-rose-50/50 border-rose-100">
-                            <div>
-                              <p className="text-[10px] uppercase font-bold text-rose-600">No. Tel H/P</p>
-                              <p className="font-bold text-base text-foreground">{req.cuti_tanpa_gaji_phone || "-"}</p>
+                          {/* Conditional Fields: Cuti Sakit (MC) */}
+                          {(req.leave_type === "Sick Leave" || req.leave_type === "Cuti Sakit") && req.mc_file_url && (
+                            <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
+                              <div className="flex items-center gap-3">
+                                <FileText className="w-5 h-5 text-[#7B0099]" />
+                                <span className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest">MC Attachment</span>
+                              </div>
+                              <a
+                                href={`${API_BASE_URL}${req.mc_file_url}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[9px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
+                              >
+                                View File
+                              </a>
                             </div>
-                            <div>
-                              <p className="text-[10px] uppercase font-bold text-rose-600">Tandatangan Pengesahan</p>
-                              <p className="font-bold text-base text-foreground">
-                                {req.cuti_tanpa_gaji_signature ? "✓ Disahkan" : "Tiada Pengesahan"}
-                              </p>
+                          )}
+
+                          {/* Maklumat Waris Section */}
+                          <div className="pt-4 border-t border-border/50 space-y-4">
+                            <div className="flex items-center gap-2">
+                              <PhoneCall className="w-4 h-4 text-rose-500" />
+                              <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 bg-muted/20 p-4 rounded-[20px]">
+                              <div className="space-y-1">
+                                <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Nama</span>
+                                <p className="text-[11px] font-bold truncate">{req.waris_nama || "-"}</p>
+                              </div>
+                              <div className="space-y-1">
+                                <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Hubungan</span>
+                                <p className="text-[11px] font-bold truncate">{req.waris_hubungan || "-"}</p>
+                              </div>
+                              <div className="space-y-1">
+                                <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">No. Telefon</span>
+                                <p className="text-[11px] font-black text-[#7B0099]">{req.waris_phone || "-"}</p>
+                              </div>
+                              <div className="space-y-1">
+                                <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Alamat</span>
+                                <p className="text-[10px] font-bold text-muted-foreground break-words">{req.waris_alamat || "-"}</p>
+                              </div>
                             </div>
                           </div>
-                        )}
 
-                        {/* Conditional Fields: Cuti Sakit (MC) */}
-                        {(req.leave_type === "Sick Leave" || req.leave_type === "Cuti Sakit") && req.mc_file_url && (
-                          <div className="text-sm p-4 bg-purple-50/50 border border-purple-100 rounded-xl">
-                            <p className="text-[10px] uppercase font-bold text-purple-600 mb-2">Lampiran MC</p>
-                            <a href={`${API_BASE_URL}${req.mc_file_url}`} target="_blank" rel="noopener noreferrer" className="text-purple-700 underline font-semibold flex items-center gap-2">
-                              <FileText className="w-4 h-4" />
-                              View MC Attachment
-                            </a>
-                          </div>
-                        )}
-
-                        {/* Maklumat Waris Section */}
-                        <div className="space-y-3 pt-2 border-t">
-                          <div className="flex items-center gap-2 border-b pb-2 pt-2">
-                            <PhoneCall className="w-4 h-4 text-red-600" />
-                            <h3 className="text-sm font-black uppercase tracking-tight">Maklumat Waris (Kecemasan)</h3>
+                          <div className="hidden print:grid grid-cols-2 gap-16 pt-12 pb-4">
+                            <div className="border-t border-foreground pt-2 text-center">
+                              <p className="text-[10px] font-bold uppercase">Tandatangan Kakitangan</p>
+                            </div>
+                            <div className="border-t border-foreground pt-2 text-center">
+                              <p className="text-[10px] font-bold uppercase">Kelulusan Pengurus / HR</p>
+                            </div>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                              <label className="text-[10px] font-bold text-muted-foreground uppercase">Nama Waris</label>
-                              <p className="text-sm font-semibold text-foreground border-b border-dotted pb-1">
-                                {req.waris_nama || "-"}
-                              </p>
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-[10px] font-bold text-muted-foreground uppercase">Hubungan</label>
-                              <p className="text-sm font-semibold text-foreground border-b border-dotted pb-1">
-                                {req.waris_hubungan || "-"}
-                              </p>
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-[10px] font-bold text-muted-foreground uppercase">No. Telefon</label>
-                              <p className="text-sm font-bold text-primary border-b border-dotted pb-1">
-                                {req.waris_phone || "-"}
-                              </p>
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-[10px] font-bold text-muted-foreground uppercase">Alamat Waris</label>
-                              <p className="text-xs leading-relaxed text-slate-700 dark:text-slate-200 border-b border-dotted pb-1">
-                                {req.waris_alamat || "-"}
-                              </p>
-                            </div>
-                          </div>
                         </div>
                       </div>
                     );
