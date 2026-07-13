@@ -1186,70 +1186,55 @@ function AdditionalLeaveAllocationForm({
    ========================================================== */
 function ManualLeaveAdjustmentForm({
   employees,
+  selectedEmp,
+  setSelectedEmp,
   onCancel,
-}: {
-  employees: any[];
-  onCancel: () => void;
-}) {
-  const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
+  onRefresh
+}: any) {
+  const { toast } = useToast();
   const [leaveType, setLeaveType] = useState("Annual & Emergency Leave");
-  const [adjType, setAdjType] = useState("add"); // add / deduct
   const [adjDays, setAdjDays] = useState(1);
   const [reason, setReason] = useState("");
-  const [remarks, setRemarks] = useState("");
-  const [fileName, setFileName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const currentBalances = selectedEmp ? getEmployeeLeaveBalances(selectedEmp.user_id) : {
-    "Annual & Emergency Leave": 14,
-    "Replacement Leave": 0,
-    "Sick Leave (MC)": 14,
-    "Unpaid Leave": 0
-  };
+  const entitlement = selectedEmp?.annual_leave_entitlement || 14;
+  const adjustment = selectedEmp?.total_adjustment || 0;
+  const available = selectedEmp?.annual_leave_balance || 0;
+  const used = entitlement + adjustment - available;
 
-  const currentAnnualBalance = currentBalances["Annual & Emergency Leave"];
-  const currentReplacementBalance = currentBalances["Replacement Leave"];
-  const currentSickBalance = currentBalances["Sick Leave (MC)"];
-  const currentUnpaidBalance = currentBalances["Unpaid Leave"];
-
-  const getSelectedBalance = () => {
-    switch (leaveType) {
-      case "Annual & Emergency Leave": return currentAnnualBalance;
-      case "Replacement Leave": return currentReplacementBalance;
-      case "Sick Leave (MC)": return currentSickBalance;
-      case "Unpaid Leave": return currentUnpaidBalance;
-      default: return 0;
-    }
-  };
-
-  const currentSelectedBalance = getSelectedBalance();
-  const newBalance = adjType === "add" ? currentSelectedBalance + adjDays : Math.max(0, currentSelectedBalance - adjDays);
-
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedEmp) return;
+    setIsSubmitting(true);
+    
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/profiles/${selectedEmp.user_id}/leave-adjustments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leaveType: leaveType,
+          adjustmentDays: adjDays,
+          reason: reason,
+          approvedBy: "HR Admin"
+        }),
+      });
 
-    updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, leaveType, newBalance);
+      if (!res.ok) throw new Error("Failed to apply adjustment");
 
-    // Log to local balance history logs
-    const newLog = {
-      date: new Date().toISOString().split('T')[0],
-      action: `Manual Correction (${adjType === "add" ? "+" : "-"}${adjDays}d)`,
-      performedBy: "Nurul Athirah (HR)",
-      reference: `MAN-ADJ-${reason.replace(/\s+/g, '-')}`,
-      before: currentSelectedBalance,
-      after: newBalance,
-      type: "Adjustment",
-      leave: leaveType,
-      employee: selectedEmp.full_name,
-    };
-    const saved = localStorage.getItem("leave_balance_history_logs");
-    const currentLogs = saved ? JSON.parse(saved) : [];
-    localStorage.setItem("leave_balance_history_logs", JSON.stringify([newLog, ...currentLogs]));
-
-    toast({
-      title: "Adjustment Applied Successfully",
-      description: `Adjusted balance for ${selectedEmp.full_name}: New Balance is ${newBalance} days.`,
-    });
-    onCancel();
+      toast({
+        title: "Adjustment Applied Successfully",
+        description: `Added ${adjDays} days for ${selectedEmp.full_name}`,
+      });
+      onRefresh?.();
+      onCancel();
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to apply adjustment",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -1262,8 +1247,8 @@ function ManualLeaveAdjustmentForm({
           <ClipboardList className="w-5 h-5 text-amber-600" />
         </div>
         <div>
-          <CardTitle className="text-base sm:text-lg font-black text-foreground">Manual Leave Adjustment</CardTitle>
-          <CardDescription className="text-xs">Directly modify an employee's leave balance ledger for audit corrections.</CardDescription>
+          <CardTitle className="text-base sm:text-lg font-black text-foreground">Manage Leave Adjustment</CardTitle>
+          <CardDescription className="text-xs">Adjust employee's leave balance.</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="space-y-6 pt-2">
@@ -1277,648 +1262,50 @@ function ManualLeaveAdjustmentForm({
               placeholder="Search staff to adjust..."
             />
             {selectedEmp && (
-              <div className="grid grid-cols-2 gap-4 bg-muted/20 p-3 rounded-lg border border-border/50 text-xs">
-                <div>
-                  <span className="text-muted-foreground block mb-1 font-bold">Current Balance</span>
-                  <div className="space-y-1">
-                    <div>Annual & Emergency Leave: <span className="font-bold text-foreground">{currentAnnualBalance} Days</span></div>
-                    <div>Replacement Leave: <span className="font-bold text-foreground">{currentReplacementBalance} Days</span></div>
-                    <div>Sick Leave (MC): <span className="font-bold text-foreground">{currentSickBalance} Days</span></div>
-                    <div>Unpaid Leave: <span className="font-bold text-foreground">{currentUnpaidBalance} Days</span></div>
-                  </div>
+              <div className="bg-muted/20 p-4 rounded-lg border border-border/50 text-sm">
+                <div className="mb-2 border-b pb-2">
+                  <span className="font-bold text-foreground">{selectedEmp.full_name}</span>
                 </div>
-                <div>
-                  <span className="text-muted-foreground block mb-1 font-bold">Details</span>
-                  <div>Branch: <span className="font-bold text-foreground">{selectedEmp.branch}</span></div>
-                  <div>Dept: <span className="font-bold text-foreground">{selectedEmp.department || "-"}</span></div>
+                <div className="space-y-2">
+                  <h5 className="font-bold text-xs uppercase text-muted-foreground">Annual Leave</h5>
+                  <div className="flex justify-between"><span>Current Entitlement</span><span className="font-bold">{entitlement} days</span></div>
+                  <div className="flex justify-between"><span>Used</span><span className="font-bold">{used} days</span></div>
+                  <div className="flex justify-between"><span>Adjustment</span><span className="font-bold">{adjustment > 0 ? '+' : ''}{adjustment} days</span></div>
+                  <div className="border-t pt-2 flex justify-between font-black text-amber-700 dark:text-amber-400">
+                    <span>Available</span><span>{available} days</span>
+                  </div>
                 </div>
               </div>
             )}
           </div>
         </div>
 
+        {selectedEmp && (
         <div>
-          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Adjustment</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Add Adjustment</h4>
+          <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Leave Type</Label>
-              <Select value={leaveType} onValueChange={setLeaveType}>
-                <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Annual & Emergency Leave">Annual & Emergency Leave</SelectItem>
-                  <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
-                  <SelectItem value="Sick Leave (MC)">Sick Leave (MC)</SelectItem>
-                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label className="text-xs font-bold">Days</Label>
+              <Input type="number" value={adjDays} onChange={(e) => setAdjDays(Number(e.target.value))} className="bg-white dark:bg-card h-9" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Adjustment Type</Label>
-              <Select value={adjType} onValueChange={setAdjType}>
-                <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="add">(+ Add)</SelectItem>
-                  <SelectItem value="deduct">(- Deduct)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Adjustment Days</Label>
-              <Input type="number" value={adjDays} onChange={(e) => setAdjDays(Math.max(0, Number(e.target.value)))} className="bg-white dark:bg-card h-9 text-xs" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">New Balance</Label>
-              <div className="h-9 flex items-center px-3 border bg-muted/30 rounded-md font-black text-xs text-foreground">
-                {newBalance} Days
-              </div>
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
               <Label className="text-xs font-bold">Reason</Label>
               <Input
-                placeholder="Enter reason for adjustment..."
+                placeholder="e.g. Performance Reward"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 className="bg-white dark:bg-card text-xs h-9"
               />
             </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-xs font-bold">Remarks</Label>
-              <Textarea
-                rows={3}
-                placeholder="Detail explanation for audit tracking..."
-                value={remarks}
-                onChange={(e) => setRemarks(e.target.value)}
-                className="bg-white dark:bg-card text-xs"
-              />
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-xs font-bold">Attachment (Optional)</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="file"
-                  id="adj-file"
-                  onChange={(e) => setFileName(e.target.files?.[0]?.name || "")}
-                  className="hidden"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => document.getElementById("adj-file")?.click()}
-                  className="text-xs w-full justify-start h-9"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  {fileName || "Upload Evidence / Supporting document"}
-                </Button>
-              </div>
-            </div>
           </div>
         </div>
-
-        <div className="flex justify-end gap-3 border-t pt-4">
-          <Button variant="outline" size="sm" onClick={onCancel} className="text-xs uppercase font-black tracking-wider">Cancel</Button>
-          <Button size="sm" disabled={!selectedEmp} onClick={handleSave} className="bg-amber-600 hover:bg-amber-700 text-white text-xs uppercase font-black tracking-wider">
-            Save Adjustment
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-/* ==========================================================
-   5. SPECIAL LEAVE CREDITS FORM
-   ========================================================== */
-function SpecialLeaveCreditsForm({
-  employees,
-  onCancel,
-}: {
-  employees: any[];
-  onCancel: () => void;
-}) {
-  const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
-  const [specialLeave, setSpecialLeave] = useState("Birthday Leave");
-  const [days, setDays] = useState(2);
-  const [effectiveDate, setEffectiveDate] = useState("2026-07-06");
-  const [expiryDate, setExpiryDate] = useState("2027-07-06");
-  const [reason, setReason] = useState("");
-  const [remarks, setRemarks] = useState("");
-
-  const handleGrant = () => {
-    if (!selectedEmp) return;
-
-    const currentBalances = getEmployeeLeaveBalances(selectedEmp.user_id);
-    const newTotal = currentBalances["Replacement Leave"] + days;
-    updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, "Replacement Leave", newTotal);
-
-    // Log to local balance history logs (allocated under Replacement Leave)
-    const newLog = {
-      date: new Date().toISOString().split('T')[0],
-      action: `Special Credit (${specialLeave})`,
-      performedBy: "Nurul Athirah (HR)",
-      reference: `SPEC-CRED-${specialLeave.replace(/\s+/g, '-')}`,
-      before: currentBalances["Replacement Leave"],
-      after: newTotal,
-      type: "Allocation",
-      leave: "Replacement Leave",
-      employee: selectedEmp.full_name,
-    };
-    const saved = localStorage.getItem("leave_balance_history_logs");
-    const currentLogs = saved ? JSON.parse(saved) : [];
-    localStorage.setItem("leave_balance_history_logs", JSON.stringify([newLog, ...currentLogs]));
-
-    toast({
-      title: "Special Leave Granted",
-      description: `Granted ${days} days of ${specialLeave} to ${selectedEmp.full_name}.`,
-    });
-    onCancel();
-  };
-
-  return (
-    <Card className="border-border/60 bg-card/75 shadow-lg max-w-2xl mx-auto">
-      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20">
-        <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-rose-500/10 hover:text-rose-600 transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
-        <div className="w-9 h-9 rounded-xl bg-rose-500/10 flex items-center justify-center">
-          <Gift className="w-5 h-5 text-rose-600" />
-        </div>
-        <div>
-          <CardTitle className="text-base sm:text-lg font-black text-foreground">Special Leave Credits</CardTitle>
-          <CardDescription className="text-xs">Grant special-use credits like Birthday, Marriage, or Replacement leaves.</CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6 pt-2">
-        <div>
-          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Employee</h4>
-          <EmployeeSearchSelector
-            employees={employees}
-            selectedEmployee={selectedEmp}
-            onSelect={setSelectedEmp}
-            placeholder="Search staff for special leave..."
-          />
-        </div>
-
-        <div>
-          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Special Leave</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2 sm:col-span-2">
-              <Label className="text-xs font-bold">Leave Type</Label>
-              <RadioGroup value={specialLeave} onValueChange={setSpecialLeave} className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {["Birthday Leave", "Compassionate Leave", "Marriage Leave", "Replacement Leave", "Emergency Leave"].map((type) => (
-                  <div key={type} className="flex items-center space-x-2 border p-2.5 rounded-md bg-white dark:bg-card hover:bg-muted/10 cursor-pointer">
-                    <RadioGroupItem value={type} id={type} />
-                    <Label htmlFor={type} className="text-xs font-bold cursor-pointer text-xxs">{type}</Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Days</Label>
-              <Input type="number" value={days} onChange={(e) => setDays(Number(e.target.value))} className="bg-white dark:bg-card h-9 text-xs" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Effective Date</Label>
-              <Input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} className="bg-white dark:bg-card h-9 text-xs" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Expiry Date</Label>
-              <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="bg-white dark:bg-card h-9 text-xs" />
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-xs font-bold">Reason</Label>
-              <Input placeholder="Enter reason description..." value={reason} onChange={(e) => setReason(e.target.value)} className="bg-white dark:bg-card h-9 text-xs" />
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-xs font-bold">Remarks</Label>
-              <Textarea
-                rows={3}
-                placeholder="Enter remarks..."
-                value={remarks}
-                onChange={(e) => setRemarks(e.target.value)}
-                className="bg-white dark:bg-card text-xs"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-3 border-t pt-4">
-          <Button variant="outline" size="sm" onClick={onCancel} className="text-xs uppercase font-black tracking-wider">Cancel</Button>
-          <Button size="sm" disabled={!selectedEmp} onClick={handleGrant} className="bg-rose-600 hover:bg-rose-700 text-white text-xs uppercase font-black tracking-wider">
-            Grant Credit
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-/* ==========================================================
-   6. MATERNITY LEAVE FORM
-   ========================================================== */
-function MaternityLeaveForm({
-  employees,
-  onCancel,
-}: {
-  employees: any[];
-  onCancel: () => void;
-}) {
-  const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
-  const [startDate, setStartDate] = useState("");
-  const [remarks, setRemarks] = useState("");
-  const [fileName, setFileName] = useState("");
-
-  const endDate = startDate ? (() => {
-    const d = new Date(startDate);
-    d.setDate(d.getDate() + 98);
-    return d.toISOString().split('T')[0];
-  })() : "";
-
-  const handleGrant = () => {
-    if (!selectedEmp || !startDate) return;
-
-    // Log to local balance history logs
-    const newLog = {
-      date: new Date().toISOString().split('T')[0],
-      action: "Maternity Leave (+98d)",
-      performedBy: "Nurul Athirah (HR)",
-      reference: `MAT-ALLOC-${startDate}`,
-      before: 0,
-      after: 98,
-      type: "Allocation",
-      leave: "Replacement Leave",
-      employee: selectedEmp.full_name,
-    };
-    const saved = localStorage.getItem("leave_balance_history_logs");
-    const currentLogs = saved ? JSON.parse(saved) : [];
-    localStorage.setItem("leave_balance_history_logs", JSON.stringify([newLog, ...currentLogs]));
-
-    toast({
-      title: "Maternity Leave Granted",
-      description: `Successfully granted 98 days maternity leave to ${selectedEmp.full_name} starting from ${startDate} to ${endDate}.`,
-    });
-    onCancel();
-  };
-
-  return (
-    <Card className="border-border/60 bg-card/75 shadow-lg max-w-2xl mx-auto">
-      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20">
-        <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-pink-500/10 hover:text-pink-600 transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
-        <div className="w-9 h-9 rounded-xl bg-pink-500/10 flex items-center justify-center">
-          <Sparkles className="w-5 h-5 text-pink-600" />
-        </div>
-        <div>
-          <CardTitle className="text-base sm:text-lg font-black text-foreground">Maternity Leave</CardTitle>
-          <CardDescription className="text-xs">Configure and allocate childbirth maternity leave for eligible female employees.</CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6 pt-2">
-        <div>
-          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Employee</h4>
-          <EmployeeSearchSelector
-            employees={employees.filter(e => e.gender?.toLowerCase() === "female" || !e.gender)}
-            selectedEmployee={selectedEmp}
-            onSelect={setSelectedEmp}
-            placeholder="Search female employee..."
-          />
-        </div>
-
-        {selectedEmp && (
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Leave Period (98 Days)</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-bold">Start Date</Label>
-                  <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-white dark:bg-card h-9 text-xs" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-bold">End Date (Auto calculated)</Label>
-                  <div className="h-9 flex items-center px-3 border bg-muted/30 rounded-md font-bold text-xs text-foreground">
-                    {endDate || "Select Start Date"}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Remarks</Label>
-              <Textarea
-                rows={3}
-                placeholder="Details of the maternity request, EDD details..."
-                value={remarks}
-                onChange={(e) => setRemarks(e.target.value)}
-                className="bg-white dark:bg-card text-xs"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Attachment (Optional)</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="file"
-                  id="mat-file"
-                  onChange={(e) => setFileName(e.target.files?.[0]?.name || "")}
-                  className="hidden"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => document.getElementById("mat-file")?.click()}
-                  className="text-xs w-full justify-start h-9"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  {fileName || "Upload medical certificate / EDD confirmation document"}
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 border-t pt-4">
-              <Button variant="outline" size="sm" onClick={onCancel} className="text-xs uppercase font-black tracking-wider">Cancel</Button>
-              <Button size="sm" disabled={!startDate} onClick={handleGrant} className="bg-pink-600 hover:bg-pink-700 text-white text-xs uppercase font-black tracking-wider">
-                Grant Maternity Leave
-              </Button>
-            </div>
-          </div>
         )}
-      </CardContent>
-    </Card>
-  );
-}
 
-/* ==========================================================
-   8. LEAVE BALANCE HISTORY FORM
-   ========================================================== */
-function LeaveBalanceHistoryForm({
-  employees,
-  onCancel,
-  getUnusedDays,
-}: {
-  employees: any[];
-  onCancel: () => void;
-  getUnusedDays: (id: string) => number;
-}) {
-  const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
-  const [yearFilter, setYearFilter] = useState("2026");
-  const [leaveType, setLeaveType] = useState("All");
-  const [actionType, setActionType] = useState("All");
-  const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
-  const [localLogs, setLocalLogs] = useState<any[]>([]);
-
-  // Fetch real leave requests to populate real usage history
-  useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/leave-requests`);
-        const data = await res.json();
-        if (data.success) {
-          // Filter only approved leave requests
-          const approved = data.data.filter((r: any) => r.status === "Approved" || r.status === "approved");
-          setLeaveRequests(approved);
-        }
-      } catch (err) {
-        console.error("Error loading leave requests:", err);
-      }
-    };
-    fetchRequests();
-
-    // Load local logs (from OT conversion or other screen actions)
-    const saved = localStorage.getItem("leave_balance_history_logs");
-    if (saved) {
-      setLocalLogs(JSON.parse(saved));
-    }
-  }, []);
-
-  // Map real approved leave requests into history format
-  const realHistory = leaveRequests.map((req) => {
-    const days = parseInt(req.days) || 1;
-    const after = getUnusedDays(req.user_id);
-    const before = after + days;
-    return {
-      date: req.start_date ? req.start_date.split('T')[0] : "2026-07-06",
-      action: "Leave Taken (Approved)",
-      performedBy: req.approval_history?.[0]?.approver_name || "Manager",
-      reference: `REQ-LV-${req.leave_id}`,
-      before: before,
-      after: after,
-      type: "Usage",
-      leave: req.leave_type || "Annual & Emergency Leave",
-      employee: req.full_name || "Unknown",
-    };
-  });
-
-  // Combined History (Real approved leave requests + local adjustments + mock system allocations/corrections)
-  const combinedHistory = [
-    ...realHistory,
-    ...localLogs,
-    {
-      date: "2026-07-06",
-      action: "Manual Correction",
-      performedBy: "Nurul Athirah (HR)",
-      reference: "SYS-ADJ-928",
-      before: 10,
-      after: 12,
-      type: "Adjustment",
-      leave: "Annual & Emergency Leave",
-      employee: "Ali Ahmad",
-    },
-    {
-      date: "2026-07-05",
-      action: "Carry Forward Applied",
-      performedBy: "System Job",
-      reference: "ROLL-CF-2026",
-      before: 0,
-      after: 5,
-      type: "Carry Forward",
-      leave: "Annual & Emergency Leave",
-      employee: "Siti Nur",
-    },
-    {
-      date: "2026-01-01",
-      action: "Annual Allocation Granted",
-      performedBy: "Nurul Athirah (HR)",
-      reference: "INIT-ALLOC-2026",
-      before: 0,
-      after: 14,
-      type: "Allocation",
-      leave: "Annual & Emergency Leave",
-      employee: "Ali Ahmad",
-    },
-  ];
-
-  // Filter dynamic history list
-  const filteredHistory = combinedHistory.filter((rec) => {
-    const empMatch = !selectedEmp || rec.employee.toLowerCase().includes(selectedEmp.full_name.toLowerCase()) || selectedEmp.full_name.toLowerCase().includes(rec.employee.toLowerCase());
-    const yearMatch = rec.date.startsWith(yearFilter);
-    const leaveMatch = leaveType === "All" || rec.leave === leaveType;
-    const actionMatch = actionType === "All" || rec.type === actionType;
-    return empMatch && yearMatch && leaveMatch && actionMatch;
-  });
-
-  return (
-    <Card className="border-border/60 bg-card/75 shadow-lg">
-      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20">
-        <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-slate-500/10 hover:text-slate-600 transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
-        <div className="w-9 h-9 rounded-xl bg-slate-500/10 flex items-center justify-center">
-          <History className="w-5 h-5 text-slate-600" />
-        </div>
-        <div>
-          <CardTitle className="text-base sm:text-lg font-black text-foreground">Leave Balance History</CardTitle>
-          <CardDescription className="text-xs">Track and audit changes to employee leave balances over time.</CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6 pt-2">
-        <div>
-          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Filters</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Employee</Label>
-              <EmployeeSearchSelector
-                employees={employees}
-                selectedEmployee={selectedEmp}
-                onSelect={setSelectedEmp}
-                placeholder="Search staff..."
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Year</Label>
-              <Select value={yearFilter} onValueChange={setYearFilter}>
-                <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="2026">2026</SelectItem>
-                  <SelectItem value="2027">2027</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Leave Type</Label>
-              <Select value={leaveType} onValueChange={setLeaveType}>
-                <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All">All Types</SelectItem>
-                  <SelectItem value="Annual & Emergency Leave">Annual & Emergency Leave</SelectItem>
-                  <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
-                  <SelectItem value="Sick Leave (MC)">Sick Leave (MC)</SelectItem>
-                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Action Type</Label>
-              <Select value={actionType} onValueChange={setActionType}>
-                <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All">All Actions</SelectItem>
-                  <SelectItem value="Allocation">Allocation</SelectItem>
-                  <SelectItem value="Carry Forward">Carry Forward</SelectItem>
-                  <SelectItem value="Adjustment">Adjustment</SelectItem>
-                  <SelectItem value="Usage">Usage</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          {selectedEmp && (
-            <div className="mt-4 p-4 rounded-xl border border-border/60 bg-muted/10 backdrop-blur-sm animate-in fade-in duration-300">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 pb-2 border-b">
-                <div>
-                  <h4 className="text-xs font-black uppercase tracking-wider text-[#7B0099]">Current Leave Balances</h4>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">Showing active entitlements for the current calendar cycle.</p>
-                </div>
-                <div className="text-right mt-2 sm:mt-0 text-xs">
-                  <span className="font-bold text-foreground">{selectedEmp.full_name}</span>
-                  <span className="text-muted-foreground ml-1">({selectedEmp.user_id})</span>
-                  <span className="text-muted-foreground block text-[10px]">{selectedEmp.branch} • {selectedEmp.department || "No Department"}</span>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-card p-3 rounded-lg border shadow-sm">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Annual & Emergency Leave</span>
-                  <div className="flex items-baseline gap-1 mt-1">
-                    <span className="text-lg font-black text-[#7B0099]">{getUnusedDays(selectedEmp.user_id) + 6}d</span>
-                    <span className="text-[10px] text-muted-foreground">/ 14d limit</span>
-                  </div>
-                </div>
-
-                <div className="bg-white dark:bg-card p-3 rounded-lg border shadow-sm">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Sick Leave (MC)</span>
-                  <div className="flex items-baseline gap-1 mt-1">
-                    <span className="text-lg font-black text-emerald-600">12d</span>
-                    <span className="text-[10px] text-muted-foreground">/ 14d limit</span>
-                  </div>
-                </div>
-
-                <div className="bg-white dark:bg-card p-3 rounded-lg border shadow-sm">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Replacement Leave</span>
-                  <div className="flex items-baseline gap-1 mt-1">
-                    <span className="text-lg font-black text-amber-600">2d</span>
-                    <span className="text-[10px] text-muted-foreground">active credits</span>
-                  </div>
-                </div>
-
-                <div className="bg-white dark:bg-card p-3 rounded-lg border shadow-sm">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Unpaid Leave</span>
-                  <div className="flex items-baseline gap-1 mt-1">
-                    <span className="text-lg font-black text-slate-600">0d</span>
-                    <span className="text-[10px] text-muted-foreground">accumulated</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div>
-          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">History Logs</h4>
-          <div className="border rounded-md bg-white dark:bg-card">
-            <Table className="text-xs">
-              <TableHeader className="bg-muted/30">
-                <TableRow>
-                  <TableHead className="w-[100px]">Date</TableHead>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Leave Type</TableHead>
-                  <TableHead>Performed By</TableHead>
-                  <TableHead>Reference</TableHead>
-                  <TableHead className="text-center">Before</TableHead>
-                  <TableHead className="text-center">After</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredHistory.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                      No balance logs found for selected filters.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredHistory.map((rec, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="font-medium">{rec.date}</TableCell>
-                      <TableCell className="font-bold">{rec.employee}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-[10px] font-bold px-2 py-0.5">
-                          {rec.action}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{rec.leave}</TableCell>
-                      <TableCell>{rec.performedBy}</TableCell>
-                      <TableCell className="font-mono text-muted-foreground">{rec.reference}</TableCell>
-                      <TableCell className="text-center font-bold text-muted-foreground">{rec.before}d</TableCell>
-                      <TableCell className="text-center font-black text-emerald-600">{rec.after}d</TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-
-        <div className="flex justify-end border-t pt-4">
-          <Button variant="outline" size="sm" onClick={onCancel} className="text-xs uppercase font-black tracking-wider">Close</Button>
+        <div className="flex justify-end gap-3 border-t pt-4">
+          <Button variant="outline" size="sm" onClick={onCancel} className="text-xs uppercase font-black tracking-wider">Cancel</Button>
+          <Button size="sm" disabled={!selectedEmp || isSubmitting} onClick={handleSave} className="bg-amber-600 hover:bg-amber-700 text-white text-xs uppercase font-black tracking-wider">
+            {isSubmitting ? "Saving..." : "Save Adjustment"}
+          </Button>
         </div>
       </CardContent>
     </Card>

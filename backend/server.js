@@ -1284,16 +1284,16 @@ async function computeDynamicWorkforceMetrics(dateStr, role, branch, department)
 
   const lateTimeStr = typeof getLateThresholdTime === 'function' ? getLateThresholdTime() : "09:00:00";
   const attQuery = `SELECT COUNT(*) as total, SUM(CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END) as lates FROM attendances a JOIN profiles p ON p.user_id = a.user_id WHERE DATE(a.clock_in) BETWEEN ? AND ? AND p.status = 'Active' ${profileFilter}`;
-  const [attRowsCur] = await pool.query(attQuery, [lateTimeStr, ...pFilterParams, curStart, curEnd]);
-  const [attRowsPrev] = await pool.query(attQuery, [lateTimeStr, ...pFilterParams, prevStart, prevEnd]);
+  const [attRowsCur] = await pool.query(attQuery, [lateTimeStr, curStart, curEnd, ...pFilterParams]);
+  const [attRowsPrev] = await pool.query(attQuery, [lateTimeStr, prevStart, prevEnd, ...pFilterParams]);
 
   const leaveQuery = `SELECT COUNT(*) as total FROM leave_requests lr JOIN profiles p ON p.user_id = lr.user_id WHERE lr.status = 'Approved' AND (DATE(lr.start_date) BETWEEN ? AND ? OR DATE(lr.end_date) BETWEEN ? AND ?) AND p.status = 'Active' ${profileFilter}`;
-  const [leaveCur] = await pool.query(leaveQuery, [...pFilterParams, curStart, curEnd, curStart, curEnd]);
-  const [leavePrev] = await pool.query(leaveQuery, [...pFilterParams, prevStart, prevEnd, prevStart, prevEnd]);
+  const [leaveCur] = await pool.query(leaveQuery, [curStart, curEnd, curStart, curEnd, ...pFilterParams]);
+  const [leavePrev] = await pool.query(leaveQuery, [prevStart, prevEnd, prevStart, prevEnd, ...pFilterParams]);
 
   const outQuery = `SELECT COUNT(*) as total, SUM(CASE WHEN o.status = 'Completed' THEN 1 ELSE 0 END) as completed, SUM(CASE WHEN o.status = 'Active' THEN 1 ELSE 0 END) as active, SUM(CASE WHEN o.status = 'Cancelled' THEN 1 ELSE 0 END) as cancelled FROM outstation_assignments o JOIN profiles p ON p.user_id = o.user_id WHERE (DATE(o.start_date) BETWEEN ? AND ? OR DATE(o.end_date) BETWEEN ? AND ?) AND p.status = 'Active' ${profileFilter}`;
-  const [outCur] = await pool.query(outQuery, [...pFilterParams, curStart, curEnd, curStart, curEnd]);
-  const [outPrev] = await pool.query(outQuery, [...pFilterParams, prevStart, prevEnd, prevStart, prevEnd]);
+  const [outCur] = await pool.query(outQuery, [curStart, curEnd, curStart, curEnd, ...pFilterParams]);
+  const [outPrev] = await pool.query(outQuery, [prevStart, prevEnd, prevStart, prevEnd, ...pFilterParams]);
 
   const curAttRate = totalEmployees > 0 ? ((parseInt(attRowsCur[0].total) / (totalEmployees * curWorkingDays)) * 100).toFixed(1) : 0;
   const prevAttRate = totalEmployees > 0 ? ((parseInt(attRowsPrev[0].total) / (totalEmployees * prevWorkingDays)) * 100).toFixed(1) : 0;
@@ -1320,7 +1320,7 @@ async function computeDynamicWorkforceMetrics(dateStr, role, branch, department)
   else if (attendanceDiff < 0) hrAlerts.push({ title: 'Attendance', description: `↓${Math.abs(attendanceDiff)}% vs Last Month`, type: 'warning' });
   else hrAlerts.push({ title: 'Attendance', description: `Same as Last Month`, type: 'success' });
 
-  const [routes] = await pool.query(`SELECT o.destination, COUNT(*) as trips FROM outstation_assignments o JOIN profiles p ON p.user_id = o.user_id WHERE (DATE(o.start_date) BETWEEN ? AND ? OR DATE(o.end_date) BETWEEN ? AND ?) AND p.status = 'Active' ${profileFilter} GROUP BY o.destination ORDER BY trips DESC LIMIT 3`, [...pFilterParams, curStart, curEnd, curStart, curEnd]);
+  const [routes] = await pool.query(`SELECT o.destination, COUNT(*) as trips FROM outstation_assignments o JOIN profiles p ON p.user_id = o.user_id WHERE (DATE(o.start_date) BETWEEN ? AND ? OR DATE(o.end_date) BETWEEN ? AND ?) AND p.status = 'Active' ${profileFilter} GROUP BY o.destination ORDER BY trips DESC LIMIT 3`, [curStart, curEnd, curStart, curEnd, ...pFilterParams]);
 
   const outstationAnalytics = {
     completed: parseInt(outCur[0].completed || 0),
@@ -1815,7 +1815,7 @@ app.get("/api/branch-employees", async (req, res) => {
         COALESCE(lr.rejected_leaves, 0) AS rejected_leaves,
         COALESCE(lr.total_leave_requests, 0) AS total_leave_requests,
         COALESCE(lr.mc_leaves, 0) AS mc_leaves,
-        GREATEST(14 - COALESCE(lr.annual_days_used, 0), 0) AS annual_leave_balance,
+        GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.total_adjustment, 0)) - COALESCE(lr.annual_days_used, 0), 0) AS annual_leave_balance,
         COALESCE(att.days_present, 0) AS days_present,
         LEAST(100, ROUND((COALESCE(att.days_present, 0)::numeric / NULLIF(EXTRACT(DAY FROM CURRENT_DATE), 0)) * 100)) AS attendance_rate,
         today.clock_in AS today_clock_in,
@@ -1824,6 +1824,12 @@ app.get("/api/branch-employees", async (req, res) => {
         CASE WHEN COALESCE(outstation_today.outstation_count, 0) > 0 THEN 1 ELSE 0 END AS is_outstation
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
+      LEFT JOIN (
+        SELECT employee_id, SUM(adjustment_days) as total_adjustment 
+        FROM leave_balance_adjustments 
+        WHERE leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan') 
+        GROUP BY employee_id
+      ) adj ON adj.employee_id = p.user_id
       LEFT JOIN (
         SELECT
           user_id,
@@ -1963,7 +1969,7 @@ app.get("/api/leave-entitlements", async (req, res) => {
         p.branch,
         p.department,
         COALESCE(lr.annual_days_used, 0) AS annual_days_used,
-        GREATEST(14 - COALESCE(lr.annual_days_used, 0), 0) AS balance,
+        GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.total_adjustment, 0)) - COALESCE(lr.annual_days_used, 0), 0) AS balance,
         COALESCE(lr.pending_count, 0) AS pending,
         CASE
           WHEN COALESCE(lr.pending_count, 0) > 0 THEN 'Pending'
@@ -2011,6 +2017,29 @@ app.get("/api/leave-entitlements", async (req, res) => {
 // ===============================
 // LEAVE REQUESTS
 // ===============================
+
+// ===============================
+// LEAVE ADJUSTMENTS
+// ===============================
+app.post("/api/profiles/:userId/leave-adjustments", async (req, res) => {
+  const { userId } = req.params;
+  const { leaveType, adjustmentDays, reason, approvedBy } = req.body;
+
+  try {
+    // Insert into leave_balance_adjustments
+    await pool.query(
+      `INSERT INTO leave_balance_adjustments (employee_id, leave_type, adjustment_days, reason, approved_by)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [userId, leaveType, adjustmentDays, reason, approvedBy || 'Admin']
+    );
+
+    res.json({ message: "Leave adjustment applied successfully" });
+  } catch (error) {
+    console.error("Error applying leave adjustment:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 app.get("/api/leave-requests", async (req, res) => {
   const userId = req.query.userId;
   const role = req.query.role ? req.query.role.toString().trim() : "";
@@ -2140,7 +2169,13 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
   const signature_val = cuti_tanpa_gaji_signature === "true";
   
   try {
-    const [empRows] = await pool.query("SELECT branch, department, full_name FROM profiles WHERE user_id = ?", [user_id]);
+    const [empRows] = await pool.query("SELECT branch, department, full_name FROM profiles p
+      LEFT JOIN (
+        SELECT employee_id, SUM(adjustment_days) as total_adjustment 
+        FROM leave_balance_adjustments 
+        WHERE leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan') 
+        GROUP BY employee_id
+      ) adj ON adj.employee_id = p.user_id WHERE p.user_id = ?", [user_id]);
     const employeeBranch = empRows[0]?.branch || "HQ";
     const employeeDept = empRows[0]?.department || "";
     const employeeName = empRows[0]?.full_name || user_id;
@@ -2599,6 +2634,11 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
     const yearsToFetch = Array.from(new Set([monthDate.getFullYear(), yearNum]));
 
     const [companyLeaves] = await pool.query("SELECT * FROM company_leave_calendar WHERE status = 'Active' AND EXTRACT(YEAR FROM start_date) IN (?)", [yearsToFetch]);
+    
+    // Fetch leave balance adjustments for this employee
+    const [adjRows] = await pool.query("SELECT COALESCE(SUM(adjustment_days), 0) AS total_adjustment FROM leave_balance_adjustments WHERE employee_id = ?", [userId]);
+    const totalAdjustment = parseFloat(adjRows[0].total_adjustment || 0);
+
     const [allLeaves] = await pool.query("SELECT * FROM leave_requests WHERE user_id = ? AND EXTRACT(YEAR FROM start_date) IN (?)", [userId, yearsToFetch]);
     const userLeaves = allLeaves.filter(l => l.status === 'Approved');
 
@@ -2663,9 +2703,16 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
         if (l.status === 'Rejected') rejectedLeaves++;
     });
 
-    const totalLeaveBalance = parseInt(employee.annual_leave_balance || 14) + parseInt(employee.medical_leave_balance || 14);
+    // Dynamic leave balance: entitlement + adjustments
+    const annualEntitlement = parseInt(employee.annual_leave_entitlement || 14);
+    const medicalEntitlement = parseInt(employee.medical_leave_entitlement || 14);
+    const totalAnnualAllowed = annualEntitlement + totalAdjustment;
+    const totalMedicalAllowed = medicalEntitlement;
+    const totalLeaveBalance = totalAnnualAllowed + totalMedicalAllowed;
     const totalTaken = annualTaken + sickTaken + emergencyTaken + unpaidTaken;
-    const remainingLeaveBalance = totalLeaveBalance - (annualTaken + sickTaken);
+    const remainingAnnual = Math.max(0, totalAnnualAllowed - annualTaken);
+    const remainingSick = Math.max(0, totalMedicalAllowed - sickTaken);
+    const remainingLeaveBalance = remainingAnnual + remainingSick;
     const leaveUtilizationRate = totalLeaveBalance > 0 ? Math.round(((annualTaken + sickTaken) / totalLeaveBalance) * 100) : 0;
 
     res.json({
@@ -2676,11 +2723,13 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
           yearly: { rate: Math.min(100, yearlyAttendanceRate), present: yearlyPresent, late: yearlyLate, absent: yearlyAbsent }
         },
         leave: {
-          annual: { taken: annualTaken, balance: parseInt(employee.annual_leave_balance || 14) },
-          sick: { taken: sickTaken, balance: parseInt(employee.medical_leave_balance || 14) },
-          unpaid: { taken: unpaidTaken, balance: parseInt(employee.unpaid_leave_balance || 0) },
+          annual: { taken: annualTaken, balance: totalAnnualAllowed, entitlement: annualEntitlement, adjustment: totalAdjustment },
+          sick: { taken: sickTaken, balance: totalMedicalAllowed },
+          unpaid: { taken: unpaidTaken, balance: 0 },
           emergency: { taken: emergencyTaken, balance: 0 },
+          entitlement: totalAnnualAllowed,
           totalTaken,
+          used: annualTaken + sickTaken,
           remaining: remainingLeaveBalance,
           utilizationRate: leaveUtilizationRate,
           pending: pendingLeaves,
@@ -2736,7 +2785,7 @@ app.get("/api/employees", async (req, res) => {
         COALESCE(lr.rejected_leaves, 0) AS rejected_leaves,
         COALESCE(lr.total_leave_requests, 0) AS total_leave_requests,
         COALESCE(lr.mc_leaves, 0) AS mc_leaves,
-        GREATEST(14 - COALESCE(lr.annual_days_used, 0), 0) AS annual_leave_balance,
+        GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.total_adjustment, 0)) - COALESCE(lr.annual_days_used, 0), 0) AS annual_leave_balance,
         COALESCE(att.days_present, 0) AS days_present,
         LEAST(100, ROUND((COALESCE(att.days_present, 0)::numeric / NULLIF(EXTRACT(DAY FROM CURRENT_DATE), 0)) * 100)) AS attendance_rate,
         COALESCE(leave_today.is_on_leave_today, 0) AS is_on_leave_today,
@@ -4018,7 +4067,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
       [userId]
     );
     const quotaLeavesUsed = parseFloat(leaveRows[0].used_days || 0);
-    const leaveBalance = Math.max(14 - quotaLeavesUsed, 0);
+    const baseEntitlement = employee.annual_leave_entitlement || 14;
+    const leaveBalance = Math.max((baseEntitlement + (employee.total_adjustment || 0)) - quotaLeavesUsed, 0);
 
     const [pendingRows] = await pool.query(
       `SELECT COUNT(*) AS pending FROM leave_requests WHERE user_id = ? AND status LIKE 'Pending%'`,
