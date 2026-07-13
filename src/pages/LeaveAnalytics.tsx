@@ -379,6 +379,7 @@ export default function LeaveAnalytics() {
     lateArrivals: 0,
     absentToday: 0,
     attendanceRate: 0,
+    outstation: 0,
   });
 
   // ─ Fetch leave requests & attendance stats (scope-aware) ─────────────────
@@ -432,10 +433,11 @@ export default function LeaveAnalytics() {
         const present = s.presentToday || 0;
         const late = s.lateArrivals || 0;
         const onLeave = s.onLeave || 0;
-        const absent = Math.max(0, total - present - onLeave);
+        const outstation = s.outstation || 0;
+        const absent = Math.max(0, total - present - onLeave - outstation);
         const rate =
-          total - onLeave > 0
-            ? Math.round((present / (total - onLeave)) * 100)
+          total - onLeave - outstation > 0
+            ? Math.round((present / (total - onLeave - outstation)) * 100)
             : 0;
 
         setAttendanceStats({
@@ -443,6 +445,7 @@ export default function LeaveAnalytics() {
           lateArrivals: late,
           absentToday: absent,
           attendanceRate: rate,
+          outstation: outstation,
         });
       }
     } catch (err) {
@@ -1233,7 +1236,7 @@ export default function LeaveAnalytics() {
             </div>
             <div className="border border-purple-100 bg-purple-50/50 rounded-lg p-3 flex flex-col items-center justify-center">
               <p className="text-[10px] font-bold text-purple-700 uppercase tracking-wide">Outstation</p>
-              <p className="text-2xl font-black text-purple-600 mt-1">N/A</p>
+              <p className="text-2xl font-black text-purple-600 mt-1">{attendanceStats.outstation || 0}</p>
             </div>
             <div className="border border-rose-100 bg-rose-50/50 rounded-lg p-3 flex flex-col items-center justify-center">
               <p className="text-[10px] font-bold text-rose-700 uppercase tracking-wide">Absent</p>
@@ -1252,10 +1255,11 @@ export default function LeaveAnalytics() {
           </div>
         </Card>
 
+      </div>
+
       {/* 7. Employees Requiring Attention */}
-        <div className="break-inside-avoid mb-4 inline-block w-full">
-          <EmployeesRequiringAttentionCard data={attentionEmployees} />
-        </div>
+      <div className="mb-4 w-full">
+        <EmployeesRequiringAttentionCard data={attentionEmployees} variant="grid" />
       </div>
 
     </div>

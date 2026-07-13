@@ -2732,11 +2732,12 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
           emergency: { taken: emergencyTaken, balance: 0 },
           entitlement: totalAnnualAllowed,
           totalTaken,
-          used: annualTaken + sickTaken,
-          remaining: remainingLeaveBalance,
-          utilizationRate: leaveUtilizationRate,
+          used: annualTaken,
+          remaining: remainingAnnual,
+          utilizationRate: totalAnnualAllowed > 0 ? Math.round((annualTaken / totalAnnualAllowed) * 100) : 0,
           pending: pendingLeaves,
-          rejected: rejectedLeaves
+          rejected: rejectedLeaves,
+          approvedApplications: userLeaves.length
         }
       }
     });
@@ -3772,6 +3773,11 @@ app.get("/api/dashboard-stats", async (req, res) => {
         onLeaveParams
       );
 
+      const [outstationRows] = await pool.query(
+        `SELECT COUNT(DISTINCT user_id) AS outstation FROM outstation_assignments WHERE status != 'Cancelled' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date ${attendanceFilter}`,
+        onLeaveParams
+      );
+
       const lateTimeStr = getLateThresholdTime();
       const [lateRows] = await pool.query(
         `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = ${dateCondition} AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' 
@@ -3881,6 +3887,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         totalEmployees: parseInt(employeeRows[0].total_employees || 0),
         presentToday: parseInt(presentRows[0].present_today || 0),
         onLeave: parseInt(onLeaveRows[0].on_leave || 0),
+        outstation: parseInt(outstationRows[0].outstation || 0),
         lateArrivals: parseInt(lateRows[0].late_arrivals || 0),
         pendingApprovals: parseInt(pendingRows[0].pending_approvals || 0),
         companyLeave: companyLeaveCount,

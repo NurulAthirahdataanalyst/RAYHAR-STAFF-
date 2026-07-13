@@ -938,7 +938,7 @@ export default function Employees() {
                                 <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600 group-hover:scale-110 transition-transform">
                                   <Briefcase className="w-4 h-4" />
                                 </div>
-                                <span className="text-xl font-black text-emerald-600">{analytics.leave.totalTaken}</span>
+                                <span className="text-xl font-black text-emerald-600">{analytics.leave.approvedApplications ?? analytics.leave.totalTaken}</span>
                               </div>
                               <span className="text-[10px] font-bold text-emerald-700/80 uppercase tracking-widest">Approved Leave</span>
                             </button>
