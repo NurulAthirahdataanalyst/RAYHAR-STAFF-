@@ -967,15 +967,15 @@ export default function AttendanceDashboard() {
           {/* Redesigned Standalone KPI Cards Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4 p-4 md:p-6 bg-slate-50/50 border-t border-gray-100 dark:border-slate-800">
             {[
-              { label: "Present Today", val: `${liveStats.total > 0 ? Math.round((liveStats.present / liveStats.total) * 100) : 0}%`, sub: `${liveStats.present} / ${liveStats.total} Employees`, color: "text-[#7B0099]", bg: "bg-[#7B0099]/10", icon: <CheckCircle2 className="w-5 h-5"/>, trend: "↑ 5% vs Yesterday" },
-              { label: "On Time", val: `${liveStats.total > 0 ? Math.round(((liveStats.present - liveStats.late) / liveStats.total) * 100) : 0}%`, sub: `${Math.max(0, liveStats.present - liveStats.late)} / ${liveStats.total} Employees`, color: "text-emerald-600", bg: "bg-emerald-50", icon: <Clock className="w-5 h-5"/>, trend: "—" },
-              { label: "Late", val: `${liveStats.total > 0 ? Math.round((liveStats.late / liveStats.total) * 100) : 0}%`, sub: `${liveStats.late} / ${liveStats.total} Employees`, color: "text-amber-600", bg: "bg-amber-50", icon: <AlertCircle className="w-5 h-5"/>, trend: "—" },
-              { label: "Absent", val: `${liveStats.total > 0 ? Math.round((liveStats.absent / liveStats.total) * 100) : 0}%`, sub: `${liveStats.absent} / ${liveStats.total} Employees`, color: "text-rose-600", bg: "bg-rose-50", icon: <ShieldAlert className="w-5 h-5"/>, trend: "—" },
-              { label: "Leave", val: `${liveStats.total > 0 ? Math.round((liveStats.onLeave / liveStats.total) * 100) : 0}%`, sub: `${liveStats.onLeave} / ${liveStats.total} Employees`, color: "text-blue-600", bg: "bg-blue-50", icon: <CalendarIcon className="w-5 h-5"/>, trend: "—" },
-              { label: "Company Leave", val: `${liveStats.total > 0 ? Math.round(((liveStats.companyLeave || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.companyLeave || 0} / ${liveStats.total} Employees`, color: "text-indigo-600", bg: "bg-indigo-50", icon: <Building2 className="w-5 h-5"/>, trend: "—" },
-              { label: "Outstation", val: `${liveStats.total > 0 ? Math.round(((liveStats.outstation || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.outstation || 0} / ${liveStats.total} Employees`, color: "text-pink-600", bg: "bg-pink-50", icon: <MapPin className="w-5 h-5"/>, trend: "—" },
+              { label: "Present Today", val: `${liveStats.total > 0 ? Math.round((liveStats.present / liveStats.total) * 100) : 0}%`, sub: `${liveStats.present} / ${liveStats.total} Employees`, color: "text-[#7B0099]", bg: "bg-[#7B0099]/10", border: "border-[#7B0099]/40 hover:border-[#7B0099]", icon: <CheckCircle2 className="w-5 h-5"/>, trend: "↑ 5% vs Yesterday" },
+              { label: "On Time", val: `${liveStats.total > 0 ? Math.round(((liveStats.present - liveStats.late) / liveStats.total) * 100) : 0}%`, sub: `${Math.max(0, liveStats.present - liveStats.late)} / ${liveStats.total} Employees`, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-300 hover:border-emerald-500", icon: <Clock className="w-5 h-5"/>, trend: "—" },
+              { label: "Late", val: `${liveStats.total > 0 ? Math.round((liveStats.late / liveStats.total) * 100) : 0}%`, sub: `${liveStats.late} / ${liveStats.total} Employees`, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-300 hover:border-amber-500", icon: <AlertCircle className="w-5 h-5"/>, trend: "—" },
+              { label: "Absent", val: `${liveStats.total > 0 ? Math.round((liveStats.absent / liveStats.total) * 100) : 0}%`, sub: `${liveStats.absent} / ${liveStats.total} Employees`, color: "text-rose-600", bg: "bg-rose-50", border: "border-rose-400 hover:border-rose-600", icon: <ShieldAlert className="w-5 h-5"/>, trend: "—" },
+              { label: "Leave", val: `${liveStats.total > 0 ? Math.round((liveStats.onLeave / liveStats.total) * 100) : 0}%`, sub: `${liveStats.onLeave} / ${liveStats.total} Employees`, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-300 hover:border-blue-500", icon: <CalendarIcon className="w-5 h-5"/>, trend: "—" },
+              { label: "Company Leave", val: `${liveStats.total > 0 ? Math.round(((liveStats.companyLeave || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.companyLeave || 0} / ${liveStats.total} Employees`, color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-300 hover:border-indigo-500", icon: <Building2 className="w-5 h-5"/>, trend: "—" },
+              { label: "Outstation", val: `${liveStats.total > 0 ? Math.round(((liveStats.outstation || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.outstation || 0} / ${liveStats.total} Employees`, color: "text-pink-600", bg: "bg-pink-50", border: "border-pink-300 hover:border-pink-500", icon: <MapPin className="w-5 h-5"/>, trend: "—" },
             ].map((k, i) => (
-              <div key={i} className="border border-slate-200 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col justify-between h-[130px]">
+              <div key={i} className={`border-2 ${k.border} bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col justify-between h-[130px] transition-colors`}>
                 <div className="flex items-start justify-between">
                   <div className={`p-2 rounded-lg ${k.bg} ${k.color}`}>
                     {k.icon}
@@ -986,7 +986,7 @@ export default function AttendanceDashboard() {
                   <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mt-1 line-clamp-1">{k.label}</p>
                   <div className="flex items-center justify-between mt-1">
                     <p className={`text-[9px] font-medium ${k.trend.includes('↑') ? 'text-emerald-600' : 'text-slate-400'}`}>{k.trend}</p>
-                    <p className="text-[9px] text-slate-400 font-medium">{k.sub}</p>
+                    <p className="text-[10px] text-slate-700 font-bold">{k.sub}</p>
                   </div>
                 </div>
               </div>
