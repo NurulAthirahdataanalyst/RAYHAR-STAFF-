@@ -990,7 +990,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
 
     // Total active employees
     const [allProfiles] = await pool.query(
-      `SELECT user_id, full_name, branch, department, role FROM profiles WHERE status = 'Active' AND DATE(created_at) <= ?::date ${filterP}`,
+      `SELECT user_id, full_name, branch, department, role FROM profiles p WHERE status = 'Active' AND DATE(created_at) <= ?::date ${filterP}`,
       [dateStr, ...paramsTotal]
     );
     const total = allProfiles.length;
@@ -1401,7 +1401,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
 
   // Get all active profiles to determine absentees
   const [allProfiles] = await pool.query(
-    `SELECT user_id, full_name, branch, department, role FROM profiles WHERE status = 'Active' ${filterP}`,
+    `SELECT user_id, full_name, branch, department, role FROM profiles p WHERE status = 'Active' ${filterP}`,
     paramsBase
   );
 
