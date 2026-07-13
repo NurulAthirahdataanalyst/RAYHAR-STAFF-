@@ -935,16 +935,14 @@ export default function LeaveAnalytics() {
         </div>
       </Card>
 
-      {/* 2. Executive KPI Cards (Row 1 & 2) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-4 gap-3 mb-4">
+      {/* 2. Executive KPI Cards (Row 1) */}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-4">
         {[
           { label: "Total Leave Applications", val: total, color: "text-blue-600", bg: "bg-blue-50", icon: <FileText className="w-5 h-5"/>, trend: "↑ 12% vs last month" },
           { label: "Approval Rate", val: `${total > 0 ? Math.round((approved / total) * 100) : 0}%`, color: "text-emerald-600", bg: "bg-emerald-50", icon: <CheckCircle2 className="w-5 h-5"/>, trend: "↑ 5% vs last month" },
           { label: "Pending Approval", val: pending, color: "text-amber-600", bg: "bg-amber-50", icon: <AlertCircle className="w-5 h-5"/>, trend: "↓ 2 vs last month" },
           { label: "Rejected Rate", val: `${total > 0 ? Math.round((rejected / total) * 100) : 0}%`, color: "text-rose-600", bg: "bg-rose-50", icon: <XCircle className="w-5 h-5"/>, trend: "↓ 1% vs last month" },
-          { label: "Employees on Leave Today", val: attendanceStats.onLeave || 0, color: "text-purple-600", bg: "bg-purple-50", icon: <Users className="w-5 h-5"/>, trend: "—" },
           { label: "Avg Leave Days / Employee", val: avgLeaveDays, color: "text-indigo-600", bg: "bg-indigo-50", icon: <Calendar className="w-5 h-5"/>, trend: "↓ 0.5 vs last month" },
-          { label: "Leave Balance Utilization", val: `${balancePct}%`, color: "text-cyan-600", bg: "bg-cyan-50", icon: <PieChartIcon className="w-5 h-5"/>, trend: "—" },
           { label: "Sick Leave Rate", val: `${sickLeaveRate}%`, color: "text-pink-600", bg: "bg-pink-50", icon: <BriefcaseMedical className="w-5 h-5"/>, trend: "↑ 2% vs last month" },
         ].map((k, i) => (
           <Card key={i} className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col justify-between h-[130px]">
@@ -955,7 +953,7 @@ export default function LeaveAnalytics() {
             </div>
             <div>
               <p className="text-2xl font-black text-slate-800 leading-none mt-2">{k.val}</p>
-              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mt-1 line-clamp-1">{k.label}</p>
+              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mt-1 line-clamp-2 min-h-[30px] leading-tight">{k.label}</p>
               <p className="text-[9px] text-emerald-600 font-medium mt-1">{k.trend}</p>
             </div>
           </Card>
