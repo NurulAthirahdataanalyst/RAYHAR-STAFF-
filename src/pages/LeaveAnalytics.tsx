@@ -370,6 +370,9 @@ export default function LeaveAnalytics() {
   const [loading, setLoading] = useState(true);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
+  const [hoveredTrend, setHoveredTrend] = useState<string | null>(null);
+  const [hoveredSeason, setHoveredSeason] = useState<string | null>(null);
+
   const [attendanceStats, setAttendanceStats] = useState({
     presentToday: 0,
     lateArrivals: 0,
@@ -969,12 +972,30 @@ export default function LeaveAnalytics() {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} itemStyle={{ fontSize: 12, fontWeight: 'bold' }} />
+                <Tooltip 
+                  cursor={{fill: 'transparent'}} 
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length && hoveredTrend === label) {
+                      return (
+                        <div className="bg-white p-3 rounded-xl shadow-lg border border-slate-100">
+                          <p className="font-bold text-slate-800 text-xs mb-2">{label}</p>
+                          {payload.map((entry: any, index: number) => (
+                            <div key={index} className="flex justify-between items-center gap-4 text-xs font-semibold mb-1">
+                              <span style={{ color: entry.color }}>{entry.name}</span>
+                              <span className="text-slate-700">{entry.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+                    return null;
+                  }} 
+                />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
-                <Bar dataKey="total" name="Total" fill="#3B82F6" radius={[4,4,0,0]} barSize={10} />
-                <Bar dataKey="approved" name="Approved" fill="#10B981" radius={[4,4,0,0]} barSize={10} />
-                <Bar dataKey="pending" name="Pending" fill="#F59E0B" radius={[4,4,0,0]} barSize={10} />
-                <Bar dataKey="rejected" name="Rejected" fill="#EF4444" radius={[4,4,0,0]} barSize={10} />
+                <Bar dataKey="total" name="Total" fill="#3B82F6" radius={[4,4,0,0]} barSize={10} onMouseEnter={(data: any) => setHoveredTrend(data.month)} onMouseLeave={() => setHoveredTrend(null)} />
+                <Bar dataKey="approved" name="Approved" fill="#10B981" radius={[4,4,0,0]} barSize={10} onMouseEnter={(data: any) => setHoveredTrend(data.month)} onMouseLeave={() => setHoveredTrend(null)} />
+                <Bar dataKey="pending" name="Pending" fill="#F59E0B" radius={[4,4,0,0]} barSize={10} onMouseEnter={(data: any) => setHoveredTrend(data.month)} onMouseLeave={() => setHoveredTrend(null)} />
+                <Bar dataKey="rejected" name="Rejected" fill="#EF4444" radius={[4,4,0,0]} barSize={10} onMouseEnter={(data: any) => setHoveredTrend(data.month)} onMouseLeave={() => setHoveredTrend(null)} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -988,8 +1009,21 @@ export default function LeaveAnalytics() {
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                 <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
                 <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} width={40} />
-                <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} itemStyle={{ fontSize: 12, fontWeight: 'bold' }} />
-                <Bar dataKey="value" name="Applications" fill="#6366F1" radius={[0,4,4,0]} barSize={14}>
+                <Tooltip 
+                  cursor={{fill: 'transparent'}} 
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length && hoveredSeason === label) {
+                      return (
+                        <div className="bg-white p-2 rounded-lg shadow-lg border border-slate-100">
+                          <p className="font-bold text-slate-800 text-xs">{label}</p>
+                          <p className="text-indigo-600 font-bold text-xs mt-1">{payload[0].name}: {payload[0].value}</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }} 
+                />
+                <Bar dataKey="value" name="Applications" fill="#6366F1" radius={[0,4,4,0]} barSize={14} onMouseEnter={(data: any) => setHoveredSeason(data.name)} onMouseLeave={() => setHoveredSeason(null)}>
                   <LabelList dataKey="value" position="right" style={{ fontSize: '10px', fill: '#6366F1', fontWeight: 'bold' }} />
                 </Bar>
               </BarChart>
