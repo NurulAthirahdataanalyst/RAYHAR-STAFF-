@@ -1226,16 +1226,16 @@ export default function LeaveAnalytics() {
         </Card>
       </div>
 
-      {/* 7. Executive Insights (Row 6) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-        {/* Employees Requiring Attention Card */}
-        <div className="h-full">
+      {/* 7. Employees Requiring Attention */}
+      <div className="grid grid-cols-1 gap-4 mb-4">
+        <div className="w-full">
           <EmployeesRequiringAttentionCard />
         </div>
+      </div>
 
-        {/* Action Center */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col">
+      {/* 8. Action Center */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col lg:col-span-1">
           <h3 className="text-sm font-bold text-slate-800 mb-4">16. Action Center</h3>
           <div className="space-y-2 flex-1">
             <div className="flex items-center justify-between p-2 rounded bg-amber-50 cursor-pointer hover:bg-amber-100 transition-colors">
