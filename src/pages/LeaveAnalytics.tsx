@@ -1253,14 +1253,12 @@ export default function LeaveAnalytics() {
         </Card>
 
       {/* 7. Employees Requiring Attention */}
-      
-        
-          <div className="break-inside-avoid mb-4 w-full"><EmployeesRequiringAttentionCard data={attentionEmployees} /></div>
-
-
-
-
       </div>
+
+      <div className="w-full mt-4">
+        <EmployeesRequiringAttentionCard data={attentionEmployees} />
+      </div>
+
     </div>
   );
 
