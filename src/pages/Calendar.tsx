@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, addMonths, subMonths } from "date-fns";
+import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, addMonths, subMonths, isBefore, startOfDay } from "date-fns";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { exportToCSV } from "@/utils/export";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -759,15 +759,30 @@ export default function Calendar() {
                 return dayStr >= start && dayStr <= end && (!activeFilter || activeFilter === 'company_leave');
               });
               
+              const today = isSameDay(day, new Date());
+              const isPast = isBefore(day, startOfDay(new Date())) && !today;
+
+              let cellBg = "bg-white dark:bg-card";
+              let textCol = "text-foreground";
+              
+              if (today) {
+                cellBg = "bg-[#7B0099]";
+                textCol = "text-white";
+              } else if (!isCurrentMonth) {
+                cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
+                textCol = "text-muted-foreground opacity-50";
+              } else if (isPast) {
+                cellBg = "bg-white dark:bg-card opacity-80";
+                textCol = "text-gray-500 dark:text-gray-400";
+              }
+
               return (
                 <div 
                   key={i} 
-                  className={`bg-card p-1.5 flex flex-col transition-colors hover:bg-muted/10 ${!isCurrentMonth ? 'bg-muted/10 opacity-70' : ''}`}
+                  className={`p-1.5 flex flex-col transition-colors ${cellBg} ${!today && isCurrentMonth ? 'hover:bg-muted/30' : ''}`}
                 >
-                  <div className="text-right mb-1.5 p-1">
-                    <span className={`text-sm font-bold inline-flex items-center justify-center w-7 h-7 ${isSameDay(day, new Date()) ? 'bg-purple-100/60 text-[#7B0099] dark:bg-purple-900/30 dark:text-purple-300 rounded-lg shadow-sm border border-purple-200/60 dark:border-purple-800/50' : 'rounded-lg text-foreground/80 hover:bg-muted/50'}`}>
-                      {format(day, 'd')}
-                    </span>
+                  <div className={`text-right mb-1.5 p-1 text-[12px] font-bold ${textCol}`}>
+                    {format(day, 'd')}
                   </div>
                   
                   <div className="flex-1 overflow-y-auto space-y-1.5 no-scrollbar px-0.5">

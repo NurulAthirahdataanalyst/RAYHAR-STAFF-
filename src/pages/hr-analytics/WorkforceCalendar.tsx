@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isBefore, startOfDay } from "date-fns";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Loader2, ChevronLeft, ChevronRight, X, Calendar, User, FileText,
-  Plane, Building2, Users, Wifi, WifiOff, RefreshCw, MapPin
+  Plane, Building2, Users, Wifi, WifiOff, RefreshCw, MapPin, Activity, AlertCircle
 } from "lucide-react";
 import { API_BASE_URL } from "@/config/api";
 
@@ -147,17 +148,15 @@ export default function WorkforceCalendar() {
 
   // Calendar grid
   const calDays = useMemo(() => {
-    const first = new Date(viewYear, viewMonth, 1);
-    const startDow = first.getDay();
-    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-    const cells: (number | null)[] = [...Array(startDow).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
-    while (cells.length % 7 !== 0) cells.push(null);
-    return cells;
+    const firstDayOfMonth = new Date(viewYear, viewMonth, 1);
+    return eachDayOfInterval({
+      start: startOfWeek(startOfMonth(firstDayOfMonth)),
+      end: endOfWeek(endOfMonth(firstDayOfMonth))
+    });
   }, [viewYear, viewMonth]);
 
-  const getEventsForDay = (day: number | null): WorkforceEvent[] => {
-    if (!day) return [];
-    const dateStr = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const getEventsForDay = (day: Date): WorkforceEvent[] => {
+    const dateStr = format(day, 'yyyy-MM-dd');
     return events
       .filter(e => {
         if (!e.start_date || !e.end_date) return false;
@@ -172,15 +171,18 @@ export default function WorkforceCalendar() {
   // KPI for "today"
   const todayStr = today.toISOString().split("T")[0];
   const todayEvents = events.filter(e => e.start_date <= todayStr && e.end_date >= todayStr);
-  const todayLeave = todayEvents.filter(e => e.source === "leave" && e.status === "Approved");
+  const todayAnnual = todayEvents.filter(e => e.source === "leave" && e.status === "Approved" && (e.type === "Annual Leave" || e.type === "Annual & Emergency Leave"));
+  const todaySick = todayEvents.filter(e => e.source === "leave" && e.status === "Approved" && (e.type === "Sick Leave (MC)" || e.type === "Sick Leave"));
+  const todayEmergency = todayEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type === "Emergency Leave");
   const todayOutstation = todayEvents.filter(e => e.source === "outstation");
   const todayCompany = todayEvents.filter(e => e.source === "company_leave");
   const todayPending = todayEvents.filter(e => e.source === "leave" && e.status?.startsWith("Pending"));
 
   const prevMonth = () => { if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); } else setViewMonth(m => m - 1); };
   const nextMonth = () => { if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); } else setViewMonth(m => m + 1); };
-  const isToday = (day: number | null) => day && day === today.getDate() && viewMonth === today.getMonth() && viewYear === today.getFullYear();
-
+  const isToday = (day: Date) => {
+    return isSameDay(day, new Date());
+  };
   const canFilterBranchDept = ["hr_admin", "managing_director", "finance_manager"].includes(role);
 
   if (roleLoading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="animate-spin w-8 h-8 text-[#7B0099]" /></div>;
@@ -189,12 +191,14 @@ export default function WorkforceCalendar() {
     <div className="space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-8">
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { label: "On Leave Today", value: todayLeave.length, dot: "bg-emerald-500", icon: Calendar },
-          { label: "Outstation Today", value: todayOutstation.length, dot: "bg-pink-500", icon: Plane },
-          { label: "Pending Approval", value: todayPending.length, dot: "bg-amber-400", icon: FileText },
+          { label: "Annual Leave", value: todayAnnual.length, dot: "bg-emerald-500", icon: Calendar },
+          { label: "Sick Leave", value: todaySick.length, dot: "bg-red-500", icon: Activity },
+          { label: "Emergency Leave", value: todayEmergency.length, dot: "bg-orange-500", icon: AlertCircle },
+          { label: "Outstation", value: todayOutstation.length, dot: "bg-pink-500", icon: Plane },
           { label: "Company Leave", value: todayCompany.length, dot: "bg-purple-500", icon: Building2 },
+          { label: "Pending", value: todayPending.length, dot: "bg-amber-400", icon: FileText },
         ].map(kpi => (
           <Card key={kpi.label} className="border border-gray-200 dark:border-slate-800/80 shadow-sm">
             <CardContent className="p-4 flex items-center gap-3">
@@ -282,52 +286,67 @@ export default function WorkforceCalendar() {
           <div className="h-80 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-[#7B0099]" /></div>
         ) : (
           <>
-            <div className="grid grid-cols-7 border-b border-border/60 bg-slate-50/30 dark:bg-slate-900/30 divide-x divide-border/40">
+            {/* Day Headers */}
+            <div className="grid grid-cols-7 border-b border-border/60 bg-[#7B0099] divide-x divide-white/20">
               {DAYS.map(d => (
-                <div key={d} className="px-2 py-3 text-center text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">{d}</div>
+                <div key={d} className="px-2 py-3 text-center text-[11px] font-bold uppercase tracking-widest text-white">{d}</div>
               ))}
             </div>
+
+            {/* Cells */}
             <div className="grid grid-cols-7 divide-x divide-border/40">
               {calDays.map((day, idx) => {
                 const evts = getEventsForDay(day);
-                const hasToday = isToday(day);
+                const isCurrentMonth = isSameMonth(day, new Date(viewYear, viewMonth, 1));
+                const today = isToday(day);
+                const isPast = isBefore(day, startOfDay(new Date())) && !today;
+
+                let cellBg = "bg-white dark:bg-card";
+                let textCol = "text-foreground";
+                
+                if (today) {
+                  cellBg = "bg-[#7B0099]";
+                  textCol = "text-white";
+                } else if (!isCurrentMonth) {
+                  cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
+                  textCol = "text-muted-foreground opacity-50";
+                } else if (isPast) {
+                  cellBg = "bg-white dark:bg-card opacity-80";
+                  textCol = "text-gray-500 dark:text-gray-400";
+                }
+
                 return (
                   <div
                     key={idx}
-                    className={`min-h-[100px] border-b border-border/40 p-2 transition-colors ${!day ? "bg-muted/20" : "hover:bg-muted/30"}`}
+                    className={`min-h-[100px] border-b border-border/40 p-1.5 transition-colors ${cellBg} ${!today && isCurrentMonth ? 'hover:bg-muted/30' : ''}`}
                   >
-                    {day && (
-                      <>
-                        <div
-                          className={`w-7 h-7 flex items-center justify-center text-[12px] font-bold mb-1.5 ${hasToday ? "bg-purple-100/60 text-[#7B0099] dark:bg-purple-900/30 dark:text-purple-300 rounded-lg shadow-sm border border-purple-200/60 dark:border-purple-800/50" : "rounded-lg text-foreground/80 hover:bg-muted/50"}`}
+                    <div className={`w-full text-right text-[12px] font-bold mb-1.5 px-1 ${textCol}`}>
+                      {format(day, 'd')}
+                    </div>
+                    <div className="space-y-0.5">
+                      {evts.slice(0, 4).map(e => {
+                        const c = getEventColor(e);
+                        return (
+                          <div
+                            key={e.id}
+                            onClick={() => setSelectedEvent(e)}
+                            className={`px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer flex items-center gap-1 ${c.bg} ${c.text} truncate border ${c.border} hover:opacity-80 transition-opacity`}
+                            title={`${e.employee} - ${e.type}`}
+                          >
+                            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />
+                            <span className="truncate">{e.source === "company_leave" ? `🏢 ${e.name || e.type}` : e.employee?.split(" ")[0]}</span>
+                          </div>
+                        );
+                      })}
+                      {evts.length > 4 && (
+                        <button
+                          onClick={() => setSelectedEvent(evts[0])}
+                          className={`text-[9px] font-bold pl-1 hover:brightness-75 transition-colors ${today ? 'text-white/80' : 'text-gray-400'}`}
                         >
-                          {day}
-                        </div>
-                        <div className="space-y-0.5">
-                          {evts.slice(0, 3).map(e => {
-                            const c = getEventColor(e);
-                            return (
-                              <div
-                                key={e.id}
-                                onClick={() => setSelectedEvent(e)}
-                                className={`px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer truncate border ${c.bg} ${c.text} ${c.border} hover:opacity-80 transition-opacity`}
-                                title={`${e.employee} · ${e.type}`}
-                              >
-                                {e.source === "company_leave" ? `🏢 ${e.name || e.type}` : e.employee?.split(" ")[0]}
-                              </div>
-                            );
-                          })}
-                          {evts.length > 3 && (
-                            <button
-                              onClick={() => setSelectedEvent(evts[0])}
-                              className="text-[9px] text-gray-400 font-bold pl-1 hover:text-gray-600 transition-colors"
-                            >
-                              +{evts.length - 3} more
-                            </button>
-                          )}
-                        </div>
-                      </>
-                    )}
+                          +{evts.length - 4} more
+                        </button>
+                      )}
+                    </div>
                   </div>
                 );
               })}

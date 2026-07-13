@@ -350,6 +350,7 @@ function EmployeeSearchSelector({
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
+          onBlur={() => setOpen(false)}
           className="pl-8 pr-8 bg-white dark:bg-card h-9 text-xs"
         />
         {selectedEmployee && (
@@ -372,7 +373,8 @@ function EmployeeSearchSelector({
             filtered.map((emp) => (
               <div
                 key={emp.user_id}
-                onClick={() => {
+                onMouseDown={(e) => {
+                  e.preventDefault();
                   onSelect(emp);
                   setSearch("");
                   setOpen(false);

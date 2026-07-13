@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isBefore, startOfDay } from "date-fns";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -74,20 +75,18 @@ export default function OutstationCalendar() {
     if (!roleLoading) void fetchData();
   }, [role, userBranch, userDepartment, userId, roleLoading]);
 
-  // Get all days in the current view month
+  // Get all days in the current view grid
   const calDays = useMemo(() => {
-    const first = new Date(viewYear, viewMonth, 1);
-    const startDow = first.getDay(); // 0=Sun
-    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-    const cells: (number | null)[] = [...Array(startDow).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
-    while (cells.length % 7 !== 0) cells.push(null);
-    return cells;
+    const firstDayOfMonth = new Date(viewYear, viewMonth, 1);
+    return eachDayOfInterval({
+      start: startOfWeek(startOfMonth(firstDayOfMonth)),
+      end: endOfWeek(endOfMonth(firstDayOfMonth))
+    });
   }, [viewYear, viewMonth]);
 
   // For each day, get assignments that span that date
-  const getAssignmentsForDay = (day: number | null) => {
-    if (!day) return [];
-    const dateStr = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const getAssignmentsForDay = (day: Date) => {
+    const dateStr = format(day, 'yyyy-MM-dd');
     return assignments.filter(a => {
       if (filterStatus !== "All" && a.status !== filterStatus) return false;
       return a.start_date.slice(0, 10) <= dateStr && a.end_date.slice(0, 10) >= dateStr;
@@ -103,10 +102,8 @@ export default function OutstationCalendar() {
     else setViewMonth(m => m + 1);
   };
 
-  const isToday = (day: number | null) => {
-    if (!day) return false;
-    const t = new Date();
-    return day === t.getDate() && viewMonth === t.getMonth() && viewYear === t.getFullYear();
+  const isToday = (day: Date) => {
+    return isSameDay(day, new Date());
   };
 
   if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-500" /></div>;
@@ -161,9 +158,9 @@ export default function OutstationCalendar() {
         ) : (
           <>
             {/* Day Headers */}
-            <div className="grid grid-cols-7 border-b border-border/60 bg-slate-50/30 dark:bg-slate-900/30 divide-x divide-border/40">
+            <div className="grid grid-cols-7 border-b border-border/60 bg-[#7B0099] divide-x divide-white/20">
               {DAYS.map(d => (
-                <div key={d} className="px-2 py-3 text-center text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">{d}</div>
+                <div key={d} className="px-2 py-3 text-center text-[11px] font-bold uppercase tracking-widest text-white">{d}</div>
               ))}
             </div>
 
@@ -171,36 +168,50 @@ export default function OutstationCalendar() {
             <div className="grid grid-cols-7 divide-x divide-border/40">
               {calDays.map((day, idx) => {
                 const evts = getAssignmentsForDay(day);
+                const isCurrentMonth = isSameMonth(day, new Date(viewYear, viewMonth, 1));
+                const today = isToday(day);
+                const isPast = isBefore(day, startOfDay(new Date())) && !today;
+
+                let cellBg = "bg-white dark:bg-card";
+                let textCol = "text-foreground";
+                
+                if (today) {
+                  cellBg = "bg-[#7B0099]";
+                  textCol = "text-white";
+                } else if (!isCurrentMonth) {
+                  cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
+                  textCol = "text-muted-foreground opacity-50";
+                } else if (isPast) {
+                  cellBg = "bg-white dark:bg-card opacity-80";
+                  textCol = "text-gray-500 dark:text-gray-400";
+                }
+
                 return (
                   <div
                     key={idx}
-                    className={`min-h-[100px] border-b border-border/40 p-2 transition-colors ${!day ? "bg-muted/20" : "hover:bg-muted/30"}`}
+                    className={`min-h-[100px] border-b border-border/40 p-1.5 transition-colors ${cellBg} ${!today && isCurrentMonth ? 'hover:bg-muted/30' : ''}`}
                   >
-                    {day && (
-                      <>
-                        <div className={`w-7 h-7 flex items-center justify-center text-[12px] font-bold mb-1.5 ${isToday(day) ? "bg-purple-100/60 text-[#7B0099] dark:bg-purple-900/30 dark:text-purple-300 rounded-lg shadow-sm border border-purple-200/60 dark:border-purple-800/50" : "rounded-lg text-foreground/80 hover:bg-muted/50"}`}>
-                          {day}
-                        </div>
-                        <div className="space-y-0.5">
-                          {evts.slice(0, 2).map(a => {
-                            const c = statusColor(a.status);
-                            return (
-                              <div
-                                key={a.id}
-                                onClick={() => setSelectedEvent(a)}
-                                className={`px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer ${c.bg} ${c.text} truncate border ${c.border} hover:opacity-80 transition-opacity`}
-                                title={`${a.full_name} → ${a.destination}`}
-                              >
-                                {a.full_name?.split(" ")[0]} → {a.destination}
-                              </div>
-                            );
-                          })}
-                          {evts.length > 2 && (
-                            <div className="text-[9px] text-gray-400 font-bold pl-1">+{evts.length - 2} more</div>
-                          )}
-                        </div>
-                      </>
-                    )}
+                    <div className={`w-full text-right text-[12px] font-bold mb-1.5 px-1 ${textCol}`}>
+                      {format(day, 'd')}
+                    </div>
+                    <div className="space-y-0.5">
+                      {evts.slice(0, 2).map(a => {
+                        const c = statusColor(a.status);
+                        return (
+                          <div
+                            key={a.id}
+                            onClick={() => setSelectedEvent(a)}
+                            className={`px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer ${c.bg} ${c.text} truncate border ${c.border} hover:opacity-80 transition-opacity`}
+                            title={`${a.full_name} → ${a.destination}`}
+                          >
+                            {a.full_name?.split(" ")[0]} → {a.destination}
+                          </div>
+                        );
+                      })}
+                      {evts.length > 2 && (
+                        <div className={`text-[9px] font-bold pl-1 ${today ? 'text-white/80' : 'text-gray-400'}`}>+{evts.length - 2} more</div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
