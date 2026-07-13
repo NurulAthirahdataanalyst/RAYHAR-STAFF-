@@ -217,7 +217,7 @@ const renderCustomLabel = ({
   midAngle,
   outerRadius,
   percent,
-  name,
+  value,
 }: any) => {
   if (percent < 0.05) return null;
   const RADIAN = Math.PI / 180;
@@ -232,9 +232,9 @@ const renderCustomLabel = ({
       textAnchor={x > cx ? "start" : "end"}
       dominantBaseline="central"
       className="text-foreground"
-      style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}
+      style={{ fontSize: 11, fontWeight: 900, textTransform: "uppercase" }}
     >
-      {`${(percent * 100).toFixed(0)}%`}
+      {value}
     </text>
   );
 };
@@ -1367,9 +1367,9 @@ export default function LeaveAnalytics() {
         {/* Right Column */}
         <div className="lg:col-span-3 flex flex-col gap-6">
           {/* Top Row Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Approved vs Rejected per Leave Type Bar Chart */}
-            <Card className="md:col-span-2 border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden flex flex-col justify-between">
+            <Card className="md:col-span-1 border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden flex flex-col justify-between">
               <CardHeader className="pb-0 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
                 <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
                   <div className="p-2 bg-[#16A34A]/10 rounded-xl">
@@ -1513,54 +1513,55 @@ export default function LeaveAnalytics() {
               </CardContent>
             </Card>
 
-            {/* Top Leave Reasons Card */}
+            {/* Top Leave Takers Card */}
             <Card className="md:col-span-1 border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden flex flex-col justify-between">
               <CardHeader className="pb-0 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
                 <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-                  <div className="p-2 bg-[#3B82F6]/10 rounded-xl">
-                    <FileBarChart2 className="w-4 h-4 text-[#3B82F6]" />
+                  <div className="p-2 bg-[#8B5CF6]/10 rounded-xl">
+                    <UserCheck className="w-4 h-4 text-[#8B5CF6]" />
                   </div>
-                  Top Leave Reasons
+                  Top Leave Takers
                 </CardTitle>
                 <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground/70 ml-11 italic">
-                  Most requested categories
+                  Employees with most leave applications
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-6 flex-1 flex flex-col justify-between">
                 {loading ? (
                   <div className="h-[200px] flex items-center justify-center">
-                    <Loader2 className="animate-spin text-[#3B82F6] opacity-40 w-8 h-8" />
+                    <Loader2 className="animate-spin text-[#8B5CF6] opacity-40 w-8 h-8" />
                   </div>
-                ) : typeDistribution.length === 0 ? (
+                ) : staffSummary.length === 0 ? (
                   <div className="h-[200px] flex items-center justify-center text-[10px] font-black text-foreground/50 uppercase tracking-widest">
                     No data for selection
                   </div>
                 ) : (
                   <div className="flex flex-col justify-between h-full min-h-[220px]">
                     <div className="space-y-4">
-                      {typeDistribution.slice(0, 4).map((entry, idx) => {
-                        const style = leaveTypeStyles[entry.name] || fallbackStyle;
-                        const pct = total > 0 ? Math.round((entry.value / total) * 100) : 0;
-                        const IconComponent = style.icon;
+                      {staffSummary.slice(0, 5).map((staff, idx) => {
+                        const maxTotal = staffSummary[0]?.total || 1;
+                        const pct = Math.round((staff.total / maxTotal) * 100);
 
                         return (
-                          <div key={entry.name} className="space-y-1">
+                          <div key={staff.name || idx} className="space-y-1">
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <div className={`p-1.5 ${style.bgColor} rounded-lg shrink-0`}>
-                                  <IconComponent className={`w-3.5 h-3.5 ${style.color}`} />
+                              <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-4">
+                                <div className={`w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold shrink-0`}>
+                                  {idx + 1}
                                 </div>
-                                <span className="text-[11px] font-bold text-gray-700 truncate">
-                                  {style.label}
+                                <span className="text-[12px] font-bold text-gray-800 truncate" title={staff.name}>
+                                  {staff.name}
                                 </span>
                               </div>
-                              <span className={`text-[11px] font-black shrink-0 ${style.color}`}>
-                                {pct}%
-                              </span>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className={`text-[11px] font-black text-[#8B5CF6]`}>
+                                  {staff.total} <span className="text-[9px] text-gray-400 font-bold">apps</span>
+                                </span>
+                              </div>
                             </div>
-                            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden ml-8" style={{ width: 'calc(100% - 32px)' }}>
                               <div
-                                className={`h-full rounded-full ${style.barColor}`}
+                                className={`h-full rounded-full bg-[#8B5CF6]`}
                                 style={{ width: `${pct}%` }}
                               />
                             </div>
@@ -1572,7 +1573,7 @@ export default function LeaveAnalytics() {
                     <div className="pt-3 border-t border-gray-100 dark:border-slate-800 mt-2">
                       <button
                         onClick={() => navigate("/reports/leave")}
-                        className="text-[10px] font-black text-[#3B82F6] hover:text-[#2563EB] flex items-center gap-1.5 transition-colors uppercase tracking-wider"
+                        className="text-[10px] font-black text-[#8B5CF6] hover:text-[#7C3AED] flex items-center gap-1.5 transition-colors uppercase tracking-wider"
                       >
                         View Detailed Breakdown
                         <ArrowRight className="w-3.5 h-3.5" />
