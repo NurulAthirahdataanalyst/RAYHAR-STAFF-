@@ -1133,23 +1133,7 @@ export default function LeaveAnalytics() {
             </div>
           </div>
         </Card>
-        {/* Attn Req */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col h-[280px]">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">8. Employees Requiring Attention</h3>
-          <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-            {staffSummary.slice(0, 4).map((s, i) => (
-              <div key={i} className="flex items-center justify-between border-b border-slate-100 pb-2 last:border-0 last:pb-0">
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-slate-800">{s.name}</span>
-                  <span className="text-[10px] text-rose-500 font-medium">{s.days} Leave Days Taken</span>
-                </div>
-                <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] text-blue-600 hover:bg-blue-50">View</Button>
-              </div>
-            ))}
-            {staffSummary.length === 0 && <p className="text-xs text-slate-500 text-center py-4">No employees flagged.</p>}
-          </div>
-          <Button variant="ghost" size="sm" className="w-full mt-2 text-[10px] text-purple-600">View All →</Button>
-        </Card>
+
         {/* Approval Perf */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col h-[280px]">
           <h3 className="text-sm font-bold text-slate-800 mb-4">9. Approval Performance <span className="text-[9px] font-normal text-slate-400">(Avg. Time)</span></h3>
@@ -1227,29 +1211,8 @@ export default function LeaveAnalytics() {
       </div>
 
       {/* 7. Executive Insights (Row 6) */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {/* Policy Compliance */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">13. Policy Compliance</h3>
-          <div className="space-y-3 flex-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium text-slate-600">Submitted &lt; 3 Days</span>
-              <span className="text-sm font-black text-slate-800">{policyCompliance.lateSubmissions}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium text-slate-600">Late MC Upload</span>
-              <span className="text-sm font-black text-slate-800">{policyCompliance.lateMC}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium text-slate-600">Rejected (Policy)</span>
-              <span className="text-sm font-black text-slate-800">{policyCompliance.rejectedPolicy}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium text-slate-600">Leave Without MC</span>
-              <span className="text-sm font-black text-slate-800">{policyCompliance.noMC}</span>
-            </div>
-          </div>
-        </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
         {/* Workforce Health */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col justify-center items-center">
           <h3 className="text-sm font-bold text-slate-800 mb-2 w-full text-left">14. Health Index</h3>
@@ -1264,21 +1227,7 @@ export default function LeaveAnalytics() {
             </div>
           </div>
         </Card>
-        {/* AI Insight */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col lg:col-span-1">
-          <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-purple-600" />
-            15. AI Insight
-          </h3>
-          <ul className="space-y-2 flex-1">
-            {aiInsights.map((insight, idx) => (
-              <li key={idx} className="text-[11px] text-slate-600 leading-snug flex items-start gap-1.5">
-                <span className="text-purple-500 mt-0.5">•</span>
-                {insight}
-              </li>
-            ))}
-          </ul>
-        </Card>
+
         {/* Action Center */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col">
           <h3 className="text-sm font-bold text-slate-800 mb-4">16. Action Center</h3>
