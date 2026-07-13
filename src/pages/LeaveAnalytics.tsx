@@ -989,7 +989,7 @@ export default function LeaveAnalytics() {
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
                 <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} itemStyle={{ fontSize: 12, fontWeight: 'bold' }} />
-                <Bar dataKey="value" name="Leaves" fill="#8B5CF6" radius={[4,4,0,0]} barSize={30}>
+                <Bar dataKey="value" name="Applications" fill="#8B5CF6" radius={[4,4,0,0]} barSize={30}>
                   <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#8B5CF6', fontWeight: 'bold' }} />
                 </Bar>
               </BarChart>
@@ -1006,7 +1006,7 @@ export default function LeaveAnalytics() {
                 <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
                 <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} width={40} />
                 <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} itemStyle={{ fontSize: 12, fontWeight: 'bold' }} />
-                <Bar dataKey="value" name="Leaves" fill="#6366F1" radius={[0,4,4,0]} barSize={14}>
+                <Bar dataKey="value" name="Applications" fill="#6366F1" radius={[0,4,4,0]} barSize={14}>
                   <LabelList dataKey="value" position="right" style={{ fontSize: '10px', fill: '#6366F1', fontWeight: 'bold' }} />
                 </Bar>
               </BarChart>
@@ -1053,7 +1053,7 @@ export default function LeaveAnalytics() {
                 <XAxis type="number" hide />
                 <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} width={80} />
                 <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} itemStyle={{ fontSize: 12, fontWeight: 'bold' }} />
-                <Bar dataKey="value" fill="#8B5CF6" radius={[0,4,4,0]} barSize={12}>
+                <Bar dataKey="value" name="Applications" fill="#8B5CF6" radius={[0,4,4,0]} barSize={12}>
                    <LabelList dataKey="value" position="right" style={{ fontSize: '10px', fill: '#8B5CF6', fontWeight: 'bold' }} />
                 </Bar>
               </BarChart>
@@ -1069,7 +1069,7 @@ export default function LeaveAnalytics() {
                 <XAxis type="number" hide />
                 <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} width={80} />
                 <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} itemStyle={{ fontSize: 12, fontWeight: 'bold' }} />
-                <Bar dataKey="value" fill="#3B82F6" radius={[0,4,4,0]} barSize={12}>
+                <Bar dataKey="value" name="Applications" fill="#3B82F6" radius={[0,4,4,0]} barSize={12}>
                    <LabelList dataKey="value" position="right" style={{ fontSize: '10px', fill: '#3B82F6', fontWeight: 'bold' }} />
                 </Bar>
               </BarChart>
