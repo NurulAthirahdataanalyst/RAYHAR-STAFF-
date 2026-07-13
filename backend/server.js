@@ -6658,7 +6658,7 @@ async function getWorkforceCalendarData(role, branch, department) {
         else if (today >= start && today <= end) computedStatus = 'Active';
         else computedStatus = 'Completed';
       }
-      if (computedStatus === 'Cancelled' || computedStatus === 'Completed') continue;
+      if (computedStatus === 'Cancelled') continue;
       events.push({
         id: `outstation-${r.id}`,
         source: 'outstation',
