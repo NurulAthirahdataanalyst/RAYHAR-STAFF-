@@ -459,10 +459,20 @@ export default function LeaveAnalytics() {
 
   // ─ Staff-level summary (for Branch Leader / HOD) ─────────────────────────
   const staffSummary = useMemo(() => {
-    const map: Record<string, { name: string; total: number; approved: number; rejected: number; pending: number; days: number }> = {};
+    const map: Record<string, { id: string; name: string; total: number; approved: number; rejected: number; pending: number; days: number; department: string; branch: string; }> = {};
     records.forEach((r) => {
       if (!map[r.user_id]) {
-        map[r.user_id] = { name: r.full_name, total: 0, approved: 0, rejected: 0, pending: 0, days: 0 };
+        map[r.user_id] = { 
+          id: r.user_id,
+          name: r.full_name, 
+          total: 0, 
+          approved: 0, 
+          rejected: 0, 
+          pending: 0, 
+          days: 0,
+          department: r.department || "General",
+          branch: r.branch || "HQ"
+        };
       }
       map[r.user_id].total++;
       map[r.user_id].days += r.days;
@@ -823,6 +833,21 @@ export default function LeaveAnalytics() {
       else if (pct >= 80) mediumRisk++;
     });
     return { overQuota, highRisk, mediumRisk };
+  }, [staffSummary, QUOTA_PER_EMPLOYEE]);
+
+  const attentionEmployees = useMemo(() => {
+    return [...staffSummary]
+      .sort((a, b) => b.days - a.days)
+      .slice(0, 5)
+      .map(s => ({
+        id: s.id,
+        name: s.name,
+        role: s.department === "General" ? "Employee" : "Executive",
+        dept: s.department,
+        branch: s.branch,
+        taken: s.days,
+        total: QUOTA_PER_EMPLOYEE
+      }));
   }, [staffSummary, QUOTA_PER_EMPLOYEE]);
 
   // 6. Upcoming Approved Leave
@@ -1233,7 +1258,7 @@ export default function LeaveAnalytics() {
       {/* 7. Employees Requiring Attention */}
       <div className="grid grid-cols-1 gap-4 mb-4">
         <div className="w-full">
-          <EmployeesRequiringAttentionCard />
+          <EmployeesRequiringAttentionCard data={attentionEmployees} />
         </div>
       </div>
 
