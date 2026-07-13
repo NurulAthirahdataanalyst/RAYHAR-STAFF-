@@ -174,7 +174,10 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     .filter(l => ['Cuti Tahunan', 'Annual/Emergency Leave', 'Cuti Sakit', 'Sick Leave', 'Kecemasan', 'Emergency'].includes(l.leave_type))
     .reduce((acc, curr) => acc + Number(curr.days || 0), 0);
     
-  const leaveBalanceRemaining = Math.max(14 - quotaLeavesUsed, 0);
+  const baseEntitlement = profile?.annual_leave_entitlement || 14;
+  const totalAdjustment = profile?.total_adjustment || 0;
+  const totalEntitlement = baseEntitlement + totalAdjustment;
+  const leaveBalanceRemaining = Math.max(totalEntitlement - quotaLeavesUsed, 0);
 
   // Streak
   let streak = 0;
@@ -689,7 +692,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-black text-foreground">{leaveBalanceRemaining}</span>
-                <span className="text-sm font-bold text-muted-foreground">/ 14</span>
+                <span className="text-sm font-bold text-muted-foreground">/ {totalEntitlement}</span>
               </div>
               <p className="text-[10px] font-medium text-muted-foreground mt-0.5">Days Remaining</p>
             </div>

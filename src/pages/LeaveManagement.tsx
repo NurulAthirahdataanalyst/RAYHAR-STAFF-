@@ -141,7 +141,27 @@ export default function LeaveManagement() {
     }
   }, [formData.tarikhMula, formData.tarikhAkhir]);
 
-  // Update bakiTerdahulu when liveRequests or selected leave type changes
+  const [totalEntitlement, setTotalEntitlement] = useState(14);
+
+  useEffect(() => {
+    if (!userId) return;
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/user-details/${encodeURIComponent(userId)}`);
+        const data = await res.json();
+        if (data.success && data.profile) {
+          const base = Number(data.profile.annual_leave_entitlement) || 14;
+          const adj = Number(data.profile.total_adjustment) || 0;
+          setTotalEntitlement(base + adj);
+        }
+      } catch (err) {
+        console.error("Failed to fetch user details for leave entitlement:", err);
+      }
+    };
+    void fetchProfile();
+  }, [userId]);
+
+  // Update bakiTerdahulu when liveRequests, selected leave type, or entitlement changes
   useEffect(() => {
     if (!formData.jenisCuti) return;
     
@@ -152,14 +172,14 @@ export default function LeaveManagement() {
     );
     
     const isAnnualOrSick = formData.jenisCuti === "Annual/Emergency Leave" || formData.jenisCuti === "Sick Leave";
-    const bakiTerdahulu = isAnnualOrSick ? 14 - usedAnnualLeave : 14;
+    const bakiTerdahulu = isAnnualOrSick ? totalEntitlement - usedAnnualLeave : totalEntitlement;
 
     setFormData(prev => ({
       ...prev,
       bakiTerdahulu,
       bakiAkhir: bakiTerdahulu - prev.bilanganHari
     }));
-  }, [liveRequests, formData.jenisCuti, userId]);
+  }, [liveRequests, formData.jenisCuti, userId, totalEntitlement]);
 
   const handleNext = () => {
     // Basic validation untuk setiap step

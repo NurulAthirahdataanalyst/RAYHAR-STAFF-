@@ -715,7 +715,7 @@ export default function Calendar() {
             </div>
           </div>
           
-          <div className="grid grid-cols-7 border-b border-border/60 bg-[#7B0099]">
+          <div className="grid grid-cols-7 border-b border-border/60 bg-[#7B0099] divide-x divide-white/20">
             {weekDays.map(day => (
               <div key={day} className="py-3 text-center text-xs font-bold text-white uppercase tracking-wider">
                 {day}
@@ -765,7 +765,7 @@ export default function Calendar() {
                   className={`bg-card p-1.5 flex flex-col transition-colors hover:bg-muted/10 ${!isCurrentMonth ? 'bg-muted/10 opacity-70' : ''}`}
                 >
                   <div className="text-right mb-1.5 p-1">
-                    <span className={`text-sm font-bold inline-flex items-center justify-center w-7 h-7 rounded-full ${isSameDay(day, new Date()) ? 'bg-[#ff5b37] text-white shadow-sm' : 'text-foreground/80 hover:bg-muted'}`}>
+                    <span className={`text-sm font-bold inline-flex items-center justify-center w-7 h-7 ${isSameDay(day, new Date()) ? 'bg-[#7B0099]/15 text-[#7B0099] dark:text-purple-300 rounded-md shadow-sm' : 'rounded-full text-foreground/80 hover:bg-muted'}`}>
                       {format(day, 'd')}
                     </span>
                   </div>

@@ -3094,9 +3094,17 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         p.status,
         p.branch,
         p.department,
+        COALESCE(p.annual_leave_entitlement, 14) AS annual_leave_entitlement,
+        COALESCE(adj.total_adjustment, 0) AS total_adjustment,
         COALESCE(ur.role, 'employee') AS role
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
+      LEFT JOIN (
+        SELECT employee_id, SUM(adjustment_days) AS total_adjustment
+        FROM leave_balance_adjustments
+        WHERE leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan')
+        GROUP BY employee_id
+      ) adj ON adj.employee_id = p.user_id
       WHERE p.user_id = ? OR p.email = ?
       LIMIT 1
       `,
@@ -3118,6 +3126,8 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         status: user.status,
         branch: user.branch,
         department: user.department,
+        annual_leave_entitlement: user.annual_leave_entitlement,
+        total_adjustment: user.total_adjustment,
       },
       role: user.role,
     });
