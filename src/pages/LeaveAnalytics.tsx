@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EmployeesRequiringAttentionCard } from '@/components/shared/EmployeesRequiringAttentionCard';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -1145,6 +1146,23 @@ export default function LeaveAnalytics() {
             <p className="text-[10px] text-slate-400 text-center mt-1">Approval timestamp tracking is being implemented.</p>
           </div>
         </Card>
+
+        {/* Workforce Health */}
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col justify-center items-center h-[280px]">
+          <h3 className="text-sm font-bold text-slate-800 mb-2 w-full text-left">14. Health Index</h3>
+          <div className="relative w-28 h-28 mt-2">
+            <svg viewBox="0 0 36 36" className="w-full h-full">
+              <path className="text-slate-100" strokeWidth="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path className="text-emerald-500" strokeWidth="4" strokeDasharray={`${attendanceStats.attendanceRate}, 100`} stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-2xl font-black text-slate-800">{attendanceStats.attendanceRate}%</span>
+              <span className="text-[10px] text-emerald-600 font-bold uppercase mt-0.5">Healthy</span>
+            </div>
+          </div>
+        </Card>
+
+
       </div>
 
       {/* 6. Workforce Availability (Row 5) */}
@@ -1213,20 +1231,10 @@ export default function LeaveAnalytics() {
       {/* 7. Executive Insights (Row 6) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-        {/* Workforce Health */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col justify-center items-center">
-          <h3 className="text-sm font-bold text-slate-800 mb-2 w-full text-left">14. Health Index</h3>
-          <div className="relative w-24 h-24 mt-2">
-            <svg viewBox="0 0 36 36" className="w-full h-full">
-              <path className="text-slate-100" strokeWidth="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-              <path className="text-emerald-500" strokeWidth="4" strokeDasharray={`${attendanceStats.attendanceRate}, 100`} stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-xl font-black text-slate-800">{attendanceStats.attendanceRate}%</span>
-              <span className="text-[9px] text-emerald-600 font-bold uppercase">Healthy</span>
-            </div>
-          </div>
-        </Card>
+        {/* Employees Requiring Attention Card */}
+        <div className="h-full">
+          <EmployeesRequiringAttentionCard />
+        </div>
 
         {/* Action Center */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col">
