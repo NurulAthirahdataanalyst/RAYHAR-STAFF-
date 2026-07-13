@@ -959,7 +959,7 @@ export default function LeaveAnalytics() {
       </div>
 
       {/* 3. Workforce Trends (Row 2) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Trend */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col h-[300px]">
           <h3 className="text-sm font-bold text-slate-800 mb-4">1. Leave Trend Over Time (Monthly)</h3>
@@ -979,26 +979,9 @@ export default function LeaveAnalytics() {
             </ResponsiveContainer>
           </div>
         </Card>
-        {/* Heatmap */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col h-[300px]">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">2. Daily Leave Heatmap (By Day)</h3>
-          <div className="flex-1 min-h-0 flex items-end">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={heatmapData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} itemStyle={{ fontSize: 12, fontWeight: 'bold' }} />
-                <Bar dataKey="value" name="Applications" fill="#8B5CF6" radius={[4,4,0,0]} barSize={30}>
-                  <LabelList dataKey="value" position="top" style={{ fontSize: '10px', fill: '#8B5CF6', fontWeight: 'bold' }} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
         {/* Seasonality */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col h-[300px]">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">3. Leave Seasonality (by Month)</h3>
+          <h3 className="text-sm font-bold text-slate-800 mb-4">2. Leave Seasonality (by Month)</h3>
           <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={seasonality} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
@@ -1204,7 +1187,7 @@ export default function LeaveAnalytics() {
             <CalendarCheck className="w-6 h-6 text-slate-400 mb-2" />
             <p className="text-xs font-bold text-slate-600">Calendar View Ready</p>
             <p className="text-[10px] text-slate-400 text-center mt-1 px-4">Integrate with full calendar component.</p>
-            <Button variant="outline" size="sm" className="mt-3 text-[10px] h-7" onClick={() => navigate("/hr-analytics")}>Go to Calendar</Button>
+            <Button variant="outline" size="sm" className="mt-3 text-[10px] h-7" onClick={() => navigate("/leave/calendar")}>Go to Calendar</Button>
           </div>
         </Card>
       </div>
