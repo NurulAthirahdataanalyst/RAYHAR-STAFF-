@@ -30,7 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useRole } from "@/contexts/RoleContext";
 import { Navigate } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
-import { toast } from "@/hooks/use-toast";
+import { toast, useToast } from "@/hooks/use-toast";
 import { getEmployeeLeaveBalances, updateEmployeeLeaveBalance } from "@/lib/leaveStorage";
 
 const modules = [
@@ -1306,6 +1306,69 @@ function ManualLeaveAdjustmentForm({
           <Button size="sm" disabled={!selectedEmp || isSubmitting} onClick={handleSave} className="bg-amber-600 hover:bg-amber-700 text-white text-xs uppercase font-black tracking-wider">
             {isSubmitting ? "Saving..." : "Save Adjustment"}
           </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ==========================================================
+   PLACEHOLDER FORMS
+   ========================================================== */
+function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
+  return (
+    <Card className="border border-purple-100 shadow-sm">
+      <CardHeader className="bg-purple-50/50 border-b border-purple-100 pb-4">
+        <CardTitle className="text-lg text-purple-900 flex items-center gap-2">
+          <Gift className="w-5 h-5 text-purple-600" />
+          Special Leave Credits
+        </CardTitle>
+        <CardDescription>Grant special leave credits to employees (Coming Soon).</CardDescription>
+      </CardHeader>
+      <CardContent className="pt-6">
+        <div className="flex justify-center p-8 text-gray-500">This module is under development.</div>
+        <div className="flex justify-end gap-3 mt-4">
+          <Button variant="outline" onClick={onCancel}>Close</Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function MaternityLeaveForm({ employees, onCancel }: any) {
+  return (
+    <Card className="border border-purple-100 shadow-sm">
+      <CardHeader className="bg-purple-50/50 border-b border-purple-100 pb-4">
+        <CardTitle className="text-lg text-purple-900 flex items-center gap-2">
+          <BadgePlus className="w-5 h-5 text-purple-600" />
+          Maternity Leave
+        </CardTitle>
+        <CardDescription>Manage maternity leave allocations (Coming Soon).</CardDescription>
+      </CardHeader>
+      <CardContent className="pt-6">
+        <div className="flex justify-center p-8 text-gray-500">This module is under development.</div>
+        <div className="flex justify-end gap-3 mt-4">
+          <Button variant="outline" onClick={onCancel}>Close</Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function LeaveBalanceHistoryForm({ employees, onCancel, getUnusedDays }: any) {
+  return (
+    <Card className="border border-purple-100 shadow-sm">
+      <CardHeader className="bg-purple-50/50 border-b border-purple-100 pb-4">
+        <CardTitle className="text-lg text-purple-900 flex items-center gap-2">
+          <History className="w-5 h-5 text-purple-600" />
+          Leave Balance History
+        </CardTitle>
+        <CardDescription>View historical leave balance changes (Coming Soon).</CardDescription>
+      </CardHeader>
+      <CardContent className="pt-6">
+        <div className="flex justify-center p-8 text-gray-500">This module is under development.</div>
+        <div className="flex justify-end gap-3 mt-4">
+          <Button variant="outline" onClick={onCancel}>Close</Button>
         </div>
       </CardContent>
     </Card>
