@@ -1194,15 +1194,22 @@ function ManualLeaveAdjustmentForm({
   onRefresh
 }: any) {
   const { toast } = useToast();
-  const [leaveType, setLeaveType] = useState("Annual & Emergency Leave");
+  const [leaveType, setLeaveType] = useState("Annual Leave");
+  const [adjustmentType, setAdjustmentType] = useState("Add Leave");
   const [adjDays, setAdjDays] = useState(1);
-  const [reason, setReason] = useState("");
+  const [effectiveDate, setEffectiveDate] = useState(new Date().toISOString().split("T")[0]);
+  const [reasonCategory, setReasonCategory] = useState("Performance Reward");
+  const [reasonDetails, setReasonDetails] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Mock derived data for current balance display based on mockup
   const entitlement = selectedEmp?.annual_leave_entitlement || 14;
-  const adjustment = selectedEmp?.total_adjustment || 0;
-  const available = selectedEmp?.annual_leave_balance || 0;
-  const used = entitlement + adjustment - available;
+  const currentAdjustments = selectedEmp?.total_adjustment || 1; 
+  const approvedLeaveTaken = 5; // mock value matching the mockup
+  const currentBalance = entitlement + currentAdjustments - approvedLeaveTaken;
+
+  const adjValue = adjustmentType === "Add Leave" ? adjDays : -adjDays;
+  const newBalance = currentBalance + adjValue;
 
   const handleSave = async () => {
     if (!selectedEmp) return;
@@ -1214,8 +1221,8 @@ function ManualLeaveAdjustmentForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           leaveType: leaveType,
-          adjustmentDays: adjDays,
-          reason: reason,
+          adjustmentDays: adjValue,
+          reason: `${reasonCategory}: ${reasonDetails}`,
           approvedBy: "HR Admin"
         }),
       });
@@ -1224,7 +1231,7 @@ function ManualLeaveAdjustmentForm({
 
       toast({
         title: "Adjustment Applied Successfully",
-        description: `Added ${adjDays} days for ${selectedEmp.full_name}`,
+        description: `${adjValue > 0 ? 'Added' : 'Deducted'} ${Math.abs(adjValue)} days for ${selectedEmp.full_name}`,
       });
       onRefresh?.();
       onCancel();
@@ -1240,8 +1247,8 @@ function ManualLeaveAdjustmentForm({
   };
 
   return (
-    <Card className="border-border/60 bg-card/75 shadow-lg max-w-2xl mx-auto">
-      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20">
+    <Card className="border-border/60 bg-white dark:bg-card shadow-lg max-w-2xl mx-auto rounded-xl overflow-hidden">
+      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 bg-slate-50 dark:bg-slate-900/50">
         <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-amber-500/10 hover:text-amber-600 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Button>
@@ -1253,62 +1260,208 @@ function ManualLeaveAdjustmentForm({
           <CardDescription className="text-xs">Adjust employee's leave balance.</CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6 pt-2">
-        <div>
-          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Employee</h4>
-          <div className="space-y-4">
+      
+      <CardContent className="space-y-6 pt-6">
+        {/* Employee Section */}
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold flex items-center">Employee <span className="text-red-500 ml-1">*</span></Label>
             <EmployeeSearchSelector
               employees={employees}
               selectedEmployee={selectedEmp}
               onSelect={setSelectedEmp}
-              placeholder="Search staff to adjust..."
+              placeholder="Search employee..."
             />
-            {selectedEmp && (
-              <div className="bg-muted/20 p-4 rounded-lg border border-border/50 text-sm">
-                <div className="mb-2 border-b pb-2">
-                  <span className="font-bold text-foreground">{selectedEmp.full_name}</span>
-                </div>
-                <div className="space-y-2">
-                  <h5 className="font-bold text-xs uppercase text-muted-foreground">Annual Leave</h5>
-                  <div className="flex justify-between"><span>Current Entitlement</span><span className="font-bold">{entitlement} days</span></div>
-                  <div className="flex justify-between"><span>Used</span><span className="font-bold">{used} days</span></div>
-                  <div className="flex justify-between"><span>Adjustment</span><span className="font-bold">{adjustment > 0 ? '+' : ''}{adjustment} days</span></div>
-                  <div className="border-t pt-2 flex justify-between font-black text-amber-700 dark:text-amber-400">
-                    <span>Available</span><span>{available} days</span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
+
+          {selectedEmp && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="space-y-1.5 border border-border/50 rounded-md p-2 bg-muted/10">
+                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Employee ID</Label>
+                <div className="text-xs font-bold">{selectedEmp.user_id}</div>
+              </div>
+              <div className="space-y-1.5 border border-border/50 rounded-md p-2 bg-muted/10">
+                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Department</Label>
+                <div className="text-xs font-bold">{selectedEmp.department || "IT Department"}</div>
+              </div>
+              <div className="space-y-1.5 border border-border/50 rounded-md p-2 bg-muted/10 md:col-span-1 col-span-2">
+                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Branch</Label>
+                <div className="text-xs font-bold">{selectedEmp.branch || "HQ"}</div>
+              </div>
+            </div>
+          )}
         </div>
 
         {selectedEmp && (
-        <div>
-          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Add Adjustment</h4>
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Days</Label>
-              <Input type="number" value={adjDays} onChange={(e) => setAdjDays(Number(e.target.value))} className="bg-white dark:bg-card h-9" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Reason</Label>
-              <Input
-                placeholder="e.g. Performance Reward"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                className="bg-white dark:bg-card text-xs h-9"
-              />
-            </div>
-          </div>
-        </div>
-        )}
+          <>
+            <div className="border-t border-border/50" />
 
-        <div className="flex justify-end gap-3 border-t pt-4">
-          <Button variant="outline" size="sm" onClick={onCancel} className="text-xs uppercase font-black tracking-wider">Cancel</Button>
-          <Button size="sm" disabled={!selectedEmp || isSubmitting} onClick={handleSave} className="bg-amber-600 hover:bg-amber-700 text-white text-xs uppercase font-black tracking-wider">
-            {isSubmitting ? "Saving..." : "Save Adjustment"}
-          </Button>
-        </div>
+            {/* Adjustment Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold flex items-center">Leave Type <span className="text-red-500 ml-1">*</span></Label>
+                <Select value={leaveType} onValueChange={setLeaveType}>
+                  <SelectTrigger className="bg-white dark:bg-card h-9 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Annual Leave">Annual Leave</SelectItem>
+                    <SelectItem value="Emergency Leave">Emergency Leave</SelectItem>
+                    <SelectItem value="Sick Leave">Sick Leave</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold flex items-center">Adjustment Type <span className="text-red-500 ml-1">*</span></Label>
+                <div className="flex gap-4 pt-1">
+                  <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="adjType" 
+                      checked={adjustmentType === "Add Leave"} 
+                      onChange={() => setAdjustmentType("Add Leave")}
+                      className="text-amber-600 focus:ring-amber-500" 
+                    />
+                    Add Leave
+                  </label>
+                  <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="adjType" 
+                      checked={adjustmentType === "Deduct Leave"} 
+                      onChange={() => setAdjustmentType("Deduct Leave")}
+                      className="text-amber-600 focus:ring-amber-500" 
+                    />
+                    Deduct Leave
+                  </label>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold flex items-center">Adjustment Amount <span className="text-red-500 ml-1">*</span></Label>
+                <div className="relative">
+                  <Input type="number" value={adjDays} onChange={(e) => setAdjDays(Number(e.target.value))} className="bg-white dark:bg-card h-9 text-xs pr-12 font-bold" min={1} />
+                  <span className="absolute right-3 top-2.5 text-xs text-muted-foreground font-medium">Days</span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold flex items-center">Effective Date <span className="text-red-500 ml-1">*</span></Label>
+                <Input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} className="bg-white dark:bg-card h-9 text-xs" />
+              </div>
+
+              <div className="space-y-1.5 md:col-span-2">
+                <Label className="text-xs font-bold flex items-center">Reason Category <span className="text-red-500 ml-1">*</span></Label>
+                <Select value={reasonCategory} onValueChange={setReasonCategory}>
+                  <SelectTrigger className="bg-white dark:bg-card h-9 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Performance Reward">Performance Reward</SelectItem>
+                    <SelectItem value="System Correction">System Correction</SelectItem>
+                    <SelectItem value="Carry Forward">Carry Forward</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5 md:col-span-2">
+                <Label className="text-xs font-bold flex items-center">Reason Details <span className="text-red-500 ml-1">*</span></Label>
+                <Textarea
+                  rows={4}
+                  placeholder="Enter detailed reason for this adjustment..."
+                  value={reasonDetails}
+                  onChange={(e) => setReasonDetails(e.target.value)}
+                  className="bg-white dark:bg-card text-xs resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="border-t border-border/50" />
+
+            {/* Balances summary */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-lg border border-border/50">
+              <div className="space-y-2">
+                <h5 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Current Leave Balance</h5>
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Annual Entitlement</span>
+                    <span className="font-medium">{entitlement} Days</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Current Adjustments</span>
+                    <span className="font-medium">{currentAdjustments > 0 ? '+' : ''}{currentAdjustments} Day</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Approved Leave Taken</span>
+                    <span className="font-medium">{approvedLeaveTaken} Days</span>
+                  </div>
+                  <div className="border-t border-border/60 my-1 pt-1 flex justify-between font-bold text-[#7B0099] dark:text-purple-400">
+                    <span>Current Balance</span>
+                    <span>{currentBalance} Days</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h5 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">After Adjustment</h5>
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Adjustment</span>
+                    <span className={`font-bold ${adjValue > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {adjValue > 0 ? '+' : ''}{adjValue} Days
+                    </span>
+                  </div>
+                  <div className="border-t border-border/60 mt-7 pt-1 flex justify-between font-black text-amber-600">
+                    <span>New Balance</span>
+                    <span>{newBalance} Days</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-border/50" />
+
+            {/* Attachment */}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold">Attachment (Optional)</Label>
+              <div className="border-2 border-dashed border-border/60 rounded-lg p-4 flex flex-col items-center justify-center bg-muted/5 hover:bg-muted/10 transition-colors cursor-pointer">
+                <div className="text-xs font-bold text-amber-600 mb-1">Upload Supporting Document</div>
+                <div className="text-[10px] text-muted-foreground text-center">
+                  Examples:<br/>
+                  • Approval Letter<br/>
+                  • Reward Letter<br/>
+                  • Management Memo
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-border/50" />
+
+            {/* Meta */}
+            <div className="flex justify-between text-[11px] text-muted-foreground font-medium">
+              <div>
+                <div className="mb-0.5">Adjusted By</div>
+                <div className="font-bold text-foreground">HR Admin (Auto)</div>
+              </div>
+              <div className="text-right">
+                <div className="mb-0.5">Adjustment Date</div>
+                <div className="font-bold text-foreground">
+                  {new Date().toLocaleDateString("en-MY", { day: "numeric", month: "short", year: "numeric" })} 
+                  {" "}
+                  {new Date().toLocaleTimeString("en-MY", { hour: "numeric", minute: "2-digit" })} (Auto)
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-border/50" />
+            
+            {/* Actions */}
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" size="sm" onClick={onCancel} className="text-xs uppercase font-black tracking-wider w-32">Cancel</Button>
+              <Button size="sm" disabled={isSubmitting} onClick={handleSave} className="bg-amber-600 hover:bg-amber-700 text-white text-xs uppercase font-black tracking-wider min-w-[150px]">
+                {isSubmitting ? "Saving..." : "Save Adjustment"}
+              </Button>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );

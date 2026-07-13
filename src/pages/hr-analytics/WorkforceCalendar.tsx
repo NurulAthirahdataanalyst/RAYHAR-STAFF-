@@ -305,8 +305,8 @@ export default function WorkforceCalendar() {
                 let textCol = "text-foreground";
                 
                 if (today) {
-                  cellBg = "bg-[#7B0099]";
-                  textCol = "text-white";
+                  cellBg = "bg-[#DBC5E1]";
+                  textCol = "text-[#7B0099]";
                 } else if (!isCurrentMonth) {
                   cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
                   textCol = "text-muted-foreground opacity-50";
