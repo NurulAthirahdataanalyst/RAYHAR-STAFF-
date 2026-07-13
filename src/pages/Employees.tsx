@@ -14,7 +14,8 @@ import {
   Briefcase,
   X,
   PhoneCall,
-  Download
+  Download,
+  Printer
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -1013,8 +1014,42 @@ export default function Employees() {
                     const fromStr = new Date(req.start_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     const toStr = new Date(req.end_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     return (
-                      <div key={req.leave_id} className="rounded-lg border p-4 space-y-4 bg-white dark:bg-slate-800 shadow-sm mb-4">
-                        <div className="text-center border-b-2 border-foreground pb-4">
+                      <div key={req.leave_id} id={`leave-form-${req.leave_id}`} className="relative rounded-lg border p-4 space-y-4 bg-white dark:bg-slate-800 shadow-sm mb-4">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => {
+                            const content = document.getElementById(`leave-form-${req.leave_id}`)?.innerHTML;
+                            if (!content) return;
+                            const printWindow = window.open('', '', 'width=800,height=800');
+                            if (printWindow) {
+                              printWindow.document.write(`
+                                <html>
+                                  <head>
+                                    <title>Leave Form - ${selectedEmployee?.name}</title>
+                                    <script src="https://cdn.tailwindcss.com"></script>
+                                    <style>
+                                      @media print { .print-hidden { display: none !important; } }
+                                    </style>
+                                  </head>
+                                  <body class="p-8 font-sans text-slate-800">
+                                    <div class="max-w-2xl mx-auto border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+                                      ${content}
+                                    </div>
+                                    <script>
+                                      setTimeout(() => { window.print(); window.close(); }, 1500);
+                                    </script>
+                                  </body>
+                                </html>
+                              `);
+                              printWindow.document.close();
+                            }
+                          }}
+                          className="print-hidden absolute right-4 top-4 bg-primary text-primary-foreground hover:bg-primary/90 h-8 px-3 text-xs font-bold shadow-sm"
+                        >
+                          <Printer className="w-3.5 h-3.5 mr-1.5" /> Save to PDF
+                        </Button>
+                        <div className="text-center border-b-2 border-foreground pb-4 pt-2">
                           <h2 className="text-2xl font-black tracking-tight text-foreground">RAYHAR GROUP</h2>
                           <p className="text-sm font-bold tracking-widest uppercase">Permohonan Cuti Kakitangan</p>
                         </div>
