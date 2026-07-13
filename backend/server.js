@@ -2798,6 +2798,11 @@ app.get("/api/employees", async (req, res) => {
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
       LEFT JOIN (
+        SELECT employee_id, SUM(adjustment_days) AS total_adjustment
+        FROM leave_balance_adjustments
+        GROUP BY employee_id
+      ) adj ON adj.employee_id = p.user_id
+      LEFT JOIN (
         SELECT
           user_id,
           SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Cuti Sakit', 'Sick Leave') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
@@ -3944,7 +3949,12 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     // OVERRIDE IF COMPANY LEAVE TODAY (Highest priority)
     const [empProfile] = await pool.query(
-      `SELECT branch, department FROM profiles WHERE user_id = ?`,
+      `SELECT 
+         p.branch, 
+         p.department,
+         p.annual_leave_entitlement,
+         COALESCE((SELECT SUM(adjustment_days) FROM leave_balance_adjustments WHERE employee_id = p.user_id), 0) AS total_adjustment
+       FROM profiles p WHERE p.user_id = ?`,
       [userId]
     );
     let companyLeaveCountCurrentMonth = 0;
@@ -4080,8 +4090,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
       [userId]
     );
     const quotaLeavesUsed = parseFloat(leaveRows[0].used_days || 0);
-    const baseEntitlement = employee.annual_leave_entitlement || 14;
-    const leaveBalance = Math.max((baseEntitlement + (employee.total_adjustment || 0)) - quotaLeavesUsed, 0);
+    const empData = empProfile[0] || {};
+    const baseEntitlement = empData.annual_leave_entitlement || 14;
+    const leaveBalance = Math.max((baseEntitlement + (empData.total_adjustment || 0)) - quotaLeavesUsed, 0);
 
     const [pendingRows] = await pool.query(
       `SELECT COUNT(*) AS pending FROM leave_requests WHERE user_id = ? AND status LIKE 'Pending%'`,
