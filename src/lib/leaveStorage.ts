@@ -216,12 +216,30 @@ export const updateEmployeeLeaveBalance = (
       ? "Replacement Leave"
       : "Unpaid Leave";
 
+    const diff = newTotal - existing[mappedType];
+
     existing[mappedType] = newTotal;
 
     allBalances[idKey] = existing;
     allBalances[nameKey] = existing;
 
     window.localStorage.setItem("rayhar_employee_leave_balances", JSON.stringify(allBalances));
+
+    // Async sync to backend (fire and forget)
+    if (diff !== 0) {
+      import("../config/api").then(({ API_BASE_URL }) => {
+        fetch(`${API_BASE_URL}/api/profiles/${encodeURIComponent(employeeId)}/leave-adjustments`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            leaveType: mappedType,
+            adjustmentDays: diff,
+            reason: "Adjustment from UI",
+            approvedBy: "HR Admin"
+          })
+        }).catch(err => console.error("Failed to sync leave balance adjustment to backend:", err));
+      }).catch(console.error);
+    }
 
     try {
       const bc = new BroadcastChannel("rayhar_leave_refresh");
