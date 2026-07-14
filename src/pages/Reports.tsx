@@ -471,7 +471,11 @@ export default function Reports() {
         month: selectedMonth,
         year: selectedYear,
         branch: generatorBranch,
-        department: generatorDept
+        department: generatorDept,
+        requesterRole: role || "",
+        requesterBranch: userBranch || "",
+        requesterDept: userDepartment || "",
+        requesterId: userId || ""
       });
       
       const response = await fetch(`${API_BASE_URL}/api/reports/generator?${params}`);

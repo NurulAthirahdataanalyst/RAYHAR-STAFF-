@@ -5898,8 +5898,27 @@ app.get("/api/who-out-today", async (req, res) => {
 // ===============================
 app.get("/api/reports/generator", async (req, res) => {
   try {
-    const { type, month, year, branch, department } = req.query;
+    let { type, month, year, branch, department, requesterRole, requesterBranch, requesterDept, requesterId } = req.query;
     
+    // Normalize role string
+    if (requesterRole === 'hr' || requesterRole === 'hr admin') requesterRole = 'hr_admin';
+    if (requesterRole === 'md' || requesterRole === 'managing director') requesterRole = 'managing_director';
+    if (requesterRole === 'branch leader') requesterRole = 'branch_leader';
+    if (requesterRole === 'finance manager') requesterRole = 'finance_manager';
+    if (requesterRole === 'head of department' || requesterRole === 'hod') requesterRole = 'head_of_department';
+    
+    // Enforce role-based scoping
+    if (requesterRole === 'employee') {
+      // Employees can only export their own records
+      // We will add the p.user_id filter to all query filters
+    } else if (requesterRole === 'branch_leader') {
+      // Branch leaders can only export their branch records
+      branch = requesterBranch;
+    } else if (requesterRole === 'head_of_department') {
+      // HODs can only export their department records
+      department = requesterDept;
+    }
+
     let filters = [];
     let params = [];
     
@@ -5922,6 +5941,11 @@ app.get("/api/reports/generator", async (req, res) => {
       filters.push("EXTRACT(YEAR FROM a.clock_in) = ?");
       params.push(year);
     }
+
+    if (requesterRole === 'employee' && requesterId) {
+      filters.push("p.user_id = ?");
+      params.push(requesterId);
+    }
     
     let whereClause = filters.length > 0 ? "WHERE " + filters.join(" AND ") : "";
     
@@ -5941,27 +5965,31 @@ app.get("/api/reports/generator", async (req, res) => {
       
       res.json({ success: true, data: rows });
     } else if (type === 'outstation') {
-      let filters = [];
-      let params = [];
+      let outFilters = [];
+      let outParams = [];
       
       if (branch && branch !== 'all') {
-         filters.push("p.branch = ?");
-         params.push(branch);
+         outFilters.push("p.branch = ?");
+         outParams.push(branch);
       }
       if (department && department !== 'all') {
-         filters.push("p.department = ?");
-         params.push(department);
+         outFilters.push("p.department = ?");
+         outParams.push(department);
       }
       if (month && month !== 'all') {
-         filters.push("EXTRACT(MONTH FROM o.start_date) = ?");
-         params.push(month);
+         outFilters.push("EXTRACT(MONTH FROM o.start_date) = ?");
+         outParams.push(month);
       }
       if (year && year !== 'all') {
-         filters.push("EXTRACT(YEAR FROM o.start_date) = ?");
-         params.push(year);
+         outFilters.push("EXTRACT(YEAR FROM o.start_date) = ?");
+         outParams.push(year);
+      }
+      if (requesterRole === 'employee' && requesterId) {
+         outFilters.push("p.user_id = ?");
+         outParams.push(requesterId);
       }
       
-      let outWhere = filters.length > 0 ? "WHERE " + filters.join(" AND ") : "";
+      let outWhere = outFilters.length > 0 ? "WHERE " + outFilters.join(" AND ") : "";
       
       const [rows] = await pool.query(`
         SELECT 
@@ -5979,23 +6007,29 @@ app.get("/api/reports/generator", async (req, res) => {
         JOIN profiles p ON p.user_id = o.user_id
         ${outWhere}
         ORDER BY o.start_date DESC
-      `, params);
+      `, outParams);
       
-      res.json({ success: true, data: rows });
+      // Dynamically compute outstation status using helper
+      const computedRows = rows.map(r => ({
+        ...r,
+        status: computeOutstationStatus(r)
+      }));
+
+      res.json({ success: true, data: computedRows });
     } else if (type === 'company_leave') {
-      let filters = [];
-      let params = [];
+      let clFilters = [];
+      let clParams = [];
       
       if (month && month !== 'all') {
-         filters.push("EXTRACT(MONTH FROM start_date) = ?");
-         params.push(month);
+         clFilters.push("EXTRACT(MONTH FROM start_date) = ?");
+         clParams.push(month);
       }
       if (year && year !== 'all') {
-         filters.push("EXTRACT(YEAR FROM start_date) = ?");
-         params.push(year);
+         clFilters.push("EXTRACT(YEAR FROM start_date) = ?");
+         clParams.push(year);
       }
       
-      let clWhere = filters.length > 0 ? "WHERE " + filters.join(" AND ") : "";
+      let clWhere = clFilters.length > 0 ? "WHERE " + clFilters.join(" AND ") : "";
       
       const [rows] = await pool.query(`
         SELECT 
@@ -6010,7 +6044,7 @@ app.get("/api/reports/generator", async (req, res) => {
         FROM company_leave_calendar
         ${clWhere}
         ORDER BY start_date DESC
-      `, params);
+      `, clParams);
       
       res.json({ success: true, data: rows });
     } else {
@@ -6035,6 +6069,11 @@ app.get("/api/reports/generator", async (req, res) => {
       if (year && year !== 'all') {
          leaveFilters.push("EXTRACT(YEAR FROM lr.start_date) = ?");
          leaveParams.push(year);
+      }
+
+      if (requesterRole === 'employee' && requesterId) {
+         leaveFilters.push("p.user_id = ?");
+         leaveParams.push(requesterId);
       }
       
       let leaveWhereClause = leaveFilters.length > 0 ? "AND " + leaveFilters.join(" AND ") : "";
