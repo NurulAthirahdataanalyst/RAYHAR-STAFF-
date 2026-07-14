@@ -1229,10 +1229,24 @@ function ManualLeaveAdjustmentForm({
   }, [selectedEmp?.user_id]);
 
   // Derived data for current balance display
-  const entitlement = leaveBalances ? leaveBalances.annualEntitlement : (selectedEmp?.annual_leave_entitlement || 0);
-  const currentAdjustments = leaveBalances ? leaveBalances.carryForward : 0; 
-  const approvedLeaveTaken = leaveBalances ? leaveBalances.approvedLeaveTaken : 0; 
-  const currentBalance = leaveBalances ? leaveBalances.balance : 0;
+  const entitlement = selectedEmp?.annual_leave_entitlement || 14;
+  
+  const mappedType = leaveType === "Annual Leave" || leaveType === "Annual/Emergency Leave" || leaveType === "Annual & Emergency Leave"
+      ? "Annual & Emergency Leave"
+      : leaveType === "Sick Leave" || leaveType === "Sick Leave (MC)" || leaveType === "Medical Leave"
+      ? "Sick Leave (MC)"
+      : leaveType === "Replacement Leave"
+      ? "Replacement Leave"
+      : "Unpaid Leave";
+
+  const defaultBalanceForType = mappedType === "Annual & Emergency Leave" ? entitlement : (mappedType === "Sick Leave (MC)" ? 14 : 0);
+
+  const currentBalance = (leaveBalances && typeof leaveBalances[mappedType] === "number" && !isNaN(leaveBalances[mappedType])) 
+    ? leaveBalances[mappedType] 
+    : defaultBalanceForType;
+    
+  const currentAdjustments = 0; 
+  const approvedLeaveTaken = defaultBalanceForType - currentBalance + currentAdjustments; 
 
   const adjValue = adjustmentType === "Add Leave" ? adjDays : -adjDays;
   const newBalance = currentBalance + adjValue;
@@ -1275,6 +1289,8 @@ function ManualLeaveAdjustmentForm({
       const saved = localStorage.getItem("leave_balance_history_logs");
       const currentLogs = saved ? JSON.parse(saved) : [];
       localStorage.setItem("leave_balance_history_logs", JSON.stringify([newLog, ...currentLogs]));
+      
+      updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, leaveType, newBalance);
 
       toast({
         title: "Leave balance updated successfully.",
