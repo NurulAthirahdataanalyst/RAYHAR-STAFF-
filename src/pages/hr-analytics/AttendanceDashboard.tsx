@@ -1399,7 +1399,7 @@ export default function AttendanceDashboard() {
                       <tr key={emp.user_id} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-4 py-2">
                           <div className="flex items-center gap-2">
-                            <div className={`w-8 h-8 rounded-md font-bold flex items-center justify-center text-xs uppercase shadow-sm ${displayStatus === 'Outstation' ? 'bg-pink-100 text-pink-700' : displayStatus === 'Company Leave' ? 'bg-purple-100 text-purple-700' : displayStatus === 'On Leave' ? 'bg-blue-100 text-blue-700' : 'bg-red-500/10 text-red-600'}`}>
+                            <div className={`w-8 h-8 rounded-md font-bold flex items-center justify-center text-xs uppercase shadow-sm ${displayStatus === 'Outstation' ? 'bg-pink-100 text-pink-700' : displayStatus === 'Company Leave' ? 'bg-purple-100 text-purple-700' : (displayStatus === 'On Leave' || displayStatus === 'Approved Leave') ? 'bg-blue-100 text-blue-700' : 'bg-red-500/10 text-red-600'}`}>
                               {emp.full_name.charAt(0)}
                             </div>
                             <div>
@@ -1424,7 +1424,7 @@ export default function AttendanceDashboard() {
                               <span className="w-1 h-1 rounded-full mr-1 bg-purple-500 animate-pulse" />
                               Company Leave
                             </span>
-                          ) : displayStatus === 'On Leave' ? (
+                          ) : (displayStatus === 'On Leave' || displayStatus === 'Approved Leave') ? (
                             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">
                               <span className="w-1 h-1 rounded-full mr-1 bg-blue-500 animate-pulse" />
                               On Leave
