@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Award,
   BadgePlus,
@@ -330,7 +330,7 @@ function EmployeeSearchSelector({
 }) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const containerRef = React.useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
