@@ -836,8 +836,8 @@ export default function AttendanceDashboard() {
         if (isOutstation) displayStatus = "Outstation";
 
         // Exclude Absent employees from Admin Attendance listing (they appear in Employee Absenteeism)
-        // Allow Outstation employees even if they didn't clock in
-        if (!r.clock_in && displayStatus !== 'Outstation') return false;
+        // Allow Outstation and Leave employees even if they didn't clock in
+        if (!r.clock_in && displayStatus !== 'Outstation' && displayStatus !== 'Approved Leave' && displayStatus !== 'Company Leave') return false;
 
         const matchesStatus = selectedStatusFilter === "all" || 
           (selectedStatusFilter === "present_on_time" && displayStatus === "Present (On Time)") ||
@@ -855,7 +855,7 @@ export default function AttendanceDashboard() {
 
   const filteredAbsentEmployees = useMemo(() => {
     return dailyAttendance.filter((r: any) => {
-      // We want to show Absent, Company Leave, and Outstation here.
+      // We want to show Absent, Company Leave, and Approved Leave here.
       // Compute the display status exactly like in Admin Attendance list.
       let displayStatus = r.status || "Absent";
       const isOutstation = outstationRecords.some((o: any) => 
@@ -865,7 +865,7 @@ export default function AttendanceDashboard() {
       );
       if (isOutstation) displayStatus = "Outstation";
 
-      if (displayStatus !== "Absent" && displayStatus !== "Company Leave") {
+      if (displayStatus !== "Absent" && displayStatus !== "Company Leave" && displayStatus !== "Approved Leave") {
         return false;
       }
 

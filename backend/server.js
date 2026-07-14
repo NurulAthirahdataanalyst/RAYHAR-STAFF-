@@ -4816,7 +4816,11 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
 
       const matchingHoliday = malaysiaHolidays.find(h => h.date === queryDate);
 
-      if (outstationMap.has(uid)) {
+      if (leaveRow) {
+        status = "Approved Leave";
+      } else if (matchingLeave) {
+        status = "Company Leave";
+      } else if (outstationMap.has(uid)) {
         status = "Outstation";
         if (clockRow) {
           clock_in = clockRow.clock_in;
@@ -4824,10 +4828,6 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
           time_in = clockRow.time_in;
           time_out = clockRow.time_out;
         }
-      } else if (matchingLeave) {
-        status = "Company Leave";
-      } else if (leaveRow) {
-        status = "Approved Leave";
       } else if (clockRow) {
         clock_in = clockRow.clock_in;
         clock_out = clockRow.clock_out;
@@ -5427,42 +5427,51 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       else realLeaveAnalytics.unpaid += count;
     });
 
-    // outstation query moved up
-    // Populate missing attendees for SSE simulation payload
-    const presentUserIds = new Set(attRows.filter(a => {
-      const dateObj = new Date(a.clock_in);
-      const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
-      return dateStr === targetDateStr;
-    }).map(a => a.user_id));
-
-    let simulatedAbsent = [];
-    let simulatedCompanyLeave = [];
+    let finalAbsentList = [];
     allProfiles.forEach(p => {
-      if (!presentUserIds.has(p.user_id)) {
-        if (companyLeaveEmployees.has(p.user_id)) {
-          simulatedCompanyLeave.push({
-            user_id: p.user_id,
-            full_name: p.full_name,
-            initials: p.full_name.split(' ').map(n=>n[0]).join('').substring(0,2),
-            department: p.department || '—',
-            branch: p.branch || '—',
-            status: 'companyLeave'
-          });
-        } else {
-          simulatedAbsent.push({
-            user_id: p.user_id,
-            full_name: p.full_name,
-            initials: p.full_name.split(' ').map(n=>n[0]).join('').substring(0,2),
-            department: p.department || '—',
-            branch: p.branch || '—',
-            status: 'absent'
-          });
-        }
-      }
+       const isOnLeave = leaveRows.some(lr => lr.user_id === p.user_id && lr.status === 'Approved' && targetDateStr >= new Date(new Date(lr.start_date).getTime() + 8*3600*1000).toISOString().split('T')[0] && targetDateStr <= new Date(new Date(lr.end_date).getTime() + 8*3600*1000).toISOString().split('T')[0]);
+       const isCompanyLeave = companyLeaveEmployees.has(p.user_id);
+       const isOutstation = outstationRows.some(o => o.user_id === p.user_id);
+       
+       const att = attRows.find(a => a.user_id === p.user_id && new Date(new Date(a.clock_in).getTime() + 8*3600*1000).toISOString().split('T')[0] === targetDateStr);
+       const isPresent = !!att;
+
+       if (isOnLeave) {
+          finalAbsentList.push({ user_id: p.user_id, full_name: p.full_name, initials: p.full_name.split(' ').map(n=>n[0]).join('').substring(0,2), department: p.department || '—', branch: p.branch || '—', status: 'onLeave' });
+       } else if (isCompanyLeave) {
+          finalAbsentList.push({ user_id: p.user_id, full_name: p.full_name, initials: p.full_name.split(' ').map(n=>n[0]).join('').substring(0,2), department: p.department || '—', branch: p.branch || '—', status: 'companyLeave' });
+       } else if (isOutstation) {
+          if (!isPresent) finalAbsentList.push({ user_id: p.user_id, full_name: p.full_name, initials: p.full_name.split(' ').map(n=>n[0]).join('').substring(0,2), department: p.department || '—', branch: p.branch || '—', status: 'outstation' });
+       } else if (!isPresent) {
+          finalAbsentList.push({ user_id: p.user_id, full_name: p.full_name, initials: p.full_name.split(' ').map(n=>n[0]).join('').substring(0,2), department: p.department || '—', branch: p.branch || '—', status: 'absent' });
+       }
     });
 
-    // Combine them, putting company leaves first
-    const finalAbsentList = [...simulatedCompanyLeave, ...simulatedAbsent].slice(0, 10);
+    if (isDayView) {
+      let aggPresent = 0;
+      let aggLate = 0;
+      let aggOnLeave = 0;
+      let aggCompLeave = 0;
+      let aggAbsent = 0;
+      let aggOutstation = 0;
+
+      Object.values(branchStats).forEach(s => {
+        aggPresent += (s.onTime + s.late);
+        aggLate += s.late;
+        aggOnLeave += s.onLeave;
+        aggCompLeave += s.compLeave;
+        aggAbsent += s.absent;
+        aggOutstation += s.outstation;
+      });
+
+      presentToday = aggPresent;
+      lateToday = aggLate;
+      onLeaveToday = aggOnLeave;
+      companyLeaveCount = aggCompLeave;
+      absentToday = aggAbsent;
+      // We do not override outstationTodayCount globally unless we want to, but let's override it for consistency:
+      // Note: outstationTodayCount in topKpi uses the local variable `outstationTodayCount`
+    }
 
     const dynamicMetrics = await computeDynamicWorkforceMetrics(targetDateStr, role, branch, department);
 
