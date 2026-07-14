@@ -32,6 +32,9 @@ import { Navigate } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
 import { toast, useToast } from "@/hooks/use-toast";
 import { getEmployeeLeaveBalances, updateEmployeeLeaveBalance } from "@/lib/leaveStorage";
+import { buildHistoryLog, appendHistoryLog } from "@/lib/entitlementHistory";
+import EntitlementActivityCard from "./EntitlementActivityCard";
+import EntitlementHistoryPanel from "./EntitlementHistoryPanel";
 
 const modules = [
   {
@@ -302,10 +305,8 @@ export default function LeaveEntitlementManagement() {
             />
           )}
           {activeModule === "Leave Balance History" && (
-            <LeaveBalanceHistoryForm
-              employees={employees}
+            <EntitlementHistoryPanel
               onCancel={() => setActiveModule(null)}
-              getUnusedDays={getUnusedDays}
             />
           )}
         </div>
@@ -459,22 +460,24 @@ function AnnualLeaveAllocationForm({
     // Audit Log for localStorage
     const newLogs = filtered.map(emp => {
       updateEmployeeLeaveBalance(emp.user_id, emp.full_name, "Annual & Emergency Leave", leaveDays);
-      return {
-        date: new Date().toISOString().split('T')[0],
-        action: `Base Entitlement`,
-        performedBy: "Nurul Athirah (HR)",
-        reference: `ANN-ALLOC-${leaveYear}`,
-        before: 0,
-        after: leaveDays,
-        type: "Allocation",
-        leave: "Annual & Emergency Leave",
-        employee: emp.full_name,
-      };
+      return buildHistoryLog({
+        employee_id: emp.user_id,
+        employee_name: emp.full_name,
+        branch: emp.branch || 'HQ',
+        department: emp.department || '',
+        leave_type: "Annual & Emergency Leave",
+        action: `Annual Leave Allocation (${leaveYear})`,
+        action_type: 'Initial Allocation',
+        previous_balance: 0,
+        adjustment: leaveDays,
+        new_balance: leaveDays,
+        reason: `Base annual entitlement for ${leaveYear}`,
+        performed_by: "Nurul Athirah (HR)",
+        performed_role: 'HR Admin',
+        source_module: 'Annual Leave Allocation',
+      });
     });
-
-    const saved = localStorage.getItem("leave_balance_history_logs");
-    const currentLogs = saved ? JSON.parse(saved) : [];
-    localStorage.setItem("leave_balance_history_logs", JSON.stringify([...newLogs, ...currentLogs]));
+    newLogs.forEach(log => appendHistoryLog(log));
 
     toast({
       title: "Annual Leave Allocated",
@@ -499,22 +502,23 @@ function AnnualLeaveAllocationForm({
     const newTotal = currentBalances[targetType] + allocatedDays;
     updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, targetType, newTotal);
 
-    // Append to local history logs
-    const newLog = {
-      date: new Date().toISOString().split('T')[0],
-      action: `OT Convert (+${allocatedDays}d)`,
-      performedBy: "Nurul Athirah (HR)",
-      reference: `OT-CONV-${selectedOTs.join('-')}`,
-      before: currentBalances[targetType],
-      after: newTotal,
-      type: "Allocation",
-      leave: targetLeaveType,
-      employee: selectedEmp.full_name,
-    };
-
-    const saved = localStorage.getItem("leave_balance_history_logs");
-    const currentLogs = saved ? JSON.parse(saved) : [];
-    localStorage.setItem("leave_balance_history_logs", JSON.stringify([newLog, ...currentLogs]));
+    // Append to entitlement history
+    appendHistoryLog(buildHistoryLog({
+      employee_id: selectedEmp.user_id,
+      employee_name: selectedEmp.full_name,
+      branch: selectedEmp.branch || 'HQ',
+      department: selectedEmp.department || '',
+      leave_type: targetLeaveType,
+      action: `OT Conversion (+${allocatedDays} Days)`,
+      action_type: 'OT Conversion',
+      previous_balance: currentBalances[targetType],
+      adjustment: allocatedDays,
+      new_balance: newTotal,
+      reason: `OT records converted: ${selectedOTs.join(', ')}`,
+      performed_by: "Nurul Athirah (HR)",
+      performed_role: 'HR Admin',
+      source_module: 'Annual Leave Allocation',
+    }));
 
     toast({
       title: "OT Conversion Successful",
@@ -827,27 +831,27 @@ function CarryForwardLeaveForm({
       .map(emp => {
         const unused = getUnusedDays(emp.user_id);
         const eligible = Math.min(unused, maxCarry);
-        
         const currentBalances = getEmployeeLeaveBalances(emp.user_id);
         const newTotal = currentBalances[leaveType as keyof typeof currentBalances] + eligible;
         updateEmployeeLeaveBalance(emp.user_id, emp.full_name, leaveType, newTotal);
-
-        return {
-          date: new Date().toISOString().split('T')[0],
-          action: `Carry Forward CF`,
-          performedBy: "System Job",
-          reference: `ROLL-CF-${carryToYear}`,
-          before: currentBalances[leaveType as keyof typeof currentBalances],
-          after: newTotal,
-          type: "Carry Forward",
-          leave: leaveType,
-          employee: emp.full_name,
-        };
+        return buildHistoryLog({
+          employee_id: emp.user_id,
+          employee_name: emp.full_name,
+          branch: emp.branch || 'HQ',
+          department: emp.department || '',
+          leave_type: leaveType,
+          action: `Carry Forward to ${carryToYear}`,
+          action_type: 'Carry Forward',
+          previous_balance: currentBalances[leaveType as keyof typeof currentBalances],
+          adjustment: eligible,
+          new_balance: newTotal,
+          reason: `Carry forward from ${leaveYear} to ${carryToYear}, max ${maxCarry} days`,
+          performed_by: 'System Job',
+          performed_role: 'System',
+          source_module: 'Carry Forward Leave',
+        });
       });
-
-    const saved = localStorage.getItem("leave_balance_history_logs");
-    const currentLogs = saved ? JSON.parse(saved) : [];
-    localStorage.setItem("leave_balance_history_logs", JSON.stringify([...newLogs, ...currentLogs]));
+    newLogs.forEach(log => appendHistoryLog(log));
 
     toast({
       title: "Carry Forward Successful",
@@ -1057,21 +1061,23 @@ function AdditionalLeaveAllocationForm({
     const newTotal = currentBalances[leaveType as keyof typeof currentBalances] + addDays;
     updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, leaveType, newTotal);
 
-    // Log to local balance history logs
-    const newLog = {
-      date: new Date().toISOString().split('T')[0],
-      action: `Additional Leave (+${addDays}d)`,
-      performedBy: "Nurul Athirah (HR)",
-      reference: `ADD-ALLOC-${reasonCat.replace(/\s+/g, '-')}`,
-      before: currentBalances[leaveType as keyof typeof currentBalances],
-      after: newTotal,
-      type: "Allocation",
-      leave: leaveType,
-      employee: selectedEmp.full_name,
-    };
-    const saved = localStorage.getItem("leave_balance_history_logs");
-    const currentLogs = saved ? JSON.parse(saved) : [];
-    localStorage.setItem("leave_balance_history_logs", JSON.stringify([newLog, ...currentLogs]));
+    // Append to entitlement audit history
+    appendHistoryLog(buildHistoryLog({
+      employee_id: selectedEmp.user_id,
+      employee_name: selectedEmp.full_name,
+      branch: selectedEmp.branch || 'HQ',
+      department: selectedEmp.department || '',
+      leave_type: leaveType,
+      action: `Additional Leave Allocation (+${addDays} Days)`,
+      action_type: 'Additional Allocation',
+      previous_balance: currentBalances[leaveType as keyof typeof currentBalances],
+      adjustment: addDays,
+      new_balance: newTotal,
+      reason: `${reasonCat}${remarks ? ': ' + remarks : ''}`,
+      performed_by: 'Nurul Athirah (HR)',
+      performed_role: 'HR Admin',
+      source_module: 'Additional Leave Allocation',
+    }));
 
     toast({
       title: "Leave Allocated Successfully",
@@ -1305,20 +1311,24 @@ function ManualLeaveAdjustmentForm({
       // Simulate API call for now (can be replaced with real backend)
       await new Promise(r => setTimeout(r, 600));
 
-      const newLog = {
-        date: effectiveDate,
-        action: "Leave Adjustment",
-        reference: `${reasonCategory}: ${reasonDetails}`,
-        before: currentBalance,
-        after: newBalance,
-        performedBy: "HR Admin (Auto)",
-        leave: leaveType,
-        employee: selectedEmp.full_name,
-      };
-
-      const saved = localStorage.getItem("leave_balance_history_logs");
-      const currentLogs = saved ? JSON.parse(saved) : [];
-      localStorage.setItem("leave_balance_history_logs", JSON.stringify([newLog, ...currentLogs]));
+      // Append to entitlement audit history
+      const actionType = adjValue >= 0 ? 'Manual Adjustment' : 'Deduction';
+      appendHistoryLog(buildHistoryLog({
+        employee_id: selectedEmp.user_id,
+        employee_name: selectedEmp.full_name,
+        branch: selectedEmp.branch || 'HQ',
+        department: selectedEmp.department || '',
+        leave_type: leaveType,
+        action: `Manual Leave Adjustment (${adjValue >= 0 ? '+' : ''}${adjValue} Days)`,
+        action_type: actionType,
+        previous_balance: currentBalance,
+        adjustment: adjValue,
+        new_balance: newBalance,
+        reason: `${reasonCategory}: ${reasonDetails}`,
+        performed_by: 'HR Admin',
+        performed_role: 'HR Admin',
+        source_module: 'Manual Leave Adjustments',
+      }));
       
       updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, leaveType, newBalance);
 
@@ -1585,22 +1595,23 @@ function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
     
     // Mock save
     setTimeout(() => {
-      // Append to history logs
-      const newLog = {
-        date: new Date().toISOString().split('T')[0],
-        action: `Grant ${leaveCategory}`,
-        performedBy: "HR Admin (Auto)",
-        reference: `SPL-${Date.now().toString().slice(-6)}`,
-        before: 0,
-        after: adjDays,
-        type: "Special Credit",
-        leave: leaveCategory,
-        employee: selectedEmp.full_name,
-      };
-
-      const saved = localStorage.getItem("leave_balance_history_logs");
-      const currentLogs = saved ? JSON.parse(saved) : [];
-      localStorage.setItem("leave_balance_history_logs", JSON.stringify([newLog, ...currentLogs]));
+      // Append to entitlement audit history
+      appendHistoryLog(buildHistoryLog({
+        employee_id: selectedEmp.user_id,
+        employee_name: selectedEmp.full_name,
+        branch: selectedEmp.branch || 'HQ',
+        department: selectedEmp.department || '',
+        leave_type: leaveCategory,
+        action: `Special Leave Credit — ${leaveCategory}`,
+        action_type: 'Special Leave',
+        previous_balance: 0,
+        adjustment: adjDays,
+        new_balance: adjDays,
+        reason: reasonDetails || `${leaveCategory} granted`,
+        performed_by: 'HR Admin',
+        performed_role: 'HR Admin',
+        source_module: 'Special Leave Credits',
+      }));
 
       toast({
         title: "Special Leave Granted",
@@ -1721,21 +1732,23 @@ function MaternityLeaveForm({ employees, onCancel }: any) {
     
     // Mock save
     setTimeout(() => {
-      const newLog = {
-        date: new Date().toISOString().split('T')[0],
-        action: `Maternity Allocation`,
-        performedBy: "HR Admin (Auto)",
-        reference: `MAT-${Date.now().toString().slice(-6)}`,
-        before: 0,
-        after: totalDays,
-        type: "Statutory Leave",
-        leave: "Maternity Leave",
-        employee: selectedEmp.full_name,
-      };
-
-      const saved = localStorage.getItem("leave_balance_history_logs");
-      const currentLogs = saved ? JSON.parse(saved) : [];
-      localStorage.setItem("leave_balance_history_logs", JSON.stringify([newLog, ...currentLogs]));
+      // Append to entitlement audit history
+      appendHistoryLog(buildHistoryLog({
+        employee_id: selectedEmp.user_id,
+        employee_name: selectedEmp.full_name,
+        branch: selectedEmp.branch || 'HQ',
+        department: selectedEmp.department || '',
+        leave_type: 'Maternity Leave',
+        action: `Maternity Leave Allocation (${totalDays} Days)`,
+        action_type: 'Maternity Leave',
+        previous_balance: 0,
+        adjustment: totalDays,
+        new_balance: totalDays,
+        reason: `EDD: ${edd}, Start: ${startDate}, End: ${endDate}`,
+        performed_by: 'HR Admin',
+        performed_role: 'HR Admin',
+        source_module: 'Maternity Leave',
+      }));
 
       toast({
         title: "Maternity Leave Granted",
@@ -1825,108 +1838,4 @@ function MaternityLeaveForm({ employees, onCancel }: any) {
   );
 }
 
-/* ==========================================================
-   7. LEAVE BALANCE HISTORY FORM
-   ========================================================== */
-function LeaveBalanceHistoryForm({ onCancel }: any) {
-  const [logs, setLogs] = useState<any[]>([]);
-  const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    const saved = localStorage.getItem("leave_balance_history_logs");
-    if (saved) {
-      setLogs(JSON.parse(saved));
-    }
-  }, []);
-
-  const filteredLogs = logs.filter(log => 
-    !search || 
-    log.employee.toLowerCase().includes(search.toLowerCase()) || 
-    log.action.toLowerCase().includes(search.toLowerCase()) ||
-    log.leave.toLowerCase().includes(search.toLowerCase()) ||
-    log.reference.toLowerCase().includes(search.toLowerCase())
-  );
-
-  return (
-    <Card className="border-border/60 bg-white dark:bg-card shadow-lg max-w-5xl mx-auto rounded-xl overflow-hidden">
-      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 bg-slate-50 dark:bg-slate-900/50">
-        <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-slate-500/10 hover:text-slate-600 transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
-        <div className="w-9 h-9 rounded-xl bg-slate-500/10 flex items-center justify-center">
-          <History className="w-5 h-5 text-slate-600" />
-        </div>
-        <div>
-          <CardTitle className="text-base sm:text-lg font-black text-foreground">Leave Balance History</CardTitle>
-          <CardDescription className="text-xs">Audit log of all entitlement allocations and adjustments.</CardDescription>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="p-0">
-        <div className="p-4 border-b border-border/50 bg-muted/10">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search employee, action, or ref..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 bg-white dark:bg-card h-9 text-xs"
-            />
-          </div>
-        </div>
-        
-        <div className="overflow-x-auto max-h-[500px]">
-          <Table>
-            <TableHeader className="bg-muted/30 sticky top-0 backdrop-blur-md">
-              <TableRow>
-                <TableHead className="text-xs font-bold">Date</TableHead>
-                <TableHead className="text-xs font-bold">Employee</TableHead>
-                <TableHead className="text-xs font-bold">Action / Reference</TableHead>
-                <TableHead className="text-xs font-bold">Leave Type</TableHead>
-                <TableHead className="text-right text-xs font-bold">Change</TableHead>
-                <TableHead className="text-right text-xs font-bold">New Balance</TableHead>
-                <TableHead className="text-xs font-bold pl-6">Performed By</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredLogs.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground text-xs">
-                    No history records found. Ensure you allocate or adjust leave first.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredLogs.map((log, idx) => {
-                  const isPositive = log.after > log.before;
-                  const diff = Math.abs(log.after - log.before);
-                  return (
-                    <TableRow key={idx} className="hover:bg-muted/30">
-                      <TableCell className="text-xs whitespace-nowrap">{log.date}</TableCell>
-                      <TableCell className="text-xs font-bold">{log.employee}</TableCell>
-                      <TableCell className="text-xs">
-                        <div className="font-bold text-foreground">{log.action}</div>
-                        <div className="text-[10px] text-muted-foreground">{log.reference}</div>
-                      </TableCell>
-                      <TableCell className="text-xs">
-                        <Badge variant="secondary" className="text-[10px] font-medium bg-muted text-muted-foreground">
-                          {log.leave}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right text-xs font-bold">
-                        <span className={isPositive ? "text-emerald-600" : "text-rose-600"}>
-                          {isPositive ? '+' : '-'}{diff}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right text-xs font-black">{log.after} Days</TableCell>
-                      <TableCell className="text-[11px] text-muted-foreground pl-6 whitespace-nowrap">{log.performedBy}</TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
