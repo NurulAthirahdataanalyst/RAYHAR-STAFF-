@@ -69,7 +69,7 @@ export default function Employees() {
   const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [employeeLeaves, setEmployeeLeaves] = useState<any[]>([]);
-  const [viewLeaveStatus, setViewLeaveStatus] = useState<string | null>(null);
+  const [viewLeaveStatus, setViewLeaveStatus] = useState<"Approved" | "Pending" | "Rejected" | null>(null);
   const [printingLeaveId, setPrintingLeaveId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [analytics, setAnalytics] = useState<any>(null);
@@ -107,8 +107,6 @@ export default function Employees() {
   }, [selectedEmployee, isModalOpen, analyticsDate]);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [viewLeaveStatus, setViewLeaveStatus] = useState<"Approved" | "Pending" | "Rejected" | null>(null);
-  const [employeeLeaves, setEmployeeLeaves] = useState<any[]>([]);
   const [loadingLeaves, setLoadingLeaves] = useState(false);
   const { toast } = useToast();
 

@@ -4370,6 +4370,58 @@ app.get("/api/reports/absent-employees", async (req, res) => {
   }
 });
 
+// ===============================
+// ON LEAVE EMPLOYEES REPORT
+// ===============================
+app.get("/api/reports/on-leave-employees", async (req, res) => {
+  let { date, role, branch, department } = req.query;
+  const queryDate = date ? date : new Date().toISOString().split('T')[0];
+
+  try {
+    let profileFilter = "";
+    let queryParams = [queryDate];
+
+    if (role === 'branch_leader') {
+      const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+      branch = safeBranch;
+      profileFilter = " AND p.branch = ?";
+      queryParams.push(branch);
+    } else if (role === 'head_of_department') {
+      const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+      department = safeDept;
+      profileFilter = " AND p.department = ?";
+      queryParams.push(department);
+    }
+
+    const [rows] = await pool.query(
+      `
+      SELECT 
+        p.user_id,
+        p.full_name,
+        p.branch,
+        p.department,
+        COALESCE(ur.role, 'employee') AS role,
+        'On Leave' AS status,
+        lr.leave_type
+      FROM profiles p
+      LEFT JOIN user_role ur ON ur.user_id = p.user_id
+      INNER JOIN leave_requests lr ON lr.user_id = p.user_id 
+        AND lr.status = 'Approved' 
+        AND ?::date BETWEEN lr.start_date AND lr.end_date
+      WHERE p.status = 'Active'
+      ${profileFilter}
+      ORDER BY p.full_name ASC
+      `,
+      queryParams
+    );
+
+    res.json({ success: true, report: rows });
+  } catch (err) {
+    console.error("On Leave Employees Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 
 // ===============================
 // MONTHLY ATTENDANCE REPORT

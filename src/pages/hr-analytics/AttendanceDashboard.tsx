@@ -277,24 +277,31 @@ export default function AttendanceDashboard() {
     setLoadingDaily(true);
     setLoadingAbsent(true);
     try {
-      const [resDaily, resStats, resAbsent, resOutstation] = await Promise.all([
+      const [resDaily, resStats, resAbsent, resOutstation, resLeave] = await Promise.all([
         fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
         fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "All")}&department=${encodeURIComponent(userDepartment || "All")}&date=${encodeURIComponent(selectedDate)}`),
         fetch(`${API_BASE_URL}/api/reports/absent-employees?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
-        fetch(`${API_BASE_URL}/api/outstation?role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`)
+        fetch(`${API_BASE_URL}/api/outstation?role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
+        fetch(`${API_BASE_URL}/api/reports/on-leave-employees?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`)
       ]);
       const data = await resDaily.json();
       const statsData = await resStats.json();
       const absentData = await resAbsent.json();
       const outstationData = await resOutstation.json();
+      const leaveData = await resLeave.json();
 
       if (data.success) {
         setDailyAttendance(data.report);
       }
 
-      if (absentData.success) {
-        setAbsentEmployees(absentData.report);
+      let combinedAbsentees = [];
+      if (absentData.success && absentData.report) {
+        combinedAbsentees = [...combinedAbsentees, ...absentData.report];
       }
+      if (leaveData.success && leaveData.report) {
+        combinedAbsentees = [...combinedAbsentees, ...leaveData.report];
+      }
+      setAbsentEmployees(combinedAbsentees);
       
       if (outstationData.success) {
         setOutstationRecords(outstationData.assignments.filter((a: any) => a.status !== "Cancelled"));
@@ -1098,6 +1105,10 @@ export default function AttendanceDashboard() {
                 <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider">Total Absent</span>
                 <span className="text-[13px] font-black text-red-700">{liveStats.absent || 0}</span>
               </div>
+              <div className="bg-blue-50/80 border border-blue-100 px-3 py-1.5 rounded-md flex items-center gap-2">
+                <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">Total On Leave</span>
+                <span className="text-[13px] font-black text-blue-700">{liveStats.onLeave || 0}</span>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -1321,9 +1332,9 @@ export default function AttendanceDashboard() {
       <Card id="employee-absenteeism" className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-lg shadow-sm overflow-hidden mb-6 scroll-mt-24">
         <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
-            <h2 className="text-base font-bold text-gray-800 dark:text-gray-200">Employee Absenteeism</h2>
+            <h2 className="text-base font-bold text-gray-800 dark:text-gray-200">Employee Absenteeism & On Leave</h2>
             <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-red-50 text-red-600 border border-red-100">
-              {filteredAbsentEmployees.length} Absent Today
+              {filteredAbsentEmployees.length} Employees
             </span>
           </div>
           
@@ -1388,7 +1399,7 @@ export default function AttendanceDashboard() {
                       <tr key={emp.user_id} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-4 py-2">
                           <div className="flex items-center gap-2">
-                            <div className={`w-8 h-8 rounded-md font-bold flex items-center justify-center text-xs uppercase shadow-sm ${displayStatus === 'Outstation' ? 'bg-pink-100 text-pink-700' : displayStatus === 'Company Leave' ? 'bg-purple-100 text-purple-700' : 'bg-red-500/10 text-red-600'}`}>
+                            <div className={`w-8 h-8 rounded-md font-bold flex items-center justify-center text-xs uppercase shadow-sm ${displayStatus === 'Outstation' ? 'bg-pink-100 text-pink-700' : displayStatus === 'Company Leave' ? 'bg-purple-100 text-purple-700' : displayStatus === 'On Leave' ? 'bg-blue-100 text-blue-700' : 'bg-red-500/10 text-red-600'}`}>
                               {emp.full_name.charAt(0)}
                             </div>
                             <div>
@@ -1412,6 +1423,11 @@ export default function AttendanceDashboard() {
                             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-purple-50 text-purple-700 border border-purple-200 shadow-sm">
                               <span className="w-1 h-1 rounded-full mr-1 bg-purple-500 animate-pulse" />
                               Company Leave
+                            </span>
+                          ) : displayStatus === 'On Leave' ? (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">
+                              <span className="w-1 h-1 rounded-full mr-1 bg-blue-500 animate-pulse" />
+                              On Leave
                             </span>
                           ) : (
                             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-red-50 text-red-700 border border-red-100">
