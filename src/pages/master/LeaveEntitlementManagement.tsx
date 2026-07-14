@@ -387,12 +387,6 @@ function EmployeeSearchSelector({
             filtered.map((emp) => (
               <div
                 key={emp.user_id}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  onSelect(emp);
-                  setSearch("");
-                  setOpen(false);
-                }}
                 onClick={(e) => {
                   onSelect(emp);
                   setSearch("");
