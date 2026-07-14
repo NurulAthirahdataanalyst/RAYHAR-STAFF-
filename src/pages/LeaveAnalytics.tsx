@@ -1234,6 +1234,51 @@ export default function LeaveAnalytics() {
           </div>
         </Card>
 
+        {/* HR Insights */}
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
+          <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-purple-500" />
+            13. HR Insights
+          </h3>
+          <div className="space-y-2 flex-1">
+            {records.length > 0 ? (
+              <>
+                {aiInsights.map((insight, i) => (
+                  <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg bg-purple-50 border border-purple-100">
+                    <div className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-1.5 shrink-0" />
+                    <p className="text-xs text-purple-800 font-medium leading-relaxed">{insight}</p>
+                  </div>
+                ))}
+                <div className="flex items-start gap-2 p-2.5 rounded-lg bg-blue-50 border border-blue-100">
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />
+                  <p className="text-xs text-blue-800 font-medium leading-relaxed">
+                    Total <span className="font-black">{totalDays} leave days</span> recorded across <span className="font-black">{uniqueEmployees}</span> employee(s).
+                  </p>
+                </div>
+                <div className="flex items-start gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-100">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                  <p className="text-xs text-emerald-800 font-medium leading-relaxed">
+                    Approval rate: <span className="font-black">{total > 0 ? Math.round((approved / total) * 100) : 0}%</span> — {approved} approved out of {total} applications.
+                  </p>
+                </div>
+                {pending > 0 && (
+                  <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-50 border border-amber-100">
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+                    <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                      <span className="font-black">{pending}</span> application(s) still pending approval — action required.
+                    </p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="flex items-start gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1.5 shrink-0" />
+                <p className="text-xs text-slate-600 font-medium leading-relaxed">No leave data for this period. Try adjusting the year or month filter.</p>
+              </div>
+            )}
+          </div>
+        </Card>
+
       {/* 6. Workforce Availability (Row 5) */}
       
         {/* Upcoming */}

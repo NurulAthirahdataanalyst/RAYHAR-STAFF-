@@ -4326,35 +4326,28 @@ app.get("/api/reports/absent-employees", async (req, res) => {
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
       WHERE p.status = 'Active'
-      AND DATE(p.created_at) <= ?::date
+      AND DATE(p.created_at) <= ?
       -- 1. No attendance record today
       AND NOT EXISTS (
         SELECT 1 FROM attendances a 
         WHERE a.user_id = p.user_id 
-        AND DATE(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
+        AND DATE(CONVERT_TZ(a.clock_in, '+00:00', '+08:00')) = ?
       )
       -- 2. Not on approved leave today
       AND NOT EXISTS (
         SELECT 1 FROM leave_requests lr 
         WHERE lr.user_id = p.user_id AND lr.status = 'Approved' 
-        AND ?::date BETWEEN lr.start_date AND lr.end_date
+        AND ? BETWEEN lr.start_date AND lr.end_date
       )
       -- 3. Not on company holiday today
       AND NOT EXISTS (
         SELECT 1 FROM company_leave_calendar cl
         WHERE cl.status = 'Active'
-        AND ?::date BETWEEN cl.start_date AND cl.end_date
+        AND ? BETWEEN cl.start_date AND cl.end_date
         AND (
           cl.applies_to = 'all'
-          OR (cl.applies_to = 'branch' AND p.branch = ANY(string_to_array(cl.branch_id, ',')))
-          OR (
-            cl.applies_to = 'department' 
-            AND EXISTS (
-              SELECT 1 FROM unnest(string_to_array(cl.department_id, ',')) AS d
-              WHERE d = p.department 
-                 OR LOWER(TRIM(REPLACE(LOWER(p.department), 'department', ''))) = LOWER(TRIM(REPLACE(LOWER(d), 'department', '')))
-            )
-          )
+          OR (cl.applies_to = 'branch' AND FIND_IN_SET(p.branch, cl.branch_id) > 0)
+          OR (cl.applies_to = 'department' AND FIND_IN_SET(p.department, cl.department_id) > 0)
         )
       )
       ${profileFilter}
@@ -4363,7 +4356,7 @@ app.get("/api/reports/absent-employees", async (req, res) => {
       queryParams
     );
 
-    res.json({ success: true, report: rows });
+    res.json({ success: true, data: rows });
   } catch (err) {
     console.error("Absent Employees Error:", err);
     res.status(500).json({ success: false, error: err.message });
@@ -4407,7 +4400,7 @@ app.get("/api/reports/on-leave-employees", async (req, res) => {
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
       INNER JOIN leave_requests lr ON lr.user_id = p.user_id 
         AND lr.status = 'Approved' 
-        AND ?::date BETWEEN lr.start_date AND lr.end_date
+        AND ? BETWEEN lr.start_date AND lr.end_date
       WHERE p.status = 'Active'
       ${profileFilter}
       ORDER BY p.full_name ASC
@@ -4415,7 +4408,7 @@ app.get("/api/reports/on-leave-employees", async (req, res) => {
       queryParams
     );
 
-    res.json({ success: true, report: rows });
+    res.json({ success: true, data: rows });
   } catch (err) {
     console.error("On Leave Employees Error:", err);
     res.status(500).json({ success: false, error: err.message });
