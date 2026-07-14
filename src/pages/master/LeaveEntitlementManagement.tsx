@@ -1217,11 +1217,12 @@ function ManualLeaveAdjustmentForm({
 
   useEffect(() => {
     if (selectedEmp?.user_id) {
-      getEmployeeLeaveBalances(selectedEmp.user_id)
-        .then(({ balances }) => {
-          setLeaveBalances(balances);
-        })
-        .catch(console.error);
+      try {
+        const balances = getEmployeeLeaveBalances(selectedEmp.user_id);
+        setLeaveBalances(balances);
+      } catch (err) {
+        console.error(err);
+      }
     } else {
       setLeaveBalances(null);
     }
