@@ -5304,7 +5304,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     });
 
     // 4. Team Availability today
-    const absentToday = Math.max(0, activeEmployees - presentToday - onLeaveToday - companyLeaveCount - outstationTodayCount);
+    let absentToday = Math.max(0, activeEmployees - presentToday - onLeaveToday - companyLeaveCount - outstationTodayCount);
 
     // 5. Rankings
     const rankings = Object.values(userStats).map(u => ({
