@@ -27,6 +27,8 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -382,6 +384,13 @@ export default function LeaveAnalytics() {
     outstation: 0,
   });
 
+  const [lists, setLists] = useState({
+    present: [] as string[],
+    onLeave: [] as string[],
+    outstation: [] as string[],
+    absent: [] as string[],
+  });
+
   // ─ Fetch leave requests & attendance stats (scope-aware) ─────────────────
   const fetchData = async () => {
     setLoading(true);
@@ -401,13 +410,29 @@ export default function LeaveAnalytics() {
         ? `userId=ADMIN&role=head_of_department&branch=${encodeURIComponent(userBranch)}&department=${encodeURIComponent(userDepartment)}`
         : `userId=ADMIN&role=hr_admin&branch=All`;
 
-      const [leaveRes, statsRes] = await Promise.all([
+      const dateParam = new Date().toISOString().split('T')[0];
+      const listQuery = isBranchLeader
+        ? `date=${dateParam}&role=branch_leader&branch=${encodeURIComponent(userBranch)}&department=`
+        : isHOD
+        ? `date=${dateParam}&role=head_of_department&branch=${encodeURIComponent(userBranch)}&department=${encodeURIComponent(userDepartment)}`
+        : `date=${dateParam}&role=hr_admin&branch=&department=`;
+
+      const [leaveRes, statsRes, presentRes, absentRes, outstationRes, onLeaveRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/leave-requests?${params}`),
         fetch(`${API_BASE_URL}/api/dashboard-stats?${statsQuery}`),
+        fetch(`${API_BASE_URL}/api/reports/daily-attendance?${listQuery}`),
+        fetch(`${API_BASE_URL}/api/reports/absent-employees?${listQuery}`),
+        fetch(`${API_BASE_URL}/api/outstation?${listQuery.replace(`date=${dateParam}&`, '')}`),
+        fetch(`${API_BASE_URL}/api/reports/on-leave-employees?${listQuery}`)
       ]);
 
       const data = await leaveRes.json();
       const statsData = await statsRes.json();
+      
+      const presentData = await presentRes.json().catch(() => ({ success: false }));
+      const absentData = await absentRes.json().catch(() => ({ success: false }));
+      const outstationData = await outstationRes.json().catch(() => ({ success: false }));
+      const onLeaveData = await onLeaveRes.json().catch(() => ({ success: false }));
 
       if (data.success && Array.isArray(data.leaveRequests)) {
         const formatted: LeaveRecord[] = data.leaveRequests.map((r: any) => ({
@@ -427,14 +452,29 @@ export default function LeaveAnalytics() {
         setLastFetched(new Date());
       }
 
+      let newLists = { present: [] as string[], onLeave: [] as string[], outstation: [] as string[], absent: [] as string[] };
+      if (presentData.success) {
+        newLists.present = presentData.attendance.filter((a: any) => a.clock_in).map((a: any) => a.full_name);
+      }
+      if (absentData.success) {
+        newLists.absent = absentData.data.map((a: any) => a.full_name);
+      }
+      if (outstationData.success) {
+        newLists.outstation = outstationData.data.map((a: any) => a.full_name);
+      }
+      if (onLeaveData.success) {
+        newLists.onLeave = onLeaveData.data.map((a: any) => a.full_name);
+      }
+      setLists(newLists);
+
       if (statsData.success && statsData.stats) {
         const s = statsData.stats;
         const total = s.totalEmployees || 0;
-        const present = s.presentToday || 0;
+        const present = newLists.present.length > 0 ? newLists.present.length : (s.presentToday || 0);
         const late = s.lateArrivals || 0;
-        const onLeave = s.onLeave || 0;
-        const outstation = s.outstation || 0;
-        const absent = Math.max(0, total - present - onLeave - outstation);
+        const onLeave = newLists.onLeave.length > 0 ? newLists.onLeave.length : (s.onLeave || 0);
+        const outstation = newLists.outstation.length > 0 ? newLists.outstation.length : (s.outstation || 0);
+        const absent = newLists.absent.length > 0 ? newLists.absent.length : Math.max(0, total - present - onLeave - outstation);
         const rate =
           total - onLeave - outstation > 0
             ? Math.round((present / (total - onLeave - outstation)) * 100)
@@ -790,7 +830,9 @@ export default function LeaveAnalytics() {
     const counts: Record<string, number> = {};
     filtered.forEach(r => {
       const d = r.department || "Unknown";
-      counts[d] = (counts[d] || 0) + 1;
+      if (d !== "Unknown") {
+        counts[d] = (counts[d] || 0) + 1;
+      }
     });
     return Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([name, value]) => ({ name, value }));
   }, [filtered]);
@@ -998,14 +1040,14 @@ export default function LeaveAnalytics() {
           <h3 className="text-sm font-bold text-slate-800 mb-4">1. Leave Trend Over Time (Monthly)</h3>
           <div className="flex-1 w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyTrend} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+              <LineChart data={monthlyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
                 <Tooltip 
-                  cursor={{fill: 'transparent'}} 
+                  cursor={{stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '3 3'}} 
                   content={({ active, payload, label }) => {
-                    if (active && payload && payload.length && hoveredTrend === label) {
+                    if (active && payload && payload.length) {
                       return (
                         <div className="bg-white p-3 rounded-xl shadow-lg border border-slate-100">
                           <p className="font-bold text-slate-800 text-xs mb-2">{label}</p>
@@ -1022,11 +1064,8 @@ export default function LeaveAnalytics() {
                   }} 
                 />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
-                <Bar dataKey="total" name="Total" fill="#3B82F6" radius={[4,4,0,0]} barSize={10} onMouseEnter={(data: any) => setHoveredTrend(data.month)} onMouseLeave={() => setHoveredTrend(null)} />
-                <Bar dataKey="approved" name="Approved" fill="#10B981" radius={[4,4,0,0]} barSize={10} onMouseEnter={(data: any) => setHoveredTrend(data.month)} onMouseLeave={() => setHoveredTrend(null)} />
-                <Bar dataKey="pending" name="Pending" fill="#F59E0B" radius={[4,4,0,0]} barSize={10} onMouseEnter={(data: any) => setHoveredTrend(data.month)} onMouseLeave={() => setHoveredTrend(null)} />
-                <Bar dataKey="rejected" name="Rejected" fill="#EF4444" radius={[4,4,0,0]} barSize={10} onMouseEnter={(data: any) => setHoveredTrend(data.month)} onMouseLeave={() => setHoveredTrend(null)} />
-              </BarChart>
+                <Line type="monotone" dataKey="total" name="Total Requests" stroke="#3B82F6" strokeWidth={3} dot={{ r: 4, fill: '#3B82F6' }} activeDot={{ r: 6 }} />
+              </LineChart>
             </ResponsiveContainer>
           </div>
         </Card>
@@ -1066,10 +1105,10 @@ export default function LeaveAnalytics() {
         {/* Type Breakdown */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-2">4. Leave Type Breakdown</h3>
-          <div className="flex-1 min-relative w-full">
+          <div className="flex-1 min-relative w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={typeDistribution} cx="50%" cy="45%" innerRadius={50} outerRadius={80} paddingAngle={2} dataKey="value" stroke="none">
+                <Pie data={typeDistribution} cx="50%" cy="50%" innerRadius={60} outerRadius={80} dataKey="value" stroke="none">
                   {typeDistribution.map((entry, idx) => (
                     <Cell key={`cell-${idx}`} fill={PIE_COLORS[entry.name] || FALLBACK_COLORS[idx % FALLBACK_COLORS.length]} />
                   ))}
@@ -1091,6 +1130,7 @@ export default function LeaveAnalytics() {
           </div>
         </Card>
         {/* Dept Compare */}
+        {selectedBranch === "HQ" && (
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-4">5. Department Comparison</h3>
           <div className="flex-1 min-overflow-hidden w-full">
@@ -1106,6 +1146,7 @@ export default function LeaveAnalytics() {
             </ResponsiveContainer>
           </div>
         </Card>
+        )}
         {/* Branch Compare */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-4">6. Branch Comparison</h3>
@@ -1226,21 +1267,45 @@ export default function LeaveAnalytics() {
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-4">11. Workforce Availability <span className="text-[9px] font-normal text-slate-400">(Today)</span></h3>
           <div className="flex-1 grid grid-cols-2 gap-3">
-            <div className="border border-emerald-100 bg-emerald-50/50 rounded-lg p-3 flex flex-col items-center justify-center">
+            <div 
+              onClick={() => navigate("/hr-analytics/attendance")}
+              className="border border-emerald-100 bg-emerald-50/50 rounded-lg p-3 flex flex-col items-center justify-start cursor-pointer hover:bg-emerald-100 transition-colors"
+            >
               <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Present</p>
-              <p className="text-2xl font-black text-emerald-600 mt-1">{attendanceStats.presentToday}</p>
+              <p className="text-xl font-black text-emerald-600 mt-1">{attendanceStats.presentToday}</p>
+              <div className="mt-2 w-full max-h-16 overflow-y-auto custom-scrollbar flex flex-col gap-1 text-[9px] text-emerald-700/80 text-center">
+                {lists.present.length > 0 ? lists.present.map(name => <div key={name} className="truncate" title={name}>{name}</div>) : <div>None</div>}
+              </div>
             </div>
-            <div className="border border-blue-100 bg-blue-50/50 rounded-lg p-3 flex flex-col items-center justify-center">
+            <div 
+              onClick={() => navigate("/reports/leave")}
+              className="border border-blue-100 bg-blue-50/50 rounded-lg p-3 flex flex-col items-center justify-start cursor-pointer hover:bg-blue-100 transition-colors"
+            >
               <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wide">On Leave</p>
-              <p className="text-2xl font-black text-blue-600 mt-1">{attendanceStats.onLeave || 0}</p>
+              <p className="text-xl font-black text-blue-600 mt-1">{attendanceStats.onLeave || 0}</p>
+              <div className="mt-2 w-full max-h-16 overflow-y-auto custom-scrollbar flex flex-col gap-1 text-[9px] text-blue-700/80 text-center">
+                {lists.onLeave.length > 0 ? lists.onLeave.map(name => <div key={name} className="truncate" title={name}>{name}</div>) : <div>None</div>}
+              </div>
             </div>
-            <div className="border border-purple-100 bg-purple-50/50 rounded-lg p-3 flex flex-col items-center justify-center">
+            <div 
+              onClick={() => navigate("/outstation")}
+              className="border border-purple-100 bg-purple-50/50 rounded-lg p-3 flex flex-col items-center justify-start cursor-pointer hover:bg-purple-100 transition-colors"
+            >
               <p className="text-[10px] font-bold text-purple-700 uppercase tracking-wide">Outstation</p>
-              <p className="text-2xl font-black text-purple-600 mt-1">{attendanceStats.outstation || 0}</p>
+              <p className="text-xl font-black text-purple-600 mt-1">{attendanceStats.outstation || 0}</p>
+              <div className="mt-2 w-full max-h-16 overflow-y-auto custom-scrollbar flex flex-col gap-1 text-[9px] text-purple-700/80 text-center">
+                {lists.outstation.length > 0 ? lists.outstation.map(name => <div key={name} className="truncate" title={name}>{name}</div>) : <div>None</div>}
+              </div>
             </div>
-            <div className="border border-rose-100 bg-rose-50/50 rounded-lg p-3 flex flex-col items-center justify-center">
+            <div 
+              onClick={() => navigate("/hr-analytics/attendance")}
+              className="border border-rose-100 bg-rose-50/50 rounded-lg p-3 flex flex-col items-center justify-start cursor-pointer hover:bg-rose-100 transition-colors"
+            >
               <p className="text-[10px] font-bold text-rose-700 uppercase tracking-wide">Absent</p>
-              <p className="text-2xl font-black text-rose-600 mt-1">{attendanceStats.absentToday}</p>
+              <p className="text-xl font-black text-rose-600 mt-1">{attendanceStats.absentToday}</p>
+              <div className="mt-2 w-full max-h-16 overflow-y-auto custom-scrollbar flex flex-col gap-1 text-[9px] text-rose-700/80 text-center">
+                {lists.absent.length > 0 ? lists.absent.map(name => <div key={name} className="truncate" title={name}>{name}</div>) : <div>None</div>}
+              </div>
             </div>
           </div>
         </Card>

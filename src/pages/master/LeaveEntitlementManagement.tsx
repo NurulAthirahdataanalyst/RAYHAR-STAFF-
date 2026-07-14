@@ -1216,21 +1216,38 @@ function ManualLeaveAdjustmentForm({
   const [leaveBalances, setLeaveBalances] = useState<any>(null);
 
   useEffect(() => {
+    let isMounted = true;
     if (selectedEmp?.user_id) {
-      try {
-        const balances = getEmployeeLeaveBalances(selectedEmp.user_id);
-        setLeaveBalances(balances);
-      } catch (err) {
-        console.error(err);
-      }
+      const fetchBalance = async () => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/employees/${selectedEmp.user_id}/analytics`);
+          const data = await res.json();
+          if (isMounted && data.success && data.analytics) {
+            // Build balances object from analytics
+            const balances = {
+              "Annual & Emergency Leave": data.analytics.leave.remaining,
+              "Sick Leave (MC)": data.analytics.leave.sick.balance - data.analytics.leave.sick.taken,
+              "Replacement Leave": 0,
+              "Unpaid Leave": 0
+            };
+            setLeaveBalances(balances);
+          }
+        } catch (err) {
+          console.error("Failed to fetch balance", err);
+          if (isMounted) {
+            const fallback = getEmployeeLeaveBalances(selectedEmp.user_id);
+            setLeaveBalances(fallback);
+          }
+        }
+      };
+      fetchBalance();
     } else {
       setLeaveBalances(null);
     }
+    return () => { isMounted = false; };
   }, [selectedEmp?.user_id]);
 
   // Derived data for current balance display
-  const entitlement = selectedEmp?.annual_leave_entitlement || 14;
-  
   const mappedType = leaveType === "Annual Leave" || leaveType === "Annual/Emergency Leave" || leaveType === "Annual & Emergency Leave"
       ? "Annual & Emergency Leave"
       : leaveType === "Sick Leave" || leaveType === "Sick Leave (MC)" || leaveType === "Medical Leave"
@@ -1239,14 +1256,27 @@ function ManualLeaveAdjustmentForm({
       ? "Replacement Leave"
       : "Unpaid Leave";
 
-  const defaultBalanceForType = mappedType === "Annual & Emergency Leave" ? entitlement : (mappedType === "Sick Leave (MC)" ? 14 : 0);
+  let entitlement = 0;
+  let currentBalance = 0;
+  let currentAdjustments = 0;
+  let approvedLeaveTaken = 0;
 
-  const currentBalance = (leaveBalances && typeof leaveBalances[mappedType] === "number" && !isNaN(leaveBalances[mappedType])) 
-    ? leaveBalances[mappedType] 
-    : defaultBalanceForType;
-    
-  const currentAdjustments = 0; 
-  const approvedLeaveTaken = defaultBalanceForType - currentBalance + currentAdjustments; 
+  if (selectedEmp) {
+    if (leaveBalances && leaveBalances[mappedType] && typeof leaveBalances[mappedType] === "object") {
+      entitlement = leaveBalances[mappedType].entitlement || 0;
+      currentBalance = leaveBalances[mappedType].balance || 0;
+      currentAdjustments = leaveBalances[mappedType].adjustments || 0;
+      approvedLeaveTaken = leaveBalances[mappedType].taken || 0;
+    } else {
+      // Fallback
+      entitlement = mappedType === "Annual & Emergency Leave" 
+        ? (selectedEmp.annual_leave_entitlement || 14) 
+        : (mappedType === "Sick Leave (MC)" ? 14 : 0);
+      currentBalance = (leaveBalances && typeof leaveBalances[mappedType] === "number") ? leaveBalances[mappedType] : entitlement;
+      currentAdjustments = 0;
+      approvedLeaveTaken = entitlement - currentBalance;
+    }
+  }
 
   const adjValue = adjustmentType === "Add Leave" ? adjDays : -adjDays;
   const newBalance = currentBalance + adjValue;
@@ -1455,19 +1485,19 @@ function ManualLeaveAdjustmentForm({
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Annual Entitlement</span>
-                <span className="font-medium">{entitlement} Days</span>
+                <span className="font-medium">{selectedEmp ? `${entitlement} Days` : "-"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Current Adjustments</span>
-                <span className="font-medium">{currentAdjustments > 0 ? '+' : ''}{currentAdjustments} Days</span>
+                <span className="font-medium">{selectedEmp ? `${currentAdjustments > 0 ? '+' : ''}${currentAdjustments} Days` : "-"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Approved Leave Taken</span>
-                <span className="font-medium">{approvedLeaveTaken} Days</span>
+                <span className="font-medium">{selectedEmp ? `${approvedLeaveTaken} Days` : "-"}</span>
               </div>
               <div className="border-t border-border/60 my-1 pt-1 flex justify-between font-bold text-[#7B0099] dark:text-purple-400">
                 <span>Current Balance</span>
-                <span>{currentBalance} Days</span>
+                <span>{selectedEmp ? `${currentBalance} Days` : "-"}</span>
               </div>
             </div>
           </div>
@@ -1477,13 +1507,13 @@ function ManualLeaveAdjustmentForm({
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Adjustment</span>
-                <span className={`font-bold ${adjValue > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                  {adjValue > 0 ? '+' : ''}{adjValue} Days
+                <span className={`font-bold ${!selectedEmp ? 'text-muted-foreground' : (adjValue > 0 ? 'text-emerald-600' : 'text-rose-600')}`}>
+                  {selectedEmp ? `${adjValue > 0 ? '+' : ''}${adjValue} Days` : "-"}
                 </span>
               </div>
               <div className="border-t border-border/60 mt-7 pt-1 flex justify-between font-black text-amber-600">
                 <span>New Balance</span>
-                <span>{newBalance} Days</span>
+                <span>{selectedEmp ? `${newBalance} Days` : "-"}</span>
               </div>
             </div>
           </div>
