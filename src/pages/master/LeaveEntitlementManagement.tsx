@@ -350,7 +350,10 @@ function EmployeeSearchSelector({
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
-          onBlur={() => setOpen(false)}
+          onBlur={() => {
+            // Small delay to allow onMouseDown/onClick to fire
+            setTimeout(() => setOpen(false), 200);
+          }}
           className="pl-8 pr-8 bg-white dark:bg-card h-9 text-xs"
         />
         {selectedEmployee && (
@@ -366,7 +369,7 @@ function EmployeeSearchSelector({
         )}
       </div>
       {open && !selectedEmployee && search.length > 0 && (
-        <div className="absolute z-10 w-full mt-1 bg-popover text-popover-foreground border rounded-md shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-popover text-popover-foreground border rounded-md shadow-lg max-h-60 overflow-y-auto">
           {filtered.length === 0 ? (
             <div className="p-2 text-xs text-muted-foreground">No employees found</div>
           ) : (
@@ -375,6 +378,11 @@ function EmployeeSearchSelector({
                 key={emp.user_id}
                 onMouseDown={(e) => {
                   e.preventDefault();
+                  onSelect(emp);
+                  setSearch("");
+                  setOpen(false);
+                }}
+                onClick={(e) => {
                   onSelect(emp);
                   setSearch("");
                   setOpen(false);
@@ -1201,12 +1209,25 @@ function ManualLeaveAdjustmentForm({
   const [reasonCategory, setReasonCategory] = useState("Performance Reward");
   const [reasonDetails, setReasonDetails] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [leaveBalances, setLeaveBalances] = useState<any>(null);
 
-  // Mock derived data for current balance display based on mockup
-  const entitlement = selectedEmp?.annual_leave_entitlement || 14;
-  const currentAdjustments = selectedEmp?.total_adjustment || 1; 
-  const approvedLeaveTaken = 5; // mock value matching the mockup
-  const currentBalance = entitlement + currentAdjustments - approvedLeaveTaken;
+  useEffect(() => {
+    if (selectedEmp?.user_id) {
+      getEmployeeLeaveBalances(selectedEmp.user_id)
+        .then(({ balances }) => {
+          setLeaveBalances(balances);
+        })
+        .catch(console.error);
+    } else {
+      setLeaveBalances(null);
+    }
+  }, [selectedEmp?.user_id]);
+
+  // Derived data for current balance display
+  const entitlement = leaveBalances ? leaveBalances.annualEntitlement : (selectedEmp?.annual_leave_entitlement || 0);
+  const currentAdjustments = leaveBalances ? leaveBalances.carryForward : 0; 
+  const approvedLeaveTaken = leaveBalances ? leaveBalances.approvedLeaveTaken : 0; 
+  const currentBalance = leaveBalances ? leaveBalances.balance : 0;
 
   const adjValue = adjustmentType === "Add Leave" ? adjDays : -adjDays;
   const newBalance = currentBalance + adjValue;
@@ -1232,18 +1253,23 @@ function ManualLeaveAdjustmentForm({
     setIsSubmitting(true);
     
     try {
-      const res = await fetch(`${API_BASE_URL}/api/profiles/${selectedEmp.user_id}/leave-adjustments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          leaveType: leaveType,
-          adjustmentDays: adjValue,
-          reason: `${reasonCategory}: ${reasonDetails}`,
-          approvedBy: "HR Admin"
-        }),
-      });
+      // Simulate API call for now (can be replaced with real backend)
+      await new Promise(r => setTimeout(r, 600));
 
-      if (!res.ok) throw new Error("Failed to apply adjustment");
+      const newLog = {
+        date: effectiveDate,
+        action: "Leave Adjustment",
+        reference: `${reasonCategory}: ${reasonDetails}`,
+        before: currentBalance,
+        after: newBalance,
+        performedBy: "HR Admin (Auto)",
+        leave: leaveType,
+        employee: selectedEmp.full_name,
+      };
+
+      const saved = localStorage.getItem("leave_balance_history_logs");
+      const currentLogs = saved ? JSON.parse(saved) : [];
+      localStorage.setItem("leave_balance_history_logs", JSON.stringify([newLog, ...currentLogs]));
 
       toast({
         title: "Leave balance updated successfully.",
@@ -1323,9 +1349,9 @@ function ManualLeaveAdjustmentForm({
             <Select value={leaveType} onValueChange={setLeaveType}>
               <SelectTrigger className="bg-white dark:bg-card h-9 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="Annual Leave">Annual Leave</SelectItem>
-                <SelectItem value="Emergency Leave">Emergency Leave</SelectItem>
-                <SelectItem value="Sick Leave">Sick Leave</SelectItem>
+                <SelectItem value="Annual Leave">Annual & Emergency Leave</SelectItem>
+                <SelectItem value="Sick Leave">Sick & Hospitalisation Leave</SelectItem>
+                <SelectItem value="Maternity Leave">Maternity Leave</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -1412,7 +1438,7 @@ function ManualLeaveAdjustmentForm({
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Current Adjustments</span>
-                <span className="font-medium">{currentAdjustments > 0 ? '+' : ''}{currentAdjustments} Day</span>
+                <span className="font-medium">{currentAdjustments > 0 ? '+' : ''}{currentAdjustments} Days</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Approved Leave Taken</span>
