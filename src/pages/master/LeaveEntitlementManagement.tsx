@@ -1212,7 +1212,23 @@ function ManualLeaveAdjustmentForm({
   const newBalance = currentBalance + adjValue;
 
   const handleSave = async () => {
-    if (!selectedEmp) return;
+    if (!selectedEmp) {
+      toast({ title: "Validation Error", description: "Please select an employee.", variant: "destructive" });
+      return;
+    }
+    if (adjDays <= 0) {
+      toast({ title: "Validation Error", description: "Adjustment amount must be greater than 0.", variant: "destructive" });
+      return;
+    }
+    if (!reasonDetails.trim()) {
+      toast({ title: "Validation Error", description: "Reason details are required.", variant: "destructive" });
+      return;
+    }
+    if (newBalance < 0) {
+      toast({ title: "Validation Error", description: "Deduction cannot result in a negative balance.", variant: "destructive" });
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -1230,8 +1246,15 @@ function ManualLeaveAdjustmentForm({
       if (!res.ok) throw new Error("Failed to apply adjustment");
 
       toast({
-        title: "Adjustment Applied Successfully",
-        description: `${adjValue > 0 ? 'Added' : 'Deducted'} ${Math.abs(adjValue)} days for ${selectedEmp.full_name}`,
+        title: "Leave balance updated successfully.",
+        description: (
+          <div className="mt-1 space-y-1 text-xs">
+            <div>Employee: {selectedEmp.full_name}</div>
+            <div>{leaveType}</div>
+            <div>Adjustment: {adjValue > 0 ? '+' : ''}{adjValue} Days</div>
+            <div>New Balance: {newBalance} Days</div>
+          </div>
+        ),
       });
       onRefresh?.();
       onCancel();
@@ -1355,8 +1378,13 @@ function ManualLeaveAdjustmentForm({
                   <SelectTrigger className="bg-white dark:bg-card h-9 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Performance Reward">Performance Reward</SelectItem>
-                    <SelectItem value="System Correction">System Correction</SelectItem>
                     <SelectItem value="Carry Forward">Carry Forward</SelectItem>
+                    <SelectItem value="Manual Correction">Manual Correction</SelectItem>
+                    <SelectItem value="Special Approval">Special Approval</SelectItem>
+                    <SelectItem value="Compensation">Compensation</SelectItem>
+                    <SelectItem value="System Migration">System Migration</SelectItem>
+                    <SelectItem value="Payroll Correction">Payroll Correction</SelectItem>
+                    <SelectItem value="Disciplinary Deduction">Disciplinary Deduction</SelectItem>
                     <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>

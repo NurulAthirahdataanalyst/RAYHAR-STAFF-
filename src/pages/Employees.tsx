@@ -749,6 +749,23 @@ export default function Employees() {
 
                   {/* Right Columns: Advanced Analytics (8 cols) */}
                   <div className="lg:col-span-8 space-y-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-0 gap-3">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1 bg-blue-50 text-blue-600 rounded">
+                          <TrendingUp className="h-3 w-3" />
+                        </div>
+                        <h3 className="text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">Attendance Performance</h3>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          type="date" 
+                          value={analyticsDate}
+                          onChange={(e) => setAnalyticsDate(e.target.value)}
+                          className="w-32 h-8 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-800/60 dark:border-slate-700"
+                        />
+                      </div>
+                    </div>
+
                     {loadingAnalytics ? (
                       <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm">
                         <Loader2 className="w-8 h-8 animate-spin mb-3 text-[#7B0099]" />
@@ -758,23 +775,6 @@ export default function Employees() {
                       <>
                         {/* Attendance Performance Section */}
                         <section>
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-3">
-                            <div className="flex items-center gap-2">
-                              <div className="p-1 bg-blue-50 text-blue-600 rounded">
-                                <TrendingUp className="h-3 w-3" />
-                              </div>
-                              <h3 className="text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">Attendance Performance</h3>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Input 
-                                type="date" 
-                                value={analyticsDate}
-                                onChange={(e) => setAnalyticsDate(e.target.value)}
-                                className="w-32 h-8 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-800/60 dark:border-slate-700"
-                              />
-                            </div>
-                          </div>
-                          
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {/* Monthly Rate Card */}
                             <Card className="shadow-sm border-slate-200 dark:border-slate-800/60 hover:shadow-md transition-shadow duration-200">
