@@ -5361,36 +5361,15 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       branchStats[r.branch] = { total: parseInt(r.count), onTime: 0, late: 0, onLeave: 0, compLeave: 0, absent: 0, outstation: 0 };
     });
 
-    // 1. Process Attendances
+    // 1. Process Attendances (Monthly computation)
     const branchMonthlyAttendance = {};
     attRows.forEach(a => {
       const b = a.branch || 'HQ';
       if (!branchMonthlyAttendance[b]) branchMonthlyAttendance[b] = 0;
       branchMonthlyAttendance[b]++;
-
-      const dateObj = new Date(a.clock_in);
-      const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
-      if (dateStr === targetDateStr && branchStats[b]) {
-        if (!outstationEmployees.has(a.user_id)) {
-          if (parseInt(a.is_late) === 1) branchStats[b].late++;
-          else branchStats[b].onTime++;
-        }
-      }
     });
 
-    // 2. Process Leaves
-    leaveRows.forEach(lr => {
-      const startObj = new Date(lr.start_date);
-      const endObj = new Date(lr.end_date);
-      const start = new Date(startObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
-      const end = new Date(endObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
-      if (targetDateStr >= start && targetDateStr <= end && lr.status === 'Approved') {
-        const branch = allProfiles.find(p => p.user_id === lr.user_id)?.branch;
-        if (branch && branchStats[branch]) branchStats[branch].onLeave++;
-      }
-    });
-
-    // 3. Process Outstation
+    // 2. Process Outstation (Need the data for priority logic)
     const [outstationRows] = await pool.query(
       `SELECT p.branch, o.user_id 
        FROM outstation_assignments o
@@ -5398,25 +5377,34 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
        WHERE o.status != 'Cancelled' AND ?::date BETWEEN DATE(o.start_date) AND DATE(o.end_date)`,
       [targetDateStr]
     );
-    outstationRows.forEach(r => {
-      if (branchStats[r.branch]) branchStats[r.branch].outstation++;
-    });
 
-    // 4. Process Company Leave & Absent
+    // 3. Day View computation (Single Pass via Priority)
     allProfiles.forEach(p => {
       const b = p.branch;
       if (b && branchStats[b]) {
-        if (companyLeaveEmployees.has(p.user_id)) {
-           branchStats[b].compLeave++;
-        } else {
-           const present = attRows.some(a => a.user_id === p.user_id && new Date(new Date(a.clock_in).getTime() + 8*3600*1000).toISOString().split('T')[0] === targetDateStr);
-           const onLeave = leaveRows.some(lr => lr.user_id === p.user_id && lr.status === 'Approved' && targetDateStr >= new Date(new Date(lr.start_date).getTime() + 8*3600*1000).toISOString().split('T')[0] && targetDateStr <= new Date(new Date(lr.end_date).getTime() + 8*3600*1000).toISOString().split('T')[0]);
-           const outstation = outstationRows.some(o => o.user_id === p.user_id);
-           
-           if (!present && !onLeave && !outstation) {
-             branchStats[b].absent++;
-           }
-        }
+         const isOnLeave = leaveRows.some(lr => lr.user_id === p.user_id && lr.status === 'Approved' && targetDateStr >= new Date(new Date(lr.start_date).getTime() + 8*3600*1000).toISOString().split('T')[0] && targetDateStr <= new Date(new Date(lr.end_date).getTime() + 8*3600*1000).toISOString().split('T')[0]);
+         const isCompanyLeave = companyLeaveEmployees.has(p.user_id);
+         
+         const att = attRows.find(a => a.user_id === p.user_id && new Date(new Date(a.clock_in).getTime() + 8*3600*1000).toISOString().split('T')[0] === targetDateStr);
+         const isPresent = !!att;
+         const isLate = isPresent && parseInt(att.is_late) === 1;
+
+         // Fetch outstation for this specific user
+         const isOutstation = outstationRows.some(o => o.user_id === p.user_id);
+
+         // Priority logic:
+         if (isOnLeave) {
+            branchStats[b].onLeave++;
+         } else if (isCompanyLeave) {
+            branchStats[b].compLeave++;
+         } else if (isOutstation) {
+            branchStats[b].outstation++;
+         } else if (isPresent) {
+            if (isLate) branchStats[b].late++;
+            else branchStats[b].onTime++;
+         } else {
+            branchStats[b].absent++;
+         }
       }
     });
 
