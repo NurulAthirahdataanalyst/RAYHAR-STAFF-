@@ -5420,6 +5420,44 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       else realLeaveAnalytics.unpaid += count;
     });
 
+    const [attentionRows] = await pool.query(
+      `SELECT
+         p.user_id as id,
+         p.full_name as name,
+         CASE WHEN p.department = 'General' THEN 'Employee' ELSE 'Executive' END as role,
+         p.department as dept,
+         p.branch,
+         COALESCE(lr.annual_days_used, 0) as taken,
+         COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.total_adjustment, 0) as total
+       FROM profiles p
+       LEFT JOIN (
+         SELECT employee_id, SUM(adjustment_days) as total_adjustment 
+         FROM leave_balance_adjustments 
+         WHERE leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan') 
+         GROUP BY employee_id
+       ) adj ON adj.employee_id = p.user_id
+       LEFT JOIN (
+         SELECT user_id, 
+                SUM(CASE WHEN status = 'Approved' THEN days ELSE 0 END) as annual_days_used
+         FROM leave_requests
+         WHERE leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan')
+         GROUP BY user_id
+       ) lr ON lr.user_id = p.user_id
+       WHERE p.status = 'Active' ${profileFilter}
+       ORDER BY taken DESC
+       LIMIT 5`,
+      pFilterParams
+    );
+    const attentionEmployees = attentionRows.map(r => ({
+      id: r.id,
+      name: r.name,
+      role: r.role,
+      dept: r.dept || 'General',
+      branch: r.branch || 'HQ',
+      taken: parseInt(r.taken) || 0,
+      total: parseInt(r.total) || 14
+    }));
+
     let finalAbsentList = [];
     allProfiles.forEach(p => {
        const isOnLeave = leaveRows.some(lr => lr.user_id === p.user_id && lr.status === 'Approved' && targetDateStr >= new Date(new Date(lr.start_date).getTime() + 8*3600*1000).toISOString().split('T')[0] && targetDateStr <= new Date(new Date(lr.end_date).getTime() + 8*3600*1000).toISOString().split('T')[0]);
@@ -5559,7 +5597,8 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       performance: {
         topAttendance,
         topLate,
-        allAttendance: rankings
+        allAttendance: rankings,
+        attentionEmployees
       },
       sseInitialPayload
     });

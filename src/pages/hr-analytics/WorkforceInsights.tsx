@@ -1703,7 +1703,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
 
          {/* Row 3: Employees Requiring Attention */}
          <div className="w-full mb-6">
-           <EmployeesRequiringAttentionCard variant="grid" />
+           <EmployeesRequiringAttentionCard data={data.performance?.attentionEmployees || []} variant="grid" />
          </div>
 
          {/* SUPPORTING SECTION */}
