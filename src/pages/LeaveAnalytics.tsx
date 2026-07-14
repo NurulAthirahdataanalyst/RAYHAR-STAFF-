@@ -518,10 +518,14 @@ export default function LeaveAnalytics() {
         };
       }
       map[r.user_id].total++;
-      map[r.user_id].days += r.days;
-      if (r.status === "Approved") map[r.user_id].approved++;
-      else if (r.status === "Rejected") map[r.user_id].rejected++;
-      else map[r.user_id].pending++;
+      if (r.status === "Approved") {
+        map[r.user_id].approved++;
+        map[r.user_id].days += r.days;
+      } else if (r.status === "Rejected") {
+        map[r.user_id].rejected++;
+      } else {
+        map[r.user_id].pending++;
+      }
     });
     return Object.values(map).sort((a, b) => b.total - a.total);
   }, [records]);
