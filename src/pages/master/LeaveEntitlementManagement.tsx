@@ -1333,8 +1333,9 @@ function ManualLeaveAdjustmentForm({
         performed_role: 'HR Admin',
         source_module: 'Manual Leave Adjustments',
       }));
-      
-      updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, leaveType, newBalance);
+      // Update base entitlement
+      const newEntitlement = entitlement + adjValue;
+      updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, leaveType, newEntitlement);
 
       toast({
         title: "Leave balance updated successfully.",
