@@ -5278,7 +5278,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
 
     // 3. Leave Stats
     const [leaveRows] = await pool.query(
-      `SELECT lr.status, lr.start_date, lr.end_date, p.full_name as name
+      `SELECT lr.user_id, lr.status, lr.start_date, lr.end_date, p.full_name as name
        FROM leave_requests lr
        JOIN profiles p ON p.user_id = lr.user_id
        WHERE EXTRACT(MONTH FROM lr.start_date) = ? AND EXTRACT(YEAR FROM lr.start_date) = ? AND p.status = 'Active' ${profileFilter}`,
