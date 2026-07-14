@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +39,7 @@ import {
   LayoutGrid,
   List,
   Plus,
+  Search,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -218,6 +220,16 @@ export default function Branches() {
       (localStorage.getItem("branchesViewMode") as "grid" | "line") || "grid"
     );
   });
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredBranches = useMemo(() => {
+    return allBranches.filter(
+      (b) =>
+        b.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.location?.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [allBranches, searchQuery]);
 
   useEffect(() => {
     localStorage.setItem("branchesViewMode", viewMode);
@@ -774,33 +786,44 @@ export default function Branches() {
             </div>
 
             {!loadingBranches && (
-              <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/40 shrink-0 self-start sm:self-auto">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setViewMode("grid")}
-                  className={`rounded-lg px-3 py-1.5 h-8 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
-                    viewMode === "grid"
-                      ? "bg-[#7B0099] text-white hover:bg-[#7B0099]/90 shadow-md"
-                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                  }`}
-                >
-                  <LayoutGrid className="w-3.5 h-3.5" />
-                  <span>Grid</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setViewMode("line")}
-                  className={`rounded-lg px-3 py-1.5 h-8 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
-                    viewMode === "line"
-                      ? "bg-[#7B0099] text-white hover:bg-[#7B0099]/90 shadow-md"
-                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                  }`}
-                >
-                  <List className="w-3.5 h-3.5" />
-                  <span>Line</span>
-                </Button>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 shrink-0 self-start sm:self-auto w-full sm:w-auto">
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search branches..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 h-9 rounded-xl border-border/60 bg-muted/30 focus-visible:ring-[#7B0099]/30 text-xs font-medium"
+                  />
+                </div>
+                <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/40 shrink-0 w-full sm:w-auto">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setViewMode("grid")}
+                    className={`rounded-lg px-3 py-1.5 h-8 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
+                      viewMode === "grid"
+                        ? "bg-[#7B0099] text-white hover:bg-[#7B0099]/90 shadow-md"
+                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                    }`}
+                  >
+                    <LayoutGrid className="w-3.5 h-3.5" />
+                    <span>Grid</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setViewMode("line")}
+                    className={`rounded-lg px-3 py-1.5 h-8 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
+                      viewMode === "line"
+                        ? "bg-[#7B0099] text-white hover:bg-[#7B0099]/90 shadow-md"
+                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                    }`}
+                  >
+                    <List className="w-3.5 h-3.5" />
+                    <span>Line</span>
+                  </Button>
+                </div>
               </div>
             )}
           </div>
@@ -813,7 +836,7 @@ export default function Branches() {
             </div>
           ) : viewMode === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {allBranches.map((branch) => {
+              {filteredBranches.map((branch) => {
                 const stat = branchStats.find((s) => s.branch === branch.code);
                 const totalEmployees = stat ? stat.total_employees : 0;
                 const presentToday = stat ? stat.present_today : 0;
@@ -977,7 +1000,7 @@ export default function Branches() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {allBranches.map((branch) => {
+                      {filteredBranches.map((branch) => {
                         const stat = branchStats.find(
                           (s) => s.branch === branch.code,
                         );
