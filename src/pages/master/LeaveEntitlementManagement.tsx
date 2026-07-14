@@ -263,6 +263,10 @@ export default function LeaveEntitlementManagement() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Leave Entitlement Activity KPI Panel */}
+          <EntitlementActivityCard onViewHistory={() => setActiveModule("Leave Balance History")} />
+
         </>
       ) : (
         // ACTIVE MODULE VIEWS
