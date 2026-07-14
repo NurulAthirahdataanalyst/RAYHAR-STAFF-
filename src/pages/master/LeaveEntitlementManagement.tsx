@@ -330,6 +330,19 @@ function EmployeeSearchSelector({
 }) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const filtered = employees.filter(
     (e) =>
@@ -338,7 +351,7 @@ function EmployeeSearchSelector({
   );
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full" ref={containerRef}>
       <div className="relative">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
@@ -349,11 +362,7 @@ function EmployeeSearchSelector({
             setSearch(e.target.value);
             setOpen(true);
           }}
-          onFocus={() => setOpen(true)}
-          onBlur={() => {
-            // Small delay to allow onMouseDown/onClick to fire
-            setTimeout(() => setOpen(false), 200);
-          }}
+          onClick={() => setOpen(true)}
           className="pl-8 pr-8 bg-white dark:bg-card h-9 text-xs"
         />
         {selectedEmployee && (
@@ -361,14 +370,16 @@ function EmployeeSearchSelector({
             onClick={() => {
               onSelect(null);
               setSearch("");
+              setOpen(true);
             }}
             className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
+            type="button"
           >
             <X className="h-4 w-4" />
           </button>
         )}
       </div>
-      {open && !selectedEmployee && search.length > 0 && (
+      {open && !selectedEmployee && (
         <div className="absolute z-50 w-full mt-1 bg-popover text-popover-foreground border rounded-md shadow-lg max-h-60 overflow-y-auto">
           {filtered.length === 0 ? (
             <div className="p-2 text-xs text-muted-foreground">No employees found</div>
@@ -1196,12 +1207,11 @@ function AdditionalLeaveAllocationForm({
    ========================================================== */
 function ManualLeaveAdjustmentForm({
   employees,
-  selectedEmp,
-  setSelectedEmp,
   onCancel,
   onRefresh
 }: any) {
   const { toast } = useToast();
+  const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
   const [leaveType, setLeaveType] = useState("Annual Leave");
   const [adjustmentType, setAdjustmentType] = useState("Add Leave");
   const [adjDays, setAdjDays] = useState(1);
