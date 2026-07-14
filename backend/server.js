@@ -5940,6 +5940,79 @@ app.get("/api/reports/generator", async (req, res) => {
       `, params);
       
       res.json({ success: true, data: rows });
+    } else if (type === 'outstation') {
+      let filters = [];
+      let params = [];
+      
+      if (branch && branch !== 'all') {
+         filters.push("p.branch = ?");
+         params.push(branch);
+      }
+      if (department && department !== 'all') {
+         filters.push("p.department = ?");
+         params.push(department);
+      }
+      if (month && month !== 'all') {
+         filters.push("EXTRACT(MONTH FROM o.start_date) = ?");
+         params.push(month);
+      }
+      if (year && year !== 'all') {
+         filters.push("EXTRACT(YEAR FROM o.start_date) = ?");
+         params.push(year);
+      }
+      
+      let outWhere = filters.length > 0 ? "WHERE " + filters.join(" AND ") : "";
+      
+      const [rows] = await pool.query(`
+        SELECT 
+          COALESCE(NULLIF(o.project, '-'), NULLIF(o.purpose, '-'), 'General') as event_name,
+          o.destination,
+          o.start_date,
+          o.end_date,
+          o.total_days,
+          o.status,
+          o.user_id,
+          p.full_name,
+          p.department,
+          p.branch
+        FROM outstation_assignments o
+        JOIN profiles p ON p.user_id = o.user_id
+        ${outWhere}
+        ORDER BY o.start_date DESC
+      `, params);
+      
+      res.json({ success: true, data: rows });
+    } else if (type === 'company_leave') {
+      let filters = [];
+      let params = [];
+      
+      if (month && month !== 'all') {
+         filters.push("EXTRACT(MONTH FROM start_date) = ?");
+         params.push(month);
+      }
+      if (year && year !== 'all') {
+         filters.push("EXTRACT(YEAR FROM start_date) = ?");
+         params.push(year);
+      }
+      
+      let clWhere = filters.length > 0 ? "WHERE " + filters.join(" AND ") : "";
+      
+      const [rows] = await pool.query(`
+        SELECT 
+          leave_name,
+          leave_type,
+          start_date,
+          end_date,
+          applies_to,
+          branch_id,
+          department_id,
+          status
+        FROM company_leave_calendar
+        ${clWhere}
+        ORDER BY start_date DESC
+      `, params);
+      
+      res.json({ success: true, data: rows });
     } else {
       let leaveFilters = [];
       let leaveParams = [];

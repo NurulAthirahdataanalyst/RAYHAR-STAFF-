@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Download, FileBarChart, Loader2, Users, TrendingUp, History, Calendar, Filter, 
   Activity, Clock, AlertCircle, Sparkles, Plus, Check, Trash2, Building2, UserPlus, 
-  Settings2, RefreshCw, BarChart2, PieChart, Info, ShieldAlert, MapPin, ChevronDown, FileText, FileSpreadsheet
+  Settings2, RefreshCw, BarChart2, PieChart, Info, ShieldAlert, MapPin, ChevronDown, FileText, FileSpreadsheet, Briefcase
 } from "lucide-react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -491,6 +491,22 @@ export default function Reports() {
              const totalHrs = calculateWorkingHours(r.clock_in, r.clock_out);
              return [r.user_id, r.full_name, r.branch, dateStr, timeIn, timeOut, totalHrs];
           });
+        } else if (generatorType === "outstation") {
+          headers = ["Event Name", "Destination", "Start Date", "End Date", "Days", "Status", "Employee Name", "Department", "Branch"];
+          rows = data.data.map((r: any) => [
+            r.event_name, r.destination, 
+            new Date(r.start_date).toLocaleDateString(), 
+            new Date(r.end_date).toLocaleDateString(), 
+            r.total_days, r.status, r.full_name, r.department, r.branch
+          ]);
+        } else if (generatorType === "company_leave") {
+          headers = ["Leave Name", "Type", "Start Date", "End Date", "Applies To", "Branch", "Department", "Status"];
+          rows = data.data.map((r: any) => [
+            r.leave_name, r.leave_type || "N/A", 
+            new Date(r.start_date).toLocaleDateString(), 
+            new Date(r.end_date).toLocaleDateString(), 
+            r.applies_to, r.branch_id || "All", r.department_id || "All", r.status
+          ]);
         } else {
           headers = ["Employee ID", "Employee Name", "Branch", "Leave Type", "Days", "Status"];
           rows = data.data.map((r: any) => [r.user_id, r.full_name, r.branch, r.leave_type, r.days, r.status]);
@@ -502,9 +518,18 @@ export default function Reports() {
            return;
         }
         
+        const escapeCsv = (val: any) => {
+          if (val === null || val === undefined) return '';
+          const str = String(val);
+          if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+            return `"${str.replace(/"/g, '""')}"`;
+          }
+          return str;
+        };
+
         const csvContent = [
           headers.join(","),
-          ...rows.map(row => row.join(","))
+          ...rows.map(row => row.map(escapeCsv).join(","))
         ].join("\n");
 
         const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -688,6 +713,36 @@ export default function Reports() {
                       <span className="text-xs font-black uppercase tracking-wider">Leave Utilization</span>
                     </div>
                     <span className="text-[10px] font-medium opacity-80 leading-normal">Department utilization rates and absence charts</span>
+                  </button>
+
+                  <button
+                    onClick={() => setGeneratorType("outstation")}
+                    className={`p-4 rounded-2xl border text-left flex flex-col gap-1.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
+                      generatorType === "outstation"
+                        ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground"
+                        : "border-border/50 bg-background/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Briefcase className={`w-4 h-4 ${generatorType === "outstation" ? "text-[#7B0099]" : ""}`} />
+                      <span className="text-xs font-black uppercase tracking-wider">Outstation Assignment</span>
+                    </div>
+                    <span className="text-[10px] font-medium opacity-80 leading-normal">Official business travel and assignment activities</span>
+                  </button>
+
+                  <button
+                    onClick={() => setGeneratorType("company_leave")}
+                    className={`p-4 rounded-2xl border text-left flex flex-col gap-1.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
+                      generatorType === "company_leave"
+                        ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground"
+                        : "border-border/50 bg-background/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Building2 className={`w-4 h-4 ${generatorType === "company_leave" ? "text-[#7B0099]" : ""}`} />
+                      <span className="text-xs font-black uppercase tracking-wider">Company Leave Calendar</span>
+                    </div>
+                    <span className="text-[10px] font-medium opacity-80 leading-normal">Corporate holidays and organization-wide leave schedule</span>
                   </button>
                 </div>
               </div>
