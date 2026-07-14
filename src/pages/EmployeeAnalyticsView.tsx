@@ -309,18 +309,18 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             return dateStr >= startStr && dateStr <= endStr && o.status !== 'Cancelled';
           });
 
-          if (hasOutstation) {
-            if (isPastOrToday) totalWorkingDaysPassed++;
-            outstationDaysCount++;
-          } else if (logsOnDay.length > 0) {
-            if (isPastOrToday) totalWorkingDaysPassed++;
-            // Present
-          } else if (hasLeave) {
+          if (hasLeave) {
             if (isPastOrToday) totalWorkingDaysPassed++;
             leaveDaysCount++;
           } else if (hasCompanyLeave) {
             companyLeaveDaysCount++;
             // Exclude from working days count
+          } else if (hasOutstation) {
+            if (isPastOrToday) totalWorkingDaysPassed++;
+            outstationDaysCount++;
+          } else if (logsOnDay.length > 0) {
+            if (isPastOrToday) totalWorkingDaysPassed++;
+            // Present
           } else if (isPastOrToday) {
             totalWorkingDaysPassed++;
             absentDays++;
@@ -393,7 +393,14 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           return dateStr >= startStr && dateStr <= endStr && o.status !== 'Cancelled';
         });
 
-        if (hasOutstation) {
+        if (hasLeave) {
+          if (isPastOrToday) totalWorkingDaysPassed++;
+          leaveDaysCount++;
+          heatmapData[d] = 'On Leave';
+        } else if (hasCompanyLeave) {
+          companyLeaveDaysCount++;
+          heatmapData[d] = 'Company Leave';
+        } else if (hasOutstation) {
           if (isPastOrToday) totalWorkingDaysPassed++;
           outstationDaysCount++;
           heatmapData[d] = 'Outstation';
@@ -406,13 +413,6 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           } else {
             heatmapData[d] = 'Present (On Time)';
           }
-        } else if (hasLeave) {
-          if (isPastOrToday) totalWorkingDaysPassed++;
-          leaveDaysCount++;
-          heatmapData[d] = 'On Leave';
-        } else if (hasCompanyLeave) {
-          companyLeaveDaysCount++;
-          heatmapData[d] = 'Company Leave';
         } else if (isPastOrToday) {
           totalWorkingDaysPassed++;
           absentDays++;
