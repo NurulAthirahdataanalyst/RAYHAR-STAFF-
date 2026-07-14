@@ -337,7 +337,7 @@ export default function LeaveAdmin() {
           <div className="p-6 md:p-8 space-y-6">
 
       {/* 4 Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
         {[
           { title: "Total Leaves", count: requestsByMonth.length, bg: "bg-emerald-500", icon: CheckCircle2 },
           { title: "Approved Leaves", count: approvedCount, bg: "bg-pink-500", icon: FileText },
@@ -349,8 +349,8 @@ export default function LeaveAdmin() {
               <stat.icon className="text-white w-8 h-8 z-10" />
               <div className="absolute -right-[20px] top-0 bottom-0 w-[40px] bg-card transform skew-x-[-20deg]" />
             </div>
-            <div className="flex-1 flex flex-col justify-center items-end pr-5 relative z-10">
-              <div className="text-[13px] font-medium text-muted-foreground whitespace-nowrap">{stat.title}</div>
+            <div className="flex-1 flex flex-col justify-center items-end pr-3 sm:pr-5 relative z-10 min-w-0">
+              <div className="text-[12px] sm:text-[13px] font-medium text-muted-foreground text-right leading-tight break-words">{stat.title}</div>
               <div className="text-2xl sm:text-3xl font-bold mt-0.5 tracking-tight">{stat.count}</div>
             </div>
           </div>

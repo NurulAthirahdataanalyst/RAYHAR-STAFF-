@@ -241,7 +241,7 @@ export default function OutstationReports() {
             <>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
                 <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Event Name</p>
-                <p className="text-xl font-black text-gray-800 dark:text-gray-100 mt-2 truncate" title={selectedEvent!.eventName}>{selectedEvent!.eventName}</p>
+                <p className="text-xl font-black text-gray-800 dark:text-gray-100 mt-2 line-clamp-3 leading-tight" title={selectedEvent!.eventName}>{selectedEvent!.eventName}</p>
               </div>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
                 <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Total Staff</p>
@@ -257,7 +257,7 @@ export default function OutstationReports() {
               </div>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
                 <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Destination</p>
-                <p className="text-xl font-bold text-gray-700 dark:text-gray-300 mt-2 truncate" title={selectedEvent!.destination}>{selectedEvent!.destination}</p>
+                <p className="text-xl font-bold text-gray-700 dark:text-gray-300 mt-2 line-clamp-3 leading-tight" title={selectedEvent!.destination}>{selectedEvent!.destination}</p>
               </div>
             </>
           )}
