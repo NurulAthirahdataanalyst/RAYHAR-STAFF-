@@ -1333,8 +1333,10 @@ function ManualLeaveAdjustmentForm({
         performed_role: 'HR Admin',
         source_module: 'Manual Leave Adjustments',
       }));
-      // Update base entitlement
-      const newEntitlement = entitlement + adjValue;
+      // Update base entitlement properly by fetching the actual stored entitlement
+      const currentEntitlements = getEmployeeLeaveBalances(selectedEmp.user_id);
+      const currentBase = currentEntitlements[mappedType as keyof typeof currentEntitlements] || 14;
+      const newEntitlement = currentBase + adjValue;
       updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, leaveType, newEntitlement);
 
       toast({
