@@ -230,23 +230,23 @@ export default function LeaveOverview() {
       {/* Leave Balance Cards */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         {leaveBalances.map((item) => (
-          <Card key={item.label} className="relative overflow-hidden border border-border/40 shadow-[0_10px_28px_rgba(0,0,0,0.04)] dark:shadow-[0_10px_28px_rgba(0,0,0,0.18)] bg-white/90 dark:bg-card/80 backdrop-blur-md rounded-[20px] group hover:shadow-xl transition-all duration-300">
+          <Card key={item.label} className="relative overflow-hidden border border-border/40 shadow-[0_4px_16px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.12)] bg-white/90 dark:bg-card/80 backdrop-blur-md rounded-xl group hover:shadow-md transition-all duration-300">
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#7B0099]" />
-            <CardContent className="p-4 sm:p-5 space-y-2.5 sm:space-y-3 pl-5 sm:pl-5">
+            <CardContent className="p-3 sm:p-4 space-y-2 pl-4 sm:pl-4">
               <div className="flex items-center justify-between">
-                <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.22em] text-[#7B0099] dark:text-purple-400 truncate">{item.label}</p>
-                <div className="w-6 h-6 rounded-full bg-[#7B0099]/5 flex items-center justify-center">
-                  <Calendar className="w-3 h-3 text-[#7B0099]/40" />
+                <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-[#7B0099] dark:text-purple-400 truncate">{item.label}</p>
+                <div className="w-5 h-5 rounded-full bg-[#7B0099]/5 flex items-center justify-center">
+                  <Calendar className="w-2.5 h-2.5 text-[#7B0099]/40" />
                 </div>
               </div>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-3xl sm:text-[34px] font-black text-foreground group-hover:scale-110 transition-transform origin-left duration-500">{item.used}</span>
-                <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase">
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl sm:text-2xl font-black text-foreground group-hover:scale-105 transition-transform origin-left duration-500">{item.used}</span>
+                <span className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase">
                   {item.total ? `/ ${item.total} DAYS` : "USED"}
                 </span>
               </div>
-              <div className="space-y-1.5">
-                <div className="h-2 overflow-hidden rounded-full bg-[#7B0099]/10">
+              <div className="space-y-1">
+                <div className="h-1 overflow-hidden rounded-full bg-[#7B0099]/10">
                   <div
                     className="h-full rounded-full bg-[#7B0099] transition-all duration-1000 ease-out"
                     style={{
@@ -259,7 +259,7 @@ export default function LeaveOverview() {
                   />
                 </div>
                 {item.total && (
-                  <p className="text-[8px] font-black text-muted-foreground text-right uppercase tracking-widest opacity-60">
+                  <p className="text-[7px] font-black text-muted-foreground text-right uppercase tracking-widest opacity-60">
                     {item.total - item.used} Days Remaining
                   </p>
                 )}
