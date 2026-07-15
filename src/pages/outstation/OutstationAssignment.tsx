@@ -74,6 +74,7 @@ type Assignment = {
   end_date: string;
   total_days?: number;
   status: string;
+  assigned_by?: string;
   assigned_by_name?: string;
 };
 
@@ -100,6 +101,9 @@ export default function OutstationAssignment() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Assignment | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Multi-select employees
   const [selectedEmps, setSelectedEmps] = useState<Employee[]>([]);
@@ -282,14 +286,27 @@ export default function OutstationAssignment() {
     } catch { toast.error("Network error"); }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Permanently delete this outstation assignment?")) return;
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/outstation/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE_URL}/api/outstation/${deleteTarget}?userId=${encodeURIComponent(userId || "")}`, { 
+        method: "DELETE" 
+      });
       const data = await res.json();
-      if (data.success) { toast.success("Assignment deleted"); void fetchData(); }
-      else toast.error(data.error || "Failed to delete");
-    } catch { toast.error("Network error"); }
+      if (data.success) { 
+        toast.success("Assignment deleted"); 
+        setDeleteDialogOpen(false);
+        setDeleteTarget(null);
+        void fetchData(); 
+      } else { 
+        toast.error(data.message || data.error || "Failed to delete"); 
+      }
+    } catch { 
+      toast.error("Network error"); 
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-500" /></div>;
@@ -411,7 +428,26 @@ export default function OutstationAssignment() {
                           {a.status !== "Cancelled" && a.status !== "Completed" && (
                             <button onClick={() => handleCancel(a.id)} className="p-1.5 rounded-lg hover:bg-amber-50 text-amber-500 transition-colors" title="Cancel"><XCircle className="w-3.5 h-3.5" /></button>
                           )}
-                          <button onClick={() => handleDelete(a.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 transition-colors" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
+                          {String(a.assigned_by) === String(userId) ? (
+                            <button 
+                              onClick={() => {
+                                setDeleteTarget(a.id);
+                                setDeleteDialogOpen(true);
+                              }} 
+                              className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 transition-colors" 
+                              title="Delete"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          ) : (
+                            <button 
+                              disabled 
+                              className="p-1.5 rounded-lg text-gray-300 dark:text-gray-600 cursor-not-allowed" 
+                              title="Only the user who created this assignment can delete it."
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -629,6 +665,36 @@ export default function OutstationAssignment() {
                 {editTarget ? "Save Changes" : `Assign${selectedEmps.length > 1 ? ` (${selectedEmps.length})` : ""}`}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base font-black uppercase tracking-wide">
+              Delete Outstation Assignment
+            </DialogTitle>
+            <DialogDescription className="text-[12px] text-gray-500 mt-2">
+              Are you sure you want to delete this outstation assignment?
+              This action will permanently remove the assignment and cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-slate-800 mt-4">
+            <Button variant="outline" size="sm" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              onClick={confirmDelete} 
+              disabled={deleting}
+              className="gap-1.5"
+            >
+              {deleting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              Delete Assignment
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

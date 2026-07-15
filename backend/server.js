@@ -867,8 +867,22 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
     await connection.query(`ALTER TABLE company_leave_calendar ALTER COLUMN branch_id TYPE TEXT`);
     await connection.query(`ALTER TABLE company_leave_calendar ALTER COLUMN department_id TYPE TEXT`);
     await connection.query(`ALTER TABLE company_leave_calendar ALTER COLUMN leave_type DROP NOT NULL`).catch(() => {});
-    await connection.query(`DELETE FROM notifications WHERE type = 'company_leave'`).catch(() => {});
     console.log('✅ Auto-migration for company_leave_calendar completed.');
+
+    // Auto-migrate activity_logs table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS activity_logs (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR(100),
+        actor VARCHAR(200) NOT NULL,
+        action VARCHAR(200) NOT NULL,
+        target VARCHAR(200) NOT NULL,
+        context TEXT,
+        type VARCHAR(50) DEFAULT 'system',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Auto-migration for activity_logs completed.');
 
     try {
       const [roleCountRows] = await connection.query("SELECT COUNT(*) as count FROM roles");
@@ -3778,7 +3792,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         profileQueryParams
       );
 
-      const presentParams = [queryDate, queryDate, ...queryParams];
+      const presentParams = [queryDate, queryDate, queryDate, ...queryParams];
       const onLeaveParams = [queryDate, ...queryParams];
 
       const [presentRows] = await pool.query(
@@ -4211,10 +4225,18 @@ app.get("/api/dashboard-stats", async (req, res) => {
         LEFT JOIN profiles assigner ON assigner.user_id = oa.assigned_by
         WHERE oa.user_id = ?
           AND oa.created_at >= NOW() - INTERVAL '7 days'
+        UNION ALL
+        SELECT type, actor, action, target, context,
+          TO_CHAR(created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+          created_at AS sort_time,
+          'Cancelled' AS badge
+        FROM activity_logs
+        WHERE user_id = ?
+          AND DATE(created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
       )
       SELECT type, actor, action, target, context, time, badge FROM acts
       ORDER BY sort_time DESC LIMIT 10`,
-      [userId, queryDate, userId, queryDate, userId, userId, queryDate, userId]
+      [userId, queryDate, userId, queryDate, userId, userId, queryDate, userId, userId, queryDate]
     );
 
     // ── Layer 2: TEAM ACTIVITY (branch_leader, hod, hr_admin, md, finance_manager) ─
@@ -4299,10 +4321,22 @@ app.get("/api/dashboard-stats", async (req, res) => {
           LEFT JOIN profiles assigner ON assigner.user_id = oa.assigned_by
           WHERE oa.created_at >= NOW() - INTERVAL '7 days'
             AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'oa.')}
+          
+          UNION ALL
+
+          -- Outstation deletions
+          SELECT al.type, al.actor, al.action, al.target, al.context,
+            TO_CHAR(al.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+            al.created_at AS sort_time,
+            'Cancelled' AS badge
+          FROM activity_logs al
+          JOIN profiles emp ON emp.user_id = al.user_id
+          WHERE DATE(al.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
+            AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
         )
         SELECT type, actor, action, target, context, time, badge FROM team_acts
         ORDER BY sort_time DESC LIMIT 10`,
-        [queryDate, ...teamParams, ...teamParams, ...teamParams]
+        [queryDate, ...teamParams, ...teamParams, ...teamParams, queryDate, ...teamParams]
       );
       teamActivityRows = teamRows;
     }
@@ -6850,8 +6884,64 @@ app.put('/api/outstation/:id/cancel', async (req, res) => {
 app.delete('/api/outstation/:id', async (req, res) => {
   try {
     const { id } = req.params;
+
+    // 1. Retrieve the assignment
+    const [assignments] = await pool.query('SELECT * FROM outstation_assignments WHERE id = $1', [id]);
+    if (assignments.length === 0) {
+      return res.status(404).json({ success: false, error: 'Assignment not found' });
+    }
+    const assignment = assignments[0];
+
+    // 2. Verify creator matches authenticated user
+    req.user = req.user || {};
+    req.user.userId = req.user.userId || req.query.userId || req.body.userId || req.headers['x-user-id'];
+
+    if (assignment.assigned_by !== req.user.userId) {
+      return res.status(403).json({
+        success: false,
+        message: "Only the user who created this outstation assignment can delete it."
+      });
+    }
+
+    const formatApproverRole = (r) => {
+      if (!r) return "";
+      const map = {
+        'managing_director': 'Managing Director',
+        'hr_admin': 'HR',
+        'head_of_department': 'Head of Department',
+        'branch_leader': 'Branch Leader',
+        'finance_manager': 'Finance Manager'
+      };
+      return map[r.toLowerCase()] || r;
+    };
+
+    const approverRole = formatApproverRole(assignment.assigned_by_role);
+    const formattedStartDate = new Date(assignment.start_date).toLocaleDateString("en-MY", { day: "numeric", month: "long", year: "numeric" });
+    
+    // 3. Notify the affected employee
+    const notificationMsg = `Your outstation assignment scheduled for ${formattedStartDate} has been cancelled by ${approverRole} ${assignment.assigned_by_name}.`;
+    await pool.query(
+      `INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4)`,
+      [assignment.user_id, 'Outstation Assignment Cancelled', notificationMsg, 'outstation']
+    );
+
+    // 4. Record the deletion in the activity log
+    const auditActor = `[${approverRole}] ${assignment.assigned_by_name}`;
+    const auditContext = `Branch: ${assignment.branch || 'HQ'} • Destination: ${assignment.destination} • Date: ${formattedStartDate}`;
+    await pool.query(
+      `INSERT INTO activity_logs (user_id, actor, action, target, context, type) VALUES ($1, $2, $3, $4, $5, $6)`,
+      [assignment.user_id, auditActor, 'deleted an outstation assignment for', assignment.full_name, auditContext, 'outstation']
+    );
+
+    // 5. Perform the deletion
     await pool.query('DELETE FROM outstation_assignments WHERE id=$1', [id]);
-    try { broadcastPresenceUpdate({ type: 'outstation', action: 'deleted', id }); } catch (e) { console.error('Error broadcasting outstation delete:', e); }
+
+    try { 
+      broadcastPresenceUpdate({ type: 'refresh', action: 'outstation_deleted', id }); 
+    } catch (e) { 
+      console.error('Error broadcasting outstation delete:', e); 
+    }
+
     res.json({ success: true, message: 'Assignment deleted' });
   } catch (err) {
     console.error('DELETE /api/outstation/:id error:', err);
