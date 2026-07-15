@@ -326,7 +326,7 @@ export default function OutstationDashboard() {
         Spacing System: 8, 16, 24, 32, 48px
         Using standard Tailwind: 2 (8px), 4 (16px), 6 (24px), 8 (32px), 12 (48px)
       */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6">
+      <div className="py-6">
         
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">

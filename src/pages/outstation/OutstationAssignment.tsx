@@ -314,7 +314,7 @@ export default function OutstationAssignment() {
   const totalDays = calcTotalDays(form.start_date, form.end_date);
 
   return (
-    <div className="space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-8">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-8">
 
       {/* Filter Bar */}
       <Card className="border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/80 shadow-sm">
@@ -386,43 +386,43 @@ export default function OutstationAssignment() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50/60 hover:bg-slate-50/60">
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Employee</TableHead>
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Department</TableHead>
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Branch</TableHead>
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Destination</TableHead>
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Start</TableHead>
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">End</TableHead>
-                    <TableHead className="text-center font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Days</TableHead>
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Assigned By</TableHead>
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Status</TableHead>
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px]">Actions</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Employee</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Department</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Branch</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Destination</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Start</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">End</TableHead>
+                    <TableHead className="text-center font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Days</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Assigned By</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Status</TableHead>
+                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {currentItems.map(a => (
                     <TableRow key={a.id} className="hover:bg-pink-50/20 transition-colors">
-                      <TableCell className="py-3">
+                      <TableCell className="py-3 px-2.5">
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center text-[9px] font-black text-pink-800 shrink-0">
                             {(a.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                           </div>
-                          <span className="font-semibold text-gray-800 dark:text-gray-100 text-[12px] truncate max-w-[120px]" title={a.full_name}>{formatName(a.full_name)}</span>
+                          <span className="font-semibold text-gray-800 dark:text-gray-100 text-[12px] truncate max-w-[150px]" title={a.full_name}>{formatName(a.full_name)}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-gray-600 dark:text-gray-300 text-[12px]">{a.department || "—"}</TableCell>
-                      <TableCell className="text-gray-600 dark:text-gray-300 text-[12px]">{a.branch || "—"}</TableCell>
-                      <TableCell>
+                      <TableCell className="text-gray-600 dark:text-gray-300 text-[12px] px-2.5">{a.department || "—"}</TableCell>
+                      <TableCell className="text-gray-600 dark:text-gray-300 text-[12px] px-2.5">{a.branch || "—"}</TableCell>
+                      <TableCell className="px-2.5">
                         <div className="flex items-center gap-1 font-semibold text-gray-800 dark:text-gray-100 text-[12px]">
                           <MapPin className="w-3 h-3 text-pink-400 shrink-0" />{a.destination}
                         </div>
                         {a.client_company && <div className="text-[10px] text-gray-400 ml-4">{a.client_company}</div>}
                       </TableCell>
-                      <TableCell className="text-gray-500 dark:text-gray-400 whitespace-nowrap text-[12px]">{fmtDate(a.start_date)}</TableCell>
-                      <TableCell className="text-gray-500 dark:text-gray-400 whitespace-nowrap text-[12px]">{fmtDate(a.end_date)}</TableCell>
-                      <TableCell className="text-center font-black text-pink-600 text-[12px]">{a.total_days != null ? Number(a.total_days) : "—"}</TableCell>
-                      <TableCell className="text-gray-500 dark:text-gray-400 text-[12px] font-medium" title={a.assigned_by_name}>{formatName(a.assigned_by_name || "")}</TableCell>
-                      <TableCell>{statusBadge(a.status)}</TableCell>
-                      <TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400 whitespace-nowrap text-[12px] px-2.5">{fmtDate(a.start_date)}</TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400 whitespace-nowrap text-[12px] px-2.5">{fmtDate(a.end_date)}</TableCell>
+                      <TableCell className="text-center font-black text-pink-600 text-[12px] px-2.5">{a.total_days != null ? Number(a.total_days) : "—"}</TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400 text-[12px] font-medium px-2.5" title={a.assigned_by_name}>{formatName(a.assigned_by_name || "")}</TableCell>
+                      <TableCell className="px-2.5">{statusBadge(a.status)}</TableCell>
+                      <TableCell className="px-2.5">
                         <div className="flex items-center gap-1">
                           <button onClick={() => openEdit(a)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500 transition-colors" title="Edit"><Edit2 className="w-3.5 h-3.5" /></button>
                           {a.status !== "Cancelled" && a.status !== "Completed" && (

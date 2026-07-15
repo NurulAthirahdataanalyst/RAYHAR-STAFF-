@@ -200,7 +200,7 @@ export default function OutstationReports() {
   const completedEventsCount = eventGroups.filter(e => e.status === "Completed").length;
 
   return (
-    <div className="space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-8">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-8">
 
       {/* Dynamic Header */}
       <div className="flex items-center gap-3 mb-2">

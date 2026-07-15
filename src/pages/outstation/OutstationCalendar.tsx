@@ -109,7 +109,7 @@ export default function OutstationCalendar() {
   if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-500" /></div>;
 
   return (
-    <div className="space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-8">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-8">
 
       {/* Controls */}
       <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm">
