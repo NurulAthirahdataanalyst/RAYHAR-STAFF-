@@ -17,7 +17,7 @@ const EVENT_COLORS: Record<string, { bg: string; text: string; border: string; d
   "Annual/Emergency Leave": { bg: "bg-emerald-100 dark:bg-emerald-500/20", text: "text-emerald-700 dark:text-emerald-300", border: "border-emerald-200 dark:border-emerald-500/30", dot: "bg-emerald-500", label: "Annual Leave" },
   "Sick Leave":          { bg: "bg-red-100 dark:bg-red-500/20",     text: "text-red-700 dark:text-red-300",     border: "border-red-200 dark:border-red-500/30",     dot: "bg-red-500",     label: "Sick Leave" },
   "Emergency Leave":     { bg: "bg-orange-100 dark:bg-orange-500/20", text: "text-orange-700 dark:text-orange-300", border: "border-orange-200 dark:border-orange-500/30", dot: "bg-orange-500", label: "Emergency Leave" },
-  "Outstation":          { bg: "bg-pink-100 dark:bg-pink-500/20",   text: "text-pink-700 dark:text-pink-300",   border: "border-pink-200 dark:border-pink-500/30",   dot: "bg-pink-500",   label: "Outstation" },
+  "Outstation":          { bg: "bg-blue-100 dark:bg-blue-500/20",   text: "text-blue-700 dark:text-blue-300",   border: "border-blue-200 dark:border-blue-500/30",   dot: "bg-blue-500",   label: "Outstation" },
   "Company Leave":       { bg: "bg-purple-100 dark:bg-purple-500/20", text: "text-purple-700 dark:text-purple-300", border: "border-purple-200 dark:border-purple-500/30", dot: "bg-purple-500", label: "Company Leave" },
   "Public Holiday":      { bg: "bg-purple-100 dark:bg-purple-500/20", text: "text-purple-700 dark:text-purple-300", border: "border-purple-200 dark:border-purple-500/30", dot: "bg-purple-500", label: "Company Leave" },
   "Company Holiday":     { bg: "bg-purple-100 dark:bg-purple-500/20", text: "text-purple-700 dark:text-purple-300", border: "border-purple-200 dark:border-purple-500/30", dot: "bg-purple-500", label: "Company Leave" },
@@ -191,7 +191,7 @@ export default function WorkforceCalendar() {
   if (roleLoading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="animate-spin w-8 h-8 text-[#7B0099]" /></div>;
 
   return (
-    <div className="space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-8">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-8">
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -199,7 +199,7 @@ export default function WorkforceCalendar() {
           { label: "Annual Leave", value: todayAnnual.length, dot: "bg-emerald-500", icon: Calendar },
           { label: "Sick Leave", value: todaySick.length, dot: "bg-red-500", icon: Activity },
           { label: "Emergency Leave", value: todayEmergency.length, dot: "bg-orange-500", icon: AlertCircle },
-          { label: "Outstation", value: todayOutstation.length, dot: "bg-pink-500", icon: Plane },
+          { label: "Outstation", value: todayOutstation.length, dot: "bg-blue-500", icon: Plane },
           { label: "Company Leave", value: todayCompany.length, dot: "bg-purple-500", icon: Building2 },
           { label: "Pending", value: todayPending.length, dot: "bg-amber-400", icon: FileText },
         ].map(kpi => (
