@@ -3891,7 +3891,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       const [clockedInRows] = await pool.query(
         `SELECT DISTINCT user_id FROM attendances WHERE DATE(clock_in) = ${dateCondition} ${attendanceFilter}`,
-        presentParams
+        onLeaveParams
       );
       const clockedInSet = new Set(clockedInRows.map(r => r.user_id));
 
