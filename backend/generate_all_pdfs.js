@@ -203,7 +203,7 @@ async function generatePDF(leave) {
     // Sebab / Tujuan
     doc.fontSize(8).font("Helvetica-Bold").fillColor("#555555").text("SEBAB / TUJUAN", leftCol, 248);
     doc.roundedRect(55, 260, 502, 35, 4).strokeColor("#000000").lineWidth(1).stroke();
-    doc.fontSize(9).font("Helvetica-Oblique").fillColor("#111111").text(`"${leave.reason || '-'}"`, 65, 272);
+    doc.fontSize(11).font("Helvetica-Bold").fillColor("#111111").text(`"${leave.reason || '-'}"`, 65, 272);
 
     // Divider Line under Reason
     doc.moveTo(40, 305).lineTo(572, 305).strokeColor("#cccccc").lineWidth(1).stroke();

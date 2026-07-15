@@ -479,7 +479,7 @@ export default function LeaveFormView() {
 
                   <div className="space-y-2">
                     <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
-                    <p className="rounded-[16px] border border-border/40 p-4 italic text-foreground/80 bg-muted/10 text-xs leading-relaxed">
+                    <p className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed">
                       "{getCleanReason(selectedForm.reason) || "-"}"
                     </p>
                   </div>
