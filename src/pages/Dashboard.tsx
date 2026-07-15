@@ -1173,7 +1173,8 @@ export default function Dashboard() {
                   { key: "leave", label: "LEAVE" },
                   ...(isElevatedRole ? [{ key: "approval", label: "APPROVAL" }] : []),
                   ...(canSeeSystem ? [{ key: "system", label: "SYSTEM" }] : []),
-                ] as { key: "all" | "attendance" | "leave" | "approval" | "system"; label: string }[]).map(chip => (
+                  { key: "outstation", label: "OUTSTATION" },
+                ] as { key: "all" | "attendance" | "leave" | "approval" | "system" | "outstation"; label: string }[]).map(chip => (
                   <button
                     key={chip.key}
                     onClick={() => setActivityFilter(chip.key)}
@@ -1229,6 +1230,7 @@ export default function Dashboard() {
                         System: "text-blue-700 border-blue-200",
                         Reminder: "text-yellow-700 border-yellow-200",
                         Note: "text-slate-600 border-slate-200 dark:border-slate-800",
+                        Assigned: "text-pink-700 border-pink-200 bg-pink-50/50",
                       };
                       const badgeCls = badgeColor[item.badge] || "text-slate-500 border-slate-200 dark:border-slate-800";
                       
@@ -1237,6 +1239,7 @@ export default function Dashboard() {
                         leave: "text-purple-700",
                         approval: "text-purple-700",
                         system: "text-rose-600",
+                        outstation: "text-pink-600",
                       };
 
                       return (

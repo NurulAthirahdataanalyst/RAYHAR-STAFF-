@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, LogIn, LogOut, Loader2, AlertCircle, Clock, Timer, FileText, Calendar as CalendarIcon } from "lucide-react";
+import { Search, LogIn, LogOut, Loader2, AlertCircle, Clock, Timer, FileText, Calendar as CalendarIcon, Plane } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,18 @@ const parseLocalDate = (value: string | null) => {
   // Let the browser handle standard UTC date strings (with Z or timezone offsets) natively
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const formatRole = (r: string) => {
+  if (!r) return "";
+  const map: Record<string, string> = {
+    'managing_director': 'Managing Director',
+    'hr_admin': 'HR',
+    'head_of_department': 'Head of Department',
+    'branch_leader': 'Branch Leader',
+    'finance_manager': 'Finance Manager'
+  };
+  return map[r.toLowerCase()] || r;
 };
 
 interface PresenceFeedProps {
@@ -79,7 +91,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
       }
 
       // 2. Fetch leave requests submitted on this date
-      if (role === "hr_admin" || role === "head_of_department" || role === "branch_leader" || role === "managing_director") {
+      if (role === "hr_admin" || role === "head_of_department" || role === "branch_leader" || role === "managing_director" || role === "finance_manager") {
         try {
           const leaveParams = new URLSearchParams({
             role: role || "employee",
@@ -105,6 +117,40 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
           }
         } catch (leaveErr) {
           console.error("Error fetching leave requests for feed:", leaveErr);
+        }
+
+        // Fetch outstation assignments created on this date
+        try {
+          const outstationParams = new URLSearchParams({
+            role: role || "employee",
+            branch: userBranch || "",
+            department: userDepartment || "",
+          });
+          const outstationResponse = await fetch(`${API_BASE_URL}/api/outstation?${outstationParams}`);
+          const outstationData = await outstationResponse.json();
+          if (outstationData.success) {
+            outstationData.assignments.forEach((oa: any) => {
+              const createdDate = new Date(oa.created_at).toLocaleDateString("en-CA");
+              if (createdDate === dateStr) {
+                activeList.push({
+                  user_id: oa.user_id,
+                  full_name: oa.full_name,
+                  branch: oa.branch,
+                  department: oa.department,
+                  id: `outstation-${oa.id}`,
+                  is_outstation_assignment: true,
+                  today_status: "Outstation Assigned",
+                  event_time: oa.created_at,
+                  assigned_by_name: oa.assigned_by_name,
+                  assigned_by_role: oa.assigned_by_role,
+                  destination: oa.destination,
+                  assignment_date: oa.start_date,
+                });
+              }
+            });
+          }
+        } catch (outstationErr) {
+          console.error("Error fetching outstation assignments for feed:", outstationErr);
         }
       }
       // 3. Sort by event_time descending (most recent first)
@@ -189,6 +235,15 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
   }, []);
 
   const getStatusConfig = (status: string, clockIn: string | null) => {
+    if (status === "Outstation Assigned") {
+      return { 
+        icon: Plane, 
+        color: "text-pink-500", 
+        bg: "bg-pink-50 dark:bg-pink-950/20 border-pink-100 dark:border-pink-900/20", 
+        dot: "bg-pink-500",
+        label: "Outstation Assigned" 
+      };
+    }
     if (status === "Leave Submitted") {
       return { 
         icon: FileText, 
@@ -319,17 +374,35 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
                   
                   {/* Custom CSS Tooltip */}
                   <div className="absolute right-full mr-3 px-3 py-2 bg-slate-900 dark:bg-slate-950 text-white text-xs rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 whitespace-nowrap z-50 transform -translate-x-2 group-hover:translate-x-0 border border-slate-800 flex flex-col gap-0.5 animate-in fade-in slide-in-from-right-2">
-                    <p className="font-bold text-slate-100">{emp.full_name}</p>
+                    <p className="font-bold text-slate-100">
+                      {emp.is_outstation_assignment 
+                        ? `${emp.assigned_by_name} (${formatRole(emp.assigned_by_role)})` 
+                        : emp.full_name
+                      }
+                    </p>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className={`w-1.5 h-1.5 rounded-full ${statusConf.dot}`}></span>
-                      <span className="opacity-90">{statusConf.label}</span>
-                      {emp.today_status !== "Absent" && emp.today_status !== "On Leave" && (
+                      <span className="opacity-90">
+                        {emp.is_outstation_assignment 
+                          ? `Assigned outstation to ${emp.full_name}` 
+                          : statusConf.label
+                        }
+                      </span>
+                      {emp.today_status !== "Absent" && emp.today_status !== "On Leave" && !emp.is_outstation_assignment && (
+                        <span className="opacity-70">at {activityTime}</span>
+                      )}
+                      {emp.is_outstation_assignment && activityTime !== "--:--" && (
                         <span className="opacity-70">at {activityTime}</span>
                       )}
                     </div>
                     {emp.is_leave_submission && (
                       <span className="text-[9px] text-purple-300 font-semibold italic">
                         {emp.leave_type} • {emp.days} {emp.days === 1 ? "Day" : "Days"}
+                      </span>
+                    )}
+                    {emp.is_outstation_assignment && (
+                      <span className="text-[9px] text-pink-300 font-semibold italic">
+                        📍 {emp.destination}
                       </span>
                     )}
                     <span className="text-[9px] font-black text-purple-400 mt-1 uppercase tracking-wider">
@@ -421,31 +494,57 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-black text-foreground truncate">{emp.full_name}</p>
-                      {emp.today_status !== "Absent" && emp.today_status !== "On Leave" && (
-                        <span className="text-[10px] font-bold text-muted-foreground/60 shrink-0">{activityTime}</span>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center justify-between mt-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className={`w-1.5 h-1.5 rounded-full ${statusConf.dot}`}></span>
-                        <span className="text-xs font-bold text-muted-foreground/80">{statusConf.label}</span>
-                      </div>
-                      
-                      {emp.is_leave_submission && (
-                        <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 bg-purple-500/10 rounded-md px-2.5 py-0.5 border border-purple-500/25">
-                          {emp.leave_type} ({emp.days} {emp.days === 1 ? "day" : "days"})
-                        </span>
-                      )}
-                    </div>
+                    {emp.is_outstation_assignment ? (
+                      <>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-black text-foreground truncate">
+                            {emp.assigned_by_name} ({formatRole(emp.assigned_by_role)})
+                          </p>
+                          <span className="text-[10px] font-bold text-muted-foreground/60 shrink-0">{activityTime}</span>
+                        </div>
+                        
+                        <div className="text-xs font-bold text-muted-foreground/80 mt-1">
+                          assigned an outstation to <span className="text-foreground font-black">{emp.full_name}</span>
+                        </div>
 
-                    <div className="mt-2.5 flex items-center">
-                      <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-purple-50 dark:bg-purple-950/40 text-[#7B0099] border border-purple-100 dark:border-purple-900/40 shrink-0">
-                        {getDeptShortCode(emp.department, emp.branch)}
-                      </span>
-                    </div>
+                        <div className="mt-2 flex flex-wrap gap-2.5">
+                          <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-pink-50 dark:bg-pink-950/40 text-pink-600 border border-pink-100 dark:border-pink-900/40 shrink-0">
+                            📍 {emp.destination}
+                          </span>
+                          <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-purple-50 dark:bg-purple-950/40 text-[#7B0099] border border-purple-100 dark:border-purple-900/40 shrink-0">
+                            {getDeptShortCode(emp.department, emp.branch)}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-black text-foreground truncate">{emp.full_name}</p>
+                          {emp.today_status !== "Absent" && emp.today_status !== "On Leave" && (
+                            <span className="text-[10px] font-bold text-muted-foreground/60 shrink-0">{activityTime}</span>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center justify-between mt-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`w-1.5 h-1.5 rounded-full ${statusConf.dot}`}></span>
+                            <span className="text-xs font-bold text-muted-foreground/80">{statusConf.label}</span>
+                          </div>
+                          
+                          {emp.is_leave_submission && (
+                            <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 bg-purple-500/10 rounded-md px-2.5 py-0.5 border border-purple-500/25">
+                              {emp.leave_type} ({emp.days} {emp.days === 1 ? "day" : "days"})
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="mt-2.5 flex items-center">
+                          <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-purple-50 dark:bg-purple-950/40 text-[#7B0099] border border-purple-100 dark:border-purple-900/40 shrink-0">
+                            {getDeptShortCode(emp.department, emp.branch)}
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               );

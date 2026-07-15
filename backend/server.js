@@ -4156,10 +4156,31 @@ app.get("/api/dashboard-stats", async (req, res) => {
           CASE WHEN type = 'reminder' THEN 'Reminder' ELSE 'Note' END
         FROM personal_notes WHERE user_id = ?
           AND DATE(created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
+        UNION ALL
+        SELECT 'outstation' AS type,
+          CONCAT(oa.assigned_by_name, ' (', 
+            CASE LOWER(oa.assigned_by_role) 
+              WHEN 'managing_director' THEN 'Managing Director' 
+              WHEN 'hr_admin' THEN 'HR' 
+              WHEN 'finance_manager' THEN 'Finance Manager'
+              WHEN 'branch_leader' THEN CONCAT('Branch Leader, ', COALESCE(assigner.branch, oa.branch))
+              WHEN 'head_of_department' THEN CONCAT('Head of Department, ', COALESCE(assigner.department, oa.department))
+              ELSE oa.assigned_by_role 
+            END, ')') AS actor,
+          'assigned an outstation to' AS action,
+          'You' AS target,
+          CONCAT('Branch: ', COALESCE(oa.branch, 'HQ'), ' • Destination: ', oa.destination, ' • Date: ', TO_CHAR(oa.start_date, 'DD Mon YYYY')) AS context,
+          TO_CHAR(oa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+          oa.created_at AS sort_time,
+          'Assigned' AS badge
+        FROM outstation_assignments oa
+        LEFT JOIN profiles assigner ON assigner.user_id = oa.assigned_by
+        WHERE oa.user_id = ?
+          AND oa.created_at >= NOW() - INTERVAL '7 days'
       )
       SELECT type, actor, action, target, context, time, badge FROM acts
       ORDER BY sort_time DESC LIMIT 10`,
-      [userId, userId, userId, userId]
+      [userId, userId, userId, userId, userId]
     );
 
     // ── Layer 2: TEAM ACTIVITY (branch_leader, hod, hr_admin, md, finance_manager) ─
@@ -4219,10 +4240,35 @@ app.get("/api/dashboard-stats", async (req, res) => {
           LEFT JOIN profiles approver ON approver.user_id = lr.approver_id
           WHERE lr.updated_at >= NOW() - INTERVAL '7 days'
             AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
+
+          UNION ALL
+
+          -- Outstation assignments last 7 days
+          SELECT 'outstation' AS type,
+            CONCAT(oa.assigned_by_name, ' (', 
+              CASE LOWER(oa.assigned_by_role) 
+                WHEN 'managing_director' THEN 'Managing Director' 
+                WHEN 'hr_admin' THEN 'HR' 
+                WHEN 'finance_manager' THEN 'Finance Manager'
+                WHEN 'branch_leader' THEN CONCAT('Branch Leader, ', COALESCE(assigner.branch, oa.branch))
+                WHEN 'head_of_department' THEN CONCAT('Head of Department, ', COALESCE(assigner.department, oa.department))
+                ELSE oa.assigned_by_role 
+              END, ')') AS actor,
+            'assigned an outstation to' AS action,
+            emp.full_name AS target,
+            CONCAT('Branch: ', COALESCE(oa.branch, 'HQ'), ' • Destination: ', oa.destination, ' • Date: ', TO_CHAR(oa.start_date, 'DD Mon YYYY')) AS context,
+            TO_CHAR(oa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+            oa.created_at AS sort_time,
+            'Assigned' AS badge
+          FROM outstation_assignments oa
+          JOIN profiles emp ON emp.user_id = oa.user_id
+          LEFT JOIN profiles assigner ON assigner.user_id = oa.assigned_by
+          WHERE oa.created_at >= NOW() - INTERVAL '7 days'
+            AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'oa.')}
         )
         SELECT type, actor, action, target, context, time, badge FROM team_acts
         ORDER BY sort_time DESC LIMIT 10`,
-        [...teamParams, ...teamParams]
+        [...teamParams, ...teamParams, ...teamParams]
       );
       teamActivityRows = teamRows;
     }
@@ -6648,6 +6694,18 @@ app.post('/api/outstation', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Destination, start date, and end date are required' });
     }
 
+    const formatApproverRole = (r) => {
+      if (!r) return "";
+      const map = {
+        'managing_director': 'Managing Director',
+        'hr_admin': 'HR',
+        'head_of_department': 'Head of Department',
+        'branch_leader': 'Branch Leader',
+        'finance_manager': 'Finance Manager'
+      };
+      return map[r.toLowerCase()] || r;
+    };
+
     const inserted = [];
     for (const emp of user_ids) {
       const [insertResult] = await pool.query(
@@ -6662,12 +6720,28 @@ app.post('/api/outstation', async (req, res) => {
       );
       const returnedRow = Array.isArray(insertResult) ? insertResult[0] : insertResult;
       inserted.push(returnedRow);
+
+      // Insert in-app notification for the employee
+      try {
+        const formattedRole = formatApproverRole(assigned_by_role);
+        await pool.query(
+          `INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4)`,
+          [
+            emp.user_id,
+            'New Outstation Assignment',
+            `You have been assigned to an outstation by ${assigned_by_name} (${formattedRole}). Please review the assignment details.`,
+            'outstation'
+          ]
+        );
+      } catch (notifErr) {
+        console.error('Error inserting outstation notification:', notifErr);
+      }
     }
 
-    // Broadcast SSE so clients refresh outstation data
+    // Broadcast SSE so clients refresh outstation and notification data
     try {
       const ids = inserted.map(r => r.id || r.assignment_id).filter(Boolean);
-      broadcastPresenceUpdate({ type: 'outstation', action: 'created', ids, count: inserted.length });
+      broadcastPresenceUpdate({ type: 'refresh', action: 'outstation_created', ids, count: inserted.length });
     } catch (e) {
       console.error('Error broadcasting outstation create:', e);
     }

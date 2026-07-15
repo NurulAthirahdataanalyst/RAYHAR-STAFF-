@@ -141,6 +141,11 @@ export default function NotificationBell() {
     
     setIsOpen(false);
     
+    if (notif.type === 'outstation' || notif.type === 'outstation_assignment') {
+      navigate('/outstation/my');
+      return;
+    }
+    
     if (notif.type === 'company_leave' && notif.related_leave_id) {
       try {
         const res = await fetch(`${API_BASE_URL}/api/company-leaves`);
