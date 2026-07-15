@@ -36,6 +36,10 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../config/api";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format, isToday } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const getStoredUser = () => {
   try {
@@ -54,6 +58,7 @@ export default function Dashboard() {
   const dashboardUserId = user?.user_id || userId || user?.id || storedUser?.user_id;
 
   const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -122,6 +127,7 @@ export default function Dashboard() {
     upcomingOutstation: 0,
     activeCompanyLeave: null as any,
     companyLeave: null as any,
+    hasRecords: true,
   });
 
   const [activities, setActivities] = useState<any[]>([]);
@@ -181,8 +187,9 @@ export default function Dashboard() {
       if (!silent) setIsRefreshing(true);
 
       try {
+        const dateStr = selectedDate.toLocaleDateString("en-CA");
         const response = await fetch(
-          `${API_BASE_URL}/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`
+          `${API_BASE_URL}/api/dashboard-stats?userId=${dashboardUserId}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&date=${dateStr}`
         );
 
         if (!response.ok) throw new Error("Sync failed");
@@ -227,15 +234,17 @@ export default function Dashboard() {
         setIsRefreshing(false);
       }
     },
-    [applyAttendanceUpdate, dashboardUserId, role]
+    [applyAttendanceUpdate, dashboardUserId, role, selectedDate]
   );
 
   const fetchWhoOutToday = useCallback(async () => {
     try {
+      const dateStr = selectedDate.toLocaleDateString("en-CA");
       const params = new URLSearchParams({
         role,
         branch: userBranch || "",
         department: userDepartment || "",
+        date: dateStr,
       });
       const response = await fetch(`${API_BASE_URL}/api/who-out-today?${params}`);
       const data = await response.json();
@@ -245,7 +254,7 @@ export default function Dashboard() {
     } catch (err) {
       console.error("Who Out Today Error:", err);
     }
-  }, [role, userBranch, userDepartment]);
+  }, [role, userBranch, userDepartment, selectedDate]);
 
   const fetchUpcomingOutstations = useCallback(async () => {
     try {
@@ -260,17 +269,43 @@ export default function Dashboard() {
       const res = await fetch(`${API_BASE_URL}/api/outstation?${params}`);
       const data = await res.json();
       if (data.success && data.assignments) {
-        const upcoming = data.assignments.filter((a: any) => a.status === "Upcoming");
+        const selTime = new Date(selectedDate);
+        selTime.setHours(0, 0, 0, 0);
+
+        const computed = data.assignments.map((a: any) => {
+          if (a.status === 'Cancelled') return { ...a, computedStatus: 'Cancelled' };
+          if (a.status === 'Completed') return { ...a, computedStatus: 'Completed' };
+          const start = new Date(a.start_date);
+          start.setHours(0, 0, 0, 0);
+          const end = new Date(a.end_date);
+          end.setHours(0, 0, 0, 0);
+
+          let computedStatus = 'Active';
+          if (selTime < start) computedStatus = 'Upcoming';
+          else if (selTime > end) computedStatus = 'Completed';
+          return { ...a, computedStatus };
+        });
+
+        const upcoming = computed.filter((a: any) => a.computedStatus === "Upcoming");
         setUpcomingOutstations(upcoming);
-        const active = data.assignments.filter((a: any) => a.status === "Active");
+        const active = computed.filter((a: any) => a.computedStatus === "Active");
         setActiveOutstations(active);
       }
     } catch (err) {
       console.error("Fetch Upcoming Outstations Error:", err);
     }
-  }, [dashboardUserId, role, userBranch, userDepartment]);
+  }, [dashboardUserId, role, userBranch, userDepartment, selectedDate]);
 
-  // Initial fetch + refresh when focus + Custom Event Listener
+  // Fetch data whenever selectedDate changes
+  useEffect(() => {
+    fetchDashboardData();
+    fetchUpcomingOutstations();
+    if (["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role)) {
+      fetchWhoOutToday();
+    }
+  }, [selectedDate, fetchDashboardData, fetchUpcomingOutstations, fetchWhoOutToday, role]);
+
+  // Initial local storage update + event listeners for real-time focus / custom updates
   useEffect(() => {
     const latestUpdate = sessionStorage.getItem("latestAttendanceUpdate");
     if (latestUpdate) {
@@ -279,12 +314,6 @@ export default function Dashboard() {
       } catch {
         sessionStorage.removeItem("latestAttendanceUpdate");
       }
-    }
-
-    fetchDashboardData();
-    fetchUpcomingOutstations();
-    if (["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role)) {
-      fetchWhoOutToday();
     }
 
     const handleUpdate = (event: Event) => {
@@ -303,7 +332,7 @@ export default function Dashboard() {
       window.removeEventListener("focus", handleUpdate);
       window.removeEventListener("attendanceUpdated", handleUpdate);
     };
-  }, [applyAttendanceUpdate, fetchDashboardData, fetchUpcomingOutstations, fetchWhoOutToday, role]);
+  }, [applyAttendanceUpdate, fetchDashboardData]);
 
   // Auto refresh via SSE and 60-second fallback
   useEffect(() => {
@@ -470,16 +499,19 @@ export default function Dashboard() {
           ? "Company Leave Today"
           : `Clock in: ${stats.clockInTime || "--:--"}`;
 
+  const isTodayDate = isToday(selectedDate);
+  const showEmptyState = !isTodayDate && isElevatedRole && stats.hasRecords === false;
+
   return (
     <div className="space-y-3 animate-in fade-in duration-500">
       {/* Header - responsive */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="min-w-0">
           <h1 className="text-responsive-2xl font-black tracking-tight text-foreground truncate">
             {getGreeting()}, {rawName}!
           </h1>
           <p className="text-muted-foreground font-medium mt-1 flex items-center gap-2 text-responsive-sm">
-            {new Date().toLocaleDateString("en-US", {
+            {selectedDate.toLocaleDateString("en-US", {
               weekday: "long",
               month: "long",
               day: "numeric",
@@ -490,9 +522,66 @@ export default function Dashboard() {
             )}
           </p>
         </div>
+
+        {/* Date Filter Datepicker */}
+        <div className="flex items-center gap-2 shrink-0">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "h-10 px-3.5 text-xs font-bold rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-card shadow-sm hover:bg-slate-50 dark:hover:bg-slate-900/50 flex items-center gap-2",
+                  !isToday(selectedDate) && "text-[#7B0099] border-[#7B0099]/30 bg-purple-50/50 dark:bg-purple-950/20"
+                )}
+              >
+                <CalendarDays className="h-4 w-4 text-purple-600" />
+                <span>
+                  {isToday(selectedDate) ? "Today" : format(selectedDate, "dd MMM yyyy")}
+                </span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 z-[100]" align="end">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => {
+                  if (date) setSelectedDate(date);
+                }}
+                disabled={(date) => date > new Date()}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          {!isToday(selectedDate) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedDate(new Date())}
+              className="text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground h-10 px-3.5 rounded-xl border border-dashed border-slate-200 dark:border-slate-800"
+            >
+              Reset
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Stat Cards - responsive grid */}
+      {showEmptyState ? (
+        <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-[20px] p-12 flex flex-col items-center justify-center text-center gap-4 bg-white dark:bg-card">
+          <div className="p-4 rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+            <CalendarOff className="w-8 h-8 text-slate-400 animate-pulse" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-sm font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest">
+              No Records Available
+            </h3>
+            <p className="text-xs text-slate-500 max-w-md">
+              No attendance records are available for the selected date ({format(selectedDate, "dd MMMM yyyy")}).
+            </p>
+          </div>
+        </Card>
+      ) : (
+        <>
+          {/* Stat Cards - responsive grid */}
       <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 ${role === "employee" ? "lg:grid-cols-4" : (isCompanyLeave && stats.activeCompanyLeave && ["hr_admin", "managing_director", "finance_manager"].includes(role) ? "lg:grid-cols-4 xl:grid-cols-8" : "lg:grid-cols-3 xl:grid-cols-7")}`}>
         {role === "employee" ? (
           <>
@@ -1491,6 +1580,8 @@ export default function Dashboard() {
 
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }

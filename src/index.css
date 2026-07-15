@@ -425,3 +425,24 @@
     -webkit-backdrop-filter: blur(16px) !important;
   }
 }
+
+/* Disabled calendar buttons pointer events and cursor styling */
+.rdp-day_disabled,
+.rdp-button[disabled],
+button[disabled].rdp-day,
+button[disabled].rdp-button,
+.day-picker button[disabled],
+.rdp button[disabled] {
+  pointer-events: auto !important;
+  cursor: not-allowed !important;
+  opacity: 0.4 !important;
+}
+
+.rdp-day_disabled:hover,
+.rdp-button[disabled]:hover,
+button[disabled].rdp-day:hover,
+button[disabled]:hover {
+  background-color: transparent !important;
+  color: hsl(var(--muted-foreground)) !important;
+  opacity: 0.4 !important;
+}

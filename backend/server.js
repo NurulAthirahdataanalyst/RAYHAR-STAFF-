@@ -3715,6 +3715,18 @@ app.get("/api/dashboard-stats", async (req, res) => {
     return res.status(400).json({ success: false, error: "Missing userId" });
   }
 
+  let queryDate = req.query.date ? req.query.date.toString() : null;
+  if (!queryDate) {
+    const now = new Date();
+    const klOffset = 8 * 60; // UTC+8
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const klTime = new Date(utc + (klOffset * 60000));
+    const yyyy = klTime.getFullYear();
+    const mm = String(klTime.getMonth() + 1).padStart(2, '0');
+    const dd = String(klTime.getDate()).padStart(2, '0');
+    queryDate = `${yyyy}-${mm}-${dd}`;
+  }
+
   try {
     let adminStats = null;
     let globalRecentActivities = null;
@@ -3740,17 +3752,34 @@ app.get("/api/dashboard-stats", async (req, res) => {
         queryParams.push(safeDept);
       }
 
-      const queryDate = req.query.date ? req.query.date.toString() : null;
-      const dateCondition = queryDate ? '?::date' : "(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date";
-      const profileQueryParams = queryDate ? [queryDate, ...queryParams] : queryParams;
+      const dateCondition = "?::date";
+      const profileQueryParams = [queryDate, ...queryParams];
+
+      // Check if any attendance records exist for this branch/department/general on this day
+      let attendanceCheckFilter = "";
+      let attendanceCheckParams = [queryDate];
+      if (isBranchLeader) {
+        attendanceCheckFilter = " AND user_id IN (SELECT user_id FROM profiles WHERE branch = ?)";
+        attendanceCheckParams.push(branch);
+      } else if (isHOD) {
+        attendanceCheckFilter = " AND user_id IN (SELECT user_id FROM profiles WHERE department = ?)";
+        attendanceCheckParams.push(department);
+      }
+
+      const [attendanceCheck] = await pool.query(
+        `SELECT COUNT(*) AS count FROM attendances WHERE DATE(clock_in) = ?::date${attendanceCheckFilter}`,
+        attendanceCheckParams
+      );
+      const totalDayAttendances = parseInt(attendanceCheck[0].count || 0);
+      const hasRecords = totalDayAttendances > 0;
 
       const [employeeRows] = await pool.query(
         `SELECT COUNT(*) AS total_employees FROM profiles WHERE status = 'Active' AND DATE(created_at) <= ${dateCondition}::date ${profileFilter}`,
         profileQueryParams
       );
 
-      const presentParams = queryDate ? [queryDate, queryDate, ...queryParams] : queryParams;
-      const onLeaveParams = queryDate ? [queryDate, ...queryParams] : queryParams;
+      const presentParams = [queryDate, queryDate, ...queryParams];
+      const onLeaveParams = [queryDate, ...queryParams];
 
       const [presentRows] = await pool.query(
         `SELECT COUNT(DISTINCT user_id) AS present_today FROM attendances WHERE DATE(clock_in) = ${dateCondition} 
@@ -3895,6 +3924,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         outstationToday: parseInt(outstationTodayRows[0].outstation_today || 0),
         upcomingOutstation: parseInt(upcomingOutstationRows[0].upcoming_outstation || 0),
         absentToday: Math.max(0, parseInt(employeeRows[0].total_employees || 0) - parseInt(presentRows[0].present_today || 0) - parseInt(onLeaveRows[0].on_leave || 0) - companyLeaveCount - parseInt(outstationTodayRows[0].outstation_today || 0)),
+        hasRecords: hasRecords,
       };
       globalRecentActivities = recentRows;
     }
@@ -3903,9 +3933,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const [todayRows] = await pool.query(
       `
       SELECT clock_in, clock_out, TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_in_time, TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_out_time
-      FROM attendances WHERE user_id = ? AND DATE(clock_in) = CURRENT_DATE ORDER BY clock_in DESC LIMIT 1
+      FROM attendances WHERE user_id = ? AND DATE(clock_in) = ?::date ORDER BY clock_in DESC LIMIT 1
       `,
-      [userId]
+      [userId, queryDate]
     );
 
     let todayStatus = "Absent";
@@ -3945,8 +3975,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     // OVERRIDE IF ON LEAVE TODAY
     const [onLeaveTodayRows] = await pool.query(
-      `SELECT status FROM leave_requests WHERE user_id = ? AND status = 'Approved' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
-      [userId]
+      `SELECT status FROM leave_requests WHERE user_id = ? AND status = 'Approved' AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
+      [userId, queryDate]
     );
 
     if (onLeaveTodayRows.length > 0) {
@@ -3970,7 +4000,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
     if (empProfile.length > 0) {
       const p = empProfile[0];
       const [companyLeaveTodayRows] = await pool.query(
-        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`
+        `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
+        [queryDate]
       );
       const matchingLeave = companyLeaveTodayRows.find(cl => {
         if (cl.applies_to === 'all') return true;
@@ -3997,8 +4028,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       // OVERRIDE IF ON OUTSTATION TODAY
       const [onOutstationTodayRows] = await pool.query(
-        `SELECT destination FROM outstation_assignments WHERE user_id = ? AND status != 'Cancelled' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
-        [userId]
+        `SELECT destination FROM outstation_assignments WHERE user_id = ? AND status != 'Cancelled' AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
+        [userId, queryDate]
       );
   
       if (onOutstationTodayRows.length > 0 && !matchingLeave) {
@@ -4010,21 +4041,23 @@ app.get("/api/dashboard-stats", async (req, res) => {
         }
       }
 
-      // Count Company Leaves in the current month up to today
+      // Count Company Leaves in the current month up to queryDate
       const [coLeaves] = await pool.query(
         `SELECT start_date, end_date, applies_to, branch_id, department_id 
          FROM company_leave_calendar 
          WHERE status = 'Active' 
          AND (
-           ((start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN DATE_TRUNC('month', (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date) AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date)
-           OR ((end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN DATE_TRUNC('month', (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date) AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date)
-           OR (DATE_TRUNC('month', (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date) BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date)
-         )`
+           ((start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN DATE_TRUNC('month', ?::date) AND ?::date)
+           OR ((end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN DATE_TRUNC('month', ?::date) AND ?::date)
+           OR (DATE_TRUNC('month', ?::date) BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date)
+         )`,
+        [queryDate, queryDate, queryDate, queryDate, queryDate]
       );
 
-      const currentYear = new Date().getFullYear();
-      const currentMonth = new Date().getMonth(); // 0-indexed
-      const todayDay = new Date().getDate();
+      const dateObj = new Date(queryDate);
+      const currentYear = dateObj.getFullYear();
+      const currentMonth = dateObj.getMonth(); // 0-indexed
+      const todayDay = dateObj.getDate();
 
       for (let d = 1; d <= todayDay; d++) {
         const checkDate = new Date(currentYear, currentMonth, d);
@@ -4064,15 +4097,16 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     // 2. MONTHLY ATTENDANCE RATE
     const [monthlyRows] = await pool.query(
-      `SELECT COUNT(DISTINCT DATE(clock_in)) AS days_present FROM attendances WHERE user_id = ? AND EXTRACT(YEAR FROM clock_in) = EXTRACT(YEAR FROM CURRENT_DATE) AND EXTRACT(MONTH FROM clock_in) = EXTRACT(MONTH FROM CURRENT_DATE)`,
-      [userId]
+      `SELECT COUNT(DISTINCT DATE(clock_in)) AS days_present FROM attendances WHERE user_id = ? AND EXTRACT(YEAR FROM clock_in) = EXTRACT(YEAR FROM ?::date) AND EXTRACT(MONTH FROM clock_in) = EXTRACT(MONTH FROM ?::date)`,
+      [userId, queryDate, queryDate]
     );
 
     const daysPresent = parseInt(monthlyRows[0].days_present || 0);
     
-    const currentYearNum = new Date().getFullYear();
-    const currentMonthNum = new Date().getMonth();
-    const todayDayNum = new Date().getDate();
+    const dateObj = new Date(queryDate);
+    const currentYearNum = dateObj.getFullYear();
+    const currentMonthNum = dateObj.getMonth();
+    const todayDayNum = dateObj.getDate();
     let totalWorkingDaysPassed = 0;
     
     for (let d = 1; d <= todayDayNum; d++) {
@@ -4122,14 +4156,14 @@ app.get("/api/dashboard-stats", async (req, res) => {
           'Present' AS badge
         FROM attendances
         WHERE user_id = ? AND clock_in IS NOT NULL
-          AND DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
+          AND DATE(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
         SELECT 'attendance', 'You', 'Clocked Out', NULL, NULL,
           TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM'),
           clock_out, 'Clocked Out'
         FROM attendances
         WHERE user_id = ? AND clock_out IS NOT NULL
-          AND DATE(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
+          AND DATE(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
         SELECT 'leave', 'You',
           CASE lr.status
@@ -4155,7 +4189,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           created_at,
           CASE WHEN type = 'reminder' THEN 'Reminder' ELSE 'Note' END
         FROM personal_notes WHERE user_id = ?
-          AND DATE(created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
+          AND DATE(created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
         SELECT 'outstation' AS type,
           CONCAT(oa.assigned_by_name, ' (', 
@@ -4180,7 +4214,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       )
       SELECT type, actor, action, target, context, time, badge FROM acts
       ORDER BY sort_time DESC LIMIT 10`,
-      [userId, userId, userId, userId, userId]
+      [userId, queryDate, userId, queryDate, userId, userId, queryDate, userId]
     );
 
     // ── Layer 2: TEAM ACTIVITY (branch_leader, hod, hr_admin, md, finance_manager) ─
@@ -4214,7 +4248,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
             'Late' AS badge
           FROM attendances a
           JOIN profiles p ON p.user_id = a.user_id
-          WHERE DATE(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = CURRENT_DATE
+          WHERE DATE(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
             AND (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${getLateThresholdTime()}'
             AND p.status = 'Active' ${teamFilter}
 
@@ -4268,7 +4302,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         )
         SELECT type, actor, action, target, context, time, badge FROM team_acts
         ORDER BY sort_time DESC LIMIT 10`,
-        [...teamParams, ...teamParams, ...teamParams]
+        [queryDate, ...teamParams, ...teamParams, ...teamParams]
       );
       teamActivityRows = teamRows;
     }
@@ -5874,7 +5908,19 @@ app.delete("/api/departments/:id", async (req, res) => {
 // WHO'S OUT TODAY
 // ===============================
 app.get("/api/who-out-today", async (req, res) => {
-  const { role, branch, department } = req.query;
+  const { role, branch, department, date } = req.query;
+
+  let targetDate = date ? date.toString() : null;
+  if (!targetDate) {
+    const now = new Date();
+    const klOffset = 8 * 60; // UTC+8
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const klTime = new Date(utc + (klOffset * 60000));
+    const yyyy = klTime.getFullYear();
+    const mm = String(klTime.getMonth() + 1).padStart(2, '0');
+    const dd = String(klTime.getDate()).padStart(2, '0');
+    targetDate = `${yyyy}-${mm}-${dd}`;
+  }
 
   try {
     const filters = [];
@@ -5910,7 +5956,7 @@ app.get("/api/who-out-today", async (req, res) => {
       FROM leave_requests lr
       JOIN profiles p ON p.user_id = lr.user_id
       WHERE lr.status = 'Approved'
-        AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date
+        AND ?::date BETWEEN lr.start_date AND lr.end_date
         ${whereClause}
       UNION ALL
       SELECT 
@@ -5926,11 +5972,11 @@ app.get("/api/who-out-today", async (req, res) => {
       FROM outstation_assignments o
       JOIN profiles p ON p.user_id = o.user_id
       WHERE o.status != 'Cancelled'
-        AND CURRENT_DATE BETWEEN o.start_date AND o.end_date
+        AND ?::date BETWEEN o.start_date AND o.end_date
         ${whereClause}
       ) combined
       ORDER BY end_date ASC
-    `, [...params, ...params]);
+    `, [targetDate, ...params, targetDate, ...params]);
 
     res.json({ success: true, employees: rows });
   } catch (err) {
