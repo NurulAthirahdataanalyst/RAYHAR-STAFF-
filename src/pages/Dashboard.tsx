@@ -1304,8 +1304,8 @@ export default function Dashboard() {
                   <div className="w-full text-left border-t border-slate-100 dark:border-slate-800">
                     <div className="grid grid-cols-12 px-4 py-2 bg-slate-50 dark:bg-slate-900/50 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
                       <div className="col-span-2">Type</div>
-                      <div className="col-span-3">Timestamp</div>
-                      <div className="col-span-5">Description</div>
+                      <div className="col-span-2">Timestamp</div>
+                      <div className="col-span-6">Description</div>
                       <div className="col-span-2 text-right">Status</div>
                     </div>
                     {feedItems.map((item, i) => {
@@ -1340,12 +1340,12 @@ export default function Dashboard() {
                             <div className={`w-1.5 h-1.5 rounded-full bg-current ${typeIcon[item.type] || 'text-slate-400'}`}></div>
                             {item.type}
                           </div>
-                          <div className="col-span-3 text-[11px] text-slate-600">
+                          <div className="col-span-2 text-[11px] text-slate-600">
                             {item.time}
                           </div>
-                          <div className="col-span-5 text-[11px] text-slate-800 dark:text-slate-100 truncate pr-4">
+                          <div className="col-span-6 text-[11px] text-slate-800 dark:text-slate-100 pr-4 break-words leading-normal">
                             <span className="font-bold">{item.actor}</span> {item.action} {item.target && item.target}
-                            {item.context && <span className="block text-slate-500 truncate">{item.context}</span>}
+                            {item.context && <span className="block text-slate-500 mt-0.5 break-words font-normal leading-normal">{item.context}</span>}
                           </div>
                           <div className="col-span-2 text-right">
                             <span className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase rounded border ${badgeCls}`}>
