@@ -4192,7 +4192,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           lr.status
         FROM leave_requests lr
         WHERE lr.user_id = ?
-          AND lr.updated_at >= NOW() - INTERVAL '7 days'
+          AND DATE(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
         SELECT
           CASE WHEN type = 'reminder' THEN 'note' ELSE 'note' END,
@@ -4224,7 +4224,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         FROM outstation_assignments oa
         LEFT JOIN profiles assigner ON assigner.user_id = oa.assigned_by
         WHERE oa.user_id = ?
-          AND oa.created_at >= NOW() - INTERVAL '7 days'
+          AND DATE(oa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
         UNION ALL
         SELECT type, actor, action, target, context,
           TO_CHAR(created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
@@ -4236,7 +4236,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       )
       SELECT type, actor, action, target, context, time, badge FROM acts
       ORDER BY sort_time DESC LIMIT 10`,
-      [userId, queryDate, userId, queryDate, userId, userId, queryDate, userId, userId, queryDate]
+      [userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate, userId, queryDate]
     );
 
     // ── Layer 2: TEAM ACTIVITY (branch_leader, hod, hr_admin, md, finance_manager) ─
@@ -4276,7 +4276,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
           UNION ALL
 
-          -- Leave approvals last 7 days
+          -- Leave approvals today
           SELECT 'approval', approver.full_name,
             CASE lr.status
               WHEN 'Approved' THEN 'Approved leave request'
@@ -4294,12 +4294,12 @@ app.get("/api/dashboard-stats", async (req, res) => {
           FROM leave_requests lr
           JOIN profiles emp ON emp.user_id = lr.user_id
           LEFT JOIN profiles approver ON approver.user_id = lr.approver_id
-          WHERE lr.updated_at >= NOW() - INTERVAL '7 days'
+          WHERE DATE(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
             AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'emp.')}
 
           UNION ALL
 
-          -- Outstation assignments last 7 days
+          -- Outstation assignments today
           SELECT 'outstation' AS type,
             CONCAT(oa.assigned_by_name, ' (', 
               CASE LOWER(oa.assigned_by_role) 
@@ -4319,12 +4319,12 @@ app.get("/api/dashboard-stats", async (req, res) => {
           FROM outstation_assignments oa
           JOIN profiles emp ON emp.user_id = oa.user_id
           LEFT JOIN profiles assigner ON assigner.user_id = oa.assigned_by
-          WHERE oa.created_at >= NOW() - INTERVAL '7 days'
+          WHERE DATE(oa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
             AND emp.status = 'Active' ${teamFilter.replace(/p\./g, 'oa.')}
           
           UNION ALL
 
-          -- Outstation deletions
+          -- Outstation deletions today
           SELECT al.type, al.actor, al.action, al.target, al.context,
             TO_CHAR(al.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
             al.created_at AS sort_time,
@@ -4336,7 +4336,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         )
         SELECT type, actor, action, target, context, time, badge FROM team_acts
         ORDER BY sort_time DESC LIMIT 10`,
-        [queryDate, ...teamParams, ...teamParams, ...teamParams, queryDate, ...teamParams]
+        [queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams]
       );
       teamActivityRows = teamRows;
     }
@@ -4347,13 +4347,13 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     if (canSeeSystem) {
       const department = req.query.department ? req.query.department.toString().trim() : "";
-      let sysFilter = "";
-      let sysParams = [];
+      let sysFilter = "AND DATE(cl.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date";
+      let sysParams = [queryDate];
 
       if (role === "head_of_department" && department) {
         // HOD sees only company leaves affecting their dept
-        sysFilter = "AND (cl.applies_to = 'all' OR (cl.applies_to = 'department' AND cl.department_id ILIKE ?))";
-        sysParams = [`%${department}%`];
+        sysFilter += " AND (cl.applies_to = 'all' OR (cl.applies_to = 'department' AND cl.department_id ILIKE ?))";
+        sysParams.push(`%${department}%`);
       }
 
       const [sysRows] = await pool.query(
@@ -4372,7 +4372,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           TO_CHAR(cl.updated_at, 'DD Mon YYYY') AS date,
           cl.status AS badge
         FROM company_leave_calendar cl
-        WHERE cl.updated_at >= NOW() - INTERVAL '30 days'
+        WHERE 1=1
           ${sysFilter}
         ORDER BY cl.updated_at DESC LIMIT 10`,
         sysParams
