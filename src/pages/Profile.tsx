@@ -91,11 +91,11 @@ const Profile = () => {
               <div className="pt-4 sm:pt-6 border-t border-border/50">
                 <div className="grid grid-cols-2 gap-3 sm:gap-4 text-center">
                   <div className="p-3 sm:p-4 rounded-2xl bg-muted/30">
-                    <p className="text-[10px] font-black uppercase text-muted-foreground opacity-50 mb-1">Branch</p>
+                    <p className="text-[10px] font-black uppercase text-slate-950 dark:text-slate-50 mb-1">Branch</p>
                     <p className="text-xs sm:text-sm font-black text-foreground break-words">{getFullBranchName(userBranch || "HQ")}</p>
                   </div>
                   <div className="p-3 sm:p-4 rounded-2xl bg-muted/30">
-                    <p className="text-[10px] font-black uppercase text-muted-foreground opacity-50 mb-1">Status</p>
+                    <p className="text-[10px] font-black uppercase text-slate-950 dark:text-slate-50 mb-1">Status</p>
                     <Badge className="bg-emerald-500 text-white font-black text-[9px] h-5">Active</Badge>
                   </div>
                 </div>

@@ -949,7 +949,7 @@ export default function Branches() {
                       <div className="px-6 py-4 bg-muted/30 flex items-center justify-between border-t border-border/50">
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-1.5">
-                            <Users className="w-3.5 h-3.5 text-muted-foreground opacity-50" />
+                            <Users className="w-3.5 h-3.5 text-slate-950 dark:text-slate-50" />
                             <span className="text-[11px] font-black text-foreground/70">
                               {totalEmployees}
                             </span>
@@ -1247,7 +1247,7 @@ export default function Branches() {
 
                           <div className="grid grid-cols-2 gap-4 text-xs font-bold">
                             <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">
+                              <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">
                                 Staff Name
                               </span>
                               <p className="border-b pb-1 border-border/40 truncate">
@@ -1255,7 +1255,7 @@ export default function Branches() {
                               </p>
                             </div>
                             <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">
+                              <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">
                                 Branch
                               </span>
                               <p className="border-b pb-1 border-border/40">
@@ -1263,7 +1263,7 @@ export default function Branches() {
                               </p>
                             </div>
                             <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">
+                              <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">
                                 Type
                               </span>
                               <p className="border-b pb-1 border-border/40">
@@ -1271,7 +1271,7 @@ export default function Branches() {
                               </p>
                             </div>
                             <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">
+                              <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">
                                 Status
                               </span>
                               <p
@@ -1284,13 +1284,13 @@ export default function Branches() {
 
                           <div className="grid grid-cols-3 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
                             <div className="text-center">
-                              <p className="text-[9px] uppercase font-black text-muted-foreground opacity-50 mb-1">
+                              <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">
                                 From
                               </p>
                               <p className="font-black text-sm">{fromStr}</p>
                             </div>
                             <div className="text-center">
-                              <p className="text-[9px] uppercase font-black text-muted-foreground opacity-50 mb-1">
+                              <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">
                                 To
                               </p>
                               <p className="font-black text-sm">{toStr}</p>
@@ -1306,7 +1306,7 @@ export default function Branches() {
                           </div>
 
                           <div className="space-y-2">
-                            <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50 tracking-widest">
+                            <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">
                               Reason / Purpose
                             </p>
                             <p className="rounded-[16px] border border-border/40 p-4 italic text-foreground/80 bg-muted/20 text-xs leading-relaxed">
@@ -1344,7 +1344,7 @@ export default function Branches() {
                             </div>
                             <div className="grid grid-cols-2 gap-4 bg-muted/20 p-4 rounded-[20px]">
                               <div className="space-y-1">
-                                <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">
+                                <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">
                                   Name
                                 </span>
                                 <p className="text-[11px] font-bold truncate">
@@ -1352,7 +1352,7 @@ export default function Branches() {
                                 </p>
                               </div>
                               <div className="space-y-1">
-                                <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">
+                                <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">
                                   Phone
                                 </span>
                                 <p className="text-[11px] font-black text-[#7B0099]">

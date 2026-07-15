@@ -439,7 +439,7 @@ export default function LeaveAdmin() {
                         <TableCell className="px-5 py-3.5">
                           <span className="text-[13px] font-medium text-foreground flex items-center gap-1.5">
                             {req.type}
-                            {req.reason && <Info className="w-3.5 h-3.5 text-muted-foreground opacity-50" />}
+                            {req.reason && <Info className="w-3.5 h-3.5 text-slate-950 dark:text-slate-50" />}
                           </span>
                         </TableCell>
                         <TableCell className="px-5 py-3.5 text-[13px] font-medium text-muted-foreground">
@@ -542,19 +542,19 @@ export default function LeaveAdmin() {
 
                   <div className="grid grid-cols-2 gap-4 text-xs font-bold">
                     <div className="space-y-1">
-                      <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Nama Penuh</span>
+                      <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
                       <p className="border-b pb-1 border-border/40 truncate">{selectedRequest.employee}</p>
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Cawangan</span>
+                      <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
                       <p className="border-b pb-1 border-border/40">{selectedRequest.branch}</p>
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Jenis Cuti</span>
+                      <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
                       <p className="border-b pb-1 border-border/40">{selectedRequest.type}</p>
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[9px] uppercase font-black text-muted-foreground opacity-50">Status</span>
+                      <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
                       <p className={`font-black uppercase ${selectedRequest.status === "Rejected" ? "text-rose-600" : "text-[#7B0099]"}`}>
                         {selectedRequest.status}
                         {selectedRequest.status === "Rejected" && selectedRequest.approverRole && (
@@ -568,11 +568,11 @@ export default function LeaveAdmin() {
 
                   <div className="grid grid-cols-3 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
                     <div className="text-center">
-                      <p className="text-[9px] uppercase font-black text-muted-foreground opacity-50 mb-1">Dari</p>
+                      <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Dari</p>
                       <p className="font-black text-xs sm:text-sm">{selectedRequest.from}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-[9px] uppercase font-black text-muted-foreground opacity-50 mb-1">Hingga</p>
+                      <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Hingga</p>
                       <p className="font-black text-xs sm:text-sm">{selectedRequest.to}</p>
                     </div>
                     <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
@@ -582,7 +582,7 @@ export default function LeaveAdmin() {
                   </div>
 
                   <div className="space-y-2">
-                    <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50 tracking-widest">Sebab / Tujuan</p>
+                    <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
                     <p className="rounded-[16px] border border-border/40 p-4 italic text-foreground/80 bg-muted/10 text-xs leading-relaxed">
                       "{getCleanReason(selectedRequest.reason) || "-"}"
                     </p>
@@ -666,19 +666,19 @@ export default function LeaveAdmin() {
                       </div>
                       <div className="grid grid-cols-2 gap-4 bg-muted/20 p-4 rounded-[20px]">
                         <div className="space-y-1">
-                          <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Nama</span>
+                          <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Nama</span>
                           <p className="text-[11px] font-bold truncate">{selectedRequest.warisNama}</p>
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Hubungan</span>
+                          <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Hubungan</span>
                           <p className="text-[11px] font-bold truncate">{selectedRequest.warisHubungan}</p>
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">No. Telefon</span>
+                          <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
                           <p className="text-[11px] font-black text-[#7B0099]">{selectedRequest.warisPhone}</p>
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[8px] font-black text-muted-foreground uppercase opacity-50">Alamat</span>
+                          <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
                           <p className="text-[10px] font-bold text-muted-foreground break-words">{selectedRequest.warisAlamat}</p>
                         </div>
                       </div>

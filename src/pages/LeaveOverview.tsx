@@ -444,7 +444,7 @@ export default function LeaveOverview() {
           ) : (
             <div className="py-12 text-center flex flex-col items-center gap-4 border-2 border-dashed border-border/50 rounded-[24px]">
               <FileText className="h-10 w-10 text-muted-foreground/20" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-50">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-950 dark:text-slate-50">
                 No active approval requests
               </p>
             </div>
