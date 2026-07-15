@@ -2,7 +2,9 @@ import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import StatCard from "@/components/shared/StatCard";
-import { getEmployeeLeaveBalances } from "@/lib/leaveStorage";
+import { useToast } from "@/components/ui/use-toast";
+import { Switch } from "@/components/ui/switch";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Users,
   Clock,
@@ -78,26 +80,14 @@ export default function Dashboard() {
     };
   }, []);
 
-  // Initialize and listen for leave balance updates from localStorage
+  // ─ Sync with BroadcastChannel ─
   useEffect(() => {
-    const updateLeaveBalance = () => {
-      const balances = getEmployeeLeaveBalances(dashboardUserId);
-      setStats((current) => ({
-        ...current,
-        leaveBalance: balances["Annual & Emergency Leave"] || 14,
-      }));
-    };
-
-    // Initial load
-    updateLeaveBalance();
-
-    // Listen for BroadcastChannel messages (cross-tab sync)
     let bc: BroadcastChannel | null = null;
     try {
       bc = new BroadcastChannel("rayhar_leave_refresh");
       bc.onmessage = (event) => {
         if (event.data === "refresh") {
-          updateLeaveBalance();
+          fetchDashboardData(true);
         }
       };
     } catch (e) {
@@ -107,7 +97,7 @@ export default function Dashboard() {
     return () => {
       if (bc) bc.close();
     };
-  }, [dashboardUserId]);
+  }, [fetchDashboardData]);
 
   const [stats, setStats] = useState({
     leaveBalance: 14,
@@ -402,11 +392,7 @@ export default function Dashboard() {
 
       // Listen for leave balance updates from LeaveEntitlementManagement
       if (event.key === "rayhar_employee_leave_balances") {
-        const balances = getEmployeeLeaveBalances(dashboardUserId);
-        setStats((current) => ({
-          ...current,
-          leaveBalance: balances["Annual & Emergency Leave"] || 14,
-        }));
+        fetchDashboardData(true);
       }
     };
 

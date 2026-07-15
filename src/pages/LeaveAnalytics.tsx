@@ -370,7 +370,7 @@ export default function LeaveAnalytics() {
 
   // ─ Data state ─
   const [records, setRecords] = useState<LeaveRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [entitlements, setEntitlements] = useState<Record<string, number>>({});
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
   const [hoveredTrend, setHoveredTrend] = useState<string | null>(null);
@@ -419,13 +419,14 @@ export default function LeaveAnalytics() {
         ? `date=${dateParam}&role=head_of_department&branch=${encodeURIComponent(userBranch)}&department=${encodeURIComponent(userDepartment)}`
         : `date=${dateParam}&role=hr_admin&branch=&department=`;
 
-      const [leaveRes, statsRes, presentRes, absentRes, outstationRes, onLeaveRes] = await Promise.all([
+      const [leaveRes, statsRes, presentRes, absentRes, outstationRes, onLeaveRes, entRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/leave-requests?${params}`),
         fetch(`${API_BASE_URL}/api/dashboard-stats?${statsQuery}`),
         fetch(`${API_BASE_URL}/api/reports/daily-attendance?${listQuery}`),
         fetch(`${API_BASE_URL}/api/reports/absent-employees?${listQuery}`),
         fetch(`${API_BASE_URL}/api/outstation?${listQuery.replace(`date=${dateParam}&`, '')}`),
-        fetch(`${API_BASE_URL}/api/reports/on-leave-employees?${listQuery}`)
+        fetch(`${API_BASE_URL}/api/reports/on-leave-employees?${listQuery}`),
+        fetch(`${API_BASE_URL}/api/leave-entitlements?${params}`)
       ]);
 
       const data = await leaveRes.json();
@@ -435,6 +436,15 @@ export default function LeaveAnalytics() {
       const absentData = await absentRes.json().catch(() => ({ success: false }));
       const outstationData = await outstationRes.json().catch(() => ({ success: false }));
       const onLeaveData = await onLeaveRes.json().catch(() => ({ success: false }));
+      const entData = await entRes.json().catch(() => ({ success: false }));
+
+      if (entData.success && Array.isArray(entData.data)) {
+        const entMap: Record<string, number> = {};
+        entData.data.forEach((e: any) => {
+          entMap[e.user_id] = Number(e.balance || 0) + Number(e.annual_days_used || 0);
+        });
+        setEntitlements(entMap);
+      }
 
       if (data.success && Array.isArray(data.leaveRequests)) {
         const formatted: LeaveRecord[] = data.leaveRequests.map((r: any) => ({
@@ -504,7 +514,7 @@ export default function LeaveAnalytics() {
 
   // ─ Staff-level summary (for Branch Leader / HOD) ─────────────────────────
   const staffSummary = useMemo(() => {
-    const map: Record<string, { id: string; name: string; total: number; approved: number; rejected: number; pending: number; days: number; department: string; branch: string; }> = {};
+    const map: Record<string, { id: string; name: string; total: number; approved: number; rejected: number; pending: number; days: number; department: string; branch: string; quota: number; }> = {};
     records.forEach((r) => {
       if (!map[r.user_id]) {
         map[r.user_id] = { 
@@ -513,10 +523,10 @@ export default function LeaveAnalytics() {
           total: 0, 
           approved: 0, 
           rejected: 0, 
-          pending: 0, 
           days: 0,
           department: r.department || "General",
-          branch: r.branch || "HQ"
+          branch: r.branch || "HQ",
+          quota: entitlements[r.user_id] || 14
         };
       }
       map[r.user_id].total++;
@@ -530,7 +540,7 @@ export default function LeaveAnalytics() {
       }
     });
     return Object.values(map).sort((a, b) => b.total - a.total);
-  }, [records]);
+  }, [records, entitlements]);
 
   // ─ Filter logic ─────────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
@@ -647,13 +657,9 @@ export default function LeaveAnalytics() {
       .map(([, v]) => v);
   }, [filtered]);
 
-  // Leave balance usage estimate (14 days quota per employee assumed)
-  const QUOTA_PER_EMPLOYEE = 14;
-  const uniqueEmployees = useMemo(
-    () => new Set(filtered.map((r) => r.user_id)).size,
-    [filtered],
-  );
-  const totalQuota = uniqueEmployees * QUOTA_PER_EMPLOYEE;
+  // Leave balance usage estimate
+  const uniqueEmployees = staffSummary.length;
+  const totalQuota = staffSummary.reduce((sum, s) => sum + s.quota, 0);
   const approvedDays = useMemo(
     () =>
       filtered
@@ -850,11 +856,10 @@ export default function LeaveAnalytics() {
       const b = r.branch || "Unknown";
       counts[b] = (counts[b] || 0) + 1;
     });
-    return Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([name, value]) => ({ name, value }));
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [filtered]);
 
   // 3. Leave Seasonality
-  // Uses monthlyTrend but mapped for horizontal bar chart
   const seasonality = useMemo(() => {
     return monthlyTrend.map(m => ({
       name: m.month,
@@ -1091,7 +1096,7 @@ export default function LeaveAnalytics() {
                 <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
                 <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} width={40} />
                 <Tooltip 
-                  cursor={{fill: 'rgba(0,0,0,0.02)'}} 
+                  cursor={false} 
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length && hoveredSeason === label) {
                       return (
@@ -1158,7 +1163,7 @@ export default function LeaveAnalytics() {
                 <XAxis type="number" hide />
                 <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} width={80} />
                 <Tooltip 
-                  cursor={{fill: 'transparent'}} 
+                  cursor={false} 
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length && hoveredDept === label) {
                       return (
@@ -1201,7 +1206,7 @@ export default function LeaveAnalytics() {
                 <XAxis type="number" hide />
                 <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} width={80} />
                 <Tooltip 
-                  cursor={{fill: 'transparent'}} 
+                  cursor={false} 
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length && hoveredBranch === label) {
                       return (
@@ -1234,11 +1239,11 @@ export default function LeaveAnalytics() {
             </ResponsiveContainer>
           </div>
         </Card>
+      </div>
 
-      {/* 5. Workforce Risk Monitoring (Row 4) */}
-      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         {/* Balance Risk */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-4">7. Leave Balance Risk</h3>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
             <div className="flex items-center justify-between p-3 rounded-lg border border-emerald-100 bg-emerald-50">
@@ -1275,9 +1280,9 @@ export default function LeaveAnalytics() {
         </Card>
 
         {/* Leave Calendar */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">12. Leave Calendar <span className="text-[9px] font-normal text-slate-400">(This Month)</span></h3>
-          <div className="flex-1 flex flex-col justify-center items-center border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
+          <h3 className="text-sm font-bold text-slate-800 mb-4">8. Leave Calendar <span className="text-[9px] font-normal text-slate-400">(This Month)</span></h3>
+          <div className="flex-1 flex flex-col justify-center items-center border border-dashed border-slate-200 rounded-lg bg-slate-50/50 min-h-[160px]">
             <CalendarCheck className="w-6 h-6 text-slate-400 mb-2" />
             <p className="text-xs font-bold text-slate-600">Calendar View Ready</p>
             <p className="text-[10px] text-slate-400 text-center mt-1 px-4">Integrate with full calendar component.</p>
@@ -1286,8 +1291,8 @@ export default function LeaveAnalytics() {
         </Card>
 
         {/* Upcoming */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">10. Upcoming Approved Leave <span className="text-[9px] font-normal text-slate-400">(Forecast)</span></h3>
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
+          <h3 className="text-sm font-bold text-slate-800 mb-4">9. Upcoming Approved Leave <span className="text-[9px] font-normal text-slate-400">(Forecast)</span></h3>
           <div className="space-y-4 flex-1">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-3">
@@ -1312,13 +1317,15 @@ export default function LeaveAnalytics() {
             </div>
           </div>
         </Card>
+      </div>
 
+      <div className="columns-1 lg:columns-2 gap-4 mb-4">
         {/* Approval Perf */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">9. Approval Performance <span className="text-[9px] font-normal text-slate-400">(Avg. Time)</span></h3>
-          <div className="flex-1 flex flex-col justify-center items-center">
+          <h3 className="text-sm font-bold text-slate-800 mb-4">10. Approval Performance <span className="text-[9px] font-normal text-slate-400">(Avg. Time)</span></h3>
+          <div className="flex-1 flex flex-col justify-center items-center min-h-[160px]">
             <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
-              <Loader2 className="w-5 h-5 text-slate-400" />
+              <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
             </div>
             <p className="text-xs font-bold text-slate-600">Coming Soon</p>
             <p className="text-[10px] text-slate-400 text-center mt-1">Approval timestamp tracking is being implemented.</p>
@@ -1327,7 +1334,7 @@ export default function LeaveAnalytics() {
 
         {/* Action Center */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-2">14. Action Center</h3>
+          <h3 className="text-sm font-bold text-slate-800 mb-2">11. Action Center</h3>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
             <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 cursor-pointer hover:bg-amber-100 transition-colors border border-amber-100">
               <span className="text-xs font-semibold text-amber-800">Pending Approval</span>
@@ -1348,7 +1355,7 @@ export default function LeaveAnalytics() {
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-purple-500" />
-            13. HR Insights
+            12. HR Insights
           </h3>
           <div className="space-y-2 flex-1">
             {records.length > 0 ? (
@@ -1388,7 +1395,6 @@ export default function LeaveAnalytics() {
             )}
           </div>
         </Card>
-
       </div>
 
       {/* 7. Employees Requiring Attention */}

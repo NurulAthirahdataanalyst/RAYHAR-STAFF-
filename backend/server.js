@@ -4186,7 +4186,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
             ELSE 'Submitted leave request'
           END,
           NULL,
-          CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon')),
+          CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', lr.reason), '')),
           TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM'),
           lr.updated_at,
           lr.status
@@ -4198,7 +4198,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           CASE WHEN type = 'reminder' THEN 'note' ELSE 'note' END,
           'You',
           CASE WHEN type = 'reminder' THEN 'Added a reminder' ELSE 'Added a note' END,
-          NULL, NULL,
+          NULL, content,
           TO_CHAR(created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM'),
           created_at,
           CASE WHEN type = 'reminder' THEN 'Reminder' ELSE 'Note' END
@@ -4217,7 +4217,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
             END, ')') AS actor,
           'assigned an outstation to' AS action,
           'You' AS target,
-          CONCAT('Branch: ', COALESCE(oa.branch, 'HQ'), ' • Destination: ', oa.destination, ' • Date: ', TO_CHAR(oa.start_date, 'DD Mon YYYY')) AS context,
+          CONCAT('Branch: ', COALESCE(oa.branch, 'HQ'), ' • Destination: ', oa.destination, ' • Date: ', TO_CHAR(oa.start_date, 'DD Mon YYYY'), COALESCE(CONCAT(' • ', oa.purpose), '') ) AS context,
           TO_CHAR(oa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
           oa.created_at AS sort_time,
           'Assigned' AS badge
@@ -4287,7 +4287,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
               ELSE CONCAT('Updated leave: ', lr.status)
             END,
             emp.full_name,
-            CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon')),
+            CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', lr.reason), '')),
             TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM'),
             lr.updated_at,
             lr.status
@@ -4312,7 +4312,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
               END, ')') AS actor,
             'assigned an outstation to' AS action,
             emp.full_name AS target,
-            CONCAT('Branch: ', COALESCE(oa.branch, 'HQ'), ' • Destination: ', oa.destination, ' • Date: ', TO_CHAR(oa.start_date, 'DD Mon YYYY')) AS context,
+            CONCAT('Branch: ', COALESCE(oa.branch, 'HQ'), ' • Destination: ', oa.destination, ' • Date: ', TO_CHAR(oa.start_date, 'DD Mon YYYY'), COALESCE(CONCAT(' • ', oa.purpose), '')) AS context,
             TO_CHAR(oa.created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
             oa.created_at AS sort_time,
             'Assigned' AS badge
