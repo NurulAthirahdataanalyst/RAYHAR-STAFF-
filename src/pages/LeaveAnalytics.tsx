@@ -1043,7 +1043,7 @@ export default function LeaveAnalytics() {
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-4">1. Leave Trend Over Time (Monthly)</h3>
           <div className="flex-1 w-full min-h-[250px]">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={250}>
               <LineChart data={monthlyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
@@ -1077,7 +1077,7 @@ export default function LeaveAnalytics() {
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-4">2. Leave Seasonality (by Month)</h3>
           <div className="flex-1 w-full min-h-[250px]">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={250}>
               <BarChart data={seasonality} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                 <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
@@ -1110,7 +1110,7 @@ export default function LeaveAnalytics() {
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-2">4. Leave Type Breakdown</h3>
           <div className="flex-1 min-relative w-full min-h-[250px]">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie data={typeDistribution} cx="50%" cy="50%" innerRadius={60} outerRadius={80} dataKey="value" stroke="none">
                   {typeDistribution.map((entry, idx) => (
