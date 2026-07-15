@@ -61,6 +61,9 @@ type WorkforceEvent = {
   end_date: string;
   status: string;
   days?: number | null;
+  project?: string;
+  meeting_title?: string;
+  client_company?: string;
   applies_to?: string;
 };
 
@@ -405,7 +408,14 @@ export default function WorkforceCalendar() {
                       <MapPin className="w-3.5 h-3.5 text-[#7B0099] shrink-0" />
                       <div>
                         <p className="text-[9px] font-black uppercase text-gray-400">Destination</p>
-                        <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{selectedEvent.destination}</p>
+                        <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">
+                          {selectedEvent.destination}
+                          {selectedEvent.source === "outstation" && selectedEvent.name && selectedEvent.name !== selectedEvent.destination && (
+                            <span className="text-slate-400 dark:text-slate-500 font-normal text-[11px] ml-2">
+                              ({selectedEvent.name})
+                            </span>
+                          )}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -448,7 +458,22 @@ export default function WorkforceCalendar() {
                               <p className="text-[11px] font-bold text-gray-800 dark:text-gray-100 truncate">
                                 {e.source === "company_leave" ? (e.name || e.type) : e.employee}
                               </p>
-                              <p className={`text-[10px] truncate ${ec.text}`}>{e.type}{e.destination ? ` → ${e.destination}` : ''}</p>
+                              <p className={`text-[10px] truncate ${ec.text}`}>
+                                {e.type}
+                                {e.destination ? (
+                                  <>
+                                    {" → "}
+                                    {e.destination}
+                                    {e.source === "outstation" && e.name && e.name !== e.destination && (
+                                      <span className="text-[9px] text-gray-400 font-normal ml-1">
+                                        ({e.name})
+                                      </span>
+                                    )}
+                                  </>
+                                ) : (
+                                  ""
+                                )}
+                              </p>
                             </div>
                             {e.branch && e.source !== "company_leave" && (
                               <Badge variant="outline" className="text-[8px] font-bold px-1.5 py-0 shrink-0">{e.branch}</Badge>

@@ -7050,7 +7050,7 @@ async function getWorkforceCalendarData(role, branch, department) {
     const outstationParamsCopy = [...params];
     const [outstationRows] = await pool.query(
       `SELECT oa.id, oa.user_id, p.full_name, oa.branch, oa.department,
-              oa.destination, oa.purpose, oa.start_date, oa.end_date, oa.status
+              oa.destination, oa.purpose, oa.project, oa.meeting_title, oa.client_company, oa.start_date, oa.end_date, oa.status
        FROM outstation_assignments oa
        LEFT JOIN profiles p ON oa.user_id = p.user_id
        ${outstationWhere}
@@ -7077,8 +7077,12 @@ async function getWorkforceCalendarData(role, branch, department) {
         branch: r.branch,
         department: r.department,
         type: 'Outstation',
+        name: r.project || r.meeting_title || r.purpose || 'Outstation',
         destination: r.destination,
         purpose: r.purpose,
+        project: r.project,
+        meeting_title: r.meeting_title,
+        client_company: r.client_company,
         start_date: start,
         end_date: end,
         status: computedStatus,
