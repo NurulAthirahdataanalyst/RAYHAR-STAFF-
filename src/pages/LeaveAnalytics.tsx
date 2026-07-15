@@ -375,6 +375,8 @@ export default function LeaveAnalytics() {
 
   const [hoveredTrend, setHoveredTrend] = useState<string | null>(null);
   const [hoveredSeason, setHoveredSeason] = useState<string | null>(null);
+  const [hoveredDept, setHoveredDept] = useState<string | null>(null);
+  const [hoveredBranch, setHoveredBranch] = useState<string | null>(null);
 
   const [attendanceStats, setAttendanceStats] = useState({
     presentToday: 0,
@@ -1155,8 +1157,34 @@ export default function LeaveAnalytics() {
               <BarChart data={deptComparison} layout="vertical" margin={{ top: 0, right: 30, left: 0, bottom: 0 }}>
                 <XAxis type="number" hide />
                 <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} width={80} />
-                <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} itemStyle={{ fontSize: 12, fontWeight: 'bold' }} />
-                <Bar dataKey="value" name="Applications" fill="#8B5CF6" radius={[0,4,4,0]} barSize={12}>
+                <Tooltip 
+                  cursor={{fill: 'transparent'}} 
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length && hoveredDept === label) {
+                      return (
+                        <div className="bg-white p-3 rounded-xl shadow-lg border border-slate-100 text-xs">
+                          <p className="font-bold text-slate-800 mb-2">{label}</p>
+                          {payload.map((entry: any, index: number) => (
+                            <div key={index} className="flex justify-between items-center gap-4 font-semibold mb-1">
+                              <span style={{ color: '#8B5CF6' }}>{entry.name}</span>
+                              <span className="text-slate-700">{entry.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+                    return null;
+                  }} 
+                />
+                <Bar 
+                  dataKey="value" 
+                  name="Applications" 
+                  fill="#8B5CF6" 
+                  radius={[0,4,4,0]} 
+                  barSize={12}
+                  onMouseEnter={(data: any) => setHoveredDept(data.name)}
+                  onMouseLeave={() => setHoveredDept(null)}
+                >
                    <LabelList dataKey="value" position="right" style={{ fontSize: '10px', fill: '#8B5CF6', fontWeight: 'bold' }} />
                 </Bar>
               </BarChart>
@@ -1172,8 +1200,34 @@ export default function LeaveAnalytics() {
               <BarChart data={branchComparison} layout="vertical" margin={{ top: 0, right: 30, left: 0, bottom: 0 }}>
                 <XAxis type="number" hide />
                 <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} width={80} />
-                <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} itemStyle={{ fontSize: 12, fontWeight: 'bold' }} />
-                <Bar dataKey="value" name="Applications" fill="#3B82F6" radius={[0,4,4,0]} barSize={12}>
+                <Tooltip 
+                  cursor={{fill: 'transparent'}} 
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length && hoveredBranch === label) {
+                      return (
+                        <div className="bg-white p-3 rounded-xl shadow-lg border border-slate-100 text-xs">
+                          <p className="font-bold text-slate-800 mb-2">{label}</p>
+                          {payload.map((entry: any, index: number) => (
+                            <div key={index} className="flex justify-between items-center gap-4 font-semibold mb-1">
+                              <span style={{ color: '#3B82F6' }}>{entry.name}</span>
+                              <span className="text-slate-700">{entry.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+                    return null;
+                  }} 
+                />
+                <Bar 
+                  dataKey="value" 
+                  name="Applications" 
+                  fill="#3B82F6" 
+                  radius={[0,4,4,0]} 
+                  barSize={12}
+                  onMouseEnter={(data: any) => setHoveredBranch(data.name)}
+                  onMouseLeave={() => setHoveredBranch(null)}
+                >
                    <LabelList dataKey="value" position="right" style={{ fontSize: '10px', fill: '#3B82F6', fontWeight: 'bold' }} />
                 </Bar>
               </BarChart>
@@ -1217,6 +1271,17 @@ export default function LeaveAnalytics() {
                 <p className="text-[9px] text-rose-600/70 font-semibold uppercase">Employees</p>
               </div>
             </div>
+          </div>
+        </Card>
+
+        {/* Leave Calendar */}
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
+          <h3 className="text-sm font-bold text-slate-800 mb-4">12. Leave Calendar <span className="text-[9px] font-normal text-slate-400">(This Month)</span></h3>
+          <div className="flex-1 flex flex-col justify-center items-center border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
+            <CalendarCheck className="w-6 h-6 text-slate-400 mb-2" />
+            <p className="text-xs font-bold text-slate-600">Calendar View Ready</p>
+            <p className="text-[10px] text-slate-400 text-center mt-1 px-4">Integrate with full calendar component.</p>
+            <Button variant="outline" size="sm" className="mt-3 text-[10px] h-7" onClick={() => navigate("/leave/calendar")}>Go to Calendar</Button>
           </div>
         </Card>
 
@@ -1323,16 +1388,6 @@ export default function LeaveAnalytics() {
               </div>
               <span className="text-xs font-bold text-slate-800">{upcomingLeaves.nextMonth} Employees</span>
             </div>
-          </div>
-        </Card>
-        {/* Leave Calendar */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">12. Leave Calendar <span className="text-[9px] font-normal text-slate-400">(This Month)</span></h3>
-          <div className="flex-1 flex flex-col justify-center items-center border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
-            <CalendarCheck className="w-6 h-6 text-slate-400 mb-2" />
-            <p className="text-xs font-bold text-slate-600">Calendar View Ready</p>
-            <p className="text-[10px] text-slate-400 text-center mt-1 px-4">Integrate with full calendar component.</p>
-            <Button variant="outline" size="sm" className="mt-3 text-[10px] h-7" onClick={() => navigate("/leave/calendar")}>Go to Calendar</Button>
           </div>
         </Card>
 
