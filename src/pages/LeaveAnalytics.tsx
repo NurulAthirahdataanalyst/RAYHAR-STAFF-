@@ -1285,6 +1285,34 @@ export default function LeaveAnalytics() {
           </div>
         </Card>
 
+        {/* Upcoming */}
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
+          <h3 className="text-sm font-bold text-slate-800 mb-4">10. Upcoming Approved Leave <span className="text-[9px] font-normal text-slate-400">(Forecast)</span></h3>
+          <div className="space-y-4 flex-1">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-blue-50 text-blue-600"><Calendar className="w-4 h-4"/></div>
+                <span className="text-xs font-bold text-slate-700">Tomorrow</span>
+              </div>
+              <span className="text-xs font-bold text-slate-800">{upcomingLeaves.tomorrow} Employees</span>
+            </div>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-purple-50 text-purple-600"><Calendar className="w-4 h-4"/></div>
+                <span className="text-xs font-bold text-slate-700">Next 7 Days</span>
+              </div>
+              <span className="text-xs font-bold text-slate-800">{upcomingLeaves.nextWeek} Employees</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600"><Calendar className="w-4 h-4"/></div>
+                <span className="text-xs font-bold text-slate-700">Next 30 Days</span>
+              </div>
+              <span className="text-xs font-bold text-slate-800">{upcomingLeaves.nextMonth} Employees</span>
+            </div>
+          </div>
+        </Card>
+
         {/* Approval Perf */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-4">9. Approval Performance <span className="text-[9px] font-normal text-slate-400">(Avg. Time)</span></h3>
@@ -1358,36 +1386,6 @@ export default function LeaveAnalytics() {
                 <p className="text-xs text-slate-600 font-medium leading-relaxed">No leave data for this period. Try adjusting the year or month filter.</p>
               </div>
             )}
-          </div>
-        </Card>
-
-      {/* 6. Workforce Availability (Row 5) */}
-      
-        {/* Upcoming */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">10. Upcoming Approved Leave <span className="text-[9px] font-normal text-slate-400">(Forecast)</span></h3>
-          <div className="space-y-4 flex-1">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-50 text-blue-600"><Calendar className="w-4 h-4"/></div>
-                <span className="text-xs font-bold text-slate-700">Tomorrow</span>
-              </div>
-              <span className="text-xs font-bold text-slate-800">{upcomingLeaves.tomorrow} Employees</span>
-            </div>
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-purple-50 text-purple-600"><Calendar className="w-4 h-4"/></div>
-                <span className="text-xs font-bold text-slate-700">Next 7 Days</span>
-              </div>
-              <span className="text-xs font-bold text-slate-800">{upcomingLeaves.nextWeek} Employees</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600"><Calendar className="w-4 h-4"/></div>
-                <span className="text-xs font-bold text-slate-700">Next 30 Days</span>
-              </div>
-              <span className="text-xs font-bold text-slate-800">{upcomingLeaves.nextMonth} Employees</span>
-            </div>
           </div>
         </Card>
 
