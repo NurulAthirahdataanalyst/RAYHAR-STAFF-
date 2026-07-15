@@ -1325,52 +1325,6 @@ export default function LeaveAnalytics() {
             </div>
           </div>
         </Card>
-        {/* Availability */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">11. Workforce Availability <span className="text-[9px] font-normal text-slate-400">(Today)</span></h3>
-          <div className="flex-1 grid grid-cols-2 gap-3">
-            <div 
-              onClick={() => navigate("/hr-analytics/attendance")}
-              className="border border-emerald-100 bg-emerald-50/50 rounded-lg p-3 flex flex-col items-center justify-start cursor-pointer hover:bg-emerald-100 transition-colors"
-            >
-              <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Present</p>
-              <p className="text-xl font-black text-emerald-600 mt-1">{attendanceStats.presentToday}</p>
-              <div className="mt-2 w-full max-h-16 overflow-y-auto custom-scrollbar flex flex-col gap-1 text-[9px] text-emerald-700/80 text-center">
-                {lists.present.length > 0 ? lists.present.map(name => <div key={name} className="truncate" title={name}>{name}</div>) : <div>None</div>}
-              </div>
-            </div>
-            <div 
-              onClick={() => navigate("/reports/leave")}
-              className="border border-blue-100 bg-blue-50/50 rounded-lg p-3 flex flex-col items-center justify-start cursor-pointer hover:bg-blue-100 transition-colors"
-            >
-              <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wide">On Leave</p>
-              <p className="text-xl font-black text-blue-600 mt-1">{attendanceStats.onLeave || 0}</p>
-              <div className="mt-2 w-full max-h-16 overflow-y-auto custom-scrollbar flex flex-col gap-1 text-[9px] text-blue-700/80 text-center">
-                {lists.onLeave.length > 0 ? lists.onLeave.map(name => <div key={name} className="truncate" title={name}>{name}</div>) : <div>None</div>}
-              </div>
-            </div>
-            <div 
-              onClick={() => navigate("/outstation")}
-              className="border border-purple-100 bg-purple-50/50 rounded-lg p-3 flex flex-col items-center justify-start cursor-pointer hover:bg-purple-100 transition-colors"
-            >
-              <p className="text-[10px] font-bold text-purple-700 uppercase tracking-wide">Outstation</p>
-              <p className="text-xl font-black text-purple-600 mt-1">{attendanceStats.outstation || 0}</p>
-              <div className="mt-2 w-full max-h-16 overflow-y-auto custom-scrollbar flex flex-col gap-1 text-[9px] text-purple-700/80 text-center">
-                {lists.outstation.length > 0 ? lists.outstation.map(name => <div key={name} className="truncate" title={name}>{name}</div>) : <div>None</div>}
-              </div>
-            </div>
-            <div 
-              onClick={() => navigate("/hr-analytics/attendance")}
-              className="border border-rose-100 bg-rose-50/50 rounded-lg p-3 flex flex-col items-center justify-start cursor-pointer hover:bg-rose-100 transition-colors"
-            >
-              <p className="text-[10px] font-bold text-rose-700 uppercase tracking-wide">Absent</p>
-              <p className="text-xl font-black text-rose-600 mt-1">{attendanceStats.absentToday}</p>
-              <div className="mt-2 w-full max-h-16 overflow-y-auto custom-scrollbar flex flex-col gap-1 text-[9px] text-rose-700/80 text-center">
-                {lists.absent.length > 0 ? lists.absent.map(name => <div key={name} className="truncate" title={name}>{name}</div>) : <div>None</div>}
-              </div>
-            </div>
-          </div>
-        </Card>
         {/* Leave Calendar */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-4">12. Leave Calendar <span className="text-[9px] font-normal text-slate-400">(This Month)</span></h3>
