@@ -500,7 +500,7 @@ export default function Dashboard() {
           : `Clock in: ${stats.clockInTime || "--:--"}`;
 
   const isTodayDate = isToday(selectedDate);
-  const showEmptyState = !isTodayDate && isElevatedRole && stats.hasRecords === false;
+  const showEmptyState = !isTodayDate && isElevatedRole && stats.hasRecords === false && !isCompanyLeave && (stats.companyLeave || 0) === 0 && (stats.onLeave || 0) === 0 && (stats.outstationToday || 0) === 0;
 
   return (
     <div className="space-y-3 animate-in fade-in duration-500">
