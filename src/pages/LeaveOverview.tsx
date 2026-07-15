@@ -228,7 +228,7 @@ export default function LeaveOverview() {
       </div>
 
       {/* Leave Balance Cards */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 max-w-[960px]">
         {leaveBalances.map((item) => (
           <Card key={item.label} className="relative overflow-hidden border border-border/40 shadow-[0_4px_16px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.12)] bg-white/90 dark:bg-card/80 backdrop-blur-md rounded-xl group hover:shadow-md transition-all duration-300">
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#7B0099]" />
