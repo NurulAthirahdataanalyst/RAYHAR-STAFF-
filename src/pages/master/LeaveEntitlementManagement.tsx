@@ -1058,11 +1058,31 @@ function AdditionalLeaveAllocationForm({
   const [reasonCat, setReasonCat] = useState("Performance Reward");
   const [remarks, setRemarks] = useState("");
 
-  const handleGrant = () => {
+  const handleGrant = async () => {
     if (!selectedEmp) return;
 
     const currentBalances = getEmployeeLeaveBalances(selectedEmp.user_id);
     const newTotal = currentBalances[leaveType as keyof typeof currentBalances] + addDays;
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/profiles/${selectedEmp.user_id}/leave-adjustments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leaveType: leaveType,
+          adjustmentDays: addDays,
+          reason: `${reasonCat}${remarks ? ': ' + remarks : ''}`,
+          approvedBy: "HR Admin"
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to sync to database");
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error", description: "Failed to update database", variant: "destructive" });
+      return;
+    }
+
     updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, leaveType, newTotal);
 
     // Append to entitlement audit history
@@ -1312,8 +1332,19 @@ function ManualLeaveAdjustmentForm({
     setIsSubmitting(true);
     
     try {
-      // Simulate API call for now (can be replaced with real backend)
-      await new Promise(r => setTimeout(r, 600));
+      // Real API call to sync adjustment to database
+      const response = await fetch(`${API_BASE_URL}/api/profiles/${selectedEmp.user_id}/leave-adjustments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leaveType: leaveType,
+          adjustmentDays: adjValue,
+          reason: `${reasonCategory}: ${reasonDetails}`,
+          approvedBy: "HR Admin"
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to update database");
 
       // Append to entitlement audit history
       const actionType = adjValue >= 0 ? 'Manual Adjustment' : 'Deduction';
