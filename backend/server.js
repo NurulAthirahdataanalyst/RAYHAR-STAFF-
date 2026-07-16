@@ -4198,7 +4198,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           CASE WHEN type = 'reminder' THEN 'note' ELSE 'note' END,
           'You',
           CASE WHEN type = 'reminder' THEN 'Added a reminder' ELSE 'Added a note' END,
-          NULL, content,
+          NULL, note_text,
           TO_CHAR(created_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM'),
           created_at,
           CASE WHEN type = 'reminder' THEN 'Reminder' ELSE 'Note' END
