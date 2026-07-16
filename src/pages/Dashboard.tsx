@@ -42,6 +42,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
+import { getEmployeeLeaveBalances } from "@/lib/leaveStorage";
 
 const getStoredUser = () => {
   try {
@@ -104,7 +105,7 @@ export default function Dashboard() {
   const [activities, setActivities] = useState<any[]>([]);
   const [activityFeed, setActivityFeed] = useState<{ my: any[]; team: any[]; system: any[] }>({ my: [], team: [], system: [] });
   const [activeTab, setActiveTab] = useState<"my" | "team" | "system" | "all">("my");
-  const [activityFilter, setActivityFilter] = useState<"all" | "attendance" | "leave" | "approval" | "system">("all");
+  const [activityFilter, setActivityFilter] = useState<"all" | "attendance" | "leave" | "approval" | "system" | "outstation">("all");
   const [whoOutToday, setWhoOutToday] = useState<any[]>([]);
   const [upcomingOutstations, setUpcomingOutstations] = useState<any[]>([]);
   const [activeOutstations, setActiveOutstations] = useState<any[]>([]);

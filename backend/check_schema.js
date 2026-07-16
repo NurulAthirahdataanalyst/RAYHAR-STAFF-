@@ -1,20 +1,19 @@
-const mysql = require("mysql2/promise");
-
-const pool = mysql.createPool({
-  host: "LocalHost",
-  user: "root",
-  password: "625231",
-  database: "employee_portal",
-  port: 3307,
-});
+const { Pool } = require('pg');
+require('dotenv').config({path: '.env'});
 
 (async () => {
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
+  
   try {
-    const [rows] = await pool.query("DESCRIBE profiles;");
-    console.log(JSON.stringify(rows, null, 2));
-    process.exit(0);
-  } catch (err) {
-    console.error(err);
-    process.exit(1);
+    const res = await pool.query("SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'leave_requests'");
+    console.log("leave_requests columns:");
+    console.table(res.rows);
+  } catch(e) {
+    console.error(e);
+  } finally {
+    pool.end();
   }
 })();

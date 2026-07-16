@@ -371,6 +371,8 @@ export default function LeaveAnalytics() {
   // ─ Data state ─
   const [records, setRecords] = useState<LeaveRecord[]>([]);
   const [entitlements, setEntitlements] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(false);
+  const QUOTA_PER_EMPLOYEE = 14;
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
   const [hoveredTrend, setHoveredTrend] = useState<string | null>(null);
@@ -523,6 +525,7 @@ export default function LeaveAnalytics() {
           total: 0, 
           approved: 0, 
           rejected: 0, 
+          pending: 0,
           days: 0,
           department: r.department || "General",
           branch: r.branch || "HQ",

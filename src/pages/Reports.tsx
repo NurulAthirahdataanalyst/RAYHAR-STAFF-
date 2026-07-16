@@ -158,7 +158,7 @@ export default function Reports() {
   const [workStartTime, setWorkStartTime] = useState("09:00 AM");
 
   // Report Generator State
-  const [generatorType, setGeneratorType] = useState<"stability" | "trends" | "leave" | "financial">("trends");
+  const [generatorType, setGeneratorType] = useState<"stability" | "trends" | "leave" | "financial" | "outstation" | "company_leave">("trends");
   const [generatorDept, setGeneratorDept] = useState("all");
   const [generatorBranch, setGeneratorBranch] = useState("all");
   const [generatorRange, setGeneratorRange] = useState("ytd");

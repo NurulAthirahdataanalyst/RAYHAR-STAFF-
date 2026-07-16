@@ -294,7 +294,7 @@ export default function AttendanceDashboard() {
         setDailyAttendance(data.report);
       }
 
-      let combinedAbsentees = [];
+      let combinedAbsentees: any[] = [];
       if (absentData.success && absentData.report) {
         combinedAbsentees = [...combinedAbsentees, ...absentData.report];
       }

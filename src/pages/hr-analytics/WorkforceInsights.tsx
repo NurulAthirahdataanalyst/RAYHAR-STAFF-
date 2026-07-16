@@ -100,7 +100,7 @@ export default function WorkforceInsights() {
   const [activeOutstationList, setActiveOutstationList] = useState<any[]>([]);
   const [outstationSummary, setOutstationSummary] = useState<any>(null);
   const [liveMonthlyComp, setLiveMonthlyComp] = useState<any>(null);
-  const [liveHrAlerts, setLiveHrAlerts] = useState<any[]>(null);
+  const [liveHrAlerts, setLiveHrAlerts] = useState<any[] | null>(null);
   const [feedConnected, setFeedConnected] = useState(false);
 
   const isAdminRole = ["hr_admin", "managing_director", "finance_manager"].includes(role || "");

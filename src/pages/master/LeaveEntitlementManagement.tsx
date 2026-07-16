@@ -17,6 +17,9 @@ import {
   Check,
   X,
   Plus,
+  Clock,
+  Loader2,
+  Play,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -78,6 +81,12 @@ const modules = [
     description: "Track every allocation, deduction, and correction so HR can audit the full entitlement lifecycle.",
     icon: History,
     tone: "bg-slate-500/10 text-slate-600",
+  },
+  {
+    title: "Replacement Leave Validation",
+    description: "Validate employee's replacement leave hours (Cuti Ganti) after they have worked on the replacement date.",
+    icon: Clock,
+    tone: "bg-blue-500/10 text-blue-600",
   },
 ];
 
@@ -310,6 +319,12 @@ export default function LeaveEntitlementManagement() {
           )}
           {activeModule === "Leave Balance History" && (
             <EntitlementHistoryPanel
+              onCancel={() => setActiveModule(null)}
+            />
+          )}
+          {activeModule === "Replacement Leave Validation" && (
+            <ReplacementLeaveValidationForm
+              employees={employees}
               onCancel={() => setActiveModule(null)}
             />
           )}
@@ -1876,4 +1891,118 @@ function MaternityLeaveForm({ employees, onCancel }: any) {
   );
 }
 
+function ReplacementLeaveValidationForm({ employees, onCancel }: { employees: any[], onCancel: () => void }) {
+  const [loading, setLoading] = useState(false);
+  const [validating, setValidating] = useState(false);
+  const [data, setData] = useState<any[]>([]);
 
+  useEffect(() => {
+    fetchReplacementLeaves();
+  }, []);
+
+  const fetchReplacementLeaves = async () => {
+    setLoading(true);
+    try {
+      // For HR, we want ALL replacement leaves, but we only have employee-specific endpoint right now.
+      // Wait, there's no GET /api/replacement-leaves endpoint for all users yet.
+      // We can fetch from a new endpoint or just use a workaround. Let's assume we can fetch all.
+      const res = await fetch(`${API_BASE_URL}/api/replacement-leaves`);
+      const json = await res.json();
+      if (json.success) {
+        setData(json.replacementLeaves);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleValidateNow = async () => {
+    setValidating(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/cron/validate-replacement-leaves`, {
+        method: 'POST'
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast({
+          title: "Validation Complete",
+          description: `Processed ${json.processed_count} records. Validated: ${json.validated_count}, Failed: ${json.failed_count}.`
+        });
+        fetchReplacementLeaves(); // refresh
+      } else {
+        toast({ title: "Validation Failed", description: json.message, variant: "destructive" });
+      }
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error", description: "Failed to run validation.", variant: "destructive" });
+    } finally {
+      setValidating(false);
+    }
+  };
+
+  return (
+    <Card className="border-border/60 bg-white dark:bg-card shadow-lg max-w-4xl mx-auto rounded-xl overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0 border-b pb-4 bg-blue-50/50 dark:bg-blue-950/20">
+        <div className="flex flex-row items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-blue-500/10 hover:text-blue-600 transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center">
+            <Clock className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <CardTitle className="text-base sm:text-lg font-black text-foreground">Replacement Leave Validation</CardTitle>
+            <CardDescription className="text-xs">Manually trigger the validation process to check attendance against Replacement Dates.</CardDescription>
+          </div>
+        </div>
+        <Button size="sm" onClick={handleValidateNow} disabled={validating || loading} className="bg-blue-600 hover:bg-blue-700 text-white font-bold gap-2">
+          {validating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+          Validate Now
+        </Button>
+      </CardHeader>
+      <CardContent className="p-0">
+        {loading ? (
+          <div className="p-10 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
+        ) : data.length === 0 ? (
+          <div className="p-10 text-center text-muted-foreground text-sm font-bold">No replacement leaves found.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-muted/30">
+                  <th className="p-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase">Employee ID</th>
+                  <th className="p-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase">Leave Date</th>
+                  <th className="p-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase">Replacement Date</th>
+                  <th className="p-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase">Hours</th>
+                  <th className="p-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((r, i) => (
+                  <tr key={i} className="hover:bg-muted/10 border-b border-border/30">
+                    <td className="p-3 text-xs font-bold">{r.employee_id}</td>
+                    <td className="p-3 text-xs font-medium">{r.leave_date?.slice(0, 10)}</td>
+                    <td className="p-3 text-xs font-medium">{r.replacement_date?.slice(0, 10)}</td>
+                    <td className="p-3 text-xs font-medium">{r.required_hours}h</td>
+                    <td className="p-3">
+                      <span className={`text-[10px] font-bold px-2 py-1 rounded-md 
+                        ${r.validation_status === 'Validated' ? 'bg-emerald-500/10 text-emerald-600' :
+                          r.validation_status === 'Failed' ? 'bg-rose-500/10 text-rose-600' :
+                          r.validation_status === 'Cancelled' ? 'bg-slate-500/10 text-slate-600' :
+                          r.validation_status === 'Waiting for Replacement Date' ? 'bg-purple-500/10 text-purple-600' :
+                          'bg-amber-500/10 text-amber-600'}`}>
+                        {r.validation_status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

@@ -32,12 +32,14 @@ const getLocalDateString = (dVal: any) => {
   return `${y}-${m}-${day}`;
 };
 
-export default function EmployeeAnalyticsView({ userId, userName, month, year, myLogs: rawMyLogs, leaveRequests }: EmployeeAnalyticsViewProps) {
+export default function EmployeeAnalyticsView({ userId, userName, month, year, myLogs: rawMyLogs, leaveRequests: propLeaveRequests }: EmployeeAnalyticsViewProps) {
   const [rankData, setRankData] = useState<{ rank: number | null, total: number, score: number }>({ rank: null, total: 0, score: 0 });
   const [lastMonthLogs, setLastMonthLogs] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [companyLeaves, setCompanyLeaves] = useState<any[]>([]);
   const [outstations, setOutstations] = useState<any[]>([]);
+  const [leaveRequests, setLeaveRequests] = useState<any[]>(propLeaveRequests);
+  const [replacementLeaves, setReplacementLeaves] = useState<any[]>([]);
 
   // Filter out any logs that were recorded on a Company Leave date
   const myLogs = useMemo(() => {
@@ -104,6 +106,14 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       })
       .catch(console.error);
 
+    fetch(`${API_BASE_URL}/api/employees/${userId}/replacement-leaves`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setReplacementLeaves(data.replacementLeaves || []);
+        }
+      })
+      .catch(console.error);
     fetch(`${API_BASE_URL}/api/company-leaves`)
       .then(res => res.json())
       .then(data => {
@@ -169,10 +179,17 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
   const totalLeavesUsed = annualLeavesUsed + sickLeavesUsed + emergencyLeavesUsed;
   
-  const quotaLeavesUsed = leaveRequests
+  let quotaLeavesUsed = leaveRequests
     .filter(l => l.status !== "Rejected")
     .filter(l => ['Cuti Tahunan', 'Annual/Emergency Leave', 'Cuti Sakit', 'Sick Leave', 'Kecemasan', 'Emergency'].includes(l.leave_type))
     .reduce((acc, curr) => acc + Number(curr.days || 0), 0);
+    
+  // Add temporary deductions for Replacement Leaves
+  const pendingReplacementDeduction = replacementLeaves
+    .filter(r => ['Pending', 'Approved', 'Waiting for Replacement Date', 'Failed'].includes(r.validation_status))
+    .length; // Assuming each replacement day corresponds to 1 day of leave (since required_hours is usually for a day, but ideally it should check the main leave_request's days or we just count rows if 1 row = 1 day. Wait, days is in leaveRequests).
+
+  quotaLeavesUsed += pendingReplacementDeduction;
     
   const baseEntitlement = profile?.annual_leave_entitlement || 14;
   const totalAdjustment = profile?.total_adjustment || 0;
@@ -1059,6 +1076,49 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
       </div>
+      
+      {/* ROW 4: Replacement Leaves Table */}
+      {replacementLeaves.length > 0 && (
+        <div className="mt-3">
+          <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card">
+            <CardContent className="p-5">
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground mb-4">REPLACEMENT LEAVES</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="pb-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Leave Date</th>
+                      <th className="pb-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Replacement Date</th>
+                      <th className="pb-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Hours Required</th>
+                      <th className="pb-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {replacementLeaves.map((rl, i) => (
+                      <tr key={i} className="hover:bg-muted/10 transition-colors">
+                        <td className="py-3 border-b border-border/30 text-xs font-medium">{getLocalDateString(rl.leave_date)}</td>
+                        <td className="py-3 border-b border-border/30 text-xs font-medium">{getLocalDateString(rl.replacement_date)}</td>
+                        <td className="py-3 border-b border-border/30 text-xs font-medium">{rl.required_hours} {rl.required_hours == 1 ? 'Hour' : 'Hours'}</td>
+                        <td className="py-3 border-b border-border/30">
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md 
+                            ${rl.validation_status === 'Validated' ? 'bg-emerald-500/10 text-emerald-600' :
+                              rl.validation_status === 'Failed' ? 'bg-rose-500/10 text-rose-600' :
+                              rl.validation_status === 'Cancelled' ? 'bg-slate-500/10 text-slate-600' :
+                              rl.validation_status === 'Approved' ? 'bg-blue-500/10 text-blue-600' :
+                              rl.validation_status === 'Waiting for Replacement Date' ? 'bg-purple-500/10 text-purple-600' :
+                              'bg-amber-500/10 text-amber-600'}`}>
+                            {rl.validation_status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
