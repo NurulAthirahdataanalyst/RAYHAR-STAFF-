@@ -126,20 +126,39 @@ export default function LeaveManagement() {
   // Automatik kira bilangan hari & baki cuti
   useEffect(() => {
     if (formData.tarikhMula && formData.tarikhAkhir) {
-      const d1 = new Date(formData.tarikhMula);
-      const d2 = new Date(formData.tarikhAkhir);
-      const diffTime = d2.getTime() - d1.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
-      const realDays = diffDays > 0 ? diffDays : 0;
-      setFormData(prev => ({
-        ...prev,
-        bilanganHari: realDays,
-        mohon: realDays,
-        bakiAkhir: prev.bakiTerdahulu - realDays
-      }));
+      const fetchDays = async () => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/calculate-leave-days?start=${formData.tarikhMula}&end=${formData.tarikhAkhir}&branch=${encodeURIComponent(userBranch)}`);
+          const data = await res.json();
+          if (data.success) {
+            const realDays = data.days;
+            setFormData(prev => ({
+              ...prev,
+              bilanganHari: realDays,
+              mohon: realDays,
+              bakiAkhir: prev.bakiTerdahulu - realDays
+            }));
+          } else {
+            // Fallback
+            const d1 = new Date(formData.tarikhMula);
+            const d2 = new Date(formData.tarikhAkhir);
+            const diffTime = d2.getTime() - d1.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            const realDays = diffDays > 0 ? diffDays : 0;
+            setFormData(prev => ({
+              ...prev,
+              bilanganHari: realDays,
+              mohon: realDays,
+              bakiAkhir: prev.bakiTerdahulu - realDays
+            }));
+          }
+        } catch (err) {
+          console.error("Failed to calculate leave days:", err);
+        }
+      };
+      fetchDays();
     }
-  }, [formData.tarikhMula, formData.tarikhAkhir]);
+  }, [formData.tarikhMula, formData.tarikhAkhir, userBranch]);
 
   const [totalEntitlement, setTotalEntitlement] = useState(14);
 

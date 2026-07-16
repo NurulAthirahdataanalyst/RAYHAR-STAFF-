@@ -47,6 +47,7 @@ export default function SettingsPage() {
   const [branchCode, setBranchCode] = useState("");
   const [branchNameInput, setBranchNameInput] = useState("");
   const [branchLocationInput, setBranchLocationInput] = useState("");
+  const [branchZoneInput, setBranchZoneInput] = useState("ZONE_B");
   const [submittingBranch, setSubmittingBranch] = useState(false);
 
   // Add Department Form State
@@ -262,6 +263,7 @@ export default function SettingsPage() {
           code: branchCode.trim().toUpperCase(),
           name: branchNameInput.trim(),
           location: branchLocationInput.trim(),
+          operating_zone: branchZoneInput,
           operatorName: user?.full_name || user?.name || "Athirah Rahman",
           operatorRole: role || "hr_admin"
         })
@@ -272,6 +274,7 @@ export default function SettingsPage() {
         setBranchCode("");
         setBranchNameInput("");
         setBranchLocationInput("");
+        setBranchZoneInput("ZONE_B");
         
         // Refresh branches list
         const branchRes = await fetch(`${API_BASE_URL}/api/branches`);
@@ -823,6 +826,20 @@ export default function SettingsPage() {
                   />
                 </div>
 
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-foreground/70 uppercase tracking-widest ml-1">
+                    Operating Zone
+                  </label>
+                  <select
+                    value={branchZoneInput}
+                    onChange={(e) => setBranchZoneInput(e.target.value)}
+                    className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold uppercase outline-none"
+                  >
+                    <option value="ZONE_B">ZONE B (West Coast - Sat/Sun Off)</option>
+                    <option value="ZONE_A">ZONE A (East Coast - Fri/Sat Off)</option>
+                  </select>
+                </div>
+
                 <div className="flex gap-3 justify-end pt-4">
                   <Button
                     type="button"
@@ -830,6 +847,7 @@ export default function SettingsPage() {
                       setBranchCode("");
                       setBranchNameInput("");
                       setBranchLocationInput("");
+                      setBranchZoneInput("ZONE_B");
                     }}
                     className="h-11 px-6 rounded-xl border border-border bg-background/20 hover:bg-background/40 text-foreground font-black text-[9px] uppercase tracking-wider"
                   >

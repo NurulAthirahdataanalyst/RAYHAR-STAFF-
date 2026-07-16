@@ -132,6 +132,55 @@ function getLateThresholdTime() {
   return `${hours.padStart(2, '0')}:${minutes}:00`;
 }
 
+async function getBranchZoneMap() {
+  const [rows] = await pool.query('SELECT code, operating_zone FROM branches');
+  const map = new Map();
+  for (const r of rows) map.set(r.code, r.operating_zone || 'ZONE_B');
+  return map;
+}
+
+function checkIsWeekend(zone, dateObj) {
+  const day = dateObj.getDay(); // 0=Sun, 1=Mon, ..., 5=Fri, 6=Sat
+  const dateNum = dateObj.getDate();
+  const isFirstWeek = dateNum <= 7;
+  
+  if (zone === 'ZONE_A') {
+    // ZONE A: Friday and 1st Saturday off
+    return day === 5 || (day === 6 && isFirstWeek);
+  } else {
+    // ZONE B: Sunday and 1st Saturday off
+    return day === 0 || (day === 6 && isFirstWeek);
+  }
+}
+
+function getWorkHoursForZone(zone, dateObj) {
+  const day = dateObj.getDay();
+  const dateNum = dateObj.getDate();
+  const isFirstWeek = dateNum <= 7;
+  
+  if (zone === 'ZONE_A') {
+    // Sat-Wed: 8.30am - 5.30pm
+    // Thu: 8.30am - 1.00pm (except first week Thu: 8.30am - 5.30pm)
+    // Fri: Off, 1st Sat: Off
+    if (day === 5 || (day === 6 && isFirstWeek)) return { off: true };
+    if (day === 4 && !isFirstWeek) {
+      return { start: '08:30:00', end: '13:00:00', halfDay: true };
+    }
+    return { start: '08:30:00', end: '17:30:00', halfDay: false };
+  } else {
+    // ZONE B
+    // Mon-Fri: 8.30am - 5.30pm
+    // Sat: 8.30am - 1.00pm (except 1st week Sat: Off)
+    // Sun: Off
+    if (day === 0 || (day === 6 && isFirstWeek)) return { off: true };
+    if (day === 6 && !isFirstWeek) {
+      return { start: '08:30:00', end: '13:00:00', halfDay: true };
+    }
+    return { start: '08:30:00', end: '17:30:00', halfDay: false };
+  }
+}
+
+
 // Global Helper to compute employee status uniformly (Outstation > Company Leave > On Leave > Present > Absent)
 function computeEmployeeTodayStatus(employee, lateThresholdOverride = null) {
   if (employee.company_leave_match) return "Company Leave";
@@ -2153,6 +2202,37 @@ app.get("/api/leave-requests", async (req, res) => {
   }
 });
 
+// ===============================
+// CALCULATE LEAVE DAYS (Excluding Weekends & Holidays)
+// ===============================
+app.get("/api/calculate-leave-days", async (req, res) => {
+  const { start, end, branch } = req.query;
+  if (!start || !end) return res.status(400).json({ success: false, error: "Missing dates" });
+
+  try {
+    const branchZoneMap = await getBranchZoneMap();
+    const userZone = branchZoneMap.get(branch) || 'ZONE_B';
+
+    let d1 = new Date(start);
+    let d2 = new Date(end);
+    let days = 0;
+
+    for (let d = new Date(d1); d <= d2; d.setDate(d.getDate() + 1)) {
+      const isWeekend = checkIsWeekend(userZone, d);
+      const isHoliday = malaysiaHolidays.some(h => h.date === d.toISOString().split('T')[0]);
+      
+      if (!isWeekend && !isHoliday) {
+        days++;
+      }
+    }
+
+    res.json({ success: true, days });
+  } catch (err) {
+    console.error("Calculate Leave Days Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) => {
   const {
     user_id,
@@ -3586,9 +3666,8 @@ app.get("/api/attendance/history", async (req, res) => {
       }
     });
 
-    const lateTimeStr = getLateThresholdTime();
-    const [lateH, lateM] = lateTimeStr.split(':').map(Number);
-
+    const branchZoneMap = await getBranchZoneMap();
+    const userZone = branchZoneMap.get(userProfile.branch) || 'ZONE_B';
     const formattedHistory = dateStrings.map(dateStr => {
       const clockRow = clockMap[dateStr];
       
@@ -3636,9 +3715,9 @@ app.get("/api/attendance/history", async (req, res) => {
 
       // Match weekend
       const dateObj = new Date(dateStr);
-      const dayOfWeek = dateObj.getDay();
-      const dateNum = dateObj.getDate();
-      const isWeekend = (dayOfWeek === 5) || (dayOfWeek === 6 && dateNum <= 7);
+      const isWeekend = checkIsWeekend(userZone, dateObj);
+      const workHours = getWorkHoursForZone(userZone, dateObj);
+      const [lateH, lateM] = workHours.off ? [23, 59] : workHours.start.split(':').map(Number);
 
       // Match outstation assignment (has highest priority after company leave)
       const matchingOutstation = outstationRows.find(o => {
@@ -3673,7 +3752,7 @@ app.get("/api/attendance/history", async (req, res) => {
         const isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
         is_late = isLate;
 
-        if (isLate) {
+        if (isLate && !workHours.off) {
           const clockInMins = clockInHour * 60 + clockInMinute;
           const thresholdMins = lateH * 60 + lateM;
           const diff = clockInMins - thresholdMins;
@@ -4185,11 +4264,12 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const todayDayNum = dateObj.getDate();
     let totalWorkingDaysPassed = 0;
     
+    const branchZoneMap = await getBranchZoneMap();
+    const userZone = branchZoneMap.get(branch) || 'ZONE_B';
+
     for (let d = 1; d <= todayDayNum; d++) {
       const checkDate = new Date(currentYearNum, currentMonthNum, d);
-      const dayOfWeek = checkDate.getDay();
-      // Rayhar Work Days: Sunday to Thursday. Weekend: Friday (5) and Saturday (6) except 1st Saturday
-      const isWeekendDay = (dayOfWeek === 5) || (dayOfWeek === 6 && d > 7);
+      const isWeekendDay = checkIsWeekend(userZone, checkDate);
       if (!isWeekendDay) {
         totalWorkingDaysPassed++;
       }
@@ -4661,11 +4741,13 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
       [endDate, startDate, ...queryParams.slice(2)]
     );
 
-    const lateThreshold = typeof getLateThresholdTime === 'function' ? getLateThresholdTime() : "09:00:00";
-    const [lateH, lateM] = lateThreshold.split(':').map(Number);
+    const branchZoneMap = await getBranchZoneMap();
 
     const reportData = clockRows.map(clock => {
       const emp = allProfiles.find(p => p.user_id === clock.user_id) || {};
+      const userZone = branchZoneMap.get(emp.branch) || 'ZONE_B';
+      const workHours = getWorkHoursForZone(userZone, new Date(clock.clock_in));
+      const [lateH, lateM] = workHours.off ? [23, 59] : workHours.start.split(':').map(Number);
       
       // Shift UTC timestamp to KL timezone (UTC+8) for accurate date & late check
       const klTimeIn = new Date(new Date(clock.clock_in).getTime() + 8 * 60 * 60 * 1000);
@@ -4745,9 +4827,7 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
         break; // Stop counting future days as expected attendance
       }
       
-      const dayOfWeek = loopDate.getDay();
-      const dateNum = loopDate.getDate();
-      const isWeekend = (dayOfWeek === 5) || (dayOfWeek === 6 && dateNum <= 7);
+      const isWeekend = checkIsWeekend('ZONE_B', loopDate); // Global generic assumption
       const isHoliday = malaysiaHolidays.some(h => h.date === loopDateStr);
       
       if (!isWeekend && !isHoliday) {
@@ -4951,19 +5031,18 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       outstationMap.set(row.user_id, row);
     }
 
-    const lateTimeStr = getLateThresholdTime();
-    const [lateH, lateM] = lateTimeStr.split(':').map(Number);
-
-    // Parse date for weekend check
+    const branchZoneMap = await getBranchZoneMap();
     const dateObj = new Date(queryDate);
-    const dayOfWeek = dateObj.getDay();
-    const dateNum = dateObj.getDate();
-    const isWeekend = (dayOfWeek === 5) || (dayOfWeek === 6 && dateNum <= 7);
 
     const formattedReport = allProfiles.map((p) => {
       const uid = p.user_id;
       const clockRow = clockMap[uid];
       const leaveRow = leaveMap[uid];
+      
+      const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
+      const isWeekend = checkIsWeekend(userZone, dateObj);
+      const workHours = getWorkHoursForZone(userZone, dateObj);
+      const [lateH, lateM] = workHours.off ? [23, 59] : workHours.start.split(':').map(Number);
 
       let status = "Absent";
       let clock_in = null;
@@ -5033,7 +5112,12 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
           
           const klTimeOut = new Date(new Date(clock_out).getTime() + 8 * 60 * 60 * 1000);
           const clockOutHour = klTimeOut.getUTCHours();
-          if (clockOutHour < 17) {
+          
+          let earlyLeaverThreshold = 17;
+          if (workHours.halfDay) {
+            earlyLeaverThreshold = 13;
+          }
+          if (!workHours.off && clockOutHour < earlyLeaverThreshold) {
             isEarlyLeaver = true;
           }
           
@@ -5869,7 +5953,7 @@ app.get("/api/branches", async (req, res) => {
 });
 
 app.post("/api/branches", async (req, res) => {
-  const { code, name, location, operatorName, operatorRole } = req.body;
+  const { code, name, location, operating_zone, operatorName, operatorRole } = req.body;
 
   if (!code || !name) {
     return res.status(400).json({ success: false, error: "Code and name are required" });
@@ -5883,10 +5967,11 @@ app.post("/api/branches", async (req, res) => {
     }
 
     const branchLocation = location ? location.trim() : 'RAYHAR BRANCH';
+    const zone = operating_zone || 'ZONE_B';
 
     await pool.query(
-      "INSERT INTO branches (branch, code, name, location) VALUES (?, ?, ?, ?)",
-      [cleanCode, cleanCode, name.trim(), branchLocation]
+      "INSERT INTO branches (branch, code, name, location, operating_zone) VALUES (?, ?, ?, ?, ?)",
+      [cleanCode, cleanCode, name.trim(), branchLocation, zone]
     );
 
     // Broadcast branch registration event via SSE
