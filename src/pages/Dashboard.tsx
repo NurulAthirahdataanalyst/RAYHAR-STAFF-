@@ -80,25 +80,6 @@ export default function Dashboard() {
     };
   }, []);
 
-  // ─ Sync with BroadcastChannel ─
-  useEffect(() => {
-    let bc: BroadcastChannel | null = null;
-    try {
-      bc = new BroadcastChannel("rayhar_leave_refresh");
-      bc.onmessage = (event) => {
-        if (event.data === "refresh") {
-          fetchDashboardData(true);
-        }
-      };
-    } catch (e) {
-      // BroadcastChannel might not be supported
-    }
-
-    return () => {
-      if (bc) bc.close();
-    };
-  }, [fetchDashboardData]);
-
   const [stats, setStats] = useState({
     leaveBalance: 14,
     pendingLeaves: 0,
@@ -400,6 +381,25 @@ export default function Dashboard() {
 
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [applyAttendanceUpdate, fetchDashboardData, dashboardUserId]);
+
+  // ─ Sync with BroadcastChannel ─
+  useEffect(() => {
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel("rayhar_leave_refresh");
+      bc.onmessage = (event) => {
+        if (event.data === "refresh") {
+          fetchDashboardData(true);
+        }
+      };
+    } catch (e) {
+      // BroadcastChannel might not be supported
+    }
+
+    return () => {
+      if (bc) bc.close();
+    };
+  }, [fetchDashboardData]);
 
   const groupedUpcomingOutstations: any[] = [];
   upcomingOutstations.forEach(a => {
