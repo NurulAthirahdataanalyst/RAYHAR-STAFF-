@@ -675,11 +675,11 @@ export default function Dashboard() {
                       onClick={() => navigate("/outstation")}
                     />
                     <StatCard
-                      icon={AlertTriangle}
+                      icon={(stats.absentToday ?? 0) > 0 ? AlertTriangle : CheckCircle2}
                       title="Absent"
                       value={String(stats.absentToday ?? 0)}
-                      subtitle="Not Clocked In"
-                      variant="maroon"
+                      subtitle={(stats.absentToday ?? 0) > 0 ? "Not Clocked In" : "All Present"}
+                      variant={(stats.absentToday ?? 0) > 0 ? "maroon" : "default"}
                       onClick={() => navigate("/hr-analytics/attendance#employee-absenteeism")}
                     />
                     <StatCard
@@ -697,11 +697,11 @@ export default function Dashboard() {
                       variant="purple"
                     />
                     <StatCard
-                      icon={AlertTriangle}
+                      icon={(stats.lateArrivals ?? 0) > 0 ? AlertTriangle : CheckCircle2}
                       title="Late Arrivals"
                       value={String(stats.lateArrivals ?? 0)}
-                      subtitle="Action Required"
-                      variant="warning"
+                      subtitle={(stats.lateArrivals ?? 0) > 0 ? "Action Required" : "All On Time"}
+                      variant={(stats.lateArrivals ?? 0) > 0 ? "warning" : "default"}
                     />
                   </>
                 ) : (
@@ -858,19 +858,19 @@ export default function Dashboard() {
                   onClick={() => navigate("/leave/admin")}
                 />
                 <StatCard
-                  icon={AlertTriangle}
+                  icon={(stats.absentToday ?? 0) > 0 ? AlertTriangle : CheckCircle2}
                   title="Absent"
                   value={String(stats.absentToday ?? 0)}
-                  subtitle="Not Clocked In"
-                  variant="maroon"
+                  subtitle={(stats.absentToday ?? 0) > 0 ? "Not Clocked In" : "All Present"}
+                  variant={(stats.absentToday ?? 0) > 0 ? "maroon" : "default"}
                   onClick={() => navigate("/hr-analytics/attendance#employee-absenteeism")}
                 />
                 <StatCard
-                  icon={AlertTriangle}
+                  icon={(stats.lateArrivals ?? 0) > 0 ? AlertTriangle : CheckCircle2}
                   title="Late Arrivals"
                   value={String(stats.lateArrivals ?? 0)}
-                  subtitle="Action Required"
-                  variant="warning"
+                  subtitle={(stats.lateArrivals ?? 0) > 0 ? "Action Required" : "All On Time"}
+                  variant={(stats.lateArrivals ?? 0) > 0 ? "warning" : "default"}
                 />
               </>
             )}
