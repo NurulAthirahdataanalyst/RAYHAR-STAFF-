@@ -219,23 +219,32 @@ export default function LeaveManagement() {
       toast.error("Sila isi maklumat wajib");
       return;
     }
-    if (currentStep === 2 && (!formData.tarikhMula || !formData.jenisCuti)) {
-      toast.error("Sila lengkapkan butiran cuti");
-      return;
-    }
     if (currentStep === 2) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const start = new Date(formData.tarikhMula);
-      start.setHours(0, 0, 0, 0);
-      if (start.getTime() < today.getTime()) {
-        toast.error("Tarikh mula cuti mestilah hari ini atau tarikh akan datang sahaja.");
+      const isReplacement = formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti";
+      
+      if (!formData.jenisCuti) {
+        toast.error("Sila pilih jenis cuti");
         return;
       }
-    }
-    if (currentStep === 2 && formData.bilanganHari <= 0) {
-      toast.error("Tarikh akhir mesti sama atau selepas tarikh mula");
-      return;
+
+      if (!isReplacement) {
+        if (!formData.tarikhMula) {
+          toast.error("Sila lengkapkan butiran tarikh mula cuti");
+          return;
+        }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const start = new Date(formData.tarikhMula);
+        start.setHours(0, 0, 0, 0);
+        if (start.getTime() < today.getTime()) {
+          toast.error("Tarikh mula cuti mestilah hari ini atau tarikh akan datang sahaja.");
+          return;
+        }
+        if (formData.bilanganHari <= 0) {
+          toast.error("Tarikh akhir mesti sama atau selepas tarikh mula");
+          return;
+        }
+      }
     }
     if (currentStep === 2 && (formData.jenisCuti === "Annual/Emergency Leave" || formData.jenisCuti === "Cuti Tahunan" || formData.jenisCuti === "Sick Leave" || formData.jenisCuti === "Cuti Sakit") && formData.bakiAkhir < 0) {
       toast.error("Baki Cuti tidak mencukupi");
@@ -513,34 +522,6 @@ export default function LeaveManagement() {
               {/* SECTION 2: BUTIRAN CUTI */}
               {currentStep === 2 && (
                 <div className="space-y-4 animate-in slide-in-from-right duration-500">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Tarikh Mula *</Label>
-                      <Input 
-                        type="date" 
-                        value={formData.tarikhMula} 
-                        min={new Date().toISOString().split('T')[0]}
-                        onChange={e => setFormData({ ...formData, tarikhMula: e.target.value })} 
-                        className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold" 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Tarikh Akhir *</Label>
-                      <Input 
-                        type="date" 
-                        value={formData.tarikhAkhir} 
-                        min={formData.tarikhMula || new Date().toISOString().split('T')[0]}
-                        onChange={e => setFormData({ ...formData, tarikhAkhir: e.target.value })} 
-                        className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold" 
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-5 bg-[#7B0099]/5 rounded-3xl border-2 border-[#7B0099]/10">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#7B0099]">Bilangan Hari</span>
-                    <span className="text-3xl sm:text-4xl font-black text-[#7B0099] tracking-tighter">{formData.bilanganHari} <span className="text-sm">HARI</span></span>
-                  </div>
-
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Jenis Cuti *</Label>
                     <Select
@@ -563,6 +544,36 @@ export default function LeaveManagement() {
                         <SelectItem value="Sick Leave">Sick Leave</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  {!(formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Tarikh Mula *</Label>
+                        <Input 
+                          type="date" 
+                          value={formData.tarikhMula} 
+                          min={new Date().toISOString().split('T')[0]}
+                          onChange={e => setFormData({ ...formData, tarikhMula: e.target.value })} 
+                          className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Tarikh Akhir *</Label>
+                        <Input 
+                          type="date" 
+                          value={formData.tarikhAkhir} 
+                          min={formData.tarikhMula || new Date().toISOString().split('T')[0]}
+                          onChange={e => setFormData({ ...formData, tarikhAkhir: e.target.value })} 
+                          className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold" 
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between p-5 bg-[#7B0099]/5 rounded-3xl border-2 border-[#7B0099]/10">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#7B0099]">Bilangan Hari</span>
+                    <span className="text-3xl sm:text-4xl font-black text-[#7B0099] tracking-tighter">{formData.bilanganHari} <span className="text-sm">HARI</span></span>
                   </div>
 
                   {/* Pengiraan Cuti Tahunan */}
