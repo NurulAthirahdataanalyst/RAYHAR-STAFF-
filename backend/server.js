@@ -5133,17 +5133,25 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
             if (isPastDate || isPastEndOfWorkTime) {
               summary.missingClockOut++;
             } else {
-              const clockInHour = klTimeIn.getUTCHours();
-              const clockInMinute = klTimeIn.getUTCMinutes();
-              const isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
+              const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
+              const klTimeIn2 = new Date(new Date(clockData.clock_in).getTime() + 8 * 60 * 60 * 1000);
+              const workHours = getWorkHoursForZone(userZone, klTimeIn2);
+              const [lH, lM] = workHours.off ? [23, 59] : workHours.start.split(':').map(Number);
+              const clockInHour = klTimeIn2.getUTCHours();
+              const clockInMinute = klTimeIn2.getUTCMinutes();
+              const isLate = clockInHour > lH || (clockInHour === lH && clockInMinute > lM);
               if (isLate) summary.late++;
               else summary.present++;
             }
           } else {
+            const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
+            const klTimeIn2 = new Date(new Date(clockData.clock_in).getTime() + 8 * 60 * 60 * 1000);
+            const workHours = getWorkHoursForZone(userZone, klTimeIn2);
+            const [lH, lM] = workHours.off ? [23, 59] : workHours.start.split(':').map(Number);
             const klTimeIn = new Date(new Date(clockData.clock_in).getTime() + 8 * 60 * 60 * 1000);
             const clockInHour = klTimeIn.getUTCHours();
             const clockInMinute = klTimeIn.getUTCMinutes();
-            const isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
+            const isLate = clockInHour > lH || (clockInHour === lH && clockInMinute > lM);
             if (isLate) summary.late++;
             else summary.present++;
           }

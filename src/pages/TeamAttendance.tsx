@@ -46,15 +46,30 @@ export default function TeamAttendance() {
         }
         setEmployees(teamEmployees);
 
-        // Fetch today's global attendance
-        const attRes = await fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${selectedDate}`);
-        const attData = await attRes.json();
-        const globalAttendance = attData.success ? (attData.report || attData.data || []) : [];
+        const targetDate = new Date(selectedDate);
 
-        // Map attendance to our team employees
-        const teamIds = new Set(teamEmployees.map((e: any) => e.user_id));
-        const filteredAttendance = globalAttendance.filter((a: any) => teamIds.has(a.user_id));
-        setAttendanceData(filteredAttendance);
+        if (dateViewMode === 'DAY') {
+          // Fetch today's global attendance
+          const attRes = await fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${selectedDate}`);
+          const attData = await attRes.json();
+          const globalAttendance = attData.success ? (attData.report || attData.data || []) : [];
+
+          // Map attendance to our team employees
+          const teamIds = new Set(teamEmployees.map((e: any) => e.user_id));
+          const filteredAttendance = globalAttendance.filter((a: any) => teamIds.has(a.user_id));
+          setAttendanceData(filteredAttendance);
+        } else {
+          // Fetch monthly attendance
+          const month = targetDate.getMonth() + 1;
+          const year = targetDate.getFullYear();
+          const attRes = await fetch(`${API_BASE_URL}/api/reports/monthly-attendance?month=${month}&year=${year}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`);
+          const attData = await attRes.json();
+          const monthlyAttendance = attData.success ? (attData.report || attData.data || []) : [];
+          
+          const teamIds = new Set(teamEmployees.map((e: any) => e.user_id));
+          const filteredAttendance = monthlyAttendance.filter((a: any) => teamIds.has(a.user_id));
+          setAttendanceData(filteredAttendance);
+        }
 
       } catch (error) {
         console.error("Error fetching team attendance:", error);
@@ -64,7 +79,7 @@ export default function TeamAttendance() {
     };
 
     fetchData();
-  }, [role, userBranch, userDepartment, selectedDate]);
+  }, [role, userBranch, userDepartment, selectedDate, dateViewMode]);
 
   if (loading) {
     return (
@@ -78,48 +93,90 @@ export default function TeamAttendance() {
   const totalTeam = employees.length;
 
   // Merge employee info with their attendance
-  const mergedList = employees.map(emp => {
-    const att = attendanceData.find(a => a.user_id === emp.user_id);
-    let workingHours = "--";
-    if (att && att.clock_in && att.clock_out) {
-      const diffMs = new Date(att.clock_out).getTime() - new Date(att.clock_in).getTime();
-      const hrs = Math.floor(diffMs / (1000 * 60 * 60));
-      const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-      workingHours = `${hrs}h ${mins}m`;
-    }
-    
-    let statusLabel = "Absent";
-    let lateLabel = "--";
+  let mergedList: any[] = [];
+  
+  if (dateViewMode === 'DAY') {
+    mergedList = employees.map(emp => {
+      const att = attendanceData.find(a => a.user_id === emp.user_id);
+      let workingHours = "--";
+      if (att && att.clock_in && att.clock_out) {
+        const diffMs = new Date(att.clock_out).getTime() - new Date(att.clock_in).getTime();
+        const hrs = Math.floor(diffMs / (1000 * 60 * 60));
+        const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        workingHours = `${hrs}h ${mins}m`;
+      }
+      
+      let statusLabel = "Absent";
+      let lateLabel = "--";
 
-    if (att) {
-      if (att.status === "Present (On Time)" || att.status === "Present (Late)") {
-        statusLabel = "Present";
-      } else if (att.status === "Approved Leave") {
-        statusLabel = "Leave";
-      } else {
-        statusLabel = att.status || "Absent";
+      if (att) {
+        if (att.status === "Present (On Time)" || att.status === "Present (Late)") {
+          statusLabel = "Present";
+        } else if (att.status === "Approved Leave") {
+          statusLabel = "Leave";
+        } else {
+          statusLabel = att.status || "Absent";
+        }
+
+        if (att.is_late && att.late_minutes != null && att.late_minutes > 0) {
+          const hrs = Math.floor(att.late_minutes / 60);
+          const mins = att.late_minutes % 60;
+          lateLabel = hrs > 0
+            ? `${hrs}h ${String(mins).padStart(2, '0')}m`
+            : `${mins} mins`;
+        } else if (att && att.clock_in) {
+          lateLabel = "00:00";
+        }
       }
 
-      if (att.is_late && att.late_minutes != null && att.late_minutes > 0) {
-        const hrs = Math.floor(att.late_minutes / 60);
-        const mins = att.late_minutes % 60;
-        lateLabel = hrs > 0
-          ? `${hrs}h ${String(mins).padStart(2, '0')}m`
-          : `${mins} mins`;
-      } else if (att && att.clock_in) {
+      return {
+        ...emp,
+        time_in: att?.time_in || "--",
+        time_out: att?.time_out || "--",
+        status: statusLabel,
+        late: lateLabel,
+        workingHours,
+        date: selectedDate
+      };
+    });
+  } else {
+    // MONTH view
+    mergedList = attendanceData.map(att => {
+      const emp = employees.find(e => e.user_id === att.user_id) || {};
+      
+      let workingHours = "--";
+      if (att && att.clock_in && att.clock_out) {
+        const diffMs = new Date(att.clock_out).getTime() - new Date(att.clock_in).getTime();
+        const hrs = Math.floor(diffMs / (1000 * 60 * 60));
+        const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        workingHours = `${hrs}h ${mins}m`;
+      }
+
+      let statusLabel = att.status || "Present";
+      if (statusLabel.includes('Present')) statusLabel = 'Present';
+      else if (statusLabel.includes('Leave')) statusLabel = 'Leave';
+
+      let lateLabel = "--";
+      if (att.is_late) {
+        lateLabel = "Late"; 
+      } else if (att.clock_in) {
         lateLabel = "00:00";
       }
-    }
 
-    return {
-      ...emp,
-      time_in: att?.time_in || "--",
-      time_out: att?.time_out || "--",
-      status: statusLabel,
-      late: lateLabel,
-      workingHours
-    };
-  });
+      return {
+        ...emp,
+        user_id: att.user_id,
+        full_name: att.full_name || emp.full_name,
+        department: emp.department || att.department,
+        time_in: att.time_in || "--",
+        time_out: att.time_out || "--",
+        status: statusLabel,
+        late: lateLabel,
+        workingHours,
+        date: att.date
+      };
+    });
+  }
 
   // Metrics computed from merged list to reflect displayed statuses
   const presentCount = mergedList.filter(e => e.status === 'Present' || e.status === 'Outstation').length;
@@ -209,7 +266,7 @@ export default function TeamAttendance() {
         {/* Table */}
         <Card className="border-border shadow-sm">
           <CardHeader className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-            <CardTitle className="text-lg whitespace-nowrap">Today's Attendance Log</CardTitle>
+            <CardTitle className="text-lg whitespace-nowrap">{dateViewMode === 'DAY' ? "Today's Attendance Log" : "Monthly Attendance Log"}</CardTitle>
             
             <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
               {/* Date Picker */}
@@ -286,6 +343,7 @@ export default function TeamAttendance() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    {dateViewMode === 'MONTH' && <TableHead>Date</TableHead>}
                     <TableHead>Employee ID</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Department</TableHead>
@@ -304,8 +362,13 @@ export default function TeamAttendance() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredList.map((emp) => (
-                      <TableRow key={emp.user_id}>
+                    filteredList.map((emp, idx) => (
+                      <TableRow key={dateViewMode === 'MONTH' ? `${emp.user_id}-${emp.date}-${idx}` : emp.user_id}>
+                        {dateViewMode === 'MONTH' && (
+                          <TableCell className="whitespace-nowrap font-medium text-gray-700">
+                            {new Date(emp.date).toLocaleDateString('en-GB')}
+                          </TableCell>
+                        )}
                         <TableCell className="font-medium">{emp.user_id}</TableCell>
                         <TableCell>{emp.full_name}</TableCell>
                         <TableCell>{emp.department || "-"}</TableCell>
