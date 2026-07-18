@@ -492,7 +492,7 @@ export default function WorkforceInsights() {
                 <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4 flex flex-row justify-between items-center">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-slate-400" />
-                    <CardTitle className="text-[16px] font-semibold text-[#1A1F36]">Branch Workforce Distribution</CardTitle>
+                    <CardTitle className="text-[16px] font-semibold text-[#1A1F36] dark:text-gray-100">Branch Workforce Distribution</CardTitle>
                   </div>
                   <Select value={selectedRegion} onValueChange={setSelectedRegion}>
                     <SelectTrigger className="w-[120px] h-7 text-[10px] font-bold border-slate-200 dark:border-slate-800 bg-white dark:bg-card shadow-none focus:ring-0">
@@ -505,7 +505,7 @@ export default function WorkforceInsights() {
                   </Select>
                 </CardHeader>
                 <CardContent className="p-5 flex flex-col">
-                  <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto max-h-[220px]' : 'overflow-y-visible'}`}>
+                  <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
                     <TooltipProvider>
                       {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).slice(0, 5).map((branch: any, idx: number) => {
                         const stats = branch.stats || { onTime: 0, late: 0, onLeave: 0, compLeave: 0, absent: 0, outstation: 0 };
@@ -513,14 +513,14 @@ export default function WorkforceInsights() {
                           <div key={idx} className="flex flex-col gap-1">
                             <div className="flex justify-between items-end">
                               <div className="flex flex-col">
-                                <span className="text-[11px] font-bold text-[#1A1F36]">{branch.name}</span>
+                                <span className="text-[11px] font-bold text-[#1A1F36] dark:text-gray-200">{branch.name}</span>
                                 <span className="text-[9px] text-slate-400">{branch.count} Employees</span>
                               </div>
                               <span className={`text-[10px] font-black ${branch.attendanceRate >= 95 ? 'text-emerald-500' : 'text-rose-500'}`}>{branch.attendanceRate}%</span>
                             </div>
                             <UITooltip delayDuration={100}>
                               <TooltipTrigger asChild>
-                                <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden cursor-pointer">
+                                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 flex overflow-hidden cursor-pointer">
                                   {branch.count > 0 ? (
                                     <>
                                       <div className="h-full bg-[#10b981]" style={{ width: `${(stats.onTime / branch.count) * 100}%` }}></div>
@@ -1495,11 +1495,11 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
            </Card>
 
            {/* Branch Workforce Distribution */}
-           <Card className="p-4 shadow-sm border-slate-200 dark:border-slate-800 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+           <Card className="p-4 shadow-sm border-slate-200 dark:border-slate-800 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col bg-white dark:bg-card">
              <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
                  <MapPin className="w-4 h-4 text-slate-400" />
-                 <h3 className="text-sm font-bold text-[#1A1F36]">Branch Workforce Distribution</h3>
+                 <h3 className="text-sm font-bold text-[#1A1F36] dark:text-gray-100">Branch Workforce Distribution</h3>
                </div>
                <Select value={selectedRegion} onValueChange={setSelectedRegion}>
                  <SelectTrigger className="w-[120px] h-7 text-[10px] font-bold border-slate-200 dark:border-slate-800 bg-white dark:bg-card shadow-none focus:ring-0">
@@ -1512,18 +1512,18 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                </Select>
              </div>
              
-             <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto max-h-[220px]' : 'overflow-y-visible'}`}>
+             <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
                {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).map((branch: any, idx: number) => {
                  return (
                    <div key={idx} className="flex flex-col gap-1">
                      <div className="flex justify-between items-end">
                        <div className="flex flex-col">
-                         <span className="text-[11px] font-bold text-[#1A1F36]">{branch.name}</span>
+                         <span className="text-[11px] font-bold text-[#1A1F36] dark:text-gray-200">{branch.name}</span>
                          <span className="text-[9px] text-slate-400">{branch.count} Employees</span>
                        </div>
                        <span className={`text-[10px] font-black ${branch.attendanceRate >= 95 ? 'text-emerald-500' : 'text-amber-500'}`}>{branch.attendanceRate}%</span>
                      </div>
-                     <div className="w-full bg-slate-100 rounded-full h-2 relative group cursor-pointer">
+                     <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 relative group cursor-pointer">
                        <div className={`h-2 rounded-full ${branch.attendanceRate >= 95 ? 'bg-[#10b981]' : 'bg-[#f59e0b]'}`} style={{ width: `${Math.min(100, branch.attendanceRate)}%` }}></div>
                        <div className="absolute left-1/2 -top-8 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-1.5 pointer-events-none z-10 w-max whitespace-nowrap">
                          <p className="text-[9px] font-bold text-slate-800 dark:text-slate-200 mb-0.5">{branch.name}</p>
