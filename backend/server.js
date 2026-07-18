@@ -2424,7 +2424,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
   if (!user_id || !leave_type || !start_date || !end_date || !days) {
     return res.status(400).json({
       success: false,
-      error: "Missing required leave request fields",
+      error: `Missing required fields: user_id=${!!user_id}, leave_type=${!!leave_type}, start_date=${!!start_date}, end_date=${!!end_date}, days=${!!days}`,
     });
   }
 
