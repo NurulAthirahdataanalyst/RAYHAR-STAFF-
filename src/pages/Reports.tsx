@@ -702,7 +702,7 @@ export default function Reports() {
                     </div>
                     <hr className="border-border/50 my-3.5 w-full" />
                     <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Clock-in, late check audits, and raw timelines</span>
-                    <span className="text-[9px] font-black text-muted-foreground/50 uppercase tracking-widest mt-4">CSV • EXCEL • PDF | 7 columns</span>
+
                   </button>
 
                   <button
@@ -723,7 +723,7 @@ export default function Reports() {
                     </div>
                     <hr className="border-border/50 my-3.5 w-full" />
                     <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Department utilization rates and absence charts</span>
-                    <span className="text-[9px] font-black text-muted-foreground/50 uppercase tracking-widest mt-4">CSV • EXCEL • PDF | 6 columns</span>
+
                   </button>
 
                   <button
@@ -744,7 +744,7 @@ export default function Reports() {
                     </div>
                     <hr className="border-border/50 my-3.5 w-full" />
                     <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Official business travel and assignment activities</span>
-                    <span className="text-[9px] font-black text-muted-foreground/50 uppercase tracking-widest mt-4">CSV • EXCEL • PDF | 9 columns</span>
+
                   </button>
 
                   <button
@@ -765,7 +765,7 @@ export default function Reports() {
                     </div>
                     <hr className="border-border/50 my-3.5 w-full" />
                     <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Corporate holidays and organization-wide leave schedule</span>
-                    <span className="text-[9px] font-black text-muted-foreground/50 uppercase tracking-widest mt-4">CSV • EXCEL • PDF | 8 columns</span>
+
                   </button>
                 </div>
               </div>
