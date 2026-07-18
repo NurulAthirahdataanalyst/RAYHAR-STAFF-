@@ -1018,7 +1018,7 @@ export default function AttendanceDashboard() {
               <div className="relative">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="appearance-none flex items-center justify-center px-3 py-1.5 bg-white dark:bg-card border border-gray-200 dark:border-slate-800 text-gray-700 text-xs font-medium rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-purple-300 hover:ring-1 hover:ring-purple-300 hover:bg-purple-50/50 dark:hover:border-purple-800 dark:hover:ring-purple-800 dark:hover:bg-slate-900/50 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
+                    <button className="appearance-none flex items-center justify-center px-3 py-1.5 bg-white dark:bg-card border border-gray-200 dark:border-slate-800 text-gray-700 text-xs font-medium rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
                       {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-3.5 h-3.5 text-gray-400" />
                     </button>
                   </PopoverTrigger>
@@ -1038,7 +1038,7 @@ export default function AttendanceDashboard() {
               {/* Department Filter */}
               {role !== "head_of_department" && (
                 <Select value={selectedDepartmentFilter} onValueChange={setSelectedDepartmentFilter}>
-                  <SelectTrigger className="w-[130px] h-8 text-xs font-medium rounded-md border border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm outline-none hover:border-purple-300 hover:ring-1 hover:ring-purple-300 hover:bg-purple-50/50 dark:hover:border-purple-800 dark:hover:ring-purple-800 dark:hover:bg-slate-900/50 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
+                  <SelectTrigger className="w-[130px] h-8 text-xs font-medium rounded-md border border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm outline-none hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
                     <SelectValue placeholder="Department" />
                   </SelectTrigger>
                   <SelectContent className="rounded-md">
@@ -1053,7 +1053,7 @@ export default function AttendanceDashboard() {
               {/* Branch Filter */}
               {role !== "branch_leader" && (
                 <Select value={selectedBranchFilter} onValueChange={setSelectedBranchFilter}>
-                  <SelectTrigger className="w-[120px] h-8 text-xs font-medium rounded-md border border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm outline-none hover:border-purple-300 hover:ring-1 hover:ring-purple-300 hover:bg-purple-50/50 dark:hover:border-purple-800 dark:hover:ring-purple-800 dark:hover:bg-slate-900/50 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
+                  <SelectTrigger className="w-[120px] h-8 text-xs font-medium rounded-md border border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm outline-none hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
                     <SelectValue placeholder="Branch" />
                   </SelectTrigger>
                   <SelectContent className="rounded-md">
@@ -1067,7 +1067,7 @@ export default function AttendanceDashboard() {
 
               {/* Status Filter */}
               <Select value={selectedStatusFilter} onValueChange={setSelectedStatusFilter}>
-                <SelectTrigger className="w-[120px] h-8 text-xs font-medium rounded-md border border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm outline-none hover:border-purple-300 hover:ring-1 hover:ring-purple-300 hover:bg-purple-50/50 dark:hover:border-purple-800 dark:hover:ring-purple-800 dark:hover:bg-slate-900/50 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
+                <SelectTrigger className="w-[120px] h-8 text-xs font-medium rounded-md border border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm outline-none hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
                   <SelectValue placeholder="Select Status" />
                 </SelectTrigger>
                 <SelectContent className="rounded-md">
