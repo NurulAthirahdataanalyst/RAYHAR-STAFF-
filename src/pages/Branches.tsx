@@ -410,8 +410,8 @@ export default function Branches() {
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
       {selectedBranch ? (
         <div className="space-y-4 sm:space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="min-w-0">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 lg:gap-6">
+            <div className="min-w-0 flex-1">
               <Button
                 type="button"
                 variant="ghost"
@@ -423,41 +423,53 @@ export default function Branches() {
                   Back to branches
                 </span>
               </Button>
-              <h1 className="text-responsive-xl font-black text-foreground tracking-tight truncate">
-                {selectedBranch.name}
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-responsive-xl font-black text-foreground tracking-tight truncate">
+                  {selectedBranch.name}
+                </h1>
+                <Badge
+                  variant="outline"
+                  className="font-mono text-[10px] sm:text-xs bg-muted/30 border-border/60 px-3 py-1"
+                >
+                  {selectedBranch.code}
+                </Badge>
+              </div>
               <p className="text-responsive-sm text-muted-foreground font-medium mt-1">
                 Branch staff overview and analytics
               </p>
-              
-              {selectedBranch.operating_zone && (
-                <div className="mt-4 flex flex-col gap-1 text-[11px] text-muted-foreground border-l-2 border-[#7B0099] pl-3 bg-muted/20 p-2 rounded-r-md">
-                  <p className="mb-1"><span className="font-bold text-foreground uppercase tracking-wider">Operating Hours ({selectedBranch.operating_zone === 'ZONE_A' ? 'Zone A' : 'Zone B'}):</span></p>
+            </div>
+            
+            {selectedBranch.operating_zone && (
+              <div className="flex-shrink-0 bg-white dark:bg-card border border-border/50 rounded-xl p-3 shadow-sm self-start">
+                <p className="mb-2"><span className="text-[10px] font-bold text-foreground uppercase tracking-wider">Operating Hours ({selectedBranch.operating_zone === 'ZONE_A' ? 'Zone A' : 'Zone B'})</span></p>
+                <div className="flex flex-wrap sm:flex-nowrap gap-4 sm:gap-6 text-[11px] text-muted-foreground">
                   {selectedBranch.operating_zone === 'ZONE_A' ? (
                     <>
-                      <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 5:30 PM (Saturday – Wednesday)</p>
-                      <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 1:00 PM (Thursday)</p>
-                      <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 5:30 PM (First Thursday of the Month)</p>
-                      <p className="flex items-center gap-2 text-rose-500/80"><X className="w-3 h-3" /> Closed (Friday) (Mandatory Weekly Off)</p>
-                      <p className="flex items-center gap-2 text-rose-500/80"><X className="w-3 h-3" /> Closed (First Saturday of the Month)</p>
+                      <div className="space-y-1 border-l-2 border-[#7B0099] pl-2.5">
+                        <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 5:30 PM (Saturday – Wednesday)</p>
+                        <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 1:00 PM (Thursday)</p>
+                        <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 5:30 PM (First Thursday of the Month)</p>
+                      </div>
+                      <div className="space-y-1 border-l-2 border-rose-500 pl-2.5">
+                        <p className="flex items-center gap-2 text-rose-500/90"><X className="w-3 h-3" /> Closed (Friday)</p>
+                        <p className="flex items-center gap-2 text-rose-500/90"><X className="w-3 h-3" /> Closed (First Saturday of the Month)</p>
+                      </div>
                     </>
                   ) : (
                     <>
-                      <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 5:30 PM (Monday – Friday)</p>
-                      <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 1:00 PM (Saturday)</p>
-                      <p className="flex items-center gap-2 text-rose-500/80"><X className="w-3 h-3" /> Closed (Sunday) (Mandatory Weekly Off)</p>
-                      <p className="flex items-center gap-2 text-rose-500/80"><X className="w-3 h-3" /> Closed (First Saturday of the Month)</p>
+                      <div className="space-y-1 border-l-2 border-[#7B0099] pl-2.5">
+                        <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 5:30 PM (Monday – Friday)</p>
+                        <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 1:00 PM (Saturday)</p>
+                      </div>
+                      <div className="space-y-1 border-l-2 border-rose-500 pl-2.5">
+                        <p className="flex items-center gap-2 text-rose-500/90"><X className="w-3 h-3" /> Closed (Sunday)</p>
+                        <p className="flex items-center gap-2 text-rose-500/90"><X className="w-3 h-3" /> Closed (First Saturday of the Month)</p>
+                      </div>
                     </>
                   )}
                 </div>
-              )}
-            </div>
-            <Badge
-              variant="outline"
-              className="w-fit font-mono text-[10px] sm:text-xs bg-muted/30 border-border/60 px-3 py-1"
-            >
-              {selectedBranch.code}
-            </Badge>
+              </div>
+            )}
           </div>
 
           {loading ? (
