@@ -1052,12 +1052,12 @@ export default function LeaveAnalytics() {
 
       
       {/* Dynamic Grid Layout for Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
 {/* 3. Workforce Trends (Row 2) */}
       
         {/* Trend */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">1. Leave Trend Over Time (Monthly)</h3>
+          <h3 className="text-sm font-bold text-slate-800 mb-4">Leave Trend Over Time (Monthly)</h3>
           <div className="flex-1 w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={monthlyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -1091,7 +1091,7 @@ export default function LeaveAnalytics() {
         </Card>
         {/* Seasonality */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">2. Leave Seasonality (by Month)</h3>
+          <h3 className="text-sm font-bold text-slate-800 mb-4">Leave Seasonality (by Month)</h3>
           <div className="flex-1 w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={seasonality} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
@@ -1131,7 +1131,7 @@ export default function LeaveAnalytics() {
       
         {/* Type Breakdown */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-2">4. Leave Type Breakdown</h3>
+          <h3 className="text-sm font-bold text-slate-800 mb-2">Leave Type Breakdown</h3>
           <div className="flex-1 min-relative w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
@@ -1159,7 +1159,7 @@ export default function LeaveAnalytics() {
         {/* Dept Compare */}
         {selectedBranch === "HQ" && (
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">5. Department Comparison</h3>
+          <h3 className="text-sm font-bold text-slate-800 mb-4">Department Comparison</h3>
           <div className="flex-1 min-overflow-hidden w-full">
             <ResponsiveContainer width="100%" height={Math.max(200, deptComparison.length * 30)}>
               <BarChart data={deptComparison} layout="vertical" margin={{ top: 0, right: 30, left: 0, bottom: 0 }}>
@@ -1201,8 +1201,8 @@ export default function LeaveAnalytics() {
         </Card>
         )}
         {/* Branch Compare */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">6. Branch Comparison</h3>
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full lg:col-span-2 xl:col-span-1">
+          <h3 className="text-sm font-bold text-slate-800 mb-4">Branch Comparison</h3>
           <div className="flex-1 min-overflow-y-auto pr-2 custom-scrollbar w-full">
             <ResponsiveContainer width="100%" height={Math.max(200, branchComparison.length * 30)}>
               <BarChart data={branchComparison} layout="vertical" margin={{ top: 0, right: 30, left: 0, bottom: 0 }}>
@@ -1247,7 +1247,7 @@ export default function LeaveAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         {/* Balance Risk */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">7. Leave Balance Risk</h3>
+          <h3 className="text-sm font-bold text-slate-800 mb-4">Leave Balance Risk</h3>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
             <div className="flex items-center justify-between p-3 rounded-lg border border-emerald-100 bg-emerald-50">
               <div className="flex items-center gap-2">
@@ -1284,7 +1284,7 @@ export default function LeaveAnalytics() {
 
         {/* Leave Calendar */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">8. Leave Calendar <span className="text-[9px] font-normal text-slate-400">(This Month)</span></h3>
+          <h3 className="text-sm font-bold text-slate-800 mb-4">Leave Calendar <span className="text-[9px] font-normal text-slate-400">(This Month)</span></h3>
           <div className="flex-1 flex flex-col justify-center items-center border border-dashed border-slate-200 rounded-lg bg-slate-50/50 min-h-[160px]">
             <CalendarCheck className="w-6 h-6 text-slate-400 mb-2" />
             <p className="text-xs font-bold text-slate-600">Calendar View Ready</p>
@@ -1295,7 +1295,7 @@ export default function LeaveAnalytics() {
 
         {/* Upcoming */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">9. Upcoming Approved Leave <span className="text-[9px] font-normal text-slate-400">(Forecast)</span></h3>
+          <h3 className="text-sm font-bold text-slate-800 mb-4">Upcoming Approved Leave <span className="text-[9px] font-normal text-slate-400">(Forecast)</span></h3>
           <div className="space-y-4 flex-1">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-3">
@@ -1325,7 +1325,7 @@ export default function LeaveAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         {/* Approval Perf */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">10. Approval Performance <span className="text-[9px] font-normal text-slate-400">(Avg. Time)</span></h3>
+          <h3 className="text-sm font-bold text-slate-800 mb-4">Approval Performance <span className="text-[9px] font-normal text-slate-400">(Avg. Time)</span></h3>
           <div className="flex-1 flex flex-col justify-center items-center min-h-[160px]">
             <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
               <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
@@ -1337,7 +1337,7 @@ export default function LeaveAnalytics() {
 
         {/* Action Center */}
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-2">11. Action Center</h3>
+          <h3 className="text-sm font-bold text-slate-800 mb-2">Action Center</h3>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
             <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 cursor-pointer hover:bg-amber-100 transition-colors border border-amber-100">
               <span className="text-xs font-semibold text-amber-800">Pending Approval</span>
@@ -1358,7 +1358,7 @@ export default function LeaveAnalytics() {
         <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-purple-500" />
-            12. HR Insights
+            HR Insights
           </h3>
           <div className="space-y-2 flex-1">
             {records.length > 0 ? (

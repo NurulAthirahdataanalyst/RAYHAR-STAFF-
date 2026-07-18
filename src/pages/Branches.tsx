@@ -440,7 +440,7 @@ export default function Branches() {
             </div>
             
             {selectedBranch.operating_zone && (
-              <div className="flex-shrink-0 bg-white dark:bg-card border border-border/50 rounded-xl p-3 shadow-sm self-start">
+              <div className="flex-shrink-0 bg-white dark:bg-card border-2 border-slate-200 dark:border-slate-700 rounded-xl p-3 shadow-md self-start">
                 <p className="mb-2"><span className="text-[10px] font-bold text-foreground uppercase tracking-wider">Operating Hours ({selectedBranch.operating_zone === 'ZONE_A' ? 'Zone A' : 'Zone B'})</span></p>
                 <div className="flex flex-wrap sm:flex-nowrap gap-4 sm:gap-6 text-[11px] text-muted-foreground">
                   {selectedBranch.operating_zone === 'ZONE_A' ? (
