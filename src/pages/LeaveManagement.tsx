@@ -285,11 +285,29 @@ export default function LeaveManagement() {
         ? `\n\n[CUTI_GANTI_DATA:${JSON.stringify(formData.cutiGantiRows)}]`
         : "";
 
+      let startDatePayload = formData.tarikhMula;
+      let endDatePayload = formData.tarikhAkhir;
+
+      if (leaveType === "Replacement Leave" || leaveType === "Cuti Ganti") {
+        const validRows = formData.cutiGantiRows.filter(r => r.tarikhCuti);
+        if (validRows.length > 0) {
+          // Sort dates just in case they are out of order
+          const dates = validRows.map(r => r.tarikhCuti).sort();
+          startDatePayload = dates[0];
+          endDatePayload = dates[dates.length - 1];
+        } else {
+          // Fallback if somehow no rows have tarikhCuti
+          const todayStr = new Date().toISOString().split('T')[0];
+          startDatePayload = todayStr;
+          endDatePayload = todayStr;
+        }
+      }
+
       const payload = new FormData();
       payload.append("user_id", userId);
       payload.append("leave_type", leaveType);
-      payload.append("start_date", formData.tarikhMula);
-      payload.append("end_date", formData.tarikhAkhir);
+      payload.append("start_date", startDatePayload);
+      payload.append("end_date", endDatePayload);
       payload.append("days", String(formData.bilanganHari));
       payload.append("reason", formData.tujuanCuti + serializedGanti);
       payload.append("waris_nama", formData.warisNama);
@@ -331,8 +349,8 @@ export default function LeaveManagement() {
         id: String(data.leaveRequest?.leave_id || crypto.randomUUID()),
         userId: userId,
         type: leaveType,
-        from: formData.tarikhMula,
-        to: formData.tarikhAkhir,
+        from: startDatePayload,
+        to: endDatePayload,
         days: formData.bilanganHari,
         status: data.leaveRequest?.status || "Pending HOD",
         reason: formData.tujuanCuti + serializedGanti,
