@@ -980,7 +980,7 @@ export default function WorkforceInsights() {
                         <Plane className="w-3.5 h-3.5 text-pink-400" />
                         <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-pink-500 text-white text-center leading-tight">Outstation</span>
                       </>
-                    ) : (emp as any).status === 'leave' ? (
+                    ) : (emp as any).status === 'leave' || (emp as any).status === 'onLeave' ? (
                       <>
                         <CalendarDays className="w-3.5 h-3.5 text-blue-400" />
                         <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-blue-500 text-white text-center leading-tight">Leave</span>
