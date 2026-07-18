@@ -1210,7 +1210,7 @@ export default function Employees() {
           <form onSubmit={handleSignup} className="space-y-4 pt-4">
             <div className="space-y-2">
               <Label htmlFor="signup-name">Full Name</Label>
-              <Input id="signup-name" type="text" placeholder="e.g. Ahmad Albab" value={signupName} onChange={(e) => setSignupName(e.target.value)} required />
+              <Input id="signup-name" type="text" placeholder="e.g. AHMAD ALBAB" value={signupName} onChange={(e) => setSignupName(e.target.value.toUpperCase())} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="signup-email">Email</Label>
