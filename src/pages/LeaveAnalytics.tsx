@@ -1051,12 +1051,12 @@ export default function LeaveAnalytics() {
       </div>
 
       
-      {/* Dynamic Masonry Layout for Analytics */}
-      <div className="columns-1 lg:columns-2 xl:columns-3 gap-4">
+      {/* Dynamic Grid Layout for Analytics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 mb-4">
 {/* 3. Workforce Trends (Row 2) */}
       
         {/* Trend */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-4">1. Leave Trend Over Time (Monthly)</h3>
           <div className="flex-1 w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
@@ -1090,7 +1090,7 @@ export default function LeaveAnalytics() {
           </div>
         </Card>
         {/* Seasonality */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-4">2. Leave Seasonality (by Month)</h3>
           <div className="flex-1 w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
@@ -1130,7 +1130,7 @@ export default function LeaveAnalytics() {
       {/* 4. Leave Distribution (Row 3) */}
       
         {/* Type Breakdown */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-2">4. Leave Type Breakdown</h3>
           <div className="flex-1 min-relative w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
@@ -1158,7 +1158,7 @@ export default function LeaveAnalytics() {
         </Card>
         {/* Dept Compare */}
         {selectedBranch === "HQ" && (
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-4">5. Department Comparison</h3>
           <div className="flex-1 min-overflow-hidden w-full">
             <ResponsiveContainer width="100%" height={Math.max(200, deptComparison.length * 30)}>
@@ -1201,7 +1201,7 @@ export default function LeaveAnalytics() {
         </Card>
         )}
         {/* Branch Compare */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-4">6. Branch Comparison</h3>
           <div className="flex-1 min-overflow-y-auto pr-2 custom-scrollbar w-full">
             <ResponsiveContainer width="100%" height={Math.max(200, branchComparison.length * 30)}>
@@ -1322,9 +1322,9 @@ export default function LeaveAnalytics() {
         </Card>
       </div>
 
-      <div className="columns-1 lg:columns-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         {/* Approval Perf */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-4">10. Approval Performance <span className="text-[9px] font-normal text-slate-400">(Avg. Time)</span></h3>
           <div className="flex-1 flex flex-col justify-center items-center min-h-[160px]">
             <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
@@ -1336,7 +1336,7 @@ export default function LeaveAnalytics() {
         </Card>
 
         {/* Action Center */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-2">11. Action Center</h3>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
             <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 cursor-pointer hover:bg-amber-100 transition-colors border border-amber-100">
@@ -1355,7 +1355,7 @@ export default function LeaveAnalytics() {
         </Card>
 
         {/* HR Insights */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col break-inside-avoid mb-4 inline-block w-full">
+        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
           <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-purple-500" />
             12. HR Insights
