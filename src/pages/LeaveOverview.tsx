@@ -162,9 +162,33 @@ export default function LeaveOverview() {
     };
   }, [userId, userName]);
 
-  const currentBalances = useMemo(() => {
-    return { "Annual & Emergency Leave": 14, "Sick Leave (MC)": 14, "Replacement Leave": 0, "Unpaid Leave": 0 };
-  }, [userId, userName, refreshKey, leaveRequests]);
+  const [currentBalances, setCurrentBalances] = useState({ 
+    "Annual & Emergency Leave": 14, 
+    "Sick Leave (MC)": 14, 
+    "Replacement Leave": 0, 
+    "Unpaid Leave": 0 
+  });
+
+  useEffect(() => {
+    if (!userId) return;
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/user-details/${encodeURIComponent(userId)}`);
+        const data = await res.json();
+        if (data.success && data.profile) {
+          const base = Number(data.profile.annual_leave_entitlement) || 14;
+          const adj = Number(data.profile.total_adjustment) || 0;
+          setCurrentBalances(prev => ({
+            ...prev,
+            "Annual & Emergency Leave": base + adj
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch user details for leave balances:", err);
+      }
+    };
+    void fetchProfile();
+  }, [userId, refreshKey]);
 
   const mapTypeToBalanceKey = (type: LeaveType): "Annual & Emergency Leave" | "Replacement Leave" | "Sick Leave (MC)" | "Unpaid Leave" => {
     if (type === "Annual/Emergency Leave" || type === "Cuti Tahunan") {
