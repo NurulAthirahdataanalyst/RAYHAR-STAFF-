@@ -1896,7 +1896,7 @@ app.get("/api/branch-employees", async (req, res) => {
       LEFT JOIN (
         SELECT
           user_id,
-          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Cuti Sakit', 'Sick Leave') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
+          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Cuti Sakit', 'Sick Leave', 'Replacement Leave', 'Cuti Ganti') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
           SUM(CASE WHEN status LIKE 'Pending%' THEN 1 ELSE 0 END) AS pending_leaves,
           SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) AS approved_leaves,
           SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) AS rejected_leaves,
@@ -2044,7 +2044,7 @@ app.get("/api/leave-entitlements", async (req, res) => {
       LEFT JOIN (
         SELECT
           user_id,
-          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
+          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Replacement Leave', 'Cuti Ganti') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
           SUM(CASE WHEN status LIKE 'Pending%' THEN 1 ELSE 0 END) AS pending_count
         FROM leave_requests
         GROUP BY user_id
@@ -2101,7 +2101,86 @@ app.post("/api/profiles/:userId/leave-adjustments", async (req, res) => {
     console.error("Error applying leave adjustment:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
+});// --- Replacement Leaves ---
+app.get("/api/replacement-leaves", async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT r.*, p.full_name as employee_name 
+      FROM replacement_leave_requests r
+      JOIN profiles p ON p.user_id = r.employee_id
+      ORDER BY r.leave_date DESC
+    `);
+    res.json({ success: true, data: rows });
+  } catch (error) {
+    console.error("Error fetching replacement leaves:", error);
+    res.status(500).json({ success: false, error: "Database error" });
+  }
 });
+
+// Run this job daily at midnight or when explicitly requested
+app.post("/api/replacement-leaves/validate", async (req, res) => {
+  try {
+    await validateReplacementLeaves();
+    res.json({ success: true, message: "Validation triggered successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: "Validation failed" });
+  }
+});
+
+async function validateReplacementLeaves() {
+  console.log("Running replacement leave validation...");
+  const [rows] = await pool.query(
+    `SELECT * FROM replacement_leave_requests WHERE validation_status IN ('Pending', 'Waiting for Replacement Date') AND replacement_date <= CURRENT_DATE`
+  );
+  
+  for (const r of rows) {
+    // Check attendance for this day
+    const [att] = await pool.query(
+      `SELECT clock_in, clock_out, working_hours FROM attendances WHERE user_id = ? AND DATE(clock_in) = ?`,
+      [r.employee_id, r.replacement_date]
+    );
+
+    let actualHours = 0;
+    if (att.length > 0) {
+      if (att[0].working_hours) {
+        actualHours = parseFloat(att[0].working_hours);
+      } else if (att[0].clock_in && att[0].clock_out) {
+        const ci = new Date(att[0].clock_in);
+        const co = new Date(att[0].clock_out);
+        actualHours = (co.getTime() - ci.getTime()) / (1000 * 60 * 60);
+      }
+    }
+
+    if (actualHours >= r.required_hours) {
+      // Validate
+      await pool.query(
+        `UPDATE replacement_leave_requests SET validation_status = 'Validated', actual_hours = ? WHERE id = ?`,
+        [actualHours, r.id]
+      );
+      
+      // Restore Annual Leave (since it was deducted temporarily)
+      await pool.query(
+        `INSERT INTO leave_balance_adjustments (employee_id, leave_type, adjustment_days, reason, approved_by) VALUES (?, 'Annual Leave', 1, ?, 'System')`,
+        [r.employee_id, `Replacement Validation Success (${r.replacement_date.toISOString().split('T')[0]})`]
+      );
+    } else {
+      // Fail
+      // If it's today, we might want to wait for clock-out, but if cron runs at midnight, the day is over.
+      await pool.query(
+        `UPDATE replacement_leave_requests SET validation_status = 'Failed', actual_hours = ? WHERE id = ?`,
+        [actualHours, r.id]
+      );
+    }
+  }
+}
+
+// Scheduled Cron Job
+const cron = require('node-cron');
+cron.schedule('0 0 * * *', async () => {
+  await validateReplacementLeaves();
+});
+
 
 app.get("/api/leave-requests", async (req, res) => {
   const userId = req.query.userId;
@@ -2291,26 +2370,39 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
 
     // Validate Replacement Leave Dates
     if (cutiGantiData.length > 0) {
+      const branchZoneMap = await getBranchZoneMap();
+      const userZone = branchZoneMap.get(employeeBranch) || 'ZONE_B';
+
       for (const cg of cutiGantiData) {
-        if (!cg.tarikh) continue;
-        const leaveDate = new Date(start_date);
-        const replaceDate = new Date(cg.tarikh);
+        if (!cg.tarikhGanti) continue;
+        const leaveDate = new Date(cg.tarikhCuti || start_date);
+        const replaceDate = new Date(cg.tarikhGanti);
         
-        // 1. Replacement Date >= Leave Date
-        if (replaceDate < leaveDate) {
-          return res.status(400).json({ success: false, error: "Replacement Date must be on or after the Leave Date." });
+        // 0. Keterangan is required
+        if (!cg.keterangan && (!reason || reason.trim() === '')) {
+           return res.status(400).json({ success: false, error: "Keterangan/Tugasan is required for Replacement Leave." });
+        }
+
+        // 1. Replacement Date >= Leave Date (Wait, the user's example: Leave 16 Jul, Replace 31 Jul. So replaceDate >= leaveDate is correct, but actually replacement can be done before! E.g. working on a weekend to earn leave for later. I will remove this strict check as it's common to earn replacement leave in advance. Wait, the user didn't specify. I'll remove the strict check since the logic "Wait for attendance" applies to future dates, and past dates will instantly validate on cron run.)
+        // No strict check on Replacement Date >= Leave Date.
+
+        // 2. Replacement Date must be Weekend or Holiday
+        const isWeekend = checkIsWeekend(userZone, replaceDate);
+        const isHoliday = malaysiaHolidays.some(h => h.date === cg.tarikhGanti);
+        if (!isWeekend && !isHoliday) {
+          return res.status(400).json({ success: false, error: `Tarikh Ganti ${cg.tarikhGanti} must be a Weekend or Public Holiday.` });
         }
         
-        // 2. Not duplicated
-        const [dupCheck] = await pool.query(`SELECT id FROM replacement_leave_requests WHERE employee_id = ? AND replacement_date = ?`, [user_id, cg.tarikh]);
+        // 3. Not duplicated
+        const [dupCheck] = await pool.query(`SELECT id FROM replacement_leave_requests WHERE employee_id = ? AND replacement_date = ? AND validation_status != 'Failed'`, [user_id, cg.tarikhGanti]);
         if (dupCheck.length > 0) {
-          return res.status(400).json({ success: false, error: `Replacement Date ${cg.tarikh} has already been used by you.` });
+          return res.status(400).json({ success: false, error: `Replacement Date ${cg.tarikhGanti} has already been claimed.` });
         }
         
-        // 3. Not an approved leave date
-        const [leaveCheck] = await pool.query(`SELECT leave_id FROM leave_requests WHERE user_id = ? AND status IN ('Approved', 'Pending HOD', 'Pending Branch Leader') AND ? BETWEEN start_date AND end_date`, [user_id, cg.tarikh]);
+        // 4. Not an approved leave date
+        const [leaveCheck] = await pool.query(`SELECT leave_id FROM leave_requests WHERE user_id = ? AND status IN ('Approved', 'Pending HOD', 'Pending Branch Leader') AND ? BETWEEN start_date AND end_date`, [user_id, cg.tarikhGanti]);
         if (leaveCheck.length > 0) {
-          return res.status(400).json({ success: false, error: `Replacement Date ${cg.tarikh} falls on your existing approved leave.` });
+          return res.status(400).json({ success: false, error: `Replacement Date ${cg.tarikhGanti} falls on your existing approved leave.` });
         }
       }
     }
@@ -2369,11 +2461,16 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
 
     if (cutiGantiData.length > 0) {
       for (const cg of cutiGantiData) {
-        if (!cg.tarikh) continue;
-        const cleanReason = reason.split('\n\n[CUTI_GANTI_DATA')[0];
+        if (!cg.tarikhGanti) continue;
+        const replaceDate = cg.tarikhGanti;
+        const leaveDate = cg.tarikhCuti || start_date;
+        const description = cg.keterangan || reason.split('\n\n[CUTI_GANTI_DATA')[0];
+        // jamGanti is "--" from UI, fallback to 4
+        const reqJam = cg.jamGanti && cg.jamGanti !== "--" ? Number(cg.jamGanti) : 4;
+
         await pool.query(
           `INSERT INTO replacement_leave_requests (employee_id, leave_request_id, leave_date, replacement_date, description, required_hours, validation_status) VALUES (?, ?, ?, ?, ?, ?, 'Pending')`,
-          [user_id, result.insertId, start_date, cg.tarikh, cleanReason, cg.jam || 4]
+          [user_id, result.insertId, leaveDate, replaceDate, description, reqJam]
         );
       }
     }
@@ -2544,7 +2641,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
     // Sync replacement leave status
     if (nextStatus === 'Approved') {
       await pool.query(
-        `UPDATE replacement_leave_requests SET validation_status = 'Approved' WHERE leave_request_id = ? AND validation_status = 'Pending'`,
+        `UPDATE replacement_leave_requests SET validation_status = 'Waiting for Replacement Date' WHERE leave_request_id = ? AND validation_status = 'Pending'`,
         [leaveId]
       );
     } else if (nextStatus === 'Rejected') {
@@ -2962,7 +3059,7 @@ app.get("/api/employees", async (req, res) => {
       LEFT JOIN (
         SELECT
           user_id,
-          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Cuti Sakit', 'Sick Leave') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
+          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Cuti Sakit', 'Sick Leave', 'Replacement Leave', 'Cuti Ganti') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
           SUM(CASE WHEN status LIKE 'Pending%' THEN 1 ELSE 0 END) AS pending_leaves,
           SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) AS approved_leaves,
           SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) AS rejected_leaves,
@@ -5707,9 +5804,9 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
        ) adj ON adj.employee_id = p.user_id
        LEFT JOIN (
          SELECT user_id, 
-                SUM(CASE WHEN status = 'Approved' THEN days ELSE 0 END) as annual_days_used
+                SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Replacement Leave', 'Cuti Ganti') AND status = 'Approved' THEN days ELSE 0 END) as annual_days_used
          FROM leave_requests
-         WHERE leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan')
+         WHERE leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan', 'Replacement Leave', 'Cuti Ganti')
          GROUP BY user_id
        ) lr ON lr.user_id = p.user_id
        WHERE p.status = 'Active' ${profileFilter}

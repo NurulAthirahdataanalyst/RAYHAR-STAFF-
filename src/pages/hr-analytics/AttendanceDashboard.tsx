@@ -164,6 +164,8 @@ export default function AttendanceDashboard() {
   const [absentEmployees, setAbsentEmployees] = useState<any[]>([]);
   const [loadingAbsent, setLoadingAbsent] = useState(false);
   const [outstationRecords, setOutstationRecords] = useState<any[]>([]);
+  const [replacementLeaves, setReplacementLeaves] = useState<any[]>([]);
+  const [loadingReplacementLeaves, setLoadingReplacementLeaves] = useState(false);
   const [attendanceStats, setAttendanceStats] = useState({
     presentToday: 0,
     lateArrivals: 0,
@@ -370,6 +372,21 @@ export default function AttendanceDashboard() {
     }
   };
 
+  const fetchReplacementLeaves = async () => {
+    try {
+      setLoadingReplacementLeaves(true);
+      const response = await fetch(`${API_BASE_URL}/api/replacement-leaves`);
+      const data = await response.json();
+      if (data.success) {
+        setReplacementLeaves(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching replacement leaves:", error);
+    } finally {
+      setLoadingReplacementLeaves(false);
+    }
+  };
+
   const fetchLeaveUtilization = async () => {
     setLoadingLeave(true);
     try {
@@ -403,6 +420,7 @@ export default function AttendanceDashboard() {
       fetchDailyAttendance();
       fetchAnalytics();
       fetchTotalLeaveRequests();
+      fetchReplacementLeaves();
     } else if (activeTab === "leave") {
       fetchLeaveUtilization();
     }
@@ -1689,6 +1707,68 @@ export default function AttendanceDashboard() {
               )}
 
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Replacement Leave Requests */}
+        <Card className="rounded-[24px] overflow-hidden border-[#7B0099]/10 bg-gradient-to-br from-white to-[#7B0099]/[0.02] shadow-xl shadow-[#7B0099]/5 mt-6">
+          <CardHeader className="bg-gradient-to-r from-[#7B0099]/5 to-transparent border-b border-[#7B0099]/10 pb-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-[#7B0099] font-black text-xl tracking-tight">Replacement Leave Requests</CardTitle>
+                <CardDescription className="text-gray-500 font-medium">Pending and validated replacement leaves</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            {loadingReplacementLeaves ? (
+              <div className="flex items-center justify-center h-32">
+                <Loader2 className="w-6 h-6 text-[#7B0099] animate-spin" />
+              </div>
+            ) : replacementLeaves.length === 0 ? (
+              <div className="text-center py-10 text-gray-500 text-sm font-medium">No replacement leave requests found</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-[10px] text-gray-500 uppercase bg-gray-50/50 border-b border-gray-100">
+                    <tr>
+                      <th className="px-6 py-4 font-bold tracking-wider">Employee</th>
+                      <th className="px-6 py-4 font-bold tracking-wider">Leave Date</th>
+                      <th className="px-6 py-4 font-bold tracking-wider">Replacement Date</th>
+                      <th className="px-6 py-4 font-bold tracking-wider">Hours</th>
+                      <th className="px-6 py-4 font-bold tracking-wider">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {replacementLeaves.map((request: any) => (
+                      <tr key={request.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-6 py-4 font-medium text-gray-900">{request.employee_name}</td>
+                        <td className="px-6 py-4 text-gray-600 font-medium">
+                          {new Date(request.leave_date).toLocaleDateString('en-GB')}
+                        </td>
+                        <td className="px-6 py-4 text-gray-600 font-medium">
+                          {new Date(request.replacement_date).toLocaleDateString('en-GB')}
+                        </td>
+                        <td className="px-6 py-4 text-gray-600 font-medium">
+                          {request.actual_hours !== null ? `${request.actual_hours}h` : `${request.required_hours}h (Req)`}
+                        </td>
+                        <td className="px-6 py-4">
+                          <Badge variant="outline" className={
+                            request.validation_status === 'Validated' ? "border-green-200 bg-green-50 text-green-700" :
+                            request.validation_status === 'Failed' ? "border-red-200 bg-red-50 text-red-700" :
+                            request.validation_status === 'Waiting for Replacement Date' ? "border-blue-200 bg-blue-50 text-blue-700" :
+                            request.validation_status === 'Approved' ? "border-amber-200 bg-amber-50 text-amber-700" :
+                            "border-gray-200 bg-gray-50 text-gray-700"
+                          }>
+                            {request.validation_status}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

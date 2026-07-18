@@ -104,9 +104,10 @@ export const getLeaveFormFileName = (appliedAt: string, type: LeaveType, employe
 
 // Types and helper functions for dynamic multiple Cuti Ganti rows
 export type CutiGantiRow = {
-  tarikh: string;
-  hari: string;
-  jam: number;
+  tarikhCuti: string;
+  tarikhGanti: string;
+  keterangan: string;
+  jamGanti: string | number;
 };
 
 export const parseCutiGantiRows = (

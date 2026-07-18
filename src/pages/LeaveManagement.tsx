@@ -95,17 +95,17 @@ export default function LeaveManagement() {
     cutiGantiHari: "",
     cutiGantiJam: 0,
     cutiGantiRows: [
-      { tarikh: "", hari: "Cuti Minggu", jam: 8 }
+      { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "--" }
     ] as CutiGantiRow[],
     cutiTanpaGajiPhone: "",
     cutiTanpaGajiSignature: false
   });
 
   const addCutiGantiRow = () => {
-    setFormData(prev => ({
-      ...prev,
-      cutiGantiRows: [...prev.cutiGantiRows, { tarikh: "", hari: "Cuti Minggu", jam: 8 }]
-    }));
+    setFormData({
+      ...formData,
+      cutiGantiRows: [...formData.cutiGantiRows, { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "--" }]
+    });
   };
 
   const removeCutiGantiRow = (index: number) => {
@@ -279,10 +279,10 @@ export default function LeaveManagement() {
         payload.append("lampiranMc", formData.lampiranMc);
       }
       if (leaveType === "Replacement Leave" || leaveType === "Cuti Ganti") {
-        const firstRow = formData.cutiGantiRows[0] || { tarikh: "", hari: "", jam: 0 };
-        payload.append("cuti_ganti_tarikh", firstRow.tarikh);
-        payload.append("cuti_ganti_hari", firstRow.hari);
-        payload.append("cuti_ganti_jam", String(firstRow.jam));
+        const firstRow = formData.cutiGantiRows[0] || { tarikhCuti: "", tarikhGanti: "", keterangan: "", jamGanti: "--" };
+        payload.append("cuti_ganti_tarikh", firstRow.tarikhCuti);
+        payload.append("cuti_ganti_hari", firstRow.tarikhGanti);
+        payload.append("cuti_ganti_jam", String(firstRow.jamGanti));
       }
       if (leaveType === "Unpaid Leave" || leaveType === "Cuti Tanpa Gaji") {
         payload.append("cuti_tanpa_gaji_phone", formData.cutiTanpaGajiPhone);
@@ -616,44 +616,53 @@ export default function LeaveManagement() {
 
                       <div className="space-y-4 divide-y divide-[#7B0099]/10">
                         {formData.cutiGantiRows.map((row, idx) => (
-                          <div key={idx} className={`grid grid-cols-1 sm:grid-cols-3 gap-3 ${idx > 0 ? 'pt-4' : ''}`}>
+                          <div key={idx} className={`grid grid-cols-1 sm:grid-cols-4 gap-3 ${idx > 0 ? 'pt-4' : ''}`}>
                             <div className="space-y-2">
                               <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh Cuti {idx + 1} *</Label>
                               <Input
                                 type="date"
-                                value={row.tarikh}
+                                value={row.tarikhCuti}
                                 onChange={e => {
                                   const newRows = [...formData.cutiGantiRows];
-                                  newRows[idx].tarikh = e.target.value;
+                                  newRows[idx].tarikhCuti = e.target.value;
                                   setFormData({ ...formData, cutiGantiRows: newRows });
                                 }}
                                 className="h-12 bg-card rounded-xl font-bold"
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Jenis/Hari Ganti {idx + 1} *</Label>
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh/Hari Ganti {idx + 1} *</Label>
                               <Input
-                                placeholder="Cuti Minggu"
-                                value={row.hari}
+                                type="date"
+                                value={row.tarikhGanti}
                                 onChange={e => {
                                   const newRows = [...formData.cutiGantiRows];
-                                  newRows[idx].hari = e.target.value;
+                                  newRows[idx].tarikhGanti = e.target.value;
+                                  setFormData({ ...formData, cutiGantiRows: newRows });
+                                }}
+                                className="h-12 bg-card rounded-xl font-bold"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Keterangan / Tugasan {idx + 1} *</Label>
+                              <Input
+                                placeholder="Contoh: Kerja lebih masa"
+                                value={row.keterangan}
+                                onChange={e => {
+                                  const newRows = [...formData.cutiGantiRows];
+                                  newRows[idx].keterangan = e.target.value;
                                   setFormData({ ...formData, cutiGantiRows: newRows });
                                 }}
                                 className="h-12 bg-card rounded-xl font-bold"
                               />
                             </div>
                             <div className="space-y-2 relative pr-10">
-                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Jam Ganti {idx + 1} *</Label>
+                              <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Jam Ganti {idx + 1}</Label>
                               <Input
-                                type="number"
-                                value={row.jam}
-                                onChange={e => {
-                                  const newRows = [...formData.cutiGantiRows];
-                                  newRows[idx].jam = parseInt(e.target.value) || 0;
-                                  setFormData({ ...formData, cutiGantiRows: newRows });
-                                }}
-                                className="h-12 bg-card rounded-xl font-bold"
+                                readOnly
+                                placeholder="Auto-calc"
+                                value={row.jamGanti}
+                                className="h-12 bg-card rounded-xl font-bold bg-muted"
                               />
                               {formData.cutiGantiRows.length > 1 && (
                                 <Button
