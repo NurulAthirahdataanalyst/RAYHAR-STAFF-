@@ -1157,7 +1157,7 @@ export default function Dashboard() {
                               navigate(`/leave/admin?leaveId=${emp.leave_id}`);
                             }
                           }}
-                          className="cursor-pointer group rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-card hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-slate-50 dark:bg-slate-900/50 transition-all p-3"
+                          className="cursor-pointer rounded-md border border-slate-200 dark:border-slate-800 hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200 p-3"
                         >
                           <div className="flex items-start gap-3">
                             <div className="w-10 h-10 rounded bg-purple-100 flex items-center justify-center text-sm font-bold text-purple-700 shrink-0">
@@ -1369,16 +1369,16 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="p-4">
               <div className="grid grid-cols-2 gap-3">
-                <div onClick={() => navigate("/attendance")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-slate-50 dark:bg-slate-900/50 transition-all">
+                <div onClick={() => navigate("/attendance")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
                   <Clock className="w-6 h-6 text-purple-700 mb-2" />
                   <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Clock In/Out</span>
                 </div>
-                <div onClick={() => navigate("/leave/apply")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-slate-50 dark:bg-slate-900/50 transition-all">
+                <div onClick={() => navigate("/leave/apply")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
                   <CalendarCheck className="w-6 h-6 text-purple-700 mb-2" />
                   <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Apply Leave</span>
                 </div>
                 {["hr_admin", "managing_director", "finance_manager", "head_of_department", "branch_leader"].includes(role) && (
-                  <div onClick={() => navigate("/outstation")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-slate-50 dark:bg-slate-900/50 transition-all col-span-2">
+                  <div onClick={() => navigate("/outstation")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200 col-span-2">
                     <MapPin className="w-6 h-6 text-purple-700 mb-2" />
                     <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Outstation</span>
                   </div>
