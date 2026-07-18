@@ -125,6 +125,19 @@ export default function LeaveManagement() {
 
   // Automatik kira bilangan hari & baki cuti
   useEffect(() => {
+    if (formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") {
+      const realDays = formData.cutiGantiRows.filter(r => r.tarikhCuti).length;
+      if (formData.bilanganHari !== realDays) {
+        setFormData(prev => ({
+          ...prev,
+          bilanganHari: realDays,
+          mohon: realDays,
+          bakiAkhir: prev.bakiTerdahulu - realDays
+        }));
+      }
+      return;
+    }
+
     if (formData.tarikhMula && formData.tarikhAkhir) {
       const fetchDays = async () => {
         try {
@@ -158,7 +171,7 @@ export default function LeaveManagement() {
       };
       fetchDays();
     }
-  }, [formData.tarikhMula, formData.tarikhAkhir, userBranch]);
+  }, [formData.tarikhMula, formData.tarikhAkhir, userBranch, formData.jenisCuti, formData.cutiGantiRows, formData.bilanganHari]);
 
   const [totalEntitlement, setTotalEntitlement] = useState(14);
 
