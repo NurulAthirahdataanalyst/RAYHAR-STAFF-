@@ -837,7 +837,7 @@ export default function WorkforceInsights() {
                               <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
                             )}
                           </div>
-                          <p className="text-[10px] text-slate-400 font-medium">{emp.department !== 'â€”' ? emp.department : emp.branch}</p>
+                          <p className="text-[10px] text-slate-400 font-medium">{emp.department && emp.department !== '—' && emp.department !== '-' ? emp.department : emp.branch}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
