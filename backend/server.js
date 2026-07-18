@@ -6007,7 +6007,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
          p.department as dept,
          p.branch,
          COALESCE(lr.annual_days_used, 0) as taken,
-         COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.total_adjustment, 0) as total
+         CAST(COALESCE(p.annual_leave_entitlement, '14') AS NUMERIC) + CAST(COALESCE(adj.total_adjustment, 0) AS NUMERIC) as total
        FROM profiles p
        LEFT JOIN (
          SELECT employee_id, SUM(adjustment_days) as total_adjustment 
@@ -6017,7 +6017,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
        ) adj ON adj.employee_id = p.user_id
        LEFT JOIN (
          SELECT user_id, 
-                SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Replacement Leave', 'Cuti Ganti') AND status = 'Approved' THEN days ELSE 0 END) as annual_days_used
+                SUM(CASE WHEN leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan', 'Replacement Leave', 'Cuti Ganti') AND status = 'Approved' THEN days ELSE 0 END) as annual_days_used
          FROM leave_requests
          WHERE leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan', 'Replacement Leave', 'Cuti Ganti')
          GROUP BY user_id

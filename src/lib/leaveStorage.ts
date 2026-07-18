@@ -153,10 +153,14 @@ export const parseCutiGantiRows = (
     return [];
   }
 
-  const match = reason.match(/\[CUTI_GANTI_DATA:(.*?)\]/);
+  const match = reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
   if (match) {
     try {
-      return JSON.parse(match[1]) as CutiGantiRow[];
+      // The match[1] would be everything up to the first ']', but since we matched ']]', we should just extract from the string instead.
+      const dataStr = reason.split('[CUTI_GANTI_DATA:')[1].split(']')[0] + ']';
+      // Actually, a safer way to parse it:
+      const rawJson = reason.substring(reason.indexOf('[CUTI_GANTI_DATA:') + 17, reason.lastIndexOf(']') + 1);
+      return JSON.parse(rawJson) as CutiGantiRow[];
     } catch (e) {
       console.error("Failed to parse cuti ganti rows:", e);
     }
@@ -176,6 +180,6 @@ export const parseCutiGantiRows = (
 
 export const getCleanReason = (reason: string): string => {
   if (!reason) return "";
-  return reason.replace(/\[CUTI_GANTI_DATA:.*?\]/g, "").trim();
+  return reason.split('[CUTI_GANTI_DATA:')[0].trim();
 };
 
