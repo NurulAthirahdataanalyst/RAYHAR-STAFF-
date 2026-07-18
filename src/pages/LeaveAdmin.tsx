@@ -426,20 +426,29 @@ export default function LeaveAdmin() {
                 <TableBody className="divide-y divide-border/40">
                   {filteredRequests.length > 0 ? (
                     filteredRequests.map((req) => (
-                      <TableRow key={req.id} className="hover:bg-muted/30 transition-colors group">
+                      <TableRow 
+                        key={req.id} 
+                        className="hover:bg-muted/30 transition-colors group cursor-pointer"
+                        onClick={() => setSelectedRequest(req)}
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setSelectedRequest(req);
+                          }
+                        }}
+                      >
                         <TableCell className="px-5 py-3.5">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-md bg-[#7B0099]/10 text-[#7B0099] flex items-center justify-center text-xs font-bold shrink-0">
                               {req.employee.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex flex-col">
-                              <button
-                                type="button"
-                                onClick={() => setSelectedRequest(req)}
-                                className="font-bold text-foreground hover:text-[#7B0099] transition-colors text-left"
+                              <span
+                                className="font-bold text-foreground group-hover:text-[#7B0099] transition-colors text-left"
                               >
                                 {req.employee}
-                              </button>
+                              </span>
                               <span className="text-[11px] text-muted-foreground mt-0.5">{req.branch}</span>
                             </div>
                           </div>
@@ -484,7 +493,10 @@ export default function LeaveAdmin() {
                                   size="sm"
                                   variant="outline"
                                   className="h-7 w-7 rounded p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200"
-                                  onClick={() => handleAction(req.id, "approve", req.status)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAction(req.id, "approve", req.status);
+                                  }}
                                   title="Approve"
                                 >
                                   <Check className="h-4 w-4" />
@@ -493,7 +505,10 @@ export default function LeaveAdmin() {
                                   size="sm"
                                   variant="outline"
                                   className="h-7 w-7 rounded p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
-                                  onClick={() => handleAction(req.id, "reject", req.status)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAction(req.id, "reject", req.status);
+                                  }}
                                   title="Reject"
                                 >
                                   <X className="h-4 w-4" />
