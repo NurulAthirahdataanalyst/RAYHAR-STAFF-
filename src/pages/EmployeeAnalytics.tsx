@@ -423,27 +423,19 @@ export default function EmployeeAnalytics() {
         </div>
 
         {/* Month/Year Filter */}
-        <div className="flex items-center gap-2 self-start sm:self-auto bg-card/80 backdrop-blur-md shadow-sm border border-border/50 rounded-2xl px-3 py-2">
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-[120px] h-8 text-[10px] font-black uppercase tracking-widest rounded-xl border-none bg-transparent">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              {MONTHS.map(m => (
-                <SelectItem key={m.value} value={m.value} className="text-[10px] font-black uppercase tracking-widest">{m.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[80px] h-8 text-[10px] font-black uppercase tracking-widest rounded-xl border-none bg-transparent">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              {YEARS.map(y => (
-                <SelectItem key={y} value={y} className="text-[10px] font-black uppercase tracking-widest">{y}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <input
+            type="month"
+            value={`${selectedYear}-${selectedMonth.padStart(2, '0')}`}
+            onChange={(e) => {
+              if (e.target.value) {
+                const [year, month] = e.target.value.split('-');
+                setSelectedYear(year);
+                setSelectedMonth(parseInt(month, 10).toString());
+              }
+            }}
+            className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] hover:border-[#7B0099] hover:ring-1 hover:ring-[#7B0099] transition-all"
+          />
         </div>
       </div>
 
