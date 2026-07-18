@@ -1526,30 +1526,27 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
   const absentList = [];
   for (const p of allProfiles) {
     const isOutstation = outstationTodayMap.has(p.user_id);
+    const isOnLeave = onLeaveIds.has(p.user_id);
+    const isPresent = !!clockMap[p.user_id];
 
-    if (!onLeaveIds.has(p.user_id) && (!clockMap[p.user_id] || isOutstation)) {
-      const initials = (p.full_name || '??').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
-      
-      const isCompanyLeave = companyLeaveDays.some(cl => {
-        if (cl.applies_to === 'all') return true;
-        if (cl.applies_to === 'branch' && cl.branch_id) {
-          return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
-        }
-        if (cl.applies_to === 'department' && cl.department_id) {
-          const depts = cl.department_id.split(',').map(s => s.trim());
-          const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
-          return depts.some(d => {
-            const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
-            return normEmpDept === normClDept || p.department === d;
-          });
-        }
-        return false;
-      });
+    const isCompanyLeave = companyLeaveDays.some(cl => {
+      if (cl.applies_to === 'all') return true;
+      if (cl.applies_to === 'branch' && cl.branch_id) {
+        return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
+      }
+      if (cl.applies_to === 'department' && cl.department_id) {
+        const depts = cl.department_id.split(',').map(s => s.trim());
+        const normEmpDept = (p.department || '').toLowerCase().replace(/\bdepartment\b/g, '').trim();
+        return depts.some(d => {
+          const normClDept = d.toLowerCase().replace(/\bdepartment\b/g, '').trim();
+          return normEmpDept === normClDept || p.department === d;
+        });
+      }
+      return false;
+    });
 
-      let status = 'absent';
-      if (isOutstation) status = 'outstation';
-      else if (isCompanyLeave) status = 'companyLeave';
-
+    const initials = (p.full_name || '??').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+    const pushAbsent = (status) => {
       absentList.push({
         user_id: p.user_id,
         full_name: p.full_name,
@@ -1559,6 +1556,16 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
         role: p.role || '',
         status
       });
+    };
+
+    if (isOnLeave) {
+      pushAbsent('onLeave');
+    } else if (isCompanyLeave) {
+      pushAbsent('companyLeave');
+    } else if (isOutstation) {
+      if (!isPresent) pushAbsent('outstation');
+    } else if (!isPresent) {
+      pushAbsent('absent');
     }
   }
 
