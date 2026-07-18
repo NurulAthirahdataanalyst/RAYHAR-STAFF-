@@ -604,7 +604,10 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   
   const overallScore = scoreAttendance + scorePunctuality + scoreAbsence + scoreLeave;
 
-  // Heatmap Calendar Generator (Sunday start)
+  // Heatmap Calendar Generator (Dynamic start based on zone)
+  const zone = profile?.operating_zone || 'ZONE_B';
+  const isZoneB = zone === 'ZONE_B';
+
   let calendarDays: any[] = [];
   let firstDay = 0;
   let offset = 0;
@@ -612,7 +615,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
   if (month !== "all") {
     firstDay = new Date(parseInt(year), parseInt(month) - 1, 1).getDay();
-    offset = firstDay; 
+    offset = isZoneB ? (firstDay === 0 ? 6 : firstDay - 1) : firstDay; 
     heatmapPrevDaysInMonth = new Date(parseInt(year), parseInt(month) - 1, 0).getDate();
     
     // Add previous month faded days
@@ -877,7 +880,9 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
              ) : (
                <>
                  <div className="grid grid-cols-7 gap-1 mb-2 text-center">
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
+                    {(isZoneB 
+                      ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                      : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).map((day, i) => (
                        <div key={i} className="text-[9px] font-black text-muted-foreground uppercase">{day}</div>
                     ))}
                  </div>
@@ -885,14 +890,13 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                  <div className="grid grid-cols-7 gap-1 sm:gap-1.5 flex-1 content-start">
                     {calendarDays.map((cell, i) => {
                       // Calculate weekend based on operating zone
-                      const zone = profile?.operating_zone || 'ZONE_B';
                       let isWeekend = false;
                       if (zone === 'ZONE_A') {
-                        // Zone A: Friday (5) and 1st Saturday (6)
+                        // Zone A (Starts Sun): Friday (5) and 1st Saturday (6)
                         isWeekend = (i % 7 === 5) || (i % 7 === 6 && cell.day <= 7);
                       } else {
-                        // Zone B: Sunday (0) and 1st Saturday (6)
-                        isWeekend = (i % 7 === 0) || (i % 7 === 6 && cell.day <= 7);
+                        // Zone B (Starts Mon): Sunday (6) and 1st Saturday (5)
+                        isWeekend = (i % 7 === 6) || (i % 7 === 5 && cell.day <= 7);
                       }
                       let status = cell.isCurrent ? heatmapData[cell.day] : null;
                       
