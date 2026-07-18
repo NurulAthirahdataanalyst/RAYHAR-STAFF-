@@ -731,7 +731,7 @@ export default function Reports() {
                     className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
                       generatorType === "trends"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground shadow-[0_0_20px_rgba(123,0,153,0.15)]"
-                        : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                        : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:border-[#7B0099] hover:shadow-md hover:ring-1 hover:ring-inset hover:ring-[#7B0099] hover:bg-[#7B0099]/5 dark:hover:bg-slate-900/50 hover:text-foreground"
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -753,7 +753,7 @@ export default function Reports() {
                     className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
                       generatorType === "leave"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground shadow-[0_0_20px_rgba(123,0,153,0.15)]"
-                        : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                        : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:border-[#7B0099] hover:shadow-md hover:ring-1 hover:ring-inset hover:ring-[#7B0099] hover:bg-[#7B0099]/5 dark:hover:bg-slate-900/50 hover:text-foreground"
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -774,7 +774,7 @@ export default function Reports() {
                     className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
                       generatorType === "outstation"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground shadow-[0_0_20px_rgba(123,0,153,0.15)]"
-                        : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                        : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:border-[#7B0099] hover:shadow-md hover:ring-1 hover:ring-inset hover:ring-[#7B0099] hover:bg-[#7B0099]/5 dark:hover:bg-slate-900/50 hover:text-foreground"
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -795,7 +795,7 @@ export default function Reports() {
                     className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
                       generatorType === "company_leave"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground shadow-[0_0_20px_rgba(123,0,153,0.15)]"
-                        : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                        : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:border-[#7B0099] hover:shadow-md hover:ring-1 hover:ring-inset hover:ring-[#7B0099] hover:bg-[#7B0099]/5 dark:hover:bg-slate-900/50 hover:text-foreground"
                     }`}
                   >
                     <div className="flex items-center gap-3">
