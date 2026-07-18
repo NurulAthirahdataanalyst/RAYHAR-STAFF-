@@ -97,7 +97,8 @@ export default function LeaveEntitlementManagement() {
   const [loading, setLoading] = useState(false);
 
   const annualModule = modules.find((m) => m.title === "Annual Leave Allocation");
-  const otherModules = modules.filter((m) => m.title !== "Annual Leave Allocation");
+  const replacementModule = modules.find((m) => m.title === "Replacement Leave Validation");
+  const otherModules = modules.filter((m) => m.title !== "Annual Leave Allocation" && m.title !== "Replacement Leave Validation");
 
   const fetchEmployees = async () => {
     setLoading(true);
@@ -173,28 +174,52 @@ export default function LeaveEntitlementManagement() {
             </CardHeader>
             <CardContent className="p-6">
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                {/* Left Side: Large Annual Leave Allocation Card */}
-                {annualModule && (
-                  <div
-                    onClick={() => setActiveModule(annualModule.title)}
-                    className="lg:col-span-1 rounded-2xl border border-border/60 bg-gradient-to-br from-[#7B0099]/5 to-transparent p-6 shadow-sm hover:shadow-md hover:border-[#7B0099]/40 cursor-pointer transition-all duration-200 group flex flex-col justify-between min-h-[220px] lg:min-h-full"
-                  >
-                    <div>
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 ${annualModule.tone}`}>
-                        <annualModule.icon className="w-6 h-6" />
+                {/* Left Side: Large Annual Leave Allocation Card & Replacement Leave Validation */}
+                <div className="lg:col-span-1 flex flex-col gap-4">
+                  {annualModule && (
+                    <div
+                      onClick={() => setActiveModule(annualModule.title)}
+                      className="rounded-2xl border border-border/60 bg-gradient-to-br from-[#7B0099]/5 to-transparent p-6 shadow-sm hover:shadow-md hover:border-[#7B0099]/40 cursor-pointer transition-all duration-200 group flex flex-col justify-between flex-1 min-h-[220px]"
+                    >
+                      <div>
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 ${annualModule.tone}`}>
+                          <annualModule.icon className="w-6 h-6" />
+                        </div>
+                        <h3 className="mt-6 text-lg font-black text-foreground group-hover:text-[#7B0099] transition-colors">
+                          {annualModule.title}
+                        </h3>
+                        <p className="mt-3 text-xs sm:text-sm leading-relaxed text-muted-foreground">
+                          {annualModule.description}
+                        </p>
                       </div>
-                      <h3 className="mt-6 text-lg font-black text-foreground group-hover:text-[#7B0099] transition-colors">
-                        {annualModule.title}
-                      </h3>
-                      <p className="mt-3 text-xs sm:text-sm leading-relaxed text-muted-foreground">
-                        {annualModule.description}
-                      </p>
+                      <div className="mt-8 pt-4 border-t border-border/40 text-[#7B0099] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
+                        Configure Base Leave &rarr;
+                      </div>
                     </div>
-                    <div className="mt-8 pt-4 border-t border-border/40 text-[#7B0099] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
-                      Configure Base Leave &rarr;
+                  )}
+
+                  {replacementModule && (
+                    <div
+                      onClick={() => setActiveModule(replacementModule.title)}
+                      className="rounded-2xl border border-border/60 bg-gradient-to-br from-blue-500/5 to-transparent p-6 shadow-sm hover:shadow-md hover:border-blue-500/40 cursor-pointer transition-all duration-200 group flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 ${replacementModule.tone}`}>
+                          <replacementModule.icon className="w-6 h-6" />
+                        </div>
+                        <h3 className="mt-4 text-lg font-black text-foreground group-hover:text-blue-600 transition-colors">
+                          {replacementModule.title}
+                        </h3>
+                        <p className="mt-2 text-xs sm:text-sm leading-relaxed text-muted-foreground">
+                          {replacementModule.description}
+                        </p>
+                      </div>
+                      <div className="mt-6 pt-4 border-t border-border/40 text-blue-600 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
+                        Manage module &rarr;
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* Right Side: 3-column Grid for Other Modules */}
                 <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1939,7 +1964,9 @@ function ReplacementLeaveValidationForm({ employees, onCancel }: { employees: an
       const res = await fetch(`${API_BASE_URL}/api/replacement-leaves`);
       const json = await res.json();
       if (json.success) {
-        setData(json.replacementLeaves);
+        setData(json.replacementLeaves || []);
+      } else {
+        setData([]);
       }
     } catch (err) {
       console.error(err);
