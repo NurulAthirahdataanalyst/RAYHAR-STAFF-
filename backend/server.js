@@ -4608,38 +4608,58 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
       const [teamRows] = await pool.query(
         `WITH team_acts AS (
-          -- Late arrivals today
+          -- Clock Ins for team
           SELECT 'attendance' AS type,
             p.full_name AS actor,
-            'Clocked in late' AS action,
+            CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${getLateThresholdTime()}' THEN 'Clocked in late' ELSE 'Clocked In' END AS action,
             NULL AS target,
             CONCAT(COALESCE(p.department, ''), ' • ', p.branch) AS context,
             TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
             a.clock_in AS sort_time,
-            'Late' AS badge
+            CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${getLateThresholdTime()}' THEN 'Late' ELSE 'Present' END AS badge
           FROM attendances a
           JOIN profiles p ON p.user_id = a.user_id
           WHERE DATE(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
-            AND (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${getLateThresholdTime()}'
             AND p.status = 'Active' ${teamFilter}
+            AND a.clock_in IS NOT NULL
 
           UNION ALL
 
-          -- Leave approvals today
-          SELECT 'approval', approver.full_name,
+          -- Clock Outs for team
+          SELECT 'attendance' AS type,
+            p.full_name AS actor,
+            'Clocked Out' AS action,
+            NULL AS target,
+            CONCAT(COALESCE(p.department, ''), ' • ', p.branch) AS context,
+            TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+            a.clock_out AS sort_time,
+            'Clocked Out' AS badge
+          FROM attendances a
+          JOIN profiles p ON p.user_id = a.user_id
+          WHERE DATE(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
+            AND p.status = 'Active' ${teamFilter}
+            AND a.clock_out IS NOT NULL
+
+          UNION ALL
+
+          -- Leave actions (Submitted / Approved)
+          SELECT 
+            CASE WHEN lr.status = 'Pending' THEN 'leave' ELSE 'approval' END AS type,
+            CASE WHEN lr.status = 'Pending' THEN emp.full_name ELSE approver.full_name END AS actor,
             CASE lr.status
               WHEN 'Approved' THEN 'Approved leave request'
               WHEN 'Rejected' THEN 'Rejected leave request'
-              WHEN 'Pending HOD Approval' THEN 'Forwarded leave to HOD'
-              WHEN 'Pending Finance Approval' THEN 'Forwarded leave to Finance'
-              WHEN 'Pending MD Approval' THEN 'Forwarded leave to MD'
+              WHEN 'Pending HOD Approval' THEN 'Submitted leave to HOD'
+              WHEN 'Pending Finance Approval' THEN 'Submitted leave to Finance'
+              WHEN 'Pending MD Approval' THEN 'Submitted leave to MD'
+              WHEN 'Pending' THEN 'Submitted leave request'
               ELSE CONCAT('Updated leave: ', lr.status)
-            END,
-            emp.full_name,
-            CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', lr.reason), '')),
-            TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM'),
-            lr.updated_at,
-            lr.status
+            END AS action,
+            CASE WHEN lr.status = 'Pending' THEN NULL ELSE emp.full_name END AS target,
+            CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', lr.reason), '')) AS context,
+            TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
+            lr.updated_at AS sort_time,
+            lr.status AS badge
           FROM leave_requests lr
           JOIN profiles emp ON emp.user_id = lr.user_id
           LEFT JOIN profiles approver ON approver.user_id = lr.approver_id
@@ -4685,7 +4705,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         )
         SELECT type, actor, action, target, context, time, badge FROM team_acts
         ORDER BY sort_time DESC LIMIT 10`,
-        [queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams]
+        [queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams, queryDate, ...teamParams]
       );
       teamActivityRows = teamRows;
     }
