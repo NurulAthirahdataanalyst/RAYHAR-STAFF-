@@ -954,10 +954,7 @@ export default function AttendanceDashboard() {
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-6">
 
       {/* ── LIVE PRESENCE PANEL ─────────────────────────────────────────── */}
-      <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden ring-1 ring-black/5">
-        <CardContent className="p-0">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 md:px-6 pt-4 pb-3 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <div className="flex items-center gap-4">
               <div className="p-2.5 bg-gradient-to-br from-[#800A7A] to-[#a855f7] rounded-xl shadow-md">
                 <Activity className="w-5 h-5 text-white" />
@@ -987,10 +984,10 @@ export default function AttendanceDashboard() {
             <div className="flex items-center gap-2">
               <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
             </div>
-          </div>
+      </div>
 
-          {/* Redesigned Standalone KPI Cards Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4 p-4 md:p-6 bg-slate-50/50 border-t border-gray-100 dark:border-slate-800">
+      {/* Redesigned Standalone KPI Cards Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4 mb-6">
             {[
               { label: "Present Today", val: `${liveStats.total > 0 ? Math.round((liveStats.present / liveStats.total) * 100) : 0}%`, sub: `${liveStats.present} / ${liveStats.total} Employees`, color: "text-[#7B0099]", bg: "bg-[#7B0099]/10", border: "border-purple-300 hover:border-purple-500", icon: <CheckCircle2 className="w-5 h-5"/>, trend: "↑ 5% vs Yesterday" },
               { label: "On Time", val: `${liveStats.total > 0 ? Math.round(((liveStats.present - liveStats.late) / liveStats.total) * 100) : 0}%`, sub: `${Math.max(0, liveStats.present - liveStats.late)} / ${liveStats.total} Employees`, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-300 hover:border-emerald-500", icon: <Clock className="w-5 h-5"/>, trend: "—" },
@@ -1016,9 +1013,7 @@ export default function AttendanceDashboard() {
                 </div>
               </div>
             ))}
-          </div>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* FILTER BAR SECTION */}
       <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-lg shadow-sm overflow-hidden mb-6">
