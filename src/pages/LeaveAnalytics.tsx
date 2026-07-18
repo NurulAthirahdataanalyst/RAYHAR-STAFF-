@@ -978,15 +978,15 @@ export default function LeaveAnalytics() {
     <div className="space-y-4 animate-in fade-in duration-500 max-w-[1600px] mx-auto px-4 pt-2 pb-6">
       
       {/* 1. Compact Header */}
-      <Card className="border border-slate-200 bg-white rounded-xl shadow-sm overflow-hidden">
+      <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden">
         <div className="p-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Leave Analytics</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Leave Analytics</h1>
             <p className="text-sm text-gray-500">Monitor workforce leave trends, utilization and approval performance.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-[100px] h-9 text-xs font-medium rounded-lg border-slate-200 bg-white text-gray-700">
+              <SelectTrigger className="w-[100px] h-9 text-xs font-medium rounded-lg border-slate-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 dark:text-gray-300">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -994,7 +994,7 @@ export default function LeaveAnalytics() {
               </SelectContent>
             </Select>
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-[120px] h-9 text-xs font-medium rounded-lg border-slate-200 bg-white text-gray-700">
+              <SelectTrigger className="w-[120px] h-9 text-xs font-medium rounded-lg border-slate-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 dark:text-gray-300">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -1003,7 +1003,7 @@ export default function LeaveAnalytics() {
             </Select>
             {!isScopedRole && (
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="w-[140px] h-9 text-xs font-medium rounded-lg border-slate-200 bg-white text-gray-700">
+                <SelectTrigger className="w-[140px] h-9 text-xs font-medium rounded-lg border-slate-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 dark:text-gray-300">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1012,7 +1012,7 @@ export default function LeaveAnalytics() {
               </Select>
             )}
             <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger className="w-[140px] h-9 text-xs font-medium rounded-lg border-slate-200 bg-white text-gray-700">
+              <SelectTrigger className="w-[140px] h-9 text-xs font-medium rounded-lg border-slate-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 dark:text-gray-300">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -1035,15 +1035,15 @@ export default function LeaveAnalytics() {
           { label: "Avg Leave Days / Employee", val: avgLeaveDays, color: "text-indigo-600", bg: "bg-indigo-50", icon: <Calendar className="w-5 h-5"/>, trend: "↓ 0.5 vs last month" },
           { label: "Sick Leave Rate", val: `${sickLeaveRate}%`, color: "text-pink-600", bg: "bg-pink-50", icon: <BriefcaseMedical className="w-5 h-5"/>, trend: "↑ 2% vs last month" },
         ].map((k, i) => (
-          <Card key={i} className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col justify-between ">
+          <Card key={i} className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col justify-between ">
             <div className="flex items-start justify-between">
               <div className={`p-2 rounded-lg ${k.bg} ${k.color}`}>
                 {k.icon}
               </div>
             </div>
             <div>
-              <p className="text-2xl font-black text-slate-800 leading-none mt-2">{k.val}</p>
-              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mt-1 line-clamp-2 min-leading-tight">{k.label}</p>
+              <p className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none mt-2">{k.val}</p>
+              <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mt-1 line-clamp-2 min-leading-tight">{k.label}</p>
               <p className="text-[9px] text-emerald-600 font-medium mt-1">{k.trend}</p>
             </div>
           </Card>
@@ -1056,8 +1056,8 @@ export default function LeaveAnalytics() {
 {/* 3. Workforce Trends (Row 2) */}
       
         {/* Trend */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">Leave Trend Over Time (Monthly)</h3>
+        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4">Leave Trend Over Time (Monthly)</h3>
           <div className="flex-1 w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={monthlyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -1069,12 +1069,12 @@ export default function LeaveAnalytics() {
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
                       return (
-                        <div className="bg-white p-3 rounded-xl shadow-lg border border-slate-100">
-                          <p className="font-bold text-slate-800 text-xs mb-2">{label}</p>
+                        <div className="bg-white dark:bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800">
+                          <p className="font-bold text-slate-800 dark:text-slate-200 text-xs mb-2">{label}</p>
                           {payload.map((entry: any, index: number) => (
                             <div key={index} className="flex justify-between items-center gap-4 text-xs font-semibold mb-1">
                               <span style={{ color: entry.color }}>{entry.name}</span>
-                              <span className="text-slate-700">{entry.value}</span>
+                              <span className="text-slate-700 dark:text-slate-300">{entry.value}</span>
                             </div>
                           ))}
                         </div>
@@ -1090,8 +1090,8 @@ export default function LeaveAnalytics() {
           </div>
         </Card>
         {/* Seasonality */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">Leave Seasonality (by Month)</h3>
+        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4">Leave Seasonality (by Month)</h3>
           <div className="flex-1 w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={seasonality} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
@@ -1103,12 +1103,12 @@ export default function LeaveAnalytics() {
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length && hoveredSeason === label) {
                       return (
-                        <div className="bg-white p-3 rounded-xl shadow-lg border border-slate-100 text-xs">
-                          <p className="font-bold text-slate-800 mb-2">{label}</p>
+                        <div className="bg-white dark:bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 text-xs">
+                          <p className="font-bold text-slate-800 dark:text-slate-200 mb-2">{label}</p>
                           {payload.map((entry: any, index: number) => (
                             <div key={index} className="flex justify-between items-center gap-4 font-semibold mb-1">
                               <span style={{ color: entry.color }}>{entry.name}</span>
-                              <span className="text-slate-700">{entry.value}</span>
+                              <span className="text-slate-700 dark:text-slate-300">{entry.value}</span>
                             </div>
                           ))}
                         </div>
@@ -1130,8 +1130,8 @@ export default function LeaveAnalytics() {
       {/* 4. Leave Distribution (Row 3) */}
       
         {/* Type Breakdown */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-2">Leave Type Breakdown</h3>
+        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Leave Type Breakdown</h3>
           <div className="flex-1 min-relative w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
@@ -1145,9 +1145,9 @@ export default function LeaveAnalytics() {
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-2 p-3 bg-slate-50 rounded-lg flex items-center justify-between">
+          <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg flex items-center justify-between">
             <div>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wide font-semibold">Top Growing Type</p>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wide font-semibold">Top Growing Type</p>
               <p className="text-sm font-bold text-emerald-600">{typeDistribution[0]?.name || "N/A"}</p>
             </div>
             <div className="text-right">
@@ -1158,8 +1158,8 @@ export default function LeaveAnalytics() {
         </Card>
         {/* Dept Compare */}
         {selectedBranch === "HQ" && (
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">Department Comparison</h3>
+        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4">Department Comparison</h3>
           <div className="flex-1 min-overflow-hidden w-full">
             <ResponsiveContainer width="100%" height={Math.max(200, deptComparison.length * 30)}>
               <BarChart data={deptComparison} layout="vertical" margin={{ top: 0, right: 30, left: 0, bottom: 0 }}>
@@ -1170,12 +1170,12 @@ export default function LeaveAnalytics() {
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length && hoveredDept === label) {
                       return (
-                        <div className="bg-white p-3 rounded-xl shadow-lg border border-slate-100 text-xs">
-                          <p className="font-bold text-slate-800 mb-2">{label}</p>
+                        <div className="bg-white dark:bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 text-xs">
+                          <p className="font-bold text-slate-800 dark:text-slate-200 mb-2">{label}</p>
                           {payload.map((entry: any, index: number) => (
                             <div key={index} className="flex justify-between items-center gap-4 font-semibold mb-1">
                               <span style={{ color: '#8B5CF6' }}>{entry.name}</span>
-                              <span className="text-slate-700">{entry.value}</span>
+                              <span className="text-slate-700 dark:text-slate-300">{entry.value}</span>
                             </div>
                           ))}
                         </div>
@@ -1201,8 +1201,8 @@ export default function LeaveAnalytics() {
         </Card>
         )}
         {/* Branch Compare */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full lg:col-span-2 xl:col-span-1">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">Branch Comparison</h3>
+        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full lg:col-span-2 xl:col-span-1">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4">Branch Comparison</h3>
           <div className="flex-1 min-overflow-y-auto pr-2 custom-scrollbar w-full">
             <ResponsiveContainer width="100%" height={Math.max(200, branchComparison.length * 30)}>
               <BarChart data={branchComparison} layout="vertical" margin={{ top: 0, right: 30, left: 0, bottom: 0 }}>
@@ -1213,12 +1213,12 @@ export default function LeaveAnalytics() {
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length && hoveredBranch === label) {
                       return (
-                        <div className="bg-white p-3 rounded-xl shadow-lg border border-slate-100 text-xs">
-                          <p className="font-bold text-slate-800 mb-2">{label}</p>
+                        <div className="bg-white dark:bg-card p-3 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 text-xs">
+                          <p className="font-bold text-slate-800 dark:text-slate-200 mb-2">{label}</p>
                           {payload.map((entry: any, index: number) => (
                             <div key={index} className="flex justify-between items-center gap-4 font-semibold mb-1">
                               <span style={{ color: '#3B82F6' }}>{entry.name}</span>
-                              <span className="text-slate-700">{entry.value}</span>
+                              <span className="text-slate-700 dark:text-slate-300">{entry.value}</span>
                             </div>
                           ))}
                         </div>
@@ -1246,8 +1246,8 @@ export default function LeaveAnalytics() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         {/* Balance Risk */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">Leave Balance Risk</h3>
+        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4">Leave Balance Risk</h3>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
             <div className="flex items-center justify-between p-3 rounded-lg border border-emerald-100 bg-emerald-50">
               <div className="flex items-center gap-2">
@@ -1283,40 +1283,40 @@ export default function LeaveAnalytics() {
         </Card>
 
         {/* Leave Calendar */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">Leave Calendar <span className="text-[9px] font-normal text-slate-400">(This Month)</span></h3>
-          <div className="flex-1 flex flex-col justify-center items-center border border-dashed border-slate-200 rounded-lg bg-slate-50/50 min-h-[160px]">
+        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4">Leave Calendar <span className="text-[9px] font-normal text-slate-400">(This Month)</span></h3>
+          <div className="flex-1 flex flex-col justify-center items-center border border-dashed border-slate-200 dark:border-slate-800 rounded-lg bg-slate-50 dark:bg-slate-900/50 min-h-[160px]">
             <CalendarCheck className="w-6 h-6 text-slate-400 mb-2" />
-            <p className="text-xs font-bold text-slate-600">Calendar View Ready</p>
+            <p className="text-xs font-bold text-slate-600 dark:text-slate-400">Calendar View Ready</p>
             <p className="text-[10px] text-slate-400 text-center mt-1 px-4">Integrate with full calendar component.</p>
             <Button variant="outline" size="sm" className="mt-3 text-[10px] h-7" onClick={() => navigate("/leave/calendar")}>Go to Calendar</Button>
           </div>
         </Card>
 
         {/* Upcoming */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">Upcoming Approved Leave <span className="text-[9px] font-normal text-slate-400">(Forecast)</span></h3>
+        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4">Upcoming Approved Leave <span className="text-[9px] font-normal text-slate-400">(Forecast)</span></h3>
           <div className="space-y-4 flex-1">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-blue-50 text-blue-600"><Calendar className="w-4 h-4"/></div>
-                <span className="text-xs font-bold text-slate-700">Tomorrow</span>
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Tomorrow</span>
               </div>
-              <span className="text-xs font-bold text-slate-800">{upcomingLeaves.tomorrow} Employees</span>
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{upcomingLeaves.tomorrow} Employees</span>
             </div>
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-purple-50 text-purple-600"><Calendar className="w-4 h-4"/></div>
-                <span className="text-xs font-bold text-slate-700">Next 7 Days</span>
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Next 7 Days</span>
               </div>
-              <span className="text-xs font-bold text-slate-800">{upcomingLeaves.nextWeek} Employees</span>
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{upcomingLeaves.nextWeek} Employees</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600"><Calendar className="w-4 h-4"/></div>
-                <span className="text-xs font-bold text-slate-700">Next 30 Days</span>
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Next 30 Days</span>
               </div>
-              <span className="text-xs font-bold text-slate-800">{upcomingLeaves.nextMonth} Employees</span>
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{upcomingLeaves.nextMonth} Employees</span>
             </div>
           </div>
         </Card>
@@ -1324,28 +1324,28 @@ export default function LeaveAnalytics() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         {/* Approval Perf */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">Approval Performance <span className="text-[9px] font-normal text-slate-400">(Avg. Time)</span></h3>
+        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4">Approval Performance <span className="text-[9px] font-normal text-slate-400">(Avg. Time)</span></h3>
           <div className="flex-1 flex flex-col justify-center items-center min-h-[160px]">
             <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
               <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
             </div>
-            <p className="text-xs font-bold text-slate-600">Coming Soon</p>
+            <p className="text-xs font-bold text-slate-600 dark:text-slate-400">Coming Soon</p>
             <p className="text-[10px] text-slate-400 text-center mt-1">Approval timestamp tracking is being implemented.</p>
           </div>
         </Card>
 
         {/* Action Center */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-2">Action Center</h3>
+        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Action Center</h3>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
             <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 cursor-pointer hover:bg-amber-100 transition-colors border border-amber-100">
               <span className="text-xs font-semibold text-amber-800">Pending Approval</span>
               <span className="text-sm font-black text-amber-700">{pending}</span>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors border border-slate-200">
-              <span className="text-xs font-semibold text-slate-700">Expiring Leave</span>
-              <span className="text-sm font-black text-slate-800">0</span>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-900 cursor-pointer hover:bg-slate-100 transition-colors border border-slate-200 dark:border-slate-800">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Expiring Leave</span>
+              <span className="text-sm font-black text-slate-800 dark:text-slate-200">0</span>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 cursor-pointer hover:bg-blue-100 transition-colors border border-blue-100">
               <span className="text-xs font-semibold text-blue-800">MC Verify</span>
@@ -1355,8 +1355,8 @@ export default function LeaveAnalytics() {
         </Card>
 
         {/* HR Insights */}
-        <Card className="border border-slate-200 bg-white rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-purple-500" />
             HR Insights
           </h3>
@@ -1391,9 +1391,9 @@ export default function LeaveAnalytics() {
                 )}
               </>
             ) : (
-              <div className="flex items-start gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+              <div className="flex items-start gap-2 p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
                 <div className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1.5 shrink-0" />
-                <p className="text-xs text-slate-600 font-medium leading-relaxed">No leave data for this period. Try adjusting the year or month filter.</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">No leave data for this period. Try adjusting the year or month filter.</p>
               </div>
             )}
           </div>

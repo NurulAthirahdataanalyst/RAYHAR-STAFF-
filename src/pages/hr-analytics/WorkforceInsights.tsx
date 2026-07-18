@@ -408,7 +408,7 @@ export default function WorkforceInsights() {
                 </span>
               </div>
               
-              <div className="h-[95px] w-full overflow-y-auto overflow-x-hidden custom-scrollbar">
+              <div className="h-[95px] w-full overflow-y-auto custom-scrollbar overflow-x-hidden custom-scrollbar">
                 <ResponsiveContainer width="100%" height={Math.max(95, (data.performance?.allAttendance?.length || 0) * 22)}>
                   <BarChart 
                     data={data.performance?.allAttendance || []} 
@@ -505,7 +505,7 @@ export default function WorkforceInsights() {
                   </Select>
                 </CardHeader>
                 <CardContent className="p-5 flex flex-col">
-                  <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
+                  <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
                     <TooltipProvider>
                       {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).slice(0, 5).map((branch: any, idx: number) => {
                         const stats = branch.stats || { onTime: 0, late: 0, onLeave: 0, compLeave: 0, absent: 0, outstation: 0 };
@@ -811,7 +811,7 @@ export default function WorkforceInsights() {
                 (a.clock_in || '').localeCompare(b.clock_in || '')
               );
               return (
-                <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto pr-0.5">
+                <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
                   {allClockIns.length === 0 && !feedConnected && (
                     <div className="flex flex-col items-center justify-center py-8 text-slate-300">
                       <Loader2 className="w-5 h-5 animate-spin mb-2" />
@@ -878,7 +878,7 @@ export default function WorkforceInsights() {
               </span>
             </div>
 
-            <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto pr-0.5">
+            <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
               {lateList.length === 0 && !feedConnected && (
                 <div className="flex flex-col items-center justify-center py-8 text-slate-300">
                   <Loader2 className="w-5 h-5 animate-spin mb-2" />
@@ -943,7 +943,7 @@ export default function WorkforceInsights() {
               </span>
             </div>
 
-            <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto pr-0.5">
+            <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
               {absentList.length === 0 && !feedConnected && (
                 <div className="flex flex-col items-center justify-center py-8 text-slate-300">
                   <Loader2 className="w-5 h-5 animate-spin mb-2" />
@@ -1024,7 +1024,7 @@ export default function WorkforceInsights() {
                   </span>
                 </div>
                 
-                <div className="flex-1 space-y-4 max-h-[300px] overflow-y-auto pr-0.5">
+                <div className="flex-1 space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-0.5">
                   {activeOutstationList.length === 0 && !feedConnected && (
                     <div className="flex flex-col items-center justify-center py-8 text-slate-300">
                       <Loader2 className="w-5 h-5 animate-spin mb-2" />
@@ -1122,7 +1122,7 @@ export default function WorkforceInsights() {
               </Button>
             </div>
 
-            <div className="flex-1 space-y-3 max-h-[300px] overflow-y-auto pr-0.5">
+            <div className="flex-1 space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-0.5">
               {pendingApprovalsList.length === 0 && !feedConnected && (
                 <div className="flex flex-col items-center justify-center py-8 text-slate-300">
                   <Loader2 className="w-5 h-5 animate-spin mb-2" />
@@ -1180,7 +1180,7 @@ export default function WorkforceInsights() {
               </span>
             </div>
             
-            <div className="flex-1 space-y-4 max-h-[300px] overflow-y-auto pr-0.5">
+            <div className="flex-1 space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-0.5">
               {upcomingOutstationList.length === 0 && !feedConnected && (
                 <div className="flex flex-col items-center justify-center py-8 text-slate-300">
                   <Loader2 className="w-5 h-5 animate-spin mb-2" />
@@ -1517,7 +1517,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                </Select>
              </div>
              
-             <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
+             <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
                {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).map((branch: any, idx: number) => {
                  return (
                    <div key={idx} className="flex flex-col gap-1">
@@ -1641,7 +1641,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
              </div>
              
              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2">Popular Routes</p>
-             <div className="space-y-3 flex-1 overflow-y-auto pr-1">
+             <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
                {((outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes || [])).length === 0 ? (
                  <div className="flex flex-col items-center justify-center h-full text-slate-400 py-4">
                    <Plane className="w-6 h-6 opacity-30 mb-2" />
