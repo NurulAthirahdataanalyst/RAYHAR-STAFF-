@@ -686,84 +686,85 @@ export default function Reports() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <button
                     onClick={() => setGeneratorType("trends")}
-                    className={`p-6 rounded-2xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                    className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
                       generatorType === "trends"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground shadow-[0_0_20px_rgba(123,0,153,0.15)]"
                         : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
                     }`}
                   >
-                    <div className="flex items-center gap-3.5">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
                         generatorType === "trends" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-muted-foreground"
                       }`}>
-                        <Clock className="w-6 h-6" />
+                        <Clock className="w-5 h-5" />
                       </div>
                       <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Attendance Trends</span>
                     </div>
-                    <hr className="border-border/50 my-3.5 w-full" />
+                    <hr className="border-border/50 my-2.5 w-full" />
                     <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Clock-in, late check audits, and raw timelines</span>
+
 
                   </button>
 
                   <button
                     onClick={() => setGeneratorType("leave")}
-                    className={`p-6 rounded-2xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                    className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
                       generatorType === "leave"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground shadow-[0_0_20px_rgba(123,0,153,0.15)]"
                         : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
                     }`}
                   >
-                    <div className="flex items-center gap-3.5">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
                         generatorType === "leave" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-muted-foreground"
                       }`}>
-                        <PieChart className="w-6 h-6" />
+                        <PieChart className="w-5 h-5" />
                       </div>
                       <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Leave Utilization</span>
                     </div>
-                    <hr className="border-border/50 my-3.5 w-full" />
+                    <hr className="border-border/50 my-2.5 w-full" />
                     <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Department utilization rates and absence charts</span>
 
                   </button>
 
                   <button
                     onClick={() => setGeneratorType("outstation")}
-                    className={`p-6 rounded-2xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                    className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
                       generatorType === "outstation"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground shadow-[0_0_20px_rgba(123,0,153,0.15)]"
                         : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
                     }`}
                   >
-                    <div className="flex items-center gap-3.5">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
                         generatorType === "outstation" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-muted-foreground"
                       }`}>
-                        <Briefcase className="w-6 h-6" />
+                        <Briefcase className="w-5 h-5" />
                       </div>
                       <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Outstation Assignment</span>
                     </div>
-                    <hr className="border-border/50 my-3.5 w-full" />
+                    <hr className="border-border/50 my-2.5 w-full" />
                     <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Official business travel and assignment activities</span>
 
                   </button>
 
                   <button
                     onClick={() => setGeneratorType("company_leave")}
-                    className={`p-6 rounded-2xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                    className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
                       generatorType === "company_leave"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground shadow-[0_0_20px_rgba(123,0,153,0.15)]"
                         : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
                     }`}
                   >
-                    <div className="flex items-center gap-3.5">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
                         generatorType === "company_leave" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-muted-foreground"
                       }`}>
-                        <Building2 className="w-6 h-6" />
+                        <Building2 className="w-5 h-5" />
                       </div>
                       <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Company Leave Calendar</span>
                     </div>
-                    <hr className="border-border/50 my-3.5 w-full" />
+                    <hr className="border-border/50 my-2.5 w-full" />
                     <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Corporate holidays and organization-wide leave schedule</span>
 
                   </button>
