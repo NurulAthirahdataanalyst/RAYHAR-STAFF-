@@ -778,6 +778,7 @@ export default function Attendance() {
     const isCurrentMonth = (today.getFullYear() === year && (today.getMonth() + 1) === month);
     const lastDay = new Date(year, month, 0).getDate();
     const endDay = isCurrentMonth ? today.getDate() : lastDay;
+    const empCreatedAtStr = user?.created_at ? new Date(user.created_at).toISOString().split('T')[0] : null;
 
     let count = 0;
     for (let d = 1; d <= endDay; d++) {
@@ -787,6 +788,12 @@ export default function Attendance() {
       if (wk === 5) continue;
       // Saturday (6) is off only in Week 1 (days 1-7)
       if (wk === 6 && d <= 7) continue;
+
+      if (empCreatedAtStr) {
+        const dateStr = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+        if (dateStr < empCreatedAtStr) continue;
+      }
+
       count++;
     }
     return count;
@@ -1241,6 +1248,8 @@ export default function Attendance() {
                       statusBadge = "bg-blue-100/50 text-blue-700 border-blue-200/50 dark:bg-blue-900/20 dark:text-blue-400";
                     } else if (log.status === "Weekend") {
                       statusBadge = "bg-slate-100/50 text-slate-700 border-slate-200 dark:border-slate-800/50 dark:bg-slate-900/20 dark:text-slate-400";
+                    } else if (log.status === "N/A") {
+                      statusBadge = "bg-slate-100/50 text-slate-400 border-slate-200 dark:border-slate-800/50 dark:bg-slate-900/20 dark:text-slate-500";
                     } else if (log.status === "Absent") {
                       statusBadge = "bg-red-100/50 text-red-700 border-red-200/50 dark:bg-red-900/20 dark:text-red-400";
                     }

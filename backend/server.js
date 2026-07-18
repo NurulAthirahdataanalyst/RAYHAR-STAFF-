@@ -3721,7 +3721,7 @@ app.get("/api/attendance/history", async (req, res) => {
   try {
     // 1. Fetch user profile to check branch and department
     const [profileRows] = await pool.query(
-      "SELECT branch, department FROM profiles WHERE user_id = ?",
+      "SELECT branch, department, created_at FROM profiles WHERE user_id = ?",
       [userId]
     );
     if (profileRows.length === 0) {
@@ -3869,6 +3869,8 @@ app.get("/api/attendance/history", async (req, res) => {
 
     const branchZoneMap = await getBranchZoneMap();
     const userZone = branchZoneMap.get(userProfile.branch) || 'ZONE_B';
+    const empCreatedAtStr = userProfile.created_at ? new Date(userProfile.created_at).toISOString().split('T')[0] : null;
+
     const formattedHistory = dateStrings.map(dateStr => {
       const clockRow = clockMap[dateStr];
       
@@ -4025,6 +4027,8 @@ app.get("/api/attendance/history", async (req, res) => {
         status = "Holiday";
       } else if (isWeekend) {
         status = "Weekend";
+      } else if (empCreatedAtStr && dateStr < empCreatedAtStr) {
+        status = "N/A";
       } else {
         status = "Absent";
       }

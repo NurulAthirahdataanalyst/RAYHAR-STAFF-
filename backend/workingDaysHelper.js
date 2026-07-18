@@ -9,6 +9,15 @@ function calculateExpectedWorkingDays(startDate, endDate, employee, companyLeave
 
     const dateStr = format(day, 'yyyy-MM-dd');
     
+    // Check if before employment
+    if (employee && employee.created_at) {
+      const empStart = employee.created_at instanceof Date 
+        ? format(employee.created_at, 'yyyy-MM-dd') 
+        : (employee.created_at.split && employee.created_at.split('T')[0]);
+      if (empStart && dateStr < empStart) continue;
+    }
+
+    
     // Check holiday
     const isHoliday = holidays.some(h => h.date === dateStr);
     if (isHoliday) continue;
