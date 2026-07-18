@@ -8,6 +8,14 @@ export type LeaveType =
   | "Cuti Tanpa Gaji" 
   | "Cuti Sakit";
 
+export type ReplacementValidation = {
+  id: number;
+  replacement_date: string;
+  required_hours: string | number;
+  actual_hours: string | number | null;
+  validation_status: "Pending" | "Validated" | "Failed";
+};
+
 export type LeaveRequest = {
   id: string;
   userId?: string;
@@ -24,6 +32,7 @@ export type LeaveRequest = {
   waris_phone?: string;
   waris_alamat?: string;
   waris_hubungan?: string;
+  replacement_validations?: ReplacementValidation[];
 };
 
 export const LEAVE_STORAGE_KEY = "rayhar_leave_requests";
@@ -78,6 +87,22 @@ export const getUsedLeaveDays = (
         isSameType = request.type === "Replacement Leave" || request.type === "Cuti Ganti";
       } else if (type === "Unpaid Leave" || type === "Cuti Tanpa Gaji") {
         isSameType = request.type === "Unpaid Leave" || request.type === "Cuti Tanpa Gaji";
+      }
+
+      // Check for replacement leave validation status overrides
+      const isReplacementLeaveType = request.type === "Replacement Leave" || request.type === "Cuti Ganti";
+      if (isReplacementLeaveType) {
+        const hasValidations = request.replacement_validations && request.replacement_validations.length > 0;
+        const allValidated = hasValidations && request.replacement_validations!.every(v => v.validation_status === 'Validated');
+        
+        if (!allValidated) {
+          // If not fully validated yet, it acts as an Annual Leave!
+          if (type === "Annual/Emergency Leave" || type === "Cuti Tahunan") {
+            isSameType = true;
+          } else if (type === "Replacement Leave" || type === "Cuti Ganti") {
+            isSameType = false;
+          }
+        }
       }
 
       const isApproved = request.status === "Approved";

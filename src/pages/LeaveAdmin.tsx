@@ -69,6 +69,13 @@ type LeaveRequest = {
     approver_department?: string;
     approver_branch?: string;
   }[];
+  replacementValidations?: {
+    id: number;
+    replacement_date: string;
+    required_hours: string | number;
+    actual_hours: string | number | null;
+    validation_status: "Pending" | "Validated" | "Failed";
+  }[];
 };
 
 const formatDate = (value: string) => (value ? value.slice(0, 10) : "");
@@ -254,6 +261,7 @@ export default function LeaveAdmin() {
         cutiTanpaGajiSignature: request.cuti_tanpa_gaji_signature,
         mcFileUrl: request.mc_file_url,
         approvalHistory: request.approval_history || [],
+        replacementValidations: request.replacement_validations || [],
       }));
 
       setRequests(formatted);
@@ -606,16 +614,49 @@ export default function LeaveAdmin() {
                                 <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh Cuti</TableHead>
                                 <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh/Hari Cuti Ganti</TableHead>
                                 <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase text-right">Jam Bekerja</TableHead>
+                                <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase text-center">Status</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody className="divide-y divide-blue-500/10 font-bold text-foreground/80">
-                              {rows.map((row, idx) => (
-                                <TableRow key={idx} className="hover:bg-blue-500/5">
-                                  <TableCell className="py-2 px-4">{row.tarikhCuti || "-"}</TableCell>
-                                  <TableCell className="py-2 px-4">{row.tarikhGanti || "-"}</TableCell>
-                                  <TableCell className="py-2 px-4 text-right">{row.jamGanti || 0} Jam</TableCell>
-                                </TableRow>
-                              ))}
+                                {rows.map((row, idx) => {
+                                  // Try to match this row's replacement date to our validation data
+                                  const validation = selectedRequest.replacementValidations?.find(
+                                    v => {
+                                      const repDate = new Date(v.replacement_date).toISOString().split('T')[0];
+                                      return repDate === row.tarikhGanti;
+                                    }
+                                  );
+                                  
+                                  let statusBadge = null;
+                                  if (validation) {
+                                    if (validation.validation_status === 'Pending') {
+                                      statusBadge = <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
+                                    } else if (validation.validation_status === 'Validated') {
+                                      statusBadge = <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Validated</Badge>;
+                                    } else {
+                                      statusBadge = <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Failed</Badge>;
+                                    }
+                                  } else {
+                                    statusBadge = <Badge variant="outline" className="opacity-50">N/A</Badge>;
+                                  }
+
+                                  return (
+                                    <TableRow key={idx} className="hover:bg-blue-500/5">
+                                      <TableCell className="py-2 px-4">{row.tarikhCuti || "-"}</TableCell>
+                                      <TableCell className="py-2 px-4">{row.tarikhGanti || "-"}</TableCell>
+                                      <TableCell className="py-2 px-4 text-right">
+                                        {validation?.actual_hours !== undefined && validation.actual_hours !== null ? (
+                                          <span className="font-bold text-blue-600">{Number(validation.actual_hours).toFixed(1)} / {row.jamGanti || 4} Jam</span>
+                                        ) : (
+                                          <span>{row.jamGanti || 0} Jam</span>
+                                        )}
+                                      </TableCell>
+                                      <TableCell className="py-2 px-4 text-center">
+                                        {statusBadge}
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
                             </TableBody>
                           </Table>
                         </div>

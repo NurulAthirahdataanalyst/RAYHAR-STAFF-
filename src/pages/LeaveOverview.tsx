@@ -115,6 +115,7 @@ export default function LeaveOverview() {
             reason: request.reason || "",
             appliedAt,
             formFileName: getLeaveFormFileName(appliedAt, type, request.full_name || userName),
+            replacement_validations: request.replacement_validations || [],
           };
         });
 

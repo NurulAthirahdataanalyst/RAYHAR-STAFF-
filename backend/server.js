@@ -918,6 +918,25 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
     await connection.query(`ALTER TABLE company_leave_calendar ALTER COLUMN leave_type DROP NOT NULL`).catch(() => {});
     console.log('✅ Auto-migration for company_leave_calendar completed.');
 
+    // Auto-migrate replacement_leave_requests table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS replacement_leave_requests (
+        id SERIAL PRIMARY KEY,
+        employee_id VARCHAR(100) NOT NULL,
+        leave_request_id BIGINT NOT NULL,
+        leave_date DATE NOT NULL,
+        replacement_date DATE NOT NULL,
+        description TEXT NOT NULL,
+        required_hours DECIMAL(4,2) DEFAULT 4.00,
+        actual_hours DECIMAL(4,2),
+        validation_status VARCHAR(50) DEFAULT 'Pending',
+        validated_at TIMESTAMP,
+        validated_by VARCHAR(100) DEFAULT 'System',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Auto-migration for replacement_leave_requests completed.');
+
     // Auto-migrate activity_logs table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS activity_logs (
@@ -2339,6 +2358,17 @@ app.get("/api/leave-requests", async (req, res) => {
         (
           SELECT json_agg(
             json_build_object(
+              'id', rlr.id,
+              'replacement_date', rlr.replacement_date,
+              'required_hours', rlr.required_hours,
+              'actual_hours', rlr.actual_hours,
+              'validation_status', rlr.validation_status
+            )
+          ) FROM replacement_leave_requests rlr WHERE rlr.leave_request_id = lr.leave_id
+        ) AS replacement_validations,
+        (
+          SELECT json_agg(
+            json_build_object(
               'id', la.id,
               'approver_id', la.approver_id,
               'approver_role', la.approver_role,
@@ -3697,6 +3727,53 @@ app.post("/api/clock-out", async (req, res) => {
       `,
       [user_id]
     );
+
+    // ==========================================
+    // REPLACEMENT LEAVE AUTO-VALIDATION
+    // ==========================================
+    try {
+      // 1. Calculate total working hours for today
+      const [allToday] = await pool.query(`
+        SELECT clock_in, clock_out 
+        FROM attendances 
+        WHERE user_id = ? AND DATE(clock_in) = CURRENT_DATE AND clock_out IS NOT NULL
+      `, [user_id]);
+      
+      let totalMs = 0;
+      for (const a of allToday) {
+        totalMs += (new Date(a.clock_out).getTime() - new Date(a.clock_in).getTime());
+      }
+      const totalHours = totalMs / (1000 * 60 * 60);
+
+      // 2. Check if today is a replacement date
+      const [pendingReps] = await pool.query(`
+        SELECT id, required_hours 
+        FROM replacement_leave_requests 
+        WHERE employee_id = ? 
+        AND replacement_date = CURRENT_DATE 
+        AND validation_status IN ('Pending', 'Failed')
+      `, [user_id]);
+
+      for (const rep of pendingReps) {
+        if (totalHours >= parseFloat(rep.required_hours || 4)) {
+          await pool.query(`
+            UPDATE replacement_leave_requests 
+            SET validation_status = 'Validated', actual_hours = ?, validated_at = CURRENT_TIMESTAMP 
+            WHERE id = ?
+          `, [totalHours, rep.id]);
+        } else {
+          // Note: If they clock out but < 4 hours, we mark it Failed. 
+          // If they clock back in later, the NEXT clock out will re-evaluate and might flip it to Validated.
+          await pool.query(`
+            UPDATE replacement_leave_requests 
+            SET validation_status = 'Failed', actual_hours = ?, validated_at = CURRENT_TIMESTAMP 
+            WHERE id = ?
+          `, [totalHours, rep.id]);
+        }
+      }
+    } catch (valErr) {
+      console.error("Replacement leave validation error:", valErr);
+    }
 
     res.json({ success: true, record: rows[0] });
     broadcastPresenceUpdate({ type: 'clock-out', userId: user_id });
