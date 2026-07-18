@@ -1095,7 +1095,7 @@ export default function Dashboard() {
         <div className="xl:col-span-2 space-y-4">
           {/* Who's Out Today - admin roles only */}
           {["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role) && (
-            <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card">
+            <Card className="border-2 border-purple-100 dark:border-purple-900/50 shadow-sm rounded-xl overflow-hidden bg-white dark:bg-card">
               <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 px-4 pt-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                   <div className="flex items-start gap-2">

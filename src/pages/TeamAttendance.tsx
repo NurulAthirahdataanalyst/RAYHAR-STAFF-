@@ -10,7 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, CalendarDays } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarWidget } from "@/components/ui/calendar";
 
 export default function TeamAttendance() {
   const { role, userBranch, userDepartment } = useRole();
@@ -269,18 +271,38 @@ export default function TeamAttendance() {
             <CardTitle className="text-lg whitespace-nowrap">{dateViewMode === 'DAY' ? "Today's Attendance Log" : "Monthly Attendance Log"}</CardTitle>
             
             <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
-              {/* Date Picker */}
-              <div className="relative inline-flex">
-                <input 
-                  type="date" 
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <Button variant="outline" size="sm" className="bg-gray-50 dark:bg-slate-900/50 border-gray-200 dark:border-slate-800 text-gray-900 dark:text-gray-100 hover:bg-gray-100 h-9 rounded-md px-4 flex items-center gap-2 shadow-sm text-xs font-bold pointer-events-none">
-                  <span>{`${new Date(selectedDate).getDate()}/${(new Date(selectedDate).getMonth() + 1).toString().padStart(2, '0')}/${new Date(selectedDate).getFullYear()}`}</span>
-                  <Calendar className="w-4 h-4 text-gray-600" />
-                </Button>
+              {/* Date Filter */}
+              <div className="relative">
+                {dateViewMode === "DAY" ? (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] gap-2 hover:bg-muted/80">
+                        {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-1" align="start">
+                      <CalendarWidget
+                        mode="single"
+                        selected={new Date(selectedDate)}
+                        onSelect={(d) => {
+                          if (d) setSelectedDate(new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0]);
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                ) : (
+                  <input
+                    type="month"
+                    value={`${new Date(selectedDate).getFullYear()}-${String(new Date(selectedDate).getMonth() + 1).padStart(2, '0')}`}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setSelectedDate(`${e.target.value}-01`);
+                      }
+                    }}
+                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px]"
+                  />
+                )}
               </div>
 
               {/* Day / Month Toggle */}
