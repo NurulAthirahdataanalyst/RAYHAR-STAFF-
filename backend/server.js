@@ -4626,7 +4626,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
             ELSE 'Submitted leave request'
           END,
           NULL,
-          CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', lr.reason), '')),
+          CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', TRIM(split_part(lr.reason, '[CUTI_GANTI_DATA:', 1))), '')),
           TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM'),
           lr.updated_at,
           lr.status
@@ -4747,7 +4747,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
               ELSE CONCAT('Updated leave: ', lr.status)
             END AS action,
             CASE WHEN lr.status = 'Pending' THEN NULL ELSE emp.full_name END AS target,
-            CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', lr.reason), '')) AS context,
+            CONCAT(lr.leave_type, ' • ', TO_CHAR(lr.start_date, 'DD Mon'), ' – ', TO_CHAR(lr.end_date, 'DD Mon'), COALESCE(CONCAT(' • ', TRIM(split_part(lr.reason, '[CUTI_GANTI_DATA:', 1))), '')) AS context,
             TO_CHAR(lr.updated_at AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time,
             lr.updated_at AS sort_time,
             lr.status AS badge
