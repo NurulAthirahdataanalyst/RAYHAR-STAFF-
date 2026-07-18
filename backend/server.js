@@ -3915,7 +3915,7 @@ app.get("/api/attendance/history", async (req, res) => {
       const dateObj = new Date(dateStr);
       const isWeekend = checkIsWeekend(userZone, dateObj);
       const workHours = getWorkHoursForZone(userZone, dateObj);
-      const [lateH, lateM] = workHours.off ? [23, 59] : workHours.start.split(':').map(Number);
+      const [lateH, lateM] = workHours.off ? [23, 59] : getLateThresholdTime().split(':').map(Number);
 
       // Match outstation assignment (has highest priority after company leave)
       const matchingOutstation = outstationRows.find(o => {
@@ -4965,7 +4965,7 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
       const emp = allProfiles.find(p => p.user_id === clock.user_id) || {};
       const userZone = branchZoneMap.get(emp.branch) || 'ZONE_B';
       const workHours = getWorkHoursForZone(userZone, new Date(clock.clock_in));
-      const [lateH, lateM] = workHours.off ? [23, 59] : workHours.start.split(':').map(Number);
+      const [lateH, lateM] = workHours.off ? [23, 59] : getLateThresholdTime().split(':').map(Number);
       
       // Shift UTC timestamp to KL timezone (UTC+8) for accurate date & late check
       const klTimeIn = new Date(new Date(clock.clock_in).getTime() + 8 * 60 * 60 * 1000);
@@ -5136,7 +5136,7 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
               const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
               const klTimeIn2 = new Date(new Date(clockData.clock_in).getTime() + 8 * 60 * 60 * 1000);
               const workHours = getWorkHoursForZone(userZone, klTimeIn2);
-              const [lH, lM] = workHours.off ? [23, 59] : workHours.start.split(':').map(Number);
+              const [lH, lM] = workHours.off ? [23, 59] : getLateThresholdTime().split(':').map(Number);
               const clockInHour = klTimeIn2.getUTCHours();
               const clockInMinute = klTimeIn2.getUTCMinutes();
               const isLate = clockInHour > lH || (clockInHour === lH && clockInMinute > lM);
@@ -5147,7 +5147,7 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
             const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
             const klTimeIn2 = new Date(new Date(clockData.clock_in).getTime() + 8 * 60 * 60 * 1000);
             const workHours = getWorkHoursForZone(userZone, klTimeIn2);
-            const [lH, lM] = workHours.off ? [23, 59] : workHours.start.split(':').map(Number);
+            const [lH, lM] = workHours.off ? [23, 59] : getLateThresholdTime().split(':').map(Number);
             const klTimeIn = new Date(new Date(clockData.clock_in).getTime() + 8 * 60 * 60 * 1000);
             const clockInHour = klTimeIn.getUTCHours();
             const clockInMinute = klTimeIn.getUTCMinutes();
@@ -5268,7 +5268,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
       const isWeekend = checkIsWeekend(userZone, dateObj);
       const workHours = getWorkHoursForZone(userZone, dateObj);
-      const [lateH, lateM] = workHours.off ? [23, 59] : workHours.start.split(':').map(Number);
+      const [lateH, lateM] = workHours.off ? [23, 59] : getLateThresholdTime().split(':').map(Number);
 
       let status = "Absent";
       let clock_in = null;
