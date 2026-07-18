@@ -537,7 +537,7 @@ export default function WorkforceInsights() {
                               </TooltipTrigger>
                               <TooltipContent side="top" align="center" className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[150px]">
                                 <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{branch.name}</p>
-                                <div className="flex flex-col gap-1 text-[9px] text-slate-600">
+                                <div className="flex flex-col gap-1 text-[9px] text-slate-600 dark:text-slate-300">
                                   <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{stats.onTime}</span></p>
                                   <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{stats.late}</span></p>
                                   <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-500">{stats.outstation}</span></p>
@@ -1532,7 +1532,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                        <div className={`h-2 rounded-full ${branch.attendanceRate >= 95 ? 'bg-[#10b981]' : 'bg-[#f59e0b]'}`} style={{ width: `${Math.min(100, branch.attendanceRate)}%` }}></div>
                        <div className="absolute left-1/2 -top-8 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-1.5 pointer-events-none z-10 w-max whitespace-nowrap">
                          <p className="text-[9px] font-bold text-slate-800 dark:text-slate-200 mb-0.5">{branch.name}</p>
-                         <p className="text-[9px] text-slate-600">Present: <span className="font-bold text-emerald-600">{Math.floor(branch.count * (branch.attendanceRate/100))}</span> | Late: <span className="font-bold text-amber-500">{branch.count - Math.floor(branch.count * (branch.attendanceRate/100))}</span></p>
+                         <p className="text-[9px] text-slate-600 dark:text-slate-300">Present: <span className="font-bold text-emerald-600">{Math.floor(branch.count * (branch.attendanceRate/100))}</span> | Late: <span className="font-bold text-amber-500">{branch.count - Math.floor(branch.count * (branch.attendanceRate/100))}</span></p>
                        </div>
                      </div>
                    </div>
