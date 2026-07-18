@@ -429,6 +429,28 @@ export default function Branches() {
               <p className="text-responsive-sm text-muted-foreground font-medium mt-1">
                 Branch staff overview and analytics
               </p>
+              
+              {selectedBranch.operating_zone && (
+                <div className="mt-4 flex flex-col gap-1 text-[11px] text-muted-foreground border-l-2 border-[#7B0099] pl-3 bg-muted/20 p-2 rounded-r-md">
+                  <p className="mb-1"><span className="font-bold text-foreground uppercase tracking-wider">Operating Hours ({selectedBranch.operating_zone === 'ZONE_A' ? 'Zone A' : 'Zone B'}):</span></p>
+                  {selectedBranch.operating_zone === 'ZONE_A' ? (
+                    <>
+                      <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 5:30 PM (Saturday – Wednesday)</p>
+                      <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 1:00 PM (Thursday)</p>
+                      <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 5:30 PM (First Thursday of the Month)</p>
+                      <p className="flex items-center gap-2 text-rose-500/80"><X className="w-3 h-3" /> Closed (Friday) (Mandatory Weekly Off)</p>
+                      <p className="flex items-center gap-2 text-rose-500/80"><X className="w-3 h-3" /> Closed (First Saturday of the Month)</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 5:30 PM (Monday – Friday)</p>
+                      <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 1:00 PM (Saturday)</p>
+                      <p className="flex items-center gap-2 text-rose-500/80"><X className="w-3 h-3" /> Closed (Sunday) (Mandatory Weekly Off)</p>
+                      <p className="flex items-center gap-2 text-rose-500/80"><X className="w-3 h-3" /> Closed (First Saturday of the Month)</p>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
             <Badge
               variant="outline"
@@ -872,6 +894,7 @@ export default function Branches() {
                         leader,
                         employees: totalEmployees,
                         attendance: attendanceRate,
+                        operating_zone: branch.operating_zone || 'ZONE_B'
                       })
                     }
                   >

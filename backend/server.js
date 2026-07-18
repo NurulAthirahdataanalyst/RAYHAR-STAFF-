@@ -3455,10 +3455,12 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         p.branch,
         p.department,
         COALESCE(p.annual_leave_entitlement, 14)::int AS annual_leave_entitlement,
+        b.operating_zone,
         COALESCE(adj.total_adjustment, 0)::int AS total_adjustment,
         COALESCE(ur.role, 'employee') AS role
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
+      LEFT JOIN branches b ON b.code = p.branch
       LEFT JOIN (
         SELECT employee_id, SUM(adjustment_days) AS total_adjustment
         FROM leave_balance_adjustments
@@ -3487,6 +3489,7 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         branch: user.branch,
         department: user.department,
         annual_leave_entitlement: user.annual_leave_entitlement,
+        operating_zone: user.operating_zone || 'ZONE_B',
         total_adjustment: user.total_adjustment,
       },
       role: user.role,
@@ -6109,6 +6112,7 @@ app.get("/api/branches", async (req, res) => {
         b.code, 
         b.name,
         b.location,
+        b.operating_zone,
         (
           SELECT p.full_name 
           FROM profiles p

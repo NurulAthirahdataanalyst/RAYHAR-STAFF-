@@ -884,8 +884,16 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                  
                  <div className="grid grid-cols-7 gap-1 sm:gap-1.5 flex-1 content-start">
                     {calendarDays.map((cell, i) => {
-                      // Friday & Saturday are off days for the first week (days 1-7), Friday only for remaining weeks
-                      const isWeekend = (i % 7 === 5) || (i % 7 === 6 && cell.day <= 7);
+                      // Calculate weekend based on operating zone
+                      const zone = profile?.operating_zone || 'ZONE_B';
+                      let isWeekend = false;
+                      if (zone === 'ZONE_A') {
+                        // Zone A: Friday (5) and 1st Saturday (6)
+                        isWeekend = (i % 7 === 5) || (i % 7 === 6 && cell.day <= 7);
+                      } else {
+                        // Zone B: Sunday (0) and 1st Saturday (6)
+                        isWeekend = (i % 7 === 0) || (i % 7 === 6 && cell.day <= 7);
+                      }
                       let status = cell.isCurrent ? heatmapData[cell.day] : null;
                       
                       let bgColor = "bg-transparent";
