@@ -119,9 +119,10 @@ export const parseCutiGantiRows = (
   if (!reason) {
     if (fallbackTarikh) {
       return [{
-        tarikh: fallbackTarikh,
-        hari: fallbackHari || "",
-        jam: fallbackJam || 0
+        tarikhCuti: fallbackTarikh,
+        tarikhGanti: fallbackHari || "",
+        keterangan: "Migrated",
+        jamGanti: fallbackJam || 0
       }];
     }
     return [];
@@ -138,9 +139,10 @@ export const parseCutiGantiRows = (
 
   if (fallbackTarikh) {
     return [{
-      tarikh: fallbackTarikh,
-      hari: fallbackHari || "",
-      jam: fallbackJam || 0
+      tarikhCuti: fallbackTarikh,
+      tarikhGanti: fallbackHari || "",
+        keterangan: "Migrated",
+      jamGanti: fallbackJam || 0
     }];
   }
 
@@ -152,103 +154,3 @@ export const getCleanReason = (reason: string): string => {
   return reason.replace(/\[CUTI_GANTI_DATA:.*?\]/g, "").trim();
 };
 
-export const getEmployeeLeaveBalances = (employeeIdOrName: string): {
-  "Annual & Emergency Leave": number;
-  "Replacement Leave": number;
-  "Sick Leave (MC)": number;
-  "Unpaid Leave": number;
-} => {
-  const defaultBalances = {
-    "Annual & Emergency Leave": 14,
-    "Replacement Leave": 0,
-    "Sick Leave (MC)": 14,
-    "Unpaid Leave": 0
-  };
-
-  if (typeof window === "undefined" || !employeeIdOrName) return defaultBalances;
-
-  try {
-    const stored = window.localStorage.getItem("rayhar_employee_leave_balances");
-    if (stored) {
-      const allBalances = JSON.parse(stored);
-      const key = employeeIdOrName.toLowerCase().trim();
-      
-      for (const k of Object.keys(allBalances)) {
-        if (k.toLowerCase().trim() === key) {
-          return { ...defaultBalances, ...allBalances[k] };
-        }
-      }
-    }
-  } catch (err) {
-    console.error("Error loading employee balances:", err);
-  }
-
-  return defaultBalances;
-};
-
-export const updateEmployeeLeaveBalance = (
-  employeeId: string,
-  employeeName: string,
-  leaveType: string,
-  newTotal: number
-) => {
-  if (typeof window === "undefined") return;
-
-  try {
-    const stored = window.localStorage.getItem("rayhar_employee_leave_balances");
-    const allBalances = stored ? JSON.parse(stored) : {};
-
-    const idKey = employeeId.toLowerCase().trim();
-    const nameKey = employeeName.toLowerCase().trim();
-
-    // Get existing balances or initialize
-    let existing = allBalances[idKey] || allBalances[nameKey] || {
-      "Annual & Emergency Leave": 14,
-      "Replacement Leave": 0,
-      "Sick Leave (MC)": 14,
-      "Unpaid Leave": 0
-    };
-
-    const mappedType = leaveType === "Annual Leave" || leaveType === "Annual/Emergency Leave" || leaveType === "Annual & Emergency Leave"
-      ? "Annual & Emergency Leave"
-      : leaveType === "Sick Leave" || leaveType === "Sick Leave (MC)" || leaveType === "Medical Leave"
-      ? "Sick Leave (MC)"
-      : leaveType === "Replacement Leave"
-      ? "Replacement Leave"
-      : "Unpaid Leave";
-
-    const diff = newTotal - existing[mappedType];
-
-    existing[mappedType] = newTotal;
-
-    allBalances[idKey] = existing;
-    allBalances[nameKey] = existing;
-
-    window.localStorage.setItem("rayhar_employee_leave_balances", JSON.stringify(allBalances));
-
-    // Async sync to backend (fire and forget)
-    if (diff !== 0) {
-      import("../config/api").then(({ API_BASE_URL }) => {
-        fetch(`${API_BASE_URL}/api/profiles/${encodeURIComponent(employeeId)}/leave-adjustments`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            leaveType: mappedType,
-            adjustmentDays: diff,
-            reason: "Adjustment from UI",
-            approvedBy: "HR Admin"
-          })
-        }).catch(err => console.error("Failed to sync leave balance adjustment to backend:", err));
-      }).catch(console.error);
-    }
-
-    try {
-      const bc = new BroadcastChannel("rayhar_leave_refresh");
-      bc.postMessage("refresh");
-    } catch (e) {
-      // BroadcastChannel might fail in some sandboxed contexts
-    }
-  } catch (err) {
-    console.error("Error saving employee balance:", err);
-  }
-};

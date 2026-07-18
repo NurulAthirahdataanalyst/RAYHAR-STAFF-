@@ -611,9 +611,9 @@ export default function LeaveAdmin() {
                             <TableBody className="divide-y divide-blue-500/10 font-bold text-foreground/80">
                               {rows.map((row, idx) => (
                                 <TableRow key={idx} className="hover:bg-blue-500/5">
-                                  <TableCell className="py-2 px-4">{row.tarikh || "-"}</TableCell>
-                                  <TableCell className="py-2 px-4">{row.hari || "-"}</TableCell>
-                                  <TableCell className="py-2 px-4 text-right">{row.jam || 0} Jam</TableCell>
+                                  <TableCell className="py-2 px-4">{row.tarikhCuti || "-"}</TableCell>
+                                  <TableCell className="py-2 px-4">{row.tarikhGanti || "-"}</TableCell>
+                                  <TableCell className="py-2 px-4 text-right">{row.jamGanti || 0} Jam</TableCell>
                                 </TableRow>
                               ))}
                             </TableBody>

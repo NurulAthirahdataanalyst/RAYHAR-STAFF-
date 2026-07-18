@@ -2092,13 +2092,102 @@ app.post("/api/profiles/:userId/leave-adjustments", async (req, res) => {
     // Insert into leave_balance_adjustments
     await pool.query(
       `INSERT INTO leave_balance_adjustments (employee_id, leave_type, adjustment_days, reason, approved_by)
-       VALUES ($1, $2, $3, $4, $5)`,
+       VALUES (?, ?, ?, ?, ?)`,
       [userId, leaveType, adjustmentDays, reason, approvedBy || 'Admin']
     );
 
     res.json({ message: "Leave adjustment applied successfully" });
   } catch (error) {
     console.error("Error applying leave adjustment:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/api/profiles/:userId/leave-balance", async (req, res) => {
+  const { userId } = req.params;
+  try {
+    // 1. Get Base Entitlements
+    const [profile] = await pool.query(`SELECT annual_leave_entitlement, medical_leave_entitlement FROM profiles WHERE user_id = ?`, [userId]);
+    if (!profile.length) return res.status(404).json({ error: "Profile not found" });
+    
+    const baseAnnual = parseFloat(profile[0].annual_leave_entitlement || 14);
+    const baseMedical = parseFloat(profile[0].medical_leave_entitlement || 14);
+
+    // 2. Get Manual Adjustments
+    const [adjustments] = await pool.query(`
+      SELECT leave_type, SUM(adjustment_days) as total_adj
+      FROM leave_balance_adjustments
+      WHERE employee_id = ?
+      GROUP BY leave_type
+    `, [userId]);
+
+    let annualAdj = 0;
+    let medicalAdj = 0;
+    let replacementAdj = 0;
+
+    for (const row of adjustments) {
+      if (['Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan'].includes(row.leave_type)) {
+        annualAdj += parseFloat(row.total_adj);
+      } else if (['Sick Leave', 'Medical Leave', 'Cuti Sakit'].includes(row.leave_type)) {
+        medicalAdj += parseFloat(row.total_adj);
+      } else if (['Replacement Leave', 'Cuti Ganti'].includes(row.leave_type)) {
+        replacementAdj += parseFloat(row.total_adj);
+      }
+    }
+
+    // 3. Get Used Leaves (Approved)
+    const [usedLeaves] = await pool.query(`
+      SELECT leave_type, SUM(days) as total_used
+      FROM leave_requests
+      WHERE user_id = ? AND status = 'Approved'
+      GROUP BY leave_type
+    `, [userId]);
+
+    let annualUsed = 0;
+    let medicalUsed = 0;
+    // We don't deduct Replacement Used from a "base" because Replacement leave is earned via adjustment.
+    let replacementUsed = 0;
+
+    for (const row of usedLeaves) {
+      if (['Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan'].includes(row.leave_type)) {
+        annualUsed += parseFloat(row.total_used);
+      } else if (['Sick Leave', 'Medical Leave', 'Cuti Sakit'].includes(row.leave_type)) {
+        medicalUsed += parseFloat(row.total_used);
+      } else if (['Replacement Leave', 'Cuti Ganti'].includes(row.leave_type)) {
+        replacementUsed += parseFloat(row.total_used);
+        // Note: As per recent Replacement Leave logic, approved Replacement Leave also temporarily adds to annualUsed?
+        // Wait, yes, in server.js Replacement Leave counts as annual_days_used.
+        // We'll keep it consistent with the dashboard logic. If it counts as annualUsed, we add it there.
+        annualUsed += parseFloat(row.total_used);
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        annual: {
+          base: baseAnnual,
+          adjustment: annualAdj,
+          used: annualUsed,
+          balance: Math.max(baseAnnual + annualAdj - annualUsed, 0)
+        },
+        medical: {
+          base: baseMedical,
+          adjustment: medicalAdj,
+          used: medicalUsed,
+          balance: Math.max(baseMedical + medicalAdj - medicalUsed, 0)
+        },
+        replacement: {
+          base: 0,
+          adjustment: replacementAdj,
+          used: replacementUsed, // Already factored into annual deductions temporarily, but we can display it
+          balance: Math.max(replacementAdj - replacementUsed, 0)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error("Error fetching leave balance:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });// --- Replacement Leaves ---
@@ -3042,7 +3131,14 @@ app.get("/api/employees", async (req, res) => {
         COALESCE(lr.rejected_leaves, 0) AS rejected_leaves,
         COALESCE(lr.total_leave_requests, 0) AS total_leave_requests,
         COALESCE(lr.mc_leaves, 0) AS mc_leaves,
-        GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.total_adjustment, 0)) - COALESCE(lr.annual_days_used, 0), 0)::int AS annual_leave_balance,
+        p.annual_leave_entitlement,
+        p.medical_leave_entitlement,
+        COALESCE(adj.annual_adj, 0) AS annual_adj,
+        COALESCE(adj.medical_adj, 0) AS medical_adj,
+        COALESCE(adj.replacement_adj, 0) AS replacement_adj,
+        GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.annual_adj, 0)) - COALESCE(lr.annual_days_used, 0), 0)::int AS annual_leave_balance,
+        GREATEST((COALESCE(p.medical_leave_entitlement, 14) + COALESCE(adj.medical_adj, 0)) - COALESCE(lr.medical_days_used, 0), 0)::int AS medical_leave_balance,
+        GREATEST(COALESCE(adj.replacement_adj, 0) - COALESCE(lr.replacement_days_used, 0), 0)::int AS replacement_leave_balance,
         COALESCE(att.days_present, 0) AS days_present,
         LEAST(100, ROUND((COALESCE(att.days_present, 0)::numeric / NULLIF(EXTRACT(DAY FROM CURRENT_DATE), 0)) * 100)) AS attendance_rate,
         COALESCE(leave_today.is_on_leave_today, 0) AS is_on_leave_today,
@@ -3052,18 +3148,23 @@ app.get("/api/employees", async (req, res) => {
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
       LEFT JOIN (
-        SELECT employee_id, SUM(adjustment_days) AS total_adjustment
+        SELECT employee_id, 
+               SUM(CASE WHEN leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan') THEN adjustment_days ELSE 0 END) AS annual_adj,
+               SUM(CASE WHEN leave_type IN ('Sick Leave', 'Medical Leave', 'Cuti Sakit') THEN adjustment_days ELSE 0 END) AS medical_adj,
+               SUM(CASE WHEN leave_type IN ('Replacement Leave', 'Cuti Ganti') THEN adjustment_days ELSE 0 END) AS replacement_adj
         FROM leave_balance_adjustments
         GROUP BY employee_id
       ) adj ON adj.employee_id = p.user_id
       LEFT JOIN (
         SELECT
           user_id,
-          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Cuti Sakit', 'Sick Leave', 'Replacement Leave', 'Cuti Ganti') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
+          SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Replacement Leave', 'Cuti Ganti') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
+          SUM(CASE WHEN leave_type IN ('Cuti Sakit', 'Sick Leave', 'Medical Leave') AND status = 'Approved' THEN days ELSE 0 END) AS medical_days_used,
+          SUM(CASE WHEN leave_type IN ('Replacement Leave', 'Cuti Ganti') AND status = 'Approved' THEN days ELSE 0 END) AS replacement_days_used,
           SUM(CASE WHEN status LIKE 'Pending%' THEN 1 ELSE 0 END) AS pending_leaves,
           SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) AS approved_leaves,
           SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) AS rejected_leaves,
-          SUM(CASE WHEN leave_type IN ('Cuti Sakit', 'Sick Leave') THEN 1 ELSE 0 END) AS mc_leaves,
+          SUM(CASE WHEN leave_type IN ('Cuti Sakit', 'Sick Leave', 'Medical Leave') THEN 1 ELSE 0 END) AS mc_leaves,
           COUNT(*) AS total_leave_requests
         FROM leave_requests
         GROUP BY user_id
@@ -4242,7 +4343,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
          p.branch, 
          p.department,
          p.annual_leave_entitlement,
-         COALESCE((SELECT SUM(adjustment_days) FROM leave_balance_adjustments WHERE employee_id = p.user_id), 0)::int AS total_adjustment
+         COALESCE((SELECT SUM(adjustment_days) FROM leave_balance_adjustments WHERE employee_id = p.user_id AND leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan')), 0)::int AS annual_adjustment
        FROM profiles p WHERE p.user_id = ?`,
       [userId]
     );
@@ -4381,7 +4482,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
        WHERE user_id = ? 
        AND status != 'Rejected' 
        AND (
-         leave_type IN ('Cuti Tahunan', 'Annual Leave', 'Annual/Emergency Leave', 'Annual & Emergency Leave', 'Cuti Sakit', 'Sick Leave', 'Kecemasan', 'Emergency')
+         leave_type IN ('Cuti Tahunan', 'Annual Leave', 'Annual/Emergency Leave', 'Annual & Emergency Leave', 'Kecemasan', 'Emergency')
          OR (
            leave_type IN ('Replacement Leave', 'Cuti Ganti')
            AND leave_id IN (
@@ -4395,8 +4496,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const quotaLeavesUsed = parseFloat(leaveRows[0].used_days || 0);
     const empData = empProfile[0] || {};
     const baseEntitlement = parseFloat(empData.annual_leave_entitlement || 14);
-    const totalAdjustment = parseFloat(empData.total_adjustment || 0);
-    const leaveBalance = Math.max((baseEntitlement + totalAdjustment) - quotaLeavesUsed, 0);
+    const annualAdjustment = parseFloat(empData.annual_adjustment || 0);
+    const leaveBalance = Math.max((baseEntitlement + annualAdjustment) - quotaLeavesUsed, 0);
 
     const [pendingRows] = await pool.query(
       `SELECT COUNT(*) AS pending FROM leave_requests WHERE user_id = ? AND status LIKE 'Pending%'`,

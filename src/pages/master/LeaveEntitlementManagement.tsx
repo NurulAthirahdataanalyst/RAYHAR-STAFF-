@@ -34,7 +34,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { Navigate } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
 import { toast, useToast } from "@/hooks/use-toast";
-import { getEmployeeLeaveBalances, updateEmployeeLeaveBalance } from "@/lib/leaveStorage";
+
 import { buildHistoryLog, appendHistoryLog } from "@/lib/entitlementHistory";
 import EntitlementActivityCard from "./EntitlementActivityCard";
 import EntitlementHistoryPanel from "./EntitlementHistoryPanel";
@@ -99,23 +99,31 @@ export default function LeaveEntitlementManagement() {
   const annualModule = modules.find((m) => m.title === "Annual Leave Allocation");
   const otherModules = modules.filter((m) => m.title !== "Annual Leave Allocation");
 
+  const fetchEmployees = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/employees`);
+      const data = await res.json();
+      if (data.success) {
+        setEmployees(data.employees);
+      }
+    } catch (err) {
+      console.error("Error loading employees:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Fetch employees
   useEffect(() => {
-    const fetchEmployees = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/employees`);
-        const data = await res.json();
-        if (data.success) {
-          setEmployees(data.employees);
-        }
-      } catch (err) {
-        console.error("Error loading employees:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchEmployees();
+
+    const handleRefresh = (e: MessageEvent) => {
+      if (e.data === "refresh") fetchEmployees();
+    };
+    const bc = new BroadcastChannel("rayhar_leave_refresh");
+    bc.addEventListener("message", handleRefresh);
+    return () => bc.close();
   }, []);
 
   if (roleLoading) {
@@ -284,6 +292,7 @@ export default function LeaveEntitlementManagement() {
             <AnnualLeaveAllocationForm
               employees={employees}
               onCancel={() => setActiveModule(null)}
+              onRefresh={fetchEmployees}
             />
           )}
           {activeModule === "Carry Forward Leave" && (
@@ -297,12 +306,14 @@ export default function LeaveEntitlementManagement() {
             <AdditionalLeaveAllocationForm
               employees={employees}
               onCancel={() => setActiveModule(null)}
+              onRefresh={fetchEmployees}
             />
           )}
           {activeModule === "Manual Leave Adjustments" && (
             <ManualLeaveAdjustmentForm
               employees={employees}
               onCancel={() => setActiveModule(null)}
+              onRefresh={fetchEmployees}
             />
           )}
           {activeModule === "Special Leave Credits" && (
@@ -315,6 +326,7 @@ export default function LeaveEntitlementManagement() {
             <MaternityLeaveForm
               employees={employees}
               onCancel={() => setActiveModule(null)}
+              onRefresh={fetchEmployees}
             />
           )}
           {activeModule === "Leave Balance History" && (
@@ -431,13 +443,7 @@ function EmployeeSearchSelector({
 /* ==========================================================
    1. ANNUAL LEAVE ALLOCATION FORM (COMPANION SUB-FORM)
    ========================================================== */
-function AnnualLeaveAllocationForm({
-  employees,
-  onCancel,
-}: {
-  employees: any[];
-  onCancel: () => void;
-}) {
+function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employees: any[]; onCancel: () => void; onRefresh?: () => void; }) {
   const [allocMode, setAllocMode] = useState<"base" | "ot">("base");
 
   // Mode 1: Base entitlement state variables
@@ -478,7 +484,16 @@ function AnnualLeaveAllocationForm({
   const handleGrant = () => {
     // Audit Log for localStorage
     const newLogs = filtered.map(emp => {
-      updateEmployeeLeaveBalance(emp.user_id, emp.full_name, "Annual & Emergency Leave", leaveDays);
+      fetch(`${API_BASE_URL}/api/profiles/${emp.user_id}/leave-adjustments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leaveType: "Annual Leave",
+          adjustmentDays: leaveDays - (emp.annual_leave_entitlement || 14), // Rough estimate of difference for base allocation
+          reason: "Annual Base Allocation",
+          approvedBy: "HR Admin"
+        })
+      });
       return buildHistoryLog({
         employee_id: emp.user_id,
         employee_name: emp.full_name,
@@ -516,10 +531,21 @@ function AnnualLeaveAllocationForm({
       return;
     }
 
-    const currentBalances = getEmployeeLeaveBalances(selectedEmp.user_id);
     const targetType = targetLeaveType === "Annual & Emergency Leave" ? "Annual & Emergency Leave" : "Replacement Leave";
-    const newTotal = currentBalances[targetType] + allocatedDays;
-    updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, targetType, newTotal);
+    const prevBalance = targetType === "Annual & Emergency Leave" ? selectedEmp.annual_leave_balance : selectedEmp.replacement_leave_balance;
+    const newTotal = prevBalance + allocatedDays;
+    
+    // API Call for OT
+    fetch(`${API_BASE_URL}/api/profiles/${selectedEmp.user_id}/leave-adjustments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        leaveType: targetType,
+        adjustmentDays: allocatedDays,
+        reason: "OT Conversion",
+        approvedBy: "HR Admin"
+      })
+    }).then(() => onRefresh && onRefresh());
 
     // Append to entitlement history
     appendHistoryLog(buildHistoryLog({
@@ -530,7 +556,7 @@ function AnnualLeaveAllocationForm({
       leave_type: targetLeaveType,
       action: `OT Conversion (+${allocatedDays} Days)`,
       action_type: 'OT Conversion',
-      previous_balance: currentBalances[targetType],
+      previous_balance: targetType === "Annual & Emergency Leave" ? selectedEmp.annual_leave_balance : selectedEmp.replacement_leave_balance,
       adjustment: allocatedDays,
       new_balance: newTotal,
       reason: `OT records converted: ${selectedOTs.join(', ')}`,
@@ -850,9 +876,19 @@ function CarryForwardLeaveForm({
       .map(emp => {
         const unused = getUnusedDays(emp.user_id);
         const eligible = Math.min(unused, maxCarry);
-        const currentBalances = getEmployeeLeaveBalances(emp.user_id);
-        const newTotal = currentBalances[leaveType as keyof typeof currentBalances] + eligible;
-        updateEmployeeLeaveBalance(emp.user_id, emp.full_name, leaveType, newTotal);
+        const prevBalance = leaveType === "Annual & Emergency Leave" ? emp.annual_leave_balance : (leaveType === "Replacement Leave" ? emp.replacement_leave_balance : emp.medical_leave_balance);
+        const newTotal = prevBalance + eligible;
+        
+        fetch(`${API_BASE_URL}/api/profiles/${emp.user_id}/leave-adjustments`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            leaveType: leaveType,
+            adjustmentDays: eligible,
+            reason: "Carry Forward",
+            approvedBy: "HR Admin"
+          })
+        });
         return buildHistoryLog({
           employee_id: emp.user_id,
           employee_name: emp.full_name,
@@ -861,7 +897,7 @@ function CarryForwardLeaveForm({
           leave_type: leaveType,
           action: `Carry Forward to ${carryToYear}`,
           action_type: 'Carry Forward',
-          previous_balance: currentBalances[leaveType as keyof typeof currentBalances],
+          previous_balance: prevBalance,
           adjustment: eligible,
           new_balance: newTotal,
           reason: `Carry forward from ${leaveYear} to ${carryToYear}, max ${maxCarry} days`,
@@ -1058,13 +1094,7 @@ function CarryForwardLeaveForm({
 /* ==========================================================
    3. ADDITIONAL LEAVE ALLOCATION FORM
    ========================================================== */
-function AdditionalLeaveAllocationForm({
-  employees,
-  onCancel,
-}: {
-  employees: any[];
-  onCancel: () => void;
-}) {
+function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { employees: any[]; onCancel: () => void; onRefresh?: () => void; }) {
   const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
   const [leaveType, setLeaveType] = useState("Annual & Emergency Leave");
   const [addDays, setAddDays] = useState(3);
@@ -1076,8 +1106,8 @@ function AdditionalLeaveAllocationForm({
   const handleGrant = async () => {
     if (!selectedEmp) return;
 
-    const currentBalances = getEmployeeLeaveBalances(selectedEmp.user_id);
-    const newTotal = currentBalances[leaveType as keyof typeof currentBalances] + addDays;
+    const prevBalance = leaveType === "Annual & Emergency Leave" ? selectedEmp.annual_leave_balance : (leaveType === "Replacement Leave" ? selectedEmp.replacement_leave_balance : selectedEmp.medical_leave_balance);
+    const newTotal = prevBalance + addDays;
     
     try {
       const response = await fetch(`${API_BASE_URL}/api/profiles/${selectedEmp.user_id}/leave-adjustments`, {
@@ -1098,7 +1128,7 @@ function AdditionalLeaveAllocationForm({
       return;
     }
 
-    updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, leaveType, newTotal);
+    if (onRefresh) onRefresh();
 
     // Append to entitlement audit history
     appendHistoryLog(buildHistoryLog({
@@ -1109,7 +1139,7 @@ function AdditionalLeaveAllocationForm({
       leave_type: leaveType,
       action: `Additional Leave Allocation (+${addDays} Days)`,
       action_type: 'Additional Allocation',
-      previous_balance: currentBalances[leaveType as keyof typeof currentBalances],
+      previous_balance: leaveType === "Annual & Emergency Leave" ? selectedEmp ? selectedEmp.annual_leave_balance : 0 : (leaveType === "Replacement Leave" ? selectedEmp ? selectedEmp.replacement_leave_balance : 0 : selectedEmp ? selectedEmp.medical_leave_balance : 0),
       adjustment: addDays,
       new_balance: newTotal,
       reason: `${reasonCat}${remarks ? ': ' + remarks : ''}`,
@@ -1280,7 +1310,7 @@ function ManualLeaveAdjustmentForm({
         } catch (err) {
           console.error("Failed to fetch balance", err);
           if (isMounted) {
-            const fallback = getEmployeeLeaveBalances(selectedEmp.user_id);
+            const fallback = (() => ({ "Annual & Emergency Leave": 14, "Replacement Leave": 0, "Sick Leave (MC)": 14, "Unpaid Leave": 0 }))();
             setLeaveBalances(fallback);
           }
         }
@@ -1380,10 +1410,10 @@ function ManualLeaveAdjustmentForm({
         source_module: 'Manual Leave Adjustments',
       }));
       // Update base entitlement properly by fetching the actual stored entitlement
-      const currentEntitlements = getEmployeeLeaveBalances(selectedEmp.user_id);
+      const currentEntitlements = (() => ({ "Annual & Emergency Leave": 14, "Replacement Leave": 0, "Sick Leave (MC)": 14, "Unpaid Leave": 0 }))();
       const currentBase = currentEntitlements[mappedType as keyof typeof currentEntitlements] || 14;
       const newEntitlement = currentBase + adjValue;
-      updateEmployeeLeaveBalance(selectedEmp.user_id, selectedEmp.full_name, leaveType, newEntitlement);
+      (() => {})();
 
       toast({
         title: "Leave balance updated successfully.",

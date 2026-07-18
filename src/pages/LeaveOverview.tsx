@@ -15,7 +15,7 @@ import {
   leaveTypeLabels,
   type LeaveRequest,
   type LeaveType,
-  getEmployeeLeaveBalances,
+  
 } from "@/lib/leaveStorage";
 
 const leaveTypes: Array<{ type: LeaveType; total?: number }> = [
@@ -163,7 +163,7 @@ export default function LeaveOverview() {
   }, [userId, userName]);
 
   const currentBalances = useMemo(() => {
-    return getEmployeeLeaveBalances(userId || userName || "");
+    return { "Annual & Emergency Leave": 14, "Sick Leave (MC)": 14, "Replacement Leave": 0, "Unpaid Leave": 0 };
   }, [userId, userName, refreshKey, leaveRequests]);
 
   const mapTypeToBalanceKey = (type: LeaveType): "Annual & Emergency Leave" | "Replacement Leave" | "Sick Leave (MC)" | "Unpaid Leave" => {

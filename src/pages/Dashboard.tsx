@@ -42,7 +42,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
-import { getEmployeeLeaveBalances } from "@/lib/leaveStorage";
+
 
 const getStoredUser = () => {
   try {
@@ -336,11 +336,7 @@ export default function Dashboard() {
           
           // Handle leave balance updates
           if (data.type === 'leave-balance') {
-            const balances = getEmployeeLeaveBalances(dashboardUserId);
-            setStats((current) => ({
-              ...current,
-              leaveBalance: balances["Annual & Emergency Leave"] || 14,
-            }));
+             // Let the regular fetch handle it
           }
           
           fetchDashboardData(true);

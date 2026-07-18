@@ -233,7 +233,7 @@ export default function LeaveManagement() {
       return;
     }
     if (currentStep === 2 && (formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti")) {
-      const invalidRow = formData.cutiGantiRows.some(row => !row.tarikh || !row.hari || row.jam <= 0);
+      const invalidRow = formData.cutiGantiRows.some(row => !row.tarikhCuti || !row.tarikhGanti || Number(row.jamGanti) <= 0);
       if (invalidRow) {
         toast.error("Sila lengkapkan semua butiran baris Cuti Ganti");
         return;
