@@ -68,7 +68,7 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid' }:
   const navigate = useNavigate();
   
   return (
-    <Card className="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden flex flex-col w-full">
+    <Card className="bg-white rounded-[24px] shadow-sm overflow-hidden flex flex-col w-full">
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -180,7 +180,7 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid' }:
               const { progressColor, badgeColor, takenColor, avatarColor, iconColor } = getColors(percent, idx);
 
               return (
-                <div key={emp.id || idx} className="border border-slate-100 rounded-2xl p-4 hover:border-slate-300 hover:shadow-md transition-all group flex flex-col bg-slate-50/30">
+                <div key={emp.id || idx} className="border border-slate-300 dark:border-slate-700 rounded-2xl p-4 hover:border-slate-300 hover:shadow-md transition-all group flex flex-col bg-slate-50/30">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${avatarColor}`}>
