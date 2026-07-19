@@ -1361,8 +1361,12 @@ async function computeDynamicWorkforceMetrics(dateStr, role, branch, department)
   const prevEnd = prevEndObj.toISOString().split('T')[0];
   const prevWorkingDays = prevEndObj.getDate();
 
-  const [empRows] = await pool.query(`SELECT COUNT(*) as total FROM profiles p WHERE p.status = 'Active' ${profileFilter}`, pFilterParams);
-  const totalEmployees = parseInt(empRows[0].total || 0);
+  const [empRowsCur] = await pool.query(`SELECT COUNT(*) as total FROM profiles p WHERE p.status = 'Active' AND DATE(p.created_at) <= ?::date ${profileFilter}`, [curEnd, ...pFilterParams]);
+  const totalEmployeesCur = parseInt(empRowsCur[0].total || 0);
+
+  const [empRowsPrev] = await pool.query(`SELECT COUNT(*) as total FROM profiles p WHERE p.status = 'Active' AND DATE(p.created_at) <= ?::date ${profileFilter}`, [prevEnd, ...pFilterParams]);
+  const totalEmployeesPrev = parseInt(empRowsPrev[0].total || 0);
+  const totalEmployees = totalEmployeesCur;
 
   const lateTimeStr = typeof getLateThresholdTime === 'function' ? getLateThresholdTime() : "09:00:00";
   const attQuery = `SELECT COUNT(*) as total, SUM(CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END) as lates FROM attendances a JOIN profiles p ON p.user_id = a.user_id WHERE DATE(a.clock_in) BETWEEN ? AND ? AND p.status = 'Active' ${profileFilter}`;
@@ -1389,7 +1393,8 @@ async function computeDynamicWorkforceMetrics(dateStr, role, branch, department)
     lateArrivals: { current: parseInt(attRowsCur[0].lates || 0), previous: parseInt(attRowsPrev[0].lates || 0) },
     absences: { current: curAbsences, previous: prevAbsences },
     leaveRequests: { current: parseInt(leaveCur[0].total || 0), previous: parseInt(leavePrev[0].total || 0) },
-    outstation: { current: parseInt(outCur[0].total || 0), previous: parseInt(outPrev[0].total || 0) }
+    outstation: { current: parseInt(outCur[0].total || 0), previous: parseInt(outPrev[0].total || 0) },
+    headcount: { current: totalEmployeesCur, previous: totalEmployeesPrev }
   };
 
   const [pendingLeaves] = await pool.query(`SELECT COUNT(*) as total FROM leave_requests lr JOIN profiles p ON p.user_id = lr.user_id WHERE lr.status = 'Pending' AND p.status = 'Active' ${profileFilter}`, pFilterParams);

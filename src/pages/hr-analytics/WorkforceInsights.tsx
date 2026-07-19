@@ -446,15 +446,22 @@ export default function WorkforceInsights() {
                 </span>
               </div>
               
-              <div className="h-[95px] w-full">
+              <div className="h-[200px] w-full mt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart 
                     data={departmentChartData} 
                     layout="vertical"
                     margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
                   >
+                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
                     <RechartsTooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} content={<CustomDeptTooltip />} />
-                    <XAxis type="number" hide />
+                    <XAxis 
+                      type="number" 
+                      hide={false}
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 9, fill: '#64748b' }} 
+                    />
                     <YAxis 
                       dataKey="name" 
                       type="category" 
@@ -463,7 +470,7 @@ export default function WorkforceInsights() {
                       tickLine={false} 
                       width={130}
                     />
-                    <Bar dataKey="value" fill="#ff5b37" radius={[0, 4, 4, 0]} barSize={6} />
+                    <Bar dataKey="value" fill="#ff5b37" radius={[0, 4, 4, 0]} barSize={8} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -471,7 +478,21 @@ export default function WorkforceInsights() {
               <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#ff5b37]"></div>
                 <span className="text-[9px] font-bold text-slate-400">
-                  No of Employees increased by <span className="text-emerald-500">+20%</span> from last Month
+                  {(() => {
+                    const currentHc = data?.monthlyComparison?.headcount?.current || 0;
+                    const prevHc = data?.monthlyComparison?.headcount?.previous || 0;
+                    if (prevHc === 0 && currentHc > 0) {
+                      return <>No of Employees increased by <span className="text-emerald-500">+100%</span> from last Month</>;
+                    }
+                    if (currentHc > prevHc && prevHc > 0) {
+                      const pct = Math.round(((currentHc - prevHc) / prevHc) * 100);
+                      return <>No of Employees increased by <span className="text-emerald-500">+{pct}%</span> from last Month</>;
+                    } else if (currentHc < prevHc && prevHc > 0) {
+                      const pct = Math.round(((prevHc - currentHc) / prevHc) * 100);
+                      return <>No of Employees decreased by <span className="text-rose-500">-{pct}%</span> from last Month</>;
+                    }
+                    return "No of Employees remained unchanged from last Month";
+                  })()}
                 </span>
               </div>
             </Card>
