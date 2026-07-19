@@ -70,6 +70,7 @@ export default function Employees() {
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [employeeLeaves, setEmployeeLeaves] = useState<any[]>([]);
   const [viewLeaveStatus, setViewLeaveStatus] = useState<"Approved" | "Pending" | "Rejected" | null>(null);
+  const [selectedLeaveFormDetail, setSelectedLeaveFormDetail] = useState<any>(null);
   const [printingLeaveId, setPrintingLeaveId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [analytics, setAnalytics] = useState<any>(null);
@@ -1005,198 +1006,261 @@ export default function Employees() {
               }).length === 0 ? (
                 <p className="text-sm text-center text-muted-foreground p-4 italic">No {viewLeaveStatus?.toLowerCase()} leave records found for this staff member.</p>
               ) : (
-                employeeLeaves
-                  .filter(req => {
-                    const status = (req.status || "").toLowerCase().trim();
-                    const viewStatus = (viewLeaveStatus || "").toLowerCase().trim();
-                    if (viewStatus === "pending") return status.includes("pending");
-                    return status === viewStatus;
-                  })
-                  .map(req => {
-                    const fromStr = new Date(req.start_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    const toStr = new Date(req.end_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    return (
-                      <div key={req.leave_id} id={printingLeaveId === req.leave_id ? "leave-form-print" : undefined} className={`relative p-4 sm:p-6 space-y-4 bg-card rounded-lg border shadow-sm mb-4 ${printingLeaveId && printingLeaveId !== req.leave_id ? 'print:hidden' : ''}`}>
-                        <div className="rounded-[24px] border border-border/50 p-4 sm:p-6 space-y-4 bg-card shadow-sm relative">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="absolute right-4 top-4 bg-[#7B0099] text-white hover:bg-[#5c0073] h-8 px-3 text-xs font-bold shadow-sm print:hidden"
-                            onClick={() => {
-                              setPrintingLeaveId(req.leave_id);
-                              const originalTitle = document.title;
-                              document.title = `Leave Request - ${selectedEmployee?.name}`;
-                              setTimeout(() => {
-                                window.print();
-                                document.title = originalTitle;
-                                setTimeout(() => setPrintingLeaveId(null), 100);
-                              }, 100);
-                            }}
-                          >
-                            <Printer className="w-3.5 h-3.5 mr-1.5" /> Save to PDF
-                          </Button>
-
-                          <div className="text-center border-b-2 border-foreground/50 dark:border-purple-500/50 pb-4">
-                            <h2 className="text-2xl font-black tracking-tighter text-foreground dark:text-purple-400">RAYHAR GROUP</h2>
-                            <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">Permohonan Cuti Kakitangan</p>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4 text-xs font-bold">
-                            <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
-                              <p className="border-b pb-1 border-border/40 truncate">{selectedEmployee?.name}</p>
-                            </div>
-                            <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
-                              <p className="border-b pb-1 border-border/40">{selectedEmployee?.branch || "HQ"}</p>
-                            </div>
-                            <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
-                              <p className="border-b pb-1 border-border/40">{req.leave_type}</p>
-                            </div>
-                            <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
-                              <p className={`font-black uppercase ${req.status === "Rejected" ? "text-rose-600" : "text-[#7B0099]"}`}>
-                                {req.status}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-3 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
-                            <div className="text-center">
-                              <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Dari</p>
-                              <p className="font-black text-xs sm:text-sm">{fromStr}</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Hingga</p>
-                              <p className="font-black text-xs sm:text-sm">{toStr}</p>
-                            </div>
-                            <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
-                              <p className="text-[9px] uppercase font-black text-[#7B0099]">Hari</p>
-                              <p className="font-black text-lg text-[#7B0099] leading-none mt-0.5">{req.days}</p>
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
-                            <p className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed">
-                              "{getCleanReason(req.reason) || "-"}"
-                            </p>
-                          </div>
-
-                          {/* Conditional Fields: Cuti Ganti */}
-                          {(req.leave_type === "Replacement Leave" || req.leave_type === "Cuti Ganti") && (() => {
-                            const rows = parseCutiGantiRows(
-                              req.reason,
-                              req.cuti_ganti_tarikh,
-                              req.cuti_ganti_hari,
-                              req.cuti_ganti_jam
-                            );
-                            return (
-                              <div className="space-y-3">
-                                <p className="text-[9px] font-black uppercase text-blue-600 opacity-80 tracking-widest px-1">Butiran Cuti Ganti</p>
-                                <div className="border border-blue-500/20 rounded-[20px] overflow-hidden bg-blue-500/5">
-                                  <Table>
-                                    <TableHeader>
-                                      <TableRow className="bg-blue-500/10 hover:bg-blue-500/10 border-b border-blue-500/20">
-                                        <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh Cuti</TableHead>
-                                        <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh/Hari Cuti Ganti</TableHead>
-                                        <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Keterangan / Tugasan</TableHead>
-                                        <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase text-right">Jam Bekerja</TableHead>
-                                      </TableRow>
-                                    </TableHeader>
-                                    <TableBody className="divide-y divide-blue-500/10 font-bold text-foreground/80">
-                                      {rows.map((row, idx) => (
-                                        <TableRow key={idx} className="hover:bg-blue-500/5">
-                                          <TableCell className="py-2 px-4">{row.tarikhCuti || "-"}</TableCell>
-                                          <TableCell className="py-2 px-4">{row.tarikhGanti || "-"}</TableCell>
-                                          <TableCell className="py-2 px-4 whitespace-normal break-words max-w-[200px] text-[11px] text-blue-900/80 font-medium">{row.keterangan || "-"}</TableCell>
-                                          <TableCell className="py-2 px-4 text-right">{row.jamGanti || 0} Jam</TableCell>
-                                        </TableRow>
-                                      ))}
-                                    </TableBody>
-                                  </Table>
-                                </div>
-                              </div>
-                            );
-                          })()}
-
-                          {/* Conditional Fields: Cuti Tanpa Gaji */}
-                          {(req.leave_type === "Unpaid Leave" || req.leave_type === "Cuti Tanpa Gaji") && (
-                            <div className="grid grid-cols-2 gap-4 text-[10px] border rounded-[20px] p-4 bg-rose-500/5 border-rose-500/20">
-                              <div>
-                                <p className="uppercase font-black text-rose-600 opacity-60">No. Tel H/P</p>
-                                <p className="font-black mt-0.5">{req.cuti_tanpa_gaji_phone || "-"}</p>
-                              </div>
-                              <div>
-                                <p className="uppercase font-black text-rose-600 opacity-60">Tandatangan</p>
-                                <p className="font-black mt-0.5 text-rose-700">
-                                  {req.cuti_tanpa_gaji_signature ? "✓ DISAHKAN" : "TIADA PENGESAHAN"}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Conditional Fields: Cuti Sakit (MC) */}
-                          {(req.leave_type === "Sick Leave" || req.leave_type === "Cuti Sakit") && req.mc_file_url && (
-                            <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
-                              <div className="flex items-center gap-3">
-                                <FileText className="w-5 h-5 text-[#7B0099]" />
-                                <span className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest">MC Attachment</span>
-                              </div>
-                              <a
-                                href={`${API_BASE_URL}${req.mc_file_url}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[9px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
-                              >
-                                View File
-                              </a>
-                            </div>
-                          )}
-
-                          {/* Maklumat Waris Section */}
-                          <div className="pt-4 border-t border-border/50 space-y-4">
-                            <div className="flex items-center gap-2">
-                              <PhoneCall className="w-4 h-4 text-rose-500" />
-                              <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4 bg-muted/20 p-4 rounded-[20px]">
-                              <div className="space-y-1">
-                                <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Nama</span>
-                                <p className="text-[11px] font-bold truncate">{req.waris_nama || "-"}</p>
-                              </div>
-                              <div className="space-y-1">
-                                <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Hubungan</span>
-                                <p className="text-[11px] font-bold truncate">{req.waris_hubungan || "-"}</p>
-                              </div>
-                              <div className="space-y-1">
-                                <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
-                                <p className="text-[11px] font-black text-[#7B0099]">{req.waris_phone || "-"}</p>
-                              </div>
-                              <div className="space-y-1">
-                                <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
-                                <p className="text-[10px] font-bold text-muted-foreground break-words">{req.waris_alamat || "-"}</p>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="hidden print:grid grid-cols-2 gap-16 pt-12 pb-4">
-                            <div className="border-t border-foreground pt-2 text-center">
-                              <p className="text-[10px] font-bold uppercase">Tandatangan Kakitangan</p>
-                            </div>
-                            <div className="border-t border-foreground pt-2 text-center">
-                              <p className="text-[10px] font-bold uppercase">Kelulusan Pengurus / HR</p>
-                            </div>
-                          </div>
-
-                        </div>
-                      </div>
-                    );
-                  })
+                <div className="border border-border/50 rounded-xl overflow-hidden">
+                  <Table>
+                    <TableHeader className="bg-muted/50">
+                      <TableRow>
+                        <TableHead className="font-black text-[10px] uppercase tracking-wider">Leave Type</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-wider">Start Date</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-wider">End Date</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-wider">Days</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-wider text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {employeeLeaves
+                        .filter(req => {
+                          const status = (req.status || "").toLowerCase().trim();
+                          const viewStatus = (viewLeaveStatus || "").toLowerCase().trim();
+                          if (viewStatus === "pending") return status.includes("pending");
+                          return status === viewStatus;
+                        })
+                        .map(req => {
+                          const fromStr = new Date(req.start_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                          const toStr = new Date(req.end_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                          return (
+                            <TableRow key={req.leave_id} className="cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => setSelectedLeaveFormDetail(req)}>
+                              <TableCell className="font-bold text-xs">{req.leave_type}</TableCell>
+                              <TableCell className="text-xs">{fromStr}</TableCell>
+                              <TableCell className="text-xs">{toStr}</TableCell>
+                              <TableCell className="text-xs font-bold">{req.days}</TableCell>
+                              <TableCell className="text-right">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 text-[10px] bg-[#7B0099] text-white hover:bg-[#5c0073] font-bold"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedLeaveFormDetail(req);
+                                  }}
+                                >
+                                  View Form
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* LEAVE APPLICATION DETAIL DIALOG (MATCHES LEAVE ADMIN) */}
+      <Dialog open={!!selectedLeaveFormDetail} onOpenChange={(open) => !open && setSelectedLeaveFormDetail(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 safe-area-bottom">
+          {selectedLeaveFormDetail && (() => {
+            const req = selectedLeaveFormDetail;
+            const fromStr = new Date(req.start_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const toStr = new Date(req.end_date).toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            return (
+              <>
+                <div className="p-6 bg-gradient-to-br from-[#7B0099] to-[#a855f7] text-white print:hidden">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-3 text-white text-xl font-black tracking-tight">
+                      <FileText className="h-6 w-6" />
+                      Leave Application Detail
+                    </DialogTitle>
+                    <DialogDescription className="text-white/80 font-bold uppercase text-[10px] tracking-widest">
+                      HR Approval Registry • ID: {req.leave_id}
+                    </DialogDescription>
+                  </DialogHeader>
+                </div>
+
+                <div id="leave-form-print" className="p-4 sm:p-6 space-y-4">
+                  <div className="rounded-[24px] border border-border/50 p-4 sm:p-6 space-y-4 bg-card shadow-sm">
+                    <div className="text-center border-b-2 border-foreground/50 dark:border-purple-500/50 pb-4">
+                      <h2 className="text-2xl font-black tracking-tighter text-foreground dark:text-purple-400">RAYHAR GROUP</h2>
+                      <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">Permohonan Cuti Kakitangan</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 text-xs font-bold">
+                      <div className="space-y-1">
+                        <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Nama Penuh</span>
+                        <p className="border-b pb-1 border-border/40 truncate">{selectedEmployee?.name}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Cawangan</span>
+                        <p className="border-b pb-1 border-border/40">{selectedEmployee?.branch || "HQ"}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Jenis Cuti</span>
+                        <p className="border-b pb-1 border-border/40">{req.leave_type}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">Status</span>
+                        <p className={`font-black uppercase ${req.status === "Rejected" ? "text-rose-600" : "text-[#7B0099]"}`}>
+                          {req.status}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
+                      <div className="text-center">
+                        <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Dari</p>
+                        <p className="font-black text-xs sm:text-sm">{fromStr}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">Hingga</p>
+                        <p className="font-black text-xs sm:text-sm">{toStr}</p>
+                      </div>
+                      <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
+                        <p className="text-[9px] uppercase font-black text-[#7B0099]">Hari</p>
+                        <p className="font-black text-lg text-[#7B0099] leading-none mt-0.5">{req.days}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
+                      <p className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed">
+                        "{getCleanReason(req.reason) || "-"}"
+                      </p>
+                    </div>
+
+                    {/* Conditional Fields: Cuti Ganti */}
+                    {(req.leave_type === "Replacement Leave" || req.leave_type === "Cuti Ganti") && (() => {
+                      const rows = parseCutiGantiRows(
+                        req.reason,
+                        req.cuti_ganti_tarikh,
+                        req.cuti_ganti_hari,
+                        req.cuti_ganti_jam
+                      );
+                      return (
+                        <div className="space-y-3">
+                          <p className="text-[9px] font-black uppercase text-blue-600 opacity-80 tracking-widest px-1">Butiran Cuti Ganti</p>
+                          <div className="border border-blue-500/20 rounded-[20px] overflow-hidden bg-blue-500/5">
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="bg-blue-500/10 hover:bg-blue-500/10 border-b border-blue-500/20">
+                                  <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh Cuti</TableHead>
+                                  <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh/Hari Cuti Ganti</TableHead>
+                                  <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Keterangan / Tugasan</TableHead>
+                                  <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase text-right">Jam Bekerja</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody className="divide-y divide-blue-500/10 font-bold text-foreground/80">
+                                {rows.map((row, idx) => (
+                                  <TableRow key={idx} className="hover:bg-blue-500/5">
+                                    <TableCell className="py-2 px-4">{row.tarikhCuti || "-"}</TableCell>
+                                    <TableCell className="py-2 px-4">{row.tarikhGanti || "-"}</TableCell>
+                                    <TableCell className="py-2 px-4 whitespace-normal break-words max-w-[200px] text-[11px] text-blue-900/80 font-medium">{row.keterangan || "-"}</TableCell>
+                                    <TableCell className="py-2 px-4 text-right">{row.jamGanti || 0} Jam</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Conditional Fields: Cuti Tanpa Gaji */}
+                    {(req.leave_type === "Unpaid Leave" || req.leave_type === "Cuti Tanpa Gaji") && (
+                      <div className="grid grid-cols-2 gap-4 text-[10px] border rounded-[20px] p-4 bg-rose-500/5 border-rose-500/20">
+                        <div>
+                          <p className="uppercase font-black text-rose-600 opacity-60">No. Tel H/P</p>
+                          <p className="font-black mt-0.5">{req.cuti_tanpa_gaji_phone || "-"}</p>
+                        </div>
+                        <div>
+                          <p className="uppercase font-black text-rose-600 opacity-60">Tandatangan</p>
+                          <p className="font-black mt-0.5 text-rose-700">
+                            {req.cuti_tanpa_gaji_signature ? "✓ DISAHKAN" : "TIADA PENGESAHAN"}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Conditional Fields: Cuti Sakit (MC) */}
+                    {(req.leave_type === "Sick Leave" || req.leave_type === "Cuti Sakit") && req.mc_file_url && (
+                      <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
+                        <div className="flex items-center gap-3">
+                          <FileText className="w-5 h-5 text-[#7B0099]" />
+                          <span className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest">MC Attachment</span>
+                        </div>
+                        <a
+                          href={`${API_BASE_URL}${req.mc_file_url}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[9px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
+                        >
+                          View File
+                        </a>
+                      </div>
+                    )}
+
+                    {/* Maklumat Waris Section */}
+                    <div className="pt-4 border-t border-border/50 space-y-4">
+                      <div className="flex items-center gap-2">
+                        <PhoneCall className="w-4 h-4 text-rose-500" />
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Maklumat Waris (Kecemasan)</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 bg-muted/20 p-4 rounded-[20px]">
+                        <div className="space-y-1">
+                          <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Nama</span>
+                          <p className="text-[11px] font-bold truncate">{req.waris_nama || "-"}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Hubungan</span>
+                          <p className="text-[11px] font-bold truncate">{req.waris_hubungan || "-"}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">No. Telefon</span>
+                          <p className="text-[11px] font-black text-[#7B0099]">{req.waris_phone || "-"}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
+                          <p className="text-[10px] font-bold text-muted-foreground break-words">{req.waris_alamat || "-"}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="hidden print:grid grid-cols-2 gap-16 pt-12 pb-4">
+                      <div className="border-t border-foreground pt-2 text-center">
+                        <p className="text-[10px] font-bold uppercase">Tandatangan Kakitangan</p>
+                      </div>
+                      <div className="border-t border-foreground pt-2 text-center">
+                        <p className="text-[10px] font-bold uppercase">Kelulusan Pengurus / HR</p>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 flex justify-end gap-3 print:hidden">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
+                        onClick={() => {
+                          const originalTitle = document.title;
+                          const empName = selectedEmployee?.name || "UNKNOWN";
+                          const empId = selectedEmployee?.user_id || "UNKNOWN";
+                          const branch = selectedEmployee?.branch || "HQ";
+                          document.title = `Leave Request (${empName} - ${empId}) (${branch})`;
+                          setTimeout(() => {
+                            window.print();
+                            document.title = originalTitle;
+                          }, 100);
+                        }}
+                      >
+                        <Printer className="w-4 h-4" /> Save to PDF
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
         </DialogContent>
       </Dialog>
 

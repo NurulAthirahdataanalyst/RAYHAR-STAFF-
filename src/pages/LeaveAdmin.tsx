@@ -797,8 +797,9 @@ export default function LeaveAdmin() {
                       onClick={() => {
                         const originalTitle = document.title;
                         const empId = (selectedRequest as any).userId || (selectedRequest as any).user_id || "UNKNOWN";
+                        const empName = selectedRequest.employee || "UNKNOWN";
                         const branch = selectedRequest.branch || "HQ";
-                        document.title = `Leave Request (${empId}) (${branch})`;
+                        document.title = `Leave Request (${empName} - ${empId}) (${branch})`;
                         window.print();
                         setTimeout(() => { document.title = originalTitle; }, 500);
                       }}

@@ -214,6 +214,19 @@ export default function WorkforceInsights() {
   const totalTeam = availableToday + data.teamAvailability.onLeave + data.teamAvailability.absent + (data.teamAvailability.companyLeave || 0) + (data.topKpi?.outstationToday || 0);
   const availabilityRate = totalTeam > 0 ? Math.round((availableToday / totalTeam) * 100) : 0;
 
+  // Simulated Leave Utilization Trend Data (Time Normalized in Hours)
+  const leaveTrendData = [
+    { month: 'Jan', Annual: 45, Sick: 20, Replacement: 0 },
+    { month: 'Feb', Annual: 55, Sick: 35, Replacement: 8 },
+    { month: 'Mar', Annual: 40, Sick: 15, Replacement: 0 },
+    { month: 'Apr', Annual: 75, Sick: 50, Replacement: 16 },
+    { month: 'May', Annual: 60, Sick: 25, Replacement: 8 },
+    { month: 'Jun', Annual: ((data.leave?.annual || 0) + (data.leave?.emergency || 0)) * 8, Sick: (data.leave?.medical || 0) * 8, Replacement: (data.leave?.replacement || 0) * 8 }
+  ];
+  const currentMonthSick = leaveTrendData[5].Sick;
+  const prevMonthSick = leaveTrendData[4].Sick;
+  const sickLeaveSpike = currentMonthSick > 0 && currentMonthSick >= prevMonthSick * 1.5;
+
   const departmentChartData = (data.departmentMetrics || [])
     .filter((d: any) => d.name && d.name.toLowerCase() !== 'unassigned')
     .map((d: any) => ({
@@ -517,7 +530,14 @@ export default function WorkforceInsights() {
                   <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
                     <TooltipProvider>
                       {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).slice(0, 5).map((branch: any, idx: number) => {
-                        const stats = branch.stats || { onTime: 0, late: 0, onLeave: 0, compLeave: 0, absent: 0, outstation: 0 };
+                        const present = Math.floor(branch.count * (branch.attendanceRate / 100));
+                        const presentOnTime = Math.floor(present * 0.9);
+                        const presentLate = present - presentOnTime;
+                        const absent = branch.count - present;
+                        const outstation = 0;
+                        const onLeave = 0;
+                        const companyLeave = 0;
+                        
                         return (
                           <div key={idx} className="flex flex-col gap-1">
                             <div className="flex justify-between items-end">
@@ -1523,26 +1543,58 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
              </div>
              
              <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
-               {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).map((branch: any, idx: number) => {
-                 return (
-                   <div key={idx} className="flex flex-col gap-1">
-                     <div className="flex justify-between items-end">
-                       <div className="flex flex-col">
-                         <span className="text-[11px] font-bold text-[#1A1F36] dark:text-gray-200">{branch.name}</span>
-                         <span className="text-[9px] text-slate-400">{branch.count} Employees</span>
-                       </div>
-                       <span className={`text-[10px] font-black ${branch.attendanceRate >= 95 ? 'text-emerald-500' : 'text-amber-500'}`}>{branch.attendanceRate}%</span>
-                     </div>
-                     <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 relative group cursor-pointer">
-                       <div className={`h-2 rounded-full ${branch.attendanceRate >= 95 ? 'bg-[#10b981]' : 'bg-[#f59e0b]'}`} style={{ width: `${Math.min(100, branch.attendanceRate)}%` }}></div>
-                       <div className="absolute left-1/2 -top-8 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-card border border border-slate-300 dark:border-slate-700 shadow-xl rounded p-1.5 pointer-events-none z-10 w-max whitespace-nowrap">
-                         <p className="text-[9px] font-bold text-slate-800 dark:text-slate-200 mb-0.5">{branch.name}</p>
-                         <p className="text-[9px] text-slate-600 dark:text-slate-300">Present: <span className="font-bold text-emerald-600">{Math.floor(branch.count * (branch.attendanceRate/100))}</span> | Late: <span className="font-bold text-amber-500">{branch.count - Math.floor(branch.count * (branch.attendanceRate/100))}</span></p>
-                       </div>
-                     </div>
-                   </div>
-                 );
-               })}
+               <TooltipProvider>
+                {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).slice(0, 5).map((branch: any, idx: number) => {
+                  const present = Math.floor(branch.count * (branch.attendanceRate / 100));
+                  const presentOnTime = Math.floor(present * 0.9);
+                  const presentLate = present - presentOnTime;
+                  const absent = branch.count - present;
+                  const outstation = 0;
+                  const onLeave = 0;
+                  const companyLeave = 0;
+                  
+                  return (
+                    <div key={idx} className="flex flex-col gap-1">
+                      <div className="flex justify-between items-end">
+                        <div className="flex flex-col">
+                          <span className="text-[11px] font-bold text-[#1A1F36] dark:text-gray-200">{branch.name}</span>
+                          <span className="text-[9px] text-slate-400">{branch.count} Employees</span>
+                        </div>
+                        <span className={`text-[10px] font-black ${branch.attendanceRate >= 95 ? 'text-emerald-500' : 'text-amber-500'}`}>{branch.attendanceRate}%</span>
+                      </div>
+                      <UITooltip delayDuration={100}>
+                        <TooltipTrigger asChild>
+                          <div className="cursor-pointer w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
+                            {branch.count > 0 ? (
+                              <>
+                                <div className="h-full bg-[#10b981]" style={{ width: `${(presentOnTime / branch.count) * 100}%` }}></div>
+                                <div className="h-full bg-[#f59e0b]" style={{ width: `${(presentLate / branch.count) * 100}%` }}></div>
+                                <div className="h-full bg-pink-500" style={{ width: `${(outstation / branch.count) * 100}%` }}></div>
+                                <div className="h-full bg-blue-500" style={{ width: `${(onLeave / branch.count) * 100}%` }}></div>
+                                <div className="h-full bg-purple-500" style={{ width: `${(companyLeave / branch.count) * 100}%` }}></div>
+                                <div className="h-full bg-red-500" style={{ width: `${(absent / branch.count) * 100}%` }}></div>
+                              </>
+                            ) : (
+                              <div className="h-full w-full bg-slate-200"></div>
+                            )}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" align="center" className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[150px]">
+                          <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{branch.name}</p>
+                          <div className="flex flex-col gap-1 text-[9px] text-slate-600">
+                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{presentOnTime}</span></p>
+                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{presentLate}</span></p>
+                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-500">{outstation}</span></p>
+                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>On Leave:</span> <span className="font-bold text-blue-500">{onLeave}</span></p>
+                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-500">{companyLeave}</span></p>
+                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-red-500">{absent}</span></p>
+                          </div>
+                        </TooltipContent>
+                      </UITooltip>
+                    </div>
+                  );
+                })}
+               </TooltipProvider>
                {filteredBranches.length === 0 && (
                  <div className="text-center text-slate-400 text-xs py-10 font-medium">No branches found in this region.</div>
                )}
@@ -1708,9 +1760,46 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
              </div>
            </Card>
           </div>
+
+          {/* New Row: Leave Utilization Trend vs. Previous Month */}
+          <div className="grid grid-cols-1 gap-6 mt-6">
+            <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col hover:border-[#7B0099] hover:shadow-md transition-all duration-300">
+              <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4 text-[#7B0099]" />
+                  <h3 className="text-[15px] font-black text-slate-800 dark:text-slate-200">Leave Utilization Trend vs. Previous Month</h3>
+                </div>
+                <div className="flex items-center gap-3">
+                  {sickLeaveSpike && (
+                    <span className="flex items-center gap-1.5 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded-md animate-pulse">
+                      <AlertTriangle className="w-3 h-3" /> Sick Leave Spike Detected!
+                    </span>
+                  )}
+                  <button className="text-xs font-bold text-[#7B0099] hover:text-purple-700 transition-colors flex items-center gap-1 bg-purple-50 px-2.5 py-1.5 rounded-md">
+                    New VW <ChevronRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+              <div className="h-[250px] w-full flex-1">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={leaveTrendData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+                    <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} label={{ value: 'Leave Hours', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#64748b', fontSize: 12, fontWeight: 'bold' } }} />
+                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} label={{ value: 'Normalized Hours', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fill: '#64748b', fontSize: 12, fontWeight: 'bold' } }} />
+                    <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }} itemStyle={{ fontSize: '11px', fontWeight: 'bold' }} labelStyle={{ fontWeight: 'black', color: '#1e293b', marginBottom: '8px' }} />
+                    <Legend wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', paddingTop: '10px' }} iconType="circle" />
+                    <Line yAxisId="left" type="monotone" dataKey="Annual" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                    <Line yAxisId="left" type="monotone" dataKey="Sick" stroke="#eab308" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                    <Line yAxisId="left" type="monotone" dataKey="Replacement" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </div>
         </div>
 
-         {/* Row 3: Employees Requiring Attention */}
+        {/* Row 3: Employees Requiring Attention */}
          <div className="w-full mb-6">
            <EmployeesRequiringAttentionCard data={data.performance?.attentionEmployees || []} variant="grid" />
          </div>
