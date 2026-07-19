@@ -407,7 +407,7 @@
   [class*="bg-card/"],
   [class*="bg-card"] {
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.025) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+    /* border removed to fix overriding tailwind classes */
   }
 
   .dark .card,
@@ -415,7 +415,7 @@
   .dark [class*="bg-card/"],
   .dark [class*="bg-card"] {
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.05) !important;
+    /* border removed to fix overriding tailwind classes */
   }
 
   /* Ensure cards with backdrop blur filter look high-res and clean */
