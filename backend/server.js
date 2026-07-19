@@ -6017,6 +6017,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
             branchStats[b].absent++;
          }
       }
+      const d = p.department;
       if (d && departmentStats[d]) {
          const isOnLeave = leaveRows.some(lr => lr.user_id === p.user_id && lr.status === 'Approved' && targetDateStr >= new Date(new Date(lr.start_date).getTime() + 8*3600*1000).toISOString().split('T')[0] && targetDateStr <= new Date(new Date(lr.end_date).getTime() + 8*3600*1000).toISOString().split('T')[0]);
          const isCompanyLeave = companyLeaveEmployees.has(p.user_id);
