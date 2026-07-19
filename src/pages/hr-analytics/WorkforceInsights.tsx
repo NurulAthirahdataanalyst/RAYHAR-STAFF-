@@ -529,7 +529,7 @@ export default function WorkforceInsights() {
                 <CardContent className="p-5 flex flex-col">
                   <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
                     <TooltipProvider>
-                      {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).slice(0, 5).map((branch: any, idx: number) => {
+                      {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).map((branch: any, idx: number) => {
                         const present = Math.floor(branch.count * (branch.attendanceRate / 100));
                         const presentOnTime = Math.floor(present * 0.9);
                         const presentLate = present - presentOnTime;
@@ -587,7 +587,7 @@ export default function WorkforceInsights() {
                   <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                      <span className="text-[10px] font-semibold text-slate-400">Showing {Math.min(5, filteredBranches.length)} locations</span>
+                      <span className="text-[10px] font-semibold text-slate-400">Showing all {filteredBranches.length} locations</span>
                     </div>
                     <Link to="/branches" className="text-[11px] font-bold text-[#4f46e5] hover:text-[#4338ca] transition-colors flex items-center group/link">
                       View all
