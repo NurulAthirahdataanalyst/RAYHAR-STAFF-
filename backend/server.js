@@ -7468,7 +7468,7 @@ async function getWorkforceCalendarData(role, branch, department) {
     const leaveParamsCopy = [...params];
     const [leaveRows] = await pool.query(
       `SELECT lr.leave_id AS id, lr.user_id, p.full_name, p.branch, p.department,
-              lr.leave_type, lr.start_date, lr.end_date, lr.days, lr.status
+              lr.leave_type, lr.start_date, lr.end_date, lr.days, lr.status, lr.reason
        FROM leave_requests lr
        JOIN profiles p ON p.user_id = lr.user_id
        WHERE lr.status IN ('Approved')
@@ -7477,24 +7477,52 @@ async function getWorkforceCalendarData(role, branch, department) {
       leaveParamsCopy
     );
     for (const r of leaveRows) {
-      events.push({
-        id: `leave-${r.id}`,
-        source: 'leave',
-        employee: r.full_name || r.user_id,
-        user_id: r.user_id,
-        branch: r.branch,
-        department: r.department,
-        type: r.leave_type || 'Leave',
-        start_date: r.start_date ? new Date(r.start_date).toISOString().split('T')[0] : null,
-        end_date: r.end_date ? new Date(r.end_date).toISOString().split('T')[0] : null,
-        status: r.status,
-        days: r.days,
-      });
+      let isParsed = false;
+      if (r.leave_type === 'Replacement Leave' && r.reason && r.reason.includes('[CUTI_GANTI_DATA:')) {
+        try {
+          const jsonStr = r.reason.substring(r.reason.indexOf('[CUTI_GANTI_DATA:') + 17, r.reason.lastIndexOf(']]') + 1);
+          const data = JSON.parse(jsonStr);
+          for (const cg of data) {
+            if (cg.tarikhCuti) {
+              events.push({
+                id: `leave-${r.id}-${cg.tarikhCuti}`,
+                source: 'leave',
+                employee: r.full_name || r.user_id,
+                user_id: r.user_id,
+                branch: r.branch,
+                department: r.department,
+                type: r.leave_type || 'Leave',
+                start_date: cg.tarikhCuti,
+                end_date: cg.tarikhCuti,
+                status: r.status,
+                days: 1,
+              });
+              isParsed = true;
+            }
+          }
+        } catch (e) { console.error('Error parsing CUTI_GANTI_DATA for calendar:', e.message); }
+      }
+      
+      if (!isParsed) {
+        events.push({
+          id: `leave-${r.id}`,
+          source: 'leave',
+          employee: r.full_name || r.user_id,
+          user_id: r.user_id,
+          branch: r.branch,
+          department: r.department,
+          type: r.leave_type || 'Leave',
+          start_date: r.start_date ? new Date(r.start_date).toISOString().split('T')[0] : null,
+          end_date: r.end_date ? new Date(r.end_date).toISOString().split('T')[0] : null,
+          status: r.status,
+          days: r.days,
+        });
+      }
     }
     // Also include pending leaves
     const [pendingRows] = await pool.query(
       `SELECT lr.leave_id AS id, lr.user_id, p.full_name, p.branch, p.department,
-              lr.leave_type, lr.start_date, lr.end_date, lr.days, lr.status
+              lr.leave_type, lr.start_date, lr.end_date, lr.days, lr.status, lr.reason
        FROM leave_requests lr
        JOIN profiles p ON p.user_id = lr.user_id
        WHERE lr.status LIKE 'Pending%'
@@ -7503,19 +7531,47 @@ async function getWorkforceCalendarData(role, branch, department) {
       [...params]
     );
     for (const r of pendingRows) {
-      events.push({
-        id: `leave-pending-${r.id}`,
-        source: 'leave',
-        employee: r.full_name || r.user_id,
-        user_id: r.user_id,
-        branch: r.branch,
-        department: r.department,
-        type: r.leave_type || 'Leave',
-        start_date: r.start_date ? new Date(r.start_date).toISOString().split('T')[0] : null,
-        end_date: r.end_date ? new Date(r.end_date).toISOString().split('T')[0] : null,
-        status: r.status,
-        days: r.days,
-      });
+      let isParsed = false;
+      if (r.leave_type === 'Replacement Leave' && r.reason && r.reason.includes('[CUTI_GANTI_DATA:')) {
+        try {
+          const jsonStr = r.reason.substring(r.reason.indexOf('[CUTI_GANTI_DATA:') + 17, r.reason.lastIndexOf(']]') + 1);
+          const data = JSON.parse(jsonStr);
+          for (const cg of data) {
+            if (cg.tarikhCuti) {
+              events.push({
+                id: `leave-pending-${r.id}-${cg.tarikhCuti}`,
+                source: 'leave',
+                employee: r.full_name || r.user_id,
+                user_id: r.user_id,
+                branch: r.branch,
+                department: r.department,
+                type: r.leave_type || 'Leave',
+                start_date: cg.tarikhCuti,
+                end_date: cg.tarikhCuti,
+                status: r.status,
+                days: 1,
+              });
+              isParsed = true;
+            }
+          }
+        } catch (e) { console.error('Error parsing CUTI_GANTI_DATA for calendar:', e.message); }
+      }
+      
+      if (!isParsed) {
+        events.push({
+          id: `leave-pending-${r.id}`,
+          source: 'leave',
+          employee: r.full_name || r.user_id,
+          user_id: r.user_id,
+          branch: r.branch,
+          department: r.department,
+          type: r.leave_type || 'Leave',
+          start_date: r.start_date ? new Date(r.start_date).toISOString().split('T')[0] : null,
+          end_date: r.end_date ? new Date(r.end_date).toISOString().split('T')[0] : null,
+          status: r.status,
+          days: r.days,
+        });
+      }
     }
   } catch (e) { console.error('workforce-calendar leave fetch error:', e); }
 

@@ -271,6 +271,7 @@ export default function WorkforceCalendar() {
           { key: "Annual Leave",    label: "Annual Leave" },
           { key: "Sick Leave",      label: "Sick Leave" },
           { key: "Emergency Leave", label: "Emergency Leave" },
+          { key: "Replacement Leave", label: "Replacement Leave" },
           { key: "Outstation",      label: "Outstation" },
           { key: "Company Leave",   label: "Company Leave" },
           { key: "Pending",         label: "Pending" },
