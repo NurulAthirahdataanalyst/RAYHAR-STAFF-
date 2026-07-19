@@ -6046,6 +6046,9 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       total: parseInt(r.total) || 14
     }));
 
+    const branchZoneMap = await getBranchZoneMap();
+    const dateObj = new Date(targetDateStr);
+    
     let finalAbsentList = [];
     allProfiles.forEach(p => {
        const isOnLeave = leaveRows.some(lr => lr.user_id === p.user_id && lr.status === 'Approved' && targetDateStr >= new Date(new Date(lr.start_date).getTime() + 8*3600*1000).toISOString().split('T')[0] && targetDateStr <= new Date(new Date(lr.end_date).getTime() + 8*3600*1000).toISOString().split('T')[0]);
@@ -6055,13 +6058,17 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
        const att = attRows.find(a => a.user_id === p.user_id && new Date(new Date(a.clock_in).getTime() + 8*3600*1000).toISOString().split('T')[0] === targetDateStr);
        const isPresent = !!att;
 
+       const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
+       const isWeekend = checkIsWeekend(userZone, dateObj);
+       const matchingHoliday = malaysiaHolidays.find(h => h.date === targetDateStr);
+
        if (isOnLeave) {
           finalAbsentList.push({ user_id: p.user_id, full_name: p.full_name, initials: p.full_name.split(' ').map(n=>n[0]).join('').substring(0,2), department: p.department || '—', branch: p.branch || '—', status: 'onLeave' });
        } else if (isCompanyLeave) {
           finalAbsentList.push({ user_id: p.user_id, full_name: p.full_name, initials: p.full_name.split(' ').map(n=>n[0]).join('').substring(0,2), department: p.department || '—', branch: p.branch || '—', status: 'companyLeave' });
        } else if (isOutstation) {
           if (!isPresent) finalAbsentList.push({ user_id: p.user_id, full_name: p.full_name, initials: p.full_name.split(' ').map(n=>n[0]).join('').substring(0,2), department: p.department || '—', branch: p.branch || '—', status: 'outstation' });
-       } else if (!isPresent) {
+       } else if (!isPresent && !isWeekend && !matchingHoliday) {
           finalAbsentList.push({ user_id: p.user_id, full_name: p.full_name, initials: p.full_name.split(' ').map(n=>n[0]).join('').substring(0,2), department: p.department || '—', branch: p.branch || '—', status: 'absent' });
        }
     });
