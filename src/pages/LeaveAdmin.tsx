@@ -628,6 +628,7 @@ export default function LeaveAdmin() {
                               <TableRow className="bg-blue-500/10 hover:bg-blue-500/10 border-b border-blue-500/20">
                                 <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh Cuti</TableHead>
                                 <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh/Hari Cuti Ganti</TableHead>
+                                <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Keterangan / Tugasan</TableHead>
                                 <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase text-right">Jam Bekerja</TableHead>
                                 <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase text-center">Status</TableHead>
                               </TableRow>
@@ -659,6 +660,7 @@ export default function LeaveAdmin() {
                                     <TableRow key={idx} className="hover:bg-blue-500/5">
                                       <TableCell className="py-2 px-4">{row.tarikhCuti || "-"}</TableCell>
                                       <TableCell className="py-2 px-4">{row.tarikhGanti || "-"}</TableCell>
+                                      <TableCell className="py-2 px-4 whitespace-normal break-words max-w-[200px] text-[11px] text-blue-900/80 font-medium">{row.keterangan || "-"}</TableCell>
                                       <TableCell className="py-2 px-4 text-right">
                                         {validation?.actual_hours !== undefined && validation.actual_hours !== null ? (
                                           <span className="font-bold text-blue-600">{Number(validation.actual_hours).toFixed(1)} / {row.jamGanti || 4} Jam</span>
