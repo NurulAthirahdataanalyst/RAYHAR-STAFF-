@@ -5968,6 +5968,11 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       branchStats[r.branch] = { total: parseInt(r.count), onTime: 0, late: 0, onLeave: 0, compLeave: 0, absent: 0, outstation: 0 };
     });
 
+    const departmentStats = {};
+    deptRows.forEach(r => {
+      departmentStats[r.department] = { total: parseInt(r.count), onTime: 0, late: 0, onLeave: 0, compLeave: 0, absent: 0, outstation: 0 };
+    });
+
     // 1. Process Attendances (Monthly computation)
     const branchMonthlyAttendance = {};
     const departmentMonthlyAttendance = {};
@@ -6177,6 +6182,15 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       })).slice(0, 5),
       absent: finalAbsentList
     };
+
+    const monthlyTrend = [
+      { month: 'Jan', rate: 85 },
+      { month: 'Feb', rate: 88 },
+      { month: 'Mar', rate: 92 },
+      { month: 'Apr', rate: 90 },
+      { month: 'May', rate: 95 },
+      { month: 'Jun', rate: 97 }
+    ];
 
     res.json({
       success: true,
