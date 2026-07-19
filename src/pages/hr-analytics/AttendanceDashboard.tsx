@@ -1017,7 +1017,7 @@ export default function AttendanceDashboard() {
               { label: "Company Leave", val: `${liveStats.total > 0 ? Math.round(((liveStats.companyLeave || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.companyLeave || 0} / ${liveStats.total} Employees`, color: "text-indigo-600", bg: "bg-indigo-50", icon: <Building2 className="w-5 h-5"/>, trend: "—" },
               { label: "Outstation", val: `${liveStats.total > 0 ? Math.round(((liveStats.outstation || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.outstation || 0} / ${liveStats.total} Employees`, color: "text-pink-600", bg: "bg-pink-50", icon: <MapPin className="w-5 h-5"/>, trend: "—" },
             ].map((k, i) => (
-              <div key={i} className={`border border-slate-200 dark:border-slate-700 bg-white dark:bg-card rounded-md shadow-none p-4 flex flex-col justify-between h-[130px] transition-all duration-200 cursor-pointer hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50`}>
+              <div key={i} className={`relative overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-card rounded-md shadow-none p-4 pb-5 flex flex-col justify-between h-[130px] transition-all duration-200 cursor-pointer hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50`}>
                 <div className="flex items-start justify-between">
                   <div className={`p-2 rounded-lg ${k.bg} ${k.color}`}>
                     {k.icon}
@@ -1030,6 +1030,13 @@ export default function AttendanceDashboard() {
                     <p className={`text-[9px] font-medium ${k.trend.includes('↑') ? 'text-emerald-600' : 'text-slate-400'}`}>{k.trend}</p>
                     <p className="text-[10px] text-slate-700 font-bold whitespace-nowrap">{k.sub}</p>
                   </div>
+                </div>
+                {/* Integrated Progress Bar at the bottom edge */}
+                <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-slate-100 dark:bg-slate-800/50">
+                  <div 
+                    className={`h-full ${k.color.replace('text-', 'bg-')}`} 
+                    style={{ width: k.val }}
+                  />
                 </div>
               </div>
             ))}
