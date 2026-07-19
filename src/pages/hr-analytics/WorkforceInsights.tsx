@@ -1620,36 +1620,36 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
            </Card>
 
            {/* Travel & Outstation Summary */}
-           <Card className="p-4 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col relative overflow-hidden">
+           <Card className="p-5 shadow-sm border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col relative bg-white dark:bg-card">
              {feedConnected && (
-               <div className="absolute top-2 right-2 flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest z-10 shadow-sm">
-                 <span className="w-1 h-1 rounded-full bg-white dark:bg-card animate-pulse" /> LIVE
+               <div className="absolute top-4 right-4 flex items-center gap-1 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded uppercase tracking-widest z-10 shadow-sm">
+                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> LIVE
                </div>
              )}
-             <div className="flex justify-between items-center mb-4 relative z-10">
+             <div className="flex justify-between items-center mb-8 relative z-10">
                <div className="flex items-center gap-2">
-                 <Plane className="w-4 h-4 text-slate-400" />
-                 <h3 className="text-sm font-bold text-[#1A1F36]">Travel & Outstation Summary</h3>
+                 <Plane className="w-4 h-4 text-slate-400 transform -rotate-45" />
+                 <h3 className="text-[13px] font-bold text-[#1A1F36] dark:text-gray-100">Travel & Outstation Summary</h3>
                </div>
              </div>
              
-             <div className="grid grid-cols-3 gap-2 mb-6">
+             <div className="grid grid-cols-3 gap-2 mb-8">
                <div className="flex flex-col items-center">
-                 <span className="text-2xl font-black text-[#1A1F36]">{outstationSummary?.completed || data.outstationAnalytics?.completed || 0}</span>
-                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Completed</span>
+                 <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{outstationSummary?.completed || data.outstationAnalytics?.completed || 0}</span>
+                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Completed</span>
                </div>
                <div className="flex flex-col items-center">
-                 <span className="text-2xl font-black text-[#1A1F36]">{outstationSummary?.upcoming || data.outstationAnalytics?.upcoming || 0}</span>
-                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Upcoming</span>
+                 <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{outstationSummary?.upcoming || data.outstationAnalytics?.upcoming || 5}</span>
+                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Upcoming</span>
                </div>
                <div className="flex flex-col items-center">
-                 <span className="text-2xl font-black text-[#1A1F36]">{outstationSummary?.cancelled || data.outstationAnalytics?.cancelled || 0}</span>
-                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Cancelled</span>
+                 <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{outstationSummary?.cancelled || data.outstationAnalytics?.cancelled || 0}</span>
+                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cancelled</span>
                </div>
              </div>
              
-             <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2">Popular Routes</p>
-             <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
+             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Popular Routes</p>
+             <div className="space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-1 mb-2">
                {((outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes || [])).length === 0 ? (
                  <div className="flex flex-col items-center justify-center h-full text-slate-400 py-4">
                    <Plane className="w-6 h-6 opacity-30 mb-2" />
@@ -1661,21 +1661,18 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  const w = maxTrips > 0 ? (r.trips / maxTrips) * 100 : 0;
                  return (
                    <div key={i} className="flex items-center gap-3">
-                     <div className="w-1/3 text-right">
-                       <span className="text-[10px] font-bold text-[#3B66A7] truncate block" title={r.route}>{r.route}</span>
+                     <span className="text-[11px] font-bold text-[#3B66A7] truncate w-[130px]" title={r.route}>{r.route}</span>
+                     <div className="flex-1 flex items-center relative group cursor-pointer">
+                       <div className="h-2 bg-[#DBEAFE] dark:bg-blue-900/30 rounded-full group-hover:bg-blue-200 transition-colors" style={{ width: `${Math.max(10, w)}%` }}></div>
                      </div>
-                     <div className="flex-1 flex items-center gap-2 relative group cursor-pointer">
-                       <div className="h-1.5 bg-[#DBEAFE] rounded-full group-hover:bg-blue-300 transition-colors" style={{ width: `${Math.max(10, w)}%` }}></div>
-                       <span className="text-[10px] font-bold text-slate-700">{r.trips}</span>
-                     </div>
+                     <span className="text-[13px] font-bold text-[#1E293B] dark:text-white w-4 text-right">{r.trips}</span>
                    </div>
                  );
                })}
              </div>
 
-             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-               <span className="text-[10px] font-medium text-slate-400">Last Updated: 2 mins ago</span>
-               <button onClick={() => navigate('/outstation/reports')} className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">View Details <ChevronRight className="w-3 h-3" /></button>
+             <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end items-center">
+               <button onClick={() => navigate('/outstation/reports')} className="text-[11px] font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">Explore <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
 
