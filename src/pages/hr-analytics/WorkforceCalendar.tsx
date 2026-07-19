@@ -86,9 +86,9 @@ export default function WorkforceCalendar() {
   const [events, setEvents] = useState<WorkforceEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<WorkforceEvent | null>(null);
-  const [filterSource, setFilterSource] = useState("All");
-  const [filterBranch, setFilterBranch] = useState("All");
-  const [filterDept, setFilterDept] = useState("All");
+  const [filterType, setFilterType] = useState("All Types");
+  const [filterBranch, setFilterBranch] = useState("__ALL__");
+  const [filterDept, setFilterDept] = useState("__ALL__");
   const [branches, setBranches] = useState<string[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
   const [connected, setConnected] = useState(false);
@@ -160,28 +160,42 @@ export default function WorkforceCalendar() {
     });
   }, [viewYear, viewMonth]);
 
+  // KPI for "current month"
+  const monthStartStr = format(new Date(viewYear, viewMonth, 1), 'yyyy-MM-dd');
+  const monthEndStr = format(new Date(viewYear, viewMonth + 1, 0), 'yyyy-MM-dd');
+  
+  const currentMonthEvents = events.filter(e => e.start_date <= monthEndStr && e.end_date >= monthStartStr);
+  const kpiAnnual = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type?.includes("Annual"));
+  const kpiSick = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type?.includes("Sick"));
+  const kpiEmergency = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type?.includes("Emergency"));
+  const kpiOutstation = currentMonthEvents.filter(e => e.source === "outstation");
+  const kpiCompany = currentMonthEvents.filter(e => e.source === "company_leave");
+  const kpiPending = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Pending");
+
   const getEventsForDay = (day: Date): WorkforceEvent[] => {
     const dateStr = format(day, 'yyyy-MM-dd');
     return events
       .filter(e => {
         if (!e.start_date || !e.end_date) return false;
-        if (filterSource !== "All" && e.source !== filterSource) return false;
-        if (filterBranch !== "All" && e.branch !== filterBranch) return false;
-        if (filterDept !== "All" && e.department !== filterDept) return false;
+        
+        if (filterType !== "All Types") {
+          if (filterType === "Outstation") {
+            if (e.source !== "outstation") return false;
+          } else if (filterType === "Company Leave") {
+            if (e.source !== "company_leave") return false;
+          } else if (filterType === "Pending") {
+            if (e.status !== "Pending") return false;
+          } else {
+            if (e.source !== "leave" || !e.type?.includes(filterType.split(" ")[0])) return false;
+          }
+        }
+        
+        if (filterBranch !== "__ALL__" && e.branch !== filterBranch) return false;
+        if (filterDept !== "__ALL__" && e.department !== filterDept) return false;
         return e.start_date <= dateStr && e.end_date >= dateStr;
       })
       .sort((a, b) => getEventPriority(a) - getEventPriority(b));
   };
-
-  // KPI for "today"
-  const todayStr = today.toISOString().split("T")[0];
-  const todayEvents = events.filter(e => e.start_date <= todayStr && e.end_date >= todayStr);
-  const todayAnnual = todayEvents.filter(e => e.source === "leave" && e.status === "Approved" && (e.type === "Annual Leave" || e.type === "Annual & Emergency Leave"));
-  const todaySick = todayEvents.filter(e => e.source === "leave" && e.status === "Approved" && (e.type === "Sick Leave (MC)" || e.type === "Sick Leave"));
-  const todayEmergency = todayEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type === "Emergency Leave");
-  const todayOutstation = todayEvents.filter(e => e.source === "outstation");
-  const todayCompany = todayEvents.filter(e => e.source === "company_leave");
-  const todayPending = todayEvents.filter(e => e.source === "leave" && e.status?.startsWith("Pending"));
 
   const prevMonth = () => { if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); } else setViewMonth(m => m - 1); };
   const nextMonth = () => { if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); } else setViewMonth(m => m + 1); };
@@ -198,12 +212,12 @@ export default function WorkforceCalendar() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { label: "Annual Leave", value: todayAnnual.length, dot: "bg-emerald-500", icon: Calendar },
-          { label: "Sick Leave", value: todaySick.length, dot: "bg-red-500", icon: Activity },
-          { label: "Emergency Leave", value: todayEmergency.length, dot: "bg-orange-500", icon: AlertCircle },
-          { label: "Outstation", value: todayOutstation.length, dot: "bg-blue-500", icon: Plane },
-          { label: "Company Leave", value: todayCompany.length, dot: "bg-purple-500", icon: Building2 },
-          { label: "Pending", value: todayPending.length, dot: "bg-amber-400", icon: FileText },
+          { label: "Annual Leave", value: kpiAnnual.length, dot: "bg-emerald-500", icon: Calendar },
+          { label: "Sick Leave", value: kpiSick.length, dot: "bg-red-500", icon: Activity },
+          { label: "Emergency Leave", value: kpiEmergency.length, dot: "bg-orange-500", icon: AlertCircle },
+          { label: "Outstation", value: kpiOutstation.length, dot: "bg-blue-500", icon: Plane },
+          { label: "Company Leave", value: kpiCompany.length, dot: "bg-purple-500", icon: Building2 },
+          { label: "Pending", value: kpiPending.length, dot: "bg-amber-400", icon: FileText },
         ].map(kpi => (
           <Card key={kpi.label} className="border border-gray-200 dark:border-slate-800/80 shadow-sm">
             <CardContent className="p-4 flex items-center gap-3">
@@ -230,25 +244,31 @@ export default function WorkforceCalendar() {
 
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-2">
-            <Select value={filterSource} onValueChange={setFilterSource}>
+            <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger className="w-[145px] h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {Object.entries(SOURCE_LABELS).map(([v, l]) => <SelectItem key={v} value={v} className="text-xs">{l}</SelectItem>)}
+                {["All Types", "Annual Leave", "Sick Leave", "Emergency Leave", "Replacement Leave", "Outstation", "Company Leave", "Pending"].map(t => (
+                  <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             {canFilterBranchDept && (
               <>
                 <Select value={filterBranch} onValueChange={setFilterBranch}>
-                  <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue placeholder="All Branches" /></SelectTrigger>
+                  <SelectTrigger className="w-[140px] h-8 text-xs">
+                    <SelectValue placeholder="All Branches" />
+                  </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="All" className="text-xs">All Branches</SelectItem>
+                    <SelectItem value="__ALL__" className="text-xs">All Branches</SelectItem>
                     {branches.map(b => <SelectItem key={b} value={b} className="text-xs">{b}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <Select value={filterDept} onValueChange={setFilterDept}>
-                  <SelectTrigger className="w-[150px] h-8 text-xs"><SelectValue placeholder="All Departments" /></SelectTrigger>
+                  <SelectTrigger className="w-[155px] h-8 text-xs">
+                    <SelectValue placeholder="All Departments" />
+                  </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="All" className="text-xs">All Departments</SelectItem>
+                    <SelectItem value="__ALL__" className="text-xs">All Departments</SelectItem>
                     {departments.map(d => <SelectItem key={d} value={d} className="text-xs">{d}</SelectItem>)}
                   </SelectContent>
                 </Select>
