@@ -1017,7 +1017,7 @@ export default function AttendanceDashboard() {
               { label: "Company Leave", val: `${liveStats.total > 0 ? Math.round(((liveStats.companyLeave || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.companyLeave || 0} / ${liveStats.total} Employees`, color: "text-indigo-600", bg: "bg-indigo-50", icon: <Building2 className="w-5 h-5"/>, trend: "—" },
               { label: "Outstation", val: `${liveStats.total > 0 ? Math.round(((liveStats.outstation || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.outstation || 0} / ${liveStats.total} Employees`, color: "text-pink-600", bg: "bg-pink-50", icon: <MapPin className="w-5 h-5"/>, trend: "—" },
             ].map((k, i) => (
-              <div key={i} className={`border !border-slate-300 dark:!border-slate-700 bg-white dark:bg-card rounded-xl !shadow-none p-4 flex flex-col justify-between h-[130px] transition-all duration-300`}>
+              <div key={i} className={`border !border-slate-200 dark:!border-slate-700 bg-white dark:bg-card !rounded-md !shadow-none p-4 flex flex-col justify-between h-[130px] transition-all duration-300`}>
                 <div className="flex items-start justify-between">
                   <div className={`p-2 rounded-lg ${k.bg} ${k.color}`}>
                     {k.icon}
