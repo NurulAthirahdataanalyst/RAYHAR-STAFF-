@@ -289,7 +289,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           child.roles.includes(role || "employee")
         );
         const hasActiveChild = visibleChildren.some(child =>
-          child.path && (location.pathname === child.path || location.pathname.startsWith(`${child.path}/`))
+          child.path && (location.pathname === child.path || (child.path !== item.path && location.pathname.startsWith(`${child.path}/`)))
         );
         const isParentActive = item.path && location.pathname === item.path;
         if (hasActiveChild || isParentActive) {
@@ -373,7 +373,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
             );
             const hasChildren = !!visibleChildren?.length;
             const hasActiveChild = hasChildren && visibleChildren.some(child =>
-              child.path && (location.pathname === child.path || location.pathname.startsWith(`${child.path}/`))
+              child.path && (location.pathname === child.path || (child.path !== item.path && location.pathname.startsWith(`${child.path}/`)))
             );
             const isActive =
               item.path === "/"
@@ -445,7 +445,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                   <div className="relative pl-[2.25rem] pr-6 py-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
                     <div className="absolute left-[1.1rem] top-0 bottom-4 w-px bg-sidebar-border"></div>
                     {visibleChildren.map((child) => {
-                      const isChildActive = child.path && (location.pathname === child.path || location.pathname.startsWith(`${child.path}/`));
+                      const isChildActive = child.path && (location.pathname === child.path || (child.path !== item.path && location.pathname.startsWith(`${child.path}/`)));
                       return (
                         <Link
                           key={child.title}
@@ -475,7 +475,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                     {/* Submenu Items */}
                     <div className="space-y-1">
                       {visibleChildren.map((child) => {
-                        const isChildActive = child.path && (location.pathname === child.path || location.pathname.startsWith(`${child.path}/`));
+                        const isChildActive = child.path && (location.pathname === child.path || (child.path !== item.path && location.pathname.startsWith(`${child.path}/`)));
                         return (
                           <Link
                             key={child.title}
