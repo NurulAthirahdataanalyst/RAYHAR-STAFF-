@@ -5994,7 +5994,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       `SELECT lr.leave_type, COUNT(*) as count 
        FROM leave_requests lr
        JOIN profiles p ON p.user_id = lr.user_id
-       WHERE lr.status = 'APPROVED'
+       WHERE lr.status = 'Approved'
        ${profileFilter}
        GROUP BY lr.leave_type`,
       pFilterParams

@@ -17,7 +17,7 @@ import { EmployeesRequiringAttentionCard } from '@/components/shared/EmployeesRe
 
 const COLORS = ['#4f46e5', '#eab308', '#94a3b8', '#DC2626', '#a855f7', '#ec4899']; // Present, Late, On Leave, Absent, Comp Leave, Outstation
 
-const cardHoverEffect = "transition-all duration-300 hover:shadow-[0_0_15px_rgba(123,0,153,0.15)] hover:border-[#7B0099]/30 hover:-translate-y-0.5";
+const cardHoverEffect = "cursor-pointer hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200";
 
 const AVATAR_COLORS = [
   "bg-purple-100 text-purple-700",
