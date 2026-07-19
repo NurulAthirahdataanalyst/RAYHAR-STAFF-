@@ -1324,9 +1324,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
   const leaveData = [
     { name: 'Annual/Emergency Leave', value: (leave.annual || 0) + (leave.emergency || 0), color: '#3b82f6' },
     { name: 'Replacement Leave', value: leave.replacement || 0, color: '#eab308' },
-    { name: 'Sick Leave', value: leave.medical || 0, color: '#10b981' },
-    { name: 'Unpaid', value: leave.unpaid || 0, color: '#64748b' }
-  ].filter(d => d.value > 0);
+    { name: 'Sick Leave', value: leave.medical || 0, color: '#10b981' }
+  ];
   
   // exact total count
   const totalLeaveCount = leaveData.reduce((sum, item) => sum + item.value, 0);
@@ -1575,6 +1574,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  <div className="w-[140px] h-[140px] relative">
                    <ResponsiveContainer width="100%" height="100%">
                      <PieChart>
+                       <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} itemStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
                        <Pie
                          data={leaveData}
                          innerRadius={45}
