@@ -552,12 +552,12 @@ export default function WorkforceInsights() {
                                 <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 flex overflow-hidden cursor-pointer">
                                   {branch.count > 0 ? (
                                     <>
-                                      <div className="h-full bg-[#10b981]" style={{ width: `${(stats.onTime / branch.count) * 100}%` }}></div>
-                                      <div className="h-full bg-[#f59e0b]" style={{ width: `${(stats.late / branch.count) * 100}%` }}></div>
-                                      <div className="h-full bg-pink-500" style={{ width: `${(stats.outstation / branch.count) * 100}%` }}></div>
-                                      <div className="h-full bg-blue-500" style={{ width: `${(stats.onLeave / branch.count) * 100}%` }}></div>
-                                      <div className="h-full bg-purple-500" style={{ width: `${(stats.compLeave / branch.count) * 100}%` }}></div>
-                                      <div className="h-full bg-red-500" style={{ width: `${(stats.absent / branch.count) * 100}%` }}></div>
+                                      <div className="h-full bg-[#10b981]" style={{ width: `${(presentOnTime / branch.count) * 100}%` }}></div>
+                                      <div className="h-full bg-[#f59e0b]" style={{ width: `${(presentLate / branch.count) * 100}%` }}></div>
+                                      <div className="h-full bg-pink-500" style={{ width: `${(outstation / branch.count) * 100}%` }}></div>
+                                      <div className="h-full bg-blue-500" style={{ width: `${(onLeave / branch.count) * 100}%` }}></div>
+                                      <div className="h-full bg-purple-500" style={{ width: `${(companyLeave / branch.count) * 100}%` }}></div>
+                                      <div className="h-full bg-red-500" style={{ width: `${(absent / branch.count) * 100}%` }}></div>
                                     </>
                                   ) : (
                                     <div className="h-full w-full bg-slate-200"></div>
@@ -567,12 +567,12 @@ export default function WorkforceInsights() {
                               <TooltipContent side="top" align="center" className="bg-white dark:bg-card border border border-slate-300 dark:border-slate-700 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[150px]">
                                 <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{branch.name}</p>
                                 <div className="flex flex-col gap-1 text-[9px] text-slate-600 dark:text-slate-300">
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{stats.onTime}</span></p>
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{stats.late}</span></p>
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-500">{stats.outstation}</span></p>
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>On Leave:</span> <span className="font-bold text-blue-500">{stats.onLeave}</span></p>
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-500">{stats.compLeave}</span></p>
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-red-500">{stats.absent}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{presentOnTime}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{presentLate}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-500">{outstation}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>On Leave:</span> <span className="font-bold text-blue-500">{onLeave}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-500">{companyLeave}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-red-500">{absent}</span></p>
                                 </div>
                               </TooltipContent>
                             </UITooltip>
