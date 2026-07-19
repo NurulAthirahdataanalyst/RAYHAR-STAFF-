@@ -453,8 +453,8 @@ export default function WorkforceInsights() {
                     layout="vertical"
                     margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
-                    <RechartsTooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} content={<CustomDeptTooltip />} />
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} stroke="#e2e8f0" strokeOpacity={0.6} />
+                    <RechartsTooltip cursor={{ fill: 'transparent' }} content={<CustomDeptTooltip />} />
                     <XAxis 
                       type="number" 
                       hide={false}

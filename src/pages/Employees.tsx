@@ -757,12 +757,20 @@ export default function Employees() {
                         <h3 className="text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">Attendance Performance</h3>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Input 
-                          type="month" 
-                          value={analyticsDate}
-                          onChange={(e) => setAnalyticsDate(e.target.value)}
-                          className="w-36 h-8 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-800/60 dark:border-slate-700"
-                        />
+                        <Select value={analyticsDate} onValueChange={setAnalyticsDate}>
+                          <SelectTrigger className="w-36 h-8 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-800/60 dark:border-slate-700 rounded-full cursor-pointer hover:bg-slate-50 transition-colors">
+                            <SelectValue placeholder="Select Month" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl">
+                            {Array.from({length: 12}, (_, i) => {
+                              const d = new Date();
+                              d.setMonth(d.getMonth() - i);
+                              const val = d.toISOString().substring(0, 7);
+                              const label = `${d.toLocaleString('default', { month: 'long' }).toUpperCase()}, ${d.getFullYear()}`;
+                              return <SelectItem key={val} value={val} className="text-xs font-bold">{label}</SelectItem>;
+                            })}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 
