@@ -1031,13 +1031,11 @@ export default function AttendanceDashboard() {
                     <p className="text-[10px] text-slate-700 font-bold whitespace-nowrap">{k.sub}</p>
                   </div>
                   {/* Pill-shaped Progress Bar */}
-                  <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-4 overflow-hidden flex items-center">
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden flex items-center">
                     <div 
-                      className={`h-full ${k.color.replace('text-', 'bg-')} flex items-center px-1.5 transition-all duration-500`} 
+                      className={`h-full ${k.color.replace('text-', 'bg-')} transition-all duration-500`} 
                       style={{ width: k.val }}
-                    >
-                      <span className="text-[9px] font-bold text-slate-900 leading-none">{k.val !== '0%' ? k.val : ''}</span>
-                    </div>
+                    />
                   </div>
                 </div>
               </div>
