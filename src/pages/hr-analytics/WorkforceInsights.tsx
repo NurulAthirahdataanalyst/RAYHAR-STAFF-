@@ -451,25 +451,13 @@ export default function WorkforceInsights() {
                   <BarChart 
                     data={departmentChartData} 
                     layout="vertical"
-                    margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
+                    margin={{ top: 20, right: 30, left: 10, bottom: 5 }}
+                    barSize={24}
                   >
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} stroke="#e2e8f0" strokeOpacity={0.6} />
+                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e2e8f0" strokeOpacity={0.6} />
                     <RechartsTooltip cursor={{ fill: 'transparent' }} content={<CustomDeptTooltip />} />
-                    <XAxis 
-                      type="number" 
-                      hide={false}
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fontSize: 9, fill: '#64748b' }} 
-                    />
-                    <YAxis 
-                      dataKey="name" 
-                      type="category" 
-                      tick={{ fontSize: 9, fill: '#64748b', fontWeight: 'bold' }} 
-                      axisLine={false} 
-                      tickLine={false} 
-                      width={130}
-                    />
+                    <XAxis type="number" axisLine={{ stroke: '#e2e8f0' }} tickLine={false} tick={{ fontSize: 9, fill: '#64748b' }} />
+                    <YAxis dataKey="name" type="category" tick={{ fontSize: 9, fill: '#64748b', fontWeight: 'bold' }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} width={130} />
                     <Bar dataKey="value" fill="#ff5b37" radius={[0, 4, 4, 0]} barSize={8} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -750,7 +738,7 @@ export default function WorkforceInsights() {
             </CardContent>
           </Card>
 
-          {/* 6. Employee Performance Attendance Ranking */}
+          {/* 6. Employee Performance & Attendance Ranking */}
           <Card className={`col-span-1 lg:col-span-2 rounded-lg shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-card ${cardHoverEffect}`}>
             <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
               <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Employee Performance & Attendance</CardTitle>
@@ -1477,9 +1465,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
          <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">Workforce Analytics</h2>
          
          {/* Row 1: 2 Columns */}
-         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
            {/* Department Workforce Distribution */}
-           <Card className="p-4 shadow-sm border-slate-200 dark:border-slate-800 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+           <Card className="lg:col-span-5 p-4 shadow-sm border-slate-200 dark:border-slate-800 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
                  <Building2 className="w-4 h-4 text-slate-400" />
@@ -1490,21 +1478,19 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                </div>
              </div>
              
-             <div className="space-y-4 flex-1">
-               {topDepartments.map((dept: any, idx: number) => {
-                 const maxVal = Math.max(...departmentMetrics.map((d:any)=>d.value));
-                 const widthPercent = maxVal > 0 ? (dept.value / maxVal) * 100 : 0;
+             <div className={`space-y-4 flex-1 pr-2 ${topDepartments.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
+               {topDepartments.sort((a:any, b:any) => b.attendanceRate - a.attendanceRate).map((dept: any, idx: number) => {
                  return (
-                   <div key={idx} className="flex items-center gap-3">
-                     <div className="w-1/3 text-right">
-                       <p className="text-[10px] font-bold text-[#3B66A7] truncate" title={dept.name}>{dept.name}</p>
-                     </div>
-                     <div className="flex-1 relative group flex items-center">
-                       <div className="h-2 rounded-full bg-[#FF5722] transition-all duration-300 cursor-pointer" style={{ width: `${Math.max(2, widthPercent)}%` }}></div>
-                       <div className="absolute left-1/2 -top-8 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-1.5 pointer-events-none z-10 w-max whitespace-nowrap">
-                         <p className="text-[9px] font-bold text-slate-800 dark:text-slate-200 mb-0.5">{dept.name}</p>
-                         <p className="text-[9px] text-slate-600 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#FF5722]"></span> Employee: <span className="font-bold">{dept.value}</span></p>
+                   <div key={idx} className="flex flex-col gap-1">
+                     <div className="flex justify-between items-end">
+                       <div className="flex flex-col">
+                         <span className="text-[11px] font-bold text-[#1A1F36] dark:text-gray-200">{dept.name}</span>
+                         <span className="text-[9px] text-slate-400">{dept.count} Employees</span>
                        </div>
+                       <span className={`text-[10px] font-black ${dept.attendanceRate >= 95 ? 'text-emerald-500' : 'text-amber-500'}`}>{dept.attendanceRate}%</span>
+                     </div>
+                     <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mt-2">
+                       <div className="h-full bg-[#FF5722] rounded-full" style={{ width: `${dept.attendanceRate}%` }}></div>
                      </div>
                    </div>
                  );
@@ -1521,7 +1507,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
            </Card>
 
            {/* Branch Workforce Distribution */}
-           <Card className="p-4 shadow-sm border-slate-200 dark:border-slate-800 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col bg-white dark:bg-card">
+           <Card className="lg:col-span-7 p-4 shadow-sm border-slate-200 dark:border-slate-800 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col bg-white dark:bg-card">
              <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
                  <MapPin className="w-4 h-4 text-slate-400" />
@@ -1590,6 +1576,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  <div className="w-[140px] h-[140px] relative">
                    <ResponsiveContainer width="100%" height="100%">
                      <PieChart>
+                       <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} itemStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
                        <Pie
                          data={leaveData}
                          innerRadius={45}

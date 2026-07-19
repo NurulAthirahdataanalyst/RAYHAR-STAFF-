@@ -5903,11 +5903,31 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     const topAttendance = [...rankings].sort((a, b) => b.attendanceRate - a.attendanceRate).slice(0, 5);
     const topLate = [...rankings].sort((a, b) => b.lateCount - a.lateCount).filter(u => u.lateCount > 0).slice(0, 5);
 
-    // 6. Trends (Mock Data for presentation as requested)
-    const monthlyTrend = [
-      { month: "Jan", rate: 94 }, { month: "Feb", rate: 96 }, { month: "Mar", rate: 92 },
-      { month: "Apr", rate: 97 }, { month: "May", rate: 95 }, { month: "Jun", rate: 98 }
-    ];
+    // 6. Trends (Real Data)
+    const [trendRows] = await pool.query(
+      `SELECT EXTRACT(MONTH FROM clock_in) as m, EXTRACT(YEAR FROM clock_in) as y, COUNT(*) as total_att
+       FROM attendances
+       WHERE clock_in >= (DATE_TRUNC('month', ?::date) - INTERVAL '5 months')
+       GROUP BY y, m
+       ORDER BY y, m`,
+       [targetDateStr]
+    );
+    
+    const realMonthlyTrend = [];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(requestedYear, requestedMonth - 1 - i, 1);
+      const m = d.getMonth() + 1;
+      const y = d.getFullYear();
+      const row = trendRows.find(r => parseInt(r.m) === m && parseInt(r.y) === y);
+      const atts = row ? parseInt(row.total_att) : 0;
+      const possible = activeEmployees > 0 ? activeEmployees * 22 : 22;
+      const rate = possible > 0 ? Math.round((atts / possible) * 100) : 0;
+      realMonthlyTrend.push({
+        month: monthNames[m - 1],
+        rate: Math.min(100, Math.max(0, rate))
+      });
+    }
     
     const dailyMap = {};
     attRows.forEach(att => {
@@ -5950,10 +5970,14 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
 
     // 1. Process Attendances (Monthly computation)
     const branchMonthlyAttendance = {};
+    const departmentMonthlyAttendance = {};
     attRows.forEach(a => {
       const b = a.branch || 'HQ';
+      const d = a.department || 'Unassigned';
       if (!branchMonthlyAttendance[b]) branchMonthlyAttendance[b] = 0;
+      if (!departmentMonthlyAttendance[d]) departmentMonthlyAttendance[d] = 0;
       branchMonthlyAttendance[b]++;
+      departmentMonthlyAttendance[d]++;
     });
 
     // 2. Process Outstation (Need the data for priority logic)
@@ -5991,6 +6015,24 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
             else branchStats[b].onTime++;
          } else {
             branchStats[b].absent++;
+         }
+      }
+      if (d && departmentStats[d]) {
+         const isOnLeave = leaveRows.some(lr => lr.user_id === p.user_id && lr.status === 'Approved' && targetDateStr >= new Date(new Date(lr.start_date).getTime() + 8*3600*1000).toISOString().split('T')[0] && targetDateStr <= new Date(new Date(lr.end_date).getTime() + 8*3600*1000).toISOString().split('T')[0]);
+         const isCompanyLeave = companyLeaveEmployees.has(p.user_id);
+         const att = attRows.find(a => a.user_id === p.user_id && new Date(new Date(a.clock_in).getTime() + 8*3600*1000).toISOString().split('T')[0] === targetDateStr);
+         const isPresent = !!att;
+         const isLate = isPresent && parseInt(att.is_late) === 1;
+         const isOutstation = outstationRows.some(o => o.user_id === p.user_id);
+
+         if (isOnLeave) departmentStats[d].onLeave++;
+         else if (isCompanyLeave) departmentStats[d].compLeave++;
+         else if (isOutstation) departmentStats[d].outstation++;
+         else if (isPresent) {
+            if (isLate) departmentStats[d].late++;
+            else departmentStats[d].onTime++;
+         } else {
+            departmentStats[d].absent++;
          }
       }
     });
@@ -6123,7 +6165,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       late: attRows.filter(a => {
         const dateObj = new Date(a.clock_in);
         const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
-        return dateStr === targetDateStr && parseInt(a.is_late) === 1 && !outstationEmployees.has(a.user_id);
+        return dateStr === targetDateStr && parseInt(a.is_late) === 1 && !outstationRows.some(o => o.user_id === a.user_id);
       }).map(a => ({
         user_id: a.user_id,
         full_name: a.name,
@@ -6137,7 +6179,20 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
 
     res.json({
       success: true,
-      departmentMetrics: deptRows.map(r => ({ name: r.department, value: parseInt(r.count || 0) })),
+      departmentMetrics: deptRows.map(r => {
+        const dName = r.department;
+        const s = departmentStats[dName] || { total: parseInt(r.count) };
+        const total = s.total;
+        let rate = 0;
+        if (isDayView) {
+          rate = total > 0 ? Math.round(((s.onTime + s.late + s.outstation) / total) * 100) : 0;
+        } else {
+          const monthlyPresent = departmentMonthlyAttendance[dName] || 0;
+          const possibleAttendances = total * workingDaysInMonth;
+          rate = possibleAttendances > 0 ? Math.round((monthlyPresent / possibleAttendances) * 100) : 0;
+        }
+        return { name: dName, value: total, count: total, attendanceRate: rate, ...s };
+      }),
       monthlyComparison: dynamicMetrics.monthlyComparison,
       branchMetrics: Object.keys(branchStats).map(b => {
         const s = branchStats[b];
