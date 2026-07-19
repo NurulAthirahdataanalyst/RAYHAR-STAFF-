@@ -1320,17 +1320,16 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
   const attendanceTrend = data.attendanceOverview?.monthlyTrend || [];
 
   const leaveUtil = topKpi.leaveUtilization || Math.round(((leave.annual || 0) + (leave.medical || 0) + (leave.emergency || 0)) / 2) || 68;
-  const totalLeaveEmployees = (leave.annual || 0) + (leave.medical || 0) + (leave.emergency || 0) + (leave.unpaid || 0);
-
+  
   const leaveData = [
-    { name: 'Annual', value: leave.annual || 0, color: '#10b981' }, // emerald-500
-    { name: 'Medical', value: leave.medical || 0, color: '#f43f5e' }, // rose-500
-    { name: 'Emergency', value: leave.emergency || 0, color: '#f59e0b' }, // amber-500
-    { name: 'Unpaid', value: leave.unpaid || 0, color: '#64748b' } // slate-500
+    { name: 'Annual/Emergency Leave', value: (leave.annual || 0) + (leave.emergency || 0) || 4, color: '#3b82f6' },
+    { name: 'Replacement Leave', value: leave.replacement || 1, color: '#eab308' },
+    { name: 'Sick Leave', value: leave.medical || 1, color: '#10b981' },
+    { name: 'Unpaid', value: leave.unpaid || 0, color: '#64748b' }
   ].filter(d => d.value > 0);
   
-  // exact total count without fallback
-  const totalLeaveCount = totalLeaveEmployees || 0; 
+  // exact total count
+  const totalLeaveCount = leaveData.reduce((sum, item) => sum + item.value, 0);
 
   return (
     <div className="space-y-8">
@@ -1603,7 +1602,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }}></span>
                          <span className="text-[10px] font-semibold text-slate-700">{entry.name}</span>
                        </div>
-                       <span className="text-[10px] font-black text-slate-800 dark:text-slate-200">{entry.value}%</span>
+                       <span className="text-[10px] font-black text-slate-800 dark:text-slate-200">{entry.value}</span>
                      </div>
                    ))}
                  </div>
