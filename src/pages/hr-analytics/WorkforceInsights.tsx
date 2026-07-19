@@ -1322,9 +1322,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
   const leaveUtil = topKpi.leaveUtilization || Math.round(((leave.annual || 0) + (leave.medical || 0) + (leave.emergency || 0)) / 2) || 68;
   
   const leaveData = [
-    { name: 'Annual/Emergency Leave', value: (leave.annual || 0) + (leave.emergency || 0) || 4, color: '#3b82f6' },
-    { name: 'Replacement Leave', value: leave.replacement || 1, color: '#eab308' },
-    { name: 'Sick Leave', value: leave.medical || 1, color: '#10b981' },
+    { name: 'Annual/Emergency Leave', value: (leave.annual || 0) + (leave.emergency || 0), color: '#3b82f6' },
+    { name: 'Replacement Leave', value: leave.replacement || 0, color: '#eab308' },
+    { name: 'Sick Leave', value: leave.medical || 0, color: '#10b981' },
     { name: 'Unpaid', value: leave.unpaid || 0, color: '#64748b' }
   ].filter(d => d.value > 0);
   
@@ -1575,7 +1575,6 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  <div className="w-[140px] h-[140px] relative">
                    <ResponsiveContainer width="100%" height="100%">
                      <PieChart>
-                       <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} itemStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
                        <Pie
                          data={leaveData}
                          innerRadius={45}
@@ -1591,7 +1590,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                      </PieChart>
                    </ResponsiveContainer>
                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                     <span className="text-lg font-black text-slate-800 dark:text-slate-200 leading-none">{totalLeaveCount}</span>
+                     <span className="text-lg font-black text-slate-800 dark:text-slate-200 leading-none">{totalLeaveCount || 0}</span>
                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total</span>
                    </div>
                  </div>
@@ -1602,7 +1601,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }}></span>
                          <span className="text-[10px] font-semibold text-slate-700">{entry.name}</span>
                        </div>
-                       <span className="text-[10px] font-black text-slate-800 dark:text-slate-200">{entry.value}</span>
+                       <span className="text-[10px] font-black text-slate-800 dark:text-slate-200">{entry.value || 0}</span>
                      </div>
                    ))}
                  </div>
