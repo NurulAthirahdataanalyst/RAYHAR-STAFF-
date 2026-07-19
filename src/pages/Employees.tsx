@@ -74,7 +74,7 @@ export default function Employees() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [analytics, setAnalytics] = useState<any>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
-  const [analyticsDate, setAnalyticsDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [analyticsDate, setAnalyticsDate] = useState<string>(new Date().toISOString().substring(0, 7));
 
   const fetchAnalytics = async (userId: string, dateStr = analyticsDate) => {
     setLoadingAnalytics(true);
@@ -758,10 +758,10 @@ export default function Employees() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Input 
-                          type="date" 
+                          type="month" 
                           value={analyticsDate}
                           onChange={(e) => setAnalyticsDate(e.target.value)}
-                          className="w-32 h-8 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-800/60 dark:border-slate-700"
+                          className="w-36 h-8 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-800/60 dark:border-slate-700"
                         />
                       </div>
                     </div>
