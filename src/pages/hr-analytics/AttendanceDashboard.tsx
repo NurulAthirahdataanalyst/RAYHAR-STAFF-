@@ -1481,6 +1481,7 @@ export default function AttendanceDashboard() {
                   )}
                 </tbody>
               </table>
+            </div>
           )}
         </CardContent>
       </Card>
