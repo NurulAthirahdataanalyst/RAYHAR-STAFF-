@@ -5464,6 +5464,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         time_in,
         time_out,
         status,
+        zone: userZone,
         is_late: isLate,
         missing_clock_out: missingClockOut,
         is_early_leaver: isEarlyLeaver,

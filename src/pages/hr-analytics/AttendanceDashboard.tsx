@@ -883,6 +883,37 @@ export default function AttendanceDashboard() {
   }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, absentSearchTerm, outstationRecords, selectedDate]);
 
 
+
+  const zoneARestEmployees = useMemo(() => {
+    return dailyAttendance.filter((r: any) => {
+      let displayStatus = r.status;
+      if (displayStatus !== "Weekend" && displayStatus !== "Holiday") return false;
+      if (r.zone !== 'ZONE_A') return false;
+      
+      const matchesBranch = selectedBranchFilter === "all" || r.branch === selectedBranchFilter;
+      const matchesDept = selectedDepartmentFilter === "all" || r.department === selectedDepartmentFilter;
+      const matchesSearch = absentSearchTerm === "" || 
+        r.full_name?.toLowerCase().includes(absentSearchTerm.toLowerCase()) ||
+        r.user_id?.toLowerCase().includes(absentSearchTerm.toLowerCase());
+      return matchesBranch && matchesDept && matchesSearch;
+    });
+  }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, absentSearchTerm]);
+
+  const zoneBRestEmployees = useMemo(() => {
+    return dailyAttendance.filter((r: any) => {
+      let displayStatus = r.status;
+      if (displayStatus !== "Weekend" && displayStatus !== "Holiday") return false;
+      if (r.zone !== 'ZONE_B') return false;
+      
+      const matchesBranch = selectedBranchFilter === "all" || r.branch === selectedBranchFilter;
+      const matchesDept = selectedDepartmentFilter === "all" || r.department === selectedDepartmentFilter;
+      const matchesSearch = absentSearchTerm === "" || 
+        r.full_name?.toLowerCase().includes(absentSearchTerm.toLowerCase()) ||
+        r.user_id?.toLowerCase().includes(absentSearchTerm.toLowerCase());
+      return matchesBranch && matchesDept && matchesSearch;
+    });
+  }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, absentSearchTerm]);
+
   const allAnomalies = useMemo(() => {
     return filteredDailyAttendance.flatMap(record => {
       const list = [];
@@ -1447,11 +1478,95 @@ export default function AttendanceDashboard() {
                   )}
                 </tbody>
               </table>
-            </div>
           )}
         </CardContent>
       </Card>
       
+      {/* REST DAY EMPLOYEES GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* ZONE A */}
+        <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-lg shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-gray-800 dark:text-gray-200">Employees on Rest Day (Zone A)</h2>
+            <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-700">
+              {zoneARestEmployees.length}
+            </span>
+          </div>
+          <CardContent className="p-0">
+            <div className="relative overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-gray-50/80 dark:bg-slate-900 text-gray-500 dark:text-gray-400 uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800 sticky top-0">
+                  <tr>
+                    <th className="px-4 py-2">Employee</th>
+                    <th className="px-4 py-2">Branch</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                  {zoneARestEmployees.length > 0 ? (
+                    zoneARestEmployees.map(emp => (
+                      <tr key={emp.user_id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                        <td className="px-4 py-2">
+                          <span className="font-semibold text-gray-800 dark:text-gray-200 block text-xs">{emp.full_name}</span>
+                          <span className="text-[10px] text-gray-400 mt-0.5 block">{emp.user_id}</span>
+                        </td>
+                        <td className="px-4 py-2 text-[11px] text-gray-600 dark:text-gray-400 font-medium">{emp.branch || "HQ"}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={2} className="px-4 py-8 text-center text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider italic">
+                        No Zone A employees on rest day.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ZONE B */}
+        <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-lg shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-gray-800 dark:text-gray-200">Employees on Rest Day (Zone B)</h2>
+            <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-700">
+              {zoneBRestEmployees.length}
+            </span>
+          </div>
+          <CardContent className="p-0">
+            <div className="relative overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-gray-50/80 dark:bg-slate-900 text-gray-500 dark:text-gray-400 uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800 sticky top-0">
+                  <tr>
+                    <th className="px-4 py-2">Employee</th>
+                    <th className="px-4 py-2">Branch</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                  {zoneBRestEmployees.length > 0 ? (
+                    zoneBRestEmployees.map(emp => (
+                      <tr key={emp.user_id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                        <td className="px-4 py-2">
+                          <span className="font-semibold text-gray-800 dark:text-gray-200 block text-xs">{emp.full_name}</span>
+                          <span className="text-[10px] text-gray-400 mt-0.5 block">{emp.user_id}</span>
+                        </td>
+                        <td className="px-4 py-2 text-[11px] text-gray-600 dark:text-gray-400 font-medium">{emp.branch || "HQ"}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={2} className="px-4 py-8 text-center text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider italic">
+                        No Zone B employees on rest day.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* HISTORICAL CHARTS */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         
