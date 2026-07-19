@@ -839,9 +839,12 @@ export default function AttendanceDashboard() {
         );
         if (isOutstation) displayStatus = "Outstation";
 
-        // Exclude Absent employees from Admin Attendance listing (they appear in Employee Absenteeism)
+        // Exclude Absent/Rest Day employees from Admin Attendance listing (they appear in their respective tables below)
         // Allow Outstation and Leave employees even if they didn't clock in
-        if (!r.clock_in && displayStatus !== 'Outstation' && displayStatus !== 'Approved Leave' && displayStatus !== 'Company Leave') return false;
+        // EXCEPT if the user is actively searching for them!
+        if (!r.clock_in && displayStatus !== 'Outstation' && displayStatus !== 'Approved Leave' && displayStatus !== 'Company Leave') {
+          if (searchTerm.trim() === '') return false;
+        }
 
         const matchesStatus = selectedStatusFilter === "all" || 
           (selectedStatusFilter === "present_on_time" && displayStatus === "Present (On Time)") ||
