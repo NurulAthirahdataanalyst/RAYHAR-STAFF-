@@ -4222,22 +4222,11 @@ app.get("/api/dashboard-stats", async (req, res) => {
         profileQueryParams
       );
 
-      const presentParams = [queryDate, queryDate, queryDate, ...queryParams];
+      const presentParams = [queryDate, ...queryParams];
       const onLeaveParams = [queryDate, ...queryParams];
 
       const [presentRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS present_today FROM attendances WHERE DATE(clock_in) = ${dateCondition} 
-         AND NOT EXISTS (
-           SELECT 1 FROM leave_requests lr 
-           WHERE lr.user_id = attendances.user_id AND lr.status = 'Approved' 
-           AND ${dateCondition} BETWEEN lr.start_date AND lr.end_date
-         )
-         AND NOT EXISTS (
-           SELECT 1 FROM outstation_assignments oa 
-           WHERE oa.user_id = attendances.user_id AND oa.status != 'Cancelled' 
-           AND ${dateCondition} BETWEEN (oa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (oa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
-         )
-         ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS present_today FROM attendances WHERE DATE(clock_in) = ${dateCondition} ${attendanceFilter}`,
         presentParams
       );
 
@@ -4252,6 +4241,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const lateTimeStr = getLateThresholdTime();
+      const lateParams = [queryDate, queryDate, queryDate, ...queryParams];
       const [lateRows] = await pool.query(
         `SELECT COUNT(DISTINCT user_id) AS late_arrivals FROM attendances WHERE DATE(clock_in) = ${dateCondition} AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > '${lateTimeStr}' 
          AND NOT EXISTS (
@@ -4265,7 +4255,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
            AND ${dateCondition} BETWEEN (oa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (oa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
          )
          ${attendanceFilter}`,
-        presentParams
+        lateParams
       );
 
       let statusToCount = "Pending%";
@@ -5392,8 +5382,20 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
 
       if (leaveRow) {
         status = "Approved Leave";
+        if (clockRow) {
+          clock_in = clockRow.clock_in;
+          clock_out = clockRow.clock_out;
+          time_in = clockRow.time_in;
+          time_out = clockRow.time_out;
+        }
       } else if (matchingLeave) {
         status = "Company Leave";
+        if (clockRow) {
+          clock_in = clockRow.clock_in;
+          clock_out = clockRow.clock_out;
+          time_in = clockRow.time_in;
+          time_out = clockRow.time_out;
+        }
       } else if (outstationMap.has(uid)) {
         status = "Outstation";
         if (clockRow) {
