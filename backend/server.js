@@ -7478,7 +7478,7 @@ async function getWorkforceCalendarData(role, branch, department) {
     );
     for (const r of leaveRows) {
       let isParsed = false;
-      if (r.leave_type === 'Replacement Leave' && r.reason && r.reason.includes('[CUTI_GANTI_DATA:')) {
+      if ((r.leave_type === 'Replacement Leave' || r.leave_type === 'Cuti Ganti') && r.reason && r.reason.includes('[CUTI_GANTI_DATA:')) {
         try {
           const jsonStr = r.reason.substring(r.reason.indexOf('[CUTI_GANTI_DATA:') + 17, r.reason.lastIndexOf(']]') + 1);
           const data = JSON.parse(jsonStr);
@@ -7532,7 +7532,7 @@ async function getWorkforceCalendarData(role, branch, department) {
     );
     for (const r of pendingRows) {
       let isParsed = false;
-      if (r.leave_type === 'Replacement Leave' && r.reason && r.reason.includes('[CUTI_GANTI_DATA:')) {
+      if ((r.leave_type === 'Replacement Leave' || r.leave_type === 'Cuti Ganti') && r.reason && r.reason.includes('[CUTI_GANTI_DATA:')) {
         try {
           const jsonStr = r.reason.substring(r.reason.indexOf('[CUTI_GANTI_DATA:') + 17, r.reason.lastIndexOf(']]') + 1);
           const data = JSON.parse(jsonStr);
