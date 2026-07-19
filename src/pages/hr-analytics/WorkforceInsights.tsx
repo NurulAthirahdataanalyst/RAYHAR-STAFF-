@@ -1634,17 +1634,17 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
              </div>
              
              <div className="grid grid-cols-3 gap-2 mb-8">
-               <div className="flex flex-col items-center">
-                 <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{outstationSummary?.completed || data.outstationAnalytics?.completed || 0}</span>
-                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Completed</span>
+               <div className="flex flex-col items-center justify-center py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
+                 <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{outstationSummary?.completedTrips || outstationSummary?.completedEvents || outstationSummary?.completed || 0}</span>
+                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Completed</span>
                </div>
-               <div className="flex flex-col items-center">
-                 <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{outstationSummary?.upcoming || data.outstationAnalytics?.upcoming || 5}</span>
-                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Upcoming</span>
+               <div className="flex flex-col items-center justify-center py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
+                 <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{outstationSummary?.upcomingTrips || outstationSummary?.upcomingEvents || outstationSummary?.upcoming || 5}</span>
+                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Upcoming</span>
                </div>
-               <div className="flex flex-col items-center">
-                 <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{outstationSummary?.cancelled || data.outstationAnalytics?.cancelled || 0}</span>
-                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cancelled</span>
+               <div className="flex flex-col items-center justify-center py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
+                 <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{outstationSummary?.cancelledTrips || outstationSummary?.cancelledEvents || outstationSummary?.cancelled || 0}</span>
+                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Cancelled</span>
                </div>
              </div>
              
