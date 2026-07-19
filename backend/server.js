@@ -7492,8 +7492,8 @@ app.delete('/api/outstation/:id', async (req, res) => {
       [assignment.user_id, auditActor, 'deleted an outstation assignment for', assignment.full_name, auditContext, 'outstation']
     );
 
-    // 5. Perform the deletion
-    await pool.query('DELETE FROM outstation_assignments WHERE id=$1', [id]);
+    // 5. Update the status to 'Cancelled' instead of deleting
+    await pool.query('UPDATE outstation_assignments SET status=$1 WHERE id=$2', ['Cancelled', id]);
 
     try { 
       broadcastPresenceUpdate({ type: 'refresh', action: 'outstation_deleted', id }); 
