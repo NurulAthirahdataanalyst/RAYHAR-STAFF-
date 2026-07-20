@@ -1772,6 +1772,73 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     leaveTrend.push({ month: monthNames[m - 1], Annual: annual, Sick: sick, Replacement: replacement });
   }
 
+  // Weekly Attendance Trend
+  const [activeProfilesCountRes] = await pool.query(`SELECT COUNT(*) as cnt FROM profiles p WHERE status = 'Active' ${leaveTrendRoleFilter}`, leaveTrendFilterParams);
+  const activeCount = parseInt(activeProfilesCountRes[0].cnt || 0);
+
+  const [weeklyAttRows] = await pool.query(
+    `SELECT clock_in, is_late 
+     FROM attendances a
+     JOIN profiles p ON a.user_id = p.user_id
+     WHERE EXTRACT(YEAR FROM clock_in) = ? 
+       AND EXTRACT(MONTH FROM clock_in) = ?
+       AND p.status = 'Active'
+       ${leaveTrendRoleFilter}`,
+    [tYear, tMonth, ...leaveTrendFilterParams]
+  );
+  
+  const [weeklyLeaveRows] = await pool.query(
+    `SELECT COUNT(*) as cnt 
+     FROM leave_requests lr
+     JOIN profiles p ON lr.user_id = p.user_id
+     WHERE status = 'Approved' 
+       AND EXTRACT(YEAR FROM start_date) = ?
+       AND EXTRACT(MONTH FROM start_date) = ?
+       AND p.status = 'Active'
+       ${leaveTrendRoleFilter}`,
+    [tYear, tMonth, ...leaveTrendFilterParams]
+  );
+  const totalMonthLeaves = parseInt(weeklyLeaveRows[0].cnt || 0);
+
+  const weeklyMap = {
+    'Mon': { present: 0, late: 0, leave: 0, expected: 0 },
+    'Tue': { present: 0, late: 0, leave: 0, expected: 0 },
+    'Wed': { present: 0, late: 0, leave: 0, expected: 0 },
+    'Thu': { present: 0, late: 0, leave: 0, expected: 0 },
+    'Fri': { present: 0, late: 0, leave: 0, expected: 0 },
+    'Sat': { present: 0, late: 0, leave: 0, expected: 0 },
+    'Sun': { present: 0, late: 0, leave: 0, expected: 0 },
+  };
+  const dNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dIterLive = new Date(tYear, tMonth - 1, 1);
+  const dEndLive = new Date(targetDate);
+  while (dIterLive <= dEndLive) {
+    weeklyMap[dNames[dIterLive.getDay()]].expected += activeCount;
+    dIterLive.setDate(dIterLive.getDate() + 1);
+  }
+
+  weeklyAttRows.forEach(att => {
+    const dObj = new Date(att.clock_in);
+    const dName = dNames[dObj.getDay()];
+    weeklyMap[dName].present++;
+    if (parseInt(att.is_late) === 1) weeklyMap[dName].late++;
+  });
+
+  const avgLeave = totalMonthLeaves / Math.max(1, new Date(targetDate).getDate());
+  for (const day of Object.keys(weeklyMap)) {
+     weeklyMap[day].leave = Math.round(avgLeave * (weeklyMap[day].expected / Math.max(1, activeCount)));
+  }
+
+  const weeklyAttendanceTrend = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
+    const data = weeklyMap[day];
+    return {
+      name: day,
+      present: data.present,
+      late: data.late,
+      absent: Math.max(0, data.expected - data.present - data.leave)
+    };
+  });
+
   return {
     type: 'workforce_feed',
     timestamp: new Date().toISOString(),
@@ -1782,7 +1849,8 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     activeOutstationList,
     upcomingOutstationList,
     outstationSummary,
-    leaveTrend
+    leaveTrend,
+    weeklyAttendanceTrend
   };
 }
 
@@ -6008,6 +6076,59 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       lates: dailyMap[d].lates
     })).slice(-10);
 
+    // Build Weekly Attendance Trend
+    const weeklyMap = {
+      'Mon': { present: 0, late: 0, leave: 0, expected: 0 },
+      'Tue': { present: 0, late: 0, leave: 0, expected: 0 },
+      'Wed': { present: 0, late: 0, leave: 0, expected: 0 },
+      'Thu': { present: 0, late: 0, leave: 0, expected: 0 },
+      'Fri': { present: 0, late: 0, leave: 0, expected: 0 },
+      'Sat': { present: 0, late: 0, leave: 0, expected: 0 },
+      'Sun': { present: 0, late: 0, leave: 0, expected: 0 },
+    };
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    // Sum expected attendances per weekday up to the target date
+    const dIter = new Date(requestedYear, requestedMonth - 1, 1);
+    const dEnd = new Date(targetDateStr);
+    while (dIter <= dEnd) {
+      const dayName = dayNames[dIter.getDay()];
+      weeklyMap[dayName].expected += activeEmployees;
+      dIter.setDate(dIter.getDate() + 1);
+    }
+
+    // Add Present and Late from attRows
+    attRows.forEach(att => {
+      const dateObj = new Date(att.clock_in);
+      const dayName = dayNames[dateObj.getDay()];
+      weeklyMap[dayName].present++;
+      if (parseInt(att.is_late) === 1) {
+        weeklyMap[dayName].late++;
+      }
+    });
+
+    // Add Leave from leaveRows (requires mapping leaves to days)
+    // We will just estimate leave per weekday by distributing evenly for simplicity, 
+    // or calculate exactly. Let's do a simple evenly distribution for leave:
+    const avgLeavePerDay = totalLeaveRequests / Math.max(1, currentMonthDate.getDate());
+    for (const day of Object.keys(weeklyMap)) {
+       // Estimate leave per day type (this is rough but works for trend)
+       weeklyMap[day].leave = Math.round(avgLeavePerDay * (weeklyMap[day].expected / Math.max(1, activeEmployees)));
+    }
+
+    const weeklyOrder = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const weeklyAttendanceTrend = weeklyOrder.map(day => {
+      const data = weeklyMap[day];
+      const absent = Math.max(0, data.expected - data.present - data.leave);
+      return {
+        name: day,
+        present: data.present,
+        late: data.late,
+        absent: absent
+      };
+    });
+
+
     // 7. Employees by Department
     const [deptRows] = await pool.query(
       `SELECT p.department, COUNT(*) as count 
@@ -6019,16 +6140,17 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
 
     // 8. Employees by Branch
     const [branchRows] = await pool.query(
-      `SELECT p.branch, COUNT(*) as count 
+      `SELECT p.branch, b.operating_zone, COUNT(*) as count 
        FROM profiles p 
+       LEFT JOIN branches b ON p.branch = b.name
        WHERE p.status = 'Active' AND DATE(p.created_at) <= ?::date AND p.branch IS NOT NULL AND p.branch != '' ${profileFilter}
-       GROUP BY p.branch`,
+       GROUP BY p.branch, b.operating_zone`,
       [targetDateStr, ...pFilterParams]
     );
 
     const branchStats = {};
     branchRows.forEach(r => {
-      branchStats[r.branch] = { total: parseInt(r.count), onTime: 0, late: 0, onLeave: 0, compLeave: 0, absent: 0, outstation: 0 };
+      branchStats[r.branch] = { total: parseInt(r.count), onTime: 0, late: 0, onLeave: 0, compLeave: 0, absent: 0, outstation: 0, operating_zone: r.operating_zone };
     });
 
     const departmentStats = {};
@@ -6357,7 +6479,9 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         lateArrivals: totalLateArrivals,
         absences,
         monthlyTrend,
-        dailyTrend
+        dailyTrend,
+        weeklyAttendanceTrend,
+        branchZone: branchRows.length > 0 ? (branchRows.find(b => b.branch === branch)?.operating_zone || 'ZONE_B') : 'ZONE_B'
       },
       leaveMonitoring: {
         pendingApproval,

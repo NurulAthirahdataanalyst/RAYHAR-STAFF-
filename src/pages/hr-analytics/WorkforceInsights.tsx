@@ -6,7 +6,7 @@ import { exportToCSV } from "@/utils/export";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, Users, UserCheck, CalendarDays, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight, ChevronDown, Wifi, WifiOff, TrendingUp, MapPin, Plane, FileText, AlertCircle } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector, AreaChart, Area } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector, AreaChart, Area, ReferenceArea } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -102,6 +102,7 @@ export default function WorkforceInsights() {
   const [outstationSummary, setOutstationSummary] = useState<any>(null);
   const [liveMonthlyComp, setLiveMonthlyComp] = useState<any>(null);
   const [liveLeaveTrend, setLiveLeaveTrend] = useState<any>(null);
+  const [liveWeeklyAttendanceTrend, setLiveWeeklyAttendanceTrend] = useState<any[] | null>(null);
   const [liveHrAlerts, setLiveHrAlerts] = useState<any[] | null>(null);
   const [feedConnected, setFeedConnected] = useState(false);
   const [liveEmployees, setLiveEmployees] = useState<any[]>([]);
@@ -136,6 +137,7 @@ export default function WorkforceInsights() {
           setOutstationSummary(d.outstationSummary || d.outstationAnalytics || null);
           setLiveMonthlyComp(d.monthlyComparison || null);
           setLiveLeaveTrend(d.leaveTrend || d.leaveAnalytics?.monthlyTrend || null);
+          setLiveWeeklyAttendanceTrend(d.weeklyAttendanceTrend || null);
           setLiveHrAlerts(d.hrAlerts || null);
           setFeedConnected(true);
         }
@@ -1447,34 +1449,85 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
 
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-start">
            <div className="lg:col-span-2 flex flex-col gap-6">
-           <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
-             <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
-               <div className="flex items-center gap-2">
-                 <TrendingUp className="w-4 h-4 text-slate-400" />
-                 <h3 className="text-sm font-bold text-[#1A1F36]">Attendance Trend</h3>
-               </div>
-             </div>
-             <div className="h-[250px] w-full min-h-[250px]">
-               <ResponsiveContainer width="100%" height="100%">
-                 <AreaChart data={attendanceTrend} margin={{ top: 5, right: 20, left: -20, bottom: 0 }}>
-                   <defs>
-                     <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
-                       <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                       <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                     </linearGradient>
-                   </defs>
-                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f8fafc" />
-                   <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                   <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} domain={['auto', 100]} />
-                   <RechartsTooltip contentStyle={{ borderRadius: '12px', border: '1px solid #f1f5f9', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.05)' }} />
-                   <Area type="monotone" dataKey="rate" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorRate)" activeDot={{ r: 6, strokeWidth: 0, fill: '#10b981' }} name="Attendance %" />
-                 </AreaChart>
-               </ResponsiveContainer>
-             </div>
-             <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-               <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">View Details <ChevronRight className="w-3 h-3" /></button>
-             </div>
-           </Card>
+            <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col relative overflow-hidden">
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#f97316]"></div>
+              <div className="flex justify-between items-center mb-6 pl-2">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-[16px] font-black text-[#1A1F36] dark:text-white">Attendance Trend</h3>
+                </div>
+                <div className="flex items-center gap-2 border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 shadow-sm">
+                  <CalendarDays className="w-4 h-4 text-slate-500" />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Weekly</span>
+                </div>
+              </div>
+              
+              {/* Summary and Legend */}
+              <div className="flex justify-between items-center mb-6 pl-2">
+                <div className="flex gap-6 items-baseline">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum, item) => sum + item.present, 0) || 0}</span>
+                    <span className="text-xs font-bold text-slate-500">On-Time</span>
+                  </div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum, item) => sum + item.late, 0) || 0}</span>
+                    <span className="text-xs font-bold text-slate-500">Late</span>
+                  </div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum, item) => sum + item.absent, 0) || 0}</span>
+                    <span className="text-xs font-bold text-slate-500">Absent</span>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#10b981]"></div><span className="text-xs font-bold text-slate-600">Present</span></div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#eab308]"></div><span className="text-xs font-bold text-slate-600">Late</span></div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#ef4444]"></div><span className="text-xs font-bold text-slate-600">Absent</span></div>
+                </div>
+              </div>
+
+              <div className="flex flex-col lg:flex-row gap-6">
+                <div className="flex-1 h-[280px] min-h-[280px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={2} barSize={12}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b', fontWeight: 'bold' }} axisLine={false} tickLine={false} dy={10} />
+                      <YAxis tick={{ fontSize: 11, fill: '#64748b', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+                      <RechartsTooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} />
+                      
+                      {/* Weekend Highlighting */}
+                      {(data?.attendanceOverview?.branchZone || 'ZONE_B') === 'ZONE_A' ? (
+                        <>
+                          <ReferenceArea x1="Fri" x2="Sat" fill="#f8fafc" fillOpacity={0.8} />
+                        </>
+                      ) : (
+                        <>
+                          <ReferenceArea x1="Sat" x2="Sun" fill="#f8fafc" fillOpacity={0.8} />
+                        </>
+                      )}
+
+                      <Bar dataKey="present" name="Present" fill="#10b981" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="late" name="Late" fill="#eab308" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="absent" name="Absent" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                {/* Metric Boxes */}
+                <div className="flex flex-col justify-between w-full lg:w-[200px] gap-3">
+                  <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-800/50 h-full">
+                    <p className="text-xs text-slate-500 font-bold mb-1">Max Working Hours</p>
+                    <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">8.4 hrs</h3>
+                  </div>
+                  <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-800/50 h-full">
+                    <p className="text-xs text-slate-500 font-bold mb-1">Missed Punches</p>
+                    <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{data?.performance?.missingPunchEmployees?.reduce((sum, emp) => sum + emp.missingPunches, 0) || 0}</h3>
+                  </div>
+                  <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-800/50 h-full">
+                    <p className="text-xs text-slate-500 font-bold mb-1">Weekly Avg</p>
+                    <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{topKpi.attendanceRate || 0}%</h3>
+                  </div>
+                </div>
+              </div>
+            </Card>
            
            <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col hover:border-[#7B0099] hover:shadow-md transition-all duration-300">
               <div className="flex items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-3">
