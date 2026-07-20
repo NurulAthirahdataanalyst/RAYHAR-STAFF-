@@ -1512,7 +1512,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  <thead className="text-xs text-slate-500 bg-slate-50/50 uppercase">
                    <tr>
                      <th className="px-4 py-3 font-semibold">Metric</th>
-                     <th className="px-4 py-3 font-semibold text-right">This Month {feedConnected && <span className="ml-1 text-[8px] bg-red-500 text-white px-1 rounded animate-pulse">LIVE</span>}</th>
+                     <th className="px-4 py-3 font-semibold text-right border-l border-slate-200 dark:border-slate-700">This Month {feedConnected && <span className="ml-1 text-[8px] bg-red-500 text-white px-1 rounded animate-pulse">LIVE</span>}</th>
                      <th className="px-4 py-3 font-semibold text-right">Last Month</th>
                      <th className="px-4 py-3 font-semibold text-right">Change</th>
                    </tr>
@@ -1538,7 +1538,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                      return (
                        <tr key={idx} className="hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
                          <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-200">{row.label}</td>
-                         <td className="px-4 py-3 text-slate-600 font-semibold text-right">{row.cur}</td>
+                         <td className="px-4 py-3 text-slate-600 font-semibold text-right border-l border-slate-200 dark:border-slate-700">{row.cur}</td>
                          <td className="px-4 py-3 text-slate-500 text-right">{row.prev}</td>
                          <td className="px-4 py-3 text-right">
                            {isNeutral ? <span className="text-slate-400 font-bold inline-block">-</span> : 
