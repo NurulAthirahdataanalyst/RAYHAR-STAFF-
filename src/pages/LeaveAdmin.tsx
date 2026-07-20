@@ -492,26 +492,26 @@ export default function LeaveAdmin() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-7 w-7 rounded p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200"
+                                  className="h-10 w-10 rounded-md p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-2 border-emerald-200 hover:border-emerald-500 shadow-sm transition-all"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleAction(req.id, "approve", req.status);
                                   }}
                                   title="Approve"
                                 >
-                                  <Check className="h-4 w-4" />
+                                  <Check className="h-6 w-6" strokeWidth={3} />
                                 </Button>
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-7 w-7 rounded p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
+                                  className="h-10 w-10 rounded-md p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-2 border-rose-200 hover:border-rose-500 shadow-sm transition-all"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleAction(req.id, "reject", req.status);
                                   }}
                                   title="Reject"
                                 >
-                                  <X className="h-4 w-4" />
+                                  <X className="h-6 w-6" strokeWidth={3} />
                                 </Button>
                               </div>
                             ) : (
