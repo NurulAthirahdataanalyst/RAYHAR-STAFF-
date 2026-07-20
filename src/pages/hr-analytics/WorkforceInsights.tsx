@@ -451,13 +451,13 @@ export default function WorkforceInsights() {
                 </div>
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Missing Punch</p>
                 <div className="flex items-baseline gap-2">
-                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">5 <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
-                  <p className="text-[10px] font-semibold text-amber-600">Forgot Clock Out</p>
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">{data.topKpi?.missingPunchOut || data.performance?.missingPunchEmployees?.length || 0} <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
+                  <p className="text-[10px] font-semibold text-amber-600">Yesterday</p>
                 </div>
               </div>
               <div className="flex-1 flex flex-col justify-end">
                 <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                  <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min(100, (5 / (data.topKpi.activeEmployees || 1)) * 100)}%` }}></div>
+                  <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min(100, ((data.topKpi?.missingPunchOut || data.performance?.missingPunchEmployees?.length || 0) / (data.topKpi.activeEmployees || 1)) * 100)}%` }}></div>
                 </div>
               </div>
             </Card>
@@ -472,13 +472,13 @@ export default function WorkforceInsights() {
                 </div>
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Outstation</p>
                 <div className="flex items-baseline gap-2">
-                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">{activeOutstationList.length > 0 ? activeOutstationList.length : (data.topKpi.outstationToday || 4)} <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
-                  <p className="text-[10px] font-semibold text-slate-500">3 Approved • 1 Pending</p>
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">{activeOutstationList.length > 0 ? activeOutstationList.length : (data.topKpi.outstationToday || 0)} <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
+                  <p className="text-[10px] font-semibold text-slate-500">{(activeOutstationList.length > 0 || (data.topKpi.outstationToday || 0) > 0) ? "Away on duty" : "None today"}</p>
                 </div>
               </div>
               <div className="flex-1 flex flex-col justify-end">
                 <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(100, ((activeOutstationList.length > 0 ? activeOutstationList.length : (data.topKpi.outstationToday || 4)) / (data.topKpi.totalHeadcount || 1)) * 100)}%` }}></div>
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(100, ((activeOutstationList.length > 0 ? activeOutstationList.length : (data.topKpi.outstationToday || 0)) / (data.topKpi.totalHeadcount || 1)) * 100)}%` }}></div>
                 </div>
               </div>
             </Card>
