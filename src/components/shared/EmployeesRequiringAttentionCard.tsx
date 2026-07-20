@@ -71,7 +71,7 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid' }:
     <Card className="bg-white rounded-[24px] shadow-sm overflow-hidden flex flex-col w-full">
       <div className="p-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
           <div className="flex items-center gap-4">
             <div className="bg-red-50 p-3 rounded-2xl flex items-center justify-center">
               <AlertTriangle className="w-6 h-6 text-red-500" strokeWidth={2} />

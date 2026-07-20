@@ -1447,7 +1447,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-start">
            <div className="lg:col-span-2 flex flex-col gap-6">
            <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
-             <div className="flex justify-between items-center mb-4">
+             <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <TrendingUp className="w-4 h-4 text-slate-400" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">Attendance Trend</h3>
@@ -1501,7 +1501,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
            
            <div className="lg:col-span-1">
              <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
-             <div className="flex justify-between items-center mb-4">
+             <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <FileCheck className="w-4 h-4 text-slate-400" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">Monthly Comparison</h3>
@@ -1568,7 +1568,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
            {/* Department Workforce Distribution */}
            <Card className="lg:col-span-5 p-4 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
-             <div className="flex justify-between items-center mb-4">
+             <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <Building2 className="w-4 h-4 text-slate-400" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">Department Workforce Distribution</h3>
@@ -1608,7 +1608,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
 
            {/* Branch Workforce Distribution */}
            <Card className="lg:col-span-7 p-4 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col bg-white dark:bg-card">
-             <div className="flex justify-between items-center mb-4">
+             <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <MapPin className="w-4 h-4 text-slate-400" />
                  <h3 className="text-sm font-bold text-[#1A1F36] dark:text-gray-100">Branch Workforce Distribution</h3>
@@ -1672,7 +1672,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
            {/* Leave Distribution (Donut Chart) */}
            <Card className="p-4 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
-             <div className="flex justify-between items-center mb-2">
+             <div className="flex justify-between items-center mb-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <FileText className="w-4 h-4 text-slate-400" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">Leave Distribution</h3>
@@ -1734,7 +1734,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> LIVE
                </div>
              )}
-             <div className="flex justify-between items-center mb-8 relative z-10">
+             <div className="flex justify-between items-center mb-8 relative z-10 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <Plane className="w-4 h-4 text-slate-400 transform -rotate-45" />
                  <h3 className="text-[13px] font-bold text-[#1A1F36] dark:text-gray-100">Travel & Outstation Summary</h3>
@@ -1786,7 +1786,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
 
            {/* Workforce Movement */}
            <Card className="p-4 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
-             <div className="flex justify-between items-center mb-4">
+             <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <Users className="w-4 h-4 text-slate-400" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">Workforce Movement</h3>
@@ -1830,7 +1830,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
          <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">Notices</h2>
          <div className="grid grid-cols-1 gap-6">
            <Card className="p-4 shadow-sm border-l-4 border-l-[#7B0099] border-y !border-y-slate-600 border-r !border-r-slate-600 dark:!border-y-slate-500 dark:!border-r-slate-500 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
-             <div className="flex justify-between items-center mb-4">
+             <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <AlertCircle className="w-4 h-4 text-[#7B0099]" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">HR Alerts</h3>
