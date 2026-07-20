@@ -102,6 +102,7 @@ export default function WorkforceInsights() {
   const [liveMonthlyComp, setLiveMonthlyComp] = useState<any>(null);
   const [liveHrAlerts, setLiveHrAlerts] = useState<any[] | null>(null);
   const [feedConnected, setFeedConnected] = useState(false);
+  const [liveEmployees, setLiveEmployees] = useState<any[]>([]);
 
   const isAdminRole = ["hr_admin", "managing_director", "finance_manager"].includes(role || "");
 
@@ -140,6 +141,23 @@ export default function WorkforceInsights() {
     es.onerror = () => setFeedConnected(false);
     return () => es.close();
   }, [role, userBranch, userDepartment, isAdminRole, month, year, day, viewMode]);
+
+  // SSE connection for live stats (to get liveEmployees)
+  useEffect(() => {
+    if (!isAdminRole) return;
+    const url = `${API_BASE_URL}/api/presence/live-stats?date=${year}-${month}-${day}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`;
+    const es = new EventSource(url);
+    
+    es.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'presence_update') {
+          setLiveEmployees(data.employees || []);
+        }
+      } catch (err) {}
+    };
+    return () => es.close();
+  }, [role, userBranch, userDepartment, isAdminRole, month, year, day]);
 
   const handleApproveLeave = async (id: number) => {
     setPendingApprovalsList(prev => prev.filter(item => item.id !== id));
@@ -529,15 +547,25 @@ export default function WorkforceInsights() {
                 <CardContent className="p-5 flex flex-col">
                   <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
                     <TooltipProvider>
-                      {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).map((branch: any, idx: number) => {
-                        const present = Math.floor(branch.count * (branch.attendanceRate / 100));
-                        const presentOnTime = Math.floor(present * 0.9);
-                        const presentLate = present - presentOnTime;
-                        const absent = branch.count - present;
-                        const outstation = 0;
-                        const onLeave = 0;
-                        const companyLeave = 0;
+                      {filteredBranches.map((branch: any, idx: number) => {
+                        const branchEmployees = liveEmployees.filter(emp => emp.branch === branch.name);
+                        const outstation = branchEmployees.filter(emp => emp.status === 'outstation').length;
+                        const presentOnTime = branchEmployees.filter(emp => emp.status === 'present').length;
+                        const presentLate = branchEmployees.filter(emp => emp.status === 'late').length;
+                        const onLeave = branchEmployees.filter(emp => emp.status === 'onLeave').length;
+                        const companyLeave = branchEmployees.filter(emp => emp.status === 'companyLeave').length;
+                        const absent = Math.max(0, branch.count - (presentOnTime + presentLate + outstation + onLeave + companyLeave));
                         
+                        const expectedWorkingDays = branch.count - onLeave - companyLeave;
+                        let realRate = 0;
+                        if (expectedWorkingDays > 0) {
+                          realRate = Math.round(((presentOnTime + presentLate + outstation) / expectedWorkingDays) * 100);
+                        } else if (branch.count > 0 && expectedWorkingDays === 0) {
+                          realRate = 100;
+                        }
+
+                        return { ...branch, realRate, presentOnTime, presentLate, outstation, onLeave, companyLeave, absent };
+                      }).sort((a:any, b:any) => b.realRate - a.realRate).map((branch: any, idx: number) => {
                         return (
                           <div key={idx} className="flex flex-col gap-1">
                             <div className="flex justify-between items-end">
@@ -545,19 +573,19 @@ export default function WorkforceInsights() {
                                 <span className="text-[11px] font-bold text-[#1A1F36] dark:text-gray-200">{branch.name}</span>
                                 <span className="text-[9px] text-slate-400">{branch.count} Employees</span>
                               </div>
-                              <span className={`text-[10px] font-black ${branch.attendanceRate >= 95 ? 'text-emerald-500' : 'text-rose-500'}`}>{branch.attendanceRate}%</span>
+                              <span className={`text-[10px] font-black ${branch.realRate >= 95 ? 'text-emerald-500' : 'text-rose-500'}`}>{branch.realRate}%</span>
                             </div>
                             <UITooltip delayDuration={100}>
                               <TooltipTrigger asChild>
                                 <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 flex overflow-hidden cursor-pointer">
                                   {branch.count > 0 ? (
                                     <>
-                                      <div className="h-full bg-[#10b981]" style={{ width: `${(presentOnTime / branch.count) * 100}%` }}></div>
-                                      <div className="h-full bg-[#f59e0b]" style={{ width: `${(presentLate / branch.count) * 100}%` }}></div>
-                                      <div className="h-full bg-pink-500" style={{ width: `${(outstation / branch.count) * 100}%` }}></div>
-                                      <div className="h-full bg-blue-500" style={{ width: `${(onLeave / branch.count) * 100}%` }}></div>
-                                      <div className="h-full bg-purple-500" style={{ width: `${(companyLeave / branch.count) * 100}%` }}></div>
-                                      <div className="h-full bg-red-500" style={{ width: `${(absent / branch.count) * 100}%` }}></div>
+                                      <div className="h-full bg-[#10b981]" style={{ width: `${(branch.presentOnTime / branch.count) * 100}%` }}></div>
+                                      <div className="h-full bg-[#f59e0b]" style={{ width: `${(branch.presentLate / branch.count) * 100}%` }}></div>
+                                      <div className="h-full bg-pink-500" style={{ width: `${(branch.outstation / branch.count) * 100}%` }}></div>
+                                      <div className="h-full bg-blue-500" style={{ width: `${(branch.onLeave / branch.count) * 100}%` }}></div>
+                                      <div className="h-full bg-purple-500" style={{ width: `${(branch.companyLeave / branch.count) * 100}%` }}></div>
+                                      <div className="h-full bg-red-500" style={{ width: `${(branch.absent / branch.count) * 100}%` }}></div>
                                     </>
                                   ) : (
                                     <div className="h-full w-full bg-slate-200"></div>
@@ -567,12 +595,12 @@ export default function WorkforceInsights() {
                               <TooltipContent side="top" align="center" className="bg-white dark:bg-card border border border-slate-300 dark:border-slate-700 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[150px]">
                                 <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{branch.name}</p>
                                 <div className="flex flex-col gap-1 text-[9px] text-slate-600 dark:text-slate-300">
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{presentOnTime}</span></p>
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{presentLate}</span></p>
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-500">{outstation}</span></p>
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>On Leave:</span> <span className="font-bold text-blue-500">{onLeave}</span></p>
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-500">{companyLeave}</span></p>
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-red-500">{absent}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{branch.presentLate}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-500">{branch.outstation}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>On Leave:</span> <span className="font-bold text-blue-500">{branch.onLeave}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-500">{branch.companyLeave}</span></p>
+                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-red-500">{branch.absent}</span></p>
                                 </div>
                               </TooltipContent>
                             </UITooltip>
@@ -1544,7 +1572,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
              
              <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
                <TooltipProvider>
-                {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).slice(0, 5).map((branch: any, idx: number) => {
+                {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).map((branch: any, idx: number) => {
                   const present = Math.floor(branch.count * (branch.attendanceRate / 100));
                   const presentOnTime = Math.floor(present * 0.9);
                   const presentLate = present - presentOnTime;
