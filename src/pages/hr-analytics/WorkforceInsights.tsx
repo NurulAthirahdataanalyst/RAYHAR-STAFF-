@@ -1487,7 +1487,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
               <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1 h-[280px] min-h-[280px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={4} barSize={8}>
+                    <BarChart data={liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={4} barSize={16}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b', fontWeight: 'bold' }} axisLine={false} tickLine={false} dy={10} />
                       <YAxis tick={{ fontSize: 11, fill: '#64748b', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
@@ -1504,9 +1504,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                         </>
                       )}
 
-                      <Bar dataKey="present" name="Present" fill="#10b981" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="late" name="Late" fill="#eab308" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="absent" name="Absent" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="present" name="Present" stackId="a" fill="#10b981" />
+                      <Bar dataKey="late" name="Late" stackId="a" fill="#eab308" />
+                      <Bar dataKey="absent" name="Absent" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
