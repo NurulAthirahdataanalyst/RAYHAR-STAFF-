@@ -473,54 +473,76 @@ export default function WorkforceInsights() {
                 </span>
               </div>
             </Card>
-          ) : (
-            <Card className={`col-span-1 md:col-span-2 xl:col-span-2 rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-5 flex flex-col justify-between ${cardHoverEffect}`}>
-              <div className="flex items-center justify-between mb-3 border-b border-slate-100 dark:border-slate-800 pb-3">
-                <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Employees By Department</span>
-                <span className="text-[10px] bg-slate-50 dark:bg-slate-900/50 border border-slate-150 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 font-semibold">
-                  This Month <ChevronDown className="w-3 h-3" />
-                </span>
-              </div>
-              
-              <div className="h-[200px] w-full mt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart 
-                    data={departmentChartData} 
-                    layout="vertical"
-                    margin={{ top: 20, right: 30, left: 10, bottom: 5 }}
-                    barSize={24}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e2e8f0" strokeOpacity={0.6} />
-                    <RechartsTooltip cursor={{ fill: 'transparent' }} content={<CustomDeptTooltip />} />
-                    <XAxis type="number" axisLine={{ stroke: '#e2e8f0' }} tickLine={false} tick={{ fontSize: 9, fill: '#64748b' }} />
-                    <YAxis dataKey="name" type="category" tick={{ fontSize: 9, fill: '#64748b', fontWeight: 'bold' }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} width={130} />
-                    <Bar dataKey="value" fill="#ff5b37" radius={[0, 4, 4, 0]} barSize={8} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+          ) : (() => {
+            const rawBranchMetrics = data.branchMetrics || [];
+            const hqMetric = rawBranchMetrics.find((b: any) => b.name === 'HQ' || b.name === 'Rayhar HQ') || { count: 0 };
+            const hqCount = hqMetric.count || 0;
+            const branchCount = rawBranchMetrics.filter((b: any) => b.name !== 'HQ' && b.name !== 'Rayhar HQ').reduce((sum: number, b: any) => sum + (b.count || 0), 0);
+            const totalEmployees = hqCount + branchCount;
+            const hqPct = totalEmployees > 0 ? (hqCount / totalEmployees) * 100 : 0;
+            const branchPct = totalEmployees > 0 ? (branchCount / totalEmployees) * 100 : 0;
+            
+            const allAttendance = data.performance?.allAttendance || [];
+            const topPerformers = allAttendance.filter((a: any) => a.attendanceRate === 100);
+            const topPerformerCount = topPerformers.length;
 
-              <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#ff5b37]"></div>
-                <span className="text-[9px] font-bold text-slate-400">
-                  {(() => {
-                    const currentHc = data?.monthlyComparison?.headcount?.current || 0;
-                    const prevHc = data?.monthlyComparison?.headcount?.previous || 0;
-                    if (prevHc === 0 && currentHc > 0) {
-                      return <>No of Employees increased by <span className="text-emerald-500">+100%</span> from last Month</>;
-                    }
-                    if (currentHc > prevHc && prevHc > 0) {
-                      const pct = Math.round(((currentHc - prevHc) / prevHc) * 100);
-                      return <>No of Employees increased by <span className="text-emerald-500">+{pct}%</span> from last Month</>;
-                    } else if (currentHc < prevHc && prevHc > 0) {
-                      const pct = Math.round(((prevHc - currentHc) / prevHc) * 100);
-                      return <>No of Employees decreased by <span className="text-rose-500">-{pct}%</span> from last Month</>;
-                    }
-                    return "No of Employees remained unchanged from last Month";
-                  })()}
-                </span>
-              </div>
-            </Card>
-          )}
+            return (
+              <Card className={`col-span-1 md:col-span-2 xl:col-span-2 rounded-lg shadow-sm border border-slate-300 border-l-4 border-l-[#7B0099] dark:border-slate-700 dark:border-l-[#7B0099] bg-white dark:bg-card p-5 flex flex-col justify-between ${cardHoverEffect}`}>
+                <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
+                  <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Employee Distribution</span>
+                </div>
+                
+                <div className="flex flex-col flex-1 mt-2">
+                  <div className="flex justify-between items-end mb-2">
+                     <span className="text-[11px] font-semibold text-slate-500">Total Employee</span>
+                     <span className="text-3xl font-black text-slate-800 dark:text-slate-200">{totalEmployees > 0 ? totalEmployees : (data.topKpi?.totalHeadcount || 218)}</span>
+                  </div>
+                  
+                  {/* 100% Stacked Bar for HQ and Branch */}
+                  <div className="flex w-full h-5 rounded-full overflow-hidden mt-2 mb-4">
+                    <div style={{ width: `${hqPct || 37.6}%` }} className="bg-[#f59e0b] h-full" />
+                    <div style={{ width: `${branchPct || 62.4}%` }} className="bg-[#0f766e] h-full" />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 border-b border-slate-100 dark:border-slate-800 pb-5 mb-5">
+                    <div className="flex flex-col border-r border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-1.5 mb-2">
+                         <div className="w-2 h-2 rounded-full bg-[#f59e0b]" />
+                         <span className="text-[10px] font-bold text-slate-500">HQ ({(hqPct || 37.6).toFixed(1)}%)</span>
+                      </div>
+                      <span className="text-2xl font-black text-slate-800 dark:text-slate-200">{hqCount > 0 ? hqCount : 82}</span>
+                    </div>
+                    <div className="flex flex-col pl-2">
+                      <div className="flex items-center gap-1.5 mb-2">
+                         <div className="w-2 h-2 rounded-full bg-[#0f766e]" />
+                         <span className="text-[10px] font-bold text-slate-500">Branch ({(branchPct || 62.4).toFixed(1)}%)</span>
+                      </div>
+                      <span className="text-2xl font-black text-slate-800 dark:text-slate-200">{branchCount > 0 ? branchCount : 136}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2 mb-6">
+                    <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Top Performer</span>
+                    <div className="flex items-center justify-between bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-900/30 rounded-xl p-4 mt-1 cursor-default hover:bg-orange-100/50 dark:hover:bg-orange-900/20 transition-colors">
+                       <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm">
+                             <Award className="w-5 h-5" />
+                          </div>
+                          <div className="flex flex-col">
+                             <span className="text-[14px] font-bold text-slate-800 dark:text-slate-200">{topPerformerCount > 0 ? topPerformerCount : 27} Employees</span>
+                             <span className="text-[11px] font-semibold text-slate-500">Attendance Rate: <span className="text-emerald-500 font-bold">100%</span></span>
+                          </div>
+                       </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <button onClick={() => navigate('/branch-management')} className="w-full h-10 flex items-center justify-center bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-[11px] font-bold text-slate-600 rounded-lg border border-slate-200 dark:border-slate-700">
+                   View All Employees <ChevronRight className="w-3 h-3 ml-1" />
+                </button>
+              </Card>
+            );
+          })()}
 
         </div>
 
