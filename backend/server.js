@@ -5892,7 +5892,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       }
 
       if (!userStats[att.user_id]) {
-        userStats[att.user_id] = { name: att.name, department: att.department, presentDays: 0, lateDays: 0, missingPunches: 0, lastMissingPunch: null };
+        userStats[att.user_id] = { name: att.name, department: att.department, branch: att.branch, presentDays: 0, lateDays: 0, missingPunches: 0, lastMissingPunch: null };
       }
       
       if (!isOutstation) {
@@ -6169,6 +6169,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       .map(u => ({
         name: u.name,
         department: u.department || 'General',
+        branch: u.branch || 'HQ',
         missingPunches: u.missingPunches,
         lastOccurrence: u.lastMissingPunch
       }))

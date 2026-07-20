@@ -14,6 +14,7 @@ import {
 type MissingPunchEmployee = {
   name: string;
   department: string;
+  branch?: string;
   missingPunches: number;
   lastOccurrence: string;
 };
@@ -28,7 +29,8 @@ export function MissingPunchCard({ employees, indicator }: MissingPunchCardProps
 
   const filteredEmployees = employees.filter((emp) =>
     emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.department.toLowerCase().includes(searchTerm.toLowerCase())
+    emp.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (emp.branch && emp.branch.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -83,7 +85,7 @@ export function MissingPunchCard({ employees, indicator }: MissingPunchCardProps
         <DialogHeader className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-red-600" />
-            <DialogTitle className="text-lg font-black text-slate-800 dark:text-slate-100">
+            <DialogTitle className="text-lg font-black text-black dark:text-white">
               Missing Punch Details
             </DialogTitle>
           </div>
@@ -118,8 +120,10 @@ export function MissingPunchCard({ employees, indicator }: MissingPunchCardProps
                         {emp.name.substring(0, 2).toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{emp.name}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{emp.department}</p>
+                        <p className="text-sm font-bold text-black dark:text-white">{emp.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {emp.department} {emp.branch ? `• ${emp.branch}` : ''}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
