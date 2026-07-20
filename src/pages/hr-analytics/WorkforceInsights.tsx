@@ -1650,9 +1650,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                   </div>
                 </div>
                 <div className="flex gap-4">
-                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#10b981]"></div><span className="text-xs font-bold text-slate-600">Present</span></div>
-                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#eab308]"></div><span className="text-xs font-bold text-slate-600">Late</span></div>
-                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#ef4444]"></div><span className="text-xs font-bold text-slate-600">Absent</span></div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#2D9B2B]"></div><span className="text-xs font-bold text-slate-600">Present</span></div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#FFD700]"></div><span className="text-xs font-bold text-slate-600">Late</span></div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#E12C2C]"></div><span className="text-xs font-bold text-slate-600">Absent</span></div>
                 </div>
               </div>
 
@@ -1668,17 +1668,17 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                       {/* Weekend Highlighting */}
                       {(data?.attendanceOverview?.branchZone || 'ZONE_B') === 'ZONE_A' ? (
                         <>
-                          <ReferenceArea x1="Fri" x2="Sat" fill="#f8fafc" fillOpacity={0.8} />
+                          <ReferenceArea x1="Fri" x2="Sat" fill="#e2e8f0" fillOpacity={0.6} />
                         </>
                       ) : (
                         <>
-                          <ReferenceArea x1="Sat" x2="Sun" fill="#f8fafc" fillOpacity={0.8} />
+                          <ReferenceArea x1="Sat" x2="Sun" fill="#e2e8f0" fillOpacity={0.6} />
                         </>
                       )}
 
-                      <Bar dataKey="present" name="Present" stackId="a" fill="#10b981" />
-                      <Bar dataKey="late" name="Late" stackId="a" fill="#eab308" />
-                      <Bar dataKey="absent" name="Absent" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="present" name="Present" stackId="a" fill="#2D9B2B" />
+                      <Bar dataKey="late" name="Late" stackId="a" fill="#FFD700" />
+                      <Bar dataKey="absent" name="Absent" stackId="a" fill="#E12C2C" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
