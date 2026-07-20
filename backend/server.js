@@ -1789,7 +1789,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   );
   
   const [weeklyLeaveRows] = await pool.query(
-    `SELECT COUNT(*) as cnt 
+    `SELECT lr.start_date, lr.end_date 
      FROM leave_requests lr
      JOIN profiles p ON lr.user_id = p.user_id
      WHERE lr.status = 'Approved' 
@@ -1799,7 +1799,6 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
        ${leaveTrendRoleFilter}`,
     [tYear, tMonth, ...leaveTrendFilterParams]
   );
-  const totalMonthLeaves = parseInt(weeklyLeaveRows[0].cnt || 0);
 
   const weeklyMap = {
     'Mon': { present: 0, late: 0, leave: 0, expected: 0 },
@@ -1841,10 +1840,23 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     }
   });
 
-  const avgLeave = totalMonthLeaves / Math.max(1, new Date(dateStr).getDate());
-  for (const day of Object.keys(weeklyMap)) {
-     weeklyMap[day].leave = Math.round(avgLeave * (weeklyMap[day].expected / Math.max(1, activeCount)));
-  }
+  weeklyLeaveRows.forEach(lr => {
+    const startObj = new Date(lr.start_date);
+    const endObj = new Date(lr.end_date);
+    
+    let dIter = new Date(startObj);
+    dIter.setHours(0,0,0,0);
+    const lEnd = new Date(endObj);
+    lEnd.setHours(23,59,59,999);
+    
+    while (dIter <= lEnd) {
+      if (dIter >= weekStartDLive && dIter <= weekEndDLive) {
+        const dayName = dNames[dIter.getDay()];
+        weeklyMap[dayName].leave++;
+      }
+      dIter.setDate(dIter.getDate() + 1);
+    }
+  });
 
   const weeklyAttendanceTrend = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => {
     const data = weeklyMap[day];
@@ -6139,14 +6151,27 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       }
     });
 
-    // Add Leave from leaveRows (requires mapping leaves to days)
-    // We will just estimate leave per weekday by distributing evenly for simplicity, 
-    // or calculate exactly. Let's do a simple evenly distribution for leave:
-    const avgLeavePerDay = approvedThisMonth / Math.max(1, new Date(targetDateStr).getDate());
-    for (const day of Object.keys(weeklyMap)) {
-       // Estimate leave per day type (this is rough but works for trend)
-       weeklyMap[day].leave = Math.round(avgLeavePerDay * (weeklyMap[day].expected / Math.max(1, activeEmployees)));
-    }
+    // Add Leave from leaveRows (actual calculation for the week)
+    leaveRows.forEach(lr => {
+      if (lr.status === 'Approved') {
+        const startObj = new Date(lr.start_date);
+        const endObj = new Date(lr.end_date);
+        
+        // Loop over the days of the leave, and if it falls in the current week up to today, count it
+        let dIter = new Date(startObj);
+        dIter.setHours(0,0,0,0);
+        const lEnd = new Date(endObj);
+        lEnd.setHours(23,59,59,999);
+        
+        while (dIter <= lEnd) {
+          if (dIter >= weekStartD && dIter <= weekEndD) {
+            const dayName = dayNames[dIter.getDay()];
+            weeklyMap[dayName].leave++;
+          }
+          dIter.setDate(dIter.getDate() + 1);
+        }
+      }
+    });
 
     const weeklyOrder = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
     const weeklyAttendanceTrend = weeklyOrder.map(day => {
