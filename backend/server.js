@@ -1776,15 +1776,18 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   const [activeProfilesCountRes] = await pool.query(`SELECT COUNT(*) as cnt FROM profiles p WHERE status = 'Active' ${leaveTrendRoleFilter}`, leaveTrendFilterParams);
   const activeCount = parseInt(activeProfilesCountRes[0].cnt || 0);
 
+  const lateTimeStr = typeof getLateThresholdTime === 'function' ? getLateThresholdTime() : "09:00:00";
+
   const [weeklyAttRows] = await pool.query(
-    `SELECT clock_in, is_late 
+    `SELECT clock_in, 
+            CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END as is_late
      FROM attendances a
      JOIN profiles p ON a.user_id = p.user_id
      WHERE EXTRACT(YEAR FROM clock_in) = ? 
        AND EXTRACT(MONTH FROM clock_in) = ?
        AND p.status = 'Active'
        ${leaveTrendRoleFilter}`,
-    [tYear, tMonth, ...leaveTrendFilterParams]
+    [lateTimeStr, tYear, tMonth, ...leaveTrendFilterParams]
   );
   
   const [weeklyLeaveRows] = await pool.query(
