@@ -1811,7 +1811,19 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     'Sun': { present: 0, late: 0, leave: 0, expected: 0 },
   };
   const dNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const dIterLive = new Date(tYear, tMonth - 1, 1);
+  
+  const targetDLive = new Date(dateStr);
+  const dayOfWeekLive = targetDLive.getDay();
+  const diffToMonLive = dayOfWeekLive === 0 ? -6 : 1 - dayOfWeekLive;
+  const weekStartDLive = new Date(targetDLive);
+  weekStartDLive.setDate(targetDLive.getDate() + diffToMonLive);
+  weekStartDLive.setHours(0,0,0,0);
+
+  const weekEndDLive = new Date(weekStartDLive);
+  weekEndDLive.setDate(weekStartDLive.getDate() + 6);
+  weekEndDLive.setHours(23,59,59,999);
+
+  const dIterLive = new Date(weekStartDLive);
   const dEndLive = new Date(dateStr);
   while (dIterLive <= dEndLive) {
     weeklyMap[dNames[dIterLive.getDay()]].expected += activeCount;
@@ -1819,13 +1831,17 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   }
 
   weeklyAttRows.forEach(att => {
-    const dObj = new Date(att.clock_in);
-    const dName = dNames[dObj.getDay()];
-    weeklyMap[dName].present++;
-    if (parseInt(att.is_late) === 1) weeklyMap[dName].late++;
+    const dateObj = new Date(att.clock_in);
+    if (dateObj >= weekStartDLive && dateObj <= weekEndDLive) {
+      const dayName = dNames[dateObj.getDay()];
+      weeklyMap[dayName].present++;
+      if (parseInt(att.is_late) === 1) {
+        weeklyMap[dayName].late++;
+      }
+    }
   });
 
-  const avgLeave = totalMonthLeaves / Math.max(1, new Date(targetDate).getDate());
+  const avgLeave = totalMonthLeaves / Math.max(1, new Date(dateStr).getDate());
   for (const day of Object.keys(weeklyMap)) {
      weeklyMap[day].leave = Math.round(avgLeave * (weeklyMap[day].expected / Math.max(1, activeCount)));
   }
@@ -6077,7 +6093,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       lates: dailyMap[d].lates
     })).slice(-10);
 
-    // Build Weekly Attendance Trend
+    // Build Weekly Attendance Trend (CURRENT WEEK ONLY)
     const weeklyMap = {
       'Mon': { present: 0, late: 0, leave: 0, expected: 0 },
       'Tue': { present: 0, late: 0, leave: 0, expected: 0 },
@@ -6089,8 +6105,20 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     };
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     
-    // Sum expected attendances per weekday up to the target date
-    const dIter = new Date(requestedYear, requestedMonth - 1, 1);
+    // Find Monday of the target date's week
+    const targetD = new Date(targetDateStr);
+    const dayOfWeek = targetD.getDay();
+    const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const weekStartD = new Date(targetD);
+    weekStartD.setDate(targetD.getDate() + diffToMon);
+    weekStartD.setHours(0,0,0,0);
+
+    const weekEndD = new Date(weekStartD);
+    weekEndD.setDate(weekStartD.getDate() + 6);
+    weekEndD.setHours(23,59,59,999);
+    
+    // Sum expected attendances per weekday up to the target date (within current week)
+    const dIter = new Date(weekStartD);
     const dEnd = new Date(targetDateStr);
     while (dIter <= dEnd) {
       const dayName = dayNames[dIter.getDay()];
@@ -6098,13 +6126,15 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       dIter.setDate(dIter.getDate() + 1);
     }
 
-    // Add Present and Late from attRows
+    // Add Present and Late from attRows (ONLY for current week)
     attRows.forEach(att => {
       const dateObj = new Date(att.clock_in);
-      const dayName = dayNames[dateObj.getDay()];
-      weeklyMap[dayName].present++;
-      if (parseInt(att.is_late) === 1) {
-        weeklyMap[dayName].late++;
+      if (dateObj >= weekStartD && dateObj <= weekEndD) {
+        const dayName = dayNames[dateObj.getDay()];
+        weeklyMap[dayName].present++;
+        if (parseInt(att.is_late) === 1) {
+          weeklyMap[dayName].late++;
+        }
       }
     });
 

@@ -1,0 +1,1 @@
+const str = "KEY IN JEMAAH [CUTI_GANTI_DATA:[{\\"tarikhCuti\\":\\"2026-07-23\\"}]]"; const jsonStr = str.substring(str.indexOf("[CUTI_GANTI_DATA:") + 17, str.lastIndexOf("]]") + 1); console.log(jsonStr); console.log(JSON.parse(jsonStr));

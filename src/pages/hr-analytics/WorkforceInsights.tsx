@@ -1487,7 +1487,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
               <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1 h-[280px] min-h-[280px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={2} barSize={12}>
+                    <BarChart data={liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={4} barSize={8}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b', fontWeight: 'bold' }} axisLine={false} tickLine={false} dy={10} />
                       <YAxis tick={{ fontSize: 11, fill: '#64748b', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
