@@ -1469,8 +1469,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-start">
            <div className="lg:col-span-2 flex flex-col gap-6">
             <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#f97316]"></div>
-              <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-4 pl-2">
+              <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div className="flex items-center gap-2">
                   <h2 className="text-xl font-bold text-slate-800 tracking-tight">Attendance Trend</h2>
                 </div>
