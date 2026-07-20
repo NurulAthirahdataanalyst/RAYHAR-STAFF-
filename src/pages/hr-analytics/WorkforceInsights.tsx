@@ -1516,6 +1516,17 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
   const prevMonthSick = leaveTrendData.length > 1 ? (leaveTrendData[leaveTrendData.length - 2].Sick ?? leaveTrendData[leaveTrendData.length - 2].sick ?? 0) : 0;
   const sickLeaveSpike = currentMonthSick > 0 && currentMonthSick >= prevMonthSick * 1.5;
 
+  const baseTrendData = liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend || [];
+  const activeEmp = topKpi?.activeEmployees || data?.topKpi?.activeEmployees || 82;
+  const trendDataWithWeekend = baseTrendData.map((day: any) => {
+    const isWeekend = (data?.attendanceOverview?.branchZone || 'ZONE_B') === 'ZONE_A' ? ['Fri', 'Sat'].includes(day.name) : ['Sat', 'Sun'].includes(day.name);
+    const totalTracked = (day.present || 0) + (day.late || 0) + (day.absent || 0);
+    return {
+      ...day,
+      weekend: isWeekend ? Math.max(0, activeEmp - totalTracked) : 0
+    };
+  });
+
   return (
     <div className="space-y-8">
        {/* PRIMARY SECTION */}
@@ -1649,36 +1660,27 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                     <span className="text-xs font-bold text-slate-500">Absent</span>
                   </div>
                 </div>
-                <div className="flex gap-4">
+                  <div className="flex gap-4">
                   <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#2D9B2B]"></div><span className="text-xs font-bold text-slate-600">Present</span></div>
                   <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#FFD700]"></div><span className="text-xs font-bold text-slate-600">Late</span></div>
                   <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#E12C2C]"></div><span className="text-xs font-bold text-slate-600">Absent</span></div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#9ca3af]"></div><span className="text-xs font-bold text-slate-600">Weekend</span></div>
                 </div>
               </div>
 
               <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1 h-[280px] min-h-[280px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={4} barSize={16}>
+                    <BarChart data={trendDataWithWeekend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={4} barSize={16}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b', fontWeight: 'bold' }} axisLine={false} tickLine={false} dy={10} />
                       <YAxis tick={{ fontSize: 11, fill: '#64748b', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
                       <RechartsTooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} />
                       
-                      {/* Weekend Highlighting */}
-                      {(data?.attendanceOverview?.branchZone || 'ZONE_B') === 'ZONE_A' ? (
-                        <>
-                          <ReferenceArea x1="Fri" x2="Sat" fill="#e2e8f0" fillOpacity={0.6} />
-                        </>
-                      ) : (
-                        <>
-                          <ReferenceArea x1="Sat" x2="Sun" fill="#e2e8f0" fillOpacity={0.6} />
-                        </>
-                      )}
-
                       <Bar dataKey="present" name="Present" stackId="a" fill="#2D9B2B" />
                       <Bar dataKey="late" name="Late" stackId="a" fill="#FFD700" />
-                      <Bar dataKey="absent" name="Absent" stackId="a" fill="#E12C2C" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="absent" name="Absent" stackId="a" fill="#E12C2C" />
+                      <Bar dataKey="weekend" name="Weekend" stackId="a" fill="#9ca3af" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
