@@ -1378,6 +1378,19 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
   // exact total count
   const totalLeaveCount = leaveData.reduce((sum, item) => sum + item.value, 0);
 
+  // Simulated Leave Utilization Trend Data (Time Normalized in Hours)
+  const leaveTrendData = [
+    { month: 'Jan', Annual: 45, Sick: 20, Replacement: 0 },
+    { month: 'Feb', Annual: 55, Sick: 35, Replacement: 8 },
+    { month: 'Mar', Annual: 40, Sick: 15, Replacement: 0 },
+    { month: 'Apr', Annual: 75, Sick: 50, Replacement: 16 },
+    { month: 'May', Annual: 60, Sick: 25, Replacement: 8 },
+    { month: 'Jun', Annual: ((leave.annual || 0) + (leave.emergency || 0)) * 8, Sick: (leave.medical || 0) * 8, Replacement: (leave.replacement || 0) * 8 }
+  ];
+  const currentMonthSick = leaveTrendData[5].Sick;
+  const prevMonthSick = leaveTrendData[4].Sick;
+  const sickLeaveSpike = currentMonthSick > 0 && currentMonthSick >= prevMonthSick * 1.5;
+
   return (
     <div className="space-y-8">
        {/* PRIMARY SECTION */}
