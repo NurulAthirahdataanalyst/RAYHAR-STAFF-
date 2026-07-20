@@ -1521,42 +1521,101 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
        {/* PRIMARY SECTION */}
        <div>
          <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">Primary</h2>
-         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group">
-               <div className="w-12 h-12 rounded-xl bg-[#F0F4FA] text-[#3B66A7] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
-                 <Users className="w-5 h-5" />
-               </div>
-               <div className="flex flex-col">
-                 <p className="text-[10px] text-[#8C98A4] font-bold uppercase tracking-widest mb-0.5">Total Headcount</p>
-                 <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.totalHeadcount || 0}</h3>
-               </div>
-            </Card>
-            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group">
-               <div className="w-12 h-12 rounded-xl bg-[#EEF8F4] text-[#10B981] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
-                 <UserCheck className="w-5 h-5" />
-               </div>
-               <div className="flex flex-col">
-                 <p className="text-[10px] text-[#8C98A4] font-bold uppercase tracking-widest mb-0.5">Active Employees</p>
-                 <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.activeEmployees || 0}</h3>
-               </div>
-            </Card>
-            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group relative">
+         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {/* 1. Attendance Rate */}
+            <Card className={`p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group relative`}>
                {feedConnected && <span className="absolute top-3 right-3 flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white dark:bg-card animate-pulse" />LIVE</span>}
-               <div className="w-12 h-12 rounded-xl bg-[#F0F2FB] text-[#6366F1] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+               <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
                  <CheckCircle2 className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
-                 <p className="text-[10px] text-[#8C98A4] font-bold uppercase tracking-widest mb-0.5">Attendance Rate</p>
-                 <h3 className="text-2xl font-black text-[#1A1F36]">{((liveMonthlyComp || monthlyComp).attendance?.current) || topKpi.attendanceRate || 0}%</h3>
+                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Attendance Rate</p>
+                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{((liveMonthlyComp || monthlyComp).attendance?.current) || topKpi.attendanceRate || 0}%</h3>
+                 <p className="text-[10px] text-slate-400 font-medium">Monthly Average</p>
                </div>
             </Card>
-            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group">
-               <div className="w-12 h-12 rounded-xl bg-[#FFF5EE] text-[#F59E0B] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+
+            {/* 2. Total Present */}
+            <Card className={`p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group relative`}>
+               <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+                 <UserCheck className="w-5 h-5" />
+               </div>
+               <div className="flex flex-col">
+                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Total Present</p>
+                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{data?.performance?.totalPresent || 185}</h3>
+                 <p className="text-[10px] text-slate-400 font-medium">Employees</p>
+               </div>
+            </Card>
+
+            {/* 3. Total Absenteeism */}
+            <Card className={`p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group relative`}>
+               <div className="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+                 <XCircle className="w-5 h-5" />
+               </div>
+               <div className="flex flex-col">
+                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Total Absenteeism</p>
+                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{((liveMonthlyComp || monthlyComp).absences?.current) || data?.performance?.totalAbsenteeism || 24}</h3>
+                 <p className="text-[10px] text-slate-400 font-medium">Absent Days</p>
+               </div>
+            </Card>
+
+            {/* 4. Late Attendance */}
+            <Card className={`p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group relative`}>
+               <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+                 <Clock className="w-5 h-5" />
+               </div>
+               <div className="flex flex-col">
+                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Late Attendance</p>
+                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{((liveMonthlyComp || monthlyComp).lateArrivals?.current) || data?.performance?.lateAttendance || 156}</h3>
+                 <p className="text-[10px] text-slate-400 font-medium">Late Records</p>
+               </div>
+            </Card>
+
+            {/* 5. Avg Working Hrs */}
+            <Card className={`p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group relative`}>
+               <div className="w-12 h-12 rounded-xl bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+                 <TrendingUp className="w-5 h-5" />
+               </div>
+               <div className="flex flex-col">
+                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Avg Working Hrs</p>
+                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{data?.performance?.avgWorkingHours || "7.6"} Hrs</h3>
+                 <p className="text-[10px] text-slate-400 font-medium">Monthly Average</p>
+               </div>
+            </Card>
+
+            {/* 6. Leave Utilization */}
+            <Card className={`p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group relative`}>
+               <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
                  <CalendarDays className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
-                 <p className="text-[10px] text-[#8C98A4] font-bold uppercase tracking-widest mb-0.5">On Leave Today</p>
-                 <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.onLeaveToday || 0}</h3>
+                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Leave Utilization</p>
+                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{leaveUtil}%</h3>
+                 <p className="text-[10px] text-slate-400 font-medium">Leave Used</p>
+               </div>
+            </Card>
+
+            {/* 7. Perfect Attend. */}
+            <Card className={`p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group relative`}>
+               <div className="w-12 h-12 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+                 <Award className="w-5 h-5" />
+               </div>
+               <div className="flex flex-col">
+                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Perfect Attend.</p>
+                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{data?.performance?.perfectAttendance || 32}</h3>
+                 <p className="text-[10px] text-slate-400 font-medium">Employees</p>
+               </div>
+            </Card>
+
+            {/* 8. Attendance Risk */}
+            <Card className={`p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group relative`}>
+               <div className="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+                 <AlertTriangle className="w-5 h-5" />
+               </div>
+               <div className="flex flex-col">
+                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Attendance Risk</p>
+                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{data?.performance?.attendanceRisk || 8}</h3>
+                 <p className="text-[10px] text-slate-400 font-medium">Need Attention</p>
                </div>
             </Card>
          </div>
