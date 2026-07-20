@@ -165,12 +165,15 @@ export default function WorkforceCalendar() {
   const monthEndStr = format(new Date(viewYear, viewMonth + 1, 0), 'yyyy-MM-dd');
   
   const currentMonthEvents = events.filter(e => e.start_date <= monthEndStr && e.end_date >= monthStartStr);
-  const kpiAnnual = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type?.includes("Annual"));
-  const kpiSick = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type?.includes("Sick"));
-  const kpiEmergency = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type?.includes("Emergency"));
-  const kpiOutstation = currentMonthEvents.filter(e => e.source === "outstation");
-  const kpiCompany = currentMonthEvents.filter(e => e.source === "company_leave");
-  const kpiPending = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Pending");
+  const kpiAnnual = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type?.includes("Annual")).length;
+  const kpiSick = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type?.includes("Sick")).length;
+  const kpiEmergency = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Approved" && e.type?.includes("Emergency")).length;
+  
+  const outstationEvents = currentMonthEvents.filter(e => e.source === "outstation");
+  const kpiOutstation = new Set(outstationEvents.map(e => `${e.start_date}_${e.end_date}_${e.destination || e.project || e.meeting_title}`)).size;
+  
+  const kpiCompany = currentMonthEvents.filter(e => e.source === "company_leave").length;
+  const kpiPending = currentMonthEvents.filter(e => e.source === "leave" && e.status === "Pending").length;
 
   const getEventsForDay = (day: Date): WorkforceEvent[] => {
     const dateStr = format(day, 'yyyy-MM-dd');
@@ -212,14 +215,14 @@ export default function WorkforceCalendar() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { label: "Annual Leave", value: kpiAnnual.length, dot: "bg-emerald-500", icon: Calendar },
-          { label: "Sick Leave", value: kpiSick.length, dot: "bg-red-500", icon: Activity },
-          { label: "Emergency Leave", value: kpiEmergency.length, dot: "bg-orange-500", icon: AlertCircle },
-          { label: "Outstation", value: kpiOutstation.length, dot: "bg-blue-500", icon: Plane },
-          { label: "Company Leave", value: kpiCompany.length, dot: "bg-purple-500", icon: Building2 },
-          { label: "Pending", value: kpiPending.length, dot: "bg-amber-400", icon: FileText },
+          { label: "Annual Leave", value: kpiAnnual, dot: "bg-emerald-500", border: "border-l-emerald-500", icon: Calendar },
+          { label: "Sick Leave", value: kpiSick, dot: "bg-red-500", border: "border-l-red-500", icon: Activity },
+          { label: "Emergency Leave", value: kpiEmergency, dot: "bg-orange-500", border: "border-l-orange-500", icon: AlertCircle },
+          { label: "Outstation", value: kpiOutstation, dot: "bg-blue-500", border: "border-l-blue-500", icon: Plane },
+          { label: "Company Leave", value: kpiCompany, dot: "bg-purple-500", border: "border-l-purple-500", icon: Building2 },
+          { label: "Pending", value: kpiPending, dot: "bg-amber-400", border: "border-l-amber-400", icon: FileText },
         ].map(kpi => (
-          <Card key={kpi.label} className="border border-gray-200 dark:border-slate-800/80 shadow-sm">
+          <Card key={kpi.label} className={`border border-gray-200 dark:border-slate-800/80 shadow-sm border-l-4 ${kpi.border}`}>
             <CardContent className="p-4 flex items-center gap-3">
               <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${kpi.dot}`} />
               <div className="min-w-0">
@@ -228,6 +231,7 @@ export default function WorkforceCalendar() {
               </div>
             </CardContent>
           </Card>
+
         ))}
       </div>
 
