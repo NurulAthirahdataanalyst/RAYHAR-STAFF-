@@ -1437,7 +1437,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
             </Card>
          </div>
 
-         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+           <div className="flex flex-col gap-6">
            <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
@@ -1499,8 +1500,10 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                 </ResponsiveContainer>
               </div>
             </Card>
+           </div>
            
-           <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+           <div className="flex flex-col h-full">
+             <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col flex-1 h-full">
              <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
                  <FileCheck className="w-4 h-4 text-slate-400" />
@@ -1550,6 +1553,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
+           </div>
          </div>
        </div>
 
