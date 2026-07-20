@@ -1476,20 +1476,10 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
            </Card>
            
            <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col hover:border-[#7B0099] hover:shadow-md transition-all duration-300">
-              <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div className="flex items-center gap-2">
                   <CalendarDays className="w-4 h-4 text-[#7B0099]" />
                   <h3 className="text-[15px] font-black text-slate-800 dark:text-slate-200">Leave Utilization Trend vs. Previous Month</h3>
-                </div>
-                <div className="flex items-center gap-3">
-                  {sickLeaveSpike && (
-                    <span className="flex items-center gap-1.5 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded-md animate-pulse">
-                      <AlertTriangle className="w-3 h-3" /> Sick Leave Spike Detected!
-                    </span>
-                  )}
-                  <button className="text-xs font-bold text-[#7B0099] hover:text-purple-700 transition-colors flex items-center gap-1 bg-purple-50 px-2.5 py-1.5 rounded-md">
-                    New VW <ChevronRight className="w-3 h-3" />
-                  </button>
                 </div>
               </div>
               <div className="h-[250px] w-full min-h-[250px]">
