@@ -1520,7 +1520,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
   const activeEmp = topKpi?.activeEmployees || data?.topKpi?.activeEmployees || 82;
   const trendDataWithWeekend = baseTrendData.map((day: any) => {
     const isWeekend = (data?.attendanceOverview?.branchZone || 'ZONE_B') === 'ZONE_A' ? ['Fri', 'Sat'].includes(day.name) : ['Sat', 'Sun'].includes(day.name);
-    const totalTracked = (day.present || 0) + (day.late || 0) + (day.absent || 0);
+    const totalTracked = (day.present || 0) + (day.late || 0) + (day.absent || 0) + (day.leave || 0);
     return {
       ...day,
       weekend: isWeekend ? Math.max(0, activeEmp - totalTracked) : 0
@@ -1659,11 +1659,16 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                     <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum, item) => sum + item.absent, 0) || 0}</span>
                     <span className="text-xs font-bold text-slate-500">Absent</span>
                   </div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum, item) => sum + (item.leave || 0), 0) || 0}</span>
+                    <span className="text-xs font-bold text-slate-500">Leave</span>
+                  </div>
                 </div>
                   <div className="flex gap-4">
                   <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#2D9B2B]"></div><span className="text-xs font-bold text-slate-600">Present</span></div>
                   <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#FFD700]"></div><span className="text-xs font-bold text-slate-600">Late</span></div>
                   <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#E12C2C]"></div><span className="text-xs font-bold text-slate-600">Absent</span></div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#3B82F6]"></div><span className="text-xs font-bold text-slate-600">Leave</span></div>
                   <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#9ca3af]"></div><span className="text-xs font-bold text-slate-600">Weekend</span></div>
                 </div>
               </div>
@@ -1680,6 +1685,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                       <Bar dataKey="present" name="Present" stackId="a" fill="#2D9B2B" />
                       <Bar dataKey="late" name="Late" stackId="a" fill="#FFD700" />
                       <Bar dataKey="absent" name="Absent" stackId="a" fill="#E12C2C" />
+                      <Bar dataKey="leave" name="Leave" stackId="a" fill="#3B82F6" />
                       <Bar dataKey="weekend" name="Weekend" stackId="a" fill="#9ca3af" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>

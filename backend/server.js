@@ -1852,7 +1852,8 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
       name: day,
       present: data.present,
       late: data.late,
-      absent: Math.max(0, data.expected - data.present - data.leave)
+      absent: Math.max(0, data.expected - data.present - data.leave),
+      leave: data.leave
     };
   });
 
@@ -6155,7 +6156,8 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         name: day,
         present: data.present,
         late: data.late,
-        absent: absent
+        absent: absent,
+        leave: data.leave
       };
     });
 
