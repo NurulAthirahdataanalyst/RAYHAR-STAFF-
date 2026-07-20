@@ -1688,8 +1688,12 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   }
 
   const summaryWhere = `WHERE ${summaryFilters.join(' AND ')}`;
+  // GROUP BY trip identity so each row = 1 distinct event, not 1 staff member
   const [summaryRows] = await pool.query(
-    `SELECT status, destination FROM outstation_assignments ${summaryWhere}`,
+    `SELECT status, destination, project, start_date, start_time,
+            COUNT(*) as staff_count
+     FROM outstation_assignments ${summaryWhere}
+     GROUP BY status, destination, project, start_date, start_time`,
     summaryParams
   );
 
@@ -1699,6 +1703,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   const routeCounts = {};
 
   for (const r of summaryRows) {
+    // Each row now = 1 distinct trip/event (grouped), not 1 staff member
     if (r.status === 'Completed') completedCount++;
     else if (r.status === 'Upcoming' || r.status === 'Active') upcomingCount++;
     else if (r.status === 'Cancelled') cancelledCount++;
@@ -1719,6 +1724,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     cancelled: cancelledCount,
     popularRoutes
   };
+
 
   // Leave Trend — real monthly approved leave counts for 6 months ending at selected month
   const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
