@@ -40,7 +40,7 @@ export function MissingPunchCard({ employees, indicator }: MissingPunchCardProps
           <div className="flex justify-between items-center mb-4 border-b border-red-100 dark:border-red-900/20 pb-3">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-500" />
-              <h3 className="text-[15px] font-black text-red-900 dark:text-red-400">Missing Punches</h3>
+              <h2 className="text-xl font-bold text-red-900 dark:text-red-400 tracking-tight">Missing Punches</h2>
             </div>
           </div>
           

@@ -1448,9 +1448,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
            <div className="lg:col-span-2 flex flex-col gap-6">
             <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col relative overflow-hidden">
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#f97316]"></div>
-              <div className="flex justify-between items-center mb-6 pl-2">
+              <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-4 pl-2">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-[16px] font-black text-[#1A1F36] dark:text-white">Attendance Trend</h3>
+                  <h2 className="text-xl font-bold text-slate-800 tracking-tight">Attendance Trend</h2>
                 </div>
                 <div className="flex items-center gap-2 border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 shadow-sm">
                   <CalendarDays className="w-4 h-4 text-slate-500" />
@@ -1530,7 +1530,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
               <div className="flex items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div className="flex items-center gap-2">
                   <CalendarDays className="w-4 h-4 text-[#7B0099]" />
-                  <h3 className="text-[15px] font-black text-slate-800 dark:text-slate-200">Leave Utilization Trend vs. Previous Month</h3>
+                  <h2 className="text-xl font-bold text-slate-800 tracking-tight">Leave Utilization Trend vs. Previous Month</h2>
                 </div>
               </div>
               <div className="h-[250px] w-full min-h-[250px]">
@@ -1556,7 +1556,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <FileCheck className="w-4 h-4 text-slate-400" />
-                 <h3 className="text-sm font-bold text-[#1A1F36]">Monthly Comparison</h3>
+                 <h2 className="text-xl font-bold text-slate-800 tracking-tight">Monthly Comparison</h2>
                </div>
              </div>
              <div className="overflow-x-auto flex-1">
