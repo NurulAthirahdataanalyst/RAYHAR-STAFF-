@@ -1535,10 +1535,11 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                      { label: 'Leave Requests', cur: (liveMonthlyComp || monthlyComp).leaveRequests?.current || 0, prev: (liveMonthlyComp || monthlyComp).leaveRequests?.previous || 0, diff: ((liveMonthlyComp || monthlyComp).leaveRequests?.current || 0) - ((liveMonthlyComp || monthlyComp).leaveRequests?.previous || 0), invert: true },
                      { 
                        label: 'Outstation Trip', 
-                       cur: outstationSummary ? ((outstationSummary.completedEvents || outstationSummary.completedTrips || 0) + (outstationSummary.upcomingEvents || outstationSummary.upcomingTrips || 0)) : ((liveMonthlyComp || monthlyComp).outstation?.current || 0), 
+                       cur: outstationSummary ? ((outstationSummary.completed || 0) + (outstationSummary.upcoming || 0)) : ((liveMonthlyComp || monthlyComp).outstation?.current || 0), 
                        prev: 0, 
-                       diff: outstationSummary ? ((outstationSummary.completedEvents || outstationSummary.completedTrips || 0) + (outstationSummary.upcomingEvents || outstationSummary.upcomingTrips || 0)) : (((liveMonthlyComp || monthlyComp).outstation?.current || 0) - ((liveMonthlyComp || monthlyComp).outstation?.previous || 0)) 
+                       diff: outstationSummary ? ((outstationSummary.completed || 0) + (outstationSummary.upcoming || 0)) : (((liveMonthlyComp || monthlyComp).outstation?.current || 0) - ((liveMonthlyComp || monthlyComp).outstation?.previous || 0)) 
                      },
+
                    ].map((row, idx) => {
                      let isPositive = row.diff > 0;
                      if (row.invert) isPositive = row.diff < 0;
