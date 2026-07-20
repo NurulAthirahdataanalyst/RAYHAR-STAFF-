@@ -1427,7 +1427,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
        <div>
          <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">Primary</h2>
          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 border-l-4 border-l-[#7B0099] dark:border-slate-700 dark:border-l-[#7B0099] hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group">
+            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group">
                <div className="w-12 h-12 rounded-xl bg-[#F0F4FA] text-[#3B66A7] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
                  <Users className="w-5 h-5" />
                </div>
@@ -1436,7 +1436,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.totalHeadcount || 0}</h3>
                </div>
             </Card>
-            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 border-l-4 border-l-[#7B0099] dark:border-slate-700 dark:border-l-[#7B0099] hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group">
+            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group">
                <div className="w-12 h-12 rounded-xl bg-[#EEF8F4] text-[#10B981] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
                  <UserCheck className="w-5 h-5" />
                </div>
@@ -1445,7 +1445,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.activeEmployees || 0}</h3>
                </div>
             </Card>
-            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 border-l-4 border-l-[#7B0099] dark:border-slate-700 dark:border-l-[#7B0099] hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group relative">
+            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group relative">
                {feedConnected && <span className="absolute top-3 right-3 flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white dark:bg-card animate-pulse" />LIVE</span>}
                <div className="w-12 h-12 rounded-xl bg-[#F0F2FB] text-[#6366F1] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
                  <CheckCircle2 className="w-5 h-5" />
@@ -1455,7 +1455,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  <h3 className="text-2xl font-black text-[#1A1F36]">{((liveMonthlyComp || monthlyComp).attendance?.current) || topKpi.attendanceRate || 0}%</h3>
                </div>
             </Card>
-            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 border-l-4 border-l-[#7B0099] dark:border-slate-700 dark:border-l-[#7B0099] hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group">
+            <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group">
                <div className="w-12 h-12 rounded-xl bg-[#FFF5EE] text-[#F59E0B] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
                  <CalendarDays className="w-5 h-5" />
                </div>
@@ -1468,7 +1468,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
 
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-start">
            <div className="lg:col-span-2 flex flex-col gap-6">
-            <Card className="p-5 shadow-sm border border-slate-300 border-l-4 border-l-[#7B0099] dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col relative overflow-hidden">
+            <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col relative overflow-hidden">
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#f97316]"></div>
               <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-4 pl-2">
                 <div className="flex items-center gap-2">
                   <h2 className="text-xl font-bold text-slate-800 tracking-tight">Attendance Trend</h2>
@@ -1547,7 +1548,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
               </div>
             </Card>
            
-           <Card className="p-5 shadow-sm border border-slate-300 border-l-4 border-l-[#7B0099] dark:border-slate-700 bg-white dark:bg-card flex flex-col hover:border-[#7B0099] hover:shadow-md transition-all duration-300">
+           <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col hover:border-[#7B0099] hover:shadow-md transition-all duration-300">
               <div className="flex items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div className="flex items-center gap-2">
                   <CalendarDays className="w-4 h-4 text-[#7B0099]" />
@@ -1573,7 +1574,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
            
            
            <div className="lg:col-span-1 flex flex-col gap-6">
-             <Card className="p-5 shadow-sm border border-slate-300 border-l-4 border-l-[#7B0099] dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+             <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <FileCheck className="w-4 h-4 text-slate-400" />
@@ -1648,7 +1649,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
          {/* Row 1: 2 Columns */}
          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
            {/* Department Workforce Distribution */}
-           <Card className="lg:col-span-5 p-4 shadow-sm border border-slate-300 border-l-4 border-l-[#7B0099] dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+           <Card className="lg:col-span-5 p-4 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <Building2 className="w-4 h-4 text-slate-400" />
@@ -1688,7 +1689,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
            </Card>
 
            {/* Branch Workforce Distribution */}
-           <Card className="lg:col-span-7 p-4 shadow-sm border border-slate-300 border-l-4 border-l-[#7B0099] dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col bg-white dark:bg-card">
+           <Card className="lg:col-span-7 p-4 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col bg-white dark:bg-card">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <MapPin className="w-4 h-4 text-slate-400" />
@@ -1752,7 +1753,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
          {/* Row 2: 3 Columns */}
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
            {/* Leave Distribution (Donut Chart) */}
-           <Card className="p-4 shadow-sm border border-slate-300 border-l-4 border-l-[#7B0099] dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+           <Card className="p-4 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <FileText className="w-4 h-4 text-slate-400" />
@@ -1808,7 +1809,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
            </Card>
 
            {/* Travel & Outstation Summary */}
-           <Card className="p-5 shadow-sm border border-slate-300 border-l-4 border-l-[#7B0099] dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col relative bg-white dark:bg-card">
+           <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col relative bg-white dark:bg-card">
              {feedConnected && (
                <div className="absolute top-4 right-4 flex items-center gap-1 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded uppercase tracking-widest z-10 shadow-sm">
                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> LIVE
@@ -1865,7 +1866,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
            </Card>
 
            {/* Workforce Movement */}
-           <Card className="p-4 shadow-sm border border-slate-300 border-l-4 border-l-[#7B0099] dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
+           <Card className="p-4 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <Users className="w-4 h-4 text-slate-400" />

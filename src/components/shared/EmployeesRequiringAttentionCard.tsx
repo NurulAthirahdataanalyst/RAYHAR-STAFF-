@@ -68,7 +68,7 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid' }:
   const navigate = useNavigate();
   
   return (
-    <Card className="bg-white rounded-[24px] shadow-sm overflow-hidden flex flex-col w-full border border-slate-100 border-l-4 border-l-[#7B0099] dark:border-slate-800 dark:border-l-[#7B0099]">
+    <Card className="bg-white rounded-[24px] shadow-sm overflow-hidden flex flex-col w-full">
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
