@@ -1444,8 +1444,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
             </Card>
          </div>
 
-         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-           <div className="flex flex-col gap-6">
+         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-start">
+           <div className="lg:col-span-2 flex flex-col gap-6">
            <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
@@ -1509,8 +1509,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
             </Card>
            </div>
            
-           <div className="flex flex-col h-full">
-             <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col flex-1 h-full">
+           <div className="lg:col-span-1">
+             <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
                  <FileCheck className="w-4 h-4 text-slate-400" />
