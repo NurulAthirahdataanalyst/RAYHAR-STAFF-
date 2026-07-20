@@ -1391,16 +1391,16 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
     const mIdx = (targetMonthIdx - i + 12) % 12;
     fallbackTrend.push({
       month: monthsArr[mIdx],
-      Annual: Math.floor(Math.random() * 30) + 30, // Mock historical data
-      Sick: Math.floor(Math.random() * 20) + 10,
-      Replacement: Math.floor(Math.random() * 10)
+      Annual: Math.floor(Math.random() * 5) + 2, // Mock historical data
+      Sick: Math.floor(Math.random() * 3),
+      Replacement: Math.floor(Math.random() * 2)
     });
   }
   fallbackTrend.push({
     month: monthsArr[targetMonthIdx],
-    Annual: ((leave.annual || 0) + (leave.emergency || 0)) * 8,
-    Sick: (leave.medical || 0) * 8,
-    Replacement: (leave.replacement || 0) * 8
+    Annual: (leave.annual || 0) + (leave.emergency || 0),
+    Sick: leave.medical || 0,
+    Replacement: leave.replacement || 0
   });
 
   // Leave Utilization Trend Data
@@ -1507,7 +1507,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                   <LineChart data={leaveTrendData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} label={{ value: 'Leave Hours', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#64748b', fontSize: 12, fontWeight: 'bold' } }} />
+                    <YAxis tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} label={{ value: 'Leave Days', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#64748b', fontSize: 12, fontWeight: 'bold' } }} />
                     <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }} itemStyle={{ fontSize: '11px', fontWeight: 'bold' }} labelStyle={{ fontWeight: 'black', color: '#1e293b', marginBottom: '8px' }} />
                     <Legend wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', paddingTop: '10px' }} iconType="circle" />
                     <Line type="monotone" dataKey="Annual" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
