@@ -1426,7 +1426,7 @@ async function computeDynamicWorkforceMetrics(dateStr, role, branch, department)
 // ============================================================
 let workforceFeedClients = [];
 
-async function getWorkforceLiveFeed(dateStr, role, branch, department) {
+async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMonth, targetYear) {
   const lateTimeStr = getLateThresholdTime ? getLateThresholdTime() : '09:00:00';
 
   let filterP = "";
@@ -1720,6 +1720,52 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
     popularRoutes
   };
 
+  // Leave Trend — real monthly approved leave counts for 6 months ending at selected month
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const tYear = targetYear || new Date().getFullYear();
+  const tMonth = targetMonth || (new Date().getMonth() + 1);
+
+  let leaveTrendFilterClauses = [];
+  let leaveTrendFilterParams = [];
+  if (role === 'branch_leader' && branch && branch !== 'All') {
+    leaveTrendFilterClauses.push('AND p.branch = ?');
+    leaveTrendFilterParams.push(branch);
+  } else if (role === 'head_of_department' && department && department !== 'All') {
+    leaveTrendFilterClauses.push('AND p.department = ?');
+    leaveTrendFilterParams.push(department);
+  }
+  const leaveTrendRoleFilter = leaveTrendFilterClauses.join(' ');
+
+  const leaveTrend = [];
+  for (let i = 5; i >= 0; i--) {
+    let m = tMonth - i;
+    let y = tYear;
+    while (m <= 0) { m += 12; y--; }
+    const mStr = m.toString().padStart(2, '0');
+
+    const [leaveMonthRows] = await pool.query(
+      `SELECT leave_type, COUNT(*) as cnt
+       FROM leave_requests lr
+       JOIN profiles p ON p.user_id = lr.user_id
+       WHERE lr.status = 'Approved'
+         AND EXTRACT(YEAR FROM lr.start_date) = ?
+         AND EXTRACT(MONTH FROM lr.start_date) = ?
+         AND p.status = 'Active'
+         ${leaveTrendRoleFilter}
+       GROUP BY leave_type`,
+      [y, m, ...leaveTrendFilterParams]
+    );
+
+    let annual = 0, sick = 0, replacement = 0;
+    for (const r of leaveMonthRows) {
+      const lt = (r.leave_type || '').toLowerCase();
+      if (lt.includes('annual') || lt.includes('emergency')) annual += parseInt(r.cnt);
+      else if (lt.includes('sick') || lt.includes('medical')) sick += parseInt(r.cnt);
+      else if (lt.includes('replacement') || lt.includes('cuti ganti')) replacement += parseInt(r.cnt);
+    }
+    leaveTrend.push({ month: monthNames[m - 1], Annual: annual, Sick: sick, Replacement: replacement });
+  }
+
   return {
     type: 'workforce_feed',
     timestamp: new Date().toISOString(),
@@ -1729,7 +1775,8 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department) {
     pendingApprovals,
     activeOutstationList,
     upcomingOutstationList,
-    outstationSummary
+    outstationSummary,
+    leaveTrend
   };
 }
 
@@ -1742,12 +1789,14 @@ app.get("/api/workforce/live-feed", async (req, res) => {
 
   res.write(": connected\n\n");
 
-  const { date, role, branch, department } = req.query;
+  const { date, role, branch, department, month, year } = req.query;
   const targetDate = date ? date.toString() : new Date().toISOString().split('T')[0];
+  const targetMonth = month ? parseInt(month) : (new Date().getMonth() + 1);
+  const targetYear = year ? parseInt(year) : new Date().getFullYear();
 
   // Send initial snapshot
   try {
-    const snapshot = await getWorkforceLiveFeed(targetDate, role, branch, department);
+    const snapshot = await getWorkforceLiveFeed(targetDate, role, branch, department, targetMonth, targetYear);
     res.write(`data: ${JSON.stringify(snapshot)}\n\n`);
   } catch (e) {
     console.error("workforce live-feed initial send error:", e);
@@ -1756,7 +1805,7 @@ app.get("/api/workforce/live-feed", async (req, res) => {
   // Refresh every 30 seconds
   const interval = setInterval(async () => {
     try {
-      const data = await getWorkforceLiveFeed(targetDate, role, branch, department);
+      const data = await getWorkforceLiveFeed(targetDate, role, branch, department, targetMonth, targetYear);
       res.write(`data: ${JSON.stringify(data)}\n\n`);
     } catch (e) {
       console.error("workforce live-feed interval error:", e);

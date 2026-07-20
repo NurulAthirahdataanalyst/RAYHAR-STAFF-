@@ -1381,30 +1381,20 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
   // exact total count
   const totalLeaveCount = leaveData.reduce((sum, item) => sum + item.value, 0);
 
-  // Generate dynamic fallback trend ending in current selected month
+  // Generate an empty-data placeholder for months ending at selected month (no random data)
   const monthsArr = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const targetMonthNum = month || new Date().getMonth() + 1; 
+  const targetMonthNum = parseInt(month) || new Date().getMonth() + 1; 
   const targetMonthIdx = targetMonthNum - 1;
 
-  const fallbackTrend = [];
-  for (let i = 5; i >= 1; i--) {
-    const mIdx = (targetMonthIdx - i + 12) % 12;
-    fallbackTrend.push({
-      month: monthsArr[mIdx],
-      Annual: Math.floor(Math.random() * 5) + 2, // Mock historical data
-      Sick: Math.floor(Math.random() * 3),
-      Replacement: Math.floor(Math.random() * 2)
-    });
+  const emptyTrend = [];
+  for (let i = 5; i >= 0; i--) {
+    const mIdx = ((targetMonthIdx - i) + 12) % 12;
+    emptyTrend.push({ month: monthsArr[mIdx], Annual: 0, Sick: 0, Replacement: 0 });
   }
-  fallbackTrend.push({
-    month: monthsArr[targetMonthIdx],
-    Annual: (leave.annual || 0) + (leave.emergency || 0),
-    Sick: leave.medical || 0,
-    Replacement: leave.replacement || 0
-  });
 
-  // Leave Utilization Trend Data
-  const leaveTrendData = liveLeaveTrend || data.leaveTrend || data.leaveAnalytics?.monthlyTrend || fallbackTrend;
+  // Leave Utilization Trend Data — SSE real data only, no random fallback
+  const leaveTrendData = liveLeaveTrend || data.leaveTrend || data.leaveAnalytics?.monthlyTrend || emptyTrend;
+
   const currentMonthSick = leaveTrendData.length > 0 ? (leaveTrendData[leaveTrendData.length - 1].Sick ?? leaveTrendData[leaveTrendData.length - 1].sick ?? 0) : 0;
   const prevMonthSick = leaveTrendData.length > 1 ? (leaveTrendData[leaveTrendData.length - 2].Sick ?? leaveTrendData[leaveTrendData.length - 2].sick ?? 0) : 0;
   const sickLeaveSpike = currentMonthSick > 0 && currentMonthSick >= prevMonthSick * 1.5;
