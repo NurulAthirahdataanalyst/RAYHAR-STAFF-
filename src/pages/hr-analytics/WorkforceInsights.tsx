@@ -1519,11 +1519,10 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
   const baseTrendData = liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend || [];
   const activeEmp = topKpi?.activeEmployees || data?.topKpi?.activeEmployees || 82;
   const trendDataWithWeekend = baseTrendData.map((day: any) => {
-    const isWeekend = (data?.attendanceOverview?.branchZone || 'ZONE_B') === 'ZONE_A' ? ['Fri', 'Sat'].includes(day.name) : ['Sat', 'Sun'].includes(day.name);
     const totalTracked = (day.present || 0) + (day.late || 0) + (day.absent || 0) + (day.leave || 0);
     return {
       ...day,
-      weekend: isWeekend ? Math.max(0, activeEmp - totalTracked) : 0
+      weekend: Math.max(0, activeEmp - totalTracked)
     };
   });
 
