@@ -1510,7 +1510,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
              <div className="overflow-x-auto flex-1">
                <table className="w-full text-sm text-left">
                  <thead className="text-xs text-slate-500 bg-slate-50/50 uppercase">
-                   <tr>
+                   <tr className="border-b border-slate-200 dark:border-slate-700">
                      <th className="px-4 py-3 font-semibold">Metric</th>
                      <th className="px-4 py-3 font-semibold text-right border-l border-slate-200 dark:border-slate-700">This Month {feedConnected && <span className="ml-1 text-[8px] bg-red-500 text-white px-1 rounded animate-pulse">LIVE</span>}</th>
                      <th className="px-4 py-3 font-semibold text-right">Last Month</th>
