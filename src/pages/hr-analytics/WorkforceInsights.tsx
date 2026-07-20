@@ -1466,6 +1466,40 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
              </div>
            </Card>
            
+           <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col hover:border-[#7B0099] hover:shadow-md transition-all duration-300">
+              <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4 text-[#7B0099]" />
+                  <h3 className="text-[15px] font-black text-slate-800 dark:text-slate-200">Leave Utilization Trend vs. Previous Month</h3>
+                </div>
+                <div className="flex items-center gap-3">
+                  {sickLeaveSpike && (
+                    <span className="flex items-center gap-1.5 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded-md animate-pulse">
+                      <AlertTriangle className="w-3 h-3" /> Sick Leave Spike Detected!
+                    </span>
+                  )}
+                  <button className="text-xs font-bold text-[#7B0099] hover:text-purple-700 transition-colors flex items-center gap-1 bg-purple-50 px-2.5 py-1.5 rounded-md">
+                    New VW <ChevronRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+              <div className="h-[250px] w-full flex-1">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={leaveTrendData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+                    <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} label={{ value: 'Leave Hours', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#64748b', fontSize: 12, fontWeight: 'bold' } }} />
+                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} label={{ value: 'Normalized Hours', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fill: '#64748b', fontSize: 12, fontWeight: 'bold' } }} />
+                    <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }} itemStyle={{ fontSize: '11px', fontWeight: 'bold' }} labelStyle={{ fontWeight: 'black', color: '#1e293b', marginBottom: '8px' }} />
+                    <Legend wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', paddingTop: '10px' }} iconType="circle" />
+                    <Line yAxisId="left" type="monotone" dataKey="Annual" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                    <Line yAxisId="left" type="monotone" dataKey="Sick" stroke="#eab308" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                    <Line yAxisId="left" type="monotone" dataKey="Replacement" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+           
            <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4">
                <div className="flex items-center gap-2">
@@ -1777,44 +1811,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
              </div>
            </Card>
           </div>
-
-          {/* New Row: Leave Utilization Trend vs. Previous Month */}
-          <div className="grid grid-cols-1 gap-6 mt-6">
-            <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col hover:border-[#7B0099] hover:shadow-md transition-all duration-300">
-              <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-3">
-                <div className="flex items-center gap-2">
-                  <CalendarDays className="w-4 h-4 text-[#7B0099]" />
-                  <h3 className="text-[15px] font-black text-slate-800 dark:text-slate-200">Leave Utilization Trend vs. Previous Month</h3>
-                </div>
-                <div className="flex items-center gap-3">
-                  {sickLeaveSpike && (
-                    <span className="flex items-center gap-1.5 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded-md animate-pulse">
-                      <AlertTriangle className="w-3 h-3" /> Sick Leave Spike Detected!
-                    </span>
-                  )}
-                  <button className="text-xs font-bold text-[#7B0099] hover:text-purple-700 transition-colors flex items-center gap-1 bg-purple-50 px-2.5 py-1.5 rounded-md">
-                    New VW <ChevronRight className="w-3 h-3" />
-                  </button>
-                </div>
-              </div>
-              <div className="h-[250px] w-full flex-1">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={leaveTrendData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
-                    <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} label={{ value: 'Leave Hours', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#64748b', fontSize: 12, fontWeight: 'bold' } }} />
-                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} label={{ value: 'Normalized Hours', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fill: '#64748b', fontSize: 12, fontWeight: 'bold' } }} />
-                    <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }} itemStyle={{ fontSize: '11px', fontWeight: 'bold' }} labelStyle={{ fontWeight: 'black', color: '#1e293b', marginBottom: '8px' }} />
-                    <Legend wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', paddingTop: '10px' }} iconType="circle" />
-                    <Line yAxisId="left" type="monotone" dataKey="Annual" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
-                    <Line yAxisId="left" type="monotone" dataKey="Sick" stroke="#eab308" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
-                    <Line yAxisId="left" type="monotone" dataKey="Replacement" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
           </div>
-        </div>
 
         {/* Row 3: Employees Requiring Attention */}
          <div className="w-full mb-6">
