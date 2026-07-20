@@ -1446,7 +1446,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  <h3 className="text-sm font-bold text-[#1A1F36]">Attendance Trend</h3>
                </div>
              </div>
-             <div className="h-[250px] w-full flex-1">
+             <div className="h-[250px] w-full min-h-[250px]">
                <ResponsiveContainer width="100%" height="100%">
                  <AreaChart data={attendanceTrend} margin={{ top: 5, right: 20, left: -20, bottom: 0 }}>
                    <defs>
@@ -1485,7 +1485,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                   </button>
                 </div>
               </div>
-              <div className="h-[250px] w-full flex-1">
+              <div className="h-[250px] w-full min-h-[250px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={leaveTrendData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
