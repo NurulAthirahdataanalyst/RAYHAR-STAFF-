@@ -5892,12 +5892,20 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       }
 
       if (!userStats[att.user_id]) {
-        userStats[att.user_id] = { name: att.name, presentDays: 0, lateDays: 0 };
+        userStats[att.user_id] = { name: att.name, department: att.department, presentDays: 0, lateDays: 0, missingPunches: 0, lastMissingPunch: null };
       }
       
       if (!isOutstation) {
         userStats[att.user_id].presentDays++;
         if (isLate) userStats[att.user_id].lateDays++;
+        
+        // Missing Punch Check
+        if (!att.clock_out && dateStr < targetDateStr) {
+          userStats[att.user_id].missingPunches++;
+          if (!userStats[att.user_id].lastMissingPunch || dateStr > userStats[att.user_id].lastMissingPunch) {
+            userStats[att.user_id].lastMissingPunch = dateStr;
+          }
+        }
       }
     });
 
@@ -6155,6 +6163,48 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       total: parseInt(r.total) || 14
     }));
 
+    // Missing Punches Logic
+    const missingPunchEmployees = Object.values(userStats)
+      .filter(u => u.missingPunches >= 2)
+      .map(u => ({
+        name: u.name,
+        department: u.department || 'General',
+        missingPunches: u.missingPunches,
+        lastOccurrence: u.lastMissingPunch
+      }))
+      .sort((a, b) => b.missingPunches - a.missingPunches);
+
+    // Get previous month missing punches for trend indicator
+    const prevMonthDate = new Date(requestedYear, requestedMonth - 2, 1);
+    const prevMonthStr = prevMonthDate.getMonth() + 1;
+    const prevYearStr = prevMonthDate.getFullYear();
+    const [prevAttRows] = await pool.query(
+      `SELECT a.user_id, a.clock_in 
+       FROM attendances a
+       JOIN profiles p ON p.user_id = a.user_id
+       WHERE EXTRACT(MONTH FROM a.clock_in) = ? AND EXTRACT(YEAR FROM a.clock_in) = ? 
+         AND a.clock_out IS NULL 
+         AND p.status = 'Active' ${profileFilter}`,
+      [prevMonthStr, prevYearStr, ...pFilterParams]
+    );
+
+    const prevMissingStats = {};
+    prevAttRows.forEach(a => {
+      const dateStr = new Date(new Date(a.clock_in).getTime() + 8*3600*1000).toISOString().split('T')[0];
+      if (dateStr < targetDateStr) {
+        prevMissingStats[a.user_id] = (prevMissingStats[a.user_id] || 0) + 1;
+      }
+    });
+    
+    const prevMissingCount = Object.values(prevMissingStats).filter(c => c >= 2).length;
+    const currMissingCount = missingPunchEmployees.length;
+    const diffMissing = currMissingCount - prevMissingCount;
+    const missingPunchIndicator = diffMissing > 0 
+      ? `↑ ${diffMissing} employees compared to last month`
+      : diffMissing < 0 
+      ? `↓ ${Math.abs(diffMissing)} employees compared to last month`
+      : `Same as last month`;
+
     const branchZoneMap = await getBranchZoneMap();
     const dateObj = new Date(targetDateStr);
     
@@ -6324,7 +6374,9 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         topAttendance,
         topLate,
         allAttendance: rankings,
-        attentionEmployees
+        attentionEmployees,
+        missingPunchEmployees,
+        missingPunchIndicator
       },
       sseInitialPayload
     });

@@ -14,6 +14,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { EmployeesRequiringAttentionCard } from '@/components/shared/EmployeesRequiringAttentionCard';
+import { MissingPunchCard } from "./MissingPunchCard";
 
 const COLORS = ['#4f46e5', '#eab308', '#94a3b8', '#DC2626', '#a855f7', '#ec4899']; // Present, Late, On Leave, Absent, Comp Leave, Outstation
 
@@ -1499,7 +1500,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
             </Card>
            </div>
            
-           <div className="lg:col-span-1">
+           
+           <div className="lg:col-span-1 flex flex-col gap-6">
              <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
@@ -1555,7 +1557,15 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
              </div>
-           </Card>
+             </Card>
+             
+             {/* Missing Punch KPI Card */}
+             {data?.performance?.missingPunchEmployees && (
+               <MissingPunchCard 
+                 employees={data.performance.missingPunchEmployees} 
+                 indicator={data.performance.missingPunchIndicator || "Same as last month"} 
+               />
+             )}
            </div>
          </div>
        </div>
