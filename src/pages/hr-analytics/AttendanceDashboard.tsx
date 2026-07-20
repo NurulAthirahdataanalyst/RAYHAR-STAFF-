@@ -510,7 +510,7 @@ export default function AttendanceDashboard() {
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
-    const dateStr = new Date().toISOString().split('T')[0];
+    const dateStr = selectedDate;
 
     link.setAttribute("href", url);
     link.setAttribute("download", `Rayhar_Attendance_Report_${dateStr}.csv`);
