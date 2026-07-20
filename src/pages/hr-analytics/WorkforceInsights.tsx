@@ -1423,7 +1423,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                </div>
                <div className="flex flex-col">
                  <p className="text-[10px] text-[#8C98A4] font-bold uppercase tracking-widest mb-0.5">Attendance Rate</p>
-                 <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.attendanceRate || 0}%</h3>
+                 <h3 className="text-2xl font-black text-[#1A1F36]">{((liveMonthlyComp || monthlyComp).attendance?.current) || topKpi.attendanceRate || 0}%</h3>
                </div>
             </Card>
             <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-300 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white dark:bg-card rounded-[12px] group">
@@ -1489,13 +1489,12 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                   <LineChart data={leaveTrendData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
-                    <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} label={{ value: 'Leave Hours', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#64748b', fontSize: 12, fontWeight: 'bold' } }} />
-                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} label={{ value: 'Normalized Hours', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fill: '#64748b', fontSize: 12, fontWeight: 'bold' } }} />
+                    <YAxis tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} label={{ value: 'Leave Hours', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#64748b', fontSize: 12, fontWeight: 'bold' } }} />
                     <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }} itemStyle={{ fontSize: '11px', fontWeight: 'bold' }} labelStyle={{ fontWeight: 'black', color: '#1e293b', marginBottom: '8px' }} />
                     <Legend wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', paddingTop: '10px' }} iconType="circle" />
-                    <Line yAxisId="left" type="monotone" dataKey="Annual" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
-                    <Line yAxisId="left" type="monotone" dataKey="Sick" stroke="#eab308" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
-                    <Line yAxisId="left" type="monotone" dataKey="Replacement" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                    <Line type="monotone" dataKey="Annual" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                    <Line type="monotone" dataKey="Sick" stroke="#eab308" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                    <Line type="monotone" dataKey="Replacement" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -1524,7 +1523,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                      { label: 'Late Arrivals', cur: (liveMonthlyComp || monthlyComp).lateArrivals?.current || 0, prev: (liveMonthlyComp || monthlyComp).lateArrivals?.previous || 0, diff: ((liveMonthlyComp || monthlyComp).lateArrivals?.current || 0) - ((liveMonthlyComp || monthlyComp).lateArrivals?.previous || 0), invert: true },
                      { label: 'Absences', cur: (liveMonthlyComp || monthlyComp).absences?.current || 0, prev: (liveMonthlyComp || monthlyComp).absences?.previous || 0, diff: ((liveMonthlyComp || monthlyComp).absences?.current || 0) - ((liveMonthlyComp || monthlyComp).absences?.previous || 0), invert: true },
                      { label: 'Leave Requests', cur: (liveMonthlyComp || monthlyComp).leaveRequests?.current || 0, prev: (liveMonthlyComp || monthlyComp).leaveRequests?.previous || 0, diff: ((liveMonthlyComp || monthlyComp).leaveRequests?.current || 0) - ((liveMonthlyComp || monthlyComp).leaveRequests?.previous || 0), invert: true },
-                     { label: 'Outstation Trips', cur: (liveMonthlyComp || monthlyComp).outstation?.current || 0, prev: (liveMonthlyComp || monthlyComp).outstation?.previous || 0, diff: ((liveMonthlyComp || monthlyComp).outstation?.current || 0) - ((liveMonthlyComp || monthlyComp).outstation?.previous || 0) },
+                     { label: 'Outstation Projects', cur: (liveMonthlyComp || monthlyComp).outstation?.current || 0, prev: (liveMonthlyComp || monthlyComp).outstation?.previous || 0, diff: ((liveMonthlyComp || monthlyComp).outstation?.current || 0) - ((liveMonthlyComp || monthlyComp).outstation?.previous || 0) },
                    ].map((row, idx) => {
                      let isPositive = row.diff > 0;
                      if (row.invert) isPositive = row.diff < 0;
