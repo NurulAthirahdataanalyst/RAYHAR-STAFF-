@@ -355,120 +355,175 @@ export default function WorkforceInsights() {
           <div className="col-span-1 md:col-span-2 xl:col-span-3 grid grid-cols-2 lg:grid-cols-4 gap-4">
             
             {/* 1. Present Today */}
-            <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col justify-between ${cardHoverEffect}`}>
-              <div className="flex justify-between items-start mb-2">
-                <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
-                  <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                {feedConnected && <span className="bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>}
-              </div>
+            <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col h-[160px] ${cardHoverEffect}`}>
               <div>
+                <div className="flex justify-between items-start mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
+                    <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  {feedConnected && <span className="bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>}
+                </div>
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Present Today</p>
-                <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200">{feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present}</h3>
-                <p className="text-[10px] font-semibold text-emerald-600 mt-1 flex items-center gap-1"><TrendingUp className="w-3 h-3" /> +2 vs Yesterday</p>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">{feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present}</h3>
+                  <p className="text-[10px] font-semibold text-emerald-600 flex items-center gap-0.5"><TrendingUp className="w-3 h-3" /> +2 vs Yesterday</p>
+                </div>
+              </div>
+              <div className="flex-1 flex flex-col justify-end">
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, ((feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) / (data.topKpi.activeEmployees || 1)) * 100)}%` }}></div>
+                </div>
               </div>
             </Card>
 
             {/* 2. Late Arrivals */}
-            <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col justify-between ${cardHoverEffect}`}>
-              <div className="flex justify-between items-start mb-2">
-                <div className="w-8 h-8 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center">
-                  <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+            <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col h-[160px] ${cardHoverEffect}`}>
+              <div>
+                <div className="flex justify-between items-start mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                  </div>
+                </div>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Late Arrivals</p>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">{feedConnected && lateList.length > 0 ? lateList.length : data.teamAvailability.late} <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
+                  <p className="text-[10px] font-semibold text-slate-500">Highest: <span className="text-orange-600">8:46 AM</span></p>
                 </div>
               </div>
-              <div>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Late Arrivals</p>
-                <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200">{feedConnected && lateList.length > 0 ? lateList.length : data.teamAvailability.late} <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
-                <p className="text-[10px] font-semibold text-slate-500 mt-1">Highest: <span className="text-orange-600">8:46 AM</span></p>
+              <div className="flex-1 flex flex-col justify-end">
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div className="h-full bg-orange-500 rounded-full" style={{ width: `${Math.min(100, ((feedConnected && lateList.length > 0 ? lateList.length : data.teamAvailability.late) / (data.topKpi.activeEmployees || 1)) * 100)}%` }}></div>
+                </div>
               </div>
             </Card>
 
             {/* 3. Absent Today */}
-            <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col justify-between ${cardHoverEffect}`}>
-              <div className="flex justify-between items-start mb-2">
-                <div className="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
-                  <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+            <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col h-[160px] ${cardHoverEffect}`}>
+              <div>
+                <div className="flex justify-between items-start mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
+                    <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  </div>
+                </div>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Absent Today</p>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">{feedConnected && absentList.length > 0 ? absentList.length : data.teamAvailability.absent} <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
+                  <p className="text-[10px] font-semibold text-red-500">Need Follow-up</p>
                 </div>
               </div>
-              <div>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Absent Today</p>
-                <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200">{feedConnected && absentList.length > 0 ? absentList.length : data.teamAvailability.absent} <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
-                <p className="text-[10px] font-semibold text-red-500 mt-1">Need Follow-up</p>
+              <div className="flex-1 flex flex-col justify-end">
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div className="h-full bg-red-500 rounded-full" style={{ width: `${Math.min(100, ((feedConnected && absentList.length > 0 ? absentList.length : data.teamAvailability.absent) / (data.topKpi.activeEmployees || 1)) * 100)}%` }}></div>
+                </div>
               </div>
             </Card>
 
             {/* 4. On Leave Today */}
-            <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col justify-between ${cardHoverEffect}`}>
-              <div className="flex justify-between items-start mb-2">
-                <div className="w-8 h-8 rounded-full bg-[#F0F2FB] dark:bg-[#7B0099]/10 flex items-center justify-center">
-                  <CalendarDays className="w-4 h-4 text-[#7B0099] dark:text-[#E0B0FF]" />
+            <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col h-[160px] ${cardHoverEffect}`}>
+              <div>
+                <div className="flex justify-between items-start mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#F0F2FB] dark:bg-[#7B0099]/10 flex items-center justify-center">
+                    <CalendarDays className="w-4 h-4 text-[#7B0099] dark:text-[#E0B0FF]" />
+                  </div>
+                </div>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Leave Today</p>
+                <div className="flex items-baseline gap-2 mb-1">
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">{data.topKpi.onLeaveToday} <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
+                </div>
+                <div className="text-[9px] font-semibold text-slate-500 leading-tight flex gap-2">
+                  <span>AL: {data.leave?.annual || 4}</span> <span>ML: {data.leave?.medical || 2}</span> <span>EL: {data.leave?.emergency || 1}</span>
                 </div>
               </div>
-              <div>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Leave Today</p>
-                <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200">{data.topKpi.onLeaveToday} <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
-                <div className="text-[9px] font-semibold text-slate-500 mt-1 leading-tight space-y-0.5">
-                  <p>AL: {data.leave?.annual || 4} &nbsp; ML: {data.leave?.medical || 2}</p>
-                  <p>EL: {data.leave?.emergency || 1}</p>
+              <div className="flex-1 flex flex-col justify-end">
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div className="h-full bg-[#7B0099] rounded-full" style={{ width: `${Math.min(100, (data.topKpi.onLeaveToday / (data.topKpi.totalHeadcount || 1)) * 100)}%` }}></div>
                 </div>
               </div>
             </Card>
 
             {/* 5. Missing Punch */}
-            <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col justify-between ${cardHoverEffect}`}>
-              <div className="flex justify-between items-start mb-2">
-                <div className="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col h-[160px] ${cardHoverEffect}`}>
+              <div>
+                <div className="flex justify-between items-start mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  </div>
+                </div>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Missing Punch</p>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">5 <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
+                  <p className="text-[10px] font-semibold text-amber-600">Forgot Clock Out</p>
                 </div>
               </div>
-              <div>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Missing Punch</p>
-                <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200">5 <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
-                <p className="text-[10px] font-semibold text-amber-600 mt-1">Forgot Clock Out</p>
+              <div className="flex-1 flex flex-col justify-end">
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min(100, (5 / (data.topKpi.activeEmployees || 1)) * 100)}%` }}></div>
+                </div>
               </div>
             </Card>
 
             {/* 6. Outstation */}
-            <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col justify-between ${cardHoverEffect}`}>
-              <div className="flex justify-between items-start mb-2">
-                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                  <Plane className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col h-[160px] ${cardHoverEffect}`}>
+              <div>
+                <div className="flex justify-between items-start mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                    <Plane className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                </div>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Outstation</p>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">{activeOutstationList.length > 0 ? activeOutstationList.length : (data.topKpi.outstationToday || 4)} <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
+                  <p className="text-[10px] font-semibold text-slate-500">3 Approved • 1 Pending</p>
                 </div>
               </div>
-              <div>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Outstation</p>
-                <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200">{activeOutstationList.length > 0 ? activeOutstationList.length : (data.topKpi.outstationToday || 4)} <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
-                <p className="text-[10px] font-semibold text-slate-500 mt-1">3 Approved • 1 Pending</p>
+              <div className="flex-1 flex flex-col justify-end">
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(100, ((activeOutstationList.length > 0 ? activeOutstationList.length : (data.topKpi.outstationToday || 4)) / (data.topKpi.totalHeadcount || 1)) * 100)}%` }}></div>
+                </div>
               </div>
             </Card>
 
             {/* 7. Attendance Rate */}
-            <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col justify-between ${cardHoverEffect}`}>
-              <div className="flex justify-between items-start mb-2">
-                <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
-                  <CheckCircle2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col h-[160px] ${cardHoverEffect}`}>
+              <div>
+                <div className="flex justify-between items-start mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
+                    <CheckCircle2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                </div>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Attendance Rate</p>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">{data.topKpi.attendanceRate}%</h3>
+                  <p className="text-[10px] font-semibold text-slate-500">Target 95%</p>
                 </div>
               </div>
-              <div>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Attendance Rate</p>
-                <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200">{data.topKpi.attendanceRate}%</h3>
-                <p className="text-[10px] font-semibold text-slate-500 mt-1">Target 95%</p>
+              <div className="flex-1 flex flex-col justify-end">
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${data.topKpi.attendanceRate}%` }}></div>
+                </div>
               </div>
             </Card>
 
             {/* 8. Active Workforce */}
-            <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col justify-between ${cardHoverEffect}`}>
-              <div className="flex justify-between items-start mb-2">
-                <div className="w-8 h-8 rounded-full bg-cyan-50 dark:bg-cyan-900/20 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+            <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col h-[160px] ${cardHoverEffect}`}>
+              <div>
+                <div className="flex justify-between items-start mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-cyan-50 dark:bg-cyan-900/20 flex items-center justify-center">
+                    <Users className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                  </div>
+                </div>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Active Workforce</p>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">
+                    {data.topKpi.activeEmployees} <span className="text-[14px] font-bold text-slate-400">/ {data.topKpi.totalHeadcount}</span>
+                  </h3>
+                  <p className="text-[10px] font-semibold text-cyan-600">Working Today</p>
                 </div>
               </div>
-              <div>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Active Workforce</p>
-                <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200">
-                  {data.topKpi.activeEmployees} <span className="text-[14px] font-bold text-slate-400">/ {data.topKpi.totalHeadcount}</span>
-                </h3>
-                <p className="text-[10px] font-semibold text-cyan-600 mt-1">Working Today</p>
+              <div className="flex-1 flex flex-col justify-end">
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div className="h-full bg-cyan-500 rounded-full" style={{ width: `${Math.min(100, (data.topKpi.activeEmployees / (data.topKpi.totalHeadcount || 1)) * 100)}%` }}></div>
+                </div>
               </div>
             </Card>
 
