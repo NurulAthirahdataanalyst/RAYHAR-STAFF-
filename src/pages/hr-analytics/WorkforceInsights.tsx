@@ -663,10 +663,7 @@ export default function WorkforceInsights() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <RechartsTooltip 
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                      itemStyle={{ color: '#334155', fontWeight: 500 }}
-                    />
+
                   </PieChart>
                 </ResponsiveContainer>
                 
@@ -1747,7 +1744,6 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                  <div className="w-[140px] h-[140px] relative">
                    <ResponsiveContainer width="100%" height="100%">
                      <PieChart>
-                       <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} itemStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
                        <Pie
                          data={leaveData}
                          innerRadius={45}
