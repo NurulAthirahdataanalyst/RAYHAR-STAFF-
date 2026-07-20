@@ -85,7 +85,7 @@ export default function WorkforceCalendar() {
   const { role, userBranch, userDepartment, loading: roleLoading } = useRole();
   const [events, setEvents] = useState<WorkforceEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedEvent, setSelectedEvent] = useState<WorkforceEvent | null>(null);
+  const [selectedEventInfo, setSelectedEventInfo] = useState<{event: WorkforceEvent, date: string} | null>(null);
   const [filterType, setFilterType] = useState("All Types");
   const [filterBranch, setFilterBranch] = useState("__ALL__");
   const [filterDept, setFilterDept] = useState("__ALL__");
@@ -359,7 +359,7 @@ export default function WorkforceCalendar() {
                         return (
                           <div
                             key={e.id}
-                            onClick={() => setSelectedEvent(e)}
+                            onClick={() => setSelectedEventInfo({event: e, date: format(day, 'yyyy-MM-dd')})}
                             className={`px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer flex items-center gap-1 ${c.bg} ${c.text} truncate border ${c.border} hover:opacity-80 transition-opacity`}
                             title={`${e.employee} - ${e.type}`}
                           >
@@ -370,7 +370,7 @@ export default function WorkforceCalendar() {
                       })}
                       {evts.length > 4 && (
                         <button
-                          onClick={() => setSelectedEvent(evts[0])}
+                          onClick={() => setSelectedEventInfo({event: evts[0], date: format(day, 'yyyy-MM-dd')})}
                           className={`text-[9px] font-bold pl-1 hover:brightness-75 transition-colors ${today ? 'text-white/80' : 'text-gray-400'}`}
                         >
                           +{evts.length - 4} more
@@ -386,8 +386,8 @@ export default function WorkforceCalendar() {
       </Card>
 
       {/* Detail Popup */}
-      {selectedEvent && (() => {
-        const dateStr = selectedEvent.start_date;
+      {selectedEventInfo && (() => {
+        const { event: selectedEvent, date: dateStr } = selectedEventInfo;
         const dayEvts = events.filter(e => {
           if (!e.start_date || !e.end_date) return false;
           if (filterType !== "All Types") {
@@ -402,7 +402,7 @@ export default function WorkforceCalendar() {
         }).sort((a, b) => getEventPriority(a) - getEventPriority(b));
         const c = getEventColor(selectedEvent);
         return (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedEvent(null)}>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedEventInfo(null)}>
             <div className="bg-white dark:bg-card rounded-2xl shadow-2xl p-6 max-w-md w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
@@ -417,7 +417,7 @@ export default function WorkforceCalendar() {
                     <h3 className="font-black text-gray-800 dark:text-gray-100">{selectedEvent.name || selectedEvent.type}</h3>
                   </div>
                 </div>
-                <button onClick={() => setSelectedEvent(null)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 transition-colors">
+                <button onClick={() => setSelectedEventInfo(null)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -474,7 +474,7 @@ export default function WorkforceCalendar() {
                   <div className="pt-4 border-t border-gray-100 dark:border-slate-800">
                     <p className="text-[10px] font-black uppercase text-gray-400 mb-3 flex items-center gap-2">
                       <Users className="w-3.5 h-3.5" />
-                      All on {fmtDate(selectedEvent.start_date)} ({dayEvts.length})
+                      All on {fmtDate(dateStr)} ({dayEvts.length})
                     </p>
                     <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
                       {dayEvts.map(e => {
@@ -482,7 +482,7 @@ export default function WorkforceCalendar() {
                         return (
                           <div
                             key={e.id}
-                            onClick={() => setSelectedEvent(e)}
+                            onClick={() => setSelectedEventInfo({event: e, date: dateStr})}
                             className={`flex items-center gap-3 p-2.5 rounded-xl border cursor-pointer hover:opacity-80 transition-opacity ${e.id === selectedEvent.id ? `${ec.border} ${ec.bg}` : 'border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50'}`}
                           >
                             <div className={`w-2 h-2 rounded-full shrink-0 ${ec.dot}`} />
