@@ -251,7 +251,7 @@ export default function WorkforceInsights() {
     .filter((d: any) => d.name && d.name.toLowerCase() !== 'unassigned')
     .map((d: any) => ({
       ...d,
-      name: (d.name.toLowerCase().includes('haji') && d.name.toLowerCase().includes('umrah')) ? 'HAJI UMRAH (BHU)' : d.name
+      name: d.name.toUpperCase()
     }));
 
   const CustomDeptTooltip = ({ active, payload, label }: any) => {
@@ -1365,7 +1365,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
     ? rawBranchMetrics 
     : rawBranchMetrics.filter((b:any) => regionMap[b.name] === selectedRegion || (b.name==='HQ' && selectedRegion==='Central'));
 
-  const departmentMetrics = data.departmentMetrics || [];
+  const departmentMetrics = (data.departmentMetrics || []).map((d: any) => ({ ...d, name: (d.name || '').toUpperCase() }));
   const topDepartments = [...departmentMetrics].sort((a:any,b:any)=>b.value-a.value).slice(0, 5);
 
   const attendanceTrend = data.attendanceOverview?.monthlyTrend || [];
