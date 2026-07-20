@@ -472,7 +472,7 @@ export default function WorkforceInsights() {
             </Card>
           ) : (
             <Card className={`col-span-1 md:col-span-2 xl:col-span-2 rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-5 flex flex-col justify-between ${cardHoverEffect}`}>
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-3 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Employees By Department</span>
                 <span className="text-[10px] bg-slate-50 dark:bg-slate-900/50 border border-slate-150 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 font-semibold">
                   This Month <ChevronDown className="w-3 h-3" />
