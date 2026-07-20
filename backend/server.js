@@ -1791,9 +1791,9 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     `SELECT COUNT(*) as cnt 
      FROM leave_requests lr
      JOIN profiles p ON lr.user_id = p.user_id
-     WHERE status = 'Approved' 
-       AND EXTRACT(YEAR FROM start_date) = ?
-       AND EXTRACT(MONTH FROM start_date) = ?
+     WHERE lr.status = 'Approved' 
+       AND EXTRACT(YEAR FROM lr.start_date) = ?
+       AND EXTRACT(MONTH FROM lr.start_date) = ?
        AND p.status = 'Active'
        ${leaveTrendRoleFilter}`,
     [tYear, tMonth, ...leaveTrendFilterParams]
