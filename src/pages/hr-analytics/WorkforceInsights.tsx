@@ -487,7 +487,7 @@ export default function WorkforceInsights() {
             const topPerformerCount = topPerformers.length;
 
             return (
-              <Card className={`col-span-1 md:col-span-2 xl:col-span-2 rounded-lg shadow-sm border border-slate-300 border-l-4 border-l-[#7B0099] dark:border-slate-700 dark:border-l-[#7B0099] bg-white dark:bg-card p-5 flex flex-col justify-between ${cardHoverEffect}`}>
+              <Card className={`col-span-1 md:col-span-2 xl:col-span-2 rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-5 flex flex-col justify-between ${cardHoverEffect}`}>
                 <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                   <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Employee Distribution</span>
                 </div>
