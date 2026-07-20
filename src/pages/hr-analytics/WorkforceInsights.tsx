@@ -100,6 +100,7 @@ export default function WorkforceInsights() {
   const [activeOutstationList, setActiveOutstationList] = useState<any[]>([]);
   const [outstationSummary, setOutstationSummary] = useState<any>(null);
   const [liveMonthlyComp, setLiveMonthlyComp] = useState<any>(null);
+  const [liveLeaveTrend, setLiveLeaveTrend] = useState<any>(null);
   const [liveHrAlerts, setLiveHrAlerts] = useState<any[] | null>(null);
   const [feedConnected, setFeedConnected] = useState(false);
   const [liveEmployees, setLiveEmployees] = useState<any[]>([]);
@@ -133,6 +134,7 @@ export default function WorkforceInsights() {
           setActiveOutstationList(d.activeOutstationList || []);
           setOutstationSummary(d.outstationSummary || d.outstationAnalytics || null);
           setLiveMonthlyComp(d.monthlyComparison || null);
+          setLiveLeaveTrend(d.leaveTrend || d.leaveAnalytics?.monthlyTrend || null);
           setLiveHrAlerts(d.hrAlerts || null);
           setFeedConnected(true);
         }
@@ -1323,12 +1325,12 @@ export default function WorkforceInsights() {
         )}
         </>
         ) : (
-          <MonthViewDashboard data={data} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} />
+          <MonthViewDashboard data={data} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} liveLeaveTrend={liveLeaveTrend} />
         )}
       </div>
   );
 }
-function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts }: any) {
+function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts, liveLeaveTrend }: any) {
   const navigate = useNavigate();
   const topKpi = data.topKpi || {};
   const monthlyComp = data.monthlyComparison || { attendance: {}, lateArrivals: {}, absences: {}, leaveRequests: {}, outstation: {} };
@@ -1379,8 +1381,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
   // exact total count
   const totalLeaveCount = leaveData.reduce((sum, item) => sum + item.value, 0);
 
-  // Simulated Leave Utilization Trend Data (Time Normalized in Hours)
-  const leaveTrendData = [
+  // Leave Utilization Trend Data
+  const leaveTrendData = liveLeaveTrend || data.leaveTrend || data.leaveAnalytics?.monthlyTrend || [
     { month: 'Jan', Annual: 45, Sick: 20, Replacement: 0 },
     { month: 'Feb', Annual: 55, Sick: 35, Replacement: 8 },
     { month: 'Mar', Annual: 40, Sick: 15, Replacement: 0 },
@@ -1388,8 +1390,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
     { month: 'May', Annual: 60, Sick: 25, Replacement: 8 },
     { month: 'Jun', Annual: ((leave.annual || 0) + (leave.emergency || 0)) * 8, Sick: (leave.medical || 0) * 8, Replacement: (leave.replacement || 0) * 8 }
   ];
-  const currentMonthSick = leaveTrendData[5].Sick;
-  const prevMonthSick = leaveTrendData[4].Sick;
+  const currentMonthSick = leaveTrendData.length > 0 ? (leaveTrendData[leaveTrendData.length - 1].Sick ?? leaveTrendData[leaveTrendData.length - 1].sick ?? 0) : 0;
+  const prevMonthSick = leaveTrendData.length > 1 ? (leaveTrendData[leaveTrendData.length - 2].Sick ?? leaveTrendData[leaveTrendData.length - 2].sick ?? 0) : 0;
   const sickLeaveSpike = currentMonthSick > 0 && currentMonthSick >= prevMonthSick * 1.5;
 
   return (
