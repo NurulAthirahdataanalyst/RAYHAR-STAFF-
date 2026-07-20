@@ -1814,9 +1814,9 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   
   const targetDLive = new Date(dateStr);
   const dayOfWeekLive = targetDLive.getDay();
-  const diffToMonLive = dayOfWeekLive === 0 ? -6 : 1 - dayOfWeekLive;
+  const diffToSatLive = dayOfWeekLive === 6 ? 0 : -1 - dayOfWeekLive;
   const weekStartDLive = new Date(targetDLive);
-  weekStartDLive.setDate(targetDLive.getDate() + diffToMonLive);
+  weekStartDLive.setDate(targetDLive.getDate() + diffToSatLive);
   weekStartDLive.setHours(0,0,0,0);
 
   const weekEndDLive = new Date(weekStartDLive);
@@ -1846,7 +1846,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
      weeklyMap[day].leave = Math.round(avgLeave * (weeklyMap[day].expected / Math.max(1, activeCount)));
   }
 
-  const weeklyAttendanceTrend = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
+  const weeklyAttendanceTrend = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => {
     const data = weeklyMap[day];
     return {
       name: day,
@@ -6105,12 +6105,12 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     };
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     
-    // Find Monday of the target date's week
+    // Find Saturday of the target date's week
     const targetD = new Date(targetDateStr);
     const dayOfWeek = targetD.getDay();
-    const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const diffToSat = dayOfWeek === 6 ? 0 : -1 - dayOfWeek;
     const weekStartD = new Date(targetD);
-    weekStartD.setDate(targetD.getDate() + diffToMon);
+    weekStartD.setDate(targetD.getDate() + diffToSat);
     weekStartD.setHours(0,0,0,0);
 
     const weekEndD = new Date(weekStartD);
@@ -6147,7 +6147,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
        weeklyMap[day].leave = Math.round(avgLeavePerDay * (weeklyMap[day].expected / Math.max(1, activeEmployees)));
     }
 
-    const weeklyOrder = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const weeklyOrder = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
     const weeklyAttendanceTrend = weeklyOrder.map(day => {
       const data = weeklyMap[day];
       const absent = Math.max(0, data.expected - data.present - data.leave);
