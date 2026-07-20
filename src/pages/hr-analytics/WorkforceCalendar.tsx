@@ -386,7 +386,12 @@ export default function WorkforceCalendar() {
         const dateStr = selectedEvent.start_date;
         const dayEvts = events.filter(e => {
           if (!e.start_date || !e.end_date) return false;
-          if (filterSource !== "All" && e.source !== filterSource) return false;
+          if (filterType !== "All Types") {
+            if (filterType === "Outstation") { if (e.source !== "outstation") return false; }
+            else if (filterType === "Company Leave") { if (e.source !== "company_leave") return false; }
+            else if (filterType === "Pending") { if (e.source !== "leave" || e.status !== "Pending") return false; }
+            else { if (e.source !== "leave" || !e.type?.includes(filterType.split(" ")[0])) return false; }
+          }
           if (filterBranch !== "All" && e.branch !== filterBranch) return false;
           if (filterDept !== "All" && e.department !== filterDept) return false;
           return e.start_date <= dateStr && e.end_date >= dateStr;

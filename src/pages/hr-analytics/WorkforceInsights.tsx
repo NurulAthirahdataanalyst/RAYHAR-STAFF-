@@ -1329,6 +1329,7 @@ export default function WorkforceInsights() {
   );
 }
 function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts }: any) {
+  const navigate = useNavigate();
   const topKpi = data.topKpi || {};
   const monthlyComp = data.monthlyComparison || { attendance: {}, lateArrivals: {}, absences: {}, leaveRequests: {}, outstation: {} };
   
