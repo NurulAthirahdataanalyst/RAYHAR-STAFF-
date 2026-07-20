@@ -1442,7 +1442,7 @@ export default function WorkforceInsights() {
         )}
         </>
         ) : (
-          <MonthViewDashboard data={data} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} liveLeaveTrend={liveLeaveTrend} month={month} liveWeeklyAttendanceTrend={liveWeeklyAttendanceTrend} />
+          <MonthViewDashboard data={data} clockInOut={clockInOut} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} liveLeaveTrend={liveLeaveTrend} month={month} liveWeeklyAttendanceTrend={liveWeeklyAttendanceTrend} />
         )}
       </div>
   );
@@ -1523,9 +1523,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
          <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">Primary</h2>
          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {/* 1. Attendance Rate */}
-            <Card className={`p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-indigo-100 dark:border-indigo-900/30 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-indigo-50/50 dark:bg-indigo-900/10 rounded-[12px] group relative`}>
+            <Card className="p-4 flex items-center shadow-none border border-indigo-200 dark:border-indigo-900/50 cursor-default bg-indigo-50 dark:bg-indigo-900/10 rounded-[12px] relative">
                {feedConnected && <span className="absolute top-3 right-3 flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white dark:bg-card animate-pulse" />LIVE</span>}
-               <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+               <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mr-4">
                  <CheckCircle2 className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
@@ -1536,20 +1536,20 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
             </Card>
 
             {/* 2. Total Present */}
-            <Card className={`p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-emerald-100 dark:border-emerald-900/30 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-emerald-50/50 dark:bg-emerald-900/10 rounded-[12px] group relative`}>
-               <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+            <Card className="p-4 flex items-center shadow-none border border-emerald-200 dark:border-emerald-900/50 cursor-default bg-emerald-50 dark:bg-emerald-900/10 rounded-[12px] relative">
+               <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mr-4">
                  <UserCheck className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Total Present</p>
-                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{data?.performance?.totalPresent || 0}</h3>
+                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{(feedConnected && clockInOut?.length > 0 ? clockInOut.length : data?.teamAvailability?.present) || 0}</h3>
                  <p className="text-[10px] text-slate-400 font-medium">Employees</p>
                </div>
             </Card>
 
             {/* 3. Total Absenteeism */}
-            <Card className={`p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-red-100 dark:border-red-900/30 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-red-50/50 dark:bg-red-900/10 rounded-[12px] group relative`}>
-               <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+            <Card className="p-4 flex items-center shadow-none border border-red-200 dark:border-red-900/50 cursor-default bg-red-50 dark:bg-red-900/10 rounded-[12px] relative">
+               <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center mr-4">
                  <XCircle className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
@@ -1560,8 +1560,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
             </Card>
 
             {/* 4. Late Attendance */}
-            <Card className={`p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-amber-100 dark:border-amber-900/30 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-amber-50/50 dark:bg-amber-900/10 rounded-[12px] group relative`}>
-               <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+            <Card className="p-4 flex items-center shadow-none border border-amber-200 dark:border-amber-900/50 cursor-default bg-amber-50 dark:bg-amber-900/10 rounded-[12px] relative">
+               <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mr-4">
                  <Clock className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
@@ -1572,8 +1572,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
             </Card>
 
             {/* 5. Avg Working Hrs */}
-            <Card className={`p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-cyan-100 dark:border-cyan-900/30 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-cyan-50/50 dark:bg-cyan-900/10 rounded-[12px] group relative`}>
-               <div className="w-12 h-12 rounded-xl bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+            <Card className="p-4 flex items-center shadow-none border border-cyan-200 dark:border-cyan-900/50 cursor-default bg-cyan-50 dark:bg-cyan-900/10 rounded-[12px] relative">
+               <div className="w-12 h-12 rounded-xl bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center mr-4">
                  <TrendingUp className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
@@ -1584,8 +1584,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
             </Card>
 
             {/* 6. Leave Utilization */}
-            <Card className={`p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-purple-100 dark:border-purple-900/30 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-purple-50/50 dark:bg-purple-900/10 rounded-[12px] group relative`}>
-               <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+            <Card className="p-4 flex items-center shadow-none border border-purple-200 dark:border-purple-900/50 cursor-default bg-purple-50 dark:bg-purple-900/10 rounded-[12px] relative">
+               <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center mr-4">
                  <CalendarDays className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
@@ -1596,8 +1596,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
             </Card>
 
             {/* 7. Perfect Attend. */}
-            <Card className={`p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-yellow-100 dark:border-yellow-900/30 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-yellow-50/50 dark:bg-yellow-900/10 rounded-[12px] group relative`}>
-               <div className="w-12 h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/40 text-yellow-600 dark:text-yellow-400 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+            <Card className="p-4 flex items-center shadow-none border border-yellow-200 dark:border-yellow-900/50 cursor-default bg-yellow-50 dark:bg-yellow-900/10 rounded-[12px] relative">
+               <div className="w-12 h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/40 text-yellow-600 dark:text-yellow-400 flex items-center justify-center mr-4">
                  <Award className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
@@ -1608,8 +1608,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
             </Card>
 
             {/* 8. Attendance Risk */}
-            <Card className={`p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-rose-100 dark:border-rose-900/30 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-rose-50/50 dark:bg-rose-900/10 rounded-[12px] group relative`}>
-               <div className="w-12 h-12 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+            <Card className="p-4 flex items-center shadow-none border border-rose-200 dark:border-rose-900/50 cursor-default bg-rose-50 dark:bg-rose-900/10 rounded-[12px] relative">
+               <div className="w-12 h-12 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center mr-4">
                  <AlertTriangle className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
