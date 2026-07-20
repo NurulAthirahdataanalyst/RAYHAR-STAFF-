@@ -6110,7 +6110,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     // Add Leave from leaveRows (requires mapping leaves to days)
     // We will just estimate leave per weekday by distributing evenly for simplicity, 
     // or calculate exactly. Let's do a simple evenly distribution for leave:
-    const avgLeavePerDay = totalLeaveRequests / Math.max(1, currentMonthDate.getDate());
+    const avgLeavePerDay = approvedThisMonth / Math.max(1, currentMonthDate.getDate());
     for (const day of Object.keys(weeklyMap)) {
        // Estimate leave per day type (this is rough but works for trend)
        weeklyMap[day].leave = Math.round(avgLeavePerDay * (weeklyMap[day].expected / Math.max(1, activeEmployees)));
