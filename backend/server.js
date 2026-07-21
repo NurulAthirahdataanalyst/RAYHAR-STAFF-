@@ -1826,7 +1826,8 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   const [allProfilesLive] = await pool.query(`SELECT branch FROM profiles WHERE status = 'Active'`);
   const dIterLive = new Date(weekStartDLive);
   const dEndLive = new Date(dateStr);
-  while (dIterLive <= dEndLive) {
+  dEndLive.setHours(23,59,59,999);
+  while (dIterLive <= weekEndDLive) {
     const dayOfWeekNum = dIterLive.getDay();
     const dayName = dNames[dayOfWeekNum];
     
@@ -1840,6 +1841,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
       }
     });
     weeklyMap[dayName].expected = expectedForDay;
+    weeklyMap[dayName].isFuture = dIterLive > dEndLive;
     dIterLive.setDate(dIterLive.getDate() + 1);
   }
 
@@ -1878,7 +1880,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
       name: day,
       present: data.present,
       late: data.late,
-      absent: Math.max(0, data.expected - data.present - data.leave),
+      absent: data.isFuture ? 0 : Math.max(0, data.expected - data.present - data.leave),
       leave: data.leave,
       weekend: Math.max(0, activeCount - data.expected)
     };
@@ -6149,7 +6151,8 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     const branchZoneMapW = await getBranchZoneMap();
     const dIter = new Date(weekStartD);
     const dEnd = new Date(targetDateStr);
-    while (dIter <= dEnd) {
+    dEnd.setHours(23,59,59,999);
+    while (dIter <= weekEndD) {
       const dayOfWeekNum = dIter.getDay();
       const dayName = dayNames[dayOfWeekNum];
       
@@ -6163,6 +6166,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         }
       });
       weeklyMap[dayName].expected = expectedForDay;
+      weeklyMap[dayName].isFuture = dIter > dEnd;
       dIter.setDate(dIter.getDate() + 1);
     }
 
@@ -6203,7 +6207,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     const weeklyOrder = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
     const weeklyAttendanceTrend = weeklyOrder.map(day => {
       const data = weeklyMap[day];
-      const absent = Math.max(0, data.expected - data.present - data.leave);
+      const absent = data.isFuture ? 0 : Math.max(0, data.expected - data.present - data.leave);
       return {
         name: day,
         present: data.present,
