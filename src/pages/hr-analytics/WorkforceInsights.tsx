@@ -426,7 +426,6 @@ export default function WorkforceInsights() {
               </div>
               <div className="mt-2">
                 <p className="text-[11px] font-bold text-slate-500 mb-3">Highest: <span className="text-orange-500">{highestLateTime}</span></p>
-                <p className="text-[11px] font-bold text-slate-400 border-t border-slate-100 pt-3 whitespace-nowrap">- vs Yesterday</p>
               </div>
             </Card>
             );})()}
@@ -443,14 +442,11 @@ export default function WorkforceInsights() {
                   <p className="text-[12px] font-semibold text-slate-500 mt-1">Employees</p>
                 </div>
               </div>
-              <div className="mt-2 flex flex-col gap-2">
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex items-center gap-1.5 flex-nowrap overflow-hidden">
                   <span className="bg-orange-50 text-orange-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">AL {data.leave?.annual || 0}</span>
                   <span className="bg-purple-50 text-purple-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">MC {data.leave?.medical || 0}</span>
                   <span className="bg-blue-50 text-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">EL {data.leave?.emergency || 0}</span>
                 </div>
-                <p className="text-[11px] font-bold text-slate-400 border-t border-slate-100 pt-3 whitespace-nowrap">- vs Yesterday</p>
-              </div>
             </Card>
 
             {/* 4. Absent Today */}
@@ -467,7 +463,6 @@ export default function WorkforceInsights() {
               </div>
               <div className="mt-2">
                 <p className="text-[11px] font-bold text-red-500 mb-3">Needs Attention</p>
-                <p className="text-[11px] font-bold text-slate-400 border-t border-slate-100 pt-3 whitespace-nowrap">- vs Yesterday</p>
               </div>
             </Card>
 
@@ -506,7 +501,6 @@ export default function WorkforceInsights() {
               <div className="mt-2">
                 <p className="text-[11px] font-bold text-blue-500 mb-3">{(activeOutstationList.length > 0 || (data.topKpi.outstationToday || 0) > 0) ? "Away on duty" : "None Today"}</p>
                 <div className="flex items-center border-t border-slate-100 pt-3">
-                  <span className="text-[11px] font-bold text-slate-400 whitespace-nowrap">- vs Yesterday</span>
                   <div className="w-12 bg-slate-100 rounded-full h-1.5 overflow-hidden ml-auto shrink-0">
                     <div className="h-full bg-blue-300 rounded-full w-[30%]"></div>
                   </div>
