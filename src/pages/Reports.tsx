@@ -954,7 +954,7 @@ export default function Reports() {
               <Button
                 onClick={triggerGenerateReport}
                 disabled={isGenerating}
-                className="w-full py-6 rounded-[18px] bg-gradient-to-tr from-[#5e0080] via-[#7B0099] to-purple-500 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-[#7B0099]/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                className="w-full py-6 rounded-[18px] bg-[#FFFE00] hover:bg-[#E6E500] text-[#7B0099] ring-2 ring-[#7B0099] font-black text-xs uppercase tracking-widest shadow-xl shadow-[#7B0099]/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
               >
                 {isGenerating ? (
                   <>

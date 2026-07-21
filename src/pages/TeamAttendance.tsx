@@ -309,13 +309,13 @@ export default function TeamAttendance() {
               <div className="flex items-center bg-gray-50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800 rounded-md p-1 shadow-sm">
                 <button 
                   onClick={() => setDateViewMode('DAY')}
-                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${dateViewMode === 'DAY' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900 dark:text-gray-100'}`}
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${dateViewMode === 'DAY' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow' : 'text-gray-500 hover:text-gray-900 dark:text-gray-100'}`}
                 >
                   DAY
                 </button>
                 <button 
                   onClick={() => setDateViewMode('MONTH')}
-                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${dateViewMode === 'MONTH' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900 dark:text-gray-100'}`}
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${dateViewMode === 'MONTH' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow' : 'text-gray-500 hover:text-gray-900 dark:text-gray-100'}`}
                 >
                   MONTH
                 </button>
@@ -325,19 +325,19 @@ export default function TeamAttendance() {
               <div className="flex items-center bg-gray-50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800 rounded-md p-1 shadow-sm overflow-x-auto">
                 <button 
                   onClick={() => setStatusFilter('ALL')}
-                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'ALL' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900 dark:text-gray-100'}`}
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'ALL' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow' : 'text-gray-500 hover:text-gray-900 dark:text-gray-100'}`}
                 >
                   ALL
                 </button>
                 <button 
                   onClick={() => setStatusFilter('ON TIME')}
-                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'ON TIME' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900 dark:text-gray-100'}`}
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'ON TIME' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow' : 'text-gray-500 hover:text-gray-900 dark:text-gray-100'}`}
                 >
                   ON TIME
                 </button>
                 <button 
                   onClick={() => setStatusFilter('LATE')}
-                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'LATE' ? 'bg-[#7B0099] text-white shadow' : 'text-gray-500 hover:text-gray-900 dark:text-gray-100'}`}
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'LATE' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow' : 'text-gray-500 hover:text-gray-900 dark:text-gray-100'}`}
                 >
                   LATE
                 </button>
