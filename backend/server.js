@@ -1777,7 +1777,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   const activeCount = parseInt(activeProfilesCountRes[0].cnt || 0);
 
   const [weeklyAttRows] = await pool.query(
-    `SELECT clock_in, 
+    `SELECT a.user_id, clock_in, 
             CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END as is_late
      FROM attendances a
      JOIN profiles p ON a.user_id = p.user_id
@@ -1789,7 +1789,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   );
   
   const [weeklyLeaveRows] = await pool.query(
-    `SELECT lr.start_date, lr.end_date 
+    `SELECT lr.user_id, lr.start_date, lr.end_date 
      FROM leave_requests lr
      JOIN profiles p ON lr.user_id = p.user_id
      WHERE lr.status = 'Approved' 
@@ -1823,66 +1823,76 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   weekEndDLive.setHours(23,59,59,999);
 
   const branchZoneMapLive = await getBranchZoneMap();
-  const [allProfilesLive] = await pool.query(`SELECT branch FROM profiles WHERE status = 'Active'`);
+  const [allProfilesLive] = await pool.query(`SELECT user_id, branch FROM profiles WHERE status = 'Active'`);
+  
   const dIterLive = new Date(weekStartDLive);
   const dEndLive = new Date(dateStr);
   dEndLive.setHours(23,59,59,999);
+  
   while (dIterLive <= weekEndDLive) {
     const dayOfWeekNum = dIterLive.getDay();
     const dayName = dNames[dayOfWeekNum];
+    const isFuture = dIterLive > dEndLive;
     
-    let expectedForDay = 0;
-    allProfilesLive.forEach(p => {
-      const userZone = branchZoneMapLive.get(p.branch) || 'ZONE_B';
-      const isRest = (userZone === 'ZONE_A' && (dayOfWeekNum === 5 || dayOfWeekNum === 6)) || 
-                     (userZone === 'ZONE_B' && (dayOfWeekNum === 0 || dayOfWeekNum === 6));
-      if (!isRest) {
-        expectedForDay++;
+    const attSet = new Set();
+    const lateSet = new Set();
+    weeklyAttRows.forEach(att => {
+      const d = new Date(att.clock_in);
+      if (d.getDate() === dIterLive.getDate() && d.getMonth() === dIterLive.getMonth() && d.getFullYear() === dIterLive.getFullYear()) {
+        attSet.add(att.user_id);
+        if (parseInt(att.is_late) === 1) lateSet.add(att.user_id);
       }
     });
-    weeklyMap[dayName].expected = expectedForDay;
-    weeklyMap[dayName].isFuture = dIterLive > dEndLive;
+    
+    const leaveSet = new Set();
+    weeklyLeaveRows.forEach(lr => {
+      const s = new Date(lr.start_date); s.setHours(0,0,0,0);
+      const e = new Date(lr.end_date); e.setHours(23,59,59,999);
+      if (dIterLive >= s && dIterLive <= e) {
+        leaveSet.add(lr.user_id);
+      }
+    });
+
+    allProfilesLive.forEach(p => {
+      const userZone = branchZoneMapLive.get(p.branch) || 'ZONE_B';
+      const hasClockedIn = attSet.has(p.user_id);
+      const hasLeave = leaveSet.has(p.user_id);
+      
+      let status = '';
+      if (hasLeave) {
+        status = 'Leave';
+      } else {
+        const isFirstSaturday = dayOfWeekNum === 6 && dIterLive.getDate() <= 7;
+        const isRestDay = (userZone === 'ZONE_A' && (dayOfWeekNum === 5 || isFirstSaturday)) ||
+                          (userZone === 'ZONE_B' && (dayOfWeekNum === 0 || isFirstSaturday));
+                          
+        if (isRestDay) {
+          status = hasClockedIn ? 'Present' : 'Weekend';
+        } else {
+          if (hasClockedIn) status = 'Present';
+          else if (isFuture) status = 'Future';
+          else status = 'Absent';
+        }
+      }
+      
+      if (status === 'Present') {
+        weeklyMap[dayName].present++;
+        if (lateSet.has(p.user_id)) weeklyMap[dayName].late++;
+      } else if (status === 'Absent') {
+        weeklyMap[dayName].absent++;
+      } else if (status === 'Weekend') {
+        weeklyMap[dayName].weekend++;
+      } else if (status === 'Leave') {
+        weeklyMap[dayName].leave++;
+      }
+    });
     dIterLive.setDate(dIterLive.getDate() + 1);
   }
 
-  weeklyAttRows.forEach(att => {
-    const dateObj = new Date(att.clock_in);
-    if (dateObj >= weekStartDLive && dateObj <= weekEndDLive) {
-      const dayName = dNames[dateObj.getDay()];
-      weeklyMap[dayName].present++;
-      if (parseInt(att.is_late) === 1) {
-        weeklyMap[dayName].late++;
-      }
-    }
-  });
-
-  weeklyLeaveRows.forEach(lr => {
-    const startObj = new Date(lr.start_date);
-    const endObj = new Date(lr.end_date);
-    
-    let dIter = new Date(startObj);
-    dIter.setHours(0,0,0,0);
-    const lEnd = new Date(endObj);
-    lEnd.setHours(23,59,59,999);
-    
-    while (dIter <= lEnd) {
-      if (dIter >= weekStartDLive && dIter <= weekEndDLive) {
-        const dayName = dNames[dIter.getDay()];
-        weeklyMap[dayName].leave++;
-      }
-      dIter.setDate(dIter.getDate() + 1);
-    }
-  });
-
   const weeklyAttendanceTrend = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => {
-    const data = weeklyMap[day];
     return {
       name: day,
-      present: data.present,
-      late: data.late,
-      absent: data.isFuture ? 0 : Math.max(0, data.expected - data.present - data.leave),
-      leave: data.leave,
-      weekend: Math.max(0, activeCount - data.expected)
+      ...weeklyMap[day]
     };
   });
 
