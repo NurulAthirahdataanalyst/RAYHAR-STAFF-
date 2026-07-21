@@ -18,7 +18,17 @@ import { MissingPunchCard } from "./MissingPunchCard";
 
 const COLORS = ['#4f46e5', '#eab308', '#94a3b8', '#DC2626', '#a855f7', '#ec4899']; // Present, Late, On Leave, Absent, Comp Leave, Outstation
 
-const cardHoverEffect = "cursor-pointer hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200";
+const cardHoverEffects: Record<string, string> = {
+  emerald: "cursor-pointer transition-all duration-200 hover:border-emerald-500 hover:ring-1 hover:ring-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-slate-900/50",
+  orange: "cursor-pointer transition-all duration-200 hover:border-orange-500 hover:ring-1 hover:ring-orange-500 hover:bg-orange-50/50 dark:hover:bg-slate-900/50",
+  purple: "cursor-pointer transition-all duration-200 hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50",
+  red: "cursor-pointer transition-all duration-200 hover:border-red-500 hover:ring-1 hover:ring-red-500 hover:bg-red-50/50 dark:hover:bg-slate-900/50",
+  amber: "cursor-pointer transition-all duration-200 hover:border-amber-500 hover:ring-1 hover:ring-amber-500 hover:bg-amber-50/50 dark:hover:bg-slate-900/50",
+  blue: "cursor-pointer transition-all duration-200 hover:border-blue-500 hover:ring-1 hover:ring-blue-500 hover:bg-blue-50/50 dark:hover:bg-slate-900/50",
+  indigo: "cursor-pointer transition-all duration-200 hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-slate-900/50",
+  slate: "cursor-pointer transition-all duration-200 hover:border-slate-500 hover:ring-1 hover:ring-slate-500 hover:bg-slate-50/50 dark:hover:bg-slate-900/50",
+};
+const cardHoverEffect = cardHoverEffects.purple;
 
 const AVATAR_COLORS = [
   "bg-purple-100 text-purple-700",
@@ -357,7 +367,7 @@ export default function WorkforceInsights() {
           <div className="col-span-1 xl:col-span-3 grid grid-cols-2 lg:grid-cols-5 gap-4">
             
                         {/* 1. Present Today */}
-            <Card className={`lg:col-span-2 rounded-xl shadow-sm border border-emerald-100 bg-emerald-50/30 p-5 flex flex-col h-[200px] justify-between ${cardHoverEffect}`}>
+            <Card className={`lg:col-span-2 rounded-xl shadow-sm border border-emerald-100 bg-emerald-50/30 p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald}`}>
               <div>
                 <div className="flex justify-between items-start mb-2">
                   <div className="w-10 h-10 rounded-full border border-emerald-200 bg-emerald-50 flex items-center justify-center">
@@ -403,7 +413,7 @@ export default function WorkforceInsights() {
               }
               
               return (
-            <Card className={`rounded-xl shadow-sm border border-slate-200 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffect}`}>
+            <Card className={`rounded-xl shadow-sm border border-slate-200 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.orange}`}>
               <div>
                 <div className="w-10 h-10 rounded-full border border-orange-100 bg-orange-50/50 flex items-center justify-center mb-3">
                   <Clock className="w-5 h-5 text-orange-500" />
@@ -422,7 +432,7 @@ export default function WorkforceInsights() {
             );})()}
 
             {/* 3. On Leave Today */}
-            <Card className={`rounded-xl shadow-sm border border-slate-200 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffect}`}>
+            <Card className={`rounded-xl shadow-sm border border-slate-200 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.purple}`}>
               <div>
                 <div className="w-10 h-10 rounded-full border border-purple-100 bg-purple-50/50 flex items-center justify-center mb-3">
                   <CalendarDays className="w-5 h-5 text-purple-600" />
@@ -444,7 +454,7 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* 4. Absent Today */}
-            <Card className={`rounded-xl shadow-sm border border-slate-200 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffect}`}>
+            <Card className={`rounded-xl shadow-sm border border-slate-200 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.red}`}>
               <div>
                 <div className="w-10 h-10 rounded-full border border-red-100 bg-red-50/50 flex items-center justify-center mb-3">
                   <XCircle className="w-5 h-5 text-red-500" />
@@ -462,7 +472,7 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* 5. Missing Punch */}
-            <Card className={`rounded-xl shadow-sm border border-slate-200 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffect}`}>
+            <Card className={`rounded-xl shadow-sm border border-slate-200 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.amber}`}>
               <div>
                 <div className="w-10 h-10 rounded-full border border-amber-100 bg-amber-50/50 flex items-center justify-center mb-3">
                   <AlertTriangle className="w-5 h-5 text-amber-500" />
@@ -482,7 +492,7 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* 6. Outstation */}
-            <Card className={`rounded-xl shadow-sm border border-slate-200 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffect}`}>
+            <Card className={`rounded-xl shadow-sm border border-slate-200 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.blue}`}>
               <div>
                 <div className="w-10 h-10 rounded-full border border-blue-100 bg-blue-50/50 flex items-center justify-center mb-3">
                   <Plane className="w-5 h-5 text-blue-500" />
@@ -505,7 +515,7 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* 7. Attendance Rate */}
-            <Card className={`rounded-xl shadow-sm border border-slate-200 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffect}`}>
+            <Card className={`rounded-xl shadow-sm border border-slate-200 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.indigo}`}>
               <div>
                 <div className="w-10 h-10 rounded-full border border-indigo-100 bg-indigo-50/50 flex items-center justify-center mb-3">
                   <CheckCircle2 className="w-5 h-5 text-indigo-500" />
@@ -542,7 +552,7 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* 8. Active Workforce */}
-            <Card className={`lg:col-span-2 rounded-xl shadow-sm border border-slate-200 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffect}`}>
+            <Card className={`lg:col-span-2 rounded-xl shadow-sm border border-slate-200 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald}`}>
               <div>
                 <div className="w-10 h-10 rounded-full border border-emerald-100 bg-emerald-50/50 flex items-center justify-center mb-3">
                   <Users className="w-5 h-5 text-emerald-500" />
