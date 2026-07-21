@@ -370,6 +370,7 @@ export default function LeaveAnalytics() {
 
   // ─ Data state ─
   const [records, setRecords] = useState<LeaveRecord[]>([]);
+  const [allEmployees, setAllEmployees] = useState<any[]>([]);
   const [entitlements, setEntitlements] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
   const QUOTA_PER_EMPLOYEE = 14;
@@ -421,14 +422,21 @@ export default function LeaveAnalytics() {
         ? `date=${dateParam}&role=head_of_department&branch=${encodeURIComponent(userBranch)}&department=${encodeURIComponent(userDepartment)}`
         : `date=${dateParam}&role=hr_admin&branch=&department=`;
 
-      const [leaveRes, statsRes, presentRes, absentRes, outstationRes, onLeaveRes, entRes] = await Promise.all([
+      const empParams = isBranchLeader
+        ? `role=branch_leader&branch=${encodeURIComponent(userBranch)}&department=`
+        : isHOD
+        ? `role=head_of_department&branch=${encodeURIComponent(userBranch)}&department=${encodeURIComponent(userDepartment)}`
+        : `role=hr_admin&branch=&department=`;
+
+      const [leaveRes, statsRes, presentRes, absentRes, outstationRes, onLeaveRes, entRes, empRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/leave-requests?${params}`),
         fetch(`${API_BASE_URL}/api/dashboard-stats?${statsQuery}`),
         fetch(`${API_BASE_URL}/api/reports/daily-attendance?${listQuery}`),
         fetch(`${API_BASE_URL}/api/reports/absent-employees?${listQuery}`),
         fetch(`${API_BASE_URL}/api/outstation?${listQuery.replace(`date=${dateParam}&`, '')}`),
         fetch(`${API_BASE_URL}/api/reports/on-leave-employees?${listQuery}`),
-        fetch(`${API_BASE_URL}/api/leave-entitlements?${params}`)
+        fetch(`${API_BASE_URL}/api/leave-entitlements?${params}`),
+        fetch(`${API_BASE_URL}/api/employees?${empParams}&status=Active`)
       ]);
 
       const data = await leaveRes.json();
@@ -439,6 +447,11 @@ export default function LeaveAnalytics() {
       const outstationData = await outstationRes.json().catch(() => ({ success: false }));
       const onLeaveData = await onLeaveRes.json().catch(() => ({ success: false }));
       const entData = await entRes.json().catch(() => ({ success: false }));
+      const empData = await empRes.json().catch(() => ({ success: false }));
+
+      if (empData.success && Array.isArray(empData.employees)) {
+        setAllEmployees(empData.employees);
+      }
 
       if (entData.success && Array.isArray(entData.data)) {
         const entMap: Record<string, number> = {};
@@ -517,6 +530,21 @@ export default function LeaveAnalytics() {
   // ─ Staff-level summary (for Branch Leader / HOD) ─────────────────────────
   const staffSummary = useMemo(() => {
     const map: Record<string, { id: string; name: string; total: number; approved: number; rejected: number; pending: number; days: number; department: string; branch: string; quota: number; }> = {};
+    
+    allEmployees.forEach(emp => {
+      map[emp.user_id] = {
+        id: emp.user_id,
+        name: emp.full_name,
+        total: 0,
+        approved: 0,
+        rejected: 0,
+        pending: 0,
+        days: 0,
+        department: emp.department || "General",
+        branch: emp.branch || "HQ",
+        quota: entitlements[emp.user_id] || QUOTA_PER_EMPLOYEE
+      };
+    });
     records.forEach((r) => {
       if (!map[r.user_id]) {
         map[r.user_id] = { 
@@ -543,7 +571,7 @@ export default function LeaveAnalytics() {
       }
     });
     return Object.values(map).sort((a, b) => b.total - a.total);
-  }, [records, entitlements]);
+  }, [records, entitlements, allEmployees]);
 
   // ─ Filter logic ─────────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
