@@ -1749,8 +1749,8 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     while (m <= 0) { m += 12; y--; }
     const mStr = m.toString().padStart(2, '0');
 
-    const [leaveMonthRows] = await pool.query(
-      `SELECT leave_type, COUNT(*) as cnt
+      const [leaveMonthRows] = await pool.query(
+      `SELECT leave_type, COALESCE(SUM(days), 0) as cnt
        FROM leave_requests lr
        JOIN profiles p ON p.user_id = lr.user_id
        WHERE lr.status = 'Approved'
@@ -1916,10 +1916,10 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     `SELECT COUNT(DISTINCT a.user_id) as cnt
      FROM attendances a
      JOIN profiles p ON p.user_id = a.user_id
-     WHERE DATE(a.clock_in) = DATE_SUB(?, INTERVAL 1 DAY)
+     WHERE (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = ?::date - INTERVAL '1 day'
        AND a.clock_out IS NULL
-       AND p.status = 'Active' ${filterP}`,
-    [dateStr, ...paramsBase]
+       AND p.status = 'Active' ${leaveTrendRoleFilter}`,
+    [dateStr, ...leaveTrendFilterParams]
   );
   const missingPunchYesterday = parseInt(missingPunchYesterdayRows[0]?.cnt || 0);
 

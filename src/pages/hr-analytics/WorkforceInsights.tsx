@@ -382,25 +382,14 @@ export default function WorkforceInsights() {
             {(() => {
               let highestLateTime = "None";
               if (feedConnected && lateList.length > 0) {
-                // sort lateList by clock_in (e.g. "10:09 AM")
-                const parsedTimes = lateList.map(emp => {
-                   if (!emp.clock_in) return 0;
-                   const match = emp.clock_in.match(/(\d+):(\d+)\s+(AM|PM)/i);
-                   if (!match) return 0;
-                   let h = parseInt(match[1]);
-                   let m = parseInt(match[2]);
-                   let ampm = match[3].toUpperCase();
-                   if (ampm === 'PM' && h < 12) h += 12;
-                   if (ampm === 'AM' && h === 12) h = 0;
-                   return h * 60 + m;
-                });
-                const maxTime = Math.max(...parsedTimes, 0);
+                const maxTime = Math.max(...lateList.map(emp => emp.clock_in ? new Date(emp.clock_in).getTime() : 0));
                 if (maxTime > 0) {
-                   let h = Math.floor(maxTime / 60);
-                   let m = maxTime % 60;
-                   let ampm = h >= 12 ? 'PM' : 'AM';
-                   h = h % 12 || 12;
-                   highestLateTime = `${h}:${m.toString().padStart(2, '0')} ${ampm}`;
+                   highestLateTime = new Date(maxTime).toLocaleTimeString('en-US', {
+                       timeZone: 'Asia/Kuala_Lumpur',
+                       hour: 'numeric',
+                       minute: '2-digit',
+                       hour12: true
+                   });
                 }
               }
               

@@ -70,7 +70,7 @@ export default function Calendar() {
   const isHR = role === 'hr_admin';
   const location = useLocation();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  
+  const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
   const [notes, setNotes] = useState<PersonalNote[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [attendance, setAttendance] = useState<AttendanceLog[]>([]);
@@ -306,10 +306,14 @@ export default function Calendar() {
   const monthEnd = endOfMonth(monthStart);
   const gridStartDate = startOfWeek(monthStart);
   const gridEndDate = endOfWeek(monthEnd);
+  
+  const weekViewStart = startOfWeek(selectedDate);
+  const weekViewEnd = endOfWeek(selectedDate);
+  const weekDaysGrid = eachDayOfInterval({ start: weekViewStart, end: weekViewEnd });
 
   const calendarDays = eachDayOfInterval({
     start: gridStartDate,
-    end: gridEndDate
+    end: gridEndDate,
   });
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -401,6 +405,68 @@ export default function Calendar() {
     });
 
     exportToCSV(exportData, 'Calendar_Events');
+  };
+
+  const parseEventTime = (note: PersonalNote, targetDateStr: string) => {
+    const noteDate = note.date.split('T')[0];
+    const lines = note.note_text.split('\n');
+    const startsLine = lines.find(l => l.startsWith('Starts: '));
+    const endsLine = lines.find(l => l.startsWith('Ends: '));
+    const timeLine = lines.find(l => l.startsWith('Time: '));
+
+    let startMins = 0;
+    let endMins = 60;
+    let start = noteDate;
+    let end = noteDate;
+    let isAllDay = false;
+
+    if (startsLine && endsLine) {
+      const modalStarts = startsLine.replace('Starts: ', '');
+      const modalEnds = endsLine.replace('Ends: ', '');
+      const startParts = modalStarts.split(' ');
+      const endParts = modalEnds.split(' ');
+      
+      if (startParts[0]) start = startParts[0];
+      if (endParts[0]) end = endParts[0];
+      
+      if (targetDateStr >= start && targetDateStr <= end) {
+         if (startParts[1] === 'All' && startParts[2] === 'Day') {
+           isAllDay = true;
+         } else if (startParts[1]) {
+            const s = startParts[1].split(':');
+            startMins = parseInt(s[0]) * 60 + parseInt(s[1]);
+            if (endParts[1] && endParts[1] !== 'All') {
+              const e = endParts[1].split(':');
+              endMins = parseInt(e[0]) * 60 + parseInt(e[1]);
+            } else {
+              endMins = startMins + 60;
+            }
+         }
+      } else {
+         return null;
+      }
+    } else if (timeLine && noteDate === targetDateStr) {
+       const match = timeLine.replace('Time: ', '').match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+       if (match) {
+          const s = match[1].split(':');
+          const e = match[2].split(':');
+          startMins = parseInt(s[0]) * 60 + parseInt(s[1]);
+          endMins = parseInt(e[0]) * 60 + parseInt(e[1]);
+       } else {
+         isAllDay = true; 
+       }
+    } else if (noteDate === targetDateStr) {
+       isAllDay = true;
+    } else {
+       return null;
+    }
+
+    if (!isAllDay) {
+       if (targetDateStr > start) startMins = 0;
+       if (targetDateStr < end) endMins = 24 * 60;
+    }
+
+    return { startMins, endMins, isAllDay };
   };
 
   return (
@@ -688,6 +754,7 @@ export default function Calendar() {
 
         </div>
 
+        </div>
         {/* RIGHT COLUMN: MAIN CALENDAR GRID */}
         <div className="lg:col-span-9 flex flex-col h-[800px] bg-card border border-border/60 rounded-[16px] shadow-sm overflow-hidden">
           
@@ -695,156 +762,329 @@ export default function Calendar() {
             <div className="flex items-center gap-3">
               <Button variant="outline" className="h-9 px-4 font-bold bg-muted/30" onClick={() => setSelectedDate(new Date())}>Today</Button>
               <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-0.5 border border-border/50">
-                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white dark:bg-card dark:hover:bg-card" onClick={() => setSelectedDate(subMonths(selectedDate, 1))}>
+                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white dark:bg-card dark:hover:bg-card" onClick={() => {
+                  if (viewMode === 'week') setSelectedDate(new Date(selectedDate.getTime() - 7 * 24 * 60 * 60 * 1000));
+                  else setSelectedDate(subMonths(selectedDate, 1));
+                }}>
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white dark:bg-card dark:hover:bg-card" onClick={() => setSelectedDate(addMonths(selectedDate, 1))}>
+                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white dark:bg-card dark:hover:bg-card" onClick={() => {
+                  if (viewMode === 'week') setSelectedDate(new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000));
+                  else setSelectedDate(addMonths(selectedDate, 1));
+                }}>
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
             </div>
             
             <h2 className="text-lg font-bold text-foreground w-full text-center sm:w-auto">
-              {format(selectedDate, "MMMM yyyy")}
+              {viewMode === 'week' ? `${format(weekViewStart, "MMM d")} - ${format(weekViewEnd, "MMM d, yyyy")}` : format(selectedDate, "MMMM yyyy")}
             </h2>
             
             <div className="flex items-center bg-muted/40 rounded-lg p-1 border border-border/50 w-full justify-center sm:w-auto">
-              <button className="px-5 py-1.5 rounded-md bg-[#ff5b37] text-white text-sm font-bold shadow-sm transition-colors">Month</button>
-              <button className="px-5 py-1.5 rounded-md text-muted-foreground hover:text-foreground text-sm font-bold transition-colors">Week</button>
+              <button 
+                onClick={() => setViewMode('month')}
+                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'month' ? 'bg-[#ff5b37] text-white' : 'text-muted-foreground hover:text-foreground'}`}>Month</button>
+              <button 
+                onClick={() => setViewMode('week')}
+                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'week' ? 'bg-[#ff5b37] text-white' : 'text-muted-foreground hover:text-foreground'}`}>Week</button>
               <button className="px-5 py-1.5 rounded-md text-muted-foreground hover:text-foreground text-sm font-bold transition-colors">Day</button>
             </div>
           </div>
           
-          <div className="grid grid-cols-7 border-b border-border/60 bg-[#7B0099] divide-x divide-white/20">
-            {weekDays.map(day => (
-              <div key={day} className="py-3 text-center text-xs font-bold text-white uppercase tracking-wider">
-                {day}
+          {viewMode === 'month' ? (
+            <>
+              <div className="grid grid-cols-7 border-b border-border/60 bg-[#7B0099] divide-x divide-white/20">
+                {weekDays.map(day => (
+                  <div key={day} className="py-3 text-center text-xs font-bold text-white uppercase tracking-wider">
+                    {day}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          
-          <div className="flex-1 grid grid-cols-7 bg-border/60 gap-px auto-rows-fr">
-            {calendarDays.map((day, i) => {
-              const isCurrentMonth = isSameMonth(day, selectedDate);
-              const dayStr = format(day, 'yyyy-MM-dd');
               
-              const isNoteActiveOnDate = (note: PersonalNote, targetDateStr: string) => {
-                const noteDate = note.date.split('T')[0];
-                const lines = note.note_text.split('\n');
-                const startsLine = lines.find(l => l.startsWith('Starts: '));
-                const endsLine = lines.find(l => l.startsWith('Ends: '));
-                
-                let start = noteDate;
-                let end = noteDate;
-                
-                if (startsLine && endsLine) {
-                  const modalStarts = startsLine.replace('Starts: ', '');
-                  const modalEnds = endsLine.replace('Ends: ', '');
-                  const startParts = modalStarts.split(' ');
-                  const endParts = modalEnds.split(' ');
+              <div className="flex-1 grid grid-cols-7 bg-border/60 gap-px auto-rows-fr">
+                {calendarDays.map((day, i) => {
+                  const isCurrentMonth = isSameMonth(day, selectedDate);
+                  const dayStr = format(day, 'yyyy-MM-dd');
                   
-                  if (startParts[0]) start = startParts[0];
-                  if (endParts[0]) end = endParts[0];
-                }
-                
-                return targetDateStr >= start && targetDateStr <= end;
-              };
+                  const isNoteActiveOnDate = (note: PersonalNote, targetDateStr: string) => {
+                    const parsed = parseEventTime(note, targetDateStr);
+                    return parsed !== null;
+                  };
 
-              const dayNotes = notes.filter(n => isNoteActiveOnDate(n, dayStr) && (!activeFilter || activeFilter === n.type));
-              const dayHolidays = holidays.filter(h => h.date === dayStr && (!activeFilter || activeFilter === 'holiday'));
-              const dayAttendance = attendance.filter(a => a.clock_in && format(new Date(a.clock_in), 'yyyy-MM-dd') === dayStr && (!activeFilter || activeFilter === 'attendance'));
-              const dayCompanyLeaves = companyLeaves.filter(cl => {
-                const start = cl.start_date?.split('T')[0] || cl.start_date;
-                const end = cl.end_date?.split('T')[0] || cl.end_date;
-                return dayStr >= start && dayStr <= end && (!activeFilter || activeFilter === 'company_leave');
-              });
+                  const dayNotes = notes.filter(n => isNoteActiveOnDate(n, dayStr) && (!activeFilter || activeFilter === n.type));
+                  const dayHolidays = holidays.filter(h => h.date === dayStr && (!activeFilter || activeFilter === 'holiday'));
+                  const dayAttendance = attendance.filter(a => a.clock_in && format(new Date(a.clock_in), 'yyyy-MM-dd') === dayStr && (!activeFilter || activeFilter === 'attendance'));
+                  const dayCompanyLeaves = companyLeaves.filter(cl => {
+                    const start = cl.start_date?.split('T')[0] || cl.start_date;
+                    const end = cl.end_date?.split('T')[0] || cl.end_date;
+                    return dayStr >= start && dayStr <= end && (!activeFilter || activeFilter === 'company_leave');
+                  });
+                  
+                  const today = isSameDay(day, new Date());
+                  const isPast = isBefore(day, startOfDay(new Date())) && !today;
+
+                  let cellBg = "bg-white dark:bg-card";
+                  let textCol = "text-foreground";
+                  
+                  if (today) {
+                    cellBg = "bg-[#DBC5E1]";
+                    textCol = "text-[#7B0099]";
+                  } else if (!isCurrentMonth) {
+                    cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
+                    textCol = "text-muted-foreground opacity-50";
+                  } else if (isPast) {
+                    cellBg = "bg-white dark:bg-card opacity-80";
+                    textCol = "text-gray-500 dark:text-gray-400";
+                  }
+
+                  return (
+                    <div 
+                      key={i} 
+                      className={`p-1.5 flex flex-col transition-colors ${cellBg} ${!today && isCurrentMonth ? 'hover:bg-muted/30' : ''}`}
+                    >
+                      <div className={`text-right mb-1.5 p-1 text-[12px] font-bold ${textCol}`}>
+                        {format(day, 'd')}
+                      </div>
+                      
+                      <div className="flex-1 overflow-y-auto space-y-1.5 no-scrollbar px-0.5">
+                        
+                        {/* Holidays */}
+                        {dayHolidays.map((h, idx) => (
+                          <div key={`hol-${idx}`} className="px-2 py-1 rounded-[4px] bg-red-500/10 border-l-2 border-red-500 text-[11px] font-bold text-red-700 dark:text-red-400 truncate shadow-sm">
+                            {h.name}
+                          </div>
+                        ))}
+
+                        {/* Company Leaves */}
+                        {dayCompanyLeaves.map((cl, idx) => (
+                          <div
+                            key={`cl-${idx}`}
+                            onClick={() => setSelectedCompanyLeave(cl)}
+                            className="px-2 py-1 rounded-[4px] bg-purple-500/10 border-l-2 border-purple-500 text-[11px] font-bold text-purple-700 dark:text-purple-400 truncate shadow-sm cursor-pointer hover:bg-purple-500/20 transition-colors"
+                            title={`${cl.leave_name} (${cl.leave_type})`}
+                          >
+                            🏢 {cl.leave_name}
+                          </div>
+                        ))}
+                        
+                        {/* Attendance */}
+                        {dayAttendance.map((a, idx) => {
+                          const timeStr = new Date(a.clock_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                          return (
+                            <div key={`att-${idx}`} className="px-2 py-1 rounded-[4px] bg-[#7B0099]/10 border-l-2 border-[#7B0099] text-[11px] font-bold text-[#7B0099] dark:text-purple-400 truncate shadow-sm">
+                              In: {timeStr}
+                            </div>
+                          )
+                        })}
+
+                        {/* Notes, Reminders, Meetings */}
+                        {dayNotes.map((note) => {
+                          const isReminder = note.type === 'reminder';
+                          const isMeeting = note.type === 'meeting';
+                          const customCat = customCategories.find(c => c.id === note.type);
+                          
+                          let colorClass = 'bg-blue-500/10 border-l-2 border-blue-500 text-blue-700 dark:text-blue-400';
+                          if (isReminder) colorClass = 'bg-yellow-500/10 border-l-2 border-yellow-500 text-yellow-700 dark:text-yellow-400';
+                          if (isMeeting) colorClass = 'bg-green-500/10 border-l-2 border-green-500 text-green-700 dark:text-green-400';
+                          if (customCat) colorClass = CATEGORY_COLORS[customCat.color] || colorClass;
+                          
+                          // Extract title (first line) for pill
+                          const title = note.note_text.split('\n')[0];
+
+                          return (
+                            <div 
+                              key={note.id} 
+                              onClick={(e) => { e.stopPropagation(); setSelectedEvent(note); }}
+                              className={`px-2 py-1 rounded-[4px] text-[11px] font-bold truncate shadow-sm relative group cursor-pointer hover:brightness-95 ${colorClass}`}
+                            >
+                              {title}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col flex-1 bg-white dark:bg-card overflow-hidden">
+              {/* Week Header */}
+              <div className="flex border-b border-border/60 bg-[#7B0099] text-white">
+                <div className="w-16 flex-shrink-0 border-r border-white/20" />
+                <div className="flex-1 grid grid-cols-7 divide-x divide-white/20">
+                  {weekDaysGrid.map(day => (
+                    <div key={day.toString()} className="py-2 text-center flex flex-col items-center justify-center">
+                      <span className="text-xs font-semibold opacity-80 uppercase tracking-wider">{format(day, 'EEE')}</span>
+                      <span className="text-sm sm:text-lg font-bold">{format(day, 'd')}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
               
-              const today = isSameDay(day, new Date());
-              const isPast = isBefore(day, startOfDay(new Date())) && !today;
-
-              let cellBg = "bg-white dark:bg-card";
-              let textCol = "text-foreground";
+              {/* All-Day Events Row */}
+              <div className="flex border-b border-border/60 bg-muted/10 shrink-0 min-h-[40px]">
+                <div className="w-16 flex-shrink-0 border-r border-border/60 p-2 text-[10px] font-semibold text-muted-foreground text-center flex flex-col justify-center">
+                  All Day
+                </div>
+                <div className="flex-1 grid grid-cols-7 divide-x divide-border/60">
+                  {weekDaysGrid.map(day => {
+                    const dayStr = format(day, 'yyyy-MM-dd');
+                    const dayHolidays = holidays.filter(h => h.date === dayStr && (!activeFilter || activeFilter === 'holiday'));
+                    const dayCompanyLeaves = companyLeaves.filter(cl => {
+                      const start = cl.start_date?.split('T')[0] || cl.start_date;
+                      const end = cl.end_date?.split('T')[0] || cl.end_date;
+                      return dayStr >= start && dayStr <= end && (!activeFilter || activeFilter === 'company_leave');
+                    });
+                    const dayAllDayNotes = notes.filter(n => {
+                       if (activeFilter && activeFilter !== n.type) return false;
+                       const parsed = parseEventTime(n, dayStr);
+                       return parsed && parsed.isAllDay;
+                    });
+                    
+                    return (
+                      <div key={`allday-${day.toISOString()}`} className="p-1 space-y-1">
+                        {dayHolidays.map((h, idx) => (
+                          <div key={`hol-${idx}`} className="px-1.5 py-0.5 rounded-[4px] bg-red-500/10 border-l-2 border-red-500 text-[10px] font-bold text-red-700 dark:text-red-400 truncate shadow-sm leading-tight">
+                            {h.name}
+                          </div>
+                        ))}
+                        {dayCompanyLeaves.map((cl, idx) => (
+                          <div
+                            key={`cl-${idx}`}
+                            onClick={() => setSelectedCompanyLeave(cl)}
+                            className="px-1.5 py-0.5 rounded-[4px] bg-purple-500/10 border-l-2 border-purple-500 text-[10px] font-bold text-purple-700 dark:text-purple-400 truncate shadow-sm cursor-pointer hover:bg-purple-500/20 transition-colors leading-tight"
+                            title={`${cl.leave_name} (${cl.leave_type})`}
+                          >
+                            🏢 {cl.leave_name}
+                          </div>
+                        ))}
+                        {dayAllDayNotes.map((note) => {
+                          const isReminder = note.type === 'reminder';
+                          const isMeeting = note.type === 'meeting';
+                          const customCat = customCategories.find(c => c.id === note.type);
+                          
+                          let colorClass = 'bg-blue-500/10 border-l-2 border-blue-500 text-blue-700 dark:text-blue-400';
+                          if (isReminder) colorClass = 'bg-yellow-500/10 border-l-2 border-yellow-500 text-yellow-700 dark:text-yellow-400';
+                          if (isMeeting) colorClass = 'bg-green-500/10 border-l-2 border-green-500 text-green-700 dark:text-green-400';
+                          if (customCat) colorClass = CATEGORY_COLORS[customCat.color] || colorClass;
+                          
+                          const title = note.note_text.split('\n')[0];
+                          return (
+                            <div 
+                              key={note.id} 
+                              onClick={(e) => { e.stopPropagation(); setSelectedEvent(note); }}
+                              className={`px-1.5 py-0.5 rounded-[4px] text-[10px] font-bold truncate shadow-sm cursor-pointer hover:brightness-95 leading-tight ${colorClass}`}
+                            >
+                              {title}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
               
-              if (today) {
-                cellBg = "bg-[#DBC5E1]";
-                textCol = "text-[#7B0099]";
-              } else if (!isCurrentMonth) {
-                cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
-                textCol = "text-muted-foreground opacity-50";
-              } else if (isPast) {
-                cellBg = "bg-white dark:bg-card opacity-80";
-                textCol = "text-gray-500 dark:text-gray-400";
-              }
-
-              return (
-                <div 
-                  key={i} 
-                  className={`p-1.5 flex flex-col transition-colors ${cellBg} ${!today && isCurrentMonth ? 'hover:bg-muted/30' : ''}`}
-                >
-                  <div className={`text-right mb-1.5 p-1 text-[12px] font-bold ${textCol}`}>
-                    {format(day, 'd')}
+              {/* Time Grid */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="flex relative" style={{ height: `${24 * 60}px` }}>
+                  {/* Time Labels */}
+                  <div className="w-16 flex-shrink-0 border-r border-border/60 bg-white dark:bg-card z-10 relative">
+                    {Array.from({ length: 24 }).map((_, i) => (
+                      <div key={i} className="h-[60px] relative border-b border-border/30">
+                        {i > 0 && (
+                          <span className="absolute -top-2.5 right-2 text-[10px] font-semibold text-muted-foreground">
+                            {format(new Date().setHours(i, 0, 0, 0), 'HH:mm')}
+                          </span>
+                        )}
+                      </div>
+                    ))}
                   </div>
                   
-                  <div className="flex-1 overflow-y-auto space-y-1.5 no-scrollbar px-0.5">
+                  {/* Day Columns */}
+                  <div className="flex-1 grid grid-cols-7 divide-x divide-border/60 relative bg-slate-50/30 dark:bg-slate-900/10">
+                    {/* Horizontal Grid lines */}
+                    <div className="absolute inset-0 pointer-events-none">
+                      {Array.from({ length: 24 }).map((_, i) => (
+                        <div key={i} className="h-[60px] border-b border-border/30" />
+                      ))}
+                    </div>
                     
-                    {/* Holidays */}
-                    {dayHolidays.map((h, idx) => (
-                      <div key={`hol-${idx}`} className="px-2 py-1 rounded-[4px] bg-red-500/10 border-l-2 border-red-500 text-[11px] font-bold text-red-700 dark:text-red-400 truncate shadow-sm">
-                        {h.name}
-                      </div>
-                    ))}
-
-                    {/* Company Leaves */}
-                    {dayCompanyLeaves.map((cl, idx) => (
-                      <div
-                        key={`cl-${idx}`}
-                        onClick={() => setSelectedCompanyLeave(cl)}
-                        className="px-2 py-1 rounded-[4px] bg-purple-500/10 border-l-2 border-purple-500 text-[11px] font-bold text-purple-700 dark:text-purple-400 truncate shadow-sm cursor-pointer hover:bg-purple-500/20 transition-colors"
-                        title={`${cl.leave_name} (${cl.leave_type})`}
-                      >
-                        🏢 {cl.leave_name}
-                      </div>
-                    ))}
-                    
-                    {/* Attendance */}
-                    {dayAttendance.map((a, idx) => {
-                      const timeStr = new Date(a.clock_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                      return (
-                        <div key={`att-${idx}`} className="px-2 py-1 rounded-[4px] bg-[#7B0099]/10 border-l-2 border-[#7B0099] text-[11px] font-bold text-[#7B0099] dark:text-purple-400 truncate shadow-sm">
-                          In: {timeStr}
-                        </div>
-                      )
-                    })}
-
-                    {/* Notes, Reminders, Meetings */}
-                    {dayNotes.map((note) => {
-                      const isReminder = note.type === 'reminder';
-                      const isMeeting = note.type === 'meeting';
-                      const customCat = customCategories.find(c => c.id === note.type);
+                    {weekDaysGrid.map(day => {
+                      const dayStr = format(day, 'yyyy-MM-dd');
+                      const dayAttendance = attendance.filter(a => a.clock_in && format(new Date(a.clock_in), 'yyyy-MM-dd') === dayStr && (!activeFilter || activeFilter === 'attendance'));
+                      const dayTimedNotes = notes.filter(n => {
+                        if (activeFilter && activeFilter !== n.type) return false;
+                        const parsed = parseEventTime(n, dayStr);
+                        return parsed && !parsed.isAllDay;
+                      });
                       
-                      let colorClass = 'bg-blue-500/10 border-l-2 border-blue-500 text-blue-700 dark:text-blue-400';
-                      if (isReminder) colorClass = 'bg-yellow-500/10 border-l-2 border-yellow-500 text-yellow-700 dark:text-yellow-400';
-                      if (isMeeting) colorClass = 'bg-green-500/10 border-l-2 border-green-500 text-green-700 dark:text-green-400';
-                      if (customCat) colorClass = CATEGORY_COLORS[customCat.color] || colorClass;
-                      
-                      // Extract title (first line) for pill
-                      const title = note.note_text.split('\n')[0];
-
                       return (
-                        <div 
-                          key={note.id} 
-                          onClick={(e) => { e.stopPropagation(); setSelectedEvent(note); }}
-                          className={`px-2 py-1 rounded-[4px] text-[11px] font-bold truncate shadow-sm relative group cursor-pointer hover:brightness-95 ${colorClass}`}
-                        >
-                          {title}
+                        <div key={`col-${day.toISOString()}`} className="relative h-full">
+                          {/* Timed Notes */}
+                          {dayTimedNotes.map((note) => {
+                            const parsed = parseEventTime(note, dayStr);
+                            if (!parsed) return null;
+                            const { startMins, endMins } = parsed;
+                            const height = Math.max(endMins - startMins, 20); // Minimum 20px height
+                            
+                            const isReminder = note.type === 'reminder';
+                            const isMeeting = note.type === 'meeting';
+                            const customCat = customCategories.find(c => c.id === note.type);
+                            
+                            let colorClass = 'bg-blue-500/10 border-l-[3px] border-blue-500 text-blue-700 dark:text-blue-400';
+                            let solidBg = 'bg-blue-100';
+                            if (isReminder) { colorClass = 'bg-yellow-500/10 border-l-[3px] border-yellow-500 text-yellow-800 dark:text-yellow-400'; solidBg = 'bg-yellow-100'; }
+                            if (isMeeting) { colorClass = 'bg-green-500/10 border-l-[3px] border-green-500 text-green-800 dark:text-green-400'; solidBg = 'bg-green-100'; }
+                            if (customCat && CATEGORY_COLORS[customCat.color]) {
+                               const baseClass = CATEGORY_COLORS[customCat.color]; // e.g. "bg-pink-500/10 border-l-2 border-pink-500 text-pink-700"
+                               colorClass = baseClass.replace('border-l-2', 'border-l-[3px]');
+                               solidBg = 'bg-muted'; // Fallback for custom
+                            }
+                            
+                            const title = note.note_text.split('\n')[0];
+                            const timeStr = `${Math.floor(startMins / 60).toString().padStart(2, '0')}:${(startMins % 60).toString().padStart(2, '0')} - ${Math.floor(endMins / 60).toString().padStart(2, '0')}:${(endMins % 60).toString().padStart(2, '0')}`;
+                            
+                            return (
+                              <div 
+                                key={note.id}
+                                onClick={(e) => { e.stopPropagation(); setSelectedEvent(note); }}
+                                className={`absolute left-[2%] right-[2%] rounded-sm shadow-sm cursor-pointer hover:brightness-95 overflow-hidden flex flex-col p-1.5 ${colorClass}`}
+                                style={{ top: `${startMins}px`, height: `${height}px` }}
+                              >
+                                <span className="text-[10px] font-bold leading-tight">{title}</span>
+                                {height >= 40 && (
+                                  <span className="text-[9px] opacity-80 font-semibold mt-0.5">{timeStr}</span>
+                                )}
+                              </div>
+                            );
+                          })}
+
+                          {/* Attendance */}
+                          {dayAttendance.map((a, idx) => {
+                            const d = new Date(a.clock_in);
+                            const startMins = d.getHours() * 60 + d.getMinutes();
+                            const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            return (
+                              <div 
+                                key={`att-${idx}`}
+                                className="absolute left-[2%] right-[2%] h-[24px] rounded-sm bg-[#7B0099]/10 border-l-[3px] border-[#7B0099] text-[10px] font-bold text-[#7B0099] dark:text-purple-400 shadow-sm flex items-center px-1.5 truncate pointer-events-none"
+                                style={{ top: `${startMins}px` }}
+                              >
+                                In: {timeStr}
+                              </div>
+                            );
+                          })}
                         </div>
                       )
                     })}
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
