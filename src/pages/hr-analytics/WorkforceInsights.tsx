@@ -104,6 +104,7 @@ export default function WorkforceInsights() {
   const [liveLeaveTrend, setLiveLeaveTrend] = useState<any>(null);
   const [liveWeeklyAttendanceTrend, setLiveWeeklyAttendanceTrend] = useState<any[] | null>(null);
   const [liveHrAlerts, setLiveHrAlerts] = useState<any[] | null>(null);
+  const [missingPunchYesterdayLive, setMissingPunchYesterdayLive] = useState<number | null>(null);
   const [feedConnected, setFeedConnected] = useState(false);
   const [liveEmployees, setLiveEmployees] = useState<any[]>([]);
 
@@ -139,6 +140,7 @@ export default function WorkforceInsights() {
           setLiveLeaveTrend(d.leaveTrend || d.leaveAnalytics?.monthlyTrend || null);
           setLiveWeeklyAttendanceTrend(d.weeklyAttendanceTrend || null);
           setLiveHrAlerts(d.hrAlerts || null);
+          if (d.missingPunchYesterday !== undefined) setMissingPunchYesterdayLive(d.missingPunchYesterday);
           setFeedConnected(true);
         }
       } catch {}
@@ -377,6 +379,32 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* 2. Late Arrivals */}
+            {(() => {
+              let highestLateTime = "None";
+              if (feedConnected && lateList.length > 0) {
+                // sort lateList by clock_in (e.g. "10:09 AM")
+                const parsedTimes = lateList.map(emp => {
+                   if (!emp.clock_in) return 0;
+                   const match = emp.clock_in.match(/(\d+):(\d+)\s+(AM|PM)/i);
+                   if (!match) return 0;
+                   let h = parseInt(match[1]);
+                   let m = parseInt(match[2]);
+                   let ampm = match[3].toUpperCase();
+                   if (ampm === 'PM' && h < 12) h += 12;
+                   if (ampm === 'AM' && h === 12) h = 0;
+                   return h * 60 + m;
+                });
+                const maxTime = Math.max(...parsedTimes, 0);
+                if (maxTime > 0) {
+                   let h = Math.floor(maxTime / 60);
+                   let m = maxTime % 60;
+                   let ampm = h >= 12 ? 'PM' : 'AM';
+                   h = h % 12 || 12;
+                   highestLateTime = `${h}:${m.toString().padStart(2, '0')} ${ampm}`;
+                }
+              }
+              
+              return (
             <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col h-[160px] ${cardHoverEffect}`}>
               <div>
                 <div className="flex justify-between items-start mb-3">
@@ -387,7 +415,7 @@ export default function WorkforceInsights() {
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Late Arrivals</p>
                 <div className="flex items-baseline gap-2">
                   <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">{feedConnected && lateList.length > 0 ? lateList.length : data.teamAvailability.late} <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
-                  <p className="text-[10px] font-semibold text-slate-500">Highest: <span className="text-orange-600">8:46 AM</span></p>
+                  <p className="text-[10px] font-semibold text-slate-500">Highest: <span className="text-orange-600">{highestLateTime}</span></p>
                 </div>
               </div>
               <div className="flex-1 flex flex-col justify-end">
@@ -396,6 +424,7 @@ export default function WorkforceInsights() {
                 </div>
               </div>
             </Card>
+            );})()}
 
             {/* 3. Absent Today */}
             <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card p-4 flex flex-col h-[160px] ${cardHoverEffect}`}>
@@ -451,7 +480,7 @@ export default function WorkforceInsights() {
                 </div>
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Missing Punch</p>
                 <div className="flex items-baseline gap-2">
-                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">{data.topKpi?.missingPunchOut || data.performance?.missingPunchEmployees?.length || 0} <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">{feedConnected && missingPunchYesterdayLive !== null ? missingPunchYesterdayLive : (data.topKpi?.missingPunchOut || data.performance?.missingPunchEmployees?.length || 0)} <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
                   <p className="text-[10px] font-semibold text-amber-600">Yesterday</p>
                 </div>
               </div>
@@ -517,7 +546,7 @@ export default function WorkforceInsights() {
                   <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">
                     {data.topKpi.activeEmployees} <span className="text-[14px] font-bold text-slate-400">/ {data.topKpi.totalHeadcount}</span>
                   </h3>
-                  <p className="text-[10px] font-semibold text-cyan-600">Working Today</p>
+                  <p className="text-[10px] font-semibold text-cyan-600">Active</p>
                 </div>
               </div>
               <div className="flex-1 flex flex-col justify-end">

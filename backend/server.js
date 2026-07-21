@@ -1896,6 +1896,18 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     };
   });
 
+  // Calculate Missing Punches Yesterday
+  const [missingPunchYesterdayRows] = await pool.query(
+    `SELECT COUNT(DISTINCT a.user_id) as cnt
+     FROM attendances a
+     JOIN profiles p ON p.user_id = a.user_id
+     WHERE DATE(a.clock_in) = DATE_SUB(?, INTERVAL 1 DAY)
+       AND a.clock_out IS NULL
+       AND p.status = 'Active' ${filterP}`,
+    [dateStr, ...paramsBase]
+  );
+  const missingPunchYesterday = parseInt(missingPunchYesterdayRows[0]?.cnt || 0);
+
   return {
     type: 'workforce_feed',
     timestamp: new Date().toISOString(),
@@ -1907,7 +1919,8 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     upcomingOutstationList,
     outstationSummary,
     leaveTrend,
-    weeklyAttendanceTrend
+    weeklyAttendanceTrend,
+    missingPunchYesterday
   };
 }
 
