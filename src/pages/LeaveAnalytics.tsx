@@ -368,6 +368,9 @@ export default function LeaveAnalytics() {
   const [selectedType, setSelectedType] = useState("All Types");
   const [selectedStatus, setSelectedStatus] = useState("All");
 
+
+  const monthLabel = selectedMonth === "all" ? "Monthly" : MONTHS.find((m) => m.value === selectedMonth)?.label || "Monthly";
+
   // ─ Data state ─
   const [records, setRecords] = useState<LeaveRecord[]>([]);
   const [allEmployees, setAllEmployees] = useState<any[]>([]);
@@ -1085,7 +1088,9 @@ export default function LeaveAnalytics() {
       
         {/* Trend */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4">Leave Trend Over Time (Monthly)</h3>
+          <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Trend Over Time ({monthLabel})</h3>
+          </div>
           <div className="flex-1 w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={monthlyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -1119,7 +1124,9 @@ export default function LeaveAnalytics() {
         </Card>
         {/* Seasonality */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4">Leave Seasonality (by Month)</h3>
+          <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Seasonality (by Month)</h3>
+          </div>
           <div className="flex-1 w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={seasonality} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
@@ -1159,7 +1166,9 @@ export default function LeaveAnalytics() {
       
         {/* Type Breakdown */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Leave Type Breakdown</h3>
+          <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Type Breakdown</h3>
+          </div>
           <div className="flex-1 min-relative w-full min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
@@ -1187,7 +1196,9 @@ export default function LeaveAnalytics() {
         {/* Dept Compare */}
         {selectedBranch === "HQ" && (
         <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4">Department Comparison</h3>
+          <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Department Comparison</h3>
+          </div>
           <div className="flex-1 min-overflow-hidden w-full">
             <ResponsiveContainer width="100%" height={Math.max(200, deptComparison.length * 30)}>
               <BarChart data={deptComparison} layout="vertical" margin={{ top: 0, right: 30, left: 0, bottom: 0 }}>
@@ -1230,7 +1241,9 @@ export default function LeaveAnalytics() {
         )}
         {/* Branch Compare */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full lg:col-span-2 xl:col-span-1">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4">Branch Comparison</h3>
+          <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Branch Comparison</h3>
+          </div>
           <div className="flex-1 min-overflow-y-auto pr-2 custom-scrollbar w-full">
             <ResponsiveContainer width="100%" height={Math.max(200, branchComparison.length * 30)}>
               <BarChart data={branchComparison} layout="vertical" margin={{ top: 0, right: 30, left: 0, bottom: 0 }}>
