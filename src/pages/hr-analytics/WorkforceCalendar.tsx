@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isBefore, startOfDay } from "date-fns";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent } from "@/components/ui/card";
@@ -401,8 +402,8 @@ export default function WorkforceCalendar() {
           return e.start_date <= dateStr && e.end_date >= dateStr;
         }).sort((a, b) => getEventPriority(a) - getEventPriority(b));
         const c = getEventColor(selectedEvent);
-        return (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedEventInfo(null)}>
+        return createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedEventInfo(null)}>
             <div className="bg-white dark:bg-card rounded-2xl shadow-2xl p-6 max-w-md w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
@@ -519,7 +520,7 @@ export default function WorkforceCalendar() {
               </div>
             </div>
           </div>
-        );
+        , document.body);
       })()}
 
       {/* Last refresh timestamp */}

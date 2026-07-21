@@ -46,6 +46,8 @@ import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../config/api";
 import { toast } from "sonner";
 import { getCleanReason } from "@/lib/leaveStorage";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const branches = [
   {
@@ -1205,7 +1207,7 @@ export default function Branches() {
         open={!!viewLeaveStatus}
         onOpenChange={(open) => !open && setViewLeaveStatus(null)}
       >
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[32px] p-0 overflow-hidden safe-area-bottom">
+        <DialogContent className="max-w-2xl max-h-[90vh] border-none shadow-2xl rounded-[32px] p-0 overflow-hidden flex flex-col safe-area-bottom">
           <div className="p-6 bg-gradient-to-br from-[#7B0099] to-[#a855f7] text-white">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-3 text-white text-xl font-black tracking-tight">
@@ -1218,6 +1220,7 @@ export default function Branches() {
             </DialogHeader>
           </div>
 
+          <div className="flex-1 overflow-y-auto">
           <div className="p-4 sm:p-6 space-y-6">
             {loadingLeaves ? (
               <div className="flex flex-col items-center justify-center p-12 gap-3">
@@ -1269,8 +1272,32 @@ export default function Branches() {
                       return (
                         <div
                           key={req.leave_id}
+                          id={`leave-form-${req.leave_id}`}
                           className="rounded-[24px] border border-border/50 p-5 sm:p-6 space-y-6 bg-card shadow-sm hover:shadow-md transition-all"
                         >
+                          {/* Save to PDF Button */}
+                          <div className="flex justify-end mb-2">
+                            <button
+                              onClick={async () => {
+                                const el = document.getElementById(`leave-form-${req.leave_id}`);
+                                if (!el) return;
+                                const btn = el.querySelector('.pdf-btn') as HTMLElement;
+                                if (btn) btn.style.display = 'none';
+                                const canvas = await html2canvas(el, { scale: 2, useCORS: true });
+                                if (btn) btn.style.display = '';
+                                const imgData = canvas.toDataURL('image/png');
+                                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                                const pdfWidth = pdf.internal.pageSize.getWidth();
+                                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                                pdf.save(`Leave_Form_${selectedEmployee?.full_name?.replace(/ /g,'_') || 'Staff'}_${req.start_date}.pdf`);
+                              }}
+                              className="pdf-btn flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-3 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-md"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              Save to PDF
+                            </button>
+                          </div>
                           <div className="text-center border-b-2 border-[#1A1C1E] pb-4">
                             <h2 className="text-xl font-black tracking-tighter text-[#1A1C1E]">
                               RAYHAR GROUP
@@ -1402,6 +1429,7 @@ export default function Branches() {
                 )}
               </div>
             )}
+          </div>
           </div>
         </DialogContent>
       </Dialog>
