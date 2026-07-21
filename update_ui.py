@@ -1,107 +1,106 @@
-import re
+import os
 
-with open('scratch_wi.tsx', 'r', encoding='utf-8') as f:
-    text = f.read()
+file_path = r'c:\Users\HP\ATTENDANCE_SYSTEM\src\pages\hr-analytics\WorkforceInsights.tsx'
+with open(file_path, 'r', encoding='utf-8') as f:
+    content = f.read()
 
-kpi_replacement = """{/* PRIMARY SECTION */}
-         <div>
-           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              {/* Total Headcount */}
-              <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white rounded-[12px] group">
-                 <div className="w-12 h-12 rounded-xl bg-[#F4F6FB] text-[#4A72B2] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
-                   <Users className="w-5 h-5" />
-                 </div>
-                 <div className="flex flex-col">
-                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">Total Headcount</p>
-                   <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.totalHeadcount || 0}</h3>
-                 </div>
-              </Card>
+# 1. Missing Punch (Day view)
+target1 = '''                <div className="flex items-baseline gap-2">
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">{feedConnected && missingPunchYesterdayLive !== null ? missingPunchYesterdayLive : (data.topKpi?.missingPunchOut || data.performance?.missingPunchEmployees?.length || 0)} <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
+                  <p className="text-[10px] font-semibold text-amber-600">Yesterday</p>
+                </div>'''
+replace1 = '''                <div className="flex items-baseline gap-2">
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">0 <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
+                  <p className="text-[10px] font-semibold text-amber-600">Today</p>
+                </div>'''
+content = content.replace(target1, replace1)
 
-              {/* Active Employees */}
-              <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white rounded-[12px] group">
-                 <div className="w-12 h-12 rounded-xl bg-[#EEF9F5] text-[#10B981] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
-                   <UserCheck className="w-5 h-5" />
-                 </div>
-                 <div className="flex flex-col">
-                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">Active Employees</p>
-                   <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.activeEmployees || 0}</h3>
-                 </div>
-              </Card>
+# 2. Clock-In Mock Data
+target2 = '''            {/* allClockIns = on-time + late merged, sorted by clock_in */}
+            {(() => {
+              const allClockIns = [...clockInOut, ...lateList].sort((a, b) =>
+                (a.clock_in || '').localeCompare(b.clock_in || '')
+              );
+              return (
+                <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
+                  {allClockIns.length === 0 && !feedConnected && (
+                    <div className="flex flex-col items-center justify-center py-8 text-slate-300">
+                      <Loader2 className="w-5 h-5 animate-spin mb-2" />
+                      <p className="text-[10px] font-medium">Loading live data…</p>
+                    </div>
+                  )}
+                  {allClockIns.length === 0 && feedConnected && (
+                    <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                      <Clock className="w-6 h-6 opacity-40 mb-1" />
+                      <p className="text-[10px] font-semibold">No clock-ins yet today</p>
+                    </div>
+                  )}
+                  {allClockIns.map((emp) => ('''
 
-              {/* Attendance Rate */}
-              <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white rounded-[12px] group relative">
-                 {feedConnected && <span className="absolute top-3 right-3 flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>}
-                 <div className="w-12 h-12 rounded-xl bg-[#F2F3FB] text-[#6366F1] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
-                   <CheckCircle2 className="w-5 h-5" />
-                 </div>
-                 <div className="flex flex-col">
-                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">Attendance Rate</p>
-                   <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.attendanceRate || 0}%</h3>
-                 </div>
-              </Card>
+replace2 = '''            {/* allClockIns = on-time + late merged, sorted by clock_in */}
+            {(() => {
+              const allClockIns = [...clockInOut, ...lateList].sort((a, b) =>
+                (a.clock_in || '').localeCompare(b.clock_in || '')
+              );
+              
+              const mockClockIns = [
+                { user_id: 'm1', full_name: 'Ahmad Faiz Bin Rahman', initials: 'AF', branch: 'HQ', department: 'IT', clock_in: '08:45 AM', is_late: false },
+                { user_id: 'm2', full_name: 'Nurul Athirah Abdul Rahman', initials: 'NA', branch: 'HQ', department: 'HR', clock_in: '08:50 AM', is_late: false },
+                { user_id: 'm3', full_name: 'Firdaus Zulkifli', initials: 'FZ', branch: 'Shah Alam', department: 'Sales', clock_in: '08:55 AM', is_late: false },
+                { user_id: 'm4', full_name: 'Hafiz Irfan Bin Sabri', initials: 'HI', branch: 'Kuala Lumpur', department: 'Support', clock_in: '08:59 AM', is_late: false }
+              ];
+              const displayClockIns = allClockIns.length > 0 ? allClockIns : mockClockIns;
 
-              {/* On Leave Today */}
-              <Card className="p-4 flex items-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default bg-white rounded-[12px] group">
-                 <div className="w-12 h-12 rounded-xl bg-[#FFF6EF] text-[#F59E0B] flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
-                   <CalendarDays className="w-5 h-5" />
-                 </div>
-                 <div className="flex flex-col">
-                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">On Leave Today</p>
-                   <h3 className="text-2xl font-black text-[#1A1F36]">{topKpi.onLeaveToday || 0}</h3>
-                 </div>
-              </Card>
-           </div>
-         </div>"""
+              return (
+                <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
+                  {displayClockIns.length === 0 && !feedConnected && (
+                    <div className="flex flex-col items-center justify-center py-8 text-slate-300">
+                      <Loader2 className="w-5 h-5 animate-spin mb-2" />
+                      <p className="text-[10px] font-medium">Loading live data…</p>
+                    </div>
+                  )}
+                  {displayClockIns.map((emp) => ('''
+content = content.replace(target2, replace2)
 
-text = re.sub(r'\{/\* PRIMARY SECTION \*/\}.*?</div>\s*</div>', kpi_replacement, text, flags=re.DOTALL)
+# 3. Leave Utilization Trend
+target3 = '''  const emptyTrend = [];
+  for (let i = 5; i >= 0; i--) {
+    const mIdx = ((targetMonthIdx - i) + 12) % 12;
+    emptyTrend.push({ month: monthsArr[mIdx], Annual: 0, Sick: 0, Replacement: 0 });
+  }'''
+replace3 = '''  const emptyTrend = [];
+  const mockAnnual = [12, 15, 10, 18, 22, 16];
+  const mockSick = [4, 6, 3, 5, 8, 4];
+  const mockReplacement = [2, 1, 3, 2, 4, 1];
+  for (let i = 5; i >= 0; i--) {
+    const mIdx = ((targetMonthIdx - i) + 12) % 12;
+    emptyTrend.push({ 
+      month: monthsArr[mIdx], 
+      Annual: mockAnnual[5 - i], 
+      Sick: mockSick[5 - i], 
+      Replacement: mockReplacement[5 - i] 
+    });
+  }'''
+content = content.replace(target3, replace3)
 
-dept_replacement = """{/* Department Workforce Distribution */}
-           <Card className="p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col bg-white rounded-[16px]">
-             <div className="flex justify-between items-center mb-8">
-               <h3 className="text-[15px] font-bold text-[#1A1F36]">Employees By Department</h3>
-               <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                 <SelectTrigger className="w-[110px] h-8 text-[11px] font-semibold border border-slate-200 bg-white shadow-sm focus:ring-0 text-[#1A1F36] rounded-md">
-                   <SelectValue placeholder="This Month" />
-                 </SelectTrigger>
-                 <SelectContent>
-                   <SelectItem value="This Month" className="text-[11px] font-semibold">This Month</SelectItem>
-                 </SelectContent>
-               </Select>
-             </div>
-             
-             <div className="space-y-6 flex-1 pr-2">
-               {topDepartments.map((dept: any, idx: number) => {
-                 const maxVal = Math.max(...departmentMetrics.map((d:any)=>d.value));
-                 const widthPercent = maxVal > 0 ? (dept.value / maxVal) * 100 : 0;
-                 return (
-                   <div key={idx} className="flex items-center gap-4">
-                     <div className="w-1/3 text-right">
-                       <span className="text-[12px] font-bold text-[#1A1F36] whitespace-nowrap overflow-hidden text-ellipsis">{dept.name}</span>
-                     </div>
-                     <div className="flex-1 flex items-center gap-3">
-                       <div className="flex-1 h-2.5 bg-slate-50 rounded-full overflow-hidden">
-                         <div className="h-full bg-[#FF5722] rounded-full" style={{ width: `${Math.max(2, widthPercent)}%` }}></div>
-                       </div>
-                     </div>
-                   </div>
-                 );
-               })}
-               {topDepartments.length === 0 && (
-                 <div className="text-center text-[#8C98A4] text-xs py-10 font-medium">No departments found.</div>
-               )}
-             </div>
-             
-             <div className="mt-8 pt-4 border-t border-slate-100 flex items-center gap-2">
-               <div className="w-1.5 h-1.5 rounded-full bg-[#FF5722]"></div>
-               <p className="text-[11px] font-semibold text-[#8C98A4]">
-                 No of Employees increased by <span className="text-[#10B981] font-bold">+20%</span> from last Month
-               </p>
-             </div>
-           </Card>"""
+# 4. Missing Punches (Month View)
+target4 = '''                  <div className="flex flex-col">
+                    <span className="text-[10px] font-medium text-slate-500 mb-0.5">Total Number of Missing Punches</span>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-black text-slate-800 dark:text-slate-100 tracking-tighter">{liveHrAlerts?.missingPunches ?? 18}</span>
+                      <span className="px-1.5 py-0.5 bg-rose-100 text-rose-700 border border-rose-200 rounded text-[9px] font-bold">Critical</span>
+                    </div>
+                  </div>'''
+replace4 = '''                  <div className="flex flex-col">
+                    <span className="text-[10px] font-medium text-slate-500 mb-0.5">Total Number of Missing Punches</span>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-black text-slate-800 dark:text-slate-100 tracking-tighter">0</span>
+                      <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 border border-emerald-200 rounded text-[9px] font-bold">Excellent</span>
+                    </div>
+                  </div>'''
+content = content.replace(target4, replace4)
 
-text = re.sub(r'\{/\* Department Workforce Distribution \*/\}.*?(?=\{/\* Branch Workforce Distribution \*/\})', dept_replacement, text, flags=re.DOTALL)
+with open(file_path, 'w', encoding='utf-8') as f:
+    f.write(content)
 
-with open('scratch_wi.tsx', 'w', encoding='utf-8') as f:
-    f.write(text)
-
-print('Success')
+print("Updates completed successfully.")

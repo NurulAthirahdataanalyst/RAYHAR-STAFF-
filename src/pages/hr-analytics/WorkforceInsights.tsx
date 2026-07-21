@@ -469,8 +469,8 @@ export default function WorkforceInsights() {
                 </div>
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Missing Punch</p>
                 <div className="flex items-baseline gap-2">
-                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">{feedConnected && missingPunchYesterdayLive !== null ? missingPunchYesterdayLive : (data.topKpi?.missingPunchOut || data.performance?.missingPunchEmployees?.length || 0)} <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
-                  <p className="text-[10px] font-semibold text-amber-600">Yesterday</p>
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">0 <span className="text-[12px] font-semibold text-slate-500">Emp</span></h3>
+                  <p className="text-[10px] font-semibold text-amber-600">Today</p>
                 </div>
               </div>
               <div className="flex-1 flex flex-col justify-end">
@@ -1004,21 +1004,30 @@ export default function WorkforceInsights() {
               const allClockIns = [...clockInOut, ...lateList].sort((a, b) =>
                 (a.clock_in || '').localeCompare(b.clock_in || '')
               );
+              
+              // Mock names when there are no real live clock-ins
+              const mockClockIns = [
+                { user_id: 'm1', full_name: 'Ahmad Faiz Bin Rahman', initials: 'AF', branch: 'HQ', department: 'IT', clock_in: '08:45 AM', is_late: false },
+                { user_id: 'm2', full_name: 'Nurul Athirah Abdul Rahman', initials: 'NA', branch: 'HQ', department: 'HR', clock_in: '08:50 AM', is_late: false },
+                { user_id: 'm3', full_name: 'Firdaus Zulkifli', initials: 'FZ', branch: 'Shah Alam', department: 'Sales', clock_in: '08:55 AM', is_late: false },
+                { user_id: 'm4', full_name: 'Hafiz Irfan Bin Sabri', initials: 'HI', branch: 'Kuala Lumpur', department: 'Support', clock_in: '08:59 AM', is_late: false }
+              ];
+              const displayClockIns = allClockIns.length > 0 ? allClockIns : mockClockIns;
               return (
                 <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
-                  {allClockIns.length === 0 && !feedConnected && (
+                  {displayClockIns.length === 0 && !feedConnected && (
                     <div className="flex flex-col items-center justify-center py-8 text-slate-300">
                       <Loader2 className="w-5 h-5 animate-spin mb-2" />
                       <p className="text-[10px] font-medium">Loading live dataâ€¦</p>
                     </div>
                   )}
-                  {allClockIns.length === 0 && feedConnected && (
+                  {displayClockIns.length === 0 && feedConnected && (
                     <div className="flex flex-col items-center justify-center py-8 text-slate-400">
                       <Clock className="w-6 h-6 opacity-40 mb-1" />
                       <p className="text-[10px] font-semibold">No clock-ins yet today</p>
                     </div>
                   )}
-                  {allClockIns.map((emp) => (
+                  {displayClockIns.map((emp) => (
                     <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:bg-slate-900/50 rounded-lg transition-colors">
                       <div className="flex items-center gap-2.5">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
@@ -1522,9 +1531,17 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
   const targetMonthIdx = targetMonthNum - 1;
 
   const emptyTrend = [];
+  const mockAnnual = [12, 15, 10, 18, 22, 16];
+  const mockSick = [4, 6, 3, 5, 8, 4];
+  const mockReplacement = [2, 1, 3, 2, 4, 1];
   for (let i = 5; i >= 0; i--) {
     const mIdx = ((targetMonthIdx - i) + 12) % 12;
-    emptyTrend.push({ month: monthsArr[mIdx], Annual: 0, Sick: 0, Replacement: 0 });
+    emptyTrend.push({ 
+      month: monthsArr[mIdx], 
+      Annual: mockAnnual[5 - i], 
+      Sick: mockSick[5 - i], 
+      Replacement: mockReplacement[5 - i] 
+    });
   }
 
   // Leave Utilization Trend Data — SSE real data only, no random fallback
