@@ -376,11 +376,11 @@ export default function WorkforceInsights() {
                   <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-0.5"><TrendingUp className="w-3 h-3" /> 2 vs Yesterday</p>
                   <p className="text-[11px] font-bold text-emerald-700">{(feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) === data.topKpi.activeEmployees ? "100%" : `${Math.round(((feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) / (data.topKpi.activeEmployees || 1)) * 100)}%`} of Workforce</p>
                 </div>
-                <div className="relative w-full">
+                <div className="flex items-center gap-3">
                   <div className="w-full bg-emerald-200/50 rounded-full h-2.5 overflow-hidden">
                     <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, ((feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) / (data.topKpi.activeEmployees || 1)) * 100)}%` }}></div>
                   </div>
-                  <div className="absolute right-0 -top-6 text-[12px] font-extrabold text-slate-800">
+                  <div className="text-[12px] font-extrabold text-slate-800 whitespace-nowrap">
                      {feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present} <span className="text-slate-400 font-bold">/ {data.topKpi.activeEmployees}</span>
                   </div>
                 </div>
