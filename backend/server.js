@@ -1801,13 +1801,13 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   );
 
   const weeklyMap = {
-    'Mon': { present: 0, late: 0, leave: 0, expected: 0 },
-    'Tue': { present: 0, late: 0, leave: 0, expected: 0 },
-    'Wed': { present: 0, late: 0, leave: 0, expected: 0 },
-    'Thu': { present: 0, late: 0, leave: 0, expected: 0 },
-    'Fri': { present: 0, late: 0, leave: 0, expected: 0 },
-    'Sat': { present: 0, late: 0, leave: 0, expected: 0 },
-    'Sun': { present: 0, late: 0, leave: 0, expected: 0 },
+    'Mon': { present: 0, late: 0, leave: 0, expected: 0, absent: 0, weekend: 0 },
+    'Tue': { present: 0, late: 0, leave: 0, expected: 0, absent: 0, weekend: 0 },
+    'Wed': { present: 0, late: 0, leave: 0, expected: 0, absent: 0, weekend: 0 },
+    'Thu': { present: 0, late: 0, leave: 0, expected: 0, absent: 0, weekend: 0 },
+    'Fri': { present: 0, late: 0, leave: 0, expected: 0, absent: 0, weekend: 0 },
+    'Sat': { present: 0, late: 0, leave: 0, expected: 0, absent: 0, weekend: 0 },
+    'Sun': { present: 0, late: 0, leave: 0, expected: 0, absent: 0, weekend: 0 },
   };
   const dNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   
@@ -1903,49 +1903,11 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     });
     dIterLive.setDate(dIterLive.getDate() + 1);
   }
-  const targetDateObj2 = new Date(dateStr);
-  const diffToSat = -((targetDateObj2.getDay() + 1) % 7);
-  const weekStartD = new Date(targetDateObj2);
-  weekStartD.setDate(targetDateObj2.getDate() + diffToSat);
-  weekStartD.setHours(0,0,0,0);
-  const weekEndD = new Date(weekStartD);
-  weekEndD.setDate(weekStartD.getDate() + 6);
-  weekEndD.setHours(23,59,59,999);
 
-  const dEnd = new Date(dateStr);
-  dEnd.setHours(23,59,59,999);
-
-  let dIterLive2 = new Date(weekStartD);
-  while (dIterLive2 <= weekEndD) {
-    const dayOfWeekNum = dIterLive2.getDay();
-    const dayName = dNames[dayOfWeekNum];
-    
-    let expectedForDay = 0;
-    allProfilesLive.forEach(p => {
-      const userZone = branchZoneMapLive.get(p.branch) || 'ZONE_B';
-      const isFirstSaturday = dayOfWeekNum === 6 && dIterLive2.getDate() <= 7;
-      const isRest = (userZone === 'ZONE_A' && (dayOfWeekNum === 5 || isFirstSaturday)) || 
-                     (userZone === 'ZONE_B' && (dayOfWeekNum === 0 || isFirstSaturday));
-      if (!isRest) expectedForDay++;
-    });
-
-    weeklyMap[dayName].expected = expectedForDay;
-    weeklyMap[dayName].isFuture = dIterLive2 > dEnd;
-    dIterLive2.setDate(dIterLive2.getDate() + 1);
-  }
-
-  const weeklyOrder = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-  const weeklyAttendanceTrend = weeklyOrder.map(day => {
-    const data = weeklyMap[day];
-    const outstation = data.outstation || 0;
-    const computedAbsent = data.isFuture ? 0 : Math.max(0, data.expected - data.present - data.leave - outstation);
+  const weeklyAttendanceTrend = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => {
     return {
       name: day,
-      present: data.present,
-      late: data.late,
-      absent: computedAbsent,
-      leave: data.leave,
-      weekend: Math.max(0, allProfilesLive.length - data.expected)
+      ...weeklyMap[day]
     };
   });
 
@@ -1954,7 +1916,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     `SELECT COUNT(DISTINCT a.user_id) as cnt
      FROM attendances a
      JOIN profiles p ON p.user_id = a.user_id
-     WHERE DATE(a.clock_in) = ?::date - INTERVAL '1 day'
+     WHERE DATE(a.clock_in) = DATE_SUB(?, INTERVAL 1 DAY)
        AND a.clock_out IS NULL
        AND p.status = 'Active' ${filterP}`,
     [dateStr, ...paramsBase]
