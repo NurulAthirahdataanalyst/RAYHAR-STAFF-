@@ -1853,14 +1853,29 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
       }
     });
 
+    const outstationSet = new Set();
+    activeOutstationList.forEach(o => {
+       o.employees.forEach(emp => outstationSet.add(emp.id));
+    });
+    upcomingOutstationList.forEach(o => {
+       const s = new Date(o.startDate); s.setHours(0,0,0,0);
+       const e = new Date(o.endDate); e.setHours(23,59,59,999);
+       if (dIterLive >= s && dIterLive <= e) {
+         o.employees.forEach(emp => outstationSet.add(emp.id));
+       }
+    });
+
     allProfilesLive.forEach(p => {
       const userZone = branchZoneMapLive.get(p.branch) || 'ZONE_B';
       const hasClockedIn = attSet.has(p.user_id);
       const hasLeave = leaveSet.has(p.user_id);
+      const hasOutstation = outstationSet.has(p.user_id);
       
       let status = '';
       if (hasLeave) {
         status = 'Leave';
+      } else if (hasOutstation && !hasClockedIn) {
+        status = 'Outstation'; 
       } else {
         const isFirstSaturday = dayOfWeekNum === 6 && dIterLive.getDate() <= 7;
         const isRestDay = (userZone === 'ZONE_A' && (dayOfWeekNum === 5 || isFirstSaturday)) ||
@@ -6182,8 +6197,9 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       let expectedForDay = 0;
       allProfiles.forEach(p => {
         const userZone = branchZoneMapW.get(p.branch) || 'ZONE_B';
-        const isRest = (userZone === 'ZONE_A' && (dayOfWeekNum === 5 || dayOfWeekNum === 6)) || 
-                       (userZone === 'ZONE_B' && (dayOfWeekNum === 0 || dayOfWeekNum === 6));
+        const isFirstSaturday = dayOfWeekNum === 6 && dIter.getDate() <= 7;
+        const isRest = (userZone === 'ZONE_A' && (dayOfWeekNum === 5 || isFirstSaturday)) || 
+                       (userZone === 'ZONE_B' && (dayOfWeekNum === 0 || isFirstSaturday));
         if (!isRest) {
           expectedForDay++;
         }
@@ -6227,10 +6243,25 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       }
     });
 
+    // Add Outstation to weekly map
+    outstationRows.forEach(o => {
+       const startObj = new Date(o.start_date); startObj.setHours(0,0,0,0);
+       const endObj = new Date(o.end_date); endObj.setHours(23,59,59,999);
+       let dIter = new Date(startObj);
+       while (dIter <= endObj) {
+         if (dIter >= weekStartD && dIter <= weekEndD) {
+           const dayName = dayNames[dIter.getDay()];
+           weeklyMap[dayName].outstation = (weeklyMap[dayName].outstation || 0) + 1;
+         }
+         dIter.setDate(dIter.getDate() + 1);
+       }
+    });
+
     const weeklyOrder = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
     const weeklyAttendanceTrend = weeklyOrder.map(day => {
       const data = weeklyMap[day];
-      const absent = data.isFuture ? 0 : Math.max(0, data.expected - data.present - data.leave);
+      const outstation = data.outstation || 0;
+      const absent = data.isFuture ? 0 : Math.max(0, data.expected - data.present - data.leave - outstation);
       return {
         name: day,
         present: data.present,
