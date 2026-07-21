@@ -489,7 +489,7 @@ export default function Calendar() {
               setEndDate(format(selectedDate, "yyyy-MM-dd"));
               setIsAddEventModalOpen(true);
             }}
-            className="bg-[#FFFE00] hover:bg-[#E6E500] text-[#7B0099] gap-2 font-bold px-6 shadow-sm shadow-[#FFFE00]/20"
+            className="bg-[#FFFE00] hover:bg-[#E6E500] text-[#7B0099] border-2 border-[#7B0099] gap-2 font-bold px-6 shadow-sm shadow-[#FFFE00]/20"
           >
             Create
           </Button>
@@ -523,7 +523,7 @@ export default function Calendar() {
                   row: "flex w-full mt-2 justify-between",
                   cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-[#FFFE00]/10 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
                   day: "h-9 w-9 p-0 font-medium aria-selected:opacity-100 hover:bg-muted rounded-md transition-all",
-                  day_selected: "bg-[#FFFE00] text-[#7B0099] hover:bg-[#E6E500] hover:text-[#7B0099] focus:bg-[#FFFE00] focus:text-[#7B0099]",
+                  day_selected: "bg-[#FFFE00] text-[#7B0099] border-2 border-[#7B0099] hover:bg-[#E6E500] hover:text-[#7B0099] focus:bg-[#FFFE00] focus:text-[#7B0099]",
                   day_today: "bg-[#7B0099]/10 text-[#7B0099] font-bold",
                   day_outside: "text-muted-foreground opacity-50",
                   day_disabled: "text-muted-foreground opacity-50",
@@ -742,7 +742,7 @@ export default function Calendar() {
                           setNewCategoryName("");
                         }
                       }}
-                      className="px-4 py-1.5 text-xs font-bold bg-[#FFFE00] text-[#7B0099] rounded-md shadow-sm hover:bg-[#E6E500] transition-colors"
+                      className="px-4 py-1.5 text-xs font-bold bg-[#FFFE00] text-[#7B0099] border-2 border-[#7B0099] rounded-md shadow-sm hover:bg-[#E6E500] transition-colors"
                     >
                       Add Category
                     </button>
@@ -783,10 +783,10 @@ export default function Calendar() {
             <div className="flex items-center bg-muted/40 rounded-lg p-1 border border-border/50 w-full justify-center sm:w-auto">
               <button 
                 onClick={() => setViewMode('month')}
-                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#7B0099]' : 'text-muted-foreground hover:text-foreground'}`}>Month</button>
+                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#7B0099] border-2 border-[#7B0099]' : 'text-muted-foreground hover:text-foreground'}`}>Month</button>
               <button 
                 onClick={() => setViewMode('week')}
-                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'week' ? 'bg-[#FFFE00] text-[#7B0099]' : 'text-muted-foreground hover:text-foreground'}`}>Week</button>
+                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'week' ? 'bg-[#FFFE00] text-[#7B0099] border-2 border-[#7B0099]' : 'text-muted-foreground hover:text-foreground'}`}>Week</button>
               <button className="px-5 py-1.5 rounded-md text-muted-foreground hover:text-foreground text-sm font-bold transition-colors">Day</button>
             </div>
           </div>
@@ -1219,7 +1219,7 @@ export default function Calendar() {
                 <Button type="button" variant="ghost" onClick={() => setIsAddEventModalOpen(false)} className="font-bold">
                   Cancel
                 </Button>
-                <Button type="submit" className="bg-[#FFFE00] hover:bg-[#E6E500] text-[#7B0099] font-bold px-6 shadow-md shadow-[#FFFE00]/20">
+                <Button type="submit" className="bg-[#FFFE00] hover:bg-[#E6E500] text-[#7B0099] border-2 border-[#7B0099] font-bold px-6 shadow-md shadow-[#FFFE00]/20">
                   Add Event
                 </Button>
               </div>
