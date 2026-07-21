@@ -489,7 +489,7 @@ export default function Calendar() {
               setEndDate(format(selectedDate, "yyyy-MM-dd"));
               setIsAddEventModalOpen(true);
             }}
-            className="bg-[#ff5b37] hover:bg-[#e04526] text-white gap-2 font-bold px-6 shadow-sm shadow-[#ff5b37]/20"
+            className="bg-[#FAF129] hover:bg-[#F2E820] text-[#1E293B] gap-2 font-bold px-6 shadow-sm shadow-[#FAF129]/20"
           >
             Create
           </Button>
@@ -521,9 +521,9 @@ export default function Calendar() {
                   head_row: "flex w-full justify-between mb-2",
                   head_cell: "text-muted-foreground rounded-md w-9 font-bold text-[11px] uppercase",
                   row: "flex w-full mt-2 justify-between",
-                  cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-[#ff5b37]/10 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                  cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-[#FAF129]/10 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
                   day: "h-9 w-9 p-0 font-medium aria-selected:opacity-100 hover:bg-muted rounded-md transition-all",
-                  day_selected: "bg-[#ff5b37] text-white hover:bg-[#e04526] hover:text-white focus:bg-[#ff5b37] focus:text-white",
+                  day_selected: "bg-[#FAF129] text-[#1E293B] hover:bg-[#F2E820] hover:text-[#1E293B] focus:bg-[#FAF129] focus:text-[#1E293B]",
                   day_today: "bg-[#7B0099]/10 text-[#7B0099] font-bold",
                   day_outside: "text-muted-foreground opacity-50",
                   day_disabled: "text-muted-foreground opacity-50",
@@ -707,7 +707,7 @@ export default function Calendar() {
                     <input
                       type="text"
                       placeholder="e.g. Project Launch"
-                      className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                      className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#FAF129] focus:ring-1 focus:ring-[#FAF129] transition-all"
                       value={newCategoryName}
                       onChange={e => setNewCategoryName(e.target.value)}
                       autoFocus
@@ -742,7 +742,7 @@ export default function Calendar() {
                           setNewCategoryName("");
                         }
                       }}
-                      className="px-4 py-1.5 text-xs font-bold bg-[#ff5b37] text-white rounded-md shadow-sm hover:bg-[#e04526] transition-colors"
+                      className="px-4 py-1.5 text-xs font-bold bg-[#FAF129] text-[#1E293B] rounded-md shadow-sm hover:bg-[#F2E820] transition-colors"
                     >
                       Add Category
                     </button>
@@ -783,10 +783,10 @@ export default function Calendar() {
             <div className="flex items-center bg-muted/40 rounded-lg p-1 border border-border/50 w-full justify-center sm:w-auto">
               <button 
                 onClick={() => setViewMode('month')}
-                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'month' ? 'bg-[#ff5b37] text-white' : 'text-muted-foreground hover:text-foreground'}`}>Month</button>
+                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'month' ? 'bg-[#FAF129] text-[#1E293B]' : 'text-muted-foreground hover:text-foreground'}`}>Month</button>
               <button 
                 onClick={() => setViewMode('week')}
-                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'week' ? 'bg-[#ff5b37] text-white' : 'text-muted-foreground hover:text-foreground'}`}>Week</button>
+                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'week' ? 'bg-[#FAF129] text-[#1E293B]' : 'text-muted-foreground hover:text-foreground'}`}>Week</button>
               <button className="px-5 py-1.5 rounded-md text-muted-foreground hover:text-foreground text-sm font-bold transition-colors">Day</button>
             </div>
           </div>
@@ -1107,7 +1107,7 @@ export default function Calendar() {
                 <input
                   type="text"
                   required
-                  className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                  className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-[#FAF129] focus:ring-1 focus:ring-[#FAF129] transition-all"
                   value={eventName}
                   onChange={e => setEventName(e.target.value)}
                   placeholder="e.g. Design System Review"
@@ -1120,7 +1120,7 @@ export default function Calendar() {
                   id="allDay" 
                   checked={isAllDay} 
                   onChange={e => setIsAllDay(e.target.checked)} 
-                  className="rounded border-border text-[#ff5b37] focus:ring-[#ff5b37] w-4 h-4 cursor-pointer"
+                  className="rounded border-border text-[#FAF129] focus:ring-[#FAF129] w-4 h-4 cursor-pointer"
                 />
                 <label htmlFor="allDay" className="text-sm font-semibold text-slate-700 cursor-pointer select-none">All day</label>
               </div>
@@ -1133,7 +1133,7 @@ export default function Calendar() {
                       <input
                         type="date"
                         required
-                        className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                        className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#FAF129] focus:ring-1 focus:ring-[#FAF129] transition-all"
                         value={startDate}
                         onChange={e => setStartDate(e.target.value)}
                       />
@@ -1142,7 +1142,7 @@ export default function Calendar() {
                       <div className="relative flex-1">
                         <input
                           type="time"
-                          className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                          className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#FAF129] focus:ring-1 focus:ring-[#FAF129] transition-all"
                           value={startTime}
                           onChange={e => setStartTime(e.target.value)}
                         />
@@ -1158,7 +1158,7 @@ export default function Calendar() {
                       <input
                         type="date"
                         required
-                        className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                        className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#FAF129] focus:ring-1 focus:ring-[#FAF129] transition-all"
                         value={endDate}
                         onChange={e => setEndDate(e.target.value)}
                       />
@@ -1167,7 +1167,7 @@ export default function Calendar() {
                       <div className="relative flex-1">
                         <input
                           type="time"
-                          className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                          className="w-full bg-background border border-border rounded-xl px-3 py-2 text-[13px] sm:text-sm text-foreground focus:outline-none focus:border-[#FAF129] focus:ring-1 focus:ring-[#FAF129] transition-all"
                           value={endTime}
                           onChange={e => setEndTime(e.target.value)}
                         />
@@ -1183,7 +1183,7 @@ export default function Calendar() {
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     type="text"
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-[#FAF129] focus:ring-1 focus:ring-[#FAF129] transition-all"
                     value={eventLocation}
                     onChange={e => setEventLocation(e.target.value)}
                     placeholder="e.g. Meeting Room A or Google Meet link"
@@ -1194,7 +1194,7 @@ export default function Calendar() {
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Descriptions</label>
                 <textarea
-                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all min-h-[100px] resize-none"
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-[#FAF129] focus:ring-1 focus:ring-[#FAF129] transition-all min-h-[100px] resize-none"
                   value={eventDescription}
                   onChange={e => setEventDescription(e.target.value)}
                   placeholder="Add any additional details or context here..."
@@ -1204,7 +1204,7 @@ export default function Calendar() {
               <div className="flex items-center gap-4 pt-4 border-t border-border/60">
                 <div className="flex-1">
                   <select 
-                    className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm font-semibold text-foreground focus:outline-none focus:border-[#ff5b37] focus:ring-1 focus:ring-[#ff5b37] transition-all"
+                    className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm font-semibold text-foreground focus:outline-none focus:border-[#FAF129] focus:ring-1 focus:ring-[#FAF129] transition-all"
                     value={eventType}
                     onChange={e => setEventType(e.target.value)}
                   >
@@ -1219,7 +1219,7 @@ export default function Calendar() {
                 <Button type="button" variant="ghost" onClick={() => setIsAddEventModalOpen(false)} className="font-bold">
                   Cancel
                 </Button>
-                <Button type="submit" className="bg-[#ff5b37] hover:bg-[#e04526] text-white font-bold px-6 shadow-md shadow-[#ff5b37]/20">
+                <Button type="submit" className="bg-[#FAF129] hover:bg-[#F2E820] text-[#1E293B] font-bold px-6 shadow-md shadow-[#FAF129]/20">
                   Add Event
                 </Button>
               </div>
