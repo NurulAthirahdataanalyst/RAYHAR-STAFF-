@@ -574,32 +574,34 @@ export default function WorkforceInsights() {
             <Card className={`col-span-1 xl:col-span-1 rounded-xl shadow-sm border border-slate-200 bg-white dark:bg-card p-5 flex flex-col \${cardHoverEffect}`}>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Employee Attendance Rates</span>
-                <span className="text-[10px] bg-slate-50 dark:bg-slate-900/50 border border-slate-150 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 font-semibold">
+                <span className="text-[10px] bg-slate-50 dark:bg-slate-900/50 border border-slate-150 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 font-semibold shrink-0">
                   This Month <ChevronDown className="w-3 h-3" />
                 </span>
               </div>
               
-              <div className="flex-1 min-h-0 w-full overflow-y-auto custom-scrollbar overflow-x-hidden" style={{ maxHeight: '220px' }}>
-                <ResponsiveContainer width="100%" height={Math.max(180, (data.performance?.allAttendance?.length || 0) * 26)}>
-                  <BarChart 
-                    data={data.performance?.allAttendance || []} 
-                    layout="vertical"
-                    margin={{ top: 4, right: 28, left: 0, bottom: 4 }}
-                  >
-                    <RechartsTooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} content={<CustomEmployeeTooltip />} />
-                    <XAxis type="number" hide domain={[0, 100]} />
-                    <YAxis 
-                      dataKey="name" 
-                      type="category" 
-                      tick={{ fontSize: 8, fill: '#64748b', fontWeight: 600 }} 
-                      axisLine={false} 
-                      tickLine={false} 
-                      width={110}
-                      tickFormatter={(value: string) => value.length > 14 ? value.split(' ').slice(0, 2).join(' ') : value}
-                    />
-                    <Bar dataKey="attendanceRate" fill="#7B0099" radius={[0, 4, 4, 0]} barSize={8} label={{ position: 'right', fontSize: 8, fill: '#7B0099', fontWeight: 700, formatter: (v: number) => `${v}%` }} />
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2" style={{ maxHeight: '210px' }}>
+                {(data.performance?.allAttendance || []).length === 0 ? (
+                  <div className="flex items-center justify-center h-20 text-slate-400 text-[11px] font-bold">No data</div>
+                ) : (
+                  (data.performance?.allAttendance || []).map((emp: any, idx: number) => {
+                    const rate = emp.attendanceRate ?? 0;
+                    const firstName = (emp.name || '').split(' ').slice(0, 2).join(' ');
+                    return (
+                      <div key={idx} className="space-y-0.5">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[9px] font-bold text-slate-600 dark:text-slate-300 truncate flex-1 leading-tight">{firstName}</span>
+                          <span className="text-[9px] font-black text-[#7B0099] shrink-0">{rate}%</span>
+                        </div>
+                        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{ width: `${Math.min(100, rate)}%`, background: rate >= 80 ? '#7B0099' : rate >= 50 ? '#f59e0b' : '#ef4444' }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
 
               <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 shrink-0">
