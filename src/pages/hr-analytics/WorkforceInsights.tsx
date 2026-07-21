@@ -2240,18 +2240,28 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
              </div>
              
              <div className="grid grid-cols-3 gap-2 mb-8">
-               <div className="flex flex-col items-center justify-center py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
-                 <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{outstationSummary?.completedEvents || outstationSummary?.completedTrips || 2}</span>
-                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Completed</span>
-               </div>
-               <div className="flex flex-col items-center justify-center py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
-                 <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{outstationSummary?.upcomingEvents || outstationSummary?.upcomingTrips || 0}</span>
-                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Upcoming</span>
-               </div>
-               <div className="flex flex-col items-center justify-center py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
-                 <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{outstationSummary?.cancelledEvents || outstationSummary?.cancelledTrips || 0}</span>
-                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Cancelled</span>
-               </div>
+               {(() => {
+                 const currentOutstation = outstationSummary || data.outstationAnalytics || {};
+                 const completed = currentOutstation.completedEvents ?? currentOutstation.completedTrips ?? 0;
+                 const upcoming = currentOutstation.upcomingEvents ?? currentOutstation.upcomingTrips ?? 0;
+                 const cancelled = currentOutstation.cancelledEvents ?? currentOutstation.cancelledTrips ?? 0;
+                 return (
+                   <>
+                     <div className="flex flex-col items-center justify-center py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
+                       <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{completed}</span>
+                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Completed</span>
+                     </div>
+                     <div className="flex flex-col items-center justify-center py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
+                       <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{upcoming}</span>
+                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Upcoming</span>
+                     </div>
+                     <div className="flex flex-col items-center justify-center py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
+                       <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{cancelled}</span>
+                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Cancelled</span>
+                     </div>
+                   </>
+                 );
+               })()}
              </div>
              
              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Popular Routes</p>
