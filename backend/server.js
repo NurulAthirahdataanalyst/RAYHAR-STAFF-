@@ -1822,10 +1822,24 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   weekEndDLive.setDate(weekStartDLive.getDate() + 6);
   weekEndDLive.setHours(23,59,59,999);
 
+  const branchZoneMapLive = await getBranchZoneMap();
+  const [allProfilesLive] = await pool.query(`SELECT branch FROM profiles WHERE status = 'Active'`);
   const dIterLive = new Date(weekStartDLive);
   const dEndLive = new Date(dateStr);
   while (dIterLive <= dEndLive) {
-    weeklyMap[dNames[dIterLive.getDay()]].expected += activeCount;
+    const dayOfWeekNum = dIterLive.getDay();
+    const dayName = dNames[dayOfWeekNum];
+    
+    let expectedForDay = 0;
+    allProfilesLive.forEach(p => {
+      const userZone = branchZoneMapLive.get(p.branch) || 'ZONE_B';
+      const isRest = (userZone === 'ZONE_A' && (dayOfWeekNum === 5 || dayOfWeekNum === 6)) || 
+                     (userZone === 'ZONE_B' && (dayOfWeekNum === 0 || dayOfWeekNum === 6));
+      if (!isRest) {
+        expectedForDay++;
+      }
+    });
+    weeklyMap[dayName].expected = expectedForDay;
     dIterLive.setDate(dIterLive.getDate() + 1);
   }
 
@@ -1865,7 +1879,8 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
       present: data.present,
       late: data.late,
       absent: Math.max(0, data.expected - data.present - data.leave),
-      leave: data.leave
+      leave: data.leave,
+      weekend: Math.max(0, activeCount - data.expected)
     };
   });
 
@@ -6131,11 +6146,23 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     weekEndD.setHours(23,59,59,999);
     
     // Sum expected attendances per weekday up to the target date (within current week)
+    const branchZoneMapW = await getBranchZoneMap();
     const dIter = new Date(weekStartD);
     const dEnd = new Date(targetDateStr);
     while (dIter <= dEnd) {
-      const dayName = dayNames[dIter.getDay()];
-      weeklyMap[dayName].expected += activeEmployees;
+      const dayOfWeekNum = dIter.getDay();
+      const dayName = dayNames[dayOfWeekNum];
+      
+      let expectedForDay = 0;
+      allProfiles.forEach(p => {
+        const userZone = branchZoneMapW.get(p.branch) || 'ZONE_B';
+        const isRest = (userZone === 'ZONE_A' && (dayOfWeekNum === 5 || dayOfWeekNum === 6)) || 
+                       (userZone === 'ZONE_B' && (dayOfWeekNum === 0 || dayOfWeekNum === 6));
+        if (!isRest) {
+          expectedForDay++;
+        }
+      });
+      weeklyMap[dayName].expected = expectedForDay;
       dIter.setDate(dIter.getDate() + 1);
     }
 
@@ -6182,7 +6209,8 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         present: data.present,
         late: data.late,
         absent: absent,
-        leave: data.leave
+        leave: data.leave,
+        weekend: Math.max(0, activeEmployees - data.expected)
       };
     });
 

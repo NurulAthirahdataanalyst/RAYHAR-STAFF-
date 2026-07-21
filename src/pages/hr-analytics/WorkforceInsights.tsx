@@ -1522,7 +1522,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
     const totalTracked = (day.present || 0) + (day.late || 0) + (day.absent || 0) + (day.leave || 0);
     return {
       ...day,
-      weekend: Math.max(0, activeEmp - totalTracked)
+      weekend: day.weekend !== undefined ? day.weekend : Math.max(0, activeEmp - totalTracked)
     };
   });
 
