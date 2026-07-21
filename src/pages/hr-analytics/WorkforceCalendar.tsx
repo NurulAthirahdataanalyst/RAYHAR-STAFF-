@@ -396,8 +396,8 @@ export default function WorkforceCalendar() {
             else if (filterType === "Pending") { if (e.source !== "leave" || e.status !== "Pending") return false; }
             else { if (e.source !== "leave" || !e.type?.includes(filterType.split(" ")[0])) return false; }
           }
-          if (filterBranch !== "All" && e.branch !== filterBranch) return false;
-          if (filterDept !== "All" && e.department !== filterDept) return false;
+          if (filterBranch !== "__ALL__" && e.branch !== filterBranch) return false;
+          if (filterDept !== "__ALL__" && e.department !== filterDept) return false;
           return e.start_date <= dateStr && e.end_date >= dateStr;
         }).sort((a, b) => getEventPriority(a) - getEventPriority(b));
         const c = getEventColor(selectedEvent);
