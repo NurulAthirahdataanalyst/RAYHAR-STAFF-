@@ -1288,7 +1288,9 @@ export default function LeaveAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         {/* Balance Risk */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4">Leave Balance Risk</h3>
+          <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Balance Risk</h3>
+          </div>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
             <div className="flex items-center justify-between p-3 rounded-lg border border-emerald-100 bg-emerald-50">
               <div className="flex items-center gap-2">
@@ -1325,7 +1327,9 @@ export default function LeaveAnalytics() {
 
         {/* Leave Calendar */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4">Leave Calendar <span className="text-[9px] font-normal text-slate-400">(This Month)</span></h3>
+          <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Calendar <span className="text-[9px] font-normal text-slate-400">(This Month)</span></h3>
+          </div>
           <div className="flex-1 flex flex-col justify-center items-center border border-dashed border-slate-200 dark:border-slate-800 rounded-lg bg-slate-50 dark:bg-slate-900/50 min-h-[160px]">
             <CalendarCheck className="w-6 h-6 text-slate-400 mb-2" />
             <p className="text-xs font-bold text-slate-600 dark:text-slate-400">Calendar View Ready</p>
@@ -1336,7 +1340,9 @@ export default function LeaveAnalytics() {
 
         {/* Upcoming */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4">Upcoming Approved Leave <span className="text-[9px] font-normal text-slate-400">(Forecast)</span></h3>
+          <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Upcoming Approved Leave <span className="text-[9px] font-normal text-slate-400">(Forecast)</span></h3>
+          </div>
           <div className="space-y-4 flex-1">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-3">
@@ -1366,7 +1372,9 @@ export default function LeaveAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         {/* Approval Perf */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4">Approval Performance <span className="text-[9px] font-normal text-slate-400">(Avg. Time)</span></h3>
+          <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Approval Performance <span className="text-[9px] font-normal text-slate-400">(Avg. Time)</span></h3>
+          </div>
           <div className="flex-1 flex flex-col justify-center items-center min-h-[160px]">
             <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
               <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
@@ -1378,7 +1386,9 @@ export default function LeaveAnalytics() {
 
         {/* Action Center */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Action Center</h3>
+          <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Action Center</h3>
+          </div>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
             <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 cursor-pointer hover:bg-amber-100 transition-colors border border-amber-100">
               <span className="text-xs font-semibold text-amber-800">Pending Approval</span>
