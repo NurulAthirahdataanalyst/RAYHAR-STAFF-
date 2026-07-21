@@ -6244,7 +6244,10 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     });
 
     // Add Outstation to weekly map
-    outstationRows.forEach(o => {
+    const [weekOutstationRows] = await pool.query(
+      `SELECT user_id, start_date, end_date FROM outstation_assignments WHERE status != 'Cancelled'`
+    );
+    weekOutstationRows.forEach(o => {
        const startObj = new Date(o.start_date); startObj.setHours(0,0,0,0);
        const endObj = new Date(o.end_date); endObj.setHours(23,59,59,999);
        let dIter = new Date(startObj);
