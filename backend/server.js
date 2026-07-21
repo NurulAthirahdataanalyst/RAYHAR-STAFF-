@@ -1901,10 +1901,12 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
         weeklyMap[dayName].leave++;
       }
     });
-  const targetDateObj = new Date(dateStr);
-  const diffToSat = -((targetDateObj.getDay() + 1) % 7);
-  const weekStartD = new Date(targetDateObj);
-  weekStartD.setDate(targetDateObj.getDate() + diffToSat);
+    dIterLive.setDate(dIterLive.getDate() + 1);
+  }
+  const targetDateObj2 = new Date(dateStr);
+  const diffToSat = -((targetDateObj2.getDay() + 1) % 7);
+  const weekStartD = new Date(targetDateObj2);
+  weekStartD.setDate(targetDateObj2.getDate() + diffToSat);
   weekStartD.setHours(0,0,0,0);
   const weekEndD = new Date(weekStartD);
   weekEndD.setDate(weekStartD.getDate() + 6);
