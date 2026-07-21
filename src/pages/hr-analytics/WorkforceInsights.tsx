@@ -584,18 +584,21 @@ export default function WorkforceInsights() {
                   <div className="flex items-center justify-center h-20 text-slate-400 text-[11px] font-bold">No data</div>
                 ) : (
                   (data.performance?.allAttendance || []).map((emp: any, idx: number) => {
-                    const rate = emp.attendanceRate ?? 0;
+                    const rate = Number(emp.attendanceRate ?? 0);
+                    const displayRate = rate > 1 ? rate : Math.round(rate * 100); // handle both decimal and percentage
+                    const barColor = displayRate >= 80 ? '#7B0099' : displayRate >= 50 ? '#f59e0b' : '#ef4444';
+                    const textColor = displayRate >= 80 ? '#7B0099' : displayRate >= 50 ? '#d97706' : '#ef4444';
                     const firstName = (emp.name || '').split(' ').slice(0, 2).join(' ');
                     return (
                       <div key={idx} className="space-y-0.5">
                         <div className="flex items-center justify-between gap-1">
                           <span className="text-[9px] font-bold text-slate-600 dark:text-slate-300 truncate flex-1 leading-tight">{firstName}</span>
-                          <span className="text-[9px] font-black text-[#7B0099] shrink-0">{rate}%</span>
+                          <span className="text-[9px] font-black shrink-0" style={{ color: textColor }}>{displayRate}%</span>
                         </div>
                         <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all duration-500"
-                            style={{ width: `${Math.min(100, rate)}%`, background: rate >= 80 ? '#7B0099' : rate >= 50 ? '#f59e0b' : '#ef4444' }}
+                            style={{ width: `${Math.min(100, displayRate)}%`, backgroundColor: barColor }}
                           />
                         </div>
                       </div>
