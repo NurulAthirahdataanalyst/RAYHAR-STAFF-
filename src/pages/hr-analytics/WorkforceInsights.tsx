@@ -830,6 +830,19 @@ export default function WorkforceInsights() {
 
               const scopeLabel = role === 'branch_leader' ? userBranch : userDepartment;
 
+              // Mock names when there are no real live clock-ins (for UI demo)
+              const mockClockInsHOD = [
+                { user_id: 'h1', full_name: 'Nurul Athirah', initials: 'NA', branch: 'HQ', department: 'Haji Umrah (BHU)', clock_in: '08:45 AM', is_late: false },
+                { user_id: 'h2', full_name: 'Md Khan', initials: 'MK', branch: 'HQ', department: 'Haji Umrah (BHU)', clock_in: '08:50 AM', is_late: false },
+                { user_id: 'h3', full_name: 'Nurain Syakirah', initials: 'NS', branch: 'HQ', department: 'Haji Umrah (BHU)', clock_in: '08:55 AM', is_late: false }
+              ];
+              const displayClockIns = filteredClockIns.length > 0 ? filteredClockIns : mockClockInsHOD;
+
+              const mockAbsentHOD = [
+                { user_id: 'h4', full_name: 'Nur Syuhada', initials: 'NS', branch: 'HQ', department: 'Haji Umrah (BHU)', status: 'absent' }
+              ];
+              const displayAbsent = filteredAbsent.length > 0 ? filteredAbsent : mockAbsentHOD;
+
               return (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Clock-In/Out Card */}
@@ -848,19 +861,19 @@ export default function WorkforceInsights() {
                     </div>
 
                     <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
-                      {!feedConnected && (
+                      {displayClockIns.length === 0 && !feedConnected && (
                         <div className="flex flex-col items-center justify-center py-8 text-slate-300">
                           <Loader2 className="w-5 h-5 animate-spin mb-2" />
                           <p className="text-[10px] font-medium">Loading live data…</p>
                         </div>
                       )}
-                      {feedConnected && filteredClockIns.length === 0 && (
+                      {displayClockIns.length === 0 && feedConnected && (
                         <div className="flex flex-col items-center justify-center py-8 text-slate-400">
                           <Clock className="w-6 h-6 opacity-40 mb-1" />
                           <p className="text-[10px] font-semibold">No clock-ins yet today</p>
                         </div>
                       )}
-                      {filteredClockIns.map((emp) => (
+                      {displayClockIns.map((emp) => (
                         <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
                           <div className="flex items-center gap-2.5">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
@@ -913,19 +926,19 @@ export default function WorkforceInsights() {
                     </div>
 
                     <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
-                      {!feedConnected && (
+                      {displayAbsent.length === 0 && !feedConnected && (
                         <div className="flex flex-col items-center justify-center py-8 text-slate-300">
                           <Loader2 className="w-5 h-5 animate-spin mb-2" />
                           <p className="text-[10px] font-medium">Loading live data…</p>
                         </div>
                       )}
-                      {feedConnected && filteredAbsent.length === 0 && (
+                      {displayAbsent.length === 0 && feedConnected && (
                         <div className="flex flex-col items-center justify-center py-8 text-slate-400">
                           <CheckCircle2 className="w-6 h-6 text-emerald-500 opacity-60 mb-1" />
                           <p className="text-[10px] font-semibold">No absentees today!</p>
                         </div>
                       )}
-                      {filteredAbsent.map((emp) => (
+                      {displayAbsent.map((emp) => (
                         <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
                           <div className="flex items-center gap-2.5">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
