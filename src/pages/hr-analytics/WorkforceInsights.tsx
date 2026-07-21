@@ -571,7 +571,7 @@ export default function WorkforceInsights() {
 
           {/* Column 3: Employees By Department or Employee Attendance */}
           {['branch_leader', 'head_of_department'].includes(role) ? (
-            <Card className={`col-span-1 xl:col-span-1 rounded-xl shadow-sm border border-slate-200 bg-white dark:bg-card p-5 flex flex-col justify-between \${cardHoverEffect}`}>
+            <Card className={`col-span-1 xl:col-span-1 rounded-xl shadow-sm border border-slate-200 bg-white dark:bg-card p-5 flex flex-col \${cardHoverEffect}`}>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Employee Attendance Rates</span>
                 <span className="text-[10px] bg-slate-50 dark:bg-slate-900/50 border border-slate-150 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 font-semibold">
@@ -579,29 +579,30 @@ export default function WorkforceInsights() {
                 </span>
               </div>
               
-              <div className="h-[95px] w-full overflow-y-auto custom-scrollbar overflow-x-hidden custom-scrollbar">
-                <ResponsiveContainer width="100%" height={Math.max(95, (data.performance?.allAttendance?.length || 0) * 22)}>
+              <div className="flex-1 min-h-0 w-full overflow-y-auto custom-scrollbar overflow-x-hidden" style={{ maxHeight: '220px' }}>
+                <ResponsiveContainer width="100%" height={Math.max(180, (data.performance?.allAttendance?.length || 0) * 26)}>
                   <BarChart 
                     data={data.performance?.allAttendance || []} 
                     layout="vertical"
-                    margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
+                    margin={{ top: 4, right: 28, left: 0, bottom: 4 }}
                   >
                     <RechartsTooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} content={<CustomEmployeeTooltip />} />
                     <XAxis type="number" hide domain={[0, 100]} />
                     <YAxis 
                       dataKey="name" 
                       type="category" 
-                      tick={{ fontSize: 9, fill: '#64748b', fontWeight: 'bold' }} 
+                      tick={{ fontSize: 8, fill: '#64748b', fontWeight: 600 }} 
                       axisLine={false} 
                       tickLine={false} 
-                      width={130}
+                      width={110}
+                      tickFormatter={(value: string) => value.length > 14 ? value.split(' ').slice(0, 2).join(' ') : value}
                     />
-                    <Bar dataKey="attendanceRate" fill="#7B0099" radius={[0, 4, 4, 0]} barSize={6} />
+                    <Bar dataKey="attendanceRate" fill="#7B0099" radius={[0, 4, 4, 0]} barSize={8} label={{ position: 'right', fontSize: 8, fill: '#7B0099', fontWeight: 700, formatter: (v: number) => `${v}%` }} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
 
-              <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 shrink-0">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#7B0099]"></div>
                 <span className="text-[9px] font-bold text-slate-400">
                   Showing all staff in your {role === 'branch_leader' ? 'branch' : 'department'}
