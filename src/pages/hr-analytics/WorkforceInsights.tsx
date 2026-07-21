@@ -354,10 +354,10 @@ export default function WorkforceInsights() {
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 mb-6">
           
           {/* 8 KPI Cards (Replaces old Attendance Overview + 4 Grid) */}
-          <div className="col-span-1 xl:col-span-3 grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="col-span-1 xl:col-span-3 grid grid-cols-2 lg:grid-cols-5 gap-4">
             
                         {/* 1. Present Today */}
-            <Card className={`rounded-xl shadow-sm border border-emerald-100 bg-emerald-50/30 p-5 flex flex-col h-[200px] justify-between ${cardHoverEffect}`}>
+            <Card className={`lg:col-span-2 rounded-xl shadow-sm border border-emerald-100 bg-emerald-50/30 p-5 flex flex-col h-[200px] justify-between ${cardHoverEffect}`}>
               <div>
                 <div className="flex justify-between items-start mb-2">
                   <div className="w-10 h-10 rounded-full border border-emerald-200 bg-emerald-50 flex items-center justify-center">
@@ -542,7 +542,7 @@ export default function WorkforceInsights() {
             </Card>
 
             {/* 8. Active Workforce */}
-            <Card className={`rounded-xl shadow-sm border border-slate-200 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffect}`}>
+            <Card className={`lg:col-span-2 rounded-xl shadow-sm border border-slate-200 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffect}`}>
               <div>
                 <div className="w-10 h-10 rounded-full border border-emerald-100 bg-emerald-50/50 flex items-center justify-center mb-3">
                   <Users className="w-5 h-5 text-emerald-500" />
