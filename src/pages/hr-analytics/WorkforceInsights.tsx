@@ -717,18 +717,26 @@ export default function WorkforceInsights() {
                     <TooltipProvider>
                       {filteredBranches.map((branch: any, idx: number) => {
                         const branchEmployees = liveEmployees.filter(emp => emp.branch === branch.name);
-                        const outstation = branchEmployees.filter(emp => emp.status === 'outstation').length;
-                        const presentOnTime = branchEmployees.filter(emp => emp.status === 'present').length;
-                        const presentLate = branchEmployees.filter(emp => emp.status === 'late').length;
-                        const onLeave = branchEmployees.filter(emp => emp.status === 'onLeave').length;
-                        const companyLeave = branchEmployees.filter(emp => emp.status === 'companyLeave').length;
-                        
-                        // For HOD/Branch Leader, use filtered employee count to avoid mismatch with KPI cards.
-                        // If live feed has data for this branch, use it; otherwise fall back to branch.count
-                        const baseCount = ['head_of_department', 'branch_leader'].includes(role)
-                          ? (branchEmployees.length > 0 ? branchEmployees.length : branch.count)
-                          : branch.count;
-                        const absent = Math.max(0, baseCount - (presentOnTime + presentLate + outstation + onLeave + companyLeave));
+
+                        let outstation: number, presentOnTime: number, presentLate: number, onLeave: number, companyLeave: number, absent: number;
+
+                        if (['head_of_department', 'branch_leader'].includes(role)) {
+                          // For HOD/BL: use the same server-side filtered data as the KPI cards
+                          // to ensure Branch Distribution matches "Present Today" / "Absent Today" exactly
+                          presentOnTime = Math.max(0, (data.teamAvailability?.present ?? 0) - (data.teamAvailability?.late ?? 0));
+                          presentLate = data.teamAvailability?.late ?? 0;
+                          onLeave = data.topKpi?.onLeaveToday ?? 0;
+                          outstation = data.topKpi?.outstationToday ?? 0;
+                          companyLeave = 0;
+                          absent = data.teamAvailability?.absent ?? 0;
+                        } else {
+                          outstation = branchEmployees.filter(emp => emp.status === 'outstation').length;
+                          presentOnTime = branchEmployees.filter(emp => emp.status === 'present').length;
+                          presentLate = branchEmployees.filter(emp => emp.status === 'late').length;
+                          onLeave = branchEmployees.filter(emp => emp.status === 'onLeave').length;
+                          companyLeave = branchEmployees.filter(emp => emp.status === 'companyLeave').length;
+                          absent = Math.max(0, branch.count - (presentOnTime + presentLate + outstation + onLeave + companyLeave));
+                        }
                         
                         const expectedWorkingDays = branch.count - onLeave - companyLeave;
                         let realRate = 0;
