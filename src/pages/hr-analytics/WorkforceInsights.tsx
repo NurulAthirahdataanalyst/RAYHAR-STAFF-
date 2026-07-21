@@ -689,14 +689,16 @@ export default function WorkforceInsights() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           
-          {(() => {
-            const rawBranchMetrics = data?.branchMetrics || [];
-            const filteredBranches = selectedRegion === 'All Regions' 
-              ? rawBranchMetrics 
-              : rawBranchMetrics.filter((b:any) => regionMap[b.name] === selectedRegion || (b.name==='HQ' && selectedRegion==='Central'));
-            
-            return (
-              <Card className={`col-span-1 lg:col-span-2 rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col h-fit ${cardHoverEffect}`}>
+          {/* Left Column (2-span): Branch Distribution + HOD/BL Live Cards */}
+          <div className="col-span-1 lg:col-span-2 flex flex-col gap-6">
+            {(() => {
+              const rawBranchMetrics = data?.branchMetrics || [];
+              const filteredBranches = selectedRegion === 'All Regions' 
+                ? rawBranchMetrics 
+                : rawBranchMetrics.filter((b:any) => regionMap[b.name] === selectedRegion || (b.name==='HQ' && selectedRegion==='Central'));
+              
+              return (
+                <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col h-fit ${cardHoverEffect}`}>
                 <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4 flex flex-row justify-between items-center">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-slate-400" />
@@ -808,6 +810,171 @@ export default function WorkforceInsights() {
               </Card>
             );
           })()}
+
+            {/* HOD & Branch Leader LIVE CARDS (Only show for these roles, under Branch Distribution) */}
+            {['head_of_department', 'branch_leader'].includes(role) && (() => {
+              // Filter live data to only show employees within HOD's dept or Branch Leader's branch
+              const filteredClockIns = [...clockInOut, ...lateList]
+                .filter(emp => {
+                  if (role === 'head_of_department') return emp.department === userDepartment;
+                  if (role === 'branch_leader') return emp.branch === userBranch;
+                  return true;
+                })
+                .sort((a, b) => (a.clock_in || '').localeCompare(b.clock_in || ''));
+
+              const filteredAbsent = absentList.filter(emp => {
+                if (role === 'head_of_department') return emp.department === userDepartment;
+                if (role === 'branch_leader') return emp.branch === userBranch;
+                return true;
+              });
+
+              const scopeLabel = role === 'branch_leader' ? userBranch : userDepartment;
+
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Clock-In/Out Card */}
+                  <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col p-4 ${cardHoverEffect}`}>
+                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Clock-In/Out</h3>
+                        {feedConnected
+                          ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
+                          : <span className="text-[8px] text-slate-400 font-bold uppercase">Connecting…</span>}
+                        {scopeLabel && <span className="text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded truncate max-w-[100px]">{scopeLabel}</span>}
+                      </div>
+                      <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-slate-500 flex items-center gap-1">
+                        <CalendarDays className="w-3 h-3" /> {displayDate}
+                      </span>
+                    </div>
+
+                    <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
+                      {!feedConnected && (
+                        <div className="flex flex-col items-center justify-center py-8 text-slate-300">
+                          <Loader2 className="w-5 h-5 animate-spin mb-2" />
+                          <p className="text-[10px] font-medium">Loading live data…</p>
+                        </div>
+                      )}
+                      {feedConnected && filteredClockIns.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                          <Clock className="w-6 h-6 opacity-40 mb-1" />
+                          <p className="text-[10px] font-semibold">No clock-ins yet today</p>
+                        </div>
+                      )}
+                      {filteredClockIns.map((emp) => (
+                        <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
+                          <div className="flex items-center gap-2.5">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
+                              {emp.initials}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
+                                {emp.is_late && (
+                                  <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-slate-400 font-medium">{emp.department && emp.department !== '—' ? emp.department : emp.branch}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <Clock className="w-3.5 h-3.5 text-slate-400" />
+                            <span
+                              style={emp.is_late ? { backgroundColor: '#ffbf00' } : undefined}
+                              className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded text-white ${!emp.is_late ? 'bg-emerald-500' : ''}`}
+                            >
+                              {emp.clock_in}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate('/hr-analytics/attendance')}
+                      className="w-full mt-4 h-9 bg-white dark:bg-card hover:bg-slate-50 text-slate-700 font-semibold border border-slate-300 dark:border-slate-700"
+                    >
+                      View All Attendance
+                    </Button>
+                  </Card>
+
+                  {/* Absent / Leave / Outstation Card */}
+                  <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col p-4 ${cardHoverEffect}`}>
+                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Absent / Leave / Outstation</h3>
+                        {feedConnected
+                          ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
+                          : <span className="text-[8px] text-slate-400 font-bold uppercase">Connecting…</span>}
+                      </div>
+                      <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-slate-500 flex items-center gap-1">
+                        <CalendarDays className="w-3 h-3" /> {displayDate}
+                      </span>
+                    </div>
+
+                    <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
+                      {!feedConnected && (
+                        <div className="flex flex-col items-center justify-center py-8 text-slate-300">
+                          <Loader2 className="w-5 h-5 animate-spin mb-2" />
+                          <p className="text-[10px] font-medium">Loading live data…</p>
+                        </div>
+                      )}
+                      {feedConnected && filteredAbsent.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                          <CheckCircle2 className="w-6 h-6 text-emerald-500 opacity-60 mb-1" />
+                          <p className="text-[10px] font-semibold">No absentees today!</p>
+                        </div>
+                      )}
+                      {filteredAbsent.map((emp) => (
+                        <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
+                          <div className="flex items-center gap-2.5">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
+                              {emp.initials}
+                            </div>
+                            <div>
+                              <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
+                              <p className="text-[10px] text-slate-400 font-medium">{emp.department && emp.department !== '—' ? emp.department : emp.branch}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {(emp as any).status === 'companyLeave' ? (
+                              <>
+                                <CalendarDays className="w-3.5 h-3.5 text-purple-400" />
+                                <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-purple-600 text-white text-center leading-tight">Company<br />Leave</span>
+                              </>
+                            ) : (emp as any).status === 'outstation' ? (
+                              <>
+                                <Plane className="w-3.5 h-3.5 text-pink-400" />
+                                <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-pink-500 text-white">Outstation</span>
+                              </>
+                            ) : (emp as any).status === 'leave' || (emp as any).status === 'onLeave' ? (
+                              <>
+                                <CalendarDays className="w-3.5 h-3.5 text-blue-400" />
+                                <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-blue-500 text-white">Leave</span>
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="w-3.5 h-3.5 text-red-400" />
+                                <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-red-500 text-white">Absent</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate('/hr-analytics/attendance')}
+                      className="w-full mt-4 h-9 bg-white dark:bg-card hover:bg-slate-50 text-slate-700 font-semibold border border-slate-300 dark:border-slate-700"
+                    >
+                      View All Attendance
+                    </Button>
+                  </Card>
+                </div>
+              );
+            })()}
+          </div>
 
 
           <Card className={`col-span-1 rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col ${cardHoverEffect}`}>
@@ -1021,172 +1188,6 @@ export default function WorkforceInsights() {
           </Card>
 
         </div>
-
-        {/* BOTTOM SECTION: HOD & Branch Leader LIVE CARDS */}
-        {['head_of_department', 'branch_leader'].includes(role) && (() => {
-          // Filter live data to only show employees within HOD's dept or Branch Leader's branch
-          const filteredClockIns = [...clockInOut, ...lateList]
-            .filter(emp => {
-              if (role === 'head_of_department') return emp.department === userDepartment;
-              if (role === 'branch_leader') return emp.branch === userBranch;
-              return true;
-            })
-            .sort((a, b) => (a.clock_in || '').localeCompare(b.clock_in || ''));
-
-          const filteredAbsent = absentList.filter(emp => {
-            if (role === 'head_of_department') return emp.department === userDepartment;
-            if (role === 'branch_leader') return emp.branch === userBranch;
-            return true;
-          });
-
-          const scopeLabel = role === 'branch_leader' ? userBranch : userDepartment;
-
-          return (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-
-              {/* Clock-In/Out Card */}
-              <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col p-4 ${cardHoverEffect}`}>
-                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Clock-In/Out</h3>
-                    {feedConnected
-                      ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
-                      : <span className="text-[8px] text-slate-400 font-bold uppercase">Connecting…</span>}
-                    {scopeLabel && <span className="text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded truncate max-w-[100px]">{scopeLabel}</span>}
-                  </div>
-                  <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-slate-500 flex items-center gap-1">
-                    <CalendarDays className="w-3 h-3" /> {displayDate}
-                  </span>
-                </div>
-
-                <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
-                  {!feedConnected && (
-                    <div className="flex flex-col items-center justify-center py-8 text-slate-300">
-                      <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                      <p className="text-[10px] font-medium">Loading live data…</p>
-                    </div>
-                  )}
-                  {feedConnected && filteredClockIns.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-8 text-slate-400">
-                      <Clock className="w-6 h-6 opacity-40 mb-1" />
-                      <p className="text-[10px] font-semibold">No clock-ins yet today</p>
-                    </div>
-                  )}
-                  {filteredClockIns.map((emp) => (
-                    <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
-                      <div className="flex items-center gap-2.5">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
-                          {emp.initials}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
-                            {emp.is_late && (
-                              <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
-                            )}
-                          </div>
-                          <p className="text-[10px] text-slate-400 font-medium">{emp.department && emp.department !== '—' ? emp.department : emp.branch}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <Clock className="w-3.5 h-3.5 text-slate-400" />
-                        <span
-                          style={emp.is_late ? { backgroundColor: '#ffbf00' } : undefined}
-                          className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded text-white ${!emp.is_late ? 'bg-emerald-500' : ''}`}
-                        >
-                          {emp.clock_in}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/hr-analytics/attendance')}
-                  className="w-full mt-4 h-9 bg-white dark:bg-card hover:bg-slate-50 text-slate-700 font-semibold border border-slate-300 dark:border-slate-700"
-                >
-                  View All Attendance
-                </Button>
-              </Card>
-
-              {/* Absent / Leave / Outstation Card */}
-              <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col p-4 ${cardHoverEffect}`}>
-                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Absent / Leave / Outstation</h3>
-                    {feedConnected
-                      ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
-                      : <span className="text-[8px] text-slate-400 font-bold uppercase">Connecting…</span>}
-                  </div>
-                  <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-slate-500 flex items-center gap-1">
-                    <CalendarDays className="w-3 h-3" /> {displayDate}
-                  </span>
-                </div>
-
-                <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
-                  {!feedConnected && (
-                    <div className="flex flex-col items-center justify-center py-8 text-slate-300">
-                      <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                      <p className="text-[10px] font-medium">Loading live data…</p>
-                    </div>
-                  )}
-                  {feedConnected && filteredAbsent.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-8 text-slate-400">
-                      <CheckCircle2 className="w-6 h-6 text-emerald-500 opacity-60 mb-1" />
-                      <p className="text-[10px] font-semibold">No absentees today!</p>
-                    </div>
-                  )}
-                  {filteredAbsent.map((emp) => (
-                    <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
-                      <div className="flex items-center gap-2.5">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
-                          {emp.initials}
-                        </div>
-                        <div>
-                          <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
-                          <p className="text-[10px] text-slate-400 font-medium">{emp.department && emp.department !== '—' ? emp.department : emp.branch}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {(emp as any).status === 'companyLeave' ? (
-                          <>
-                            <CalendarDays className="w-3.5 h-3.5 text-purple-400" />
-                            <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-purple-600 text-white text-center leading-tight">Company<br />Leave</span>
-                          </>
-                        ) : (emp as any).status === 'outstation' ? (
-                          <>
-                            <Plane className="w-3.5 h-3.5 text-pink-400" />
-                            <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-pink-500 text-white">Outstation</span>
-                          </>
-                        ) : (emp as any).status === 'leave' || (emp as any).status === 'onLeave' ? (
-                          <>
-                            <CalendarDays className="w-3.5 h-3.5 text-blue-400" />
-                            <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-blue-500 text-white">Leave</span>
-                          </>
-                        ) : (
-                          <>
-                            <XCircle className="w-3.5 h-3.5 text-red-400" />
-                            <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-red-500 text-white">Absent</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/hr-analytics/attendance')}
-                  className="w-full mt-4 h-9 bg-white dark:bg-card hover:bg-slate-50 text-slate-700 font-semibold border border-slate-300 dark:border-slate-700"
-                >
-                  View All Attendance
-                </Button>
-              </Card>
-
-            </div>
-          );
-        })()}
 
         {/* BOTTOM SECTION: LIVE CARDS */}
         {isAdminRole && (
