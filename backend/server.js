@@ -1916,7 +1916,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
     `SELECT COUNT(DISTINCT a.user_id) as cnt
      FROM attendances a
      JOIN profiles p ON p.user_id = a.user_id
-     WHERE DATE(a.clock_in) = DATE_SUB(?, INTERVAL 1 DAY)
+     WHERE DATE(a.clock_in) = ?::date - INTERVAL '1 day'
        AND a.clock_out IS NULL
        AND p.status = 'Active' ${filterP}`,
     [dateStr, ...paramsBase]
