@@ -754,7 +754,6 @@ export default function Calendar() {
 
         </div>
 
-        </div>
         {/* RIGHT COLUMN: MAIN CALENDAR GRID */}
         <div className="lg:col-span-9 flex flex-col h-[800px] bg-card border border-border/60 rounded-[16px] shadow-sm overflow-hidden">
           
