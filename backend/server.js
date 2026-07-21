@@ -1901,13 +1901,49 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
         weeklyMap[dayName].leave++;
       }
     });
-    dIterLive.setDate(dIterLive.getDate() + 1);
+  const targetDateObj = new Date(dateStr);
+  const diffToSat = -((targetDateObj.getDay() + 1) % 7);
+  const weekStartD = new Date(targetDateObj);
+  weekStartD.setDate(targetDateObj.getDate() + diffToSat);
+  weekStartD.setHours(0,0,0,0);
+  const weekEndD = new Date(weekStartD);
+  weekEndD.setDate(weekStartD.getDate() + 6);
+  weekEndD.setHours(23,59,59,999);
+
+  const dEnd = new Date(dateStr);
+  dEnd.setHours(23,59,59,999);
+
+  let dIterLive2 = new Date(weekStartD);
+  while (dIterLive2 <= weekEndD) {
+    const dayOfWeekNum = dIterLive2.getDay();
+    const dayName = dNames[dayOfWeekNum];
+    
+    let expectedForDay = 0;
+    allProfilesLive.forEach(p => {
+      const userZone = branchZoneMapLive.get(p.branch) || 'ZONE_B';
+      const isFirstSaturday = dayOfWeekNum === 6 && dIterLive2.getDate() <= 7;
+      const isRest = (userZone === 'ZONE_A' && (dayOfWeekNum === 5 || isFirstSaturday)) || 
+                     (userZone === 'ZONE_B' && (dayOfWeekNum === 0 || isFirstSaturday));
+      if (!isRest) expectedForDay++;
+    });
+
+    weeklyMap[dayName].expected = expectedForDay;
+    weeklyMap[dayName].isFuture = dIterLive2 > dEnd;
+    dIterLive2.setDate(dIterLive2.getDate() + 1);
   }
 
-  const weeklyAttendanceTrend = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => {
+  const weeklyOrder = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+  const weeklyAttendanceTrend = weeklyOrder.map(day => {
+    const data = weeklyMap[day];
+    const outstation = data.outstation || 0;
+    const computedAbsent = data.isFuture ? 0 : Math.max(0, data.expected - data.present - data.leave - outstation);
     return {
       name: day,
-      ...weeklyMap[day]
+      present: data.present,
+      late: data.late,
+      absent: computedAbsent,
+      leave: data.leave,
+      weekend: Math.max(0, allProfilesLive.length - data.expected)
     };
   });
 
