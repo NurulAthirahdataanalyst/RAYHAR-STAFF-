@@ -1298,19 +1298,19 @@ export default function Branches() {
                               Save to PDF
                             </button>
                           </div>
-                          <div className="text-center border-b-2 border-[#1A1C1E] pb-4">
-                            <h2 className="text-xl font-black tracking-tighter text-[#1A1C1E]">
+                          <div className="text-center border-b-2 border-foreground/50 dark:border-purple-500/50 pb-4">
+                            <h2 className="text-2xl font-black tracking-tighter text-foreground dark:text-purple-400">
                               RAYHAR GROUP
                             </h2>
-                            <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60">
-                              Staff Leave Application
+                            <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60 dark:text-purple-300">
+                              Permohonan Cuti Kakitangan
                             </p>
                           </div>
 
                           <div className="grid grid-cols-2 gap-4 text-xs font-bold">
                             <div className="space-y-1">
                               <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">
-                                Staff Name
+                                Nama Penuh
                               </span>
                               <p className="border-b pb-1 border-border/40 truncate">
                                 {selectedEmployee?.full_name}
@@ -1318,7 +1318,7 @@ export default function Branches() {
                             </div>
                             <div className="space-y-1">
                               <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">
-                                Branch
+                                Cawangan
                               </span>
                               <p className="border-b pb-1 border-border/40">
                                 {selectedBranch?.code || "HQ"}
@@ -1326,7 +1326,7 @@ export default function Branches() {
                             </div>
                             <div className="space-y-1">
                               <span className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50">
-                                Type
+                                Jenis Cuti
                               </span>
                               <p className="border-b pb-1 border-border/40">
                                 {req.leave_type}
@@ -1347,19 +1347,19 @@ export default function Branches() {
                           <div className="grid grid-cols-3 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
                             <div className="text-center">
                               <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">
-                                From
+                                Dari
                               </p>
-                              <p className="font-black text-sm">{fromStr}</p>
+                              <p className="font-black text-xs sm:text-sm">{fromStr}</p>
                             </div>
                             <div className="text-center">
                               <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">
-                                To
+                                Hingga
                               </p>
-                              <p className="font-black text-sm">{toStr}</p>
+                              <p className="font-black text-xs sm:text-sm">{toStr}</p>
                             </div>
                             <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 py-1 shadow-sm flex flex-col justify-center">
                               <p className="text-[9px] uppercase font-black text-[#7B0099]">
-                                Days
+                                Hari
                               </p>
                               <p className="font-black text-lg text-[#7B0099] leading-none mt-0.5">
                                 {req.days}
@@ -1369,9 +1369,9 @@ export default function Branches() {
 
                           <div className="space-y-2">
                             <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">
-                              Reason / Purpose
+                              Sebab / Tujuan
                             </p>
-                            <p className="rounded-[16px] border border-border/40 p-4 italic text-foreground/80 bg-muted/20 text-xs leading-relaxed">
+                            <p className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed">
                               "{getCleanReason(req.reason) || "-"}"
                             </p>
                           </div>
@@ -1379,10 +1379,10 @@ export default function Branches() {
                           {(req.leave_type === "Sick Leave" ||
                             req.leave_type === "Cuti Sakit") &&
                             req.mc_file_url && (
-                              <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group">
+                              <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group pdf-hide">
                                 <div className="flex items-center gap-3">
                                   <FileText className="w-5 h-5 text-[#7B0099]" />
-                                  <span className="text-xs font-black text-[#7B0099]">
+                                  <span className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest">
                                     MC Attachment
                                   </span>
                                 </div>
@@ -1390,7 +1390,7 @@ export default function Branches() {
                                   href={`${API_BASE_URL}${req.mc_file_url}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-[10px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-3 py-2 rounded-lg hover:bg-[#5e0080] transition-colors"
+                                  className="text-[9px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-4 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-lg"
                                 >
                                   View File
                                 </a>
@@ -1400,14 +1400,14 @@ export default function Branches() {
                           <div className="pt-4 border-t border-border/50 space-y-4">
                             <div className="flex items-center gap-2">
                               <PhoneCall className="w-4 h-4 text-rose-500" />
-                              <h3 className="text-[10px] font-black uppercase tracking-widest">
-                                Emergency Contact (Waris)
+                              <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">
+                                Maklumat Waris (Kecemasan)
                               </h3>
                             </div>
                             <div className="grid grid-cols-2 gap-4 bg-muted/20 p-4 rounded-[20px]">
                               <div className="space-y-1">
                                 <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">
-                                  Name
+                                  Nama
                                 </span>
                                 <p className="text-[11px] font-bold truncate">
                                   {req.waris_nama || "-"}
@@ -1415,12 +1415,76 @@ export default function Branches() {
                               </div>
                               <div className="space-y-1">
                                 <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">
-                                  Phone
+                                  Hubungan
+                                </span>
+                                <p className="text-[11px] font-bold truncate">
+                                  {req.waris_hubungan || "-"}
+                                </p>
+                              </div>
+                              <div className="space-y-1">
+                                <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">
+                                  No. Telefon
                                 </span>
                                 <p className="text-[11px] font-black text-[#7B0099]">
                                   {req.waris_phone || "-"}
                                 </p>
                               </div>
+                              <div className="space-y-1">
+                                <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">
+                                  Alamat
+                                </span>
+                                <p className="text-[10px] font-bold text-muted-foreground break-words">
+                                  {req.waris_alamat || "-"}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Approval History Timeline */}
+                          {req.approval_history && req.approval_history.length > 0 && (
+                            <div className="space-y-4 pt-4 border-t border-border/50">
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-[#7B0099]" />
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">
+                                  Approval History
+                                </h3>
+                              </div>
+                              <div className="relative space-y-4 before:absolute before:inset-0 before:ml-4 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border/50 before:to-transparent">
+                                {req.approval_history.map((history: any, idx: number) => (
+                                  <div key={idx} className="relative flex items-start gap-4">
+                                    <div className={`absolute left-4 -translate-x-1/2 flex h-2 w-2 items-center justify-center rounded-full border border-white dark:border-slate-900 ${history.status === 'Approved' ? 'bg-emerald-500' : 'bg-rose-500'} z-10`} />
+                                    <div className="ml-6 flex-1 bg-muted/30 rounded-[16px] p-3 border border-border/40">
+                                      <div className="flex items-center justify-between gap-2 mb-1">
+                                        <div className="flex items-center gap-2">
+                                          <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md ${history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
+                                            {history.status}
+                                          </span>
+                                          <span className="text-[10px] font-black text-foreground/70">
+                                            by {history.approver_name || history.approver_id}
+                                          </span>
+                                        </div>
+                                        <span className="text-[8px] font-black text-muted-foreground/50">
+                                          {new Date(history.created_at).toLocaleDateString('ms-MY')}
+                                        </span>
+                                      </div>
+                                      {history.remarks && (
+                                        <p className="text-[10px] italic text-muted-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
+                                          "{history.remarks}"
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-2 gap-16 pt-12 pb-4">
+                            <div className="border-t border-foreground pt-2 text-center">
+                              <p className="text-[10px] font-bold uppercase">Tandatangan Kakitangan</p>
+                            </div>
+                            <div className="border-t border-foreground pt-2 text-center">
+                              <p className="text-[10px] font-bold uppercase">Kelulusan Pengurus / HR</p>
                             </div>
                           </div>
                         </div>
