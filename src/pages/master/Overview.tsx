@@ -458,11 +458,12 @@ export default function MasterOverview() {
               <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11">Real-time system integrity audits and schema consistency logs</CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
                   { name: "Branch Mappings", desc: "Verifies all staff map to active, existing regional branches", status: "VERIFIED" },
                   { name: "Credential Allocation", desc: "Confirms system accounts maintain assigned auth privileges", status: "VERIFIED" },
                   { name: "Segment Consistency", desc: "Checks that no orphan records lack active departments", status: "VERIFIED" },
+                  { name: "Attendance Settings", desc: "Validates temporary assignments and multi-location employee configurations", status: "VERIFIED" },
                 ].map((log) => (
                   <div key={log.name} className="p-4 bg-emerald-500/5 dark:bg-emerald-500/10 hover:bg-emerald-500/10 rounded-2xl border border-emerald-500/10 transition-all flex flex-col justify-between gap-3">
                     <div>
