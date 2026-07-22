@@ -37,7 +37,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   const [profile, setProfile] = useState<any>(null);
   const [companyLeaves, setCompanyLeaves] = useState<any[]>([]);
   const [outstations, setOutstations] = useState<any[]>([]);
-  const [leaveRequests, setLeaveRequests] = useState<any[]>(propLeaveRequests);
+  const leaveRequests = propLeaveRequests;
   const [replacementLeaves, setReplacementLeaves] = useState<any[]>([]);
   const [temporaryAssignments, setTemporaryAssignments] = useState<any[]>([]);
 
