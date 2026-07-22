@@ -531,7 +531,7 @@ export default function MasterOverview() {
               <div className="flex flex-col h-full">
                 <CardHeader className="pb-4 border-b border-border/40 flex flex-row items-start sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-500/10 text-purple-600 rounded-xl shrink-0">
+                    <div className="p-2 bg-[#ffff00]/20 text-amber-600 dark:text-[#ffff00] rounded-xl shrink-0">
                       <MapPin className="w-5 h-5" />
                     </div>
                     <div>
@@ -539,14 +539,14 @@ export default function MasterOverview() {
                       <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Temporary Branch Assignment</CardDescription>
                     </div>
                   </div>
-                  <Badge variant="outline" className="font-black text-[10px] px-3.5 py-1 text-purple-600 border-none bg-purple-500/10 shrink-0">
+                  <Badge variant="outline" className="font-black text-[10px] px-3.5 py-1 text-amber-700 dark:text-[#ffff00] border-none bg-[#ffff00]/20 shrink-0">
                     {activeAssignments.length} ACTIVE
                   </Badge>
                 </CardHeader>
                 <CardContent className="pt-6 flex-1 flex flex-col px-6">
                   <div className="flex justify-between items-center mb-4">
                     <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Current Active Assignments</h4>
-                    <Button variant="outline" size="sm" className="h-7 px-3 text-[10px] uppercase font-black bg-purple-50 hover:bg-purple-100 text-purple-600 border-purple-200" onClick={() => setShowAssignModal(true)}>
+                    <Button variant="outline" size="sm" className="h-7 px-3 text-[10px] uppercase font-black bg-[#ffff00]/10 hover:bg-[#ffff00]/20 text-amber-700 dark:text-[#ffff00] border-[#ffff00]/30" onClick={() => setShowAssignModal(true)}>
                       + Assign
                     </Button>
                   </div>
@@ -565,7 +565,7 @@ export default function MasterOverview() {
                             <div className="flex items-center gap-1.5 text-[10px] font-black tracking-widest text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
                               <span>{a.primary_branch}</span>
                               <span>→</span>
-                              <span className="text-purple-600 dark:text-purple-400">{a.temp_branch}</span>
+                              <span className="text-amber-600 dark:text-[#ffff00]">{a.temp_branch}</span>
                             </div>
                           </div>
                           <div className="text-[10px] text-muted-foreground pl-[22px] font-bold tracking-widest uppercase">
@@ -580,7 +580,7 @@ export default function MasterOverview() {
               <div className="p-6 border-t border-border/40 bg-muted/5 mt-auto">
                 <Button 
                   onClick={() => setShowAssignModal(true)}
-                  className="w-full py-5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-[10px] uppercase tracking-widest shadow-md flex items-center justify-center gap-1.5"
+                  className="w-full py-5 rounded-xl bg-[#ffff00] hover:bg-[#e6e600] text-black font-black text-[10px] uppercase tracking-widest shadow-md flex items-center justify-center gap-1.5"
                 >
                   View All Assignments
                   <ChevronRight className="w-4 h-4" />
