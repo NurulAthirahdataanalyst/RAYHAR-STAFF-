@@ -1053,7 +1053,9 @@ export default function Employees() {
                       </div>
                     )}
                   </div>
-                </TabsContent>
+                </div>
+              </TooltipProvider>
+            </TabsContent>
 
                 <TabsContent value="attendance_settings" className="mt-0">
                   {loadingSettings ? (
