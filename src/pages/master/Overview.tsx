@@ -510,7 +510,7 @@ export default function MasterOverview() {
                 </div>
               </CardContent>
             </Card>
-          </div>>
+          </div>
 
         </div>
       )}
