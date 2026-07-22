@@ -21,6 +21,7 @@ import EmployeeAnalytics from "./pages/EmployeeAnalytics";
 import LeaveFormView from "./pages/LeaveFormView";
 import Employees from "./pages/Employees";
 import Branches from "./pages/Branches";
+import TemporaryAssignments from "./pages/TemporaryAssignments";
 import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
 import SettingsPage from "./pages/Settings";
@@ -84,6 +85,7 @@ function ProtectedRoutes() {
 
           <Route path="/employees" element={<Employees />} />
           <Route path="/branches" element={<Branches />} />
+          <Route path="/branches/temporary-assignments" element={<TemporaryAssignments />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/analytics" element={<EmployeeAnalytics />} />

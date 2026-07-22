@@ -245,7 +245,16 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "Role", icon: Settings, path: "/master/role", roles: ["hr_admin"] },
       ],
     },
-    { title: "Branch Management", icon: Building2, path: "/branches", roles: FULL_ADMIN_ROLES },
+    {
+      title: "Branch Management",
+      icon: Building2,
+      path: "/branches",
+      roles: FULL_ADMIN_ROLES,
+      children: [
+        { title: "Overview", path: "/branches", roles: FULL_ADMIN_ROLES },
+        { title: "Temporary Assignments", path: "/branches/temporary-assignments", roles: FULL_ADMIN_ROLES },
+      ]
+    },
     {
       title: "Workforce Analytics",
       icon: PieChart,
