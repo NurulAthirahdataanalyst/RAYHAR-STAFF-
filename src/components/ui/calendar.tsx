@@ -8,6 +8,49 @@ import { buttonVariants } from "@/components/ui/button";
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
 function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
+  const handleClear = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (props.onSelect) {
+      // @ts-ignore
+      props.onSelect(undefined, undefined, undefined, e);
+    }
+  };
+
+  const handleToday = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const today = new Date();
+    if (props.onSelect) {
+      if (props.mode === "range") {
+        // @ts-ignore
+        props.onSelect({ from: today, to: today }, today, undefined, e);
+      } else {
+        // @ts-ignore
+        props.onSelect(today, today, undefined, e);
+      }
+    }
+  };
+
+  const customFooter = (
+    <div className="flex items-center justify-between mt-3 pt-3 border-t border-border w-full">
+      <button
+        onClick={handleClear}
+        className="text-[#3b82f6] hover:text-[#2563eb] font-normal text-sm bg-transparent border-none cursor-pointer"
+        type="button"
+      >
+        Clear
+      </button>
+      <button
+        onClick={handleToday}
+        className="text-[#3b82f6] hover:text-[#2563eb] font-normal text-sm bg-transparent border-none cursor-pointer"
+        type="button"
+      >
+        Today
+      </button>
+    </div>
+  );
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -45,6 +88,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
       }}
+      footer={props.footer || customFooter}
       {...props}
     />
   );
