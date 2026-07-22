@@ -208,7 +208,7 @@ export default function Branches() {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   
-  const handlePrint = useReactToPrint();
+  const handlePrint = useReactToPrint({});
   const [loading, setLoading] = useState(false);
   const [viewLeaveStatus, setViewLeaveStatus] = useState<
     "Approved" | "Pending" | "Rejected" | null
