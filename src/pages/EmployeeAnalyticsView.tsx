@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ReferenceLine
 } from "recharts";
-import { Flame, Info, Trophy, Briefcase, CalendarCheck2, ArrowUpRight, ArrowDownRight, Clock } from "lucide-react";
+import { Flame, Info, Trophy, Briefcase, CalendarCheck2, ArrowUpRight, ArrowDownRight, Clock, Zap, MapPin, Search, PlusCircle, AlertCircle, Calendar } from "lucide-react";
 
 // Types
 interface EmployeeAnalyticsViewProps {
