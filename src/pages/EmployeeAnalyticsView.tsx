@@ -176,11 +176,15 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   }, [userId, month, year]);
 
   // Existing Calculations
-  const approvedLeaves = leaveRequests.filter(l => l.status === "Approved");
+  const approvedLeaves = leaveRequests.filter(l => String(l.status || "").toUpperCase() === "APPROVED");
     const annualLeavesUsed = approvedLeaves
       .filter(l => {
         const type = String(l.leave_type || "").toUpperCase();
         return type === 'CUTI TAHUNAN' || type === 'ANNUAL/EMERGENCY LEAVE' || type === 'ANNUAL & EMERGENCY LEAVE';
+      })
+      .filter(l => {
+        const startStr = getLocalDateString(l.start_date);
+        return startStr ? startStr.startsWith(year) : false;
       })
       .reduce((acc, curr) => acc + curr.days, 0);
     const sickLeavesUsed = approvedLeaves
@@ -188,20 +192,32 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         const type = String(l.leave_type || "").toUpperCase();
         return type === 'CUTI SAKIT' || type === 'SICK LEAVE';
       })
+      .filter(l => {
+        const startStr = getLocalDateString(l.start_date);
+        return startStr ? startStr.startsWith(year) : false;
+      })
       .reduce((acc, curr) => acc + curr.days, 0);
     const emergencyLeavesUsed = approvedLeaves
       .filter(l => {
         const type = String(l.leave_type || "").toUpperCase();
         return type === 'KECEMASAN' || type === 'EMERGENCY';
       })
+      .filter(l => {
+        const startStr = getLocalDateString(l.start_date);
+        return startStr ? startStr.startsWith(year) : false;
+      })
       .reduce((acc, curr) => acc + curr.days, 0);
 
   const totalLeavesUsed = annualLeavesUsed + sickLeavesUsed + emergencyLeavesUsed;
     let quotaLeavesUsed = leaveRequests
-      .filter(l => l.status !== "Rejected")
+      .filter(l => String(l.status || "").toUpperCase() !== "REJECTED")
       .filter(l => {
         const type = String(l.leave_type || "").toUpperCase();
         return ['CUTI TAHUNAN', 'ANNUAL/EMERGENCY LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'CUTI SAKIT', 'SICK LEAVE', 'KECEMASAN', 'EMERGENCY'].includes(type);
+      })
+      .filter(l => {
+        const startStr = getLocalDateString(l.start_date);
+        return startStr ? startStr.startsWith(year) : false;
       })
       .reduce((acc, curr) => acc + Number(curr.days || 0), 0);
     
