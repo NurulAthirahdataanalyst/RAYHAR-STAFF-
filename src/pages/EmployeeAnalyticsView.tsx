@@ -725,122 +725,145 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       {/* ROW 1: Key Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         {/* Attendance Rate */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-2 ring-slate-300 dark:ring-slate-600 hover:ring-[#7B0099]/40">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-12 h-12 rounded-[14px] bg-[#7B0099]/10 flex items-center justify-center shrink-0">
-              <CalendarCheck2 className="w-6 h-6 text-[#7B0099]" />
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-[#7B0099]/[0.03] dark:bg-[#7B0099]/[0.05] group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-12 duration-500 pointer-events-none">
+            <CalendarCheck2 className="w-28 h-28 text-[#7B0099]" />
+          </div>
+          <CardContent className="p-4 relative z-10 flex flex-col h-full">
+            <div className="flex items-center gap-1.5 mb-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099] shadow-sm"></div>
+              <span className="text-[11px] font-bold text-muted-foreground capitalize">Attendance Rate</span>
             </div>
-            <div>
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">ATTENDANCE RATE</span>
-                <Info className="w-3 h-3 text-muted-foreground/50" />
-              </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-xl font-black text-foreground">{attendanceRate}%</span>
-              </div>
-              <div className="flex items-center gap-1 mt-0.5">
-                {processedLastMonthLogs.length > 0 && rateDiff !== 0 ? (
-                  <>
-                    {rateDiff > 0 ? <ArrowUpRight className="w-3 h-3 text-emerald-500" /> : <ArrowDownRight className="w-3 h-3 text-rose-500" />}
-                    <span className={`text-[10px] font-bold ${rateDiff > 0 ? "text-emerald-500" : "text-rose-500"}`}>
-                      {Math.abs(rateDiff)}%
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-[10px] font-medium text-muted-foreground">--</span>
-                )}
-              </div>
+            <div className="flex items-baseline gap-2 mb-1 mt-1">
+              <span className="text-3xl font-black text-foreground">{attendanceRate}%</span>
+            </div>
+            <div className="h-4 mb-4">
+              {processedLastMonthLogs.length > 0 && rateDiff !== 0 ? (
+                <div className="flex items-center gap-1">
+                  {rateDiff > 0 ? <ArrowUpRight className="w-3 h-3 text-emerald-500" /> : <ArrowDownRight className="w-3 h-3 text-rose-500" />}
+                  <span className={`text-[10px] font-bold ${rateDiff > 0 ? "text-emerald-500" : "text-rose-500"}`}>
+                    {Math.abs(rateDiff)}%
+                  </span>
+                </div>
+              ) : (
+                <span className="text-[10px] text-muted-foreground">--</span>
+              )}
+            </div>
+            <div className="mt-auto pt-3 border-t border-border/40">
+              <p className="text-[10px] font-bold text-muted-foreground text-center">
+                {attendanceRate >= 95 ? "Excellent" : attendanceRate >= 85 ? "Good" : "Needs Attention"}
+              </p>
             </div>
           </CardContent>
         </Card>
 
         {/* Late Arrivals */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-rose-500/20">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-12 h-12 rounded-[14px] bg-rose-500/10 flex items-center justify-center shrink-0">
-              <Clock className="w-6 h-6 text-rose-500" />
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-amber-500/5 dark:bg-amber-500/10 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-12 duration-500 pointer-events-none">
+            <Clock className="w-28 h-28 text-amber-500" />
+          </div>
+          <CardContent className="p-4 relative z-10 flex flex-col h-full">
+            <div className="flex items-center gap-1.5 mb-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm"></div>
+              <span className="text-[11px] font-bold text-muted-foreground capitalize">Late Arrivals</span>
             </div>
-            <div>
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">LATE ARRIVALS</span>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-foreground">{lateArrivals}</span>
-              </div>
-              <p className="text-[10px] font-medium text-muted-foreground mt-0.5">Days Late</p>
+            <div className="flex items-baseline gap-1 mb-1 mt-1">
+              <span className="text-3xl font-black text-foreground">{lateArrivals}</span>
+            </div>
+            <div className="text-[10px] font-medium text-muted-foreground mb-4 h-4">Days Late</div>
+            <div className="mt-auto pt-3 border-t border-border/40">
+              <p className="text-[10px] font-bold text-muted-foreground text-center">
+                {lateArrivals === 0 ? "Perfect Record" : "Needs Attention"}
+              </p>
             </div>
           </CardContent>
         </Card>
 
         {/* Absent Days */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-red-500/20">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-12 h-12 rounded-[14px] bg-red-500/10 flex items-center justify-center shrink-0">
-              <Flame className="w-6 h-6 text-red-500" />
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-rose-500/5 dark:bg-rose-500/10 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-12 duration-500 pointer-events-none">
+            <Flame className="w-28 h-28 text-rose-500" />
+          </div>
+          <CardContent className="p-4 relative z-10 flex flex-col h-full">
+            <div className="flex items-center gap-1.5 mb-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm"></div>
+              <span className="text-[11px] font-bold text-muted-foreground capitalize">Absent Days</span>
             </div>
-            <div>
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">ABSENT DAYS</span>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-foreground">{absentDays}</span>
-              </div>
-              <p className="text-[10px] font-medium text-muted-foreground mt-0.5">Total Absences</p>
+            <div className="flex items-baseline gap-1 mb-1 mt-1">
+              <span className="text-3xl font-black text-foreground">{absentDays}</span>
+            </div>
+            <div className="text-[10px] font-medium text-muted-foreground mb-4 h-4">Total Absences</div>
+            <div className="mt-auto pt-3 border-t border-border/40">
+              <p className="text-[10px] font-bold text-muted-foreground text-center">
+                {absentDays === 0 ? "Perfect Record" : "Needs Attention"}
+              </p>
             </div>
           </CardContent>
         </Card>
 
         {/* Leave Balance */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-emerald-500/20">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-12 h-12 rounded-[14px] bg-emerald-500/10 flex items-center justify-center shrink-0">
-              <Briefcase className="w-6 h-6 text-emerald-500" />
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-emerald-500/5 dark:bg-emerald-500/10 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-12 duration-500 pointer-events-none">
+            <Briefcase className="w-28 h-28 text-emerald-500" />
+          </div>
+          <CardContent className="p-4 relative z-10 flex flex-col h-full">
+            <div className="flex items-center gap-1.5 mb-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"></div>
+              <span className="text-[11px] font-bold text-muted-foreground capitalize">Leave Balance</span>
             </div>
-            <div>
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">LEAVE BALANCE</span>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-foreground">{leaveBalanceRemaining}</span>
-                <span className="text-xs font-bold text-muted-foreground">/ {totalEntitlement}</span>
-              </div>
-              <p className="text-[10px] font-medium text-muted-foreground mt-0.5">Remaining</p>
+            <div className="flex items-baseline gap-1 mb-1 mt-1">
+              <span className="text-3xl font-black text-foreground">{leaveBalanceRemaining}</span>
+              <span className="text-sm font-bold text-muted-foreground">/ {totalEntitlement}</span>
+            </div>
+            <div className="text-[10px] font-medium text-muted-foreground mb-4 h-4">Remaining</div>
+            <div className="mt-auto pt-3 border-t border-border/40">
+              <p className="text-[10px] font-bold text-muted-foreground text-center">
+                {leaveBalanceRemaining === totalEntitlement ? "Full Entitlement" : leaveBalanceRemaining === 0 ? "Exhausted" : "Available"}
+              </p>
             </div>
           </CardContent>
         </Card>
 
         {/* Outstation Requests */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-blue-500/20">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-12 h-12 rounded-[14px] bg-blue-500/10 flex items-center justify-center shrink-0">
-              <ArrowUpRight className="w-6 h-6 text-blue-500" />
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-blue-500/5 dark:bg-blue-500/10 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-12 duration-500 pointer-events-none">
+            <MapPin className="w-28 h-28 text-blue-500" />
+          </div>
+          <CardContent className="p-4 relative z-10 flex flex-col h-full">
+            <div className="flex items-center gap-1.5 mb-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm"></div>
+              <span className="text-[11px] font-bold text-muted-foreground capitalize">Outstation Requests</span>
             </div>
-            <div>
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">OUTSTATION</span>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-foreground">{monthOutstationsCount}</span>
-              </div>
-              <p className="text-[10px] font-medium text-muted-foreground mt-0.5">Requests</p>
+            <div className="flex items-baseline gap-1 mb-1 mt-1">
+              <span className="text-3xl font-black text-foreground">{monthOutstationsCount}</span>
+            </div>
+            <div className="text-[10px] font-medium text-muted-foreground mb-4 h-4">Requests</div>
+            <div className="mt-auto pt-3 border-t border-border/40">
+              <p className="text-[10px] font-bold text-muted-foreground text-center">
+                {monthOutstationsCount === 0 ? "No Travel Plans" : "Active Requests"}
+              </p>
             </div>
           </CardContent>
         </Card>
 
         {/* Top Leave */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-purple-500/20">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-12 h-12 rounded-[14px] bg-purple-500/10 flex items-center justify-center shrink-0">
-              <Trophy className="w-6 h-6 text-purple-500" />
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-fuchsia-500/5 dark:bg-fuchsia-500/10 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-12 duration-500 pointer-events-none">
+            <Trophy className="w-28 h-28 text-fuchsia-500" />
+          </div>
+          <CardContent className="p-4 relative z-10 flex flex-col h-full">
+            <div className="flex items-center gap-1.5 mb-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-fuchsia-500 shadow-sm"></div>
+              <span className="text-[11px] font-bold text-muted-foreground capitalize">Top Leave</span>
             </div>
-            <div>
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">TOP LEAVE</span>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-sm font-black text-foreground">{topLeave.name}</span>
-              </div>
-              <p className="text-[10px] font-medium text-muted-foreground mt-0.5">Most used</p>
+            <div className="flex items-baseline gap-1 mb-1 mt-1 h-[36px] overflow-hidden">
+              <span className="text-2xl font-black text-foreground leading-none truncate max-w-full" title={topLeave.name}>{topLeave.name}</span>
+            </div>
+            <div className="text-[10px] font-medium text-muted-foreground mb-4 h-4">Most used</div>
+            <div className="mt-auto pt-3 border-t border-border/40">
+              <p className="text-[10px] font-bold text-muted-foreground text-center">
+                {topLeave.name === 'None' ? "No Leave Taken Yet" : "Frequent Leave"}
+              </p>
             </div>
           </CardContent>
         </Card>
