@@ -1342,14 +1342,14 @@ export default function Branches() {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-3 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
-                            <div className="text-center">
+                          <div className="grid grid-cols-4 gap-3 p-4 bg-muted/30 rounded-[20px] border border-border/50">
+                            <div className="text-center flex flex-col justify-center">
                               <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">
                                 Dari
                               </p>
                               <p className="font-black text-xs sm:text-sm">{fromStr}</p>
                             </div>
-                            <div className="text-center">
+                            <div className="text-center flex flex-col justify-center border-l border-border/50">
                               <p className="text-[9px] uppercase font-black text-slate-950 dark:text-slate-50 mb-1">
                                 Hingga
                               </p>
@@ -1361,6 +1361,12 @@ export default function Branches() {
                               </p>
                               <p className="font-black text-lg text-[#7B0099] leading-none mt-0.5">
                                 {req.days}
+                              </p>
+                            </div>
+                            <div className="text-center rounded-[14px] border-2 border-emerald-500 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-center py-1">
+                              <p className="text-[9px] uppercase font-black text-emerald-600">Baki Layak</p>
+                              <p className="font-black text-sm text-emerald-600 mt-0.5">
+                                {selectedEmployee?.annual_leave_balance ?? req.balance ?? "-"} HARI
                               </p>
                             </div>
                           </div>
