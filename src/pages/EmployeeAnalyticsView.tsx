@@ -177,22 +177,33 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
   // Existing Calculations
   const approvedLeaves = leaveRequests.filter(l => l.status === "Approved");
-  const annualLeavesUsed = approvedLeaves
-    .filter(l => ['Cuti Tahunan', 'Annual/Emergency Leave'].includes(l.leave_type))
-    .reduce((acc, curr) => acc + curr.days, 0);
-  const sickLeavesUsed = approvedLeaves
-    .filter(l => ['Cuti Sakit', 'Sick Leave'].includes(l.leave_type))
-    .reduce((acc, curr) => acc + curr.days, 0);
-  const emergencyLeavesUsed = approvedLeaves
-    .filter(l => ['Kecemasan', 'Emergency'].includes(l.leave_type))
-    .reduce((acc, curr) => acc + curr.days, 0);
+    const annualLeavesUsed = approvedLeaves
+      .filter(l => {
+        const type = String(l.leave_type || "").toUpperCase();
+        return type === 'CUTI TAHUNAN' || type === 'ANNUAL/EMERGENCY LEAVE' || type === 'ANNUAL & EMERGENCY LEAVE';
+      })
+      .reduce((acc, curr) => acc + curr.days, 0);
+    const sickLeavesUsed = approvedLeaves
+      .filter(l => {
+        const type = String(l.leave_type || "").toUpperCase();
+        return type === 'CUTI SAKIT' || type === 'SICK LEAVE';
+      })
+      .reduce((acc, curr) => acc + curr.days, 0);
+    const emergencyLeavesUsed = approvedLeaves
+      .filter(l => {
+        const type = String(l.leave_type || "").toUpperCase();
+        return type === 'KECEMASAN' || type === 'EMERGENCY';
+      })
+      .reduce((acc, curr) => acc + curr.days, 0);
 
   const totalLeavesUsed = annualLeavesUsed + sickLeavesUsed + emergencyLeavesUsed;
-  
-  let quotaLeavesUsed = leaveRequests
-    .filter(l => l.status !== "Rejected")
-    .filter(l => ['Cuti Tahunan', 'Annual/Emergency Leave', 'Cuti Sakit', 'Sick Leave', 'Kecemasan', 'Emergency'].includes(l.leave_type))
-    .reduce((acc, curr) => acc + Number(curr.days || 0), 0);
+    let quotaLeavesUsed = leaveRequests
+      .filter(l => l.status !== "Rejected")
+      .filter(l => {
+        const type = String(l.leave_type || "").toUpperCase();
+        return ['CUTI TAHUNAN', 'ANNUAL/EMERGENCY LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'CUTI SAKIT', 'SICK LEAVE', 'KECEMASAN', 'EMERGENCY'].includes(type);
+      })
+      .reduce((acc, curr) => acc + Number(curr.days || 0), 0);
     
   // Add temporary deductions for Replacement Leaves
   const pendingReplacementDeduction = replacementLeaves
@@ -499,9 +510,18 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     }
     return parseInt(y) === parseInt(year) && parseInt(m) === (selectedMonthIndex + 1);
   });
-  const monthAnn = mLeaves.filter(l => ['Cuti Tahunan', 'Annual/Emergency Leave'].includes(l.leave_type)).length;
-  const monthSck = mLeaves.filter(l => ['Cuti Sakit', 'Sick Leave'].includes(l.leave_type)).length;
-  const monthEmg = mLeaves.filter(l => ['Kecemasan', 'Emergency'].includes(l.leave_type)).length;
+  const monthAnn = mLeaves.filter(l => {
+    const type = String(l.leave_type || "").toUpperCase();
+    return type === 'CUTI TAHUNAN' || type === 'ANNUAL/EMERGENCY LEAVE' || type === 'ANNUAL & EMERGENCY LEAVE';
+  }).length;
+  const monthSck = mLeaves.filter(l => {
+    const type = String(l.leave_type || "").toUpperCase();
+    return type === 'CUTI SAKIT' || type === 'SICK LEAVE';
+  }).length;
+  const monthEmg = mLeaves.filter(l => {
+    const type = String(l.leave_type || "").toUpperCase();
+    return type === 'KECEMASAN' || type === 'EMERGENCY';
+  }).length;
   
   const monthPieData = [
     { name: 'Annual Leave', value: monthAnn, color: "#16A34A" },
