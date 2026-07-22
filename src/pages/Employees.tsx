@@ -264,23 +264,40 @@ export default function Employees() {
         department: userDepartment || "",
       });
 
-      const response = await fetch(`${API_BASE_URL}/api/employees?${params}`);
-      const data = await response.json();
+      const [empRes, assignRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/employees?${params}`),
+        fetch(`${API_BASE_URL}/api/work-assignments-all`)
+      ]);
+      const data = await empRes.json();
+      const assignData = await assignRes.json();
+      let assignments: any[] = [];
+      if (assignData.success) {
+        assignments = assignData.assignments;
+      }
 
-      if (!response.ok || !data.success) {
+      if (!empRes.ok || !data.success) {
         throw new Error(data.error || "Failed to fetch employees");
       }
 
-      const formattedData = data.employees.map((employee: any) => ({
-        ...employee,
-        id: employee.user_id,
-        name: employee.full_name || "New User",
-        email: employee.email || "Account Active",
-        position: employee.role === "hr_admin" ? "HR Admin" : employee.role ? employee.role.split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : "Employee",
-        branch: employee.branch || "HQ",
-        department: employee.department || "General",
-        status: employee.status || "Active",
-      }));
+      const formattedData = data.employees.map((employee: any) => {
+        const activeAssignment = assignments.find((a: any) => 
+          a.user_id === employee.user_id && a.status === 'Active' && 
+          (!a.start_date || new Date(a.start_date) <= new Date()) &&
+          (!a.end_date || new Date(a.end_date) >= new Date())
+        );
+
+        return {
+          ...employee,
+          id: employee.user_id,
+          name: employee.full_name || "New User",
+          email: employee.email || "Account Active",
+          position: employee.role === "hr_admin" ? "HR Admin" : employee.role ? employee.role.split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : "Employee",
+          branch: employee.branch || "HQ",
+          department: employee.department || "General",
+          status: employee.status || "Active",
+          tempBranch: activeAssignment ? activeAssignment.location : null,
+        };
+      });
 
       setDbEmployees(formattedData);
     } catch (error) {
@@ -637,7 +654,16 @@ export default function Employees() {
                           <TableCell className="py-4 px-6">
                             <span className="text-xs font-bold text-muted-foreground capitalize">{emp.position.replace(/_/g, ' ')}</span>
                           </TableCell>
-                          <TableCell className="py-4 px-6 text-xs font-bold text-muted-foreground">{emp.branch}</TableCell>
+                          <TableCell className="py-4 px-6 text-xs font-bold text-muted-foreground">
+                            <div className="flex flex-col gap-1 items-start">
+                              <span>{emp.branch}</span>
+                              {emp.tempBranch && (
+                                <Badge variant="outline" className="text-[9px] bg-[#a01497]/10 text-[#a01497] border-[#a01497]/20 whitespace-nowrap">
+                                  Temp: {emp.tempBranch}
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-2">
                               <Badge variant={emp.status === "Active" ? "default" : "secondary"} className={`text-[10px] font-black px-3 ${emp.status === 'Active' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}>
@@ -705,10 +731,18 @@ export default function Employees() {
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                           <span className="truncate max-w-[100px]">{emp.position.replace(/_/g, ' ')}</span>
                           <span className="opacity-30">•</span>
                           <span>{emp.branch}</span>
+                          {emp.tempBranch && (
+                            <>
+                              <span className="opacity-30">•</span>
+                              <Badge variant="outline" className="text-[9px] bg-[#a01497]/10 text-[#a01497] border-[#a01497]/20">
+                                Temp: {emp.tempBranch}
+                              </Badge>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>

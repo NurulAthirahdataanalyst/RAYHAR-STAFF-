@@ -39,6 +39,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   const [outstations, setOutstations] = useState<any[]>([]);
   const [leaveRequests, setLeaveRequests] = useState<any[]>(propLeaveRequests);
   const [replacementLeaves, setReplacementLeaves] = useState<any[]>([]);
+  const [temporaryAssignments, setTemporaryAssignments] = useState<any[]>([]);
 
   // Filter out any logs that were recorded on a Company Leave date
   const myLogs = useMemo(() => {
@@ -127,6 +128,16 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       .then(data => {
         if (data.success) {
           setOutstations(data.assignments || []);
+        }
+      })
+      .catch(console.error);
+
+    fetch(`${API_BASE_URL}/api/work-assignments-all`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const userAssignments = (data.assignments || []).filter((a: any) => String(a.user_id) === String(userId));
+          setTemporaryAssignments(userAssignments);
         }
       })
       .catch(console.error);
@@ -498,6 +509,17 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     { name: 'Emergency Leave', value: monthEmg, color: "#DC2626" },
   ].filter(d => d.value > 0);
 
+  let topLeave = { name: "None", value: 0 };
+  if (monthPieData.length > 0) {
+    topLeave = monthPieData.reduce((prev, current) => (prev.value > current.value) ? prev : current);
+  }
+
+  const monthOutstationsCount = outstations.filter(o => {
+    if (month === "all") return true;
+    const d = new Date(o.start_date);
+    return (d.getMonth() + 1) === parseInt(month) && d.getFullYear() === parseInt(year);
+  }).length;
+
   // Clock in analysis (New logic)
   let totalTimeMs = 0;
   let earliest = "23:59:59";
@@ -633,10 +655,75 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     }
   }
 
+  // Today Clock-in
+  let todayClockIn = "--:-- AM";
+  const todayStr = getLocalDateString(new Date());
+  const todayLog = myLogs.find(l => {
+    if (l.date) return l.date === todayStr;
+    if (l.clock_in) return getLocalDateString(l.clock_in) === todayStr;
+    return false;
+  });
+  if (todayLog && todayLog.clock_in) {
+    const d = new Date(todayLog.clock_in);
+    if (!isNaN(d.getTime())) {
+      const klTime = new Date(d.getTime() + 8 * 60 * 60 * 1000);
+      const timeStr = klTime.toISOString().split("T")[1];
+      todayClockIn = formatTime(timeStr);
+    }
+  }
+
+  // Upcoming Events Logic
+  const upcomingEvents = useMemo(() => {
+    const events: any[] = [];
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    // Leaves
+    approvedLeaves.forEach(l => {
+      const start = new Date(l.start_date);
+      if (start >= today) {
+        events.push({ type: 'Leave', title: l.leave_type, date: start, label: 'Approved Leave', color: 'bg-blue-500' });
+      }
+    });
+    // Outstations
+    outstations.forEach(o => {
+      if (o.status !== 'Cancelled') {
+        const start = new Date(o.start_date);
+        if (start >= today) {
+          events.push({ type: 'Outstation', title: o.destination || 'Outstation', date: start, label: 'Approved', color: 'bg-pink-500' });
+        }
+      }
+    });
+    // Temporary Assignments
+    temporaryAssignments.forEach(t => {
+      if (t.status !== 'Cancelled') {
+        const start = new Date(t.start_date);
+        if (start >= today) {
+          events.push({ type: 'Branch Transfer', title: `To ${t.branch_name}`, date: start, label: 'Temp Assignment', color: 'bg-[#a01497]' });
+        }
+      }
+    });
+
+    events.sort((a, b) => a.date.getTime() - b.date.getTime());
+    return events.slice(0, 5); // top 5
+  }, [approvedLeaves, outstations, temporaryAssignments]);
+
+  const insights = useMemo(() => {
+    const list: string[] = [];
+    if (attendanceRate >= 95) list.push(`✅ Excellent attendance rate of ${attendanceRate}%.`);
+    if (lateArrivals > 0) list.push(`⚠️ You have ${lateArrivals} late arrival${lateArrivals > 1 ? 's' : ''} this month.`);
+    if (streak >= 10) list.push(`🎉 Perfect attendance streak of ${streak} days.`);
+    if (leaveBalanceRemaining > 0) list.push(`📌 You have ${leaveBalanceRemaining} leave days remaining.`);
+    if (profile?.total_adjustment > 0) list.push(`🎁 HR adjusted your leave by +${profile.total_adjustment} days.`);
+    if (monthOutstationsCount > 0) list.push(`🚗 You have ${monthOutstationsCount} outstation request${monthOutstationsCount > 1 ? 's' : ''}.`);
+    if (list.length === 0) list.push("Keep up the good work!");
+    return list;
+  }, [attendanceRate, lateArrivals, streak, leaveBalanceRemaining, profile, monthOutstationsCount]);
+
   return (
     <div className="space-y-4 animate-in fade-in">
       {/* ROW 1: Key Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         {/* Attendance Rate */}
         <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-2 ring-slate-300 dark:ring-slate-600 hover:ring-[#7B0099]/40">
           <CardContent className="p-4 flex items-center gap-3">
@@ -649,51 +736,56 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <Info className="w-3 h-3 text-muted-foreground/50" />
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black text-foreground">{attendanceRate}%</span>
+                <span className="text-xl font-black text-foreground">{attendanceRate}%</span>
               </div>
               <div className="flex items-center gap-1 mt-0.5">
                 {processedLastMonthLogs.length > 0 && rateDiff !== 0 ? (
                   <>
                     {rateDiff > 0 ? <ArrowUpRight className="w-3 h-3 text-emerald-500" /> : <ArrowDownRight className="w-3 h-3 text-rose-500" />}
                     <span className={`text-[10px] font-bold ${rateDiff > 0 ? "text-emerald-500" : "text-rose-500"}`}>
-                      {Math.abs(rateDiff)}% {month === "all" ? "from last year" : "from last month"}
+                      {Math.abs(rateDiff)}%
                     </span>
                   </>
                 ) : (
-                  <span className="text-[10px] font-medium text-muted-foreground">-- {month === "all" ? "from last year" : "from last month"}</span>
+                  <span className="text-[10px] font-medium text-muted-foreground">--</span>
                 )}
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Average Work Hours */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-amber-500/20">
+        {/* Late Arrivals */}
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-rose-500/20">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-12 h-12 rounded-[14px] bg-amber-500/10 flex items-center justify-center shrink-0">
-              <Clock className="w-6 h-6 text-amber-500" />
+            <div className="w-12 h-12 rounded-[14px] bg-rose-500/10 flex items-center justify-center shrink-0">
+              <Clock className="w-6 h-6 text-rose-500" />
             </div>
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">AVERAGE WORK HOURS</span>
-                <Info className="w-3 h-3 text-muted-foreground/50" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">LATE ARRIVALS</span>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-foreground">{avgWorkHours.toFixed(1)}</span>
-                <span className="text-sm font-bold text-foreground ml-1">hrs</span>
+                <span className="text-xl font-black text-foreground">{lateArrivals}</span>
               </div>
-              <div className="flex items-center gap-1 mt-0.5">
-                {workHoursTrend.hasPrevData && workHoursTrend.diff !== 0 ? (
-                  <>
-                    {workHoursTrend.diff > 0 ? <ArrowUpRight className="w-3 h-3 text-emerald-500" /> : <ArrowDownRight className="w-3 h-3 text-rose-500" />}
-                    <span className={`text-[10px] font-bold ${workHoursTrend.diff > 0 ? "text-emerald-500" : "text-rose-500"}`}>
-                      {workHoursTrend.diff > 0 ? `+${workHoursTrend.diff}` : workHoursTrend.diff} hrs {month === "all" ? "from last year" : "from last month"}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-[10px] font-medium text-muted-foreground">-- {month === "all" ? "from last year" : "from last month"}</span>
-                )}
+              <p className="text-[10px] font-medium text-muted-foreground mt-0.5">Days Late</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Absent Days */}
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-red-500/20">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="w-12 h-12 rounded-[14px] bg-red-500/10 flex items-center justify-center shrink-0">
+              <Flame className="w-6 h-6 text-red-500" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">ABSENT DAYS</span>
               </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl font-black text-foreground">{absentDays}</span>
+              </div>
+              <p className="text-[10px] font-medium text-muted-foreground mt-0.5">Total Absences</p>
             </div>
           </CardContent>
         </Card>
@@ -707,35 +799,48 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">LEAVE BALANCE</span>
-                <Info className="w-3 h-3 text-muted-foreground/50" />
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-foreground">{leaveBalanceRemaining}</span>
-                <span className="text-sm font-bold text-muted-foreground">/ {totalEntitlement}</span>
+                <span className="text-xl font-black text-foreground">{leaveBalanceRemaining}</span>
+                <span className="text-xs font-bold text-muted-foreground">/ {totalEntitlement}</span>
               </div>
-              <p className="text-[10px] font-medium text-muted-foreground mt-0.5">Days Remaining</p>
+              <p className="text-[10px] font-medium text-muted-foreground mt-0.5">Remaining</p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Attendance Rank */}
+        {/* Outstation Requests */}
         <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-blue-500/20">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-12 h-12 rounded-[14px] bg-blue-500/10 flex items-center justify-center shrink-0">
-              <Trophy className="w-6 h-6 text-blue-500" />
+              <ArrowUpRight className="w-6 h-6 text-blue-500" />
             </div>
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">ATTENDANCE RANK</span>
-                <Info className="w-3 h-3 text-muted-foreground/50" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">OUTSTATION</span>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-foreground">#{rankData.rank || '-'}</span>
-                <span className="text-sm font-bold text-muted-foreground">of {rankData.total || '-'}</span>
+                <span className="text-xl font-black text-foreground">{monthOutstationsCount}</span>
               </div>
-              <p className="text-[10px] font-medium text-muted-foreground mt-0.5">
-                {rankData.total ? `Top ${Math.max(1, Math.round((rankData.rank! / rankData.total) * 100))}%` : 'Company Ranking'}
-              </p>
+              <p className="text-[10px] font-medium text-muted-foreground mt-0.5">Requests</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Top Leave */}
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-purple-500/20">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="w-12 h-12 rounded-[14px] bg-purple-500/10 flex items-center justify-center shrink-0">
+              <Trophy className="w-6 h-6 text-purple-500" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">TOP LEAVE</span>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-sm font-black text-foreground">{topLeave.name}</span>
+              </div>
+              <p className="text-[10px] font-medium text-muted-foreground mt-0.5">Most used</p>
             </div>
           </CardContent>
         </Card>
@@ -950,9 +1055,15 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               <Clock className="w-3.5 h-3.5 text-[#7B0099]" /> CLOCK-IN ANALYSIS
             </h3>
             
-            <div className="mb-6">
-              <p className="text-3xl font-black text-foreground">{avgFmt}</p>
-              <p className="text-xs font-bold text-muted-foreground">Average Clock In</p>
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div>
+                <p className="text-3xl font-black text-foreground">{todayClockIn}</p>
+                <p className="text-xs font-bold text-muted-foreground">Today's Clock In</p>
+              </div>
+              <div className="text-right">
+                <p className="text-3xl font-black text-foreground">{avgFmt}</p>
+                <p className="text-xs font-bold text-muted-foreground">Average Clock In</p>
+              </div>
             </div>
             
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
@@ -1088,7 +1199,57 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
       </div>
       
-      {/* ROW 4: Replacement Leaves Table */}
+      {/* ROW 4: Upcoming Events and Personal Insights */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mt-3">
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card lg:col-span-2 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20">
+          <CardContent className="p-5 h-full flex flex-col">
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5 mb-4">
+              <Calendar className="w-3.5 h-3.5 text-blue-500" /> UPCOMING EVENTS
+            </h3>
+            <div className="space-y-3">
+              {upcomingEvents.length > 0 ? (
+                upcomingEvents.map((event, idx) => (
+                  <div key={idx} className="flex items-center gap-3 p-3 bg-muted/20 rounded-xl border border-border/50">
+                    <div className={`w-10 h-10 rounded-lg ${event.color} text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm`}>
+                      {event.date.getDate()}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-foreground">{event.title}</p>
+                      <p className="text-xs text-muted-foreground font-medium">{event.date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</p>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-muted rounded-md text-muted-foreground">
+                        {event.label}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center p-6 bg-muted/20 rounded-xl border border-border/50">
+                  <p className="text-sm font-bold text-muted-foreground">No upcoming events scheduled</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20">
+          <CardContent className="p-5 h-full flex flex-col">
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5 mb-4">
+              <Zap className="w-3.5 h-3.5 text-amber-500" /> PERSONAL INSIGHTS
+            </h3>
+            <div className="space-y-3">
+              {insights.map((insight, idx) => (
+                <div key={idx} className="flex items-start gap-2.5 p-3 bg-amber-500/5 rounded-xl border border-amber-500/10">
+                  <p className="text-sm font-medium text-foreground">{insight}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* ROW 5: Replacement Leaves Table */}
       {replacementLeaves.length > 0 && (
         <div className="mt-3">
           <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card">
