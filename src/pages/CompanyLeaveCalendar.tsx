@@ -190,7 +190,7 @@ const CompanyLeaveCalendar = () => {
             <CardDescription>All global leave dates that affect attendance calculation.</CardDescription>
           </div>
           {isHR && (
-            <Button onClick={() => handleOpenDialog()} className="bg-purple-600 hover:bg-purple-700">
+            <Button onClick={() => handleOpenDialog()} className="bg-[#a01497] hover:bg-[#850f7c] text-white">
               <Plus className="w-4 h-4 mr-2" /> Add Company Leave
             </Button>
           )}

@@ -445,7 +445,7 @@ export default function Dashboard() {
   if (loading && !dashboardUserId) {
     return (
       <div className="flex flex-col h-[80vh] items-center justify-center space-y-4">
-        <Loader2 className="animate-spin text-[#7B0099] w-12 h-12" />
+        <Loader2 className="animate-spin text-[#a01497] w-12 h-12" />
         <p className="text-muted-foreground animate-pulse font-medium">
           Loading your workspace...
         </p>
@@ -514,10 +514,10 @@ export default function Dashboard() {
                 variant="outline"
                 className={cn(
                   "h-10 px-3.5 text-xs font-bold rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-card shadow-sm hover:bg-slate-50 dark:hover:bg-slate-900/50 flex items-center gap-2",
-                  !isToday(selectedDate) && "text-[#7B0099] border-[#7B0099]/30 bg-purple-50/50 dark:bg-purple-950/20"
+                  !isToday(selectedDate) && "text-[#a01497] border-[#a01497]/30 bg-purple-50/50 dark:bg-purple-950/20"
                 )}
               >
-                <CalendarDays className="h-4 w-4 text-purple-600" />
+                <CalendarDays className="h-4 w-4 text-[#a01497]" />
                 <span>
                   {isToday(selectedDate) ? "Today" : format(selectedDate, "dd MMM yyyy")}
                 </span>
@@ -622,7 +622,7 @@ export default function Dashboard() {
                           <div className="flex items-center gap-4 min-w-0">
                             <div className="w-16 h-16 shrink-0 drop-shadow-sm transition-transform duration-500 group-hover:scale-105">
                               <div className="w-full h-full bg-white dark:bg-card rounded-xl shadow-sm border border-purple-100 flex flex-col overflow-hidden">
-                                <div className="bg-[#7B0099] py-1 flex justify-center items-center gap-2 relative">
+                                <div className="bg-[#a01497] py-1 flex justify-center items-center gap-2 relative">
                                   <span className="text-[9px] font-black text-white uppercase tracking-widest">{new Date().toLocaleDateString('en-US', { month: 'short' })}</span>
                                 </div>
                                 <div className="flex-1 bg-gradient-to-b from-white to-purple-50 flex flex-col items-center justify-center">
@@ -632,11 +632,11 @@ export default function Dashboard() {
                               </div>
                             </div>
                             <div className="space-y-1 min-w-0">
-                              <p className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest truncate">Company Leave</p>
+                              <p className="text-[10px] font-black text-[#a01497] uppercase tracking-widest truncate">Company Leave</p>
                               <h3 className="text-lg font-black text-slate-800 dark:text-slate-200 tracking-tighter truncate">
                                 {stats.activeCompanyLeave.title || stats.activeCompanyLeave.leave_name || "COMPANY TRIP"}
                               </h3>
-                              <Badge className="bg-[#7B0099] hover:bg-[#60007A] text-white uppercase text-[9px] tracking-wider font-black border-none shadow-sm rounded-full px-2.5 py-0.5 mt-1">
+                              <Badge className="bg-[#a01497] hover:bg-[#60007A] text-white uppercase text-[9px] tracking-wider font-black border-none shadow-sm rounded-full px-2.5 py-0.5 mt-1">
                                 {(() => {
                                   if (!stats.activeCompanyLeave?.start_date) return "COMPANY TRIP";
                                   const start = new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
@@ -647,8 +647,8 @@ export default function Dashboard() {
                             </div>
                           </div>
                           <div className="flex flex-col items-end justify-between h-full py-1 shrink-0">
-                            <CalendarDays className="w-5 h-5 text-[#7B0099]/40 mb-auto" />
-                            <div className="flex items-center gap-1 text-[#7B0099] font-bold text-[10px] uppercase tracking-wider group-hover:gap-2 transition-all opacity-80 hover:opacity-100 mt-4">
+                            <CalendarDays className="w-5 h-5 text-[#a01497]/40 mb-auto" />
+                            <div className="flex items-center gap-1 text-[#a01497] font-bold text-[10px] uppercase tracking-wider group-hover:gap-2 transition-all opacity-80 hover:opacity-100 mt-4">
                               View Details <ChevronRight className="w-3 h-3" />
                             </div>
                           </div>
@@ -709,7 +709,7 @@ export default function Dashboard() {
                         <div className="flex items-center gap-4 sm:gap-6 min-w-0">
                           <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 drop-shadow-md transition-transform duration-500 group-hover:scale-105 group-hover:-rotate-3">
                             <div className="w-full h-full bg-white dark:bg-card rounded-xl shadow-md border border-purple-100 flex flex-col overflow-hidden">
-                              <div className="bg-[#7B0099] py-1 sm:py-1.5 flex justify-center items-center gap-3 relative overflow-hidden">
+                              <div className="bg-[#a01497] py-1 sm:py-1.5 flex justify-center items-center gap-3 relative overflow-hidden">
                                 <div className="absolute inset-0 bg-white/10" />
                                 <div className="w-1.5 h-1.5 rounded-full bg-white/80 shadow-sm z-10" />
                                 <span className="text-[9px] sm:text-[11px] font-black text-white uppercase tracking-widest z-10">{new Date().toLocaleDateString('en-US', { month: 'short' })}</span>
@@ -727,7 +727,7 @@ export default function Dashboard() {
                               {stats.activeCompanyLeave.title || stats.activeCompanyLeave.leave_name || "COMPANY TRIP"}
                             </h3>
                             <div className="flex items-center gap-2 mt-1">
-                              <Badge className="bg-[#7B0099] hover:bg-[#60007A] text-white uppercase text-[9px] sm:text-[10px] tracking-wider font-black border-none shadow-sm rounded-full px-2.5 py-0.5">
+                              <Badge className="bg-[#a01497] hover:bg-[#60007A] text-white uppercase text-[9px] sm:text-[10px] tracking-wider font-black border-none shadow-sm rounded-full px-2.5 py-0.5">
                                 {(() => {
                                   if (!stats.activeCompanyLeave?.start_date) return "COMPANY TRIP";
                                   const start = new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
@@ -740,15 +740,15 @@ export default function Dashboard() {
                         </div>
                         <div className="flex flex-col items-end justify-between h-full py-1 shrink-0">
                           <div className="w-8 h-8 rounded-full bg-white/60 flex items-center justify-center shrink-0 shadow-sm border border-white">
-                            <CalendarCheck className="w-4 h-4 text-[#7B0099]" />
+                            <CalendarCheck className="w-4 h-4 text-[#a01497]" />
                           </div>
                           <div className="flex flex-col items-end mt-1">
                             <p className="text-[9px] sm:text-[10px] font-semibold text-[#5c0073]/70 uppercase tracking-widest mb-0.5">Applies to</p>
-                            <p className="text-[10px] sm:text-[11px] font-black text-[#7B0099] uppercase tracking-wider bg-white/50 px-2 py-0.5 rounded-md border border-white/50 shadow-sm">
+                            <p className="text-[10px] sm:text-[11px] font-black text-[#a01497] uppercase tracking-wider bg-white/50 px-2 py-0.5 rounded-md border border-white/50 shadow-sm">
                               {stats.activeCompanyLeave.applies_to === 'all' ? 'All Staff' : stats.activeCompanyLeave.applies_to === 'branch' ? `Branch: ${stats.activeCompanyLeave.branch_id}` : stats.activeCompanyLeave.applies_to === 'department' ? `Dept: ${stats.activeCompanyLeave.department_id}` : stats.activeCompanyLeave.applies_to}
                             </p>
                           </div>
-                          <div className="flex items-center gap-1 text-[#7B0099] font-bold text-[10px] sm:text-[11px] uppercase tracking-wider group-hover:gap-2 transition-all opacity-80 hover:opacity-100 mt-2">
+                          <div className="flex items-center gap-1 text-[#a01497] font-bold text-[10px] sm:text-[11px] uppercase tracking-wider group-hover:gap-2 transition-all opacity-80 hover:opacity-100 mt-2">
                             View Details <ChevronRight className="w-3 h-3" />
                           </div>
                         </div>
@@ -783,15 +783,15 @@ export default function Dashboard() {
                 {stats.activeCompanyLeave ? (
                   <div onClick={() => navigate("/calendar/company-leave")} className="cursor-pointer">
                     <Card className="border-none shadow-md bg-card overflow-hidden h-[120px] sm:h-[130px] flex flex-col relative group transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-                      <div className="absolute top-0 right-0 p-3 opacity-10 transition-transform duration-500 group-hover:scale-110 group-hover:opacity-20 text-[#7B0099]">
+                      <div className="absolute top-0 right-0 p-3 opacity-10 transition-transform duration-500 group-hover:scale-110 group-hover:opacity-20 text-[#a01497]">
                         <CalendarCheck className="w-16 h-16 sm:w-20 sm:h-20" />
                       </div>
                       <CardContent className="p-4 sm:p-5 flex flex-col justify-between h-full flex-grow relative z-10">
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between">
                             <p className="text-[10px] sm:text-[11px] font-black text-muted-foreground uppercase tracking-widest truncate">Company Leave</p>
-                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#7B0099]/10 flex items-center justify-center shrink-0">
-                              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7B0099]" />
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#a01497]/10 flex items-center justify-center shrink-0">
+                              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#a01497]" />
                             </div>
                           </div>
                           <div className="flex items-baseline gap-2">
@@ -800,7 +800,7 @@ export default function Dashboard() {
                             </h3>
                           </div>
                           <div className="flex flex-col gap-1 mt-1">
-                            <Badge variant="outline" className="w-fit border-[#7B0099]/20 text-[#7B0099] bg-[#7B0099]/5 uppercase text-[8px] tracking-wider font-black">
+                            <Badge variant="outline" className="w-fit border-[#a01497]/20 text-[#a01497] bg-[#a01497]/5 uppercase text-[8px] tracking-wider font-black">
                               📅 {(() => {
                                 if (!stats.activeCompanyLeave?.start_date) return "COMPANY TRIP";
                                 const start = new Date(stats.activeCompanyLeave.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
@@ -879,8 +879,8 @@ export default function Dashboard() {
         <Card className="border-none shadow-[0_2px_12px_rgba(0,0,0,0.06)] rounded-[20px] overflow-hidden bg-white dark:bg-card mb-6 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 fill-mode-both">
           <CardHeader className="border-b border-border/50 pb-3 px-4 flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-card gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#7B0099]/10 rounded-xl">
-                <Scale className="w-5 h-5 text-[#7B0099]" />
+              <div className="p-2 bg-[#a01497]/10 rounded-xl">
+                <Scale className="w-5 h-5 text-[#a01497]" />
               </div>
               <div>
                 <CardTitle className="text-base font-black text-slate-800 dark:text-slate-100 tracking-tight uppercase">
@@ -893,7 +893,7 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center gap-4 text-[10px] font-bold text-slate-500">
               <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-[#7B0099]"></div>
+                <div className="w-2 h-2 rounded-full bg-[#a01497]"></div>
                 Today ({new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})
               </div>
               <div className="flex items-center gap-1.5">
@@ -933,7 +933,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex justify-between items-end mb-4 flex-1 px-2">
                       <div className="flex flex-col items-center">
-                        <span className="text-xl font-black text-[#7B0099]">{todayTotal}</span>
+                        <span className="text-xl font-black text-[#a01497]">{todayTotal}</span>
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
                       </div>
                       <div className="flex flex-col items-center">
@@ -942,7 +942,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200 dark:border-slate-800">
-                      <div className="w-8 bg-[#7B0099] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
+                      <div className="w-8 bg-[#a01497] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
                       <div className="w-8 bg-slate-300 rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
                     </div>
                     <div className="absolute bottom-[-1px] left-0 right-0 h-[3px] bg-emerald-400 rounded-b-xl"></div>
@@ -959,7 +959,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex justify-between items-end mb-4 flex-1 px-2">
                       <div className="flex flex-col items-center">
-                        <span className="text-xl font-black text-[#7B0099]">{todayPresent}</span>
+                        <span className="text-xl font-black text-[#a01497]">{todayPresent}</span>
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
                       </div>
                       <div className="flex flex-col items-center">
@@ -968,7 +968,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200 dark:border-slate-800">
-                      <div className="w-8 bg-[#7B0099] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: typicalPresent ? `${(todayPresent/typicalPresent)*100}%` : '0%' }}></div>
+                      <div className="w-8 bg-[#a01497] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: typicalPresent ? `${(todayPresent/typicalPresent)*100}%` : '0%' }}></div>
                       <div className="w-8 bg-slate-300 rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
                     </div>
                     <div className="absolute bottom-[-1px] left-0 right-0 h-[3px] bg-red-400 rounded-b-xl"></div>
@@ -982,7 +982,7 @@ export default function Dashboard() {
                   {/* Affected By Company Leave */}
                   <div className="bg-white dark:bg-card rounded-xl border border-slate-100 dark:border-slate-800 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col relative h-[180px]">
                     <div className="flex items-center gap-2 mb-4">
-                      <div className="w-6 h-6 rounded-md bg-[#7B0099]/10 text-[#7B0099] flex items-center justify-center shrink-0">
+                      <div className="w-6 h-6 rounded-md bg-[#a01497]/10 text-[#a01497] flex items-center justify-center shrink-0">
                         <Users className="w-3.5 h-3.5" />
                       </div>
                       <span className="text-[10px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest leading-tight">Affected By<br/>Company Leave</span>
@@ -990,7 +990,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex justify-between items-end mb-4 flex-1 px-2">
                       <div className="flex flex-col items-center">
-                        <span className="text-xl font-black text-[#7B0099]">{todayAffected}</span>
+                        <span className="text-xl font-black text-[#a01497]">{todayAffected}</span>
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
                       </div>
                       <div className="flex flex-col items-center">
@@ -999,7 +999,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200 dark:border-slate-800">
-                      <div className="w-8 bg-[#7B0099] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
+                      <div className="w-8 bg-[#a01497] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
                       <div className="w-8 bg-slate-300 rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '2%' }}></div>
                     </div>
                     <div className="absolute bottom-[-1px] left-0 right-0 h-[3px] bg-emerald-400 rounded-b-xl"></div>
@@ -1021,7 +1021,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex justify-between items-end mb-4 flex-1 px-2">
                       <div className="flex flex-col items-center">
-                        <span className="text-xl font-black text-[#7B0099]">{todayAttendanceRate.toFixed(1)}%</span>
+                        <span className="text-xl font-black text-[#a01497]">{todayAttendanceRate.toFixed(1)}%</span>
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
                       </div>
                       <div className="flex flex-col items-center">
@@ -1030,7 +1030,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200 dark:border-slate-800">
-                      <div className="w-8 bg-[#7B0099] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: typicalAttendanceRate ? `${(todayAttendanceRate/typicalAttendanceRate)*100}%` : '0%' }}></div>
+                      <div className="w-8 bg-[#a01497] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: typicalAttendanceRate ? `${(todayAttendanceRate/typicalAttendanceRate)*100}%` : '0%' }}></div>
                       <div className="w-8 bg-slate-300 rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
                     </div>
                     <div className="absolute bottom-[-1px] left-0 right-0 h-[3px] bg-red-400 rounded-b-xl"></div>
@@ -1052,7 +1052,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex justify-between items-end mb-4 flex-1 px-2">
                       <div className="flex flex-col items-center">
-                        <span className="text-xl font-black text-[#7B0099]">{todayLate}</span>
+                        <span className="text-xl font-black text-[#a01497]">{todayLate}</span>
                         <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
                       </div>
                       <div className="flex flex-col items-center">
@@ -1061,7 +1061,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200 dark:border-slate-800">
-                      <div className="w-8 bg-[#7B0099] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: todayLate > 0 ? `${(todayLate/typicalLate)*100}%` : '2%' }}></div>
+                      <div className="w-8 bg-[#a01497] rounded-t-sm transition-all duration-1000 delay-300" style={{ height: todayLate > 0 ? `${(todayLate/typicalLate)*100}%` : '2%' }}></div>
                       <div className="w-8 bg-slate-300 rounded-t-sm transition-all duration-1000 delay-300" style={{ height: '100%' }}></div>
                     </div>
                     <div className="absolute bottom-[-1px] left-0 right-0 h-[3px] bg-emerald-400 rounded-b-xl"></div>
@@ -1077,12 +1077,12 @@ export default function Dashboard() {
 
             <div className="mt-10 bg-gradient-to-r from-purple-50/80 to-purple-50/50 rounded-xl p-3 sm:p-4 border border-purple-100 flex items-start gap-3 sm:gap-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
               <div className="w-8 h-8 rounded-full bg-white dark:bg-card shadow-sm flex items-center justify-center shrink-0 border border-purple-100">
-                <Info className="w-4 h-4 text-[#7B0099]" />
+                <Info className="w-4 h-4 text-[#a01497]" />
               </div>
               <div className="pt-0.5">
                 <p className="text-xs font-black text-[#1a0029] mb-1">Why the difference?</p>
                 <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
-                  Today's attendance is lower because <span className="font-bold text-[#7B0099] bg-white dark:bg-card px-1 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800">{stats.companyLeave || 0} employees</span> are on Company Leave (<span className="font-bold">{stats.activeCompanyLeave.title || "Company Trip"}</span>) which applies to <span className="font-bold text-[#7B0099] bg-white dark:bg-card px-1 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800 uppercase">{stats.activeCompanyLeave.applies_to === 'all' ? 'ALL STAFF' : stats.activeCompanyLeave.applies_to === 'branch' ? `BRANCH ${stats.activeCompanyLeave.branch_id}` : `DEPT ${stats.activeCompanyLeave.department_id}`}</span>.
+                  Today's attendance is lower because <span className="font-bold text-[#a01497] bg-white dark:bg-card px-1 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800">{stats.companyLeave || 0} employees</span> are on Company Leave (<span className="font-bold">{stats.activeCompanyLeave.title || "Company Trip"}</span>) which applies to <span className="font-bold text-[#a01497] bg-white dark:bg-card px-1 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800 uppercase">{stats.activeCompanyLeave.applies_to === 'all' ? 'ALL STAFF' : stats.activeCompanyLeave.applies_to === 'branch' ? `BRANCH ${stats.activeCompanyLeave.branch_id}` : `DEPT ${stats.activeCompanyLeave.department_id}`}</span>.
                 </p>
               </div>
             </div>
@@ -1099,7 +1099,7 @@ export default function Dashboard() {
               <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 px-4 pt-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                   <div className="flex items-start gap-2">
-                    <CalendarOff className="w-5 h-5 text-purple-600 mt-0.5" />
+                    <CalendarOff className="w-5 h-5 text-[#a01497] mt-0.5" />
                     <div>
                       <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                         Who's Out Today
@@ -1113,7 +1113,7 @@ export default function Dashboard() {
                     variant="ghost"
                     size="sm"
                     onClick={() => navigate("/leave/admin")}
-                    className="text-[10px] font-bold text-purple-700 hover:text-purple-800 hover:bg-transparent uppercase tracking-widest px-0 h-auto self-start"
+                    className="text-[10px] font-bold text-[#a01497] hover:text-[#7a0f73] hover:bg-transparent uppercase tracking-widest px-0 h-auto self-start"
                   >
                     VIEW ALL HISTORY →
                   </Button>
@@ -1160,7 +1160,7 @@ export default function Dashboard() {
                           className="cursor-pointer rounded-md border border-slate-200 dark:border-slate-800 hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200 p-3"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded bg-purple-100 flex items-center justify-center text-sm font-bold text-purple-700 shrink-0">
+                            <div className="w-10 h-10 rounded bg-purple-100 flex items-center justify-center text-sm font-bold text-[#a01497] shrink-0">
                               {emp.full_name?.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                             </div>
                             <div className="min-w-0 flex-1">
@@ -1174,7 +1174,7 @@ export default function Dashboard() {
                                 <span className={`text-[9px] font-bold text-white px-2 py-0.5 rounded-sm ${typeInfo.color}`}>
                                   {typeInfo.short}
                                 </span>
-                                <span className="text-[10px] font-bold text-purple-700 uppercase tracking-widest">
+                                <span className="text-[10px] font-bold text-[#a01497] uppercase tracking-widest">
                                   {emp.branch}
                                 </span>
                               </div>
@@ -1200,7 +1200,7 @@ export default function Dashboard() {
             <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-0 px-4 pt-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                 <div className="flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-purple-600" />
+                  <Activity className="w-5 h-5 text-[#a01497]" />
                   <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-100">
                     Recent Activity
                   </CardTitle>
@@ -1228,7 +1228,7 @@ export default function Dashboard() {
                     onClick={() => setActiveTab(tab.key)}
                     className={`pb-2 text-sm font-bold transition-all duration-200 border-b-2 ${
                       activeTab === tab.key
-                        ? "border-purple-700 text-purple-700"
+                        ? "border-purple-700 text-[#a01497]"
                         : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-100"
                     }`}
                   >
@@ -1293,7 +1293,7 @@ export default function Dashboard() {
                     </div>
                     {feedItems.map((item, i) => {
                       const badgeColor: Record<string, string> = {
-                        Present: "text-purple-700 border-purple-200",
+                        Present: "text-[#a01497] border-purple-200",
                         "Clocked Out": "text-slate-600 border-slate-200 dark:border-slate-800",
                         Approved: "text-emerald-700 border-emerald-200",
                         Rejected: "text-red-700 border-red-200",
@@ -1307,9 +1307,9 @@ export default function Dashboard() {
                       const badgeCls = badgeColor[item.badge] || "text-slate-500 border-slate-200 dark:border-slate-800";
                       
                       const typeIcon: Record<string, string> = {
-                        attendance: "text-purple-700",
-                        leave: "text-purple-700",
-                        approval: "text-purple-700",
+                        attendance: "text-[#a01497]",
+                        leave: "text-[#a01497]",
+                        approval: "text-[#a01497]",
                         system: "text-rose-600",
                         outstation: "text-pink-600",
                       };
@@ -1345,7 +1345,7 @@ export default function Dashboard() {
               <div className="p-3 border-t border-slate-100 dark:border-slate-800 flex justify-center">
                 <button
                   onClick={() => navigate("/attendance")}
-                  className="text-[11px] font-bold text-purple-700 hover:underline"
+                  className="text-[11px] font-bold text-[#a01497] hover:underline"
                 >
                   Load More History
                 </button>
@@ -1361,7 +1361,7 @@ export default function Dashboard() {
           <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card">
             <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 px-4 pt-4">
               <div className="flex items-center gap-2">
-                <Zap className="w-5 h-5 text-purple-600" />
+                <Zap className="w-5 h-5 text-[#a01497]" />
                 <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest">
                   Quick Actions
                 </CardTitle>
@@ -1370,16 +1370,16 @@ export default function Dashboard() {
             <CardContent className="p-4">
               <div className="grid grid-cols-2 gap-3">
                 <div onClick={() => navigate("/attendance")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
-                  <Clock className="w-6 h-6 text-purple-700 mb-2" />
+                  <Clock className="w-6 h-6 text-[#a01497] mb-2" />
                   <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Clock In/Out</span>
                 </div>
                 <div onClick={() => navigate("/leave/apply")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
-                  <CalendarCheck className="w-6 h-6 text-purple-700 mb-2" />
+                  <CalendarCheck className="w-6 h-6 text-[#a01497] mb-2" />
                   <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Apply Leave</span>
                 </div>
                 {["hr_admin", "managing_director", "finance_manager", "head_of_department", "branch_leader"].includes(role) && (
                   <div onClick={() => navigate("/outstation")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200 col-span-2">
-                    <MapPin className="w-6 h-6 text-purple-700 mb-2" />
+                    <MapPin className="w-6 h-6 text-[#a01497] mb-2" />
                     <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Outstation</span>
                   </div>
                 )}
@@ -1430,7 +1430,7 @@ export default function Dashboard() {
                       <div className="flex flex-col items-end">
                         <div className="flex -space-x-1.5 mt-0.5">
                           {displayEmps.map((e: any, idx: number) => {
-                            const AVATAR_COLORS = ["bg-purple-100 text-purple-700", "bg-blue-100 text-blue-700", "bg-emerald-100 text-emerald-700", "bg-pink-100 text-pink-700", "bg-amber-100 text-amber-700", "bg-cyan-100 text-cyan-700", "bg-indigo-100 text-indigo-700", "bg-rose-100 text-rose-700"];
+                            const AVATAR_COLORS = ["bg-purple-100 text-[#a01497]", "bg-blue-100 text-blue-700", "bg-emerald-100 text-emerald-700", "bg-pink-100 text-pink-700", "bg-amber-100 text-amber-700", "bg-cyan-100 text-cyan-700", "bg-[#a01497] text-white", "bg-rose-100 text-rose-700"];
                             const color = AVATAR_COLORS[(e.name || '').charCodeAt(0) % AVATAR_COLORS.length];
                             return (
                               <div key={idx} title={e.name} className={`w-5 h-5 rounded-full border border-white dark:border-slate-800 text-[8px] font-bold flex items-center justify-center shadow-sm ${color}`}>
@@ -1439,7 +1439,7 @@ export default function Dashboard() {
                             );
                           })}
                           {extraCount > 0 && (
-                            <div className="w-5 h-5 rounded-full bg-indigo-500 border border-white dark:border-slate-800 text-[8px] font-bold text-white flex items-center justify-center shadow-sm">
+                            <div className="w-5 h-5 rounded-full bg-[#a01497] border border-white dark:border-slate-800 text-[8px] font-bold text-white flex items-center justify-center shadow-sm">
                               +{extraCount}
                             </div>
                           )}
@@ -1462,7 +1462,7 @@ export default function Dashboard() {
               <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest cursor-pointer hover:underline" onClick={() => navigate("/outstation")}>
                 Upcoming Outstation
               </CardTitle>
-              <span onClick={() => navigate("/outstation/calendar")} className="text-[10px] font-bold text-purple-600 uppercase cursor-pointer hover:underline">
+              <span onClick={() => navigate("/outstation/calendar")} className="text-[10px] font-bold text-[#a01497] uppercase cursor-pointer hover:underline">
                 Calendar
               </span>
             </CardHeader>
@@ -1500,7 +1500,7 @@ export default function Dashboard() {
                       <div className="flex flex-col items-end">
                         <div className="flex -space-x-1.5 mt-0.5">
                           {displayEmps.map((e: any, idx: number) => {
-                            const AVATAR_COLORS = ["bg-purple-100 text-purple-700", "bg-blue-100 text-blue-700", "bg-emerald-100 text-emerald-700", "bg-pink-100 text-pink-700", "bg-amber-100 text-amber-700", "bg-cyan-100 text-cyan-700", "bg-indigo-100 text-indigo-700", "bg-rose-100 text-rose-700"];
+                            const AVATAR_COLORS = ["bg-purple-100 text-[#a01497]", "bg-blue-100 text-blue-700", "bg-emerald-100 text-emerald-700", "bg-pink-100 text-pink-700", "bg-amber-100 text-amber-700", "bg-cyan-100 text-cyan-700", "bg-[#a01497] text-white", "bg-rose-100 text-rose-700"];
                             const color = AVATAR_COLORS[(e.name || '').charCodeAt(0) % AVATAR_COLORS.length];
                             return (
                               <div key={idx} title={e.name} className={`w-5 h-5 rounded-full border border-white dark:border-slate-800 text-[8px] font-bold flex items-center justify-center shadow-sm ${color}`}>
@@ -1509,7 +1509,7 @@ export default function Dashboard() {
                             );
                           })}
                           {extraCount > 0 && (
-                            <div className="w-5 h-5 rounded-full bg-indigo-500 border border-white dark:border-slate-800 text-[8px] font-bold text-white flex items-center justify-center shadow-sm">
+                            <div className="w-5 h-5 rounded-full bg-[#a01497] border border-white dark:border-slate-800 text-[8px] font-bold text-white flex items-center justify-center shadow-sm">
                               +{extraCount}
                             </div>
                           )}
