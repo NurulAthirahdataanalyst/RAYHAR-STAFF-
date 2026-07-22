@@ -951,35 +951,35 @@ export default function Branches() {
                           </div>
                         </div>
                         <div className="grid grid-cols-4 gap-2 mt-6">
-                          <div className="bg-emerald-500/10 rounded-[16px] p-3 border border-emerald-500/20 text-center">
+                          <div className="bg-emerald-500/10 rounded-[16px] px-1 py-3 border border-emerald-500/20 text-center">
                             <p className="text-xl font-black text-emerald-600 dark:text-emerald-400 leading-none">
                               {presentToday}
                             </p>
-                            <p className="text-[9px] font-black text-emerald-600/70 dark:text-emerald-400/70 uppercase mt-1">
+                            <p className="text-[8.5px] tracking-tighter font-black text-emerald-600/70 dark:text-emerald-400/70 uppercase mt-1">
                               Present
                             </p>
                           </div>
-                          <div className="bg-amber-500/10 rounded-[16px] p-3 border border-amber-500/20 text-center">
+                          <div className="bg-amber-500/10 rounded-[16px] px-1 py-3 border border-amber-500/20 text-center">
                             <p className="text-xl font-black text-amber-600 dark:text-amber-400 leading-none">
                               {onLeave}
                             </p>
-                            <p className="text-[9px] font-black text-amber-600/70 dark:text-amber-400/70 uppercase mt-1">
+                            <p className="text-[8.5px] tracking-tighter font-black text-amber-600/70 dark:text-amber-400/70 uppercase mt-1">
                               Leave
                             </p>
                           </div>
-                          <div className="bg-blue-500/10 rounded-[16px] p-3 border border-blue-500/20 text-center">
+                          <div className="bg-blue-500/10 rounded-[16px] px-1 py-3 border border-blue-500/20 text-center">
                             <p className="text-xl font-black text-blue-600 dark:text-blue-400 leading-none">
                               {outstation}
                             </p>
-                            <p className="text-[9px] font-black text-blue-600/70 dark:text-blue-400/70 uppercase mt-1">
+                            <p className="text-[8.5px] tracking-tighter font-black text-blue-600/70 dark:text-blue-400/70 uppercase mt-1">
                               Outstation
                             </p>
                           </div>
-                          <div className="bg-rose-500/10 rounded-[16px] p-3 border border-rose-500/20 text-center">
+                          <div className="bg-rose-500/10 rounded-[16px] px-1 py-3 border border-rose-500/20 text-center">
                             <p className="text-xl font-black text-rose-600 dark:text-rose-400 leading-none">
                               {absent}
                             </p>
-                            <p className="text-[9px] font-black text-rose-600/70 dark:text-rose-400/70 uppercase mt-1">
+                            <p className="text-[8.5px] tracking-tighter font-black text-rose-600/70 dark:text-rose-400/70 uppercase mt-1">
                               Absent
                             </p>
                           </div>
