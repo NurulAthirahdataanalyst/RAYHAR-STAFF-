@@ -41,13 +41,12 @@ import {
   Plus,
   Search,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../config/api";
 import { toast } from "sonner";
+import { useReactToPrint } from "react-to-print";
 import { getCleanReason } from "@/lib/leaveStorage";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 
 const branches = [
   {
@@ -207,6 +206,12 @@ export default function Branches() {
   const [selectedBranch, setSelectedBranch] = useState<any | null>(null);
   const [employees, setEmployees] = useState<BranchEmployee[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  const printTargetIdRef = useRef<string | null>(null);
+  const handlePrint = useReactToPrint({
+    content: () => printTargetIdRef.current ? document.getElementById(`leave-form-${printTargetIdRef.current}`) : null,
+  });
   const [loading, setLoading] = useState(false);
   const [viewLeaveStatus, setViewLeaveStatus] = useState<
     "Approved" | "Pending" | "Rejected" | null
@@ -1278,19 +1283,14 @@ export default function Branches() {
                           {/* Save to PDF Button */}
                           <div className="flex justify-end mb-2">
                             <button
-                              onClick={async () => {
-                                const el = document.getElementById(`leave-form-${req.leave_id}`);
-                                if (!el) return;
-                                const btn = el.querySelector('.pdf-btn') as HTMLElement;
-                                if (btn) btn.style.display = 'none';
-                                const canvas = await html2canvas(el, { scale: 2, useCORS: true });
-                                if (btn) btn.style.display = '';
-                                const imgData = canvas.toDataURL('image/png');
-                                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-                                const pdfWidth = pdf.internal.pageSize.getWidth();
-                                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                                pdf.save(`Leave_Form_${selectedEmployee?.full_name?.replace(/ /g,'_') || 'Staff'}_${req.start_date}.pdf`);
+                              onClick={() => {
+                                printTargetIdRef.current = req.leave_id;
+                                const originalTitle = document.title;
+                                document.title = `Leave_Form_${selectedEmployee?.full_name?.replace(/ /g,'_') || 'Staff'}_${req.start_date}`;
+                                handlePrint();
+                                setTimeout(() => {
+                                  document.title = originalTitle;
+                                }, 500);
                               }}
                               className="pdf-btn flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-[#7B0099] text-white px-3 py-2 rounded-xl hover:bg-[#5e0080] transition-colors shadow-md"
                             >
@@ -1379,7 +1379,7 @@ export default function Branches() {
                           {(req.leave_type === "Sick Leave" ||
                             req.leave_type === "Cuti Sakit") &&
                             req.mc_file_url && (
-                              <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group pdf-hide">
+                              <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-[16px] flex items-center justify-between group print:hidden">
                                 <div className="flex items-center gap-3">
                                   <FileText className="w-5 h-5 text-[#7B0099]" />
                                   <span className="text-[10px] font-black text-[#7B0099] uppercase tracking-widest">
@@ -1479,7 +1479,8 @@ export default function Branches() {
                             </div>
                           )}
 
-                          <div className="grid grid-cols-2 gap-16 pt-12 pb-4">
+                          {/* Signatures hidden on screen, visible on print */}
+                          <div className="hidden print:grid grid-cols-2 gap-16 pt-12 pb-4">
                             <div className="border-t border-foreground pt-2 text-center">
                               <p className="text-[10px] font-bold uppercase">Tandatangan Kakitangan</p>
                             </div>
