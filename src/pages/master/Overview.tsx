@@ -580,7 +580,7 @@ export default function MasterOverview() {
               <div className="p-6 border-t border-border/40 bg-muted/5 mt-auto">
                 <Button 
                   onClick={() => setShowAssignModal(true)}
-                  className="w-full py-5 rounded-xl bg-[#ebdf00] hover:bg-[#d4c900] text-black font-black text-[10px] uppercase tracking-widest shadow-md flex items-center justify-center gap-1.5"
+                  className="w-full py-5 rounded-xl bg-[#fff200] hover:bg-[#e6da00] text-black font-black text-[10px] uppercase tracking-widest shadow-md flex items-center justify-center gap-1.5"
                 >
                   View All Assignments
                   <ChevronRight className="w-4 h-4" />
