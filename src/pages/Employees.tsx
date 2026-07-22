@@ -64,7 +64,7 @@ export default function Employees() {
   const printRef = useRef<HTMLDivElement>(null);
   
   const handlePrint = useReactToPrint({
-    content: () => printRef.current,
+    contentRef: printRef,
   });
   const [search, setSearch] = useState("");
   const [selectedBranch, setSelectedBranch] = useState("All");

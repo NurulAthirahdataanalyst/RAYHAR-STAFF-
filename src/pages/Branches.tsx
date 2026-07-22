@@ -208,10 +208,7 @@ export default function Branches() {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   
-  const printTargetIdRef = useRef<string | null>(null);
-  const handlePrint = useReactToPrint({
-    content: () => printTargetIdRef.current ? document.getElementById(`leave-form-${printTargetIdRef.current}`) : null,
-  });
+  const handlePrint = useReactToPrint();
   const [loading, setLoading] = useState(false);
   const [viewLeaveStatus, setViewLeaveStatus] = useState<
     "Approved" | "Pending" | "Rejected" | null
@@ -1284,10 +1281,11 @@ export default function Branches() {
                           <div className="flex justify-end mb-2">
                             <button
                               onClick={() => {
-                                printTargetIdRef.current = req.leave_id;
+                                const el = document.getElementById(`leave-form-${req.leave_id}`);
+                                if (!el) return;
                                 const originalTitle = document.title;
                                 document.title = `Leave_Form_${selectedEmployee?.full_name?.replace(/ /g,'_') || 'Staff'}_${req.start_date}`;
-                                handlePrint();
+                                handlePrint(() => el);
                                 setTimeout(() => {
                                   document.title = originalTitle;
                                 }, 500);
