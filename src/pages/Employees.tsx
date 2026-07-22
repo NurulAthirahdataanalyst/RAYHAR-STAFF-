@@ -17,8 +17,9 @@ import {
   Download,
   Printer
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useReactToPrint } from "react-to-print";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
@@ -60,6 +61,11 @@ const BRANCH_NAMES: Record<string, string> = {
 
 export default function Employees() {
   const { role, userBranch, userDepartment } = useRole();
+  const printRef = useRef<HTMLDivElement>(null);
+  
+  const handlePrint = useReactToPrint({
+    content: () => printRef.current,
+  });
   const [search, setSearch] = useState("");
   const [selectedBranch, setSelectedBranch] = useState("All");
   const [selectedPosition, setSelectedPosition] = useState("All");
@@ -1265,7 +1271,7 @@ export default function Employees() {
                   </DialogHeader>
                 </div>
 
-                <div id="leave-form-print" className="p-4 sm:p-6 space-y-4">
+                <div id="leave-form-print" ref={printRef} className="p-4 sm:p-6 space-y-4">
                   <div className="rounded-[24px] border border-border/50 p-4 sm:p-6 space-y-4 bg-card shadow-sm">
                     <div className="text-center border-b-2 border-foreground/50 dark:border-purple-500/50 pb-4">
                       <h2 className="text-2xl font-black tracking-tighter text-foreground dark:text-purple-400">RAYHAR GROUP</h2>
@@ -1432,10 +1438,10 @@ export default function Employees() {
                           const empId = selectedEmployee?.user_id || "UNKNOWN";
                           const branch = selectedEmployee?.branch || "HQ";
                           document.title = `Leave Request (${empName} - ${empId}) (${branch})`;
+                          handlePrint();
                           setTimeout(() => {
-                            window.print();
                             document.title = originalTitle;
-                          }, 100);
+                          }, 500);
                         }}
                       >
                         <Printer className="w-4 h-4" /> Save to PDF
