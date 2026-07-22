@@ -180,7 +180,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     const annualLeavesUsed = approvedLeaves
       .filter(l => {
         const type = String(l.leave_type || "").toUpperCase();
-        return type === 'CUTI TAHUNAN' || type === 'ANNUAL/EMERGENCY LEAVE' || type === 'ANNUAL & EMERGENCY LEAVE';
+        return type === 'CUTI TAHUNAN' || type === 'ANNUAL LEAVE' || type === 'ANNUAL/EMERGENCY LEAVE' || type === 'ANNUAL & EMERGENCY LEAVE';
       })
       .filter(l => {
         const startStr = getLocalDateString(l.start_date);
@@ -213,7 +213,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       .filter(l => String(l.status || "").toUpperCase() !== "REJECTED")
       .filter(l => {
         const type = String(l.leave_type || "").toUpperCase();
-        return ['CUTI TAHUNAN', 'ANNUAL/EMERGENCY LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'CUTI SAKIT', 'SICK LEAVE', 'KECEMASAN', 'EMERGENCY'].includes(type);
+        return ['CUTI TAHUNAN', 'ANNUAL LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'CUTI SAKIT', 'SICK LEAVE', 'KECEMASAN', 'EMERGENCY'].includes(type);
       })
       .filter(l => {
         const startStr = getLocalDateString(l.start_date);
@@ -528,7 +528,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   });
   const monthAnn = mLeaves.filter(l => {
     const type = String(l.leave_type || "").toUpperCase();
-    return type === 'CUTI TAHUNAN' || type === 'ANNUAL/EMERGENCY LEAVE' || type === 'ANNUAL & EMERGENCY LEAVE';
+    return type === 'CUTI TAHUNAN' || type === 'ANNUAL LEAVE' || type === 'ANNUAL/EMERGENCY LEAVE' || type === 'ANNUAL & EMERGENCY LEAVE';
   }).length;
   const monthSck = mLeaves.filter(l => {
     const type = String(l.leave_type || "").toUpperCase();

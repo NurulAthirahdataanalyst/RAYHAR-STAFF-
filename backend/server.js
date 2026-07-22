@@ -2174,7 +2174,7 @@ app.get("/api/branch-employees", async (req, res) => {
       LEFT JOIN (
         SELECT employee_id, SUM(adjustment_days) as total_adjustment 
         FROM leave_balance_adjustments 
-        WHERE leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan') 
+        WHERE UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN') 
         GROUP BY employee_id
       ) adj ON adj.employee_id = p.user_id
       LEFT JOIN (
@@ -2745,7 +2745,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
       LEFT JOIN (
         SELECT employee_id, SUM(adjustment_days) AS total_adjustment
         FROM leave_balance_adjustments
-        WHERE leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan')
+        WHERE UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN')
         GROUP BY employee_id
       ) adj ON adj.employee_id = p.user_id WHERE p.user_id = ?`, [user_id]);
     const employeeBranch = empRows[0]?.branch || "HQ";
@@ -3276,7 +3276,7 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
     const [companyLeaves] = await pool.query("SELECT * FROM company_leave_calendar WHERE status = 'Active' AND EXTRACT(YEAR FROM start_date) IN (?)", [yearsToFetch]);
     
     // Fetch leave balance adjustments for this employee
-    const [adjRows] = await pool.query("SELECT COALESCE(SUM(adjustment_days), 0) AS total_adjustment FROM leave_balance_adjustments WHERE employee_id = ?", [userId]);
+    const [adjRows] = await pool.query("SELECT COALESCE(SUM(adjustment_days), 0) AS total_adjustment FROM leave_balance_adjustments WHERE employee_id = ? AND UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN')", [userId]);
     const totalAdjustment = parseFloat(adjRows[0].total_adjustment || 0);
 
     const [allLeaves] = await pool.query("SELECT * FROM leave_requests WHERE user_id = ? AND EXTRACT(YEAR FROM start_date) IN (?)", [userId, yearsToFetch]);
@@ -3444,9 +3444,9 @@ app.get("/api/employees", async (req, res) => {
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
       LEFT JOIN (
         SELECT employee_id, 
-               SUM(CASE WHEN leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan') THEN adjustment_days ELSE 0 END) AS annual_adj,
+               SUM(CASE WHEN UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN') THEN adjustment_days ELSE 0 END) AS annual_adj,
                SUM(CASE WHEN leave_type IN ('Sick Leave', 'Medical Leave', 'Cuti Sakit') THEN adjustment_days ELSE 0 END) AS medical_adj,
-               SUM(CASE WHEN leave_type IN ('Replacement Leave', 'Cuti Ganti') THEN adjustment_days ELSE 0 END) AS replacement_adj
+               SUM(CASE WHEN UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI') THEN adjustment_days ELSE 0 END) AS replacement_adj
         FROM leave_balance_adjustments
         GROUP BY employee_id
       ) adj ON adj.employee_id = p.user_id
@@ -3455,7 +3455,7 @@ app.get("/api/employees", async (req, res) => {
           user_id,
           SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Replacement Leave', 'Cuti Ganti') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
           SUM(CASE WHEN leave_type IN ('Cuti Sakit', 'Sick Leave', 'Medical Leave') AND status = 'Approved' THEN days ELSE 0 END) AS medical_days_used,
-          SUM(CASE WHEN leave_type IN ('Replacement Leave', 'Cuti Ganti') AND status = 'Approved' THEN days ELSE 0 END) AS replacement_days_used,
+          SUM(CASE WHEN UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI') AND status = 'Approved' THEN days ELSE 0 END) AS replacement_days_used,
           SUM(CASE WHEN status LIKE 'Pending%' THEN 1 ELSE 0 END) AS pending_leaves,
           SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) AS approved_leaves,
           SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) AS rejected_leaves,
@@ -3759,7 +3759,7 @@ app.get("/api/user-details/:identifier", async (req, res) => {
       LEFT JOIN (
         SELECT employee_id, SUM(adjustment_days) AS total_adjustment
         FROM leave_balance_adjustments
-        WHERE leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan')
+        WHERE UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN')
         GROUP BY employee_id
       ) adj ON adj.employee_id = p.user_id
       WHERE p.user_id = ? OR p.email = ?
@@ -4723,7 +4723,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
          p.branch, 
          p.department,
          p.annual_leave_entitlement,
-         COALESCE((SELECT SUM(adjustment_days) FROM leave_balance_adjustments WHERE employee_id = p.user_id AND leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan')), 0)::int AS annual_adjustment
+         COALESCE((SELECT SUM(adjustment_days) FROM leave_balance_adjustments WHERE employee_id = p.user_id AND UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN')), 0)::int AS annual_adjustment
        FROM profiles p WHERE p.user_id = ?`,
       [userId]
     );
@@ -4862,9 +4862,9 @@ app.get("/api/dashboard-stats", async (req, res) => {
        WHERE user_id = ? 
        AND status != 'Rejected' 
        AND (
-         leave_type IN ('Cuti Tahunan', 'Annual Leave', 'Annual/Emergency Leave', 'Annual & Emergency Leave', 'Kecemasan', 'Emergency')
+         UPPER(leave_type) IN ('CUTI TAHUNAN', 'ANNUAL LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'KECEMASAN', 'EMERGENCY')
          OR (
-           leave_type IN ('Replacement Leave', 'Cuti Ganti')
+           UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI')
            AND leave_id IN (
              SELECT leave_request_id FROM replacement_leave_requests 
              WHERE employee_id = ? AND validation_status IN ('Pending', 'Approved', 'Waiting for Replacement Date', 'Failed')
@@ -6493,7 +6493,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
        LEFT JOIN (
          SELECT employee_id, SUM(adjustment_days) as total_adjustment 
          FROM leave_balance_adjustments 
-         WHERE leave_type IN ('Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan') 
+         WHERE UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN') 
          GROUP BY employee_id
        ) adj ON adj.employee_id = p.user_id
        LEFT JOIN (
