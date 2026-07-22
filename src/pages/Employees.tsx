@@ -780,7 +780,7 @@ export default function Employees() {
 
       {/* Employee Details Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-6xl w-full overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] max-h-[90vh] p-0 gap-0 bg-slate-50 dark:bg-slate-900">
+        <DialogContent className="max-w-6xl w-full overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] max-h-[90vh] p-0 gap-0 bg-slate-50 dark:bg-slate-900 print:hidden">
           <DialogHeader className="p-4 pb-3 border-b bg-white dark:bg-slate-900 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
             <DialogTitle className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Staff Profile & Analytics</DialogTitle>
           </DialogHeader>
@@ -1165,15 +1165,16 @@ export default function Employees() {
       {/* LEAVE FORMS DIALOG */}
       <Dialog open={!!viewLeaveStatus} onOpenChange={(open) => !open && setViewLeaveStatus(null)}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              {viewLeaveStatus} Leaves - {selectedEmployee?.name}
-            </DialogTitle>
-            <DialogDescription>
-              Review the submitted leave forms with this status.
-            </DialogDescription>
-          </DialogHeader>
+          <div className="print:hidden">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                {viewLeaveStatus} Leaves - {selectedEmployee?.name}
+              </DialogTitle>
+              <DialogDescription>
+                Review the submitted leave forms with this status.
+              </DialogDescription>
+            </DialogHeader>
 
           {loadingLeaves ? (
             <div className="flex justify-center p-8">
@@ -1239,6 +1240,7 @@ export default function Employees() {
               )}
             </div>
           )}
+          </div>
         </DialogContent>
       </Dialog>
 
