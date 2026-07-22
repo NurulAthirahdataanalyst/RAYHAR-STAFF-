@@ -5,8 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { MapPin, Calendar, CheckCircle2, XCircle, Search } from "lucide-react";
-
+import { MapPin, Calendar, CheckCircle2, XCircle, Search, Loader2, Plus } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 interface TemporaryAssignment {
   id: number;
   user_id: number;
@@ -27,6 +30,13 @@ const TemporaryAssignments = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // Modal State
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assignForm, setAssignForm] = useState({ user_id: "", location: "", start_date: "", end_date: "", status: "Active" });
+  const [submittingAssign, setSubmittingAssign] = useState(false);
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [branches, setBranches] = useState<any[]>([]);
+
   useEffect(() => {
     fetchAssignments();
   }, []);
@@ -46,6 +56,55 @@ const TemporaryAssignments = () => {
     }
   };
 
+  const fetchDependencies = async () => {
+    try {
+      const [branchRes, empRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/branches`),
+        fetch(`${API_BASE_URL}/api/employees?role=hr_admin&branch=`)
+      ]);
+      const branchData = await branchRes.json();
+      const empData = await empRes.json();
+      if (branchData.success) setBranches(branchData.branches);
+      if (empData.success) setEmployees(empData.employees);
+    } catch (e) {
+      console.error("Failed to fetch dependencies", e);
+    }
+  };
+
+  useEffect(() => {
+    if (showAssignModal && employees.length === 0) {
+      fetchDependencies();
+    }
+  }, [showAssignModal]);
+
+  const handleAssignSubmit = async () => {
+    if (!assignForm.user_id || !assignForm.location) {
+      toast.error("Please select an employee and target branch.");
+      return;
+    }
+    setSubmittingAssign(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/work-assignments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(assignForm)
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Assignment created successfully");
+        setShowAssignModal(false);
+        fetchAssignments();
+        setAssignForm({ user_id: "", location: "", start_date: "", end_date: "", status: "Active" });
+      } else {
+        toast.error("Failed to create assignment");
+      }
+    } catch (error) {
+      toast.error("Network error");
+    } finally {
+      setSubmittingAssign(false);
+    }
+  };
+
   const filteredAssignments = assignments.filter((a) => {
     const matchesSearch = a.name.toLowerCase().includes(search.toLowerCase()) || 
                           a.temp_branch.toLowerCase().includes(search.toLowerCase());
@@ -55,13 +114,22 @@ const TemporaryAssignments = () => {
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-          Temporary Assignments
-        </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          View and track all temporary branch assignments across the organization.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+            Temporary Assignments
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            View and track all temporary branch assignments across the organization.
+          </p>
+        </div>
+        <Button 
+          onClick={() => setShowAssignModal(true)}
+          className="bg-[#a01497] hover:bg-[#850f7c] text-white font-bold whitespace-nowrap"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Assign Temporary Branch
+        </Button>
       </div>
 
       <Card className="border-none shadow-xl shadow-slate-200/40 dark:bg-slate-900/50 backdrop-blur-xl">
@@ -160,7 +228,68 @@ const TemporaryAssignments = () => {
             </TableBody>
           </Table>
         </CardContent>
-      </Card>
+    </Card>
+
+      {/* ASSIGNMENT DIALOG */}
+      <Dialog open={showAssignModal} onOpenChange={setShowAssignModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Temporary Branch Assignment</DialogTitle>
+            <DialogDescription>Assign an employee to work at a different branch temporarily.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div>
+              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Employee</Label>
+              <Select value={assignForm.user_id} onValueChange={(val) => setAssignForm({...assignForm, user_id: val})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Employee" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[200px]">
+                  {employees.map(e => (
+                    <SelectItem key={e.user_id} value={e.user_id}>{e.full_name} ({e.branch})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Target Branch</Label>
+              <Select value={assignForm.location} onValueChange={(val) => setAssignForm({...assignForm, location: val})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Branch" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[200px]">
+                  {branches.map(b => (
+                    <SelectItem key={b.code} value={b.code}>{b.code} - {b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Start Date</Label>
+                <Input type="date" value={assignForm.start_date} onChange={(e) => setAssignForm({...assignForm, start_date: e.target.value})} />
+              </div>
+              <div>
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">End Date</Label>
+                <Input type="date" value={assignForm.end_date} onChange={(e) => setAssignForm({...assignForm, end_date: e.target.value})} />
+              </div>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button 
+                variant="outline" 
+                className="w-1/3 text-rose-500 border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                onClick={() => setAssignForm({ user_id: "", location: "", start_date: "", end_date: "", status: "Active" })}
+              >
+                Reset
+              </Button>
+              <Button className="w-full bg-[#a01497] hover:bg-[#850f7c] text-white" disabled={submittingAssign} onClick={handleAssignSubmit}>
+                {submittingAssign ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Confirm Assignment
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
