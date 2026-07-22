@@ -117,6 +117,11 @@ export default function Attendance() {
     clockInAllowed: true
   });
 
+  // Location selection state
+  const [allowedLocations, setAllowedLocations] = useState<string[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const [attendanceMode, setAttendanceMode] = useState<"permanent" | "temporary" | "multi">("permanent");
+
   const { toast } = useToast();
 
   // 1. Update time every second and calculate working hours
@@ -153,6 +158,7 @@ export default function Attendance() {
       if (userId) {
         fetchStatus(userId);
         fetchHistoryLogs(userId, selectedMonth, selectedYear);
+        fetchAllowedLocations(userId);
       } else {
         setInitialFetch(false);
       }
@@ -160,6 +166,22 @@ export default function Attendance() {
       setInitialFetch(false);
     }
   }, [user]);
+
+  const fetchAllowedLocations = async (id: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/attendance/allowed-locations/${id}`);
+      const data = await response.json();
+      if (data.success) {
+        setAllowedLocations(data.locations || []);
+        setAttendanceMode(data.mode || "permanent");
+        if (data.locations && data.locations.length > 0) {
+          setSelectedLocation(data.locations[0]);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch allowed locations", err);
+    }
+  };
 
   // 3. Fetch attendance status (GET)
   const fetchStatus = useCallback(async (id: string) => {
@@ -648,13 +670,21 @@ export default function Attendance() {
     try {
       const isClockOut = !!activeSession;
       const endpoint = isClockOut ? "/api/clock-out" : "/api/attendance";
+      
+      let attendance_type = "Normal";
+      if (attendanceMode === 'temporary') attendance_type = "Temporary Assignment";
+      else if (attendanceMode === 'multi') attendance_type = "Multi-Location";
+
+      const payload: any = { user_id: String(employeeId).trim() };
+      if (!isClockOut) {
+        payload.location = selectedLocation;
+        payload.attendance_type = attendance_type;
+      }
 
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: String(employeeId).trim()
-        }),
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
@@ -878,6 +908,21 @@ export default function Attendance() {
                     <div className="absolute inset-0 rounded-full bg-purple-50/50 dark:bg-purple-900/20 animate-pulse pointer-events-none" style={{ transform: 'scale(1.15)' }} />
                     <div className="absolute inset-2 rounded-full bg-purple-100/30 dark:bg-purple-800/10 animate-ping pointer-events-none" style={{ animationDuration: '3s' }} />
                   </>
+                )}
+
+                {!activeSession && attendanceMode === 'multi' && allowedLocations.length > 1 && (
+                  <div className="absolute -top-14 left-1/2 -translate-x-1/2 w-48 z-10 bg-card rounded-md shadow-lg border border-border p-1">
+                    <label className="text-[10px] font-semibold text-muted-foreground px-2 mb-1 block uppercase">Select Working Location</label>
+                    <select
+                      className="w-full bg-background border-none text-sm font-semibold p-1.5 focus:ring-0 outline-none rounded text-foreground cursor-pointer"
+                      value={selectedLocation}
+                      onChange={(e) => setSelectedLocation(e.target.value)}
+                    >
+                      {allowedLocations.map((loc, i) => (
+                        <option key={i} value={loc}>{loc}</option>
+                      ))}
+                    </select>
+                  </div>
                 )}
 
                 <button

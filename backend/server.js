@@ -952,6 +952,51 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
     `);
     console.log('✅ Auto-migration for activity_logs completed.');
 
+    // Auto-migrate employee_work_assignment table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS employee_work_assignment (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR(100) NOT NULL REFERENCES profiles(user_id) ON DELETE CASCADE,
+        location VARCHAR(50) NOT NULL,
+        start_date DATE NOT NULL,
+        end_date DATE,
+        type VARCHAR(50) DEFAULT 'Temporary Assignment',
+        status VARCHAR(50) DEFAULT 'Active',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Auto-migration for employee_work_assignment completed.');
+
+    // Auto-migrate employee_allowed_locations table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS employee_allowed_locations (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR(100) NOT NULL REFERENCES profiles(user_id) ON DELETE CASCADE,
+        allowed_branch VARCHAR(50) NOT NULL,
+        type VARCHAR(50) DEFAULT 'Secondary',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Auto-migration for employee_allowed_locations completed.');
+
+    // Add columns to attendances table
+    try {
+      await connection.query(`ALTER TABLE attendances ADD COLUMN IF NOT EXISTS location VARCHAR(50)`);
+      await connection.query(`ALTER TABLE attendances ADD COLUMN IF NOT EXISTS attendance_type VARCHAR(50) DEFAULT 'Normal'`);
+      console.log('✅ Auto-migration for attendances (location, attendance_type columns) completed.');
+
+      // Backfill: update location to permanent branch where location is NULL
+      await connection.query(`
+        UPDATE attendances a 
+        SET location = p.branch
+        FROM profiles p
+        WHERE a.user_id = p.user_id AND a.location IS NULL
+      `);
+      console.log('✅ Backfilled location in attendances table.');
+    } catch (colErr) {
+      console.error('⚠️ Attendances column migration warning:', colErr.message);
+    }
+
     try {
       const [roleCountRows] = await connection.query("SELECT COUNT(*) as count FROM roles");
       if (parseInt(roleCountRows[0].count) === 0) {
@@ -3849,7 +3894,7 @@ app.get("/api/attendance-status", async (req, res) => {
 // CLOCK IN
 // ===============================
 app.post("/api/attendance", async (req, res) => {
-  const { user_id } = req.body;
+  const { user_id, location, attendance_type } = req.body;
 
   if (!user_id) {
     return res
@@ -3859,9 +3904,12 @@ app.post("/api/attendance", async (req, res) => {
 
   try {
     const [empProfile] = await pool.query(
-      `SELECT branch, department FROM profiles WHERE user_id = ?`,
+      `SELECT branch, department, name FROM profiles WHERE user_id = ?`,
       [user_id]
     );
+
+    let finalLocation = location;
+    let finalType = attendance_type || 'Normal';
 
     if (empProfile.length > 0) {
       const p = empProfile[0];
@@ -3892,19 +3940,36 @@ app.post("/api/attendance", async (req, res) => {
           message: "Today is designated as Company Leave. Attendance is not required."
         });
       }
+
+      // If no location provided, fallback to permanent branch
+      if (!finalLocation) {
+        finalLocation = p.branch;
+        finalType = 'Normal';
+      }
     }
 
     const [result] = await pool.query(
-      `INSERT INTO attendances (user_id, clock_in) VALUES (?, NOW())`,
-      [user_id]
+      `INSERT INTO attendances (user_id, clock_in, location, attendance_type) VALUES (?, NOW(), ?, ?)`,
+      [user_id, finalLocation, finalType]
     );
 
-    const insertedId = result.insertId;
+    const insertedId = result.insertId || result.rows?.[0]?.attendance_id; // Support both mysql/postgres result structures or fallback to a query later
 
-    const [rows] = await pool.query(
-      `SELECT * FROM attendances WHERE attendance_id = ?`,
-      [insertedId]
-    );
+    let rows = [];
+    if (insertedId) {
+      const [fetchedRows] = await pool.query(
+        `SELECT * FROM attendances WHERE attendance_id = ?`,
+        [insertedId]
+      );
+      rows = fetchedRows;
+    } else {
+      // Fallback if insertId not available
+      const [fetchedRows] = await pool.query(
+        `SELECT * FROM attendances WHERE user_id = ? ORDER BY clock_in DESC LIMIT 1`,
+        [user_id]
+      );
+      rows = fetchedRows;
+    }
 
     const [outstationRows] = await pool.query(
       `SELECT destination FROM outstation_assignments WHERE user_id = ? AND status != 'Cancelled' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
@@ -3913,6 +3978,23 @@ app.post("/api/attendance", async (req, res) => {
 
     res.json({ success: true, record: rows[0], isOnOutstation: outstationRows.length > 0 });
     broadcastPresenceUpdate({ type: 'clock-in', userId: user_id });
+
+    // Send HR notification if temporary assignment or multi-location
+    if (finalType !== 'Normal' && empProfile.length > 0) {
+      try {
+        const emp = empProfile[0];
+        await pool.query(
+          `INSERT INTO notifications (user_id, title, message, type) 
+           SELECT user_id, ?, ?, 'system' FROM profiles WHERE role IN ('hr_admin', 'managing_director')`,
+          [
+            "Irregular Clock-In Location",
+            `${emp.name} clocked in at ${finalLocation} under ${finalType} assignment.`
+          ]
+        );
+      } catch (e) {
+        console.error("Failed to insert HR notification for irregular clock-in", e);
+      }
+    }
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -8258,6 +8340,113 @@ app.get("/api/replacement-leaves", async (req, res) => {
       `SELECT * FROM replacement_leave_requests ORDER BY replacement_date DESC`
     );
     res.json({ success: true, replacementLeaves: rows });
+  } catch(e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// ===============================
+// WORK ASSIGNMENT / MULTI LOCATION
+// ===============================
+
+app.get("/api/attendance/allowed-locations/:user_id", async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    
+    // Check for active temporary assignment
+    const [tempAssignment] = await pool.query(
+      `SELECT location FROM employee_work_assignment 
+       WHERE user_id = ? AND status = 'Active' 
+       AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date >= start_date AND (end_date IS NULL OR (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= end_date) 
+       ORDER BY created_at DESC LIMIT 1`,
+      [user_id]
+    );
+
+    if (tempAssignment.length > 0) {
+      return res.json({ success: true, mode: 'temporary', locations: [tempAssignment[0].location] });
+    }
+
+    // Check for allowed locations
+    const [allowed] = await pool.query(
+      `SELECT allowed_branch FROM employee_allowed_locations WHERE user_id = ?`,
+      [user_id]
+    );
+
+    if (allowed.length > 0) {
+      const [empProfile] = await pool.query(`SELECT branch FROM profiles WHERE user_id = ?`, [user_id]);
+      const locations = allowed.map(a => a.allowed_branch);
+      if (empProfile.length > 0 && !locations.includes(empProfile[0].branch)) {
+        locations.unshift(empProfile[0].branch);
+      }
+      return res.json({ success: true, mode: 'multi', locations: locations });
+    }
+
+    // Fallback to permanent branch
+    const [empProfile] = await pool.query(`SELECT branch FROM profiles WHERE user_id = ?`, [user_id]);
+    if (empProfile.length > 0) {
+      return res.json({ success: true, mode: 'permanent', locations: [empProfile[0].branch] });
+    }
+
+    res.json({ success: true, mode: 'unknown', locations: [] });
+  } catch(e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+app.get("/api/work-assignments/:user_id", async (req, res) => {
+  try {
+    const [rows] = await pool.query(`SELECT * FROM employee_work_assignment WHERE user_id = ? ORDER BY created_at DESC`, [req.params.user_id]);
+    res.json({ success: true, assignments: rows });
+  } catch(e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+app.post("/api/work-assignments", async (req, res) => {
+  try {
+    const { user_id, location, start_date, end_date, status } = req.body;
+    let returningClause = "";
+    // Note: RETURNING is for Postgres, wait, this pool is custom or standard. Let's just do a normal insert
+    const [result] = await pool.query(
+      `INSERT INTO employee_work_assignment (user_id, location, start_date, end_date, status) VALUES (?, ?, ?, ?, ?)`,
+      [user_id, location, start_date, end_date || null, status || 'Active']
+    );
+    res.json({ success: true, insertedId: result.insertId || (result.rows && result.rows.length ? result.rows[0].id : null) });
+  } catch(e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+app.put("/api/work-assignments/:id", async (req, res) => {
+  try {
+    const { location, start_date, end_date, status } = req.body;
+    await pool.query(
+      `UPDATE employee_work_assignment SET location = ?, start_date = ?, end_date = ?, status = ? WHERE id = ?`,
+      [location, start_date, end_date || null, status, req.params.id]
+    );
+    res.json({ success: true });
+  } catch(e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+app.get("/api/allowed-locations/:user_id", async (req, res) => {
+  try {
+    const [rows] = await pool.query(`SELECT allowed_branch FROM employee_allowed_locations WHERE user_id = ?`, [req.params.user_id]);
+    res.json({ success: true, allowedLocations: rows.map(r => r.allowed_branch) });
+  } catch(e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+app.post("/api/allowed-locations", async (req, res) => {
+  try {
+    const { user_id, branches } = req.body;
+    await pool.query(`DELETE FROM employee_allowed_locations WHERE user_id = ?`, [user_id]);
+    for (const branch of branches) {
+      await pool.query(`INSERT INTO employee_allowed_locations (user_id, allowed_branch) VALUES (?, ?)`, [user_id, branch]);
+    }
+    res.json({ success: true });
   } catch(e) {
     res.status(500).json({ success: false, error: e.message });
   }

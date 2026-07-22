@@ -23,6 +23,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -102,10 +104,85 @@ export default function Employees() {
   useEffect(() => {
     if (selectedEmployee && isModalOpen) {
       fetchAnalytics(selectedEmployee.user_id, analyticsDate);
+      fetchAttendanceSettings(selectedEmployee.user_id);
     } else {
       setAnalytics(null);
     }
   }, [selectedEmployee, isModalOpen, analyticsDate]);
+
+  const [tempAssignment, setTempAssignment] = useState({ location: "", start_date: "", end_date: "", status: "Active" });
+  const [allowedLocations, setAllowedLocations] = useState<string[]>([]);
+  const [loadingSettings, setLoadingSettings] = useState(false);
+
+  const fetchAttendanceSettings = async (userId: string) => {
+    setLoadingSettings(true);
+    try {
+      const [waRes, alRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/work-assignments/${userId}`),
+        fetch(`${API_BASE_URL}/api/allowed-locations/${userId}`)
+      ]);
+      const waData = await waRes.json();
+      const alData = await alRes.json();
+
+      if (waData.success && waData.assignments.length > 0) {
+        const activeOrLatest = waData.assignments[0];
+        setTempAssignment({
+          location: activeOrLatest.location,
+          start_date: activeOrLatest.start_date ? activeOrLatest.start_date.split('T')[0] : "",
+          end_date: activeOrLatest.end_date ? activeOrLatest.end_date.split('T')[0] : "",
+          status: activeOrLatest.status
+        });
+      } else {
+        setTempAssignment({ location: "", start_date: "", end_date: "", status: "Active" });
+      }
+
+      if (alData.success) {
+        setAllowedLocations(alData.allowedLocations);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setLoadingSettings(false);
+  };
+
+  const saveTempAssignment = async () => {
+    if (!selectedEmployee) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/work-assignments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...tempAssignment, user_id: selectedEmployee.user_id })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast({ title: "Temporary Assignment Saved" });
+        fetchAttendanceSettings(selectedEmployee.user_id);
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (e: any) {
+      toast({ title: "Error Saving Assignment", description: e.message, variant: "destructive" });
+    }
+  };
+
+  const saveAllowedLocations = async () => {
+    if (!selectedEmployee) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/allowed-locations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: selectedEmployee.user_id, branches: allowedLocations })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast({ title: "Allowed Locations Saved" });
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (e: any) {
+      toast({ title: "Error Saving Locations", description: e.message, variant: "destructive" });
+    }
+  };
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [loadingLeaves, setLoadingLeaves] = useState(false);
@@ -710,8 +787,15 @@ export default function Employees() {
           
           <div className="p-4">
             {selectedEmployee ? (
-              <TooltipProvider>
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              <Tabs defaultValue="basic" className="w-full">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="basic">Staff Profile & Analytics</TabsTrigger>
+                  <TabsTrigger value="attendance_settings">Attendance Settings</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="basic" className="mt-0">
+                  <TooltipProvider>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
                   {/* Left Column: Bio & Info (4 cols) */}
                   <div className="lg:col-span-4 space-y-4">
                     <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm flex flex-col items-center text-center">
@@ -969,8 +1053,105 @@ export default function Employees() {
                       </div>
                     )}
                   </div>
-                </div>
-              </TooltipProvider>
+                </TabsContent>
+
+                <TabsContent value="attendance_settings" className="mt-0">
+                  {loadingSettings ? (
+                    <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      {/* Primary Branch & Temp Assignment */}
+                      <div className="space-y-4">
+                        <Card>
+                          <CardContent className="p-4 space-y-4">
+                            <h3 className="font-bold text-lg border-b pb-2">Primary Branch</h3>
+                            <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded text-sm font-semibold">
+                              {selectedEmployee.branch} - {BRANCH_NAMES[selectedEmployee.branch] || "Unknown"}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card>
+                          <CardContent className="p-4 space-y-4">
+                            <h3 className="font-bold text-lg border-b pb-2">Temporary Assignment</h3>
+                            
+                            <div className="space-y-3">
+                              <div>
+                                <Label className="text-xs font-bold text-slate-500 uppercase">Working Branch</Label>
+                                <Select value={tempAssignment.location} onValueChange={(val) => setTempAssignment({...tempAssignment, location: val})}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select Branch" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {Object.entries(BRANCH_NAMES).map(([code, name]) => (
+                                      <SelectItem key={code} value={code}>{code} - {name}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <Label className="text-xs font-bold text-slate-500 uppercase">Start Date</Label>
+                                  <Input type="date" value={tempAssignment.start_date} onChange={(e) => setTempAssignment({...tempAssignment, start_date: e.target.value})} />
+                                </div>
+                                <div>
+                                  <Label className="text-xs font-bold text-slate-500 uppercase">End Date</Label>
+                                  <Input type="date" value={tempAssignment.end_date} onChange={(e) => setTempAssignment({...tempAssignment, end_date: e.target.value})} />
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <Label className="text-xs font-bold text-slate-500 uppercase">Status</Label>
+                                <Select value={tempAssignment.status} onValueChange={(val) => setTempAssignment({...tempAssignment, status: val})}>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Active">Active</SelectItem>
+                                    <SelectItem value="Completed">Completed</SelectItem>
+                                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <Button className="w-full mt-2" onClick={saveTempAssignment}>Save Temporary Assignment</Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      {/* Allowed Branches */}
+                      <Card>
+                        <CardContent className="p-4 space-y-4">
+                          <div className="flex justify-between items-center border-b pb-2">
+                            <h3 className="font-bold text-lg">Allowed Branches</h3>
+                          </div>
+                          <div className="text-xs text-muted-foreground mb-2">Select the branches this employee is permitted to clock into.</div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2">
+                            {Object.entries(BRANCH_NAMES).map(([code, name]) => (
+                              <div key={code} className="flex items-center space-x-2 border p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-800">
+                                <Checkbox 
+                                  id={`branch-${code}`} 
+                                  checked={allowedLocations.includes(code)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) setAllowedLocations([...allowedLocations, code]);
+                                    else setAllowedLocations(allowedLocations.filter(c => c !== code));
+                                  }}
+                                />
+                                <Label htmlFor={`branch-${code}`} className="text-sm cursor-pointer flex-1">
+                                  {code} - {name}
+                                </Label>
+                              </div>
+                            ))}
+                          </div>
+                          <Button className="w-full mt-4" onClick={saveAllowedLocations}>Save Allowed Branches</Button>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             ) : (
               <div className="py-20 text-center text-slate-500 dark:text-slate-400">
                 <p>Loading profile details...</p>
