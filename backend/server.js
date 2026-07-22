@@ -4517,11 +4517,15 @@ app.get("/api/dashboard-stats", async (req, res) => {
         profileQueryParams
       );
 
-      const presentParams = [queryDate, ...queryParams];
+      const presentParams = [queryDate, queryDate, queryDate, ...queryParams];
       const onLeaveParams = [queryDate, ...queryParams];
 
       const [presentRows] = await pool.query(
-        `SELECT COUNT(DISTINCT user_id) AS present_today FROM attendances WHERE DATE(clock_in) = ${dateCondition} ${attendanceFilter}`,
+        `SELECT COUNT(DISTINCT user_id) AS present_today FROM attendances 
+         WHERE DATE(clock_in) = ${dateCondition} 
+         AND user_id NOT IN (SELECT user_id FROM leave_requests WHERE status = 'Approved' AND ${dateCondition} BETWEEN DATE(start_date) AND DATE(end_date))
+         AND user_id NOT IN (SELECT user_id FROM outstation_assignments WHERE status != 'Cancelled' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date)
+         ${attendanceFilter}`,
         presentParams
       );
 
