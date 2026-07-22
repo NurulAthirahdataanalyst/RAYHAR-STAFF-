@@ -447,38 +447,70 @@ export default function MasterOverview() {
           </div>
 
           {/* SYSTEM INTEGRITY DIAGNOSTIC CHECKLIST */}
-          <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden">
-            <CardHeader className="pb-4 border-b border-border/40">
-              <CardTitle className="text-sm sm:text-base font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-                <div className="p-2 bg-emerald-500/10 rounded-xl">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                </div>
-                Database Health & Diagnostics
-              </CardTitle>
-              <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11">Real-time system integrity audits and schema consistency logs</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                  { name: "Branch Mappings", desc: "Verifies all staff map to active, existing regional branches", status: "VERIFIED" },
-                  { name: "Credential Allocation", desc: "Confirms system accounts maintain assigned auth privileges", status: "VERIFIED" },
-                  { name: "Segment Consistency", desc: "Checks that no orphan records lack active departments", status: "VERIFIED" },
-                  { name: "Attendance Settings", desc: "Validates temporary assignments and multi-location employee configurations", status: "VERIFIED" },
-                ].map((log) => (
-                  <div key={log.name} className="p-4 bg-emerald-500/5 dark:bg-emerald-500/10 hover:bg-emerald-500/10 rounded-2xl border border-emerald-500/10 transition-all flex flex-col justify-between gap-3">
-                    <div>
-                      <h4 className="text-xs font-black text-foreground uppercase tracking-wide">{log.name}</h4>
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase mt-1 leading-normal">{log.desc}</p>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span className="text-[9px] font-black tracking-widest uppercase">{log.status}</span>
-                    </div>
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            {/* DATABASE HEALTH & DIAGNOSTICS */}
+            <Card className="xl:col-span-2 border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden">
+              <CardHeader className="pb-4 border-b border-border/40">
+                <CardTitle className="text-sm sm:text-base font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+                  <div className="p-2 bg-emerald-500/10 rounded-xl">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  Database Health & Diagnostics
+                </CardTitle>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11">Real-time system integrity audits and schema consistency logs</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+                  {[
+                    { name: "Branch Mappings", desc: "Verifies all staff map to active, existing regional branches", status: "VERIFIED" },
+                    { name: "Credential Allocation", desc: "Confirms system accounts maintain assigned auth privileges", status: "VERIFIED" },
+                  ].map((log) => (
+                    <div key={log.name} className="p-4 bg-emerald-500/5 dark:bg-emerald-500/10 hover:bg-emerald-500/10 rounded-2xl border border-emerald-500/10 transition-all flex flex-col justify-between gap-3 h-full">
+                      <div>
+                        <h4 className="text-xs font-black text-foreground uppercase tracking-wide">{log.name}</h4>
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase mt-1 leading-normal">{log.desc}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 mt-2">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span className="text-[9px] font-black tracking-widest uppercase">{log.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* ATTENDANCE SETTING */}
+            <Card className="xl:col-span-1 border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden">
+              <CardHeader className="pb-4 border-b border-border/40">
+                <CardTitle className="text-sm sm:text-base font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+                  <div className="p-2 bg-emerald-500/10 rounded-xl">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  </div>
+                  Attendance Setting
+                </CardTitle>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11">Multi-location employee configurations</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6 h-full">
+                <div className="flex flex-col gap-4 h-full">
+                  {[
+                    { name: "Segment Consistency", desc: "Checks that no orphan records lack active departments", status: "VERIFIED" }
+                  ].map((log) => (
+                    <div key={log.name} className="p-4 bg-emerald-500/5 dark:bg-emerald-500/10 hover:bg-emerald-500/10 rounded-2xl border border-emerald-500/10 transition-all flex flex-col justify-between gap-3 h-full">
+                      <div>
+                        <h4 className="text-xs font-black text-foreground uppercase tracking-wide">{log.name}</h4>
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase mt-1 leading-normal">{log.desc}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 mt-2">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span className="text-[9px] font-black tracking-widest uppercase">{log.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>>
 
         </div>
       )}
