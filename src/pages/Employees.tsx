@@ -1123,7 +1123,7 @@ export default function Employees() {
                                 </Select>
                               </div>
 
-                              <Button className="w-full mt-2" onClick={saveTempAssignment}>Save Temporary Assignment</Button>
+                              <Button className="w-full mt-2 bg-[#a01497] hover:bg-[#850f7c] text-white" onClick={saveTempAssignment}>Save Temporary Assignment</Button>
                             </div>
                           </CardContent>
                         </Card>
@@ -1153,7 +1153,7 @@ export default function Employees() {
                               </div>
                             ))}
                           </div>
-                          <Button className="w-full mt-4" onClick={saveAllowedLocations}>Save Allowed Branches</Button>
+                          <Button className="w-full mt-4 bg-[#a01497] hover:bg-[#850f7c] text-white" onClick={saveAllowedLocations}>Save Allowed Branches</Button>
                         </CardContent>
                       </Card>
                     </div>

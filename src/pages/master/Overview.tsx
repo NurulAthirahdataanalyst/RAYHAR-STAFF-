@@ -644,7 +644,7 @@ export default function MasterOverview() {
               >
                 Reset
               </Button>
-              <Button className="w-full" disabled={submittingAssign} onClick={handleAssignSubmit}>
+              <Button className="w-full bg-[#a01497] hover:bg-[#850f7c] text-white" disabled={submittingAssign} onClick={handleAssignSubmit}>
                 {submittingAssign ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Confirm Assignment
               </Button>

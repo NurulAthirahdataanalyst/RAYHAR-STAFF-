@@ -1228,7 +1228,7 @@ export default function Dashboard() {
                     onClick={() => setActiveTab(tab.key)}
                     className={`pb-2 text-sm font-bold transition-all duration-200 border-b-2 ${
                       activeTab === tab.key
-                        ? "border-purple-700 text-[#a01497]"
+                        ? "border-[#a01497] text-[#a01497]"
                         : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-100"
                     }`}
                   >
@@ -1252,7 +1252,7 @@ export default function Dashboard() {
                     onClick={() => setActivityFilter(chip.key)}
                     className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-all duration-200 ${
                       activityFilter === chip.key
-                        ? "bg-purple-700 text-white border-purple-700"
+                        ? "bg-[#a01497] text-white border-[#a01497]"
                         : "bg-white dark:bg-card border-slate-200 dark:border-slate-800 text-slate-600 hover:border-slate-300"
                     }`}
                   >
