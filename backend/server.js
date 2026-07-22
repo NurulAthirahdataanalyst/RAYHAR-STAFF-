@@ -8393,6 +8393,29 @@ app.get("/api/attendance/allowed-locations/:user_id", async (req, res) => {
   }
 });
 
+app.get("/api/work-assignments-all", async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        ewa.id,
+        ewa.user_id,
+        ewa.location as temp_branch,
+        ewa.start_date,
+        ewa.end_date,
+        ewa.status,
+        u.name,
+        u.branch as primary_branch
+      FROM employee_work_assignment ewa
+      JOIN users u ON ewa.user_id = u.id
+      WHERE ewa.status = 'Active'
+      ORDER BY ewa.start_date DESC
+    `);
+    res.json({ success: true, assignments: rows });
+  } catch(e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 app.get("/api/work-assignments/:user_id", async (req, res) => {
   try {
     const [rows] = await pool.query(`SELECT * FROM employee_work_assignment WHERE user_id = ? ORDER BY created_at DESC`, [req.params.user_id]);

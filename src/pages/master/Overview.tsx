@@ -9,6 +9,11 @@ import {
   TrendingUp, Loader2, Key, MapPin, RefreshCw, BarChart3
 } from "lucide-react";
 import { API_BASE_URL } from "@/config/api";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 interface Employee {
   user_id: string;
@@ -32,6 +37,11 @@ export default function MasterOverview() {
   const [branches, setBranches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
+
+  const [activeAssignments, setActiveAssignments] = useState<any[]>([]);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assignForm, setAssignForm] = useState({ user_id: "", location: "", start_date: "", end_date: "", status: "Active" });
+  const [submittingAssign, setSubmittingAssign] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("presenceSidebarCollapsed") === "true";
@@ -83,6 +93,14 @@ export default function MasterOverview() {
       if (empData.success) {
         setEmployees(empData.employees);
       }
+
+      // Fetch active assignments
+      const assignRes = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
+      const assignData = await assignRes.json();
+      if (assignData.success) {
+        setActiveAssignments(assignData.assignments);
+      }
+
       setLastSynced(new Date());
     } catch (error) {
       console.error("Error fetching master data overview:", error);
@@ -94,6 +112,34 @@ export default function MasterOverview() {
   useEffect(() => {
     void fetchData();
   }, [role, userBranch]);
+
+  const handleAssignSubmit = async () => {
+    if (!assignForm.user_id || !assignForm.location) {
+      toast.error("Please select an employee and target branch.");
+      return;
+    }
+    setSubmittingAssign(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/work-assignments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(assignForm)
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Assignment created successfully");
+        setShowAssignModal(false);
+        fetchData(); // Refresh assignments
+        setAssignForm({ user_id: "", location: "", start_date: "", end_date: "", status: "Active" });
+      } else {
+        toast.error("Failed to create assignment");
+      }
+    } catch (error) {
+      toast.error("Network error");
+    } finally {
+      setSubmittingAssign(false);
+    }
+  };
 
   // Calculations
   const totalDepartments = departments.length;
@@ -481,32 +527,56 @@ export default function MasterOverview() {
             </Card>
 
             {/* ATTENDANCE SETTING */}
-            <Card className="xl:col-span-1 border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden">
-              <CardHeader className="pb-4 border-b border-border/40">
-                <CardTitle className="text-sm sm:text-base font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-                  <div className="p-2 bg-emerald-500/10 rounded-xl">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  </div>
-                  Attendance Setting
-                </CardTitle>
-                <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11">Multi-location employee configurations</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6 h-full">
-                <div className="flex flex-col gap-4 h-full">
-                  {[
-                    { name: "Segment Consistency", desc: "Checks that no orphan records lack active departments", status: "VERIFIED" }
-                  ].map((log) => (
-                    <div key={log.name} className="p-4 bg-emerald-500/5 dark:bg-emerald-500/10 hover:bg-emerald-500/10 rounded-2xl border border-emerald-500/10 transition-all flex flex-col justify-between gap-3 h-full">
-                      <div>
-                        <h4 className="text-xs font-black text-foreground uppercase tracking-wide">{log.name}</h4>
-                        <p className="text-[10px] font-semibold text-muted-foreground uppercase mt-1 leading-normal">{log.desc}</p>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 mt-2">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span className="text-[9px] font-black tracking-widest uppercase">{log.status}</span>
-                      </div>
+            <Card className="xl:col-span-1 border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden flex flex-col h-[300px]">
+              <CardHeader className="pb-3 border-b border-border/40 flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm sm:text-base font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+                    <div className="p-2 bg-purple-500/10 rounded-xl">
+                      <MapPin className="w-4 h-4 text-purple-500" />
                     </div>
-                  ))}
+                    ATTENDANCE ASSIGNMENT
+                  </CardTitle>
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-11 mt-1">Temporary Branch Assignment</CardDescription>
+                </div>
+                <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/20 shadow-none font-black">{activeAssignments.length} ACTIVE</Badge>
+              </CardHeader>
+              <CardContent className="pt-4 flex-1 flex flex-col overflow-hidden px-4">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Current Active Assignments</h4>
+                  <Button variant="outline" size="sm" className="h-7 px-3 text-[10px] uppercase font-black bg-purple-50 hover:bg-purple-100 text-purple-600 border-purple-200" onClick={() => setShowAssignModal(true)}>
+                    + Assign
+                  </Button>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin">
+                  {activeAssignments.length === 0 ? (
+                    <div className="text-center py-6 text-xs text-muted-foreground font-semibold">No active assignments</div>
+                  ) : (
+                    activeAssignments.map((a, i) => (
+                      <div key={i} className="flex flex-col gap-1.5 pb-3 border-b border-border/40 last:border-0 relative">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <Users className="w-3.5 h-3.5 text-slate-400" />
+                            <span className="text-xs font-black truncate max-w-[120px]">{a.name}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[10px] font-black tracking-widest text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
+                            <span>{a.primary_branch}</span>
+                            <span>→</span>
+                            <span className="text-purple-600 dark:text-purple-400">{a.temp_branch}</span>
+                          </div>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground pl-[22px] font-bold tracking-widest uppercase">
+                          {a.start_date ? new Date(a.start_date).toLocaleDateString('en-GB', {day: '2-digit', month: 'short'}) : 'Start'} - {a.end_date ? new Date(a.end_date).toLocaleDateString('en-GB', {day: '2-digit', month: 'short'}) : 'Until Further Notice'}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                
+                <div className="mt-3 pt-3 border-t border-border/40 text-center">
+                  <Button variant="ghost" className="w-full text-[10px] font-black uppercase tracking-widest h-8 text-muted-foreground hover:text-foreground" onClick={() => setShowAssignModal(true)}>
+                    View All Assignments <ChevronRight className="w-3 h-3 ml-1" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -514,6 +584,58 @@ export default function MasterOverview() {
 
         </div>
       )}
+
+      {/* ASSIGNMENT DIALOG */}
+      <Dialog open={showAssignModal} onOpenChange={setShowAssignModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Temporary Branch Assignment</DialogTitle>
+            <DialogDescription>Assign an employee to work at a different branch temporarily.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div>
+              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Employee</Label>
+              <Select value={assignForm.user_id} onValueChange={(val) => setAssignForm({...assignForm, user_id: val})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Employee" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[200px]">
+                  {employees.map(e => (
+                    <SelectItem key={e.user_id} value={e.user_id}>{e.full_name} ({e.branch})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Target Branch</Label>
+              <Select value={assignForm.location} onValueChange={(val) => setAssignForm({...assignForm, location: val})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {branches.map(b => (
+                    <SelectItem key={b.code} value={b.code}>{b.code} - {b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Start Date</Label>
+                <Input type="date" value={assignForm.start_date} onChange={e => setAssignForm({...assignForm, start_date: e.target.value})} />
+              </div>
+              <div>
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">End Date</Label>
+                <Input type="date" value={assignForm.end_date} onChange={e => setAssignForm({...assignForm, end_date: e.target.value})} />
+              </div>
+            </div>
+            <Button className="w-full" disabled={submittingAssign} onClick={handleAssignSubmit}>
+              {submittingAssign ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Confirm Assignment
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
