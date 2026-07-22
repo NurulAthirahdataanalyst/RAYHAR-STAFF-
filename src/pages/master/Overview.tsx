@@ -580,7 +580,7 @@ export default function MasterOverview() {
               <div className="p-6 border-t border-border/40 bg-muted/5 mt-auto">
                 <Button 
                   onClick={() => setShowAssignModal(true)}
-                  className="w-full py-5 rounded-xl bg-[#ffff00] hover:bg-[#e6e600] text-black font-black text-[10px] uppercase tracking-widest shadow-md flex items-center justify-center gap-1.5"
+                  className="w-full py-5 rounded-xl bg-[#f5f50a] hover:bg-[#dcdc0a] text-black font-black text-[10px] uppercase tracking-widest shadow-md flex items-center justify-center gap-1.5"
                 >
                   View All Assignments
                   <ChevronRight className="w-4 h-4" />
@@ -636,10 +636,19 @@ export default function MasterOverview() {
                 <Input type="date" value={assignForm.end_date} onChange={e => setAssignForm({...assignForm, end_date: e.target.value})} />
               </div>
             </div>
-            <Button className="w-full" disabled={submittingAssign} onClick={handleAssignSubmit}>
-              {submittingAssign ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              Confirm Assignment
-            </Button>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline"
+                className="w-full border-rose-500 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950"
+                onClick={() => setAssignForm({ user_id: "", location: "", start_date: "", end_date: "", status: "Active" })}
+              >
+                Reset
+              </Button>
+              <Button className="w-full" disabled={submittingAssign} onClick={handleAssignSubmit}>
+                {submittingAssign ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Confirm Assignment
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
