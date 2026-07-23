@@ -457,7 +457,7 @@ export default function WorkforceInsights() {
                 </div>
                 <p className="text-[11px] font-extrabold text-red-500 uppercase tracking-wider mb-2">Absent Today</p>
                 <div className="flex flex-col items-start mt-1">
-                  <h3 className="text-4xl font-black text-slate-800 leading-none">{feedConnected && absentList.length > 0 ? absentList.length : data.teamAvailability.absent}</h3>
+                  <h3 className="text-4xl font-black text-slate-800 leading-none">{feedConnected && absentList.length > 0 ? absentList.filter(a => (a as any).status === 'absent').length : data.teamAvailability.absent}</h3>
                   <p className="text-[12px] font-semibold text-slate-500 mt-1">Employees</p>
                 </div>
               </div>
