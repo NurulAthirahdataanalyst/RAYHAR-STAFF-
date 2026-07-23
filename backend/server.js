@@ -4637,10 +4637,12 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
       const personalLeaveSet = new Set(personalLeaveRows.map(r => r.user_id));
 
+      const outstationSet = new Set(outstationTodayRows.map(r => r.user_id));
+
       let companyLeaveCount = 0;
       allActiveProfiles.forEach(p => {
         const uid = p.user_id;
-        if (!clockedInSet.has(uid) && !personalLeaveSet.has(uid)) {
+        if (!clockedInSet.has(uid) && !personalLeaveSet.has(uid) && !outstationSet.has(uid)) {
           const matchesCompanyLeave = companyLeaveDays.some(cl => {
             if (cl.applies_to === 'all') return true;
             if (cl.applies_to === 'branch' && cl.branch_id) {
@@ -6126,74 +6128,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     );
     const outstationTodayCount = outstationTodayRows.length;
     const outstationEmployees = new Set(outstationTodayRows.map(r => r.user_id));
-
-    // 2. Attendance & Lates
-    const [attRows] = await pool.query(
-      `SELECT 
-        a.user_id, p.full_name as name, p.branch, p.department, a.clock_in, a.clock_out,
-        CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END as is_late
-       FROM attendances a
-       JOIN profiles p ON p.user_id = a.user_id
-       WHERE EXTRACT(MONTH FROM a.clock_in) = ? AND EXTRACT(YEAR FROM a.clock_in) = ? AND p.status = 'Active' ${profileFilter}`,
-      [lateTimeStr, requestedMonth, requestedYear, ...pFilterParams]
-    );
-
-    let totalLateArrivals = 0;
-    let presentToday = 0;
-    let lateToday = 0;
-    
-    const userStats = {};
-
-    attRows.forEach(att => {
-      const isLate = parseInt(att.is_late) === 1;
-      const dateObj = new Date(att.clock_in);
-      const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
-      const isOutstation = outstationEmployees.has(att.user_id);
-      
-      if (isLate && !isOutstation) totalLateArrivals++;
-      if (dateStr === targetDateStr) {
-        if (!isOutstation) {
-          presentToday++;
-          if (isLate) lateToday++;
-        }
-      }
-
-      if (!userStats[att.user_id]) {
-        userStats[att.user_id] = { name: att.name, department: att.department, branch: att.branch, presentDays: 0, lateDays: 0, missingPunches: 0, lastMissingPunch: null };
-      }
-      
-      if (!isOutstation) {
-        userStats[att.user_id].presentDays++;
-        if (isLate) userStats[att.user_id].lateDays++;
-        
-        // Missing Punch Check
-        if (!att.clock_out && dateStr < targetDateStr) {
-          userStats[att.user_id].missingPunches++;
-          if (!userStats[att.user_id].lastMissingPunch || dateStr > userStats[att.user_id].lastMissingPunch) {
-            userStats[att.user_id].lastMissingPunch = dateStr;
-          }
-        }
-      }
-    });
-
-    const workingDaysInMonth = 22; 
-    const possibleAttendances = activeEmployees * workingDaysInMonth;
-    let averageAttendance = 0;
-    
-    if (isDayView) {
-      if (isCompanyLeaveDay) {
-        averageAttendance = 0;
-      } else {
-        const expectedToClockIn = activeEmployees - companyLeaveCount;
-        averageAttendance = expectedToClockIn > 0 ? Math.round((presentToday / expectedToClockIn) * 100) : 0;
-      }
-    } else {
-      averageAttendance = possibleAttendances > 0 ? Math.round((attRows.length / possibleAttendances) * 100) : 0;
-    }
-
-    const absences = Math.max(0, possibleAttendances - attRows.length);
-
-    // 3. Leave Stats
+// 3. Leave Stats
     const [leaveRows] = await pool.query(
       `SELECT lr.user_id, lr.status, lr.start_date, lr.end_date, p.full_name as name
        FROM leave_requests lr
@@ -6219,6 +6154,88 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         onLeaveToday++;
       }
     });
+
+    
+
+    // 2. Attendance & Lates
+    const [attRows] = await pool.query(
+      `SELECT 
+        a.user_id, p.full_name as name, p.branch, p.department, a.clock_in, a.clock_out,
+        CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END as is_late
+       FROM attendances a
+       JOIN profiles p ON p.user_id = a.user_id
+       WHERE EXTRACT(MONTH FROM a.clock_in) = ? AND EXTRACT(YEAR FROM a.clock_in) = ? AND p.status = 'Active' ${profileFilter}`,
+      [lateTimeStr, requestedMonth, requestedYear, ...pFilterParams]
+    );
+
+    let totalLateArrivals = 0;
+    let presentToday = 0;
+    let lateToday = 0;
+    
+    const userStats = {};
+
+    const onLeaveEmployees = new Set();
+    leaveRows.forEach(lr => {
+      const startObj = new Date(lr.start_date);
+      const endObj = new Date(lr.end_date);
+      const start = new Date(startObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
+      const end = new Date(endObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
+      if (targetDateStr >= start && targetDateStr <= end && lr.status === 'Approved') {
+        onLeaveEmployees.add(lr.user_id);
+      }
+    });
+
+    attRows.forEach(att => {
+      const isLate = parseInt(att.is_late) === 1;
+      const dateObj = new Date(att.clock_in);
+      const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
+      const isOutstation = outstationEmployees.has(att.user_id);
+      const isOnLeave = onLeaveEmployees.has(att.user_id);
+      
+      // Explicitly ignore users who are Outstation or On Leave from Present/Late counts for today
+      if (dateStr === targetDateStr) {
+        if (!isOutstation && !isOnLeave) {
+          presentToday++;
+          if (isLate) lateToday++;
+        }
+      }
+
+      if (isLate && !isOutstation && !isOnLeave) totalLateArrivals++;
+
+      if (!userStats[att.user_id]) {
+        userStats[att.user_id] = { name: att.name, department: att.department, branch: att.branch, presentDays: 0, lateDays: 0, missingPunches: 0, lastMissingPunch: null };
+      }
+      
+      if (!isOutstation && !isOnLeave) {
+        userStats[att.user_id].presentDays++;
+        if (isLate) userStats[att.user_id].lateDays++;
+        
+        // Missing Punch Check ignores users on leave/outstation
+        if (!att.clock_out && dateStr < targetDateStr) {
+          userStats[att.user_id].missingPunches++;
+          if (!userStats[att.user_id].lastMissingPunch || dateStr > userStats[att.user_id].lastMissingPunch) {
+            userStats[att.user_id].lastMissingPunch = dateStr;
+          }
+        }
+      }
+    });
+
+    const workingDaysInMonth = 22; 
+    const possibleAttendances = activeEmployees * workingDaysInMonth;
+    let averageAttendance = 0;
+    
+    if (isDayView) {
+      if (isCompanyLeaveDay) {
+        averageAttendance = 0;
+      } else {
+        const expectedToClockIn = activeEmployees - companyLeaveCount;
+        averageAttendance = expectedToClockIn > 0 ? Math.round((presentToday / expectedToClockIn) * 100) : 0;
+      }
+    } else {
+      averageAttendance = possibleAttendances > 0 ? Math.round((attRows.length / possibleAttendances) * 100) : 0;
+    }
+
+    const absences = Math.max(0, possibleAttendances - attRows.length);
 
     // 4. Team Availability today
     let absentToday = Math.max(0, activeEmployees - presentToday - onLeaveToday - companyLeaveCount - outstationTodayCount);
@@ -6326,11 +6343,24 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     // Add Present and Late from attRows (ONLY for current week)
     attRows.forEach(att => {
       const dateObj = new Date(att.clock_in);
+      const isOutstation = outstationEmployees.has(att.user_id);
+      
+      // Check if user is on leave on this specific date
+      const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
+      const isOnLeave = leaveRows.some(lr => {
+        if (lr.status !== 'Approved') return false;
+        const s = new Date(new Date(lr.start_date).getTime() + 8*3600*1000).toISOString().split('T')[0];
+        const e = new Date(new Date(lr.end_date).getTime() + 8*3600*1000).toISOString().split('T')[0];
+        return dateStr >= s && dateStr <= e && lr.user_id === att.user_id;
+      });
+
       if (dateObj >= weekStartD && dateObj <= weekEndD) {
-        const dayName = dayNames[dateObj.getDay()];
-        weeklyMap[dayName].present++;
-        if (parseInt(att.is_late) === 1) {
-          weeklyMap[dayName].late++;
+        if (!isOutstation && !isOnLeave) {
+          const dayName = dayNames[dateObj.getDay()];
+          weeklyMap[dayName].present++;
+          if (parseInt(att.is_late) === 1) {
+            weeklyMap[dayName].late++;
+          }
         }
       }
     });
@@ -6610,7 +6640,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
        } else if (isCompanyLeave) {
           finalAbsentList.push({ user_id: p.user_id, full_name: p.full_name, initials: p.full_name.split(' ').map(n=>n[0]).join('').substring(0,2), department: p.department || '—', branch: p.branch || '—', status: 'companyLeave' });
        } else if (isOutstation) {
-          if (!isPresent) finalAbsentList.push({ user_id: p.user_id, full_name: p.full_name, initials: p.full_name.split(' ').map(n=>n[0]).join('').substring(0,2), department: p.department || '—', branch: p.branch || '—', status: 'outstation' });
+          finalAbsentList.push({ user_id: p.user_id, full_name: p.full_name, initials: p.full_name.split(' ').map(n=>n[0]).join('').substring(0,2), department: p.department || '—', branch: p.branch || '—', status: 'outstation' });
        } else if (!isPresent && !isWeekend && !matchingHoliday) {
           finalAbsentList.push({ user_id: p.user_id, full_name: p.full_name, initials: p.full_name.split(' ').map(n=>n[0]).join('').substring(0,2), department: p.department || '—', branch: p.branch || '—', status: 'absent' });
        }
