@@ -115,6 +115,7 @@ export default function LeaveAdmin() {
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
+  const [bakiLayak, setBakiLayak] = useState<number | string>('-');
   const [activeTab, setActiveTab] = useState<TabFilter>("history");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
 
@@ -199,15 +200,15 @@ export default function LeaveAdmin() {
     }
 
     const leaveId = searchParams.get("leaveId");
-    if (leaveId && requests.length > 0 && !selectedRequest) {
-      const match = requests.find((r) => r.id === Number(leaveId));
+    if (leaveId && requests.length > 0) {
+      const match = requests.find(r => r.id === parseInt(leaveId, 10));
       if (match) {
-        if (match.status === "Approved") {
+        if (match.status === "Pending HOD" || match.status === "Pending Finance" || match.status === "Pending MD" || (match.status as string) === "Pending HR") {
+          setActiveTab("pending");
+        } else if (match.status === "Approved") {
           setActiveTab("approved");
         } else if (match.status === "Rejected") {
           setActiveTab("rejected");
-        } else if (match.status.startsWith("Pending")) {
-          setActiveTab("pending");
         } else {
           setActiveTab("history");
         }
@@ -221,6 +222,35 @@ export default function LeaveAdmin() {
       setSearchParams(newParams, { replace: true });
     }
   }, [searchParams, requests, selectedRequest, setSearchParams]);
+
+  // Fetch bakiLayak when selectedRequest changes
+  useEffect(() => {
+    if (selectedRequest) {
+      setBakiLayak("-");
+      const userId = (selectedRequest as any).userId || (selectedRequest as any).user_id || "";
+      if (userId) {
+        fetch(`${API_BASE_URL}/api/leave-balance/${userId}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && data.balances) {
+              const typeUpper = selectedRequest.type.toUpperCase();
+              let balanceToDisplay: string | number = "-";
+              
+              if (['ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN'].includes(typeUpper)) {
+                balanceToDisplay = data.balances.annual;
+              } else if (['SICK LEAVE', 'MEDICAL LEAVE', 'CUTI SAKIT'].includes(typeUpper)) {
+                balanceToDisplay = data.balances.medical;
+              } else if (['REPLACEMENT LEAVE', 'CUTI GANTI'].includes(typeUpper)) {
+                balanceToDisplay = data.balances.replacement;
+              }
+              
+              setBakiLayak(balanceToDisplay);
+            }
+          })
+          .catch(err => console.error("Error fetching balance:", err));
+      }
+    }
+  }, [selectedRequest]);
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -605,7 +635,7 @@ export default function LeaveAdmin() {
                     <div className="text-center rounded-[14px] border-2 border-emerald-500 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-center py-1">
                       <p className="text-[9px] uppercase font-black text-emerald-600">Baki Layak</p>
                       <p className="font-black text-sm text-emerald-600 mt-0.5">
-                        {selectedRequest.balance ?? "-"} HARI
+                        {bakiLayak} HARI
                       </p>
                     </div>
                   </div>
