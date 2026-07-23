@@ -59,6 +59,7 @@ type LeaveForm = {
   cutiGantiTarikh?: string;
   cutiGantiHari?: string;
   cutiGantiJam?: number;
+  balance?: number;
   cutiTanpaGajiPhone?: string;
   cutiTanpaGajiSignature?: boolean;
   mcFileUrl?: string;

@@ -1891,19 +1891,19 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
               <div className="flex justify-between items-center mb-6 pl-2">
                 <div className="flex gap-6 items-baseline">
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum, item) => sum + item.present, 0) || 0}</span>
+                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.present, 0) || 0}</span>
                     <span className="text-xs font-bold text-slate-500">On-Time</span>
                   </div>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum, item) => sum + item.late, 0) || 0}</span>
+                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.late, 0) || 0}</span>
                     <span className="text-xs font-bold text-slate-500">Late</span>
                   </div>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum, item) => sum + item.absent, 0) || 0}</span>
+                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.absent, 0) || 0}</span>
                     <span className="text-xs font-bold text-slate-500">Absent</span>
                   </div>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum, item) => sum + (item.leave || 0), 0) || 0}</span>
+                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + (item.leave || 0), 0) || 0}</span>
                     <span className="text-xs font-bold text-slate-500">Leave</span>
                   </div>
                 </div>
@@ -1942,7 +1942,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                   </div>
                   <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-800/50 h-full">
                     <p className="text-xs text-slate-500 font-bold mb-1">Missed Punches</p>
-                    <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{data?.performance?.missingPunchEmployees?.reduce((sum, emp) => sum + emp.missingPunches, 0) || 0}</h3>
+                    <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{data?.performance?.missingPunchEmployees?.reduce((sum: number, emp: any) => sum + emp.missingPunches, 0) || 0}</h3>
                   </div>
                   <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-800/50 h-full">
                     <p className="text-xs text-slate-500 font-bold mb-1">Weekly Avg</p>

@@ -11,7 +11,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
   const handleClear = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (props.onSelect) {
+    if ((props as any).onSelect) {
       // @ts-ignore
       props.onSelect(undefined, undefined, undefined, e);
     }
@@ -21,7 +21,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
     e.preventDefault();
     e.stopPropagation();
     const today = new Date();
-    if (props.onSelect) {
+    if ((props as any).onSelect) {
       if (props.mode === "range") {
         // @ts-ignore
         props.onSelect({ from: today, to: today }, today, undefined, e);
