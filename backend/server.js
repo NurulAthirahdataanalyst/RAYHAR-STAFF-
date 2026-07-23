@@ -4242,7 +4242,10 @@ app.get("/api/attendance/history", async (req, res) => {
         const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
         const dd = String(dateObj.getDate()).padStart(2, '0');
         const dateKey = `${yyyy}-${mm}-${dd}`;
-        clockMap[dateKey] = r;
+        if (!clockMap[dateKey]) {
+          clockMap[dateKey] = [];
+        }
+        clockMap[dateKey].push(r);
       }
     });
 
@@ -4250,9 +4253,10 @@ app.get("/api/attendance/history", async (req, res) => {
     const userZone = branchZoneMap.get(userProfile.branch) || 'ZONE_B';
     const empCreatedAtStr = userProfile.created_at ? new Date(userProfile.created_at).toISOString().split('T')[0] : null;
 
-    const formattedHistory = dateStrings.map(dateStr => {
-      const clockRow = clockMap[dateStr];
+    const formattedHistory = dateStrings.flatMap(dateStr => {
+      const clockRowsForDate = clockMap[dateStr] || [];
       
+      const createRecord = (clockRow) => {
       let status = "Absent";
       let time_in = "--";
       let time_out = "--";
@@ -4427,6 +4431,13 @@ app.get("/api/attendance/history", async (req, res) => {
         location_type: location_type,
         location_name: location_name
       };
+      };
+
+      if (clockRowsForDate.length === 0) {
+        return [createRecord(null)];
+      } else {
+        return clockRowsForDate.map(row => createRecord(row));
+      }
     });
 
     res.json({ success: true, history: formattedHistory });
@@ -5602,7 +5613,10 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
 
     const clockMap = {};
     for (const row of clockRows) {
-      clockMap[row.user_id] = row;
+      if (!clockMap[row.user_id]) {
+        clockMap[row.user_id] = [];
+      }
+      clockMap[row.user_id].push(row);
     }
 
     // 3. Fetch approved leaves for that date
@@ -5640,9 +5654,9 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
     const branchZoneMap = await getBranchZoneMap();
     const dateObj = new Date(queryDate);
 
-    const formattedReport = allProfiles.map((p) => {
+    const formattedReport = allProfiles.flatMap((p) => {
       const uid = p.user_id;
-      const clockRow = clockMap[uid];
+      const clockRowsForUser = clockMap[uid] || [];
       const leaveRow = leaveMap[uid];
       
       const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
@@ -5650,6 +5664,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       const workHours = getWorkHoursForZone(userZone, dateObj);
       const [lateH, lateM] = workHours.off ? [23, 59] : getLateThresholdTime().split(':').map(Number);
 
+      const createRecord = (clockRow) => {
       let status = "Absent";
       let clock_in = null;
       let clock_out = null;
@@ -5769,6 +5784,13 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         is_early_leaver: isEarlyLeaver,
         is_overtime: isOvertime
       };
+      };
+
+      if (clockRowsForUser.length === 0) {
+        return [createRecord(null)];
+      } else {
+        return clockRowsForUser.map(row => createRecord(row));
+      }
     });
 
     res.json({ success: true, report: formattedReport, data: formattedReport });
@@ -6644,6 +6666,18 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       absent: finalAbsentList
     };
 
+    // Calculate missingPunchYesterday
+    const [missingPunchYesterdayRows] = await pool.query(
+      `SELECT COUNT(DISTINCT a.user_id) as cnt
+       FROM attendances a
+       JOIN profiles p ON p.user_id = a.user_id
+       WHERE (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = ?::date - INTERVAL '1 day'
+         AND a.clock_out IS NULL
+         AND p.status = 'Active' ${profileFilter}`,
+      [targetDateStr, ...pFilterParams]
+    );
+    const missingPunchYesterday = parseInt(missingPunchYesterdayRows[0]?.cnt || 0);
+
     const monthlyTrend = [
       { month: 'Jan', rate: 85 },
       { month: 'Feb', rate: 88 },
@@ -6705,7 +6739,8 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         attendanceRate: Math.min(100, averageAttendance),
         onLeaveToday,
         companyLeaveToday: companyLeaveCount,
-        outstationToday: outstationTodayCount
+        outstationToday: outstationTodayCount,
+        missingPunchYesterday
       },
       attendanceOverview: {
         averageAttendance: Math.min(100, averageAttendance),

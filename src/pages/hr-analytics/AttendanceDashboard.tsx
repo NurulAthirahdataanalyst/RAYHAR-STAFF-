@@ -1204,7 +1204,7 @@ export default function AttendanceDashboard() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {filteredDailyAttendance.length > 0 ? (
-                    filteredDailyAttendance.slice((currentPage - 1) * parseInt(limit), currentPage * parseInt(limit)).map((record) => {
+                    filteredDailyAttendance.slice((currentPage - 1) * parseInt(limit), currentPage * parseInt(limit)).map((record, index) => {
                       const clockInDate = record.clock_in ? new Date(record.clock_in) : null;
                       let isLate = false;
                       let lateMinStr = "0 Min";
@@ -1261,7 +1261,7 @@ export default function AttendanceDashboard() {
                         : "bg-gray-50 dark:bg-slate-900/50 text-gray-700 border border-gray-100 dark:border-slate-800";
 
                       return (
-                        <tr key={record.user_id} className="hover:bg-gray-50/50 transition-colors">
+                        <tr key={`${record.user_id}-${record.clock_in || index}`} className="hover:bg-gray-50/50 transition-colors">
                           <td className="px-4 py-2">
                             <input type="checkbox" className="rounded border-gray-300 text-[#7B0099] focus:ring-[#7B0099]" />
                           </td>

@@ -469,19 +469,26 @@ export default function WorkforceInsights() {
             {/* 5. Missing Punch */}
             <Card className={`rounded-xl shadow-sm border border-slate-200 bg-white p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.amber}`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-amber-100 bg-amber-50/50 flex items-center justify-center mb-3">
-                  <AlertTriangle className="w-5 h-5 text-amber-500" />
+                <div className="flex justify-between items-start mb-2">
+                  <div className="w-10 h-10 rounded-full border border-amber-100 bg-amber-50/50 flex items-center justify-center mb-3">
+                    <AlertTriangle className="w-5 h-5 text-amber-500" />
+                  </div>
+                  {feedConnected && <span className="text-amber-500 text-[11px] font-bold flex items-center gap-1 bg-white px-2 py-0.5 rounded-full shadow-sm"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />Live</span>}
                 </div>
                 <p className="text-[11px] font-extrabold text-amber-500 uppercase tracking-wider mb-2">Missing Punch</p>
                 <div className="flex flex-col items-start mt-1">
-                  <h3 className="text-4xl font-black text-slate-800 leading-none">0</h3>
+                  <h3 className="text-4xl font-black text-slate-800 leading-none">
+                    {feedConnected && missingPunchYesterdayLive !== null 
+                      ? missingPunchYesterdayLive 
+                      : (data.topKpi?.missingPunchYesterday || 0)}
+                  </h3>
                   <p className="text-[12px] font-semibold text-slate-500 mt-1">Employees</p>
                 </div>
               </div>
               <div className="mt-2">
-                <p className="text-[11px] font-bold text-amber-500 mb-3 flex items-center gap-1"><TrendingUp className="w-3 h-3" /> 0 vs Yesterday</p>
+                <p className="text-[11px] font-bold text-amber-500 mb-3 flex items-center gap-1">Yesterday's Records</p>
                 <div className="w-full bg-amber-100 rounded-full h-1.5 overflow-hidden">
-                  <div className="h-full bg-amber-500 rounded-full w-[10%]"></div>
+                  <div className="h-full bg-amber-500 rounded-full w-[100%]"></div>
                 </div>
               </div>
             </Card>
