@@ -257,7 +257,9 @@ const TemporaryAssignments = () => {
                     <TableCell>
                       <div className="font-bold">{assignment.name}</div>
                       <div className="text-xs text-muted-foreground">
-                        {assignment.role.replace(/_/g, ' ').toUpperCase()} • {assignment.department}
+                        {assignment.primary_branch === 'HQ' 
+                          ? `HQ • ${assignment.department}` 
+                          : `${assignment.role.replace(/_/g, ' ').toUpperCase()} • ${assignment.primary_branch}`}
                       </div>
                     </TableCell>
                     <TableCell>
