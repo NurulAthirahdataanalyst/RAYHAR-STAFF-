@@ -8492,10 +8492,12 @@ app.get("/api/work-assignments-all", async (req, res) => {
         ewa.start_date,
         ewa.end_date,
         ewa.status,
-        u.name,
-        u.branch as primary_branch
+        p.full_name as name,
+        p.branch as primary_branch,
+        p.department,
+        p.role
       FROM employee_work_assignment ewa
-      JOIN users u ON ewa.user_id = u.id
+      JOIN profiles p ON ewa.user_id = p.user_id
       WHERE ewa.status = 'Active'
       ORDER BY ewa.start_date DESC
     `);
