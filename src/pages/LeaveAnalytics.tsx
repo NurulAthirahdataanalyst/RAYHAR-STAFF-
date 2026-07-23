@@ -1390,7 +1390,10 @@ export default function LeaveAnalytics() {
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Action Center</h3>
           </div>
           <div className="space-y-3 flex-1 flex flex-col justify-center">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 cursor-pointer hover:bg-amber-100 transition-colors border border-amber-100">
+            <div 
+              className="flex items-center justify-between p-3 rounded-lg bg-amber-50 cursor-pointer hover:bg-amber-100 transition-colors border border-amber-100"
+              onClick={() => navigate("/leave/admin?tab=pending")}
+            >
               <span className="text-xs font-semibold text-amber-800">Pending Approval</span>
               <span className="text-sm font-black text-amber-700">{pending}</span>
             </div>
@@ -1433,7 +1436,10 @@ export default function LeaveAnalytics() {
                   </p>
                 </div>
                 {pending > 0 && (
-                  <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-50 border border-amber-100">
+                  <div 
+                    className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-50 border border-amber-100 cursor-pointer hover:bg-amber-100 transition-colors"
+                    onClick={() => navigate("/leave/admin?tab=pending")}
+                  >
                     <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
                     <p className="text-xs text-amber-800 font-medium leading-relaxed">
                       <span className="font-black">{pending}</span> application(s) still pending approval — action required.
