@@ -528,26 +528,6 @@ export default function WorkforceInsights() {
                 <p className="text-[11px] font-bold text-slate-500 mt-1">Target 95%</p>
               </div>
               <div className="mt-1 flex flex-col items-start w-full relative">
-                <div className="w-full h-[20px] mb-2 px-1 relative">
-                  <svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 100 20" className="opacity-80">
-                    <path d="M0,15 L15,10 L30,18 L45,8 L60,12 L75,5 L90,15 L100,2" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinejoin="round" />
-                    <circle cx="0" cy="15" r="2.5" fill="#6366f1" />
-                    <circle cx="15" cy="10" r="2.5" fill="#6366f1" />
-                    <circle cx="30" cy="18" r="2.5" fill="#6366f1" />
-                    <circle cx="45" cy="8" r="2.5" fill="#6366f1" />
-                    <circle cx="60" cy="12" r="2.5" fill="#6366f1" />
-                    <circle cx="75" cy="5" r="2.5" fill="#6366f1" />
-                    <circle cx="90" cy="15" r="2.5" fill="#6366f1" />
-                    <circle cx="100" cy="2" r="2.5" fill="#6366f1" />
-                    <path d="M0,15 L15,10 L30,18 L45,8 L60,12 L75,5 L90,15 L100,2 L100,20 L0,20 Z" fill="url(#gradient-indigo)" className="opacity-20" />
-                    <defs>
-                      <linearGradient id="gradient-indigo" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#6366f1" stopOpacity="0.8" />
-                        <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                </div>
                 <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-0.5"><TrendingUp className="w-3 h-3" /> 2% vs Yesterday</p>
               </div>
             </Card>

@@ -6483,6 +6483,11 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
 
          // Fetch outstation for this specific user
          const isOutstation = outstationRows.some(o => o.user_id === p.user_id);
+         
+         const branchZoneMapW = await getBranchZoneMap();
+         const userZone = branchZoneMapW.get(p.branch) || 'ZONE_B';
+         const isWeekend = checkIsWeekend(userZone, new Date(targetDateStr));
+         const matchingHoliday = malaysiaHolidays.find(h => h.date === targetDateStr);
 
          // Priority logic:
          if (isOnLeave) {
@@ -6494,7 +6499,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
          } else if (isPresent) {
             if (isLate) branchStats[b].late++;
             else branchStats[b].onTime++;
-         } else {
+         } else if (!isWeekend && !matchingHoliday) {
             branchStats[b].absent++;
          }
       }
@@ -6506,6 +6511,10 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
          const isPresent = !!att;
          const isLate = isPresent && parseInt(att.is_late) === 1;
          const isOutstation = outstationRows.some(o => o.user_id === p.user_id);
+         const branchZoneMapW = await getBranchZoneMap();
+         const userZone = branchZoneMapW.get(p.branch) || 'ZONE_B';
+         const isWeekend = checkIsWeekend(userZone, new Date(targetDateStr));
+         const matchingHoliday = malaysiaHolidays.find(h => h.date === targetDateStr);
 
          if (isOnLeave) departmentStats[d].onLeave++;
          else if (isCompanyLeave) departmentStats[d].compLeave++;
@@ -6513,7 +6522,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
          else if (isPresent) {
             if (isLate) departmentStats[d].late++;
             else departmentStats[d].onTime++;
-         } else {
+         } else if (!isWeekend && !matchingHoliday) {
             departmentStats[d].absent++;
          }
       }
