@@ -457,7 +457,7 @@ export default function Attendance() {
           <td>${log.time_in || '--'}</td>
           <td>${log.time_out || '--'}</td>
           <td><span class="badge badge-${statusClass}">${log.status}</span></td>
-          <td>${log.late || '--'}</td>
+          <td>${log.late === "00:00" ? "--" : (log.late || '--')}</td>
           <td class="duration">${log.duration || '--'}</td>
         </tr>
       `;
@@ -622,7 +622,7 @@ export default function Attendance() {
         `"${(log.time_in || '--').replace(/"/g, '""')}"`,
         `"${(log.time_out || '--').replace(/"/g, '""')}"`,
         `"${(log.status || '').replace(/"/g, '""')}"`,
-        `"${(log.late || '--').replace(/"/g, '""')}"`,
+        `"${(log.late === "00:00" ? "--" : (log.late || '--')).replace(/"/g, '""')}"`,
         `"${(log.duration || '--').replace(/"/g, '""')}"`
       ];
     });
@@ -1313,7 +1313,7 @@ export default function Attendance() {
                             {log.status}
                           </span>
                         </TableCell>
-                        <TableCell className="font-medium text-rose-600">{log.late}</TableCell>
+                        <TableCell className="font-medium text-rose-600">{log.late === "00:00" ? "--" : log.late}</TableCell>
                         <TableCell className="font-bold text-emerald-600 text-right pr-6">{log.duration}</TableCell>
                       </TableRow>
                     );
