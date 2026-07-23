@@ -1963,8 +1963,14 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
      JOIN profiles p ON p.user_id = a.user_id
      WHERE (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = ?::date - INTERVAL '1 day'
        AND a.clock_out IS NULL
-       AND p.status = 'Active' ${leaveTrendRoleFilter}`,
-    [dateStr, ...leaveTrendFilterParams]
+       AND p.status = 'Active' ${leaveTrendRoleFilter}
+       AND NOT EXISTS (
+         SELECT 1 FROM leave_requests lr 
+         WHERE lr.user_id = a.user_id 
+         AND lr.status = 'Approved' 
+         AND (?::date - INTERVAL '1 day') BETWEEN lr.start_date AND lr.end_date
+       )`,
+    [dateStr, ...leaveTrendFilterParams, dateStr]
   );
   const missingPunchYesterday = parseInt(missingPunchYesterdayRows[0]?.cnt || 0);
 
@@ -6673,8 +6679,14 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
        JOIN profiles p ON p.user_id = a.user_id
        WHERE (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = ?::date - INTERVAL '1 day'
          AND a.clock_out IS NULL
-         AND p.status = 'Active' ${profileFilter}`,
-      [targetDateStr, ...pFilterParams]
+         AND p.status = 'Active' ${profileFilter}
+         AND NOT EXISTS (
+           SELECT 1 FROM leave_requests lr 
+           WHERE lr.user_id = a.user_id 
+           AND lr.status = 'Approved' 
+           AND (?::date - INTERVAL '1 day') BETWEEN lr.start_date AND lr.end_date
+         )`,
+      [targetDateStr, ...pFilterParams, targetDateStr]
     );
     const missingPunchYesterday = parseInt(missingPunchYesterdayRows[0]?.cnt || 0);
 
