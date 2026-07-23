@@ -3904,7 +3904,7 @@ app.post("/api/attendance", async (req, res) => {
 
   try {
     const [empProfile] = await pool.query(
-      `SELECT branch, department, name FROM profiles WHERE user_id = ?`,
+      `SELECT branch, department, full_name as name FROM profiles WHERE user_id = ?`,
       [user_id]
     );
 
