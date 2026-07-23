@@ -51,6 +51,7 @@ const TemporaryAssignments = () => {
 
   useEffect(() => {
     fetchAssignments();
+    fetchDependencies();
   }, []);
 
   const fetchAssignments = async () => {
@@ -83,11 +84,7 @@ const TemporaryAssignments = () => {
     }
   };
 
-  useEffect(() => {
-    if (showAssignModal && employees.length === 0) {
-      fetchDependencies();
-    }
-  }, [showAssignModal]);
+
 
   const handleAssignSubmit = async () => {
     if (!assignForm.user_id || !assignForm.location) {
@@ -260,13 +257,18 @@ const TemporaryAssignments = () => {
                     <TableCell>
                       <div className="font-bold">{assignment.name}</div>
                       <div className="text-xs text-muted-foreground">
-                        {assignment.role} • {assignment.department}
+                        {assignment.role.replace(/_/g, ' ').toUpperCase()} • {assignment.department}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4 text-purple-500" />
-                        <span className="font-semibold">{assignment.temp_branch}</span>
+                        <span className="font-semibold">
+                          {(() => {
+                            const branchName = branches.find((b: any) => b.code === assignment.temp_branch)?.name;
+                            return branchName ? `${assignment.temp_branch} - ${branchName}` : assignment.temp_branch;
+                          })()}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -392,7 +394,7 @@ const TemporaryAssignments = () => {
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 font-medium">Employee ID</p>
-                    <p className="text-sm font-semibold text-slate-800">EMP-{selectedAssignment.user_id.toString().padStart(4, '0')}</p>
+                    <p className="text-sm font-semibold text-slate-800">{selectedAssignment.user_id}</p>
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 font-medium">Branch</p>
@@ -404,7 +406,7 @@ const TemporaryAssignments = () => {
                   </div>
                   <div className="col-span-2">
                     <p className="text-xs text-slate-500 font-medium">Position</p>
-                    <p className="text-sm font-semibold text-slate-800">{selectedAssignment.role}</p>
+                    <p className="text-sm font-semibold text-slate-800">{selectedAssignment.role.replace(/_/g, ' ').toUpperCase()}</p>
                   </div>
                 </div>
               </div>
