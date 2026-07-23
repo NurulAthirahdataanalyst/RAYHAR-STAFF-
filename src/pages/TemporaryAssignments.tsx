@@ -30,6 +30,9 @@ const TemporaryAssignments = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  const [selectedAssignment, setSelectedAssignment] = useState<TemporaryAssignment | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+
   // Modal State
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assignForm, setAssignForm] = useState({ user_id: "", location: "", start_date: "", end_date: "", status: "Active" });
@@ -186,7 +189,14 @@ const TemporaryAssignments = () => {
                 </TableRow>
               ) : (
                 filteredAssignments.map((assignment) => (
-                  <TableRow key={assignment.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                  <TableRow 
+                    key={assignment.id} 
+                    className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 cursor-pointer"
+                    onClick={() => {
+                      setSelectedAssignment(assignment);
+                      setShowDetailsModal(true);
+                    }}
+                  >
                     <TableCell>
                       <div className="font-bold">{assignment.name}</div>
                       <div className="text-xs text-muted-foreground">
@@ -287,7 +297,132 @@ const TemporaryAssignments = () => {
                 Confirm Assignment
               </Button>
             </div>
-          </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Details Modal */}
+      <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold border-b pb-4">Temporary Assignment Details</DialogTitle>
+          </DialogHeader>
+
+          {selectedAssignment && (
+            <div className="space-y-6 pt-4">
+              {/* Employee Information */}
+              <div>
+                <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-3">Employee Information</h3>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                  <div>
+                    <p className="text-xs text-slate-500 font-medium">Employee Name</p>
+                    <p className="text-sm font-semibold text-slate-800">{selectedAssignment.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 font-medium">Employee ID</p>
+                    <p className="text-sm font-semibold text-slate-800">EMP-{selectedAssignment.user_id.toString().padStart(4, '0')}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 font-medium">Branch</p>
+                    <p className="text-sm font-semibold text-slate-800">{(selectedAssignment as any).primary_branch || 'HQ'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 font-medium">Department</p>
+                    <p className="text-sm font-semibold text-slate-800">{selectedAssignment.department}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-slate-500 font-medium">Position</p>
+                    <p className="text-sm font-semibold text-slate-800">{selectedAssignment.role}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Assignment Information */}
+              <div>
+                <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-3">Assignment Information</h3>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                  <div className="col-span-2">
+                    <p className="text-xs text-slate-500 font-medium">Assignment Title</p>
+                    <p className="text-sm font-semibold text-slate-800">Temporary Branch Reassignment</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-slate-500 font-medium">Assignment Location</p>
+                    <p className="text-sm font-semibold text-slate-800">{selectedAssignment.temp_branch}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 font-medium">Start Date</p>
+                    <p className="text-sm font-semibold text-slate-800">{format(new Date(selectedAssignment.start_date), "dd/MM/yyyy")}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 font-medium">End Date</p>
+                    <p className="text-sm font-semibold text-slate-800">{selectedAssignment.end_date ? format(new Date(selectedAssignment.end_date), "dd/MM/yyyy") : "Ongoing"}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-slate-500 font-medium">Duration</p>
+                    <p className="text-sm font-semibold text-slate-800">
+                      {selectedAssignment.end_date 
+                        ? `${Math.ceil((new Date(selectedAssignment.end_date).getTime() - new Date(selectedAssignment.start_date).getTime()) / (1000 * 3600 * 24))} Days`
+                        : "Ongoing"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Purpose & Details */}
+              <div>
+                <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-3">Purpose & Details</h3>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs text-slate-500 font-medium mb-1">Reason for Assignment</p>
+                    <div className="p-3 bg-slate-50 rounded border border-slate-100 text-sm text-slate-600">
+                      Not provided
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 font-medium mb-1">Remarks</p>
+                    <div className="p-3 bg-slate-50 rounded border border-slate-100 text-sm text-slate-600 min-h-[60px]">
+                      Not provided
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Approval Information */}
+              <div>
+                <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-3">Approval Information</h3>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                  <div>
+                    <p className="text-xs text-slate-500 font-medium">Assigned By</p>
+                    <p className="text-sm font-semibold text-slate-800">System Admin</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 font-medium">Date</p>
+                    <p className="text-sm font-semibold text-slate-800">{format(new Date(selectedAssignment.start_date), "dd/MM/yyyy")}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-slate-500 font-medium">Status</p>
+                    <div className="mt-1">
+                      <Badge
+                        variant={selectedAssignment.status === "Active" ? "default" : selectedAssignment.status === "Completed" ? "secondary" : "destructive"}
+                        className={`
+                          ${selectedAssignment.status === "Active" ? "bg-emerald-500 hover:bg-emerald-600 text-white" : ""}
+                          ${selectedAssignment.status === "Completed" ? "bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:text-slate-300" : ""}
+                          ${selectedAssignment.status === "Cancelled" ? "bg-rose-500 hover:bg-rose-600 text-white" : ""}
+                        `}
+                      >
+                        {selectedAssignment.status}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 border-t pt-4 mt-6">
+                <Button variant="outline" onClick={() => setShowDetailsModal(false)}>Close</Button>
+                <Button className="bg-purple-600 hover:bg-purple-700 text-white">Edit</Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
