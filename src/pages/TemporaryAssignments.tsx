@@ -466,16 +466,16 @@ const TemporaryAssignments = () => {
               {/* Approval Information */}
               <div>
                 <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-3">Approval Information</h3>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                <div className="grid grid-cols-3 gap-x-4 gap-y-3">
                   <div>
                     <p className="text-xs text-slate-500 font-medium">Assigned By</p>
-                    <p className="text-sm font-semibold text-slate-800">System Admin</p>
+                    <p className="text-sm font-semibold text-slate-800">HR Admin</p>
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 font-medium">Date</p>
                     <p className="text-sm font-semibold text-slate-800">{format(new Date(selectedAssignment.start_date), "dd/MM/yyyy")}</p>
                   </div>
-                  <div className="col-span-2">
+                  <div>
                     <p className="text-xs text-slate-500 font-medium">Status</p>
                     <div className="mt-1">
                       <Badge
