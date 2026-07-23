@@ -5,11 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { MapPin, Calendar, CheckCircle2, XCircle, Search, Loader2, Plus } from "lucide-react";
+import { MapPin, Calendar, CheckCircle2, XCircle, Search, Loader2, Plus, Edit, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useRole } from "@/contexts/RoleContext";
+
 interface TemporaryAssignment {
   id: number;
   user_id: number;
@@ -25,6 +27,9 @@ interface TemporaryAssignment {
 const API_BASE_URL = import.meta.env.VITE_API_URL || "https://attendance-system-gamma-jade.vercel.app";
 
 const TemporaryAssignments = () => {
+  const { role } = useRole();
+  const isHRAdmin = role === "hr_admin";
+
   const [assignments, setAssignments] = useState<TemporaryAssignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -39,6 +44,10 @@ const TemporaryAssignments = () => {
   const [submittingAssign, setSubmittingAssign] = useState(false);
   const [employees, setEmployees] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
+  
+  const [editId, setEditId] = useState<number | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingAssignment, setDeletingAssignment] = useState<TemporaryAssignment | null>(null);
 
   useEffect(() => {
     fetchAssignments();
@@ -87,24 +96,70 @@ const TemporaryAssignments = () => {
     }
     setSubmittingAssign(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/work-assignments`, {
-        method: "POST",
+      const url = editId 
+        ? `${API_BASE_URL}/api/work-assignments/${editId}`
+        : `${API_BASE_URL}/api/work-assignments`;
+      const method = editId ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(assignForm)
       });
       const data = await res.json();
       if (data.success) {
-        toast.success("Assignment created successfully");
+        toast.success(editId ? "Assignment updated successfully" : "Assignment created successfully");
         setShowAssignModal(false);
         fetchAssignments();
         setAssignForm({ user_id: "", location: "", start_date: "", end_date: "", status: "Active" });
+        setEditId(null);
       } else {
-        toast.error("Failed to create assignment");
+        toast.error("Failed to save assignment");
       }
     } catch (error) {
       toast.error("Network error");
     } finally {
       setSubmittingAssign(false);
+    }
+  };
+
+  const handleEditClick = (e: React.MouseEvent, assignment: TemporaryAssignment) => {
+    e.stopPropagation();
+    setAssignForm({
+      user_id: assignment.user_id.toString(),
+      location: assignment.temp_branch,
+      start_date: assignment.start_date.split('T')[0],
+      end_date: assignment.end_date ? assignment.end_date.split('T')[0] : "",
+      status: assignment.status
+    });
+    setEditId(assignment.id);
+    setShowAssignModal(true);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, assignment: TemporaryAssignment) => {
+    e.stopPropagation();
+    setDeletingAssignment(assignment);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingAssignment) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/work-assignments/${deletingAssignment.id}`, {
+        method: "DELETE"
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`Temporary assignment for ${deletingAssignment.name} has been deleted successfully.`);
+        fetchAssignments();
+      } else {
+        toast.error("Failed to delete assignment.");
+      }
+    } catch (e) {
+      toast.error("Network error.");
+    } finally {
+      setShowDeleteModal(false);
+      setDeletingAssignment(null);
     }
   };
 
@@ -127,7 +182,11 @@ const TemporaryAssignments = () => {
           </p>
         </div>
         <Button 
-          onClick={() => setShowAssignModal(true)}
+          onClick={() => {
+            setEditId(null);
+            setAssignForm({ user_id: "", location: "", start_date: "", end_date: "", status: "Active" });
+            setShowAssignModal(true);
+          }}
           className="bg-[#a01497] hover:bg-[#850f7c] text-white font-bold whitespace-nowrap"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -172,18 +231,19 @@ const TemporaryAssignments = () => {
                 <TableHead className="font-bold">Temporary Branch</TableHead>
                 <TableHead className="font-bold">Duration</TableHead>
                 <TableHead className="font-bold">Status</TableHead>
+                {isHRAdmin && <TableHead className="font-bold text-right">Action</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={isHRAdmin ? 5 : 4} className="text-center py-10 text-muted-foreground">
                     Loading assignments...
                   </TableCell>
                 </TableRow>
               ) : filteredAssignments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={isHRAdmin ? 5 : 4} className="text-center py-10 text-muted-foreground">
                     No assignments found.
                   </TableCell>
                 </TableRow>
@@ -232,6 +292,18 @@ const TemporaryAssignments = () => {
                         {assignment.status}
                       </Badge>
                     </TableCell>
+                    {isHRAdmin && (
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="icon" onClick={(e) => handleEditClick(e, assignment)} className="h-8 w-8 text-slate-500 hover:text-[#a01497]">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={(e) => handleDeleteClick(e, assignment)} className="h-8 w-8 text-slate-500 hover:text-red-600">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
               )}
@@ -244,8 +316,8 @@ const TemporaryAssignments = () => {
       <Dialog open={showAssignModal} onOpenChange={setShowAssignModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Temporary Branch Assignment</DialogTitle>
-            <DialogDescription>Assign an employee to work at a different branch temporarily.</DialogDescription>
+            <DialogTitle>{editId ? "Edit Temporary Assignment" : "Temporary Branch Assignment"}</DialogTitle>
+            <DialogDescription>{editId ? "Update the employee's temporary branch assignment." : "Assign an employee to work at a different branch temporarily."}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div>
@@ -294,10 +366,10 @@ const TemporaryAssignments = () => {
               </Button>
               <Button className="w-full bg-[#a01497] hover:bg-[#850f7c] text-white" disabled={submittingAssign} onClick={handleAssignSubmit}>
                 {submittingAssign ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                Confirm Assignment
+                {editId ? "Save Changes" : "Confirm Assignment"}
               </Button>
             </div>
-          </form>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -423,6 +495,24 @@ const TemporaryAssignments = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Temporary Assignment</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the temporary assignment for <span className="font-bold text-slate-800">{deletingAssignment?.name}</span> to <span className="font-bold text-slate-800">{deletingAssignment?.temp_branch}</span>?
+              <br/><br/>
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-3 pt-4">
+            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDelete}>Delete Assignment</Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

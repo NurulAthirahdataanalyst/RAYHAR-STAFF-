@@ -8544,6 +8544,15 @@ app.put("/api/work-assignments/:id", async (req, res) => {
   }
 });
 
+app.delete("/api/work-assignments/:id", async (req, res) => {
+  try {
+    await pool.query(`DELETE FROM employee_work_assignment WHERE id = ?`, [req.params.id]);
+    res.json({ success: true });
+  } catch(e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 app.get("/api/allowed-locations/:user_id", async (req, res) => {
   try {
     const [rows] = await pool.query(`SELECT allowed_branch FROM employee_allowed_locations WHERE user_id = ?`, [req.params.user_id]);
