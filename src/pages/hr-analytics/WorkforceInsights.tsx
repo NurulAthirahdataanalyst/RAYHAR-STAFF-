@@ -2023,7 +2023,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                         variant="outline"
                         size="sm"
                         onClick={() => setTrendWeekStart(startOfWeek(new Date(), { weekStartsOn: 6 }))}
-                        className="h-8 text-xs font-black px-4 mr-2 bg-[#7B0099] text-[#FFD700] hover:bg-[#5c0073] hover:text-[#FFE55C] border-none shadow-md"
+                        className="h-8 text-xs font-black px-4 mr-2 bg-[#FFD700] text-[#7B0099] border-2 border-[#7B0099] hover:bg-[#FFE55C] shadow-md"
                       >
                         This Week
                       </Button>
