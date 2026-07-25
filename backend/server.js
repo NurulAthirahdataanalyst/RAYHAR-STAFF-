@@ -6262,9 +6262,16 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       const d = new Date(requestedYear, requestedMonth - 1 - i, 1);
       const m = d.getMonth() + 1;
       const y = d.getFullYear();
+      const lastDayOfMonth = new Date(y, m, 0);
+      let historicalCount = 0;
+      allProfiles.forEach(p => {
+        const pCreated = new Date(p.created_at);
+        pCreated.setHours(0,0,0,0);
+        if (pCreated <= lastDayOfMonth) historicalCount++;
+      });
       const row = trendRows.find(r => parseInt(r.m) === m && parseInt(r.y) === y);
       const atts = row ? parseInt(row.total_att) : 0;
-      const possible = activeEmployees > 0 ? activeEmployees * 22 : 22;
+      const possible = historicalCount > 0 ? historicalCount * 22 : 22;
       const rate = possible > 0 ? Math.round((atts / possible) * 100) : 0;
       realMonthlyTrend.push({
         month: monthNames[m - 1],
@@ -6277,16 +6284,25 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       const dateObj = new Date(att.clock_in);
       const dateStr = new Date(dateObj.getTime() + 8*3600*1000).toISOString().split('T')[0];
       const d = dateStr.slice(8, 10); 
-      if (!dailyMap[d]) dailyMap[d] = { rate: 0, lates: 0, count: 0 };
+      if (!dailyMap[d]) dailyMap[d] = { rate: 0, lates: 0, count: 0, dateStr: dateStr };
       dailyMap[d].count++;
       if (parseInt(att.is_late) === 1) dailyMap[d].lates++;
     });
     
-    const dailyTrend = Object.keys(dailyMap).sort().map(d => ({
-      date: d,
-      rate: activeEmployees > 0 ? Math.round((dailyMap[d].count / activeEmployees) * 100) : 0,
-      lates: dailyMap[d].lates
-    })).slice(-10);
+    const dailyTrend = Object.keys(dailyMap).sort().map(d => {
+      const dIter = new Date(dailyMap[d].dateStr);
+      let historicalCount = 0;
+      allProfiles.forEach(p => {
+        const pCreated = new Date(p.created_at);
+        pCreated.setHours(0,0,0,0);
+        if (pCreated <= dIter) historicalCount++;
+      });
+      return {
+        date: d,
+        rate: historicalCount > 0 ? Math.round((dailyMap[d].count / historicalCount) * 100) : 0,
+        lates: dailyMap[d].lates
+      };
+    }).slice(-10);
 
     // Build Weekly Attendance Trend (CURRENT WEEK ONLY)
     const weeklyMap = {
@@ -6322,16 +6338,23 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       const dayName = dayNames[dayOfWeekNum];
       
       let expectedForDay = 0;
+      let totalEmployeesForDay = 0;
       allProfiles.forEach(p => {
-        const userZone = branchZoneMapW.get(p.branch) || 'ZONE_B';
-        const isFirstSaturday = dayOfWeekNum === 6 && dIter.getDate() <= 7;
-        const isRest = (userZone === 'ZONE_A' && (dayOfWeekNum === 5 || isFirstSaturday)) || 
-                       (userZone === 'ZONE_B' && (dayOfWeekNum === 0 || isFirstSaturday));
-        if (!isRest) {
-          expectedForDay++;
+        const pCreated = new Date(p.created_at);
+        pCreated.setHours(0,0,0,0);
+        if (pCreated <= dIter) {
+          totalEmployeesForDay++;
+          const userZone = branchZoneMapW.get(p.branch) || 'ZONE_B';
+          const isFirstSaturday = dayOfWeekNum === 6 && dIter.getDate() <= 7;
+          const isRest = (userZone === 'ZONE_A' && (dayOfWeekNum === 5 || isFirstSaturday)) || 
+                         (userZone === 'ZONE_B' && (dayOfWeekNum === 0 || isFirstSaturday));
+          if (!isRest) {
+            expectedForDay++;
+          }
         }
       });
       weeklyMap[dayName].expected = expectedForDay;
+      weeklyMap[dayName].totalEmployees = totalEmployeesForDay;
       weeklyMap[dayName].isFuture = dIter > dEnd;
       dIter.setDate(dIter.getDate() + 1);
     }
@@ -6411,7 +6434,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
         late: data.late,
         absent: absent,
         leave: data.leave,
-        weekend: Math.max(0, activeEmployees - data.expected)
+        weekend: Math.max(0, data.totalEmployees - data.expected)
       };
     });
 
