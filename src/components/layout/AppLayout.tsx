@@ -19,6 +19,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { API_BASE_URL } from "../../config/api";
 import { useShiftNotifications } from "@/hooks/useShiftNotifications";
 import { getBreadcrumbs } from "@/utils/breadcrumbs";
+import PageHeader from "./PageHeader";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
@@ -365,6 +366,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             
             {/* Ruang Kerja Utama (70% - 90%) */}
             <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3 transition-all duration-500 ease-in-out w-full">
+              {location.pathname !== "/analytics" && location.pathname !== "/settings" && <PageHeader />}
               <div className="w-full">
                 {children}
               </div>
@@ -465,3 +467,4 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
