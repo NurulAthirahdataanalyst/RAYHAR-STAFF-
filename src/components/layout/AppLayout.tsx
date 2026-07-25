@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, ChevronRight, ChevronLeft, Settings, Menu, ClipboardCheck, Calendar, Sparkles, RefreshCw, Sun, Moon } from "lucide-react";
+import { User, LogOut, ChevronRight, ChevronLeft, Settings, Menu, ClipboardCheck, Calendar, Sparkles, RefreshCw, Sun, Moon, Home } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { API_BASE_URL } from "../../config/api";
@@ -219,12 +219,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center justify-between relative z-10 w-full">
             <div className="flex-1">
               {location.pathname === "/analytics" && (
-                <div className="flex items-center text-[14px] uppercase font-medium text-purple-200/80 pl-2">
-                  <span className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/")}>Home</span>
-                  <ChevronRight className="w-4 h-4 mx-1.5 opacity-50" />
-                  <span className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/analytics")}>Analytics</span>
-                  <ChevronRight className="w-4 h-4 mx-1.5 opacity-50" />
-                  <span className="text-white font-bold opacity-100">Employee Analytics</span>
+                <div className="flex items-center text-[14px] font-bold text-white pl-2">
+                  <div className="flex items-center hover:text-purple-200 cursor-pointer transition-colors" onClick={() => navigate("/")}>
+                    <Home className="w-4 h-4 mr-1.5 -mt-0.5" />
+                    <span>Home</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 mx-2 opacity-60" />
+                  <span className="hover:text-purple-200 cursor-pointer transition-colors" onClick={() => navigate("/analytics")}>Analytics</span>
+                  <ChevronRight className="w-4 h-4 mx-2 opacity-60" />
+                  <span>Employee Analytics</span>
                 </div>
               )}
             </div>
