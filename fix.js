@@ -23,7 +23,6 @@ try {
 
 try {
   let ta = fs.readFileSync('src/pages/TeamAttendance.tsx', 'utf8');
-  ta = ta.replace(/import \{ Loader2.*?\} from \"lucide-react\";/, 'import { Loader2, Users, Clock, AlertCircle, Building2, CalendarDays, Search } from \"lucide-react\";');
   fs.writeFileSync('src/pages/TeamAttendance.tsx', ta);
   console.log('Fixed TeamAttendance.tsx');
 } catch (e) {

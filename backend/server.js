@@ -1653,10 +1653,14 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   // Upcoming Outstation — role-filtered
   let outstationFilters = ["status != 'Cancelled'", "?::date <= DATE(end_date)"];
   let outstationParams = [dateStr];
-  if (role === 'branch_leader' && branch && branch !== "All") {
+  if (role === 'branch_leader') {
+      const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+      branch = safeBranch;
       outstationFilters.push("branch = ?");
       outstationParams.push(branch);
-  } else if (role === 'head_of_department' && department && department !== "All") {
+  } else if (role === 'head_of_department') {
+      const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+      department = safeDept;
       outstationFilters.push("department = ?");
       outstationParams.push(department);
   }
@@ -1724,10 +1728,14 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
 
   let summaryFilters = ["start_date >= ?", "start_date < ?"];
   let summaryParams = [monthStart, monthEnd];
-  if (role === 'branch_leader' && branch && branch !== "All") {
+  if (role === 'branch_leader') {
+      const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
+      branch = safeBranch;
       summaryFilters.push("branch = ?");
       summaryParams.push(branch);
-  } else if (role === 'head_of_department' && department && department !== "All") {
+  } else if (role === 'head_of_department') {
+      const safeDept = (department && department !== "All") ? department : "INVALID_BYPASS";
+      department = safeDept;
       summaryFilters.push("department = ?");
       summaryParams.push(department);
   }

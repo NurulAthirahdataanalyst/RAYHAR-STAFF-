@@ -56,7 +56,8 @@ import {
   AlertCircle,
   MoreHorizontal,
   ArrowRight,
-import { BarChart3, TrendingUp, Users, Calendar, AlertCircle, FileText, CheckCircle2, Clock, MapPin, Search, Filter, ShieldAlert, Check, X, ShieldCheck, HelpCircle, FileSpreadsheet, Download, RefreshCw, Layers, BriefcaseMedical, Building2, ChevronRight, CheckSquare, XCircle, ChevronDown, ListFilter, SlidersHorizontal, Activity } from "lucide-react";
+  BarChart3, Calendar, Clock, MapPin, Search, ShieldAlert, Check, X, ShieldCheck, HelpCircle, Layers, Building2, ChevronRight, CheckSquare, ListFilter, SlidersHorizontal, Activity, Sparkles
+} from "lucide-react";
 import { API_BASE_URL } from "../config/api";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import PageActions from "@/components/layout/PageActions";

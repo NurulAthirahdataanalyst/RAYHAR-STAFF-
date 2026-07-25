@@ -25,7 +25,6 @@ import {
   ChevronDown
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import PageActions from "@/components/layout/PageActions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 

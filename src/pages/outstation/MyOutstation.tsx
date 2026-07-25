@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useRole } from "@/contexts/RoleContext";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plane, MapPin, AlertCircle, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/layout/PageHeader";
 import PageActions from "@/components/layout/PageActions";
+import { Loader2, Plane, MapPin, Calendar, Clock, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { API_BASE_URL } from "../../config/api";
 
 const PINK = "#EC4899";
@@ -89,17 +90,8 @@ export default function MyOutstation() {
   if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-500" /></div>;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-8">
-      <PageHeader
-        title="My Outstation"
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Outstation Management", href: "/outstation" },
-          { label: "My Outstation" }
-        ]}
-      />
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto px-4 pt-2 pb-8">
 
-      <div className="max-w-5xl mx-auto px-4 space-y-6">
       {/* Current / Active Trip Banner */}
       {active && (
         <Card className="border-2 border-pink-200 dark:border-pink-500/30 bg-gradient-to-r from-pink-50 to-white shadow-sm overflow-hidden">
@@ -176,8 +168,8 @@ export default function MyOutstation() {
       )}
 
       {/* Status Tabs */}
-      <PageActions>
-        <div className="flex items-center gap-2 w-full">
+      <div>
+        <div className="flex items-center gap-2 mb-4">
           {(["Upcoming", "Active", "Completed", "Cancelled"] as const).map(s => (
             <button
               key={s}
@@ -195,9 +187,7 @@ export default function MyOutstation() {
             </button>
           ))}
         </div>
-      </PageActions>
 
-      <div>
         {loading ? (
           <div className="h-32 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-pink-400" /></div>
         ) : filtered.length === 0 ? (

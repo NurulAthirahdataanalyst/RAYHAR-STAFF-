@@ -2,17 +2,19 @@ import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { API_BASE_URL } from "@/config/api";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Users, Clock, AlertCircle, Building2, CalendarDays, Search } from "lucide-react";
-import { ExportDropdown } from "@/components/shared/ExportDropdown";
+import PageHeader from "@/components/layout/PageHeader";
 import PageActions from "@/components/layout/PageActions";
+import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { exportToCSV } from "@/utils/export";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { Search, CalendarDays } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarWidget } from "@/components/ui/calendar";
-import PageHeader from "@/components/layout/PageHeader";
 
 export default function TeamAttendance() {
   const { role, userBranch, userDepartment } = useRole();
@@ -23,11 +25,17 @@ export default function TeamAttendance() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [dateViewMode, setDateViewMode] = useState("DAY");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setPortalTarget(document.getElementById("page-header-actions"));
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
+        // Fetch employees for this manager
         const empParams = new URLSearchParams({
           role: role || "",
           branch: userBranch || "",
@@ -45,14 +53,17 @@ export default function TeamAttendance() {
         const targetDate = new Date(selectedDate);
 
         if (dateViewMode === 'DAY') {
+          // Fetch today's global attendance
           const attRes = await fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${selectedDate}`);
           const attData = await attRes.json();
           const globalAttendance = attData.success ? (attData.report || attData.data || []) : [];
 
+          // Map attendance to our team employees
           const teamIds = new Set(teamEmployees.map((e: any) => e.user_id));
           const filteredAttendance = globalAttendance.filter((a: any) => teamIds.has(a.user_id));
           setAttendanceData(filteredAttendance);
         } else {
+          // Fetch monthly attendance
           const month = targetDate.getMonth() + 1;
           const year = targetDate.getFullYear();
           const attRes = await fetch(`${API_BASE_URL}/api/reports/monthly-attendance?month=${month}&year=${year}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`);
@@ -82,8 +93,10 @@ export default function TeamAttendance() {
     );
   }
 
+  // Calculate metrics (will compute after merging attendance into employee list)
   const totalTeam = employees.length;
 
+  // Merge employee info with their attendance
   let mergedList: any[] = [];
   
   if (dateViewMode === 'DAY') {
@@ -131,6 +144,7 @@ export default function TeamAttendance() {
       };
     });
   } else {
+    // MONTH view
     mergedList = attendanceData.map(att => {
       const emp = employees.find(e => e.user_id === att.user_id) || {};
       
@@ -168,6 +182,7 @@ export default function TeamAttendance() {
     });
   }
 
+  // Metrics computed from merged list to reflect displayed statuses
   const presentCount = mergedList.filter(e => e.status === 'Present' || e.status === 'Outstation').length;
   const lateCount = mergedList.filter(e => (e.status === 'Present' || e.status === 'Outstation') && e.late !== '00:00' && e.late !== '--').length;
   const absentCount = mergedList.filter(e => e.status === 'Absent').length;
@@ -184,7 +199,7 @@ export default function TeamAttendance() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background space-y-6 animate-in fade-in duration-500 pb-8">
       <PageHeader
         title="Daily Team Attendance Overview"
         description="Review employee attendance records, clock-in activities, and working hours for today"
@@ -194,21 +209,75 @@ export default function TeamAttendance() {
           { label: "Team Attendance" }
         ]}
       />
+      
       <PageActions>
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="outline" className="text-xs font-semibold border-primary/20 bg-primary/5 px-3 py-1.5 flex items-center shadow-sm">
-            <Building2 className="w-3.5 h-3.5 mr-1.5 text-primary" />
-            {role === 'hr_admin' ? 'All Branches' : userBranch || 'HQ'}
-          </Badge>
-          {role === 'head_of_department' && (
+        <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
+          <div className="flex flex-wrap gap-2 mr-auto sm:mr-4">
             <Badge variant="outline" className="text-xs font-semibold border-primary/20 bg-primary/5 px-3 py-1.5 flex items-center shadow-sm">
-              <Users className="w-3.5 h-3.5 mr-1.5 text-primary" />
-              {userDepartment || 'All Departments'}
+              <Building2 className="w-3.5 h-3.5 mr-1.5 text-primary" />
+              {role === 'hr_admin' ? 'All Branches' : userBranch || 'HQ'}
             </Badge>
-          )}
+            {role === 'head_of_department' && (
+              <Badge variant="outline" className="text-xs font-semibold border-primary/20 bg-primary/5 px-3 py-1.5 flex items-center shadow-sm">
+                <Users className="w-3.5 h-3.5 mr-1.5 text-primary" />
+                {userDepartment || 'All Departments'}
+              </Badge>
+            )}
+          </div>
+          
+          {/* Date Filter */}
+          <div className="relative">
+            {dateViewMode === "DAY" ? (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] gap-2 hover:border-[#7B0099] hover:ring-1 hover:ring-[#7B0099] transition-all">
+                    {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-1" align="start">
+                  <CalendarWidget
+                    mode="single"
+                    selected={new Date(selectedDate)}
+                    onSelect={(d) => {
+                      if (d) setSelectedDate(new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0]);
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <input
+                type="month"
+                value={`${new Date(selectedDate).getFullYear()}-${String(new Date(selectedDate).getMonth() + 1).padStart(2, '0')}`}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setSelectedDate(`${e.target.value}-01`);
+                  }
+                }}
+                className="appearance-none px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none focus:border-[#7B0099] focus:ring-1 focus:ring-[#7B0099] uppercase tracking-widest h-[34px]"
+              />
+            )}
+          </div>
+
+          <ExportDropdown 
+            onExportCSV={() => exportToCSV(filteredList, 'Team_Attendance')} 
+            onExportPDF={() => window.print()} 
+          />
+
+          <div className="relative flex items-center">
+            <Search className="w-4 h-4 absolute left-3 text-muted-foreground" />
+            <Input
+              placeholder="Search Employee..."
+              className="pl-9 h-[34px] w-[200px] text-xs"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
       </PageActions>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0">
+        {/* Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <Card className="border-border shadow-sm">
             <CardContent className="p-6 flex items-center gap-4">
@@ -259,32 +328,12 @@ export default function TeamAttendance() {
           </Card>
         </div>
 
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-1" align="start">
-                      <CalendarWidget
-                        mode="single"
-                        selected={new Date(selectedDate)}
-                        onSelect={(d) => {
-                          if (d) setSelectedDate(new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0]);
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                ) : (
-                  <input
-                    type="month"
-                    value={`${new Date(selectedDate).getFullYear()}-${String(new Date(selectedDate).getMonth() + 1).padStart(2, '0')}`}
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        setSelectedDate(`${e.target.value}-01`);
-                      }
-                    }}
-                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] hover:border-[#7B0099] hover:ring-1 hover:ring-[#7B0099] transition-all"
-                  />
-                )}
-              </div>
-
+        {/* Table */}
+        <Card className="border-border shadow-sm">
+          <CardHeader className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+            <CardTitle className="text-lg whitespace-nowrap">{dateViewMode === 'DAY' ? "Today's Attendance Log" : "Monthly Attendance Log"}</CardTitle>
+            
+            <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
               {/* Day / Month Toggle */}
               <div className="flex items-center bg-gray-50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800 rounded-md p-1 shadow-sm">
                 <button 
@@ -303,47 +352,19 @@ export default function TeamAttendance() {
 
               {/* Status Toggle */}
               <div className="flex items-center bg-gray-50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800 rounded-md p-1 shadow-sm overflow-x-auto">
-                <button 
-                  onClick={() => setStatusFilter('ALL')}
-                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'ALL' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow' : 'text-gray-500 hover:text-gray-900 dark:text-gray-100'}`}
-                >
-                  ALL
-                </button>
-                <button 
-                  onClick={() => setStatusFilter('ON TIME')}
-                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'ON TIME' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow' : 'text-gray-500 hover:text-gray-900 dark:text-gray-100'}`}
-                >
-                  ON TIME
-                </button>
-                <button 
-                  onClick={() => setStatusFilter('LATE')}
-                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === 'LATE' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow' : 'text-gray-500 hover:text-gray-900 dark:text-gray-100'}`}
-                >
-                  LATE
-                </button>
+                {["ALL", "ON TIME", "LATE"].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setStatusFilter(status)}
+                    className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === status ? 'bg-white dark:bg-card text-foreground shadow-sm ring-1 ring-border' : 'text-gray-500 hover:text-gray-900 dark:text-gray-100'}`}
+                  >
+                    {status}
+                  </button>
+                ))}
               </div>
-
-              <ExportDropdown 
-                onExportCSV={() => exportToCSV(filteredList, 'Team_Attendance')} 
-                onExportPDF={() => window.print()} 
-              />
-
-              {/* Search */}
-              <div className="relative w-full sm:w-64 shrink-0">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-                <Input
-                  placeholder="Search employee..."
-                  className="pl-9 h-9 rounded-full border-gray-200 dark:border-slate-800 bg-white dark:bg-card shadow-sm text-sm"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
             </div>
-        </div>
-      </PageActions>
-
-      <div className="space-y-4">
-        <Card className="border border-gray-200 dark:border-slate-800 shadow-sm bg-white dark:bg-card">
-          <CardContent className="pt-6">
+          </CardHeader>
+          <CardContent>
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
