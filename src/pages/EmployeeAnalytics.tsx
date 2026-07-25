@@ -407,19 +407,14 @@ export default function EmployeeAnalytics() {
     <div className="space-y-5 sm:space-y-7 animate-in fade-in duration-500 pb-12">
 
       {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#7B0099]/10 dark:bg-[#7B0099]/20 rounded-xl text-[#7B0099]">
-            <Activity className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-          <div>
-            <h1 className="text-responsive-xl font-black text-foreground tracking-tight uppercase">
-              Performance Insights
-            </h1>
-            <p className="text-responsive-sm text-muted-foreground font-medium italic">
-              Employee Attendance Analytics · {MONTHS.find(m => m.value === selectedMonth)?.label} {selectedYear}
-            </p>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 bg-white dark:bg-card p-6 rounded-2xl border border-border shadow-sm">
+        <div className="flex flex-col">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground uppercase tracking-tight">
+            PERFORMANCE INSIGHTS
+          </h1>
+          <p className="text-[15px] sm:text-base text-muted-foreground mt-1">
+            Employee Attendance Analytics · {MONTHS.find(m => m.value === selectedMonth)?.label} {selectedYear}
+          </p>
         </div>
 
         {/* Month/Year Filter */}

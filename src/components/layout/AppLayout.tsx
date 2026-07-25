@@ -216,8 +216,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="hidden lg:flex sticky top-0 z-30 w-full bg-gradient-to-r from-[#800A7A] via-[#7B0099] to-[#3d0052] py-2.5 px-3 items-center justify-between shadow-md relative overflow-hidden border-b border-[#7B0099]/15">
           <div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
           
-          <div className="flex items-center gap-3 relative z-10 w-full justify-end">
-            <div className="flex items-center gap-4 relative z-10 ml-auto">
+          <div className="flex items-center justify-between relative z-10 w-full">
+            <div className="flex-1">
+              {location.pathname === "/analytics" && (
+                <div className="flex items-center text-[11px] font-medium text-purple-200/70 uppercase tracking-widest pl-2">
+                  <span className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/")}>Home</span>
+                  <ChevronRight className="w-3.5 h-3.5 mx-1.5 opacity-50" />
+                  <span className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/analytics")}>Analytics</span>
+                  <ChevronRight className="w-3.5 h-3.5 mx-1.5 opacity-50" />
+                  <span className="text-white font-bold opacity-100">Employee Analytics</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-4 relative z-10 ml-auto shrink-0">
               <button onClick={() => window.location.reload()} className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition-colors text-white font-semibold text-xs border border-white/20 bg-white/5">
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Refresh</span>
@@ -344,7 +356,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             
             {/* Ruang Kerja Utama (70% - 90%) */}
             <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3 transition-all duration-500 ease-in-out w-full">
-              <PageHeader />
+              {location.pathname !== "/analytics" && <PageHeader />}
               <div className="w-full">
                 {children}
               </div>
