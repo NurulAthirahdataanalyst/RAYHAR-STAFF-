@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
+import PageHeader from "@/components/layout/PageHeader";
+import PageActions from "@/components/layout/PageActions";
 import { exportToCSV } from "@/utils/export";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -367,6 +369,15 @@ export default function LeaveAdmin() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
+      <PageHeader
+        title="Leave Approvals"
+        description="Manage and process leave applications for your team"
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Leave Administration", href: "/leave" },
+          { label: "Leave Approvals" }
+        ]}
+      />
       
       <Card className="border border-white/60 bg-white/40 dark:bg-card/40 backdrop-blur-2xl rounded-3xl shadow-xl shadow-purple-900/5 overflow-hidden ring-1 ring-black/5">
         <CardContent className="p-0">
@@ -396,12 +407,8 @@ export default function LeaveAdmin() {
       </div>
 
       {/* Main Content Area */}
-      <Card className="border border-border/60 shadow-sm bg-card rounded-lg overflow-hidden">
-        
-        {/* Table Controls Header */}
-        <div className="p-4 sm:p-5 border-b border-border/40 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <h2 className="text-base font-bold text-foreground">Leave List</h2>
-          <div className="flex flex-wrap items-center gap-2.5">
+      <PageActions>
+        <div className="flex flex-wrap items-center gap-2.5">
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
               <SelectTrigger className="w-[140px] h-9 text-xs font-medium rounded-md bg-transparent">
                 <SelectValue placeholder="All Months" />
@@ -430,8 +437,9 @@ export default function LeaveAdmin() {
               </SelectContent>
             </Select>
           </div>
-        </div>
+      </PageActions>
 
+      <Card className="border border-border/60 shadow-sm bg-card rounded-lg overflow-hidden">
         {/* Table Content */}
         <CardContent className="p-0">
           {loading ? (

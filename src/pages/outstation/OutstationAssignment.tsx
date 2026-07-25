@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import PageHeader from "@/components/layout/PageHeader";
+import PageActions from "@/components/layout/PageActions";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -315,10 +317,17 @@ export default function OutstationAssignment() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-8">
-
+      <PageHeader
+        title="Outstation Assignment"
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Outstation Management", href: "/outstation" },
+          { label: "Outstation Assignment" }
+        ]}
+      />
       {/* Filter Bar */}
-      <Card className="border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/80 shadow-sm">
-        <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+      <PageActions>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between w-full">
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-gray-400" />
@@ -362,8 +371,8 @@ export default function OutstationAssignment() {
           <Button size="sm" className="h-8 text-xs gap-1.5 shrink-0" style={{ background: "#7B0099" }} onClick={openNew}>
             <Plus className="w-3.5 h-3.5" /> New Assignment
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </PageActions>
 
       {/* Table */}
       <Card className="border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/80 shadow-sm overflow-hidden">

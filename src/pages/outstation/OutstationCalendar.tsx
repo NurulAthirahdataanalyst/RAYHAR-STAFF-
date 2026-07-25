@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Plane, ChevronLeft, ChevronRight, MapPin, X, Calendar, Users, Clock } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, MapPin, CalendarDays, Users } from "lucide-react";
+import PageHeader from "@/components/layout/PageHeader";
+import PageActions from "@/components/layout/PageActions";
 import { API_BASE_URL } from "../../config/api";
 
 const PINK = "#EC4899";
@@ -110,10 +112,17 @@ export default function OutstationCalendar() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-8">
-
+      <PageHeader
+        title="Outstation Calendar"
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Outstation Management", href: "/outstation" },
+          { label: "Outstation Calendar" }
+        ]}
+      />
       {/* Controls */}
-      <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm">
-        <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <PageActions>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
           <div className="flex items-center gap-3">
             <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
             <h2 className="text-base font-black text-gray-800 dark:text-gray-100 min-w-[180px] text-center">{MONTHS[viewMonth]} {viewYear}</h2>
@@ -130,8 +139,8 @@ export default function OutstationCalendar() {
               </SelectContent>
             </Select>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </PageActions>
 
       {/* Legend */}
       <div className="flex items-center gap-4 flex-wrap px-1">

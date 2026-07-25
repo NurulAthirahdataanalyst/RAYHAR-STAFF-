@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { API_BASE_URL } from "@/config/api";
 import { Loader2, RefreshCw, MapPin, Users, Briefcase, Calendar, CheckCircle2 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
+import PageHeader from "@/components/layout/PageHeader";
+import PageActions from "@/components/layout/PageActions";
 
 const ALLOWED_ROLES = ["hr_admin", "managing_director", "finance_manager", "branch_leader", "head_of_department"];
 const STATUS_COLORS: Record<string, string> = {
@@ -137,17 +139,22 @@ export default function OutstationAnalytics() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
-          <div>
-            <div className="text-sm font-bold uppercase tracking-[0.24em] text-slate-500">Outstation Insight</div>
-            <h1 className="mt-2 text-3xl font-bold">Overview of outstation activities and staff on assignment.</h1>
-          </div>
-          <Button onClick={() => void fetchData()} className="h-11 px-5">
-            <RefreshCw className="w-3.5 h-3.5" /> Refresh
-          </Button>
-        </div>
+      <PageHeader
+        title="Outstation Analytics"
+        description="Overview of outstation activities and staff on assignment."
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Outstation Management", href: "/outstation" },
+          { label: "Outstation Analytics" }
+        ]}
+      />
+      <PageActions>
+        <Button onClick={() => void fetchData()} className="h-11 px-5 w-full sm:w-auto">
+          <RefreshCw className="w-3.5 h-3.5 mr-2" /> Refresh
+        </Button>
+      </PageActions>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
           <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors shadow-none">
             <CardContent className="p-5">
               <div className="flex items-center gap-3">

@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
+import PageActions from "@/components/layout/PageActions";
 import { useRole } from "@/contexts/RoleContext";
 
 const calculateWorkingHours = (clockIn: string | null | undefined, clockOut: string | null | undefined) => {
@@ -219,8 +220,8 @@ export default function AttendanceReports() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+      <PageActions>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-4">
           
           {/* DAY / MONTH Toggle */}
           <div className="flex bg-gray-100 p-1 rounded-lg">
@@ -290,7 +291,9 @@ export default function AttendanceReports() {
             <ExportDropdown onExportCSV={handleExportCSV} />
           </div>
         </div>
+      </PageActions>
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
             <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="p-6 flex items-center gap-4">

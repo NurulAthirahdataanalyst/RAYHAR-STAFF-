@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import PageHeader from "@/components/layout/PageHeader";
+import PageActions from "@/components/layout/PageActions";
 import { CheckCircle2, Clock3, FileText, Plus, XCircle, Calendar } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { API_BASE_URL } from "../config/api";
@@ -219,18 +221,16 @@ export default function LeaveOverview() {
   return (
     <div className="space-y-3 sm:space-y-5 animate-in fade-in duration-500">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-[#7B0099]/10 dark:bg-[#7B0099]/20 rounded-xl text-[#7B0099] dark:text-purple-400">
-            <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-          <div>
-            <h1 className="text-responsive-xl font-black text-foreground tracking-tight uppercase">Leave Portal</h1>
-            <p className="text-responsive-sm text-muted-foreground font-medium italic">
-              Manage your leave applications and check quotas
-            </p>
-          </div>
-        </div>
+      <PageHeader
+        title="Leave Overview"
+        description="Manage your leave applications and check quotas"
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Leave Management", href: "/leave" },
+          { label: "Leave Overview" }
+        ]}
+      />
+      <PageActions>
         <div className="flex flex-wrap items-center gap-2.5">
           <Select value={selectedYear} onValueChange={setSelectedYear}>
             <SelectTrigger className="w-[90px] h-10 text-[10px] font-black uppercase tracking-widest rounded-xl border border-[#7B0099]/20 bg-card">
@@ -250,7 +250,7 @@ export default function LeaveOverview() {
             Apply for Leave
           </Button>
         </div>
-      </div>
+      </PageActions>
 
       {/* Leave Balance Cards */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 max-w-[960px]">

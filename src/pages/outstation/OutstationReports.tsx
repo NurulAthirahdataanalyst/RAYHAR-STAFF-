@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Plane, Download, Search, Filter, MapPin, ArrowLeft } from "lucide-react";
+import PageHeader from "@/components/layout/PageHeader";
+import PageActions from "@/components/layout/PageActions";
 import { API_BASE_URL } from "../../config/api";
 
 const OUTSTATION_ROLES = ["hr_admin", "managing_director", "finance_manager", "branch_leader", "head_of_department"];
@@ -201,6 +203,14 @@ export default function OutstationReports() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-8">
+      <PageHeader
+        title="Outstation Reports"
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Outstation Management", href: "/outstation" },
+          { label: "Outstation Reports" }
+        ]}
+      />
 
       {/* Dynamic Header */}
       <div className="flex items-center gap-3 mb-2">
@@ -265,8 +275,8 @@ export default function OutstationReports() {
       )}
 
       {/* Filters */}
-      <Card className="border border-gray-200 dark:border-slate-800 shadow-sm">
-        <CardContent className="p-4 flex flex-col sm:flex-row items-center gap-3 justify-between">
+      <PageActions>
+        <div className="flex flex-col sm:flex-row items-center gap-3 justify-between w-full">
           <div className="flex items-center gap-3 flex-wrap">
             <Filter className="w-4 h-4 text-gray-400" />
             <div className="relative">
@@ -309,10 +319,10 @@ export default function OutstationReports() {
           <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5 shrink-0" onClick={exportCSV}>
             <Download className="w-3.5 h-3.5" /> Export CSV
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </PageActions>
 
-      {/* Table */}
+      {/* Main Table Content */}
       <Card className="border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
         <CardHeader className="border-b border-gray-100 dark:border-slate-800 pb-3 bg-slate-50/50 dark:bg-slate-900/50">
           <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">

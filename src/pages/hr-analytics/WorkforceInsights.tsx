@@ -2,6 +2,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
+import PageActions from "@/components/layout/PageActions";
 import { exportToCSV } from "@/utils/export";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -363,7 +364,8 @@ export default function WorkforceInsights() {
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
         
         {/* Header Controls */}
-        <div className="flex flex-wrap items-center justify-end w-full gap-3 pb-2 pt-2">
+        <PageActions>
+          <div className="flex flex-wrap items-center justify-end w-full gap-3 pb-2 pt-2">
             <div className="flex items-center gap-3">
               <div className="relative">
                 {viewMode === "day" ? (
@@ -417,7 +419,8 @@ export default function WorkforceInsights() {
               onExportCSV={() => exportToCSV(data.departmentMetrics || [], 'Workforce_Insights')} 
               onExportPDF={() => window.print()} 
             />
-        </div>
+          </div>
+        </PageActions>
 
         {viewMode === 'day' ? (
           <>

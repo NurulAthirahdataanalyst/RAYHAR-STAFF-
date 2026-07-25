@@ -31,8 +31,12 @@ import {
   CalendarDays,
   MapPin,
   Zap,
+  RefreshCw,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, LineChart, Line, XAxis, YAxis, CartesianGrid, AreaChart, Area } from "recharts";
+import PageHeader from "@/components/layout/PageHeader";
+import PageActions from "@/components/layout/PageActions";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
@@ -70,6 +74,12 @@ export default function Dashboard() {
     }
     return false;
   });
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchDashboardData(true);
+    setIsRefreshing(false);
+  };
 
   useEffect(() => {
     const handleSidebarChange = () => {
@@ -487,25 +497,15 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-3 animate-in fade-in duration-500">
-      {/* Header - responsive */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-responsive-2xl font-black tracking-tight text-foreground truncate">
-            {getGreeting()}, {rawName}!
-          </h1>
-          <p className="text-muted-foreground font-medium mt-1 flex items-center gap-2 text-responsive-sm">
-            {selectedDate.toLocaleDateString("en-US", {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
-            {isRefreshing && (
-              <Loader2 className="w-3 h-3 animate-spin text-primary" />
-            )}
-          </p>
-        </div>
-
+      <PageHeader
+        title="Workforce Overview"
+        description="Monitor employee activity, attendance status, leave updates, and workforce performance in real time"
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Dashboard" }
+        ]}
+      />
+      <PageActions>
         {/* Date Filter Datepicker */}
         <div className="flex items-center gap-2 shrink-0">
           <Popover>

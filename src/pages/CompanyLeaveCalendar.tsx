@@ -3,7 +3,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { useToast } from "@/hooks/use-toast";
 import PageHeader from "@/components/layout/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import PageActions from "@/components/layout/PageActions";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -183,19 +184,16 @@ const CompanyLeaveCalendar = () => {
         </div>
       )}
 
+      <PageActions>
+        {isHR && (
+          <Button onClick={() => handleOpenDialog()} className="bg-[#a01497] hover:bg-[#850f7c] text-white">
+            <Plus className="w-4 h-4 mr-2" /> Add Company Leave
+          </Button>
+        )}
+      </PageActions>
+
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Special Leaves &amp; Holidays</CardTitle>
-            <CardDescription>All global leave dates that affect attendance calculation.</CardDescription>
-          </div>
-          {isHR && (
-            <Button onClick={() => handleOpenDialog()} className="bg-[#a01497] hover:bg-[#850f7c] text-white">
-              <Plus className="w-4 h-4 mr-2" /> Add Company Leave
-            </Button>
-          )}
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {isLoading ? (
             <div className="text-center py-8 text-muted-foreground">Loading leaves...</div>
           ) : leaves.length === 0 ? (

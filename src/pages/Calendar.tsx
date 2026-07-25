@@ -8,6 +8,8 @@ import { useRole } from "@/contexts/RoleContext";
 import { useLocation } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
 import { toast } from "sonner";
+import PageHeader from "@/components/layout/PageHeader";
+import PageActions from "@/components/layout/PageActions";
 import { 
   Plus, 
   MapPin, 
@@ -22,6 +24,8 @@ import {
   Download,
   ChevronDown
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import PageActions from "@/components/layout/PageActions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -473,10 +477,16 @@ export default function Calendar() {
     <div className="w-full min-h-screen pb-12">
       
       {/* HEADER / TOP BAR */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 className="text-2xl font-bold text-foreground">
-          Calendar
-        </h1>
+      <PageHeader
+        title="Workforce Calendar"
+        description="Manage working schedules, company holidays, and important workforce events"
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Calendar", href: "/calendar" },
+          { label: "Work Calendar" }
+        ]}
+      />
+      <PageActions>
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
 
           <ExportDropdown 
@@ -494,7 +504,7 @@ export default function Calendar() {
             Create
           </Button>
         </div>
-      </div>
+      </PageActions>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
@@ -1585,3 +1595,4 @@ export default function Calendar() {
     </div>
   );
 }
+

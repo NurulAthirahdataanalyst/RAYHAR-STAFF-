@@ -2,17 +2,17 @@ import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { API_BASE_URL } from "@/config/api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Users, Clock, AlertCircle, Building2, Calendar, Download, ChevronDown } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Loader2, Users, Clock, AlertCircle, Building2, CalendarDays, Search } from "lucide-react";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
+import PageActions from "@/components/layout/PageActions";
 import { exportToCSV } from "@/utils/export";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Search, CalendarDays } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarWidget } from "@/components/ui/calendar";
+import PageHeader from "@/components/layout/PageHeader";
 
 export default function TeamAttendance() {
   const { role, userBranch, userDepartment } = useRole();
@@ -23,17 +23,11 @@ export default function TeamAttendance() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [dateViewMode, setDateViewMode] = useState("DAY");
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
-
-  useEffect(() => {
-    setPortalTarget(document.getElementById("page-header-actions"));
-  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch employees for this manager
         const empParams = new URLSearchParams({
           role: role || "",
           branch: userBranch || "",
@@ -51,17 +45,14 @@ export default function TeamAttendance() {
         const targetDate = new Date(selectedDate);
 
         if (dateViewMode === 'DAY') {
-          // Fetch today's global attendance
           const attRes = await fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${selectedDate}`);
           const attData = await attRes.json();
           const globalAttendance = attData.success ? (attData.report || attData.data || []) : [];
 
-          // Map attendance to our team employees
           const teamIds = new Set(teamEmployees.map((e: any) => e.user_id));
           const filteredAttendance = globalAttendance.filter((a: any) => teamIds.has(a.user_id));
           setAttendanceData(filteredAttendance);
         } else {
-          // Fetch monthly attendance
           const month = targetDate.getMonth() + 1;
           const year = targetDate.getFullYear();
           const attRes = await fetch(`${API_BASE_URL}/api/reports/monthly-attendance?month=${month}&year=${year}&role=${role}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`);
@@ -91,10 +82,8 @@ export default function TeamAttendance() {
     );
   }
 
-  // Calculate metrics (will compute after merging attendance into employee list)
   const totalTeam = employees.length;
 
-  // Merge employee info with their attendance
   let mergedList: any[] = [];
   
   if (dateViewMode === 'DAY') {
@@ -142,7 +131,6 @@ export default function TeamAttendance() {
       };
     });
   } else {
-    // MONTH view
     mergedList = attendanceData.map(att => {
       const emp = employees.find(e => e.user_id === att.user_id) || {};
       
@@ -180,7 +168,6 @@ export default function TeamAttendance() {
     });
   }
 
-  // Metrics computed from merged list to reflect displayed statuses
   const presentCount = mergedList.filter(e => e.status === 'Present' || e.status === 'Outstation').length;
   const lateCount = mergedList.filter(e => (e.status === 'Present' || e.status === 'Outstation') && e.late !== '00:00' && e.late !== '--').length;
   const absentCount = mergedList.filter(e => e.status === 'Absent').length;
@@ -198,7 +185,16 @@ export default function TeamAttendance() {
 
   return (
     <div className="min-h-screen bg-background">
-      {portalTarget && createPortal(
+      <PageHeader
+        title="Daily Team Attendance Overview"
+        description="Review employee attendance records, clock-in activities, and working hours for today"
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Attendance", href: "/attendance" },
+          { label: "Team Attendance" }
+        ]}
+      />
+      <PageActions>
         <div className="flex flex-wrap gap-2">
           <Badge variant="outline" className="text-xs font-semibold border-primary/20 bg-primary/5 px-3 py-1.5 flex items-center shadow-sm">
             <Building2 className="w-3.5 h-3.5 mr-1.5 text-primary" />
@@ -210,11 +206,9 @@ export default function TeamAttendance() {
               {userDepartment || 'All Departments'}
             </Badge>
           )}
-        </div>,
-        portalTarget
-      )}
+        </div>
+      </PageActions>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <Card className="border-border shadow-sm">
             <CardContent className="p-6 flex items-center gap-4">
@@ -265,20 +259,6 @@ export default function TeamAttendance() {
           </Card>
         </div>
 
-        {/* Table */}
-        <Card className="border-border shadow-sm">
-          <CardHeader className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-            <CardTitle className="text-lg whitespace-nowrap">{dateViewMode === 'DAY' ? "Today's Attendance Log" : "Monthly Attendance Log"}</CardTitle>
-            
-            <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
-              {/* Date Filter */}
-              <div className="relative">
-                {dateViewMode === "DAY" ? (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] gap-2 hover:border-[#7B0099] hover:ring-1 hover:ring-[#7B0099] transition-all">
-                        {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                      </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-1" align="start">
                       <CalendarWidget
@@ -357,10 +337,13 @@ export default function TeamAttendance() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-              </div>
             </div>
-          </CardHeader>
-          <CardContent>
+        </div>
+      </PageActions>
+
+      <div className="space-y-4">
+        <Card className="border border-gray-200 dark:border-slate-800 shadow-sm bg-white dark:bg-card">
+          <CardContent className="pt-6">
             <div className="rounded-md border">
               <Table>
                 <TableHeader>

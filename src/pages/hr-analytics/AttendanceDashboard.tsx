@@ -22,6 +22,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { API_BASE_URL } from "../../config/api";
+import PageActions from "@/components/layout/PageActions";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -974,37 +975,11 @@ export default function AttendanceDashboard() {
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-6">
 
       {/* ── LIVE PRESENCE PANEL ─────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <div className="flex items-center gap-4">
-              <div className="p-2.5 bg-gradient-to-br from-[#800A7A] to-[#a855f7] rounded-xl shadow-md">
-                <Activity className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-[15px] font-black text-gray-800 dark:text-gray-200 uppercase tracking-wide">Live Attendance Status</h2>
-                  {liveConnected ? (
-                    <span className="flex items-center gap-1.5 bg-red-500 text-white border border-red-400 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-widest shadow-sm shadow-red-500/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-card animate-pulse" />
-                      LIVE
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-1 bg-gray-200 text-gray-600 border border-gray-300 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-widest">
-                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
-                      Connecting…
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-gray-500 font-medium mt-1">
-                  {liveLastUpdated
-                    ? `Updated ${new Date(liveLastUpdated).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}`
-                    : `From ${liveStats.total || totalStaffCount || '—'} active employees`}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
-            </div>
-      </div>
+      <PageActions>
+        <div className="flex items-center gap-2">
+          <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
+        </div>
+      </PageActions>
 
       {/* Redesigned Standalone KPI Cards Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4 mb-6">

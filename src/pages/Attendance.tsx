@@ -15,6 +15,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
+import PageActions from "@/components/layout/PageActions";
 
 const formatAttendanceTime = (value: unknown) => {
   if (!value) return "--:--";
@@ -1160,19 +1161,11 @@ export default function Attendance() {
 
       {/* BOTTOM PANEL: Employee Attendance Data Table */}
       <div className="relative z-10 w-full max-w-7xl mx-auto pb-8">
-        <Card className="border-border shadow-sm overflow-hidden bg-card/60 backdrop-blur-md min-h-[400px]">
-          
-          {/* Header Row */}
-          <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/50 bg-muted/20 pb-4">
-            <div>
-              <CardTitle className="text-lg font-bold">Employee Attendance</CardTitle>
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Detailed Log Records</p>
-            </div>
-            
-            <div className="flex items-center gap-3 flex-wrap">
-              {/* Date Filter */}
-              <div className="relative">
-                {viewMode === "day" ? (
+        <PageActions>
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Date Filter */}
+            <div className="relative">
+              {viewMode === "day" ? (
                   <Popover>
                     <PopoverTrigger asChild>
                       <button className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] gap-2 hover:bg-muted/80">
@@ -1239,11 +1232,12 @@ export default function Attendance() {
                 ))}
               </div>
               
-              {/* Export */}
-              <ExportDropdown onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} />
-            </div>
-          </CardHeader>
+            {/* Export */}
+            <ExportDropdown onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} />
+          </div>
+        </PageActions>
 
+        <Card className="border-border shadow-sm overflow-hidden bg-card/60 backdrop-blur-md min-h-[400px]">
           {/* Table Container */}
           <CardContent className="p-0">
             <div className="overflow-x-auto">

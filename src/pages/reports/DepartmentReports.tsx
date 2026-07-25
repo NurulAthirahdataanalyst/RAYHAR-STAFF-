@@ -8,6 +8,7 @@ import { Loader2, Download, Building2, Users } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
+import PageActions from "@/components/layout/PageActions";
 
 export default function DepartmentReports() {
   const { role, userBranch, userDepartment } = useRole();
@@ -15,11 +16,6 @@ export default function DepartmentReports() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [selectedBranch, setSelectedBranch] = useState("All");
   const [selectedDept, setSelectedDept] = useState("All");
-  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
-
-  useEffect(() => {
-    setPortalTarget(document.getElementById("page-header-actions"));
-  }, []);
 
   useEffect(() => {
     fetchData();
@@ -121,8 +117,7 @@ export default function DepartmentReports() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {portalTarget && createPortal(
+      <PageActions>
           <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4 w-full sm:w-auto">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Branch:</span>
@@ -157,10 +152,10 @@ export default function DepartmentReports() {
             </div>
 
             <ExportDropdown onExportCSV={handleExportCSV} />
-          </div>,
-          portalTarget
-        )}
+          </div>
+      </PageActions>
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
           <Card className="border-border shadow-sm">
             <CardContent className="p-4 flex flex-col justify-center">

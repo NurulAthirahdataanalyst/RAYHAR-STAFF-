@@ -14,6 +14,8 @@ import {
 import { toast } from "sonner";
 import { FileText, Printer, Loader2, ArrowLeft, PhoneCall, Eye, Calendar, MapPin, Clock } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
+import PageHeader from "@/components/layout/PageHeader";
+import PageActions from "@/components/layout/PageActions";
 import { API_BASE_URL } from "../config/api";
 import {
   getLeaveFormFileName,
@@ -221,63 +223,62 @@ export default function LeaveFormView() {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
-      <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
-        <CardHeader className="border-b border-border/50 pb-4 px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="space-y-1">
-              <CardTitle className="text-base sm:text-lg font-black text-foreground">Submitted Forms</CardTitle>
-              <CardDescription className="text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-60">
-                Track your leave application status
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge variant="outline" className="font-black text-[10px] px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none">
-                {filteredForms.length} {activeTab === "pending" ? "PENDING" : activeTab === "approved" ? "APPROVED" : activeTab === "rejected" ? "REJECTED" : "TOTAL"}
-              </Badge>
-              <Button
-                onClick={() => navigate("/leave/apply")}
-                className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-4 shadow-sm transition-all active:scale-95"
-              >
-                <FileText className="w-3.5 h-3.5" />
-                New Application
-              </Button>
-            </div>
-          </div>
-          {/* Tab Navigation */}
-          <div className="flex gap-0 border-b-0 pt-4 mt-2 border-t border-border/50">
+      <PageHeader
+        title="My Leave Request"
+        description="Track your leave application status"
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Leave Management", href: "/leave" },
+          { label: "My Leave Request" }
+        ]}
+      />
+      <PageActions>
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full justify-between">
+          <div className="flex gap-1 overflow-x-auto w-full sm:w-auto">
             {([
               { key: "pending" as FormTabFilter, label: "Pending", count: pendingCount },
               { key: "approved" as FormTabFilter, label: "Approved", count: approvedCount },
-              { key: "rejected" as FormTabFilter, label: "Rejected", count: rejectedCount },
-              { key: "history" as FormTabFilter, label: "History", count: forms.length },
+              { key: "rejected" as FormTabFilter, label: "Rejected", count: rejectedCount }
             ]).map((tab) => (
               <button
                 key={tab.key}
-                type="button"
                 onClick={() => setActiveTab(tab.key)}
-                className={`relative px-4 sm:px-6 py-3 text-[11px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${activeTab === tab.key
-                    ? "text-[#7B0099]"
-                    : "text-muted-foreground hover:text-foreground"
-                  }`}
+                className={`relative px-4 sm:px-5 py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all rounded-md whitespace-nowrap ${
+                  activeTab === tab.key 
+                    ? "text-[#7B0099] bg-[#7B0099]/10" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
               >
                 {tab.label}
                 {tab.count > 0 && (
-                  <span className={`ml-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-md transition-colors duration-300 ${activeTab === tab.key
-                      ? "bg-[#7B0099] text-white"
-                      : "bg-muted text-muted-foreground"
-                    }`}>
+                  <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[9px] ${
+                    activeTab === tab.key 
+                      ? "bg-[#7B0099] text-white" 
+                      : "bg-muted-foreground/20 text-muted-foreground"
+                  }`}>
                     {tab.count}
                   </span>
-                )}
-                {/* Animated underline */}
-                {activeTab === tab.key && (
-                  <span className="absolute bottom-0 left-2 right-2 h-[3px] bg-[#7B0099] rounded-full animate-in fade-in slide-in-from-bottom-1 duration-300" />
                 )}
               </button>
             ))}
           </div>
-        </CardHeader>
-        <CardContent className="p-0 sm:p-0">
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <Badge variant="outline" className="font-black text-[10px] px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none">
+              {filteredForms.length} {activeTab === "pending" ? "PENDING" : activeTab === "approved" ? "APPROVED" : activeTab === "rejected" ? "REJECTED" : "TOTAL"}
+            </Badge>
+            <Button
+              onClick={() => navigate("/leave/apply")}
+              className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-4 shadow-sm transition-all active:scale-95"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              New Application
+            </Button>
+          </div>
+        </div>
+      </PageActions>
+
+      <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
+        <CardContent className="p-0">
           {loading ? (
             <div className="flex flex-col items-center justify-center p-12 gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />

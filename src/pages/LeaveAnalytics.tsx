@@ -56,14 +56,10 @@ import {
   AlertCircle,
   MoreHorizontal,
   ArrowRight,
-  Calendar,
-  Sparkles,
-  Building2,
-  Layers,
-  UserCheck,
-} from "lucide-react";
+import { BarChart3, TrendingUp, Users, Calendar, AlertCircle, FileText, CheckCircle2, Clock, MapPin, Search, Filter, ShieldAlert, Check, X, ShieldCheck, HelpCircle, FileSpreadsheet, Download, RefreshCw, Layers, BriefcaseMedical, Building2, ChevronRight, CheckSquare, XCircle, ChevronDown, ListFilter, SlidersHorizontal, Activity } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
+import PageActions from "@/components/layout/PageActions";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -1008,14 +1004,9 @@ export default function LeaveAnalytics() {
   return (
     <div className="space-y-4 animate-in fade-in duration-500 max-w-[1600px] mx-auto px-4 pt-2 pb-6">
       
-      {/* 1. Compact Header */}
-      <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden">
-        <div className="p-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Leave Analytics</h1>
-            <p className="text-sm text-gray-500">Monitor workforce leave trends, utilization and approval performance.</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
+      {/* 1. Page Actions (Filters) */}
+      <PageActions>
+        <div className="flex flex-wrap items-center gap-2">
             <Select value={selectedYear} onValueChange={setSelectedYear}>
               <SelectTrigger className="w-[100px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
                 <SelectValue placeholder="Year" />
@@ -1053,8 +1044,7 @@ export default function LeaveAnalytics() {
             </Select>
             <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
           </div>
-        </div>
-      </Card>
+      </PageActions>
 
       {/* 2. Executive KPI Cards (Row 1) */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-4">
