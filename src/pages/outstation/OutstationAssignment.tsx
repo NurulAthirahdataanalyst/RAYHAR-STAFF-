@@ -327,8 +327,20 @@ export default function OutstationAssignment() {
       />
       {/* Filter Bar */}
       <PageActions>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between w-full">
+        <Button size="sm" className="h-8 text-xs gap-1.5 shrink-0" style={{ background: "#7B0099" }} onClick={openNew}>
+            <Plus className="w-3.5 h-3.5" /> New Assignment
+          </Button>
+      </PageActions>
+
+      {/* Table */}
+      <Card className="border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/80 shadow-sm overflow-hidden">
+        <CardHeader className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-slate-800">
+          <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
+            <Plane className="w-4 h-4 text-pink-500" />
+            Outstation Assignments
+          </CardTitle>
           <div className="flex items-center gap-3 flex-wrap">
+          
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-gray-400" />
               <span className="text-[11px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Filters</span>
@@ -367,21 +379,9 @@ export default function OutstationAssignment() {
               </Badge>
             )}
             <span className="text-[10px] text-gray-400 font-bold">{filtered.length} records</span>
-          </div>
-          <Button size="sm" className="h-8 text-xs gap-1.5 shrink-0" style={{ background: "#7B0099" }} onClick={openNew}>
-            <Plus className="w-3.5 h-3.5" /> New Assignment
-          </Button>
+          
         </div>
-      </PageActions>
-
-      {/* Table */}
-      <Card className="border border-gray-200 dark:border-slate-800 dark:border-gray-500/30/80 shadow-sm overflow-hidden">
-        <CardHeader className="pb-0 border-b border-gray-100 dark:border-slate-800">
-          <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
-            <Plane className="w-4 h-4 text-pink-500" />
-            Outstation Assignments
-          </CardTitle>
-        </CardHeader>
+      </CardHeader>
         <CardContent className="p-0">
           {loading ? (
             <div className="h-48 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-400" /></div>
