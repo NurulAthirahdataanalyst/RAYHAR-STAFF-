@@ -2084,7 +2084,18 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b', fontWeight: 'bold' }} axisLine={false} tickLine={false} dy={10} />
                       <YAxis tick={{ fontSize: 11, fill: '#64748b', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
-                      <RechartsTooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} />
+                      <RechartsTooltip 
+                          cursor={{ fill: 'transparent' }} 
+                          contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} 
+                          labelFormatter={(label) => {
+                            const daysMap: Record<string, number> = {
+                              'Sat': 0, 'Sun': 1, 'Mon': 2, 'Tue': 3, 'Wed': 4, 'Thu': 5, 'Fri': 6
+                            };
+                            const dayOffset = daysMap[label as string] ?? 0;
+                            const date = addDays(trendWeekStart, dayOffset);
+                            return `${String(label).toUpperCase()}, ${format(date, 'dd MMM yyyy')}`;
+                          }}
+                        />
                       
                       <Bar dataKey="present" name="Present" stackId="a" fill="#2D9B2B" />
                       <Bar dataKey="late" name="Late" stackId="a" fill="#FFD700" />
