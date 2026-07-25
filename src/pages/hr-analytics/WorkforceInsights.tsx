@@ -2018,7 +2018,17 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                 
                 {/* Weekly Navigator */}
                 <div className="flex items-center gap-1 sm:gap-2 self-end sm:self-auto">
-                  <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800" onClick={() => setTrendWeekStart(subDays(trendWeekStart, 7))}>
+                  {trendWeekStart.getTime() !== startOfWeek(new Date(), { weekStartsOn: 6 }).getTime() && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setTrendWeekStart(startOfWeek(new Date(), { weekStartsOn: 6 }))}
+                        className="h-8 text-xs font-semibold px-3 mr-2 bg-pink-50 text-pink-700 border-pink-200 hover:bg-pink-100 hover:text-pink-800 dark:bg-pink-900/20 dark:text-pink-400 dark:border-pink-800/50"
+                      >
+                        This Week
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800" onClick={() => setTrendWeekStart(subDays(trendWeekStart, 7))}>
                     <ChevronLeft className="w-4 h-4 text-slate-500" />
                   </Button>
                   <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 dark:border-slate-700 dark:bg-slate-800/50 rounded-full shadow-sm">
