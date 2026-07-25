@@ -107,6 +107,10 @@ export default function WorkforceInsights() {
     }
   };
 
+  useEffect(() => {
+    setTrendWeekStart(startOfWeek(selectedDate, { weekStartsOn: 6 }));
+  }, [day, month, year]);
+
   // â”€â”€ SSE Live Feed State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [clockInOut, setClockInOut] = useState<LiveEmp[]>([]);
   const [lateList, setLateList] = useState<LiveEmp[]>([]);
@@ -256,7 +260,8 @@ export default function WorkforceInsights() {
         department: userDepartment || "",
         month: month,
         year: year,
-        weekStartDate: format(weekStart, 'yyyy-MM-dd')
+        weekStartDate: format(weekStart, 'yyyy-MM-dd'),
+        date: format(selectedDate, 'yyyy-MM-dd')
       });
       const res = await fetch(`${API_BASE_URL}/api/reports/workforce-insights?${params}`);
       if (res.ok) {
