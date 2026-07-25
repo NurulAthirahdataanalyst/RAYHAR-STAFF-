@@ -22,6 +22,7 @@ interface TemporaryAssignment {
   start_date: string;
   end_date: string | null;
   status: string;
+  primary_branch?: string;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "https://attendance-system-gamma-jade.vercel.app";
