@@ -112,49 +112,47 @@ export default function OutstationCalendar() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-8">
-      
-      {/* Controls */}
-      <div className="mb-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
-          <div className="flex items-center gap-3">
-            <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
-            <h2 className="text-base font-black text-gray-800 dark:text-gray-100 min-w-[180px] text-center">{MONTHS[viewMonth]} {viewYear}</h2>
-            <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronRight className="w-4 h-4" /></button>
-            <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { setViewMonth(today.getMonth()); setViewYear(today.getFullYear()); }}>Today</Button>
-          </div>
-          <div className="flex items-center gap-3">
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {["All","Active","Upcoming","Completed","Cancelled"].map(s => (
-                  <SelectItem key={s} value={s}>{s}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="flex items-center gap-4 flex-wrap px-1">
-        {[
-          { status: "Active",    label: "Active (On Outstation)" },
-          { status: "Upcoming",  label: "Upcoming" },
-          { status: "Completed", label: "Completed" },
-          { status: "Cancelled", label: "Cancelled" },
-        ].map(({ status, label }) => {
-          const c = statusColor(status);
-          return (
-            <div key={status} className="flex items-center gap-1.5">
-              <div className={`w-2.5 h-2.5 rounded-sm ${c.dot}`} />
-              <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400">{label}</span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Calendar Grid */}
+      {/* Calendar Card */}
       <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm overflow-hidden">
+        <CardHeader className="flex flex-col gap-4 border-b border-border/50 pb-4 px-4 sm:px-5">
+          {/* Controls */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
+            <div className="flex items-center gap-3">
+              <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+              <h2 className="text-base font-black text-gray-800 dark:text-gray-100 min-w-[180px] text-center">{MONTHS[viewMonth]} {viewYear}</h2>
+              <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronRight className="w-4 h-4" /></button>
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { setViewMonth(today.getMonth()); setViewYear(today.getFullYear()); }}>Today</Button>
+            </div>
+            <div className="flex items-center gap-3">
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {["All","Active","Upcoming","Completed","Cancelled"].map(s => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="flex items-center gap-4 flex-wrap">
+            {[
+              { status: "Active",    label: "Active (On Outstation)" },
+              { status: "Upcoming",  label: "Upcoming" },
+              { status: "Completed", label: "Completed" },
+              { status: "Cancelled", label: "Cancelled" },
+            ].map(({ status, label }) => {
+              const c = statusColor(status);
+              return (
+                <div key={status} className="flex items-center gap-1.5">
+                  <div className={`w-2.5 h-2.5 rounded-sm ${c.dot}`} />
+                  <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400">{label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </CardHeader>
         {loading ? (
           <div className="h-80 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-400" /></div>
         ) : (
