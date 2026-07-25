@@ -19,6 +19,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { API_BASE_URL } from "../../config/api";
 import { useShiftNotifications } from "@/hooks/useShiftNotifications";
+import { getBreadcrumbs } from "@/utils/breadcrumbs";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
@@ -218,18 +219,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           
           <div className="flex items-center justify-between relative z-10 w-full">
             <div className="flex-1">
-              {location.pathname === "/analytics" && (
-                <div className="flex items-center text-xs uppercase font-black text-white pl-2">
-                  <div className="flex items-center hover:text-purple-200 cursor-pointer transition-colors" onClick={() => navigate("/")}>
-                    <Home className="w-3.5 h-3.5 mr-1.5 -mt-0.5" />
-                    <span>Home</span>
+              <div className="flex items-center text-xs uppercase font-black text-white pl-2">
+                {getBreadcrumbs(location.pathname).map((crumb, index, arr) => (
+                  <div key={index} className="flex items-center">
+                    {index === 0 && <Home className="w-3.5 h-3.5 mr-1.5 -mt-0.5" />}
+                    {crumb.path ? (
+                      <span 
+                        className="hover:text-purple-200 cursor-pointer transition-colors" 
+                        onClick={() => navigate(crumb.path!)}
+                      >
+                        {crumb.label}
+                      </span>
+                    ) : (
+                      <span>{crumb.label}</span>
+                    )}
+                    {index < arr.length - 1 && <ChevronRight className="w-3.5 h-3.5 mx-2 opacity-60" />}
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 mx-2 opacity-60" />
-                  <span className="hover:text-purple-200 cursor-pointer transition-colors" onClick={() => navigate("/analytics")}>Analytics</span>
-                  <ChevronRight className="w-3.5 h-3.5 mx-2 opacity-60" />
-                  <span>Employee Analytics</span>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
             
             <div className="flex items-center gap-4 relative z-10 ml-auto shrink-0">
@@ -359,7 +366,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             
             {/* Ruang Kerja Utama (70% - 90%) */}
             <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3 transition-all duration-500 ease-in-out w-full">
-              {location.pathname !== "/analytics" && <PageHeader />}
+              <PageHeader />
               <div className="w-full">
                 {children}
               </div>
