@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Plane, Download, Search, Filter, MapPin, ArrowLeft } from "lucide-react";
-import PageHeader from "@/components/layout/PageHeader";
+
 import PageActions from "@/components/layout/PageActions";
 import { API_BASE_URL } from "../../config/api";
 
@@ -203,14 +203,7 @@ export default function OutstationReports() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-8">
-      <PageHeader
-        title="Outstation Reports"
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Outstation Management", href: "/outstation" },
-          { label: "Outstation Reports" }
-        ]}
-      />
+      
 
       {/* Dynamic Header */}
       <div className="flex items-center gap-3 mb-2">

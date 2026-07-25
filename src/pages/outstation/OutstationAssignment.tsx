@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import PageHeader from "@/components/layout/PageHeader";
+
 import PageActions from "@/components/layout/PageActions";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -317,14 +317,7 @@ export default function OutstationAssignment() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-8">
-      <PageHeader
-        title="Outstation Assignment"
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Outstation Management", href: "/outstation" },
-          { label: "Outstation Assignment" }
-        ]}
-      />
+      
       {/* Filter Bar */}
       <PageActions>
         <Button size="sm" className="h-8 text-xs gap-1.5 shrink-0" style={{ background: "#7B0099" }} onClick={openNew}>

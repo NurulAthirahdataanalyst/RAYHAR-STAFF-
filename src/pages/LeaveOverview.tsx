@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import PageHeader from "@/components/layout/PageHeader";
+
 import PageActions from "@/components/layout/PageActions";
 import { CheckCircle2, Clock3, FileText, Plus, XCircle, Calendar } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
@@ -221,15 +221,7 @@ export default function LeaveOverview() {
   return (
     <div className="space-y-3 sm:space-y-5 animate-in fade-in duration-500">
       {/* Header */}
-      <PageHeader
-        title="Leave Overview"
-        description="Manage your leave applications and check quotas"
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Leave Management", href: "/leave" },
-          { label: "Leave Overview" }
-        ]}
-      />
+      
       
       <PageActions>
         <div className="flex items-center gap-3">

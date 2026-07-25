@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, ChevronLeft, ChevronRight, MapPin, CalendarDays, Users, Plane, X, Calendar, Clock } from "lucide-react";
-import PageHeader from "@/components/layout/PageHeader";
+
 import PageActions from "@/components/layout/PageActions";
 import { API_BASE_URL } from "../../config/api";
 
@@ -112,16 +112,28 @@ export default function OutstationCalendar() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-8">
-      <PageHeader
-        title="Outstation Calendar"
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Outstation Management", href: "/outstation" },
-          { label: "Outstation Calendar" }
-        ]}
-      />
-      {/* Controls */}
       
+      {/* Controls */}
+      <div className="mb-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
+          <div className="flex items-center gap-3">
+            <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+            <h2 className="text-base font-black text-gray-800 dark:text-gray-100 min-w-[180px] text-center">{MONTHS[viewMonth]} {viewYear}</h2>
+            <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronRight className="w-4 h-4" /></button>
+            <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { setViewMonth(today.getMonth()); setViewYear(today.getFullYear()); }}>Today</Button>
+          </div>
+          <div className="flex items-center gap-3">
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {["All","Active","Upcoming","Completed","Cancelled"].map(s => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
 
       {/* Legend */}
       <div className="flex items-center gap-4 flex-wrap px-1">

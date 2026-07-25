@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
-import PageHeader from "@/components/layout/PageHeader";
+
 import PageActions from "@/components/layout/PageActions";
 import { exportToCSV } from "@/utils/export";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -369,15 +369,7 @@ export default function LeaveAdmin() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <PageHeader
-        title="Leave Approvals"
-        description="Manage and process leave applications for your team"
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Leave Administration", href: "/leave" },
-          { label: "Leave Approvals" }
-        ]}
-      />
+      
       
       <Card className="border border-white/60 bg-white/40 dark:bg-card/40 backdrop-blur-2xl rounded-3xl shadow-xl shadow-purple-900/5 overflow-hidden ring-1 ring-black/5">
         <CardContent className="p-0">

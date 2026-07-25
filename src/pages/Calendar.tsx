@@ -8,7 +8,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useLocation } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
 import { toast } from "sonner";
-import PageHeader from "@/components/layout/PageHeader";
+
 import PageActions from "@/components/layout/PageActions";
 import { 
   Plus, 
@@ -476,15 +476,7 @@ export default function Calendar() {
     <div className="w-full min-h-screen pb-12">
       
       {/* HEADER / TOP BAR */}
-      <PageHeader
-        title="Workforce Calendar"
-        description="Manage working schedules, company holidays, and important workforce events"
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Calendar", href: "/calendar" },
-          { label: "Work Calendar" }
-        ]}
-      />
+      
       
       <PageActions>
         <div className="flex items-center gap-3">

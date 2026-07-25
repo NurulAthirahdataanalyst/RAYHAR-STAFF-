@@ -16,7 +16,7 @@ import {
   PieChart as RechartsPie, Pie, Cell, LineChart, Line, YAxis
 } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import PageHeader from "@/components/layout/PageHeader";
+
 import PageActions from "@/components/layout/PageActions";
 import { API_BASE_URL } from "../../config/api";
 
@@ -331,15 +331,7 @@ export default function OutstationDashboard() {
       <div className="py-6">
         
         {/* Header Actions */}
-        <PageHeader
-          title="Outstation Dashboard"
-          description="Monitor employee business travel across all branches."
-          breadcrumbs={[
-            { label: "Home", href: "/" },
-            { label: "Outstation Management", href: "/outstation" },
-            { label: "Outstation Dashboard" }
-          ]}
-        />
+        
         <PageActions>
           <Button className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#7B0099] hover:bg-[#3b0764] w-full sm:w-auto" onClick={() => navigate("/outstation/assignment", { state: { openNew: true } })}>
             <Plane className="w-4 h-4 mr-2" /> New Assignment 

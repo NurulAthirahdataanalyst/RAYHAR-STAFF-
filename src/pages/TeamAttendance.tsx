@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Users, Clock, AlertCircle, Building2, CalendarDays, Search } from "lucide-react";
-import PageHeader from "@/components/layout/PageHeader";
+
 import PageActions from "@/components/layout/PageActions";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { exportToCSV } from "@/utils/export";
@@ -200,15 +200,7 @@ export default function TeamAttendance() {
 
   return (
     <div className="min-h-screen bg-background space-y-6 animate-in fade-in duration-500 pb-8">
-      <PageHeader
-        title="Daily Team Attendance Overview"
-        description="Review employee attendance records, clock-in activities, and working hours for today"
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Attendance", href: "/attendance" },
-          { label: "Team Attendance" }
-        ]}
-      />
+      
       
       
 

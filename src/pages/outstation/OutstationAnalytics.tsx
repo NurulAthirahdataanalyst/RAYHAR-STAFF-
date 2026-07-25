@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { API_BASE_URL } from "@/config/api";
 import { Loader2, RefreshCw, MapPin, Users, Briefcase, Calendar, CheckCircle2 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
-import PageHeader from "@/components/layout/PageHeader";
+
 import PageActions from "@/components/layout/PageActions";
 
 const ALLOWED_ROLES = ["hr_admin", "managing_director", "finance_manager", "branch_leader", "head_of_department"];
@@ -139,15 +139,7 @@ export default function OutstationAnalytics() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
-      <PageHeader
-        title="Outstation Analytics"
-        description="Overview of outstation activities and staff on assignment."
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Outstation Management", href: "/outstation" },
-          { label: "Outstation Analytics" }
-        ]}
-      />
+      
       <PageActions>
         <Button onClick={() => void fetchData()} className="h-11 px-5 w-full sm:w-auto">
           <RefreshCw className="w-3.5 h-3.5 mr-2" /> Refresh

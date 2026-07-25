@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 import { FileText, Printer, Loader2, ArrowLeft, PhoneCall, Eye, Calendar, MapPin, Clock } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
-import PageHeader from "@/components/layout/PageHeader";
+
 import PageActions from "@/components/layout/PageActions";
 import { API_BASE_URL } from "../config/api";
 import {
@@ -223,15 +223,7 @@ export default function LeaveFormView() {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
-      <PageHeader
-        title="My Leave Request"
-        description="Track your leave application status"
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Leave Management", href: "/leave" },
-          { label: "My Leave Request" }
-        ]}
-      />
+      
       
 
       <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
