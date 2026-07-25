@@ -98,6 +98,13 @@ export default function WorkforceInsights() {
     : `${new Date(0, parseInt(month) - 1).toLocaleString('en', { month: 'long' }).toUpperCase()}, ${year}`;
 
   const selectedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  
+  const defaultWeekStart = startOfWeek(selectedDate, { weekStartsOn: 6 });
+  const isNavigatedWeek = trendWeekStart.getTime() !== defaultWeekStart.getTime();
+  const isNavigatedWeekRef = useRef(isNavigatedWeek);
+  useEffect(() => {
+    isNavigatedWeekRef.current = isNavigatedWeek;
+  }, [isNavigatedWeek]);
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
@@ -158,7 +165,7 @@ export default function WorkforceInsights() {
           setOutstationSummary(d.outstationSummary || d.outstationAnalytics || null);
           setLiveMonthlyComp(d.monthlyComparison || null);
           setLiveLeaveTrend(d.leaveTrend || d.leaveAnalytics?.monthlyTrend || null);
-          setLiveWeeklyAttendanceTrend(d.weeklyAttendanceTrend || null);
+          setLiveWeeklyAttendanceTrend(prev => isNavigatedWeekRef.current ? prev : (d.weeklyAttendanceTrend || null));
           setLiveHrAlerts(d.hrAlerts || null);
           if (d.missingPunchYesterday !== undefined) setMissingPunchYesterdayLive(d.missingPunchYesterday);
           setFeedConnected(true);
