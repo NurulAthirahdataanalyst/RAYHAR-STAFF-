@@ -99,12 +99,13 @@ export default function WorkforceInsights() {
 
   const selectedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
   
-  const defaultWeekStart = startOfWeek(selectedDate, { weekStartsOn: 6 });
-  const isNavigatedWeek = trendWeekStart.getTime() !== defaultWeekStart.getTime();
-  const isNavigatedWeekRef = useRef(isNavigatedWeek);
+  const sseTargetDate = viewMode === 'day' ? selectedDate : new Date();
+  const sseWeekStart = startOfWeek(sseTargetDate, { weekStartsOn: 6 });
+  const isViewingSseWeek = trendWeekStart.getTime() === sseWeekStart.getTime();
+  const isViewingSseWeekRef = useRef(isViewingSseWeek);
   useEffect(() => {
-    isNavigatedWeekRef.current = isNavigatedWeek;
-  }, [isNavigatedWeek]);
+    isViewingSseWeekRef.current = isViewingSseWeek;
+  }, [isViewingSseWeek]);
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
@@ -165,7 +166,7 @@ export default function WorkforceInsights() {
           setOutstationSummary(d.outstationSummary || d.outstationAnalytics || null);
           setLiveMonthlyComp(d.monthlyComparison || null);
           setLiveLeaveTrend(d.leaveTrend || d.leaveAnalytics?.monthlyTrend || null);
-          setLiveWeeklyAttendanceTrend(prev => isNavigatedWeekRef.current ? prev : (d.weeklyAttendanceTrend || null));
+          setLiveWeeklyAttendanceTrend(prev => isViewingSseWeekRef.current ? (d.weeklyAttendanceTrend || null) : prev);
           setLiveHrAlerts(d.hrAlerts || null);
           if (d.missingPunchYesterday !== undefined) setMissingPunchYesterdayLive(d.missingPunchYesterday);
           setFeedConnected(true);
