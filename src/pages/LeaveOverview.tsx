@@ -230,18 +230,9 @@ export default function LeaveOverview() {
           { label: "Leave Overview" }
         ]}
       />
+      
       <PageActions>
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[90px] h-10 text-[10px] font-black uppercase tracking-widest rounded-xl border border-[#7B0099]/20 bg-card">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              {YEARS.map(y => (
-                <SelectItem key={y} value={y} className="text-[10px] font-black uppercase tracking-widest">{y}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex items-center gap-3">
           <Button
             onClick={() => navigate("/leave/apply")}
             className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-5 py-4 shadow-lg shadow-[#7B0099]/20 transition-all active:scale-95"
@@ -251,6 +242,7 @@ export default function LeaveOverview() {
           </Button>
         </div>
       </PageActions>
+
 
       {/* Leave Balance Cards */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 max-w-[960px]">
@@ -296,9 +288,21 @@ export default function LeaveOverview() {
 
       {/* Leave Requests Table */}
       <Card className="border-none shadow-[0_18px_42px_rgba(0,0,0,0.04)] dark:shadow-[0_18px_42px_rgba(0,0,0,0.18)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[28px] overflow-hidden">
-        <CardHeader className="border-b border-border/50 pb-3 px-4 sm:px-5">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-3 px-4 sm:px-5">
           <CardTitle className="text-base sm:text-lg font-black text-foreground">Recent Applications</CardTitle>
-        </CardHeader>
+          <div className="flex items-center gap-3 flex-wrap">
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-[90px] h-10 text-[10px] font-black uppercase tracking-widest rounded-xl border border-[#7B0099]/20 bg-card">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              {YEARS.map(y => (
+                <SelectItem key={y} value={y} className="text-[10px] font-black uppercase tracking-widest">{y}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+</CardHeader>
         <CardContent className="p-0">
           {/* Desktop Table */}
           <div className="overflow-x-auto hidden sm:block">

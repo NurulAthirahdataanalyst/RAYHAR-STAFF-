@@ -232,50 +232,7 @@ export default function LeaveFormView() {
           { label: "My Leave Request" }
         ]}
       />
-      <PageActions>
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full justify-between">
-          <div className="flex gap-1 overflow-x-auto w-full sm:w-auto">
-            {([
-              { key: "pending" as FormTabFilter, label: "Pending", count: pendingCount },
-              { key: "approved" as FormTabFilter, label: "Approved", count: approvedCount },
-              { key: "rejected" as FormTabFilter, label: "Rejected", count: rejectedCount }
-            ]).map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`relative px-4 sm:px-5 py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all rounded-md whitespace-nowrap ${
-                  activeTab === tab.key 
-                    ? "text-[#7B0099] bg-[#7B0099]/10" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                }`}
-              >
-                {tab.label}
-                {tab.count > 0 && (
-                  <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[9px] ${
-                    activeTab === tab.key 
-                      ? "bg-[#7B0099] text-white" 
-                      : "bg-muted-foreground/20 text-muted-foreground"
-                  }`}>
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-            <Badge variant="outline" className="font-black text-[10px] px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none">
-              {filteredForms.length} {activeTab === "pending" ? "PENDING" : activeTab === "approved" ? "APPROVED" : activeTab === "rejected" ? "REJECTED" : "TOTAL"}
-            </Badge>
-            <Button
-              onClick={() => navigate("/leave/apply")}
-              className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-4 shadow-sm transition-all active:scale-95"
-            >
-              <FileText className="w-3.5 h-3.5" />
-              New Application
-            </Button>
-          </div>
-        </div>
-      </PageActions>
+      
 
       <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
         <CardContent className="p-0">

@@ -364,63 +364,7 @@ export default function WorkforceInsights() {
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
         
         {/* Header Controls */}
-        <PageActions>
-          <div className="flex flex-wrap items-center justify-end w-full gap-3 pb-2 pt-2">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                {viewMode === "day" ? (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 gap-2 hover:bg-slate-100 dark:hover:bg-slate-800">
-                        {displayDate} <CalendarDays className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-1" align="end">
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={handleDateSelect}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                ) : (
-                  <input
-                    type="month"
-                    value={`${year}-${month}`}
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        const [newYear, newMonth] = e.target.value.split('-');
-                        setYear(newYear);
-                        setMonth(newMonth);
-                      }
-                    }}
-                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10"
-                  />
-                )}
-              </div>
-
-              <div className="flex items-center bg-slate-50 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
-                <button 
-                  className={`h-8 px-5 text-[11px] font-bold tracking-widest rounded-md transition-all ${viewMode === 'day' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
-                  onClick={() => setViewMode('day')}
-                >
-                  DAY
-                </button>
-                <button 
-                  className={`h-8 px-5 text-[11px] font-bold tracking-widest rounded-md transition-all ${viewMode === 'month' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
-                  onClick={() => setViewMode('month')}
-                >
-                  MONTH
-                </button>
-              </div>
-            </div>
-            <ExportDropdown 
-              onExportCSV={() => exportToCSV(data.departmentMetrics || [], 'Workforce_Insights')} 
-              onExportPDF={() => window.print()} 
-            />
-          </div>
-        </PageActions>
+        
 
         {viewMode === 'day' ? (
           <>
@@ -764,7 +708,62 @@ export default function WorkforceInsights() {
                       {regionOrder.map(r => <SelectItem key={r} value={r} className="text-[10px] font-bold">{r}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                </CardHeader>
+                  <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
+              <div className="relative">
+                {viewMode === "day" ? (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 gap-2 hover:bg-slate-100 dark:hover:bg-slate-800">
+                        {displayDate} <CalendarDays className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-1" align="end">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={handleDateSelect}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                ) : (
+                  <input
+                    type="month"
+                    value={`${year}-${month}`}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        const [newYear, newMonth] = e.target.value.split('-');
+                        setYear(newYear);
+                        setMonth(newMonth);
+                      }
+                    }}
+                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10"
+                  />
+                )}
+              </div>
+
+              <div className="flex items-center bg-slate-50 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
+                <button 
+                  className={`h-8 px-5 text-[11px] font-bold tracking-widest rounded-md transition-all ${viewMode === 'day' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                  onClick={() => setViewMode('day')}
+                >
+                  DAY
+                </button>
+                <button 
+                  className={`h-8 px-5 text-[11px] font-bold tracking-widest rounded-md transition-all ${viewMode === 'month' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                  onClick={() => setViewMode('month')}
+                >
+                  MONTH
+                </button>
+              </div>
+            </div>
+            <ExportDropdown 
+              onExportCSV={() => exportToCSV(data.departmentMetrics || [], 'Workforce_Insights')} 
+              onExportPDF={() => window.print()} 
+            />
+        </div>
+</CardHeader>
                 <CardContent className="p-5 flex flex-col">
                   <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
                     <TooltipProvider>

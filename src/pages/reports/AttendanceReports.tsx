@@ -220,78 +220,7 @@ export default function AttendanceReports() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageActions>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-4">
-          
-          {/* DAY / MONTH Toggle */}
-          <div className="flex bg-gray-100 p-1 rounded-lg">
-            <button
-              onClick={() => setViewType("day")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                viewType === "day"
-                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              DAY
-            </button>
-            <button
-              onClick={() => setViewType("month")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                viewType === "month"
-                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              MONTH
-            </button>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            {viewType === "day" ? (
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white dark:bg-card h-10"
-              />
-            ) : (
-              <input
-                type="month"
-                value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    const [yyyy, mm] = e.target.value.split('-');
-                    setSelectedYear(yyyy);
-                    setSelectedMonth(parseInt(mm).toString());
-                  }
-                }}
-                className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white dark:bg-card h-10"
-              />
-            )}
-            
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[160px] bg-white dark:bg-card">
-                <SelectValue placeholder="Select Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">Select Status</SelectItem>
-                <SelectItem value="Present (On Time)">Present (On Time)</SelectItem>
-                <SelectItem value="Present (Late)">Present (Late)</SelectItem>
-                <SelectItem value="Approved Leave">Approved Leave</SelectItem>
-                <SelectItem value="Company Leave">Company Leave</SelectItem>
-                <SelectItem value="Outstation">Outstation</SelectItem>
-                <SelectItem value="Missing Clock-Out">Missing Clock-Out</SelectItem>
-                <SelectItem value="Absent">Absent</SelectItem>
-                <SelectItem value="Weekend">Weekend</SelectItem>
-                <SelectItem value="Clocked Out">Clocked Out</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <ExportDropdown onExportCSV={handleExportCSV} />
-          </div>
-        </div>
-      </PageActions>
+      
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
@@ -427,7 +356,76 @@ export default function AttendanceReports() {
                 </button>
               )}
             </div>
-          </CardHeader>
+            <div className="flex items-center gap-3 flex-wrap">
+          {/* DAY / MONTH Toggle */}
+          <div className="flex bg-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => setViewType("day")}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                viewType === "day"
+                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              DAY
+            </button>
+            <button
+              onClick={() => setViewType("month")}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                viewType === "month"
+                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              MONTH
+            </button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {viewType === "day" ? (
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white dark:bg-card h-10"
+              />
+            ) : (
+              <input
+                type="month"
+                value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    const [yyyy, mm] = e.target.value.split('-');
+                    setSelectedYear(yyyy);
+                    setSelectedMonth(parseInt(mm).toString());
+                  }
+                }}
+                className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white dark:bg-card h-10"
+              />
+            )}
+            
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[160px] bg-white dark:bg-card">
+                <SelectValue placeholder="Select Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">Select Status</SelectItem>
+                <SelectItem value="Present (On Time)">Present (On Time)</SelectItem>
+                <SelectItem value="Present (Late)">Present (Late)</SelectItem>
+                <SelectItem value="Approved Leave">Approved Leave</SelectItem>
+                <SelectItem value="Company Leave">Company Leave</SelectItem>
+                <SelectItem value="Outstation">Outstation</SelectItem>
+                <SelectItem value="Missing Clock-Out">Missing Clock-Out</SelectItem>
+                <SelectItem value="Absent">Absent</SelectItem>
+                <SelectItem value="Weekend">Weekend</SelectItem>
+                <SelectItem value="Clocked Out">Clocked Out</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <ExportDropdown onExportCSV={handleExportCSV} />
+          </div>
+        </div>
+</CardHeader>
           <CardContent className="p-0 sm:p-6">
             {loading ? (
               <div className="flex justify-center py-8">

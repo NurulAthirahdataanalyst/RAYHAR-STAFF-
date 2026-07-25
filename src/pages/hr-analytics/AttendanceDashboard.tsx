@@ -975,11 +975,7 @@ export default function AttendanceDashboard() {
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 pt-2 pb-6">
 
       {/* ── LIVE PRESENCE PANEL ─────────────────────────────────────────── */}
-      <PageActions>
-        <div className="flex items-center gap-2">
-          <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
-        </div>
-      </PageActions>
+      
 
       {/* Redesigned Standalone KPI Cards Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4 mb-6">
@@ -1575,7 +1571,10 @@ export default function AttendanceDashboard() {
                 <SelectItem value="South Malaysia" className="text-[11px] font-bold">South Malaysia</SelectItem>
               </SelectContent>
             </Select>
-          </CardHeader>
+            <div className="flex items-center gap-3 flex-wrap">
+          <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
+        </div>
+</CardHeader>
           <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col justify-between">
             <div className={`space-y-4 flex-1 pr-2 ${liveBranchRanking.length > 5 ? 'overflow-y-auto max-h-[220px]' : 'overflow-y-visible'}`}>
               <TooltipProvider>

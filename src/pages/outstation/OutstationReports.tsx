@@ -275,8 +275,19 @@ export default function OutstationReports() {
       )}
 
       {/* Filters */}
-      <PageActions>
-        <div className="flex flex-col sm:flex-row items-center gap-3 justify-between w-full">
+      
+
+      {/* Main Table Content */}
+      <Card className="border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-slate-800 pb-3 bg-slate-50/50 dark:bg-slate-900/50">
+          <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
+            <Plane className="w-4 h-4 text-pink-500" />
+            {selectedEventName ? `Event Details: ${selectedEventName}` : "Events Overview"}
+            <Badge className="bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-500/30 text-[10px] font-black">
+              {selectedEventName ? filteredAssignments.length : filteredEvents.length}
+            </Badge>
+          </CardTitle>
+          <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-3 flex-wrap">
             <Filter className="w-4 h-4 text-gray-400" />
             <div className="relative">
@@ -320,19 +331,7 @@ export default function OutstationReports() {
             <Download className="w-3.5 h-3.5" /> Export CSV
           </Button>
         </div>
-      </PageActions>
-
-      {/* Main Table Content */}
-      <Card className="border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <CardHeader className="border-b border-gray-100 dark:border-slate-800 pb-3 bg-slate-50/50 dark:bg-slate-900/50">
-          <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
-            <Plane className="w-4 h-4 text-pink-500" />
-            {selectedEventName ? `Event Details: ${selectedEventName}` : "Events Overview"}
-            <Badge className="bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-500/30 text-[10px] font-black">
-              {selectedEventName ? filteredAssignments.length : filteredEvents.length}
-            </Badge>
-          </CardTitle>
-        </CardHeader>
+</CardHeader>
         <CardContent className="p-0">
           {loading ? (
             <div className="h-48 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-400" /></div>

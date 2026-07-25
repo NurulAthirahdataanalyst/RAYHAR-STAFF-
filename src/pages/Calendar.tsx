@@ -485,13 +485,9 @@ export default function Calendar() {
           { label: "Work Calendar" }
         ]}
       />
+      
       <PageActions>
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-
-          <ExportDropdown 
-            onExportCSV={handleExportCalendar} 
-            onExportPDF={() => window.print()} 
-          />
+        <div className="flex items-center gap-3">
           <Button 
             onClick={() => {
               setStartDate(format(selectedDate, "yyyy-MM-dd"));
@@ -504,6 +500,7 @@ export default function Calendar() {
           </Button>
         </div>
       </PageActions>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
