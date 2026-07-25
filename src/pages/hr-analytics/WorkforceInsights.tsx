@@ -1799,12 +1799,12 @@ export default function WorkforceInsights() {
         )}
         </>
         ) : (
-          <MonthViewDashboard data={data} clockInOut={clockInOut} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} liveLeaveTrend={liveLeaveTrend} month={month} liveWeeklyAttendanceTrend={liveWeeklyAttendanceTrend} />
+          <MonthViewDashboard data={data} clockInOut={clockInOut} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} liveLeaveTrend={liveLeaveTrend} month={month} liveWeeklyAttendanceTrend={liveWeeklyAttendanceTrend} trendWeekStart={trendWeekStart} setTrendWeekStart={setTrendWeekStart} />
         )}
       </div>
   );
 }
-function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts, liveLeaveTrend, month, liveWeeklyAttendanceTrend }: any) {
+function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts, liveLeaveTrend, month, liveWeeklyAttendanceTrend, trendWeekStart, setTrendWeekStart }: any) {
   const navigate = useNavigate();
   const topKpi = data.topKpi || {};
   const monthlyComp = data.monthlyComparison || { attendance: {}, lateArrivals: {}, absences: {}, leaveRequests: {}, outstation: {} };
