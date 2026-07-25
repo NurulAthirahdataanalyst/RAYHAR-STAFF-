@@ -219,14 +219,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center justify-between relative z-10 w-full">
             <div className="flex-1">
               {location.pathname === "/analytics" && (
-                <div className="flex items-center text-[14px] uppercase font-bold text-white pl-2 tracking-wide">
+                <div className="flex items-center text-[12px] uppercase font-bold text-white pl-2 tracking-wide">
                   <div className="flex items-center hover:text-purple-200 cursor-pointer transition-colors" onClick={() => navigate("/")}>
-                    <Home className="w-4 h-4 mr-1.5 -mt-0.5" />
+                    <Home className="w-3.5 h-3.5 mr-1.5 -mt-0.5" />
                     <span>Home</span>
                   </div>
-                  <ChevronRight className="w-4 h-4 mx-2 opacity-60" />
+                  <ChevronRight className="w-3.5 h-3.5 mx-2 opacity-60" />
                   <span className="hover:text-purple-200 cursor-pointer transition-colors" onClick={() => navigate("/analytics")}>Analytics</span>
-                  <ChevronRight className="w-4 h-4 mx-2 opacity-60" />
+                  <ChevronRight className="w-3.5 h-3.5 mx-2 opacity-60" />
                   <span>Employee Analytics</span>
                 </div>
               )}
