@@ -538,11 +538,21 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     const type = String(l.leave_type || "").toUpperCase();
     return type === 'KECEMASAN' || type === 'EMERGENCY';
   }).length;
+  const monthRep = mLeaves.filter(l => {
+    const type = String(l.leave_type || "").toUpperCase();
+    return type === 'REPLACEMENT LEAVE' || type === 'CUTI GANTI';
+  }).length;
+  const monthUnp = mLeaves.filter(l => {
+    const type = String(l.leave_type || "").toUpperCase();
+    return type === 'UNPAID LEAVE' || type === 'CUTI TANPA GAJI';
+  }).length;
   
   const monthPieData = [
     { name: 'Annual Leave', value: monthAnn, color: "#16A34A" },
     { name: 'Sick Leave', value: monthSck, color: "#EAB308" },
     { name: 'Emergency Leave', value: monthEmg, color: "#DC2626" },
+    { name: 'Replacement Leave', value: monthRep, color: "#7B0099" },
+    { name: 'Unpaid Leave', value: monthUnp, color: "#94A3B8" },
   ].filter(d => d.value > 0);
 
   let topLeave = { name: "None", value: 0 };

@@ -5,7 +5,8 @@ import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { exportToCSV } from "@/utils/export";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Users, UserCheck, CalendarDays, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight, ChevronDown, Wifi, WifiOff, TrendingUp, MapPin, Plane, FileText, AlertCircle, Award } from "lucide-react";
+import { Loader2, Users, UserCheck, CalendarDays, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight, ChevronDown, Wifi, WifiOff, TrendingUp, MapPin, Plane, FileText, AlertCircle, Award, ChevronLeft } from "lucide-react";
+import { format, subDays, addDays, startOfWeek, endOfWeek } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector, AreaChart, Area, ReferenceArea } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -73,6 +74,10 @@ export default function WorkforceInsights() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<any>(null);
+  const [isAllMonth, setIsAllMonth] = useState(false);
+  const [trendWeekStart, setTrendWeekStart] = useState<Date>(
+    startOfWeek(new Date(), { weekStartsOn: 6 })
+  );
   const [month, setMonth] = useState((new Date().getMonth() + 1).toString().padStart(2, '0'));
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [day, setDay] = useState(new Date().getDate().toString().padStart(2, '0'));
@@ -242,6 +247,35 @@ export default function WorkforceInsights() {
       setLoading(false);
     }
   };
+
+  const fetchWeeklyTrendOnly = async (weekStart: Date) => {
+    try {
+      const params = new URLSearchParams({
+        role: role || "",
+        branch: userBranch || "",
+        department: userDepartment || "",
+        month: month,
+        year: year,
+        weekStartDate: format(weekStart, 'yyyy-MM-dd')
+      });
+      const res = await fetch(`${API_BASE_URL}/api/reports/workforce-insights?${params}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.attendanceOverview?.weeklyAttendanceTrend) {
+          setLiveWeeklyAttendanceTrend(json.attendanceOverview.weeklyAttendanceTrend);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching weekly trend:", err);
+    }
+  };
+
+  // When trendWeekStart changes (but not on initial mount where fetchInsights covers it), we fetch just the weekly trend
+  useEffect(() => {
+    if (data) {
+      fetchWeeklyTrendOnly(trendWeekStart);
+    }
+  }, [trendWeekStart, role, userBranch, userDepartment]);
 
   useEffect(() => { fetchInsights(); }, [role, userBranch, userDepartment, month, year, day, viewMode]);
 
@@ -1964,13 +1998,25 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-start">
            <div className="lg:col-span-2 flex flex-col gap-6">
             <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col relative overflow-hidden">
-              <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div className="flex items-center gap-2">
                   <h2 className="text-xl font-bold text-slate-800 tracking-tight">Attendance Trend</h2>
                 </div>
-                <div className="flex items-center gap-2 border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 shadow-sm">
-                  <CalendarDays className="w-4 h-4 text-slate-500" />
-                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Weekly</span>
+                
+                {/* Weekly Navigator */}
+                <div className="flex items-center gap-1 sm:gap-2 self-end sm:self-auto">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800" onClick={() => setTrendWeekStart(subDays(trendWeekStart, 7))}>
+                    <ChevronLeft className="w-4 h-4 text-slate-500" />
+                  </Button>
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 dark:border-slate-700 dark:bg-slate-800/50 rounded-full shadow-sm">
+                    <span className="text-xs font-bold text-slate-500">Week</span>
+                    <span className="text-xs sm:text-sm font-black text-[#7B0099] whitespace-nowrap">
+                      {format(trendWeekStart, "dd MMM")} – {format(endOfWeek(trendWeekStart, { weekStartsOn: 6 }), "dd MMM yyyy")}
+                    </span>
+                  </div>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800" onClick={() => setTrendWeekStart(addDays(trendWeekStart, 7))}>
+                    <ChevronRight className="w-4 h-4 text-slate-500" />
+                  </Button>
                 </div>
               </div>
               

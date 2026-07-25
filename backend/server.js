@@ -2538,11 +2538,7 @@ async function validateReplacementLeaves() {
         [actualHours, r.id]
       );
       
-      // Restore Annual Leave (since it was deducted temporarily)
-      await pool.query(
-        `INSERT INTO leave_balance_adjustments (employee_id, leave_type, adjustment_days, reason, approved_by) VALUES (?, 'Annual Leave', 1, ?, 'System')`,
-        [r.employee_id, `Replacement Validation Success (${r.replacement_date.toISOString().split('T')[0]})`]
-      );
+      const repDateStr = r.replacement_date instanceof Date ? r.replacement_date.toISOString().split('T')[0] : String(r.replacement_date).split('T')[0];
     } else {
       // Fail
       // If it's today, we might want to wait for clock-out, but if cron runs at midnight, the day is over.
@@ -6305,7 +6301,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     
     // Find Saturday of the target date's week
-    const targetD = new Date(targetDateStr);
+    const targetD = req.query.weekStartDate ? new Date(req.query.weekStartDate) : new Date(targetDateStr);
     const dayOfWeek = targetD.getDay();
     const diffToSat = dayOfWeek === 6 ? 0 : -1 - dayOfWeek;
     const weekStartD = new Date(targetD);
