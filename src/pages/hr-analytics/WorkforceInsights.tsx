@@ -117,6 +117,7 @@ export default function WorkforceInsights() {
   const [missingPunchYesterdayLive, setMissingPunchYesterdayLive] = useState<number | null>(null);
   const [feedConnected, setFeedConnected] = useState(false);
   const [liveEmployees, setLiveEmployees] = useState<any[]>([]);
+  const [tempAssignments, setTempAssignments] = useState<any[]>([]);
 
   const isAdminRole = ["hr_admin", "managing_director", "finance_manager"].includes(role || "");
 
@@ -211,15 +212,28 @@ export default function WorkforceInsights() {
       if (viewMode === 'day') {
         params.append('date', `${year}-${month}-${day}`);
       }
-      const res = await fetch(`${API_BASE_URL}/api/reports/workforce-insights?${params}`);
+      
+      const [res, tempRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/reports/workforce-insights?${params}`),
+        fetch(`${API_BASE_URL}/api/work-assignments-all`)
+      ]);
+      
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
+      
       const json = await res.json();
       if (json.success) {
         setData(json);
       } else {
         throw new Error(json.error || "Failed to fetch data");
+      }
+
+      if (tempRes.ok) {
+        const tempJson = await tempRes.json();
+        if (tempJson.success) {
+          setTempAssignments(tempJson.assignments);
+        }
       }
     } catch (err: any) {
       console.error(err);
@@ -797,6 +811,79 @@ export default function WorkforceInsights() {
               </Card>
             );
           })()}
+
+          {/* Temporary Branch Assignments Summary */}
+          <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col h-fit ${cardHoverEffect}`}>
+            <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-slate-400" />
+                <CardTitle className="text-[16px] font-semibold text-[#1A1F36] dark:text-gray-100">Temporary Branch Assignment Summary</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="p-5 flex flex-col gap-4">
+              {(() => {
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                
+                const active = tempAssignments.filter(a => {
+                  const start = new Date(a.start_date); start.setHours(0,0,0,0);
+                  const end = new Date(a.end_date); end.setHours(23,59,59,999);
+                  return a.status === 'Active' && today >= start && today <= end;
+                }).length;
+                
+                const upcoming = tempAssignments.filter(a => {
+                  const start = new Date(a.start_date); start.setHours(0,0,0,0);
+                  return a.status === 'Active' && today < start;
+                }).length;
+                
+                const completed = tempAssignments.filter(a => {
+                  return a.status === 'Completed' || (a.status === 'Active' && new Date(a.end_date).setHours(23,59,59,999) < today.getTime());
+                }).length;
+
+                return (
+                  <div className="flex justify-between items-center text-center">
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Active</span>
+                      </div>
+                      <span className="text-xl font-black text-slate-800 dark:text-slate-100">{active}</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Completed</span>
+                      </div>
+                      <span className="text-xl font-black text-slate-800 dark:text-slate-100">{completed}</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Upcoming</span>
+                      </div>
+                      <span className="text-xl font-black text-slate-800 dark:text-slate-100">{upcoming}</span>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              <div className="mt-2 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Status definitions</span>
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0"></div>
+                  <span className="text-[11px] text-slate-500 leading-tight"><strong>Active</strong> – Assignments currently in progress.</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0"></div>
+                  <span className="text-[11px] text-slate-500 leading-tight"><strong>Completed</strong> – Assignments that have ended.</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></div>
+                  <span className="text-[11px] text-slate-500 leading-tight"><strong>Upcoming</strong> – Approved assignments that have not yet started.</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
             {/* HOD & Branch Leader LIVE CARDS (Only show for these roles, under Branch Distribution) */}
             {['head_of_department', 'branch_leader'].includes(role) && (() => {

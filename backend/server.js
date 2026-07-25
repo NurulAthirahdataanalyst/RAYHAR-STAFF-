@@ -8498,7 +8498,6 @@ app.get("/api/work-assignments-all", async (req, res) => {
         p.role
       FROM employee_work_assignment ewa
       JOIN profiles p ON ewa.user_id = p.user_id
-      WHERE ewa.status = 'Active'
       ORDER BY ewa.start_date DESC
     `);
     res.json({ success: true, assignments: rows });
