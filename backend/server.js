@@ -5277,7 +5277,7 @@ app.get("/api/reports/absent-employees", async (req, res) => {
       AND NOT EXISTS (
         SELECT 1 FROM attendances a 
         WHERE a.user_id = p.user_id 
-        AND DATE(CONVERT_TZ(a.clock_in, '+00:00', '+08:00')) = ?
+        AND DATE(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
       )
       -- 2. Not on approved leave today
       AND NOT EXISTS (
