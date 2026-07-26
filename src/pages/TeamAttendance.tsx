@@ -330,16 +330,16 @@ export default function TeamAttendance() {
             
             <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
               {/* Day / Month Toggle */}
-              <div className="flex items-center bg-gray-50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800 rounded-md p-1 shadow-sm">
+              <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
                 <button 
                   onClick={() => setDateViewMode('DAY')}
-                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${dateViewMode === 'DAY' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow' : 'text-gray-500 hover:text-gray-900 dark:text-gray-100'}`}
+                  className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${dateViewMode === 'DAY' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
                 >
                   DAY
                 </button>
                 <button 
                   onClick={() => setDateViewMode('MONTH')}
-                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${dateViewMode === 'MONTH' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow' : 'text-gray-500 hover:text-gray-900 dark:text-gray-100'}`}
+                  className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${dateViewMode === 'MONTH' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
                 >
                   MONTH
                 </button>

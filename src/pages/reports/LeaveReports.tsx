@@ -107,34 +107,33 @@ export default function LeaveReports() {
       <PageActions>
 
           
-          {/* DAY / MONTH / YEAR Toggle */}
-          <div className="flex bg-gray-100 p-1 rounded-lg">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
             <button
               onClick={() => setViewType("day")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${
                 viewType === "day"
-                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-[#7B0099] text-white shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
               }`}
             >
               DAY
             </button>
             <button
               onClick={() => setViewType("month")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${
                 viewType === "month"
-                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-[#7B0099] text-white shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
               }`}
             >
               MONTH
             </button>
             <button
               onClick={() => setViewType("year")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${
                 viewType === "year"
-                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-[#7B0099] text-white shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
               }`}
             >
               YEAR
