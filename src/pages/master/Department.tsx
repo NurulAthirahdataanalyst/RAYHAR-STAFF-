@@ -9,6 +9,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
 import { toast } from "sonner";
+import PageActions from "@/components/layout/PageActions";
 
 export default function Department() {
   const { role, userBranch } = useRole();
@@ -116,23 +117,15 @@ export default function Department() {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-responsive-xl font-bold font-heading text-foreground">Department Management</h1>
-          <p className="text-responsive-sm text-muted-foreground mt-1">
-            View all departments and their staff allocation.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={() => navigate("/settings?tab=department")}
-            className="h-11 px-8 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add New Department
-          </Button>
-        </div>
-      </div>
+      <PageActions>
+        <Button
+          onClick={() => navigate("/settings?tab=department")}
+          className="h-9 px-6 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/95 font-black text-[9px] uppercase tracking-wider shadow-lg shadow-[#7B0099]/15 transition-all"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add New Department
+        </Button>
+      </PageActions>
 
       {loading ? (
         <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md">

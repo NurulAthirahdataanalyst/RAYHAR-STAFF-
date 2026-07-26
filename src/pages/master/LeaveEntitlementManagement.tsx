@@ -147,17 +147,6 @@ export default function LeaveEntitlementManagement() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
-      {/* Top Page Header */}
-      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-3xl sm:text-4xl font-black font-heading text-foreground tracking-tight">
-            Leave Entitlement Management
-          </h1>
-          <p className="max-w-3xl text-sm sm:text-base text-muted-foreground">
-            Centralised administration for employee leave allocation, balance corrections, carry forward rules, and audit-ready entitlement history.
-          </p>
-        </div>
-      </div>
 
       {activeModule === null ? (
         // DASHBOARD VIEW

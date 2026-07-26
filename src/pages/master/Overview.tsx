@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import PageActions from "@/components/layout/PageActions";
 
 interface Employee {
   user_id: string;
@@ -199,17 +200,7 @@ export default function MasterOverview() {
   return (
     <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500 max-w-7xl mx-auto px-1 sm:px-4">
       
-      {/* HEADER PANEL */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-border/40">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-[#7B0099] rounded-[20px] text-white shadow-xl shadow-[#7B0099]/20">
-            <Database className="w-6 h-6 sm:w-8 sm:h-8" />
-          </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight uppercase leading-none">Master Control Hub</h1>
-            <p className="text-xs sm:text-sm font-semibold text-muted-foreground mt-1.5 uppercase tracking-widest opacity-60">System Administration & Core Directory Master</p>
-          </div>
-        </div>
+      <PageActions>
         <div className="flex items-center gap-3">
           {lastSynced && (
             <span className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-wider bg-muted/40 p-2 rounded-xl border border-border/50">
@@ -220,13 +211,13 @@ export default function MasterOverview() {
             variant="outline"
             size="sm"
             onClick={fetchData}
-            className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-4 py-4 shadow-sm active:scale-95 transition-all"
+            className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-4 py-2 h-9 shadow-sm active:scale-95 transition-all"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Sync Hub
           </Button>
         </div>
-      </div>
+      </PageActions>
 
       {loading ? (
         <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md rounded-[28px]">

@@ -542,16 +542,7 @@ export default function Employees() {
         portalTarget
       )}
 
-      {["hr_admin", "managing_director", "finance_manager"].includes(role) && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2 mt-2">
-          <div>
-            <h1 className="text-responsive-xl font-bold font-heading text-foreground">Staff Directory</h1>
-            <p className="text-responsive-sm text-muted-foreground mt-1">
-              Manage employees across all branches
-            </p>
-          </div>
-        </div>
-      )}
+
 
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-card/50 backdrop-blur-sm p-3 rounded-2xl border border-border/50">
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full sm:w-auto flex-1">

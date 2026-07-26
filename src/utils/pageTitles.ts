@@ -22,10 +22,10 @@ export function getPageTitleInfo(pathname: string): { title: string; subtitle: s
   // Leave Administration
   if (pathname === "/leave/admin") return { title: "Leave Approvals", subtitle: "Review and approve employee leave requests." };
   if (pathname === "/leave/calendar") return { title: "Leave Calendar", subtitle: "Monitor leave schedules across departments and branches." };
-  if (pathname === "/leave/entitlement") return { title: "Leave Entitlement Management", subtitle: "Configure employee leave quotas and entitlements." };
+  if (pathname === "/leave/entitlement") return { title: "Leave Entitlement Management", subtitle: "Centralised administration for employee leave allocation, balance corrections, carry forward rules, and audit-ready entitlement history." };
   
   // Employee Management
-  if (pathname === "/master") return { title: "Master Hub Control", subtitle: "Manage employees, organizational settings, and system configuration." };
+  if (pathname === "/master") return { title: "Master Hub Control", subtitle: "System Administration & Core Directory Master" };
   if (pathname === "/employees") return { title: "Employee Directory", subtitle: "Browse and manage employee information across the organization." };
   if (pathname === "/master/department") return { title: "Department Management", subtitle: "Manage organizational departments and reporting structure." };
   if (pathname.startsWith("/master/department/")) {
