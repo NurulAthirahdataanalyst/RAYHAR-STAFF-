@@ -33,8 +33,8 @@ export function YearPopover({ year, onSelectYear, className }: YearPopoverProps)
             "appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-9 sm:h-10 gap-3 hover:border-[#7B0099]/40 min-w-[120px]"
           }
         >
-          <span className="font-bold text-[#7B0099] dark:text-purple-300">{year || currentYear}</span>
-          <CalendarDays className="w-4 h-4 text-[#7B0099]" />
+          <span className="font-black text-foreground uppercase tracking-widest">{year || currentYear}</span>
+          <CalendarDays className="w-4 h-4 text-muted-foreground" />
         </button>
       </PopoverTrigger>
       <PopoverContent
