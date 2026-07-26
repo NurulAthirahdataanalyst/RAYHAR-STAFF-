@@ -1161,9 +1161,89 @@ export default function Attendance() {
 
       {/* BOTTOM PANEL: Employee Attendance Data Table */}
       <div className="relative z-10 w-full max-w-7xl mx-auto pb-8">
-        
-
         <Card className="border-border shadow-sm overflow-hidden bg-card/60 backdrop-blur-md min-h-[400px]">
+          {/* Header Row */}
+          <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/50 bg-muted/20 pb-4">
+            <div>
+              <CardTitle className="text-lg font-bold">Employee Attendance</CardTitle>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Detailed Log Records</p>
+            </div>
+            
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Date Filter */}
+              <div className="relative">
+                {viewMode === "day" ? (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] gap-2 hover:bg-muted/80">
+                        {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-1" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={new Date(selectedDate)}
+                        onSelect={(d) => {
+                          if (d) setSelectedDate(new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0]);
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                ) : (
+                  <input
+                    type="month"
+                    value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setSelectedDate(`${e.target.value}-01`);
+                      }
+                    }}
+                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest"
+                  />
+                )}
+              </div>
+
+              {/* View Tabs */}
+              <div className="flex bg-muted/40 p-1 rounded-md border border-border/40">
+                <button
+                  onClick={() => setViewMode("day")}
+                  className={`px-4 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
+                    viewMode === "day" ? "bg-[#7B0099] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Day
+                </button>
+                <button
+                  onClick={() => setViewMode("month")}
+                  className={`px-4 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
+                    viewMode === "month" ? "bg-[#7B0099] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Month
+                </button>
+              </div>
+
+              {/* Status Filter */}
+              <div className="flex bg-muted/40 p-1 rounded-md border border-border/40">
+                {(["ALL", "ON TIME", "LATE"] as const).map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setStatusFilter(status)}
+                    className={`px-3 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
+                      statusFilter === status ? "bg-[#7B0099] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+              
+              {/* Export */}
+              <ExportDropdown onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} />
+            </div>
+          </CardHeader>
+
           {/* Table Container */}
           <CardContent className="p-0">
             <div className="overflow-x-auto">
