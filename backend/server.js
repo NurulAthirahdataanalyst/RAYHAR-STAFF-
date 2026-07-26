@@ -1131,7 +1131,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
     // On leave today
     const leaveParams = [dateStr, ...paramsTotal];
     const [leaveRows] = await pool.query(
-      `SELECT DISTINCT lr.user_id, p.full_name, p.branch, p.department
+      `SELECT DISTINCT lr.user_id, lr.leave_type, p.full_name, p.branch, p.department
        FROM leave_requests lr
        JOIN profiles p ON p.user_id = lr.user_id
        WHERE lr.status = 'Approved' AND ? BETWEEN lr.start_date AND lr.end_date
@@ -1174,12 +1174,16 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
       clockMap[row.user_id] = row;
     }
 
+    const branchZoneMap = await getBranchZoneMap();
+    const dateObj = new Date(dateStr);
+
     const presentList = [];
     const lateList = [];
     const leaveList = [];
     const companyLeaveList = [];
     const absentList = [];
     const outstationList = [];
+    const weekendList = [];
 
     for (const p of allProfiles) {
       const uid = p.user_id;
@@ -1238,7 +1242,13 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
       }
       // 3. On Approved Personal Leave
       else if (onLeaveIds.has(uid)) {
-        leaveList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'onLeave' });
+        const leaveRow = leaveRows.find(lr => lr.user_id === uid);
+        const isRepLeave = leaveRow && leaveRow.leave_type && (leaveRow.leave_type.toUpperCase().includes('REPLACEMENT') || leaveRow.leave_type.toUpperCase().includes('GANTI'));
+        if (isRepLeave) {
+          weekendList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'weekend' });
+        } else {
+          leaveList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'onLeave' });
+        }
       }
       // 4. Clocked In
       else if (clockMap[uid]) {
@@ -1259,11 +1269,23 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
         if (isLate) lateList.push({ ...emp, status: 'late', late_minutes: lateMinutes });
         else presentList.push({ ...emp, status: 'present', late_minutes: 0 });
       }
-      // 5. Absent
+      // 5. Weekend (zone-aware rest day)
+      else if (checkIsWeekend(branchZoneMap.get(p.branch) || 'ZONE_B', dateObj)) {
+        weekendList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'weekend' });
+      }
+      // 6. Absent
       else {
         absentList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'absent' });
       }
     }
+
+    const hasCompanyLeave = companyLeaveList.length > 0;
+    const expectedWorking = Math.max(0, total
+      - weekendList.length
+      - companyLeaveList.length
+      - leaveList.length
+      - outstationList.length
+    );
 
     return {
       type: 'presence_update',
@@ -1275,7 +1297,10 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
         onLeave: leaveList.length,
         companyLeave: companyLeaveList.length,
         outstation: outstationList.length,
-        total
+        weekend: weekendList.length,
+        total,
+        expectedWorking,
+        hasCompanyLeave
       },
       employees: [
         ...presentList,
@@ -1283,12 +1308,13 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
         ...leaveList,
         ...companyLeaveList,
         ...outstationList,
+        ...weekendList,
         ...absentList
       ]
     };
   } catch (err) {
     console.error('getLiveAttendanceStats error:', err);
-    return { type: 'presence_update', timestamp: new Date().toISOString(), stats: { present: 0, late: 0, absent: 0, onLeave: 0, outstation: 0, total: 0 }, employees: [] };
+    return { type: 'presence_update', timestamp: new Date().toISOString(), stats: { present: 0, late: 0, absent: 0, onLeave: 0, outstation: 0, weekend: 0, total: 0, expectedWorking: 0, hasCompanyLeave: false }, employees: [] };
   }
 }
 
@@ -5707,7 +5733,8 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       const matchingHoliday = malaysiaHolidays.find(h => h.date === queryDate);
 
       if (leaveRow) {
-        status = "Approved Leave";
+        const isRepLeave = leaveRow.leave_type && (leaveRow.leave_type.toUpperCase().includes('REPLACEMENT') || leaveRow.leave_type.toUpperCase().includes('GANTI'));
+        status = isRepLeave ? "Weekend" : "Approved Leave";
         if (clockRow) {
           clock_in = clockRow.clock_in;
           clock_out = clockRow.clock_out;

@@ -148,8 +148,9 @@ export default function AttendanceDashboard() {
 
   // ── LIVE SSE PRESENCE STATE ──────────────────────────────────────────
   const [liveStats, setLiveStats] = useState<{
-    present: number; late: number; absent: number; onLeave: number; companyLeave: number; outstation?: number; total: number;
-  }>({ present: 0, late: 0, absent: 0, onLeave: 0, companyLeave: 0, total: 0 });
+    present: number; late: number; absent: number; onLeave: number; companyLeave: number; outstation?: number;
+    weekend?: number; total: number; expectedWorking?: number; hasCompanyLeave?: boolean;
+  }>({ present: 0, late: 0, absent: 0, onLeave: 0, companyLeave: 0, weekend: 0, total: 0, expectedWorking: 0, hasCompanyLeave: false });
   const [liveEmployees, setLiveEmployees] = useState<Array<{
     user_id: string; full_name: string; branch: string; department: string;
     clock_in: string | null; clock_out: string | null; status: string;
@@ -987,15 +988,23 @@ export default function AttendanceDashboard() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4 mb-6">
-            {[
-              { label: "Present Today", val: `${liveStats.total > 0 ? Math.round((liveStats.present / liveStats.total) * 100) : 0}%`, sub: `${liveStats.present} / ${liveStats.total} Employees`, color: "text-[#7B0099]", bg: "bg-[#7B0099]/10", icon: <CheckCircle2 className="w-5 h-5"/>, trend: "↑ 5% vs Yesterday" },
-              { label: "On Time", val: `${liveStats.total > 0 ? Math.round(((liveStats.present - liveStats.late) / liveStats.total) * 100) : 0}%`, sub: `${Math.max(0, liveStats.present - liveStats.late)} / ${liveStats.total} Employees`, color: "text-emerald-600", bg: "bg-emerald-50", icon: <Clock className="w-5 h-5"/>, trend: "—" },
-              { label: "Late", val: `${liveStats.total > 0 ? Math.round((liveStats.late / liveStats.total) * 100) : 0}%`, sub: `${liveStats.late} / ${liveStats.total} Employees`, color: "text-amber-600", bg: "bg-amber-50", icon: <AlertCircle className="w-5 h-5"/>, trend: "—" },
-              { label: "Absent", val: `${liveStats.total > 0 ? Math.round((liveStats.absent / liveStats.total) * 100) : 0}%`, sub: `${liveStats.absent} / ${liveStats.total} Employees`, color: "text-rose-600", bg: "bg-rose-50", icon: <ShieldAlert className="w-5 h-5"/>, trend: "—" },
-              { label: "Leave", val: `${liveStats.total > 0 ? Math.round((liveStats.onLeave / liveStats.total) * 100) : 0}%`, sub: `${liveStats.onLeave} / ${liveStats.total} Employees`, color: "text-blue-600", bg: "bg-blue-50", icon: <CalendarIcon className="w-5 h-5"/>, trend: "—" },
-              { label: "Company Leave", val: `${liveStats.total > 0 ? Math.round(((liveStats.companyLeave || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.companyLeave || 0} / ${liveStats.total} Employees`, color: "text-indigo-600", bg: "bg-indigo-50", icon: <Building2 className="w-5 h-5"/>, trend: "—" },
-              { label: "Outstation", val: `${liveStats.total > 0 ? Math.round(((liveStats.outstation || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.outstation || 0} / ${liveStats.total} Employees`, color: "text-pink-600", bg: "bg-pink-50", icon: <MapPin className="w-5 h-5"/>, trend: "—" },
-            ].map((k, i) => (
+            {(() => {
+              const denom = (liveStats.expectedWorking != null && liveStats.expectedWorking > 0)
+                ? liveStats.expectedWorking
+                : (liveStats.total || 1);
+              const card6 = liveStats.hasCompanyLeave
+                ? { label: "Company Leave", val: `${liveStats.total > 0 ? Math.round(((liveStats.companyLeave || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.companyLeave || 0} / ${liveStats.total} Employees`, color: "text-indigo-600", bg: "bg-indigo-50", icon: <Building2 className="w-5 h-5"/>, trend: "—" }
+                : { label: "Weekend", val: `${liveStats.total > 0 ? Math.round(((liveStats.weekend || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.weekend || 0} / ${liveStats.total} Employees`, color: "text-slate-500", bg: "bg-slate-100", icon: <CalendarDays className="w-5 h-5"/>, trend: "—" };
+              return [
+                { label: "Present Today", val: `${denom > 0 ? Math.round((liveStats.present / denom) * 100) : 0}%`, sub: `${liveStats.present} / ${denom} Employees`, color: "text-[#7B0099]", bg: "bg-[#7B0099]/10", icon: <CheckCircle2 className="w-5 h-5"/>, trend: "↑ 5% vs Yesterday" },
+                { label: "On Time", val: `${denom > 0 ? Math.round(((liveStats.present - liveStats.late) / denom) * 100) : 0}%`, sub: `${Math.max(0, liveStats.present - liveStats.late)} / ${denom} Employees`, color: "text-emerald-600", bg: "bg-emerald-50", icon: <Clock className="w-5 h-5"/>, trend: "—" },
+                { label: "Late", val: `${denom > 0 ? Math.round((liveStats.late / denom) * 100) : 0}%`, sub: `${liveStats.late} / ${denom} Employees`, color: "text-amber-600", bg: "bg-amber-50", icon: <AlertCircle className="w-5 h-5"/>, trend: "—" },
+                { label: "Absent", val: `${denom > 0 ? Math.round((liveStats.absent / denom) * 100) : 0}%`, sub: `${liveStats.absent} / ${denom} Employees`, color: "text-rose-600", bg: "bg-rose-50", icon: <ShieldAlert className="w-5 h-5"/>, trend: "—" },
+                { label: "Leave", val: `${denom > 0 ? Math.round((liveStats.onLeave / denom) * 100) : 0}%`, sub: `${liveStats.onLeave} / ${denom} Employees`, color: "text-blue-600", bg: "bg-blue-50", icon: <CalendarIcon className="w-5 h-5"/>, trend: "—" },
+                card6,
+                { label: "Outstation", val: `${liveStats.total > 0 ? Math.round(((liveStats.outstation || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.outstation || 0} / ${liveStats.total} Employees`, color: "text-pink-600", bg: "bg-pink-50", icon: <MapPin className="w-5 h-5"/>, trend: "—" },
+              ];
+            })().map((k, i) => (
               <div key={i} className={`relative overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-card rounded-md shadow-none p-4 flex flex-col justify-between h-[150px] transition-all duration-200 cursor-pointer hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50`}>
                 <div className="flex items-start justify-between">
                   <div className={`p-2 rounded-lg ${k.bg} ${k.color}`}>
