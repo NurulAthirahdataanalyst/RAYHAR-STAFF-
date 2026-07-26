@@ -399,7 +399,37 @@ export default function LeaveAdmin() {
       </div>
 
       {/* Main Content Area */}
-      
+      <div className="mb-4">
+        <div className="flex flex-wrap items-center gap-2.5">
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-[140px] h-9 text-xs font-medium rounded-md bg-transparent">
+                <SelectValue placeholder="All Months" />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map(m => (
+                  <SelectItem key={m.value} value={m.value} className="text-xs">{m.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <ExportDropdown 
+              onExportCSV={() => exportToCSV(filteredRequests, 'Leave_Requests')} 
+              onExportPDF={() => window.print()} 
+            />
+
+            <Select value={activeTab} onValueChange={(val: any) => setActiveTab(val)}>
+              <SelectTrigger className="w-[140px] h-9 text-xs font-medium rounded-md bg-transparent">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="history" className="text-xs">All Status</SelectItem>
+                <SelectItem value="pending" className="text-xs">Pending</SelectItem>
+                <SelectItem value="approved" className="text-xs">Approved</SelectItem>
+                <SelectItem value="rejected" className="text-xs">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+      </div>
 
       <Card className="border border-border/60 shadow-sm bg-card rounded-lg overflow-hidden">
         {/* Table Content */}
