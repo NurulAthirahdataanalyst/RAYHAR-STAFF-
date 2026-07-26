@@ -371,8 +371,9 @@ export default function WorkforceInsights() {
                 {viewMode === "day" ? (
                   <Popover>
                     <PopoverTrigger asChild>
-                      <button className="appearance-none flex items-center justify-center px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-9 gap-2 hover:bg-slate-100 dark:hover:bg-slate-700">
-                        {displayDate} <CalendarDays className="w-4 h-4 text-[#7B0099]" />
+                      <button className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 gap-3 hover:border-slate-400 min-w-[140px]">
+                        <span>{displayDate}</span>
+                        <CalendarIcon className="w-4 h-4 text-slate-500" />
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-1" align="end">
@@ -395,7 +396,7 @@ export default function WorkforceInsights() {
                         setMonth(newMonth);
                       }
                     }}
-                    className="appearance-none flex items-center justify-center px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-9"
+                    className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
                   />
                 ) : (
                   <YearPopover year={year} onSelectYear={setYear} />
