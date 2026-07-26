@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Download, Search, Clock, FileText, X, Users, CheckCircle, Briefcase, CalendarOff, AlertCircle, XCircle, Percent } from "lucide-react";
-
+import { Loader2, Search, X, Users, CheckCircle, Briefcase, CalendarOff, AlertCircle, XCircle, Percent, Clock } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,22 +12,17 @@ import { useRole } from "@/contexts/RoleContext";
 
 const calculateWorkingHours = (clockIn: string | null | undefined, clockOut: string | null | undefined) => {
   if (!clockIn) return "--";
-  
   const start = new Date(clockIn).getTime();
   let end;
-  
   if (clockOut) {
     end = new Date(clockOut).getTime();
   } else {
-    // If clockOut is missing, check if it's today in UTC+8
     const clockInDate = new Date(clockIn);
     const klNow = new Date(Date.now() + 8 * 60 * 60 * 1000);
     const klClockInTime = new Date(clockInDate.getTime() + 8 * 60 * 60 * 1000);
-    
     const isToday = klNow.getUTCFullYear() === klClockInTime.getUTCFullYear() &&
                     klNow.getUTCMonth() === klClockInTime.getUTCMonth() &&
                     klNow.getUTCDate() === klClockInTime.getUTCDate();
-    
     if (isToday) {
       end = Date.now();
     } else {
@@ -37,7 +31,6 @@ const calculateWorkingHours = (clockIn: string | null | undefined, clockOut: str
       end = klEndOfDay.getTime() - 8 * 60 * 60 * 1000;
     }
   }
-  
   const diffMs = end - start;
   if (diffMs < 0) return "--";
   const hours = Math.floor(diffMs / (1000 * 60 * 60));
@@ -63,8 +56,6 @@ export default function AttendanceReports() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
-  
-  // New State variables
   const [viewType, setViewType] = useState<"day" | "month">("day");
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
@@ -76,8 +67,6 @@ export default function AttendanceReports() {
     { value: "7", label: "July" }, { value: "8", label: "August" }, { value: "9", label: "September" },
     { value: "10", label: "October" }, { value: "11", label: "November" }, { value: "12", label: "December" }
   ];
-
-  const years = Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString());
 
   useEffect(() => {
     fetchData();
@@ -92,7 +81,6 @@ export default function AttendanceReports() {
         branch: userBranch || "",
         department: userDepartment || ""
       });
-
       if (viewType === "day") {
         params.append("date", date);
         url = `${API_BASE_URL}/api/reports/daily-attendance?${params.toString()}`;
@@ -101,22 +89,12 @@ export default function AttendanceReports() {
         params.append("year", selectedYear);
         url = `${API_BASE_URL}/api/reports/monthly-attendance?${params.toString()}`;
       }
-
       const res = await fetch(url);
       const data = await res.json();
-      
       if (data.success) {
-        // We will process the data to include "Status"
-        let processedData = data.data.map((r: any) => {
-          let calcStatus = r.status || "Unknown"; // from monthly it has status
-          return { ...r, status: calcStatus };
-        });
+        const processedData = data.data.map((r: any) => ({ ...r, status: r.status || "Unknown" }));
         setAttendanceData(processedData);
-        if (data.summary) {
-          setMonthlySummary(data.summary);
-        } else {
-          setMonthlySummary(null);
-        }
+        setMonthlySummary(data.summary || null);
       } else {
         setAttendanceData([]);
         setMonthlySummary(null);
@@ -129,13 +107,11 @@ export default function AttendanceReports() {
   };
 
   const filteredList = attendanceData.filter(e => {
-    const matchesSearch = 
+    const matchesSearch =
       e.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       e.user_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       e.branch?.toLowerCase().includes(searchQuery.toLowerCase());
-      
     const matchesStatus = statusFilter === "All" || e.status === statusFilter;
-    
     return matchesSearch && matchesStatus;
   });
 
@@ -146,7 +122,7 @@ export default function AttendanceReports() {
     setCurrentPage(1);
   }, [searchQuery, statusFilter, viewType, date, selectedMonth, selectedYear, pageSize]);
 
-  // KPI Calculations (Daily)
+  // KPI Calculations
   const totalEmployeesDay = filteredList.length;
   const presentCountDay = filteredList.filter(a => a.status === "Present (On Time)" || a.status === "Present (Late)").length;
   const lateCountDay = filteredList.filter(a => a.status === "Present (Late)").length;
@@ -154,12 +130,10 @@ export default function AttendanceReports() {
   const leaveCountDay = filteredList.filter(a => a.status === "Company Leave" || a.status === "Approved Leave").length;
   const missingClockOutCountDay = filteredList.filter(a => a.status === "Missing Clock-Out").length;
   const absentCountDay = filteredList.filter(a => a.status === "Absent").length;
-  
   const workingEmployeesDay = totalEmployeesDay - leaveCountDay;
   const attendedEmployeesDay = presentCountDay + outstationCountDay + missingClockOutCountDay;
   const attendanceRateDay = workingEmployeesDay > 0 ? Math.round((attendedEmployeesDay / workingEmployeesDay) * 100) : 0;
 
-  // Selected KPI Data
   const totalEmployees = viewType === "day" ? totalEmployeesDay : (monthlySummary?.totalEmployees || 0);
   const presentCount = viewType === "day" ? presentCountDay : (monthlySummary?.present || 0);
   const lateCount = viewType === "day" ? lateCountDay : (monthlySummary?.late || 0);
@@ -169,13 +143,10 @@ export default function AttendanceReports() {
   const absentCount = viewType === "day" ? absentCountDay : (monthlySummary?.absent || 0);
   const attendanceRate = viewType === "day" ? attendanceRateDay : (monthlySummary?.complianceRate || 0);
 
-
-
   const handleExportCSV = () => {
     const headers = viewType === "day"
       ? ["Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours"]
       : ["Date", "Employee ID", "Name", "Branch", "Clock In", "Clock Out", "Status", "Working Hours"];
-
     const rows = filteredList.map(a => {
       const workingHrs = calculateWorkingHours(a.clock_in, a.clock_out);
       if (viewType === "day") {
@@ -201,12 +172,7 @@ export default function AttendanceReports() {
         ];
       }
     });
-
-    const csvContent = "\ufeff" + [
-      headers.join(","),
-      ...rows.map(row => row.join(","))
-    ].join("\n");
-
+    const csvContent = "\ufeff" + [headers.join(","), ...rows.map(row => row.join(","))].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -220,34 +186,195 @@ export default function AttendanceReports() {
 
   return (
     <div className="min-h-screen bg-background">
-      
+
+      {/* Global page header filters (top-right alongside the page title) */}
+      <PageActions>
+        <div className="flex bg-gray-100 p-1 rounded-lg">
+          <button
+            onClick={() => setViewType("day")}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              viewType === "day"
+                ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            DAY
+          </button>
+          <button
+            onClick={() => setViewType("month")}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              viewType === "month"
+                ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            MONTH
+          </button>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {viewType === "day" ? (
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white dark:bg-card h-10"
+            />
+          ) : (
+            <input
+              type="month"
+              value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
+              onChange={(e) => {
+                if (e.target.value) {
+                  const [yyyy, mm] = e.target.value.split('-');
+                  setSelectedYear(yyyy);
+                  setSelectedMonth(parseInt(mm).toString());
+                }
+              }}
+              className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white dark:bg-card h-10"
+            />
+          )}
+
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[160px] h-10 bg-white dark:bg-card">
+              <SelectValue placeholder="Select Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All">Select Status</SelectItem>
+              <SelectItem value="Present (On Time)">Present (On Time)</SelectItem>
+              <SelectItem value="Present (Late)">Present (Late)</SelectItem>
+              <SelectItem value="Approved Leave">Approved Leave</SelectItem>
+              <SelectItem value="Company Leave">Company Leave</SelectItem>
+              <SelectItem value="Outstation">Outstation</SelectItem>
+              <SelectItem value="Missing Clock-Out">Missing Clock-Out</SelectItem>
+              <SelectItem value="Absent">Absent</SelectItem>
+              <SelectItem value="Weekend">Weekend</SelectItem>
+              <SelectItem value="Clocked Out">Clocked Out</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <ExportDropdown onExportCSV={handleExportCSV} />
+        </div>
+      </PageActions>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-4">
-          <div className="flex bg-gray-100 p-1 rounded-lg">
-            <button
-              onClick={() => setViewType("day")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                viewType === "day"
-                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              DAY
-            </button>
-            <button
-              onClick={() => setViewType("month")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                viewType === "month"
-                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              MONTH
-            </button>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+        {/* KPI Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+          <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Users className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Employees</p>
+                <h3 className="text-2xl font-bold mt-1">{totalEmployees}</h3>
+              </div>
+            </CardContent>
+          </Card>
+          <Card
+            className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-green-500/50"
+            onClick={() => setStatusFilter("Present (On Time)")}
+          >
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-green-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Present</p>
+                <h3 className="text-2xl font-bold mt-1 text-green-600 dark:text-green-400">{presentCount}</h3>
+              </div>
+            </CardContent>
+          </Card>
+          <Card
+            className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-yellow-500/50"
+            onClick={() => setStatusFilter("Present (Late)")}
+          >
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-yellow-500/10 flex items-center justify-center">
+                <Clock className="w-6 h-6 text-yellow-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Late</p>
+                <h3 className="text-2xl font-bold mt-1 text-yellow-600 dark:text-yellow-400">{lateCount}</h3>
+              </div>
+            </CardContent>
+          </Card>
+          <Card
+            className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-blue-500/50"
+            onClick={() => setStatusFilter("Outstation")}
+          >
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                <Briefcase className="w-6 h-6 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Outstation</p>
+                <h3 className="text-2xl font-bold mt-1 text-blue-600 dark:text-blue-400">{outstationCount}</h3>
+              </div>
+            </CardContent>
+          </Card>
+          <Card
+            className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-purple-500/50"
+            onClick={() => setStatusFilter("Approved Leave")}
+          >
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                <CalendarOff className="w-6 h-6 text-purple-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Leave</p>
+                <h3 className="text-2xl font-bold mt-1 text-purple-600 dark:text-purple-400">{leaveCount}</h3>
+              </div>
+            </CardContent>
+          </Card>
+          <Card
+            className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-orange-500/50"
+            onClick={() => setStatusFilter("Missing Clock-Out")}
+          >
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-orange-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Missing Clock-Out</p>
+                <h3 className="text-2xl font-bold mt-1 text-orange-600 dark:text-orange-400">{missingClockOutCount}</h3>
+              </div>
+            </CardContent>
+          </Card>
+          <Card
+            className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-red-500/50"
+            onClick={() => setStatusFilter("Absent")}
+          >
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center">
+                <XCircle className="w-6 h-6 text-red-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Absent</p>
+                <h3 className="text-2xl font-bold mt-1 text-red-600 dark:text-red-400">{absentCount}</h3>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center">
+                <Percent className="w-6 h-6 text-teal-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Attendance Compliance</p>
+                <h3 className="text-2xl font-bold mt-1 text-teal-600 dark:text-teal-400">{attendanceRate}%</h3>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Table Card — search bar is INSIDE the white card header, same line as title */}
+        <Card className="border-border shadow-sm">
+          <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <CardTitle className="text-lg">
+              {viewType === "day" ? "Daily Attendance Log" : "Monthly Attendance Log"}
+            </CardTitle>
             <div className="relative w-full sm:w-64">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -267,165 +394,6 @@ export default function AttendanceReports() {
                 </button>
               )}
             </div>
-
-            {viewType === "day" ? (
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white dark:bg-card h-10"
-              />
-            ) : (
-              <input
-                type="month"
-                value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    const [yyyy, mm] = e.target.value.split('-');
-                    setSelectedYear(yyyy);
-                    setSelectedMonth(parseInt(mm).toString());
-                  }
-                }}
-                className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest bg-white dark:bg-card h-10"
-              />
-            )}
-            
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[160px] h-10 bg-white dark:bg-card">
-                <SelectValue placeholder="Select Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">Select Status</SelectItem>
-                <SelectItem value="Present (On Time)">Present (On Time)</SelectItem>
-                <SelectItem value="Present (Late)">Present (Late)</SelectItem>
-                <SelectItem value="Approved Leave">Approved Leave</SelectItem>
-                <SelectItem value="Company Leave">Company Leave</SelectItem>
-                <SelectItem value="Outstation">Outstation</SelectItem>
-                <SelectItem value="Missing Clock-Out">Missing Clock-Out</SelectItem>
-                <SelectItem value="Absent">Absent</SelectItem>
-                <SelectItem value="Weekend">Weekend</SelectItem>
-                <SelectItem value="Clocked Out">Clocked Out</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <ExportDropdown onExportCSV={handleExportCSV} />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Users className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Employees</p>
-                  <h3 className="text-2xl font-bold mt-1">{totalEmployees}</h3>
-                </div>
-              </CardContent>
-            </Card>
-            <Card 
-              className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-green-500/50"
-              onClick={() => setStatusFilter("Present (On Time)")}
-            >
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-                  <CheckCircle className="w-6 h-6 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Present</p>
-                  <h3 className="text-2xl font-bold mt-1 text-green-600 dark:text-green-400">{presentCount}</h3>
-                </div>
-              </CardContent>
-            </Card>
-            <Card 
-              className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-yellow-500/50"
-              onClick={() => setStatusFilter("Present (Late)")}
-            >
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-yellow-500/10 flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-yellow-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Late</p>
-                  <h3 className="text-2xl font-bold mt-1 text-yellow-600 dark:text-yellow-400">{lateCount}</h3>
-                </div>
-              </CardContent>
-            </Card>
-            <Card 
-              className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-blue-500/50"
-              onClick={() => setStatusFilter("Outstation")}
-            >
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                  <Briefcase className="w-6 h-6 text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Outstation</p>
-                  <h3 className="text-2xl font-bold mt-1 text-blue-600 dark:text-blue-400">{outstationCount}</h3>
-                </div>
-              </CardContent>
-            </Card>
-            <Card 
-              className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-purple-500/50"
-              onClick={() => setStatusFilter("Approved Leave")}
-            >
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                  <CalendarOff className="w-6 h-6 text-purple-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Leave</p>
-                  <h3 className="text-2xl font-bold mt-1 text-purple-600 dark:text-purple-400">{leaveCount}</h3>
-                </div>
-              </CardContent>
-            </Card>
-            <Card 
-              className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-orange-500/50"
-              onClick={() => setStatusFilter("Missing Clock-Out")}
-            >
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center">
-                  <AlertCircle className="w-6 h-6 text-orange-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Missing Clock-Out</p>
-                  <h3 className="text-2xl font-bold mt-1 text-orange-600 dark:text-orange-400">{missingClockOutCount}</h3>
-                </div>
-              </CardContent>
-            </Card>
-            <Card 
-              className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-red-500/50"
-              onClick={() => setStatusFilter("Absent")}
-            >
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center">
-                  <XCircle className="w-6 h-6 text-red-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Absent</p>
-                  <h3 className="text-2xl font-bold mt-1 text-red-600 dark:text-red-400">{absentCount}</h3>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center">
-                  <Percent className="w-6 h-6 text-teal-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Attendance Compliance</p>
-                  <h3 className="text-2xl font-bold mt-1 text-teal-600 dark:text-teal-400">{attendanceRate}%</h3>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-        <Card className="border-border shadow-sm">
-          <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <CardTitle className="text-lg">
-              {viewType === "day" ? "Daily Attendance Log" : "Monthly Attendance Log"}
-            </CardTitle>
           </CardHeader>
           <CardContent className="p-0 sm:p-6">
             {loading ? (

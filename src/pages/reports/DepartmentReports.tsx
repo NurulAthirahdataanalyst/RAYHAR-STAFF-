@@ -1,10 +1,8 @@
 import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Download, Building2, Users } from "lucide-react";
-
+import { Loader2, Building2, Users } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
@@ -117,50 +115,48 @@ export default function DepartmentReports() {
 
   return (
     <div className="min-h-screen bg-background">
-      
+      {/* Filters injected into the global page header (top-right) */}
+      <PageActions>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Branch:</span>
+            <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+              <SelectTrigger className="w-[140px] h-9 bg-white dark:bg-slate-950">
+                <SelectValue placeholder="All Branches" />
+              </SelectTrigger>
+              <SelectContent>
+                {branches.map(b => (
+                  <SelectItem key={b} value={b} className="uppercase text-xs">
+                    {b === "All" ? "All Branches" : b}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Dept:</span>
+            <Select value={selectedDept} onValueChange={setSelectedDept}>
+              <SelectTrigger className="w-[160px] h-9 bg-white dark:bg-slate-950">
+                <SelectValue placeholder="All Departments" />
+              </SelectTrigger>
+              <SelectContent>
+                {departments.map(d => (
+                  <SelectItem key={d} value={d} className="uppercase text-xs">
+                    {d === "All" ? "All Departments" : d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <ExportDropdown onExportCSV={handleExportCSV} />
+        </div>
+      </PageActions>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="mb-4">
-
-          <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4 w-full sm:w-auto">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Branch:</span>
-              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="w-[140px] h-9 bg-white dark:bg-slate-950">
-                  <SelectValue placeholder="All Branches" />
-                </SelectTrigger>
-                <SelectContent>
-                  {branches.map(b => (
-                    <SelectItem key={b} value={b} className="uppercase text-xs">
-                      {b === "All" ? "All Branches" : b}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Dept:</span>
-              <Select value={selectedDept} onValueChange={setSelectedDept}>
-                <SelectTrigger className="w-[160px] h-9 bg-white dark:bg-slate-950">
-                  <SelectValue placeholder="All Departments" />
-                </SelectTrigger>
-                <SelectContent>
-                  {departments.map(d => (
-                    <SelectItem key={d} value={d} className="uppercase text-xs">
-                      {d === "All" ? "All Departments" : d}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <ExportDropdown onExportCSV={handleExportCSV} />
-          </div>
-      
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+        {/* KPI Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
           <Card className="border-border shadow-sm">
             <CardContent className="p-4 flex flex-col justify-center">
               <div className="flex items-center gap-3 mb-2">
@@ -191,7 +187,7 @@ export default function DepartmentReports() {
                 <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
                   <Users className="w-4 h-4 text-green-500" />
                 </div>
-                <p className="text-xs font-medium text-muted-foreground">Total Employees <br/>(Dept & Branch)</p>
+                <p className="text-xs font-medium text-muted-foreground">Total Employees <br/>(Dept &amp; Branch)</p>
               </div>
               <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {filteredEmployees.length}
@@ -228,46 +224,12 @@ export default function DepartmentReports() {
           </Card>
         </div>
 
+        {/* Tables */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="border-border shadow-sm">
             <CardHeader>
               <CardTitle className="text-lg">Department Statistics (HQ)</CardTitle>
-              <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Branch:</span>
-              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="w-[140px] h-9 bg-white dark:bg-slate-950">
-                  <SelectValue placeholder="All Branches" />
-                </SelectTrigger>
-                <SelectContent>
-                  {branches.map(b => (
-                    <SelectItem key={b} value={b} className="uppercase text-xs">
-                      {b === "All" ? "All Branches" : b}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Dept:</span>
-              <Select value={selectedDept} onValueChange={setSelectedDept}>
-                <SelectTrigger className="w-[160px] h-9 bg-white dark:bg-slate-950">
-                  <SelectValue placeholder="All Departments" />
-                </SelectTrigger>
-                <SelectContent>
-                  {departments.map(d => (
-                    <SelectItem key={d} value={d} className="uppercase text-xs">
-                      {d === "All" ? "All Departments" : d}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <ExportDropdown onExportCSV={handleExportCSV} />
-        </div>
-</CardHeader>
+            </CardHeader>
             <CardContent>
               {loading ? (
                 <div className="flex justify-center py-8">
