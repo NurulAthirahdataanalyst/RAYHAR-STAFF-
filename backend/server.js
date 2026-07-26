@@ -5730,8 +5730,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       const uid = p.user_id;
       const clockRowsForUser = clockMap[uid] || [];
       const leaveRow = leaveMap[uid];
-      
-      const userZone = branchZoneMap.get(pBranchZone) || 'ZONE_B';
+      const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
       const isWeekend = checkIsWeekend(userZone, dateObj);
       const workHours = getWorkHoursForZone(userZone, dateObj);
       const [lateH, lateM] = workHours.off ? [23, 59] : getLateThresholdTime().split(':').map(Number);
@@ -6727,7 +6726,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
        const att = attRows.find(a => a.user_id === p.user_id && new Date(new Date(a.clock_in).getTime() + 8*3600*1000).toISOString().split('T')[0] === targetDateStr);
        const isPresent = !!att;
 
-       const userZone = branchZoneMap.get(pBranchZone) || 'ZONE_B';
+       const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
        const isWeekend = checkIsWeekend(userZone, dateObj);
        const matchingHoliday = malaysiaHolidays.find(h => h.date === targetDateStr);
 
