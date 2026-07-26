@@ -358,13 +358,88 @@ export default function WorkforceInsights() {
         </div>
       );
     }
+  const CustomEmployeeTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white dark:bg-card border border border-slate-300 dark:border-slate-700 rounded-md shadow-lg p-2 flex flex-col gap-1 min-w-[100px]">
+          <p className="text-[11px] font-bold text-slate-600 bg-slate-50 dark:bg-slate-900/50 px-2 py-1 rounded-sm border-b border-slate-100 dark:border-slate-800">{label}</p>
+          <div className="flex items-center gap-1.5 px-2 py-1">
+            <div className="w-2 h-2 rounded-full bg-[#7B0099]"></div>
+            <p className="text-[11px] text-slate-700">Attendance: <span className="font-bold">{payload[0].value}%</span></p>
+          </div>
+        </div>
+      );
+    }
     return null;
   };
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
         
         {/* Header Controls */}
-        
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+          {/* View Mode Tabs */}
+          <div className="flex items-center gap-2">
+            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg gap-1">
+              <button
+                onClick={() => setViewMode('day')}
+                className={`px-4 py-1.5 text-[11px] font-bold rounded-md transition-all ${
+                  viewMode === 'day' ? 'bg-white dark:bg-slate-700 text-[#7B0099] shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                }`}
+              >
+                Day View
+              </button>
+              <button
+                onClick={() => setViewMode('month')}
+                className={`px-4 py-1.5 text-[11px] font-bold rounded-md transition-all ${
+                  viewMode === 'month' ? 'bg-white dark:bg-slate-700 text-[#7B0099] shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                }`}
+              >
+                Month View
+              </button>
+            </div>
+          </div>
+
+          {/* Date Picker */}
+          <div className="flex items-center gap-2">
+            {viewMode === 'day' ? (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-[#7B0099] transition-colors shadow-sm">
+                    <CalendarDays className="w-3.5 h-3.5 text-[#7B0099]" />
+                    <span className="text-slate-700 dark:text-slate-200">{displayDate}</span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(d) => {
+                      if (d) {
+                        setDay(d.getDate().toString().padStart(2, '0'));
+                        setMonth((d.getMonth() + 1).toString().padStart(2, '0'));
+                        setYear(d.getFullYear().toString());
+                      }
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <input
+                type="month"
+                value={`${year}-${month}`}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    const [y, m] = e.target.value.split('-');
+                    setYear(y);
+                    setMonth(m);
+                  }
+                }}
+                className="px-3 py-1.5 text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-[#7B0099] transition-colors shadow-sm text-slate-700 dark:text-slate-200 outline-none cursor-pointer"
+              />
+            )}
+          </div>
+        </div>
 
         {/* Redesigned Top Section: 5-column layout */}
         {viewMode === 'day' ? (
@@ -708,505 +783,6 @@ export default function WorkforceInsights() {
                       {regionOrder.map(r => <SelectItem key={r} value={r} className="text-[10px] font-bold">{r}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                </CardHeader>
-                <CardContent className="p-5 flex flex-col">
-                  <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
-                    <TooltipProvider>
-                      {filteredBranches.map((branch: any, idx: number) => {
-                        const branchEmployees = liveEmployees.filter(emp => emp.branch === branch.name);
-
-                        let outstation: number, presentOnTime: number, presentLate: number, onLeave: number, companyLeave: number, absent: number;
-
-                        if (['head_of_department', 'branch_leader'].includes(role)) {
-                          // For HOD/BL: use the same server-side filtered data as the KPI cards
-                          // to ensure Branch Distribution matches "Present Today" / "Absent Today" exactly
-                          presentOnTime = Math.max(0, (data.teamAvailability?.present ?? 0) - (data.teamAvailability?.late ?? 0));
-                          presentLate = data.teamAvailability?.late ?? 0;
-                          onLeave = data.topKpi?.onLeaveToday ?? 0;
-                          outstation = data.topKpi?.outstationToday ?? 0;
-                          companyLeave = 0;
-                          absent = data.teamAvailability?.absent ?? 0;
-                        } else {
-                          outstation = branchEmployees.filter(emp => emp.status === 'outstation').length;
-                          presentOnTime = branchEmployees.filter(emp => emp.status === 'present').length;
-                          presentLate = branchEmployees.filter(emp => emp.status === 'late').length;
-                          onLeave = branchEmployees.filter(emp => emp.status === 'onLeave').length;
-                          companyLeave = branchEmployees.filter(emp => emp.status === 'companyLeave').length;
-                          absent = Math.max(0, branch.count - (presentOnTime + presentLate + outstation + onLeave + companyLeave));
-                        }
-                        
-                        const expectedWorkingDays = branch.count - onLeave - companyLeave;
-                        let realRate = 0;
-                        if (expectedWorkingDays > 0) {
-                          realRate = Math.round(((presentOnTime + presentLate + outstation) / expectedWorkingDays) * 100);
-                        } else if (branch.count > 0 && expectedWorkingDays === 0) {
-                          realRate = 100;
-                        }
-
-                        return { ...branch, realRate, presentOnTime, presentLate, outstation, onLeave, companyLeave, absent };
-                      }).sort((a:any, b:any) => b.realRate - a.realRate).map((branch: any, idx: number) => {
-                        return (
-                          <div key={idx} className="flex flex-col gap-1">
-                            <div className="flex justify-between items-end">
-                              <div className="flex flex-col">
-                                <span className="text-[11px] font-bold text-[#1A1F36] dark:text-gray-200">{branch.name}</span>
-                                <span className="text-[9px] text-slate-400">{branch.count} Employees</span>
-                              </div>
-                              <span className={`text-[10px] font-black ${branch.realRate >= 95 ? 'text-emerald-500' : 'text-rose-500'}`}>{branch.realRate}%</span>
-                            </div>
-                            <UITooltip delayDuration={100}>
-                              <TooltipTrigger asChild>
-                                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 flex overflow-hidden cursor-pointer">
-                                  {branch.count > 0 ? (
-                                    <>
-                                      <div className="h-full bg-[#10b981]" style={{ width: `${(branch.presentOnTime / branch.count) * 100}%` }}></div>
-                                      <div className="h-full bg-[#f59e0b]" style={{ width: `${(branch.presentLate / branch.count) * 100}%` }}></div>
-                                      <div className="h-full bg-pink-500" style={{ width: `${(branch.outstation / branch.count) * 100}%` }}></div>
-                                      <div className="h-full bg-blue-500" style={{ width: `${(branch.onLeave / branch.count) * 100}%` }}></div>
-                                      <div className="h-full bg-purple-500" style={{ width: `${(branch.companyLeave / branch.count) * 100}%` }}></div>
-                                      <div className="h-full bg-red-500" style={{ width: `${(branch.absent / branch.count) * 100}%` }}></div>
-                                    </>
-                                  ) : (
-                                    <div className="h-full w-full bg-slate-200"></div>
-                                  )}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent side="top" align="center" className="bg-white dark:bg-card border border border-slate-300 dark:border-slate-700 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[150px]">
-                                <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{branch.name}</p>
-                                <div className="flex flex-col gap-1 text-[9px] text-slate-600 dark:text-slate-300">
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{branch.presentLate}</span></p>
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-500">{branch.outstation}</span></p>
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>On Leave:</span> <span className="font-bold text-blue-500">{branch.onLeave}</span></p>
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-500">{branch.companyLeave}</span></p>
-                                  <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-red-500">{branch.absent}</span></p>
-                                </div>
-                              </TooltipContent>
-                            </UITooltip>
-                          </div>
-                        );
-                      })}
-                    </TooltipProvider>
-                    {filteredBranches.length === 0 && (
-                      <div className="text-center text-slate-400 text-xs py-10 font-medium">No branches found in this region.</div>
-                    )}
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                      <span className="text-[10px] font-semibold text-slate-400">Showing all {filteredBranches.length} locations</span>
-                    </div>
-                    <Link to="/branches" className="text-[11px] font-bold text-[#4f46e5] hover:text-[#4338ca] transition-colors flex items-center group/link">
-                      View all
-                      <ChevronRight className="w-3 h-3 ml-0.5 group-hover/link:translate-x-0.5 transition-transform" />
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })()}
-
-          {/* Temporary Branch Assignments Summary */}
-          <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col h-fit ${cardHoverEffect}`}>
-            <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-slate-400" />
-                  <CardTitle className="text-[16px] font-semibold text-[#1A1F36] dark:text-gray-100">Temporary Branch Assignment</CardTitle>
-                </div>
-                <Link to="/branches?tab=temporary" className="text-[11px] font-bold text-[#4f46e5] hover:text-[#4338ca] transition-colors flex items-center group/link">
-                  View All Assignments
-                  <ChevronRight className="w-3 h-3 ml-0.5 group-hover/link:translate-x-0.5 transition-transform" />
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0 flex flex-col">
-              {/* Summary Stats */}
-              <div className="p-5 border-b border-slate-100 dark:border-slate-800">
-                {(() => {
-                  const today = new Date();
-                  today.setHours(0,0,0,0);
-                  
-                  const active = tempAssignments.filter(a => {
-                    const start = new Date(a.start_date); start.setHours(0,0,0,0);
-                    const end = new Date(a.end_date); end.setHours(23,59,59,999);
-                    return a.status === 'Active' && today >= start && today <= end;
-                  }).length;
-                  
-                  const upcoming = tempAssignments.filter(a => {
-                    const start = new Date(a.start_date); start.setHours(0,0,0,0);
-                    return a.status === 'Active' && today < start;
-                  }).length;
-                  
-                  const completed = tempAssignments.filter(a => {
-                    return a.status === 'Completed' || (a.status === 'Active' && new Date(a.end_date).setHours(23,59,59,999) < today.getTime());
-                  }).length;
-
-                  return (
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="flex flex-col p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900/50">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
-                          <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Active</span>
-                        </div>
-                        <span className="text-3xl font-black text-slate-800 dark:text-slate-100">{active}</span>
-                        <span className="text-[11px] text-slate-500 mt-1 font-medium">Currently Active</span>
-                      </div>
-                      <div className="flex flex-col p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900/50">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
-                          <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Completed</span>
-                        </div>
-                        <span className="text-3xl font-black text-slate-800 dark:text-slate-100">{completed}</span>
-                        <span className="text-[11px] text-slate-500 mt-1 font-medium">Past Assignments</span>
-                      </div>
-                      <div className="flex flex-col p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900/50">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
-                          <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Upcoming</span>
-                        </div>
-                        <span className="text-3xl font-black text-slate-800 dark:text-slate-100">{upcoming}</span>
-                        <span className="text-[11px] text-slate-500 mt-1 font-medium">Starts Soon</span>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-
-              {/* Table */}
-              <div className="p-5 flex-1">
-                <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-4">Recent Temporary Assignments</h4>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-slate-200 dark:border-slate-700">
-                        <th className="pb-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Employee</th>
-                        <th className="pb-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Original Branch</th>
-                        <th className="pb-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Assigned Branch</th>
-                        <th className="pb-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Duration</th>
-                        <th className="pb-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                      {tempAssignments.slice(0, 3).map((a, i) => {
-                        const today = new Date();
-                        today.setHours(0,0,0,0);
-                        const start = new Date(a.start_date); start.setHours(0,0,0,0);
-                        const end = new Date(a.end_date); end.setHours(23,59,59,999);
-                        
-                        let sColor = "bg-gray-100 text-gray-700 border-gray-200";
-                        let sDot = "bg-gray-500";
-                        let sLabel = a.status;
-                        
-                        if (a.status === 'Completed' || (a.status === 'Active' && end < today)) {
-                          sColor = "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20";
-                          sDot = "bg-blue-500";
-                          sLabel = "Completed";
-                        } else if (a.status === 'Active' && today >= start && today <= end) {
-                          sColor = "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20";
-                          sDot = "bg-emerald-500";
-                          sLabel = "Active";
-                        } else if (a.status === 'Active' && today < start) {
-                          sColor = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20";
-                          sDot = "bg-amber-500";
-                          sLabel = "Upcoming";
-                        }
-                        
-                        const days = Math.round((new Date(a.end_date).getTime() - new Date(a.start_date).getTime()) / (1000 * 3600 * 24)) + 1;
-                        const durationText = sLabel === 'Upcoming' ? `Starts ${start.toLocaleString('default', { month: 'short' })}` : (sLabel === 'Completed' ? 'Completed' : `${days} Days`);
-
-                        return (
-                          <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                            <td className="py-3 pr-4 text-xs font-medium text-slate-900 dark:text-slate-100">{a.employee_name || a.full_name || 'N/A'}</td>
-                            <td className="py-3 pr-4 text-xs text-slate-500">{a.original_branch || a.branch || 'N/A'}</td>
-                            <td className="py-3 pr-4 text-xs font-medium text-slate-700 dark:text-slate-300">{a.assigned_branch || 'N/A'}</td>
-                            <td className="py-3 pr-4 text-xs text-slate-500">{durationText}</td>
-                            <td className="py-3">
-                              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wide ${sColor}`}>
-                                <span className={`w-1.5 h-1.5 rounded-full ${sDot}`}></span>
-                                {sLabel}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {tempAssignments.length === 0 && (
-                        <tr>
-                          <td colSpan={5} className="py-8 text-center text-xs text-slate-500">
-                            No temporary assignments found.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* HOD & Branch Leader LIVE CARDS (Only show for these roles, under Branch Distribution) */}
-            {['head_of_department', 'branch_leader'].includes(role) && (() => {
-              // Filter live data to only show employees within HOD's dept or Branch Leader's branch
-              const filteredClockIns = [...clockInOut, ...lateList]
-                .filter(emp => {
-                  if (role === 'head_of_department') return emp.department === userDepartment;
-                  if (role === 'branch_leader') return emp.branch === userBranch;
-                  return true;
-                })
-                .sort((a, b) => (a.clock_in || '').localeCompare(b.clock_in || ''));
-
-              const filteredAbsent = absentList.filter(emp => {
-                if (role === 'head_of_department') return emp.department === userDepartment;
-                if (role === 'branch_leader') return emp.branch === userBranch;
-                return true;
-              });
-
-              const scopeLabel = role === 'branch_leader' ? userBranch : userDepartment;
-
-              // Mock names when there are no real live clock-ins (for UI demo)
-              const mockClockInsHOD = [
-                { user_id: 'h1', full_name: 'Nurul Athirah', initials: 'NA', branch: 'HQ', department: 'Haji Umrah (BHU)', clock_in: '08:45 AM', is_late: false },
-                { user_id: 'h2', full_name: 'Md Khan', initials: 'MK', branch: 'HQ', department: 'Haji Umrah (BHU)', clock_in: '08:50 AM', is_late: false },
-                { user_id: 'h3', full_name: 'Nurain Syakirah', initials: 'NS', branch: 'HQ', department: 'Haji Umrah (BHU)', clock_in: '08:55 AM', is_late: false }
-              ];
-              const displayClockIns = filteredClockIns.length > 0 ? filteredClockIns : mockClockInsHOD;
-
-              const mockAbsentHOD = [
-                { user_id: 'h4', full_name: 'Nur Syuhada', initials: 'NS', branch: 'HQ', department: 'Haji Umrah (BHU)', status: 'absent' }
-              ];
-              const displayAbsent = filteredAbsent.length > 0 ? filteredAbsent : mockAbsentHOD;
-
-              return (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Clock-In/Out Card */}
-                  <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col p-4 ${cardHoverEffect}`}>
-                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Clock-In/Out</h3>
-                        {feedConnected
-                          ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
-                          : <span className="text-[8px] text-slate-400 font-bold uppercase">Connecting…</span>}
-                        {scopeLabel && <span className="text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded truncate max-w-[100px]">{scopeLabel}</span>}
-                      </div>
-                      <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-slate-500 flex items-center gap-1">
-                        <CalendarDays className="w-3 h-3" /> {displayDate}
-                      </span>
-                    </div>
-
-                    <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
-                      {displayClockIns.length === 0 && !feedConnected && (
-                        <div className="flex flex-col items-center justify-center py-8 text-slate-300">
-                          <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                          <p className="text-[10px] font-medium">Loading live data…</p>
-                        </div>
-                      )}
-                      {displayClockIns.length === 0 && feedConnected && (
-                        <div className="flex flex-col items-center justify-center py-8 text-slate-400">
-                          <Clock className="w-6 h-6 opacity-40 mb-1" />
-                          <p className="text-[10px] font-semibold">No clock-ins yet today</p>
-                        </div>
-                      )}
-                      {displayClockIns.map((emp) => (
-                        <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
-                          <div className="flex items-center gap-2.5">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
-                              {emp.initials}
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
-                                {emp.is_late && (
-                                  <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
-                                )}
-                              </div>
-                              <p className="text-[10px] text-slate-400 font-medium">{emp.department && emp.department !== '—' ? emp.department : emp.branch}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <Clock className="w-3.5 h-3.5 text-slate-400" />
-                            <span
-                              style={emp.is_late ? { backgroundColor: '#ffbf00' } : undefined}
-                              className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded text-white ${!emp.is_late ? 'bg-emerald-500' : ''}`}
-                            >
-                              {emp.clock_in}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate('/hr-analytics/attendance')}
-                      className="w-full mt-4 h-9 bg-white dark:bg-card hover:bg-slate-50 text-slate-700 font-semibold border border-slate-300 dark:border-slate-700"
-                    >
-                      View All Attendance
-                    </Button>
-                  </Card>
-
-                  {/* Absent / Leave / Outstation Card */}
-                  <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col p-4 ${cardHoverEffect}`}>
-                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Absent / Leave / Outstation</h3>
-                        {feedConnected
-                          ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
-                          : <span className="text-[8px] text-slate-400 font-bold uppercase">Connecting…</span>}
-                      </div>
-                      <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-slate-500 flex items-center gap-1">
-                        <CalendarDays className="w-3 h-3" /> {displayDate}
-                      </span>
-                    </div>
-
-                    <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
-                      {displayAbsent.length === 0 && !feedConnected && (
-                        <div className="flex flex-col items-center justify-center py-8 text-slate-300">
-                          <Loader2 className="w-5 h-5 animate-spin mb-2" />
-                          <p className="text-[10px] font-medium">Loading live data…</p>
-                        </div>
-                      )}
-                      {displayAbsent.length === 0 && feedConnected && (
-                        <div className="flex flex-col items-center justify-center py-8 text-slate-400">
-                          <CheckCircle2 className="w-6 h-6 text-emerald-500 opacity-60 mb-1" />
-                          <p className="text-[10px] font-semibold">No absentees today!</p>
-                        </div>
-                      )}
-                      {displayAbsent.map((emp) => (
-                        <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
-                          <div className="flex items-center gap-2.5">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
-                              {emp.initials}
-                            </div>
-                            <div>
-                              <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
-                              <p className="text-[10px] text-slate-400 font-medium">{emp.department && emp.department !== '—' ? emp.department : emp.branch}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            {(emp as any).status === 'companyLeave' ? (
-                              <>
-                                <CalendarDays className="w-3.5 h-3.5 text-purple-400" />
-                                <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-purple-600 text-white text-center leading-tight">Company<br />Leave</span>
-                              </>
-                            ) : (emp as any).status === 'outstation' ? (
-                              <>
-                                <Plane className="w-3.5 h-3.5 text-pink-400" />
-                                <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-pink-500 text-white">Outstation</span>
-                              </>
-                            ) : (emp as any).status === 'leave' || (emp as any).status === 'onLeave' ? (
-                              <>
-                                <CalendarDays className="w-3.5 h-3.5 text-blue-400" />
-                                <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-blue-500 text-white">Leave</span>
-                              </>
-                            ) : (
-                              <>
-                                <XCircle className="w-3.5 h-3.5 text-red-400" />
-                                <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-red-500 text-white">Absent</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate('/hr-analytics/attendance')}
-                      className="w-full mt-4 h-9 bg-white dark:bg-card hover:bg-slate-50 text-slate-700 font-semibold border border-slate-300 dark:border-slate-700"
-                    >
-                      View All Attendance
-                    </Button>
-                  </Card>
-                </div>
-              );
-            })()}
-          </div>
-
-
-          <Card className={`col-span-1 rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col ${cardHoverEffect}`}>
-            <CardHeader className="p-4 border-b border-slate-100 dark:border-slate-800 pb-3">
-              <div className="flex flex-row items-start justify-between">
-                <div>
-                  <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Team Availability</CardTitle>
-                  <CardDescription className="text-xs text-slate-500 mt-0.5">Real-time status for the current shift</CardDescription>
-                </div>
-                <span className="bg-indigo-100 text-indigo-700 text-[10px] font-semibold px-2 py-0.5 rounded-md">Live</span>
-              </div>
-            </CardHeader>
-            <CardContent className="p-4 flex-1 flex flex-col">
-              
-              {/* Chart Section */}
-              <div className="w-full relative h-[130px] flex items-center justify-center mt-1 mb-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={donutData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={65}
-                      paddingAngle={0}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {donutData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-
-                  </PieChart>
-                </ResponsiveContainer>
-                
-                {/* Center KPI Overlay */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-2xl font-bold text-slate-800 dark:text-slate-200 tracking-tight leading-none">{availabilityRate}%</span>
-                  <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Current Rate</span>
-                </div>
-              </div>
-
-              {/* Text Summary */}
-              <div className="text-center mb-4">
-                <h3 className="text-lg font-bold text-indigo-600 leading-tight">{availableToday} Available Today</h3>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  {availableToday === totalTeam ? "All team members are accounted for." : `${totalTeam - availableToday} team members are not available.`}
-                </p>
-              </div>
-
-              {/* 6-Shape Compact Legend */}
-              <div className="grid grid-cols-2 gap-2 w-full mt-auto mb-4">
-                {donutData.map((entry, index) => (
-                  <div key={entry.name} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border ${index === 0 ? 'bg-indigo-50/70 border-indigo-100' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800'} transition-colors`}>
-                    <div className="flex items-center gap-1 mb-1">
-                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider truncate">{entry.name}</span>
-                    </div>
-                    <span className="text-lg font-bold text-slate-800 dark:text-slate-200 leading-none">{entry.value}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col gap-2 mt-auto">
-                <Button className="w-full bg-[#4f46e5] hover:bg-[#4338ca] text-white h-9">
-                  <CalendarDays className="w-4 h-4 mr-2" /> Plan Shift
-                </Button>
-                <Button variant="outline" className="w-full bg-indigo-50/50 hover:bg-indigo-50 border-transparent text-[#4f46e5] font-medium h-9">
-                  <Users className="w-4 h-4 mr-2" /> Manage Team
-                </Button>
-                <p 
-                  className="text-[10px] font-bold text-[#7B0099] cursor-pointer hover:underline flex items-center gap-1 justify-end mt-1"
-                  onClick={() => {
-                    navigate('/hr-analytics/attendance');
-                    setTimeout(() => {
-                      const el = document.getElementById('admin-attendance');
-                      if (el) el.scrollIntoView({ behavior: 'smooth' });
-                    }, 100);
-                  }}
-                >
-                  View All <ChevronRight className="w-3 h-3" />
-                </p>
-              </div>
-            </CardContent>
           </Card>
         </div>
 
