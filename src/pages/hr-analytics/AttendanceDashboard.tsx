@@ -769,13 +769,15 @@ export default function AttendanceDashboard() {
       const companyLeave = branchEmployees.filter(emp => emp.status === 'companyLeave').length;
       
       const totalEmployees = b.totalEmployees || 0;
-      const absent = Math.max(0, totalEmployees - (presentOnTime + presentLate + outstation + onLeave + companyLeave));
-      const expectedWorkingDays = totalEmployees - onLeave - companyLeave;
+      const recordedCount = presentOnTime + presentLate + outstation + onLeave + companyLeave;
+      const isWeekend = recordedCount === 0 && totalEmployees > 0;
+      const absent = isWeekend ? 0 : Math.max(0, totalEmployees - recordedCount);
+      const expectedWorkingDays = isWeekend ? 0 : (totalEmployees - onLeave - companyLeave);
       let rate = 0;
-      if (expectedWorkingDays > 0) {
-        rate = Math.round(((presentOnTime + presentLate + outstation) / expectedWorkingDays) * 100);
-      } else if (totalEmployees > 0 && expectedWorkingDays === 0) {
+      if (isWeekend || (totalEmployees > 0 && expectedWorkingDays === 0)) {
         rate = 100;
+      } else if (expectedWorkingDays > 0) {
+        rate = Math.round(((presentOnTime + presentLate + outstation) / expectedWorkingDays) * 100);
       }
 
       return {
@@ -788,15 +790,15 @@ export default function AttendanceDashboard() {
         outstation,
         onLeave,
         companyLeave,
-        absent
+        absent,
+        isWeekend
       };
     })
     .filter(b => liveRegion === "all" || b.region.toLowerCase().includes(liveRegion.toLowerCase()))
     .sort((a, b) => b.rate - a.rate)
     .map(d => ({
        ...d,
-       fill: d.rate >= 90 ? '#16A34A' : d.rate >= 75 ? '#EAB308' : '#DC2626',
-       isWeekend: (d.presentOnTime + d.presentLate + d.outstation + d.onLeave + d.companyLeave + d.absent) === 0 && d.totalEmployees > 0
+       fill: d.isWeekend ? '#94A3B8' : d.rate >= 90 ? '#16A34A' : d.rate >= 75 ? '#EAB308' : '#DC2626'
     }));
 
   // Calculate live values
@@ -1637,12 +1639,21 @@ export default function AttendanceDashboard() {
                         <TooltipContent side="top" align="center" className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[150px]">
                           <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{branch.branch}</p>
                           <div className="flex flex-col gap-1 text-[9px] text-slate-600">
-                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
-                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{branch.presentLate}</span></p>
-                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-500">{branch.outstation}</span></p>
-                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>On Leave:</span> <span className="font-bold text-blue-500">{branch.onLeave}</span></p>
-                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-500">{branch.companyLeave}</span></p>
-                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-red-500">{branch.absent}</span></p>
+                            {branch.isWeekend ? (
+                              <>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>Weekend / Rest Day:</span> <span className="font-bold text-slate-600">{branch.totalEmployees}</span></p>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-slate-400">0</span></p>
+                              </>
+                            ) : (
+                              <>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{branch.presentLate}</span></p>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-500">{branch.outstation}</span></p>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>On Leave:</span> <span className="font-bold text-blue-500">{branch.onLeave}</span></p>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-500">{branch.companyLeave}</span></p>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-red-500">{branch.absent}</span></p>
+                              </>
+                            )}
                           </div>
                         </TooltipContent>
                       </UITooltip>
@@ -1768,10 +1779,10 @@ export default function AttendanceDashboard() {
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <span className="text-[28px] font-black text-gray-900 dark:text-gray-100 leading-none">
-                      {hoveredSlice ? hoveredSlice.value : (liveStats.total || 0)}
+                      {hoveredSlice ? hoveredSlice.value : Math.max(0, (liveStats.present || 0) - (liveStats.late || 0))}
                     </span>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 mt-1 text-center max-w-[90px] truncate">
-                      {hoveredSlice ? hoveredSlice.name : "Total"}
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 mt-1 text-center max-w-[110px] truncate">
+                      {hoveredSlice ? hoveredSlice.name : "PRESENT (ON TIME)"}
                     </span>
                   </div>
                 </div>
