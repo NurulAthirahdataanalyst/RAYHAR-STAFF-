@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import PageActions from "@/components/layout/PageActions";
+import { YearPopover } from "@/components/shared/YearPopover";
 import { exportToCSV } from "@/utils/export";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -82,7 +83,7 @@ export default function WorkforceInsights() {
   const [month, setMonth] = useState((new Date().getMonth() + 1).toString().padStart(2, '0'));
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [day, setDay] = useState(new Date().getDate().toString().padStart(2, '0'));
-  const [viewMode, setViewMode] = useState<'day' | 'month'>('day');
+  const [viewMode, setViewMode] = useState<'day' | 'month' | 'year'>('day');
   const [selectedRegion, setSelectedRegion] = useState<string>('All Regions');
 
   const regionMap: Record<string, string> = {
@@ -383,7 +384,7 @@ export default function WorkforceInsights() {
                       />
                     </PopoverContent>
                   </Popover>
-                ) : (
+                ) : viewMode === "month" ? (
                   <input
                     type="month"
                     value={`${year}-${month}`}
@@ -396,6 +397,8 @@ export default function WorkforceInsights() {
                     }}
                     className="appearance-none flex items-center justify-center px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-9"
                   />
+                ) : (
+                  <YearPopover year={year} onSelectYear={setYear} />
                 )}
               </div>
 
@@ -411,6 +414,12 @@ export default function WorkforceInsights() {
                   onClick={() => setViewMode('month')}
                 >
                   MONTH
+                </button>
+                <button 
+                  className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${viewMode === 'year' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                  onClick={() => setViewMode('year')}
+                >
+                  YEAR
                 </button>
               </div>
             </div>
