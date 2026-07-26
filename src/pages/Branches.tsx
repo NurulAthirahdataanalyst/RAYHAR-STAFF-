@@ -235,6 +235,23 @@ export default function Branches() {
     );
   }, [allBranches, searchQuery]);
 
+
+  const fetchTemporaryStaff = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
+      const data = await res.json();
+      if (data.success) {
+        setTemporaryStaff(data.assignments);
+      }
+    } catch (e) {
+      console.error("Failed to fetch temporary staff", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchTemporaryStaff();
+  }, []);
+
   useEffect(() => {
     localStorage.setItem("branchesViewMode", viewMode);
   }, [viewMode]);

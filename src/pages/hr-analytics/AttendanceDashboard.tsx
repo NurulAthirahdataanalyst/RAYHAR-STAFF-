@@ -1259,7 +1259,12 @@ export default function AttendanceDashboard() {
                                 {record.full_name.charAt(0)}
                               </div>
                               <div>
-                                <span className="font-semibold text-gray-800 dark:text-gray-200 block text-xs">{record.full_name}</span>
+                                <div className="flex items-center gap-1.5 mb-0.5">
+                                  <span className="font-semibold text-gray-800 dark:text-gray-200 block text-xs">{record.full_name}</span>
+                                  { (record as any).attendance_type === "Temporary Assignment" && (
+                                    <span className="bg-purple-100 text-[#7B0099] border border-purple-200 text-[8px] font-bold px-1.5 py-0.5 rounded shadow-sm">TEMP</span>
+                                  ) }
+                                </div>
                                 <span className="text-[10px] text-gray-400 capitalize">{((record as any).role || "").replace(/_/g, ' ')} • {record.branch}{record.branch === "HQ" && record.department ? `, • ${record.department}` : ""}</span>
                               </div>
                             </div>
