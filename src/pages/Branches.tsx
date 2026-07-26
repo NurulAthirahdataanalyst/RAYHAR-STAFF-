@@ -199,208 +199,12 @@ type BranchEmployee = {
   mc_leaves: number;
   days_present: number;
   attendance_rate: number | null;
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  ArrowLeft,
-  Building2,
-  CalendarCheck,
-  Clock,
-  Loader2,
-  MapPin,
-  TrendingUp,
-  Users,
-  FileText,
-  PhoneCall,
-  X,
-  Trash2,
-  LayoutGrid,
-  List,
-  Plus,
-  Search,
-} from "lucide-react";
-import { useEffect, useMemo, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "../config/api";
-import { toast } from "sonner";
-import { useReactToPrint } from "react-to-print";
-import { getCleanReason } from "@/lib/leaveStorage";
-
-const branches = [
-  {
-    code: "HQ",
-    name: "Rayhar HQ",
-    location: "Kemaman,Terengganu",
-    leader: "Maria Santos",
-  },
-  {
-    code: "KMM",
-    name: "Kemaman",
-    location: "Kemaman,Terengganu",
-    leader: "Maria Santos",
-  },
-  {
-    code: "CNH",
-    name: "Cheneh",
-    location: "Kemaman,Terengganu",
-    leader: "Roberto Lim",
-  },
-  {
-    code: "KBG",
-    name: "Kuala Berang",
-    location: "Hulu Terengganu,Terengganu",
-    leader: "David Chen",
-  },
-  {
-    code: "TGG",
-    name: "Kuala Terengganu",
-    location: "Kuala Terengganu,Terengganu",
-    leader: "David Chen",
-  },
-  {
-    code: "DGN",
-    name: "Dungun",
-    location: "Dungun,Terengganu",
-    leader: "Roberto Lim",
-  },
-  {
-    code: "JTH",
-    name: "Jertih",
-    location: "Besut,Terengganu",
-    leader: "Roberto Lim",
-  },
-  {
-    code: "KBR",
-    name: "Kota Bharu",
-    location: "Kota Bharu,Kelantan",
-    leader: "Roberto Lim",
-  },
-  {
-    code: "RMP",
-    name: "Rompin",
-    location: "Rompin,Pahang",
-    leader: "Roberto Lim",
-  },
-  {
-    code: "MZM",
-    name: "Muadzam Shah",
-    location: "Muadzam Shah,Pahang",
-    leader: "Roberto Lim",
-  },
-  {
-    code: "SHA",
-    name: "Shah Alam",
-    location: "Shah Alam,Selangor",
-    leader: "Roberto Lim",
-  },
-  {
-    code: "BBB",
-    name: "Bandar Baru Bangi",
-    location: "Bandar Baru Bangi,Selangor",
-    leader: "Roberto Lim",
-  },
-  {
-    code: "KUL",
-    name: "Kuala Lumpur",
-    location: "Kuala Lumpur,Wilayah Persekutuan",
-    leader: "Roberto Lim",
-  },
-  { code: "IPH", name: "Ipoh", location: "Ipoh,Perak", leader: "Roberto Lim" },
-  {
-    code: "MJG",
-    name: "Manjung",
-    location: "Manjung,Perak",
-    leader: "Roberto Lim",
-  },
-  {
-    code: "KKS",
-    name: "Kuala Kangsar",
-    location: "Kuala Kangsar,Perak",
-    leader: "Roberto Lim",
-  },
-  {
-    code: "MLK",
-    name: "Melaka",
-    location: "Melaka,Melaka",
-    leader: "Roberto Lim",
-  },
-  {
-    code: "AOR",
-    name: "Alor Setar",
-    location: "Alor Setar,Kedah",
-    leader: "Roberto Lim",
-  },
-  {
-    code: "BTM",
-    name: "Bertam",
-    location: "Bertam,Pulau Pinang",
-    leader: "Roberto Lim",
-  },
-  {
-    code: "SNS",
-    name: "Seremban",
-    location: "Seremban,Negeri Sembilan",
-    leader: "Roberto Lim",
-  },
-  {
-    code: "BTP",
-    name: "Batu Pahat",
-    location: "Batu Pahat,Johor",
-    leader: "Roberto Lim",
-  },
-  {
-    code: "JB",
-    name: "Johor Bharu",
-    location: "Johor Bharu,Johor",
-    leader: "Roberto Lim",
-  },
-  {
-    code: "TWU",
-    name: "Tawau",
-    location: "Tawau,Sabah",
-    leader: "Roberto Lim",
-  },
-];
-
-type BranchEmployee = {
-  user_id: string;
-  full_name: string;
-  email: string;
-  role: string;
-  status: string;
-  today_status: string;
-  annual_leave_balance: number;
-  pending_leaves: number;
-  approved_leaves: number;
-  rejected_leaves: number;
-  total_leave_requests: number;
-  mc_leaves: number;
-  days_present: number;
-  attendance_rate: number | null;
 };
 
 export default function Branches() {
   const navigate = useNavigate();
   const [selectedBranch, setSelectedBranch] = useState<any | null>(null);
   const [employees, setEmployees] = useState<BranchEmployee[]>([]);
-  const [temporaryStaff, setTemporaryStaff] = useState<any[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   
@@ -448,6 +252,416 @@ export default function Branches() {
     fetchTemporaryStaff();
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem("branchesViewMode", viewMode);
+  }, [viewMode]);
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/branches`);
+        const data = await response.json();
+        if (data.success) {
+          setAllBranches(data.branches);
+        }
+      } catch (err) {
+        console.error("Error fetching branches", err);
+      } finally {
+        setLoadingBranches(false);
+      }
+    };
+    fetchBranches();
+  }, []);
+
+  const fetchBranchesList = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/branches`);
+      const data = await response.json();
+      if (data.success) setAllBranches(data.branches);
+    } catch (err) {}
+  };
+
+  useEffect(() => {
+    if (allBranches.length > 0) {
+      const fetchBranchStats = async () => {
+        try {
+          const params = new URLSearchParams({
+            startDate: new Date().toISOString().split("T")[0],
+            endDate: new Date().toISOString().split("T")[0],
+          });
+          const response = await fetch(
+            `${API_BASE_URL}/api/analytics/branch-stats?${params}`,
+          );
+          const data = await response.json();
+          if (data.success) setBranchStats(data.data);
+        } catch (err) {
+          console.error("Error fetching branch stats", err);
+        }
+      };
+      fetchBranchStats();
+    }
+  }, [allBranches]);
+
+  useEffect(() => {
+    if (selectedBranch && selectedBranch.code) {
+      const fetchEmployees = async () => {
+        setLoading(true);
+        try {
+          const params = new URLSearchParams({ branch: selectedBranch.code });
+          const response = await fetch(
+            `${API_BASE_URL}/api/branch-employees?${params}`,
+          );
+          const data = await response.json();
+          if (data.success) {
+            setEmployees(data.employees || []);
+          }
+        } catch (err) {
+          toast.error("Failed to fetch branch employees");
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchEmployees();
+    }
+  }, [selectedBranch]);
+
+  const handleDeleteBranch = async (e: React.MouseEvent, code: string) => {
+    e.stopPropagation();
+    if (code === "HQ") {
+      toast.error("Cannot delete default Rayhar HQ branch");
+      return;
+    }
+    if (!window.confirm(`Are you sure you want to delete branch ${code}?`))
+      return;
+
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/branches/${encodeURIComponent(code)}`,
+        { method: "DELETE" },
+      );
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Branch deleted successfully");
+        fetchBranchesList();
+      } else {
+        toast.error(data.error || "Failed to delete branch");
+      }
+    } catch (err) {
+      toast.error("Server error");
+    }
+  };
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/branches-stats`);
+        const data = await response.json();
+        if (data.success) {
+          setBranchStats(data.stats);
+        }
+      } catch (err) {
+        console.error("Error fetching branch stats", err);
+      }
+    };
+    fetchStats();
+    const interval = setInterval(fetchStats, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const fetchLeaves = async () => {
+      if (!viewLeaveStatus || !selectedEmployeeId) {
+        setEmployeeLeaves([]);
+        return;
+      }
+      setLoadingLeaves(true);
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/leave-requests?userId=${selectedEmployeeId}`,
+        );
+        const data = await response.json();
+        if (data.success) {
+          setEmployeeLeaves(data.leaveRequests || []);
+        } else {
+          setEmployeeLeaves([]);
+        }
+      } catch (err) {
+        console.error("Error fetching leaves", err);
+        setEmployeeLeaves([]);
+      } finally {
+        setLoadingLeaves(false);
+      }
+    };
+    fetchLeaves();
+  }, [viewLeaveStatus, selectedEmployeeId]);
+
+  useEffect(() => {
+    if (!selectedBranch) return;
+    const fetchBranchEmployees = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/branch-employees?branch=${selectedBranch.code}`,
+        );
+        const data = await response.json();
+        if (data.success) {
+          setEmployees(data.employees);
+          if (data.employees.length > 0) {
+            setSelectedEmployeeId(data.employees[0].user_id);
+          } else {
+            setSelectedEmployeeId("");
+          }
+        }
+      } catch (error) {
+        console.error("Branch employee fetch error:", error);
+        setEmployees([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    void fetchBranchEmployees();
+  }, [selectedBranch]);
+
+  const selectedEmployee = useMemo(
+    () => employees.find((e) => e.user_id === selectedEmployeeId),
+    [employees, selectedEmployeeId],
+  );
+
+  return (
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
+      {selectedBranch ? (
+        <div className="space-y-4 sm:space-y-6">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 lg:gap-6">
+            <div className="min-w-0 flex-1">
+              <Button
+                type="button"
+                variant="ghost"
+                className="mb-1 gap-2 px-0 text-muted-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target"
+                onClick={() => setSelectedBranch(null)}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="text-[10px] font-black uppercase tracking-widest">
+                  Back to branches
+                </span>
+              </Button>
+              <div className="flex items-center gap-3">
+                <h1 className="text-responsive-xl font-black text-foreground tracking-tight truncate">
+                  {selectedBranch.name}
+                </h1>
+                <Badge
+                  variant="outline"
+                  className="font-mono text-[10px] sm:text-xs bg-muted/30 border-border/60 px-3 py-1"
+                >
+                  {selectedBranch.code}
+                </Badge>
+              </div>
+              <p className="text-responsive-sm text-muted-foreground font-medium mt-1">
+                Branch staff overview and analytics
+              </p>
+            </div>
+            
+            {selectedBranch.operating_zone && (
+              <div className="flex-shrink-0 bg-white dark:bg-card border-2 border-slate-200 dark:border-slate-700 rounded-xl p-3 shadow-md self-start">
+                <p className="mb-2"><span className="text-[10px] font-bold text-foreground uppercase tracking-wider">Operating Hours ({selectedBranch.operating_zone === 'ZONE_A' ? 'Zone A' : 'Zone B'})</span></p>
+                <div className="flex flex-wrap sm:flex-nowrap gap-4 sm:gap-6 text-[11px] text-muted-foreground">
+                  {selectedBranch.operating_zone === 'ZONE_A' ? (
+                    <>
+                      <div className="space-y-1 border-l-2 border-[#7B0099] pl-2.5">
+                        <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 5:30 PM (Saturday – Wednesday)</p>
+                        <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 1:00 PM (Thursday)</p>
+                        <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 5:30 PM (First Thursday of the Month)</p>
+                      </div>
+                      <div className="space-y-1 border-l-2 border-rose-500 pl-2.5">
+                        <p className="flex items-center gap-2 text-rose-500/90"><X className="w-3 h-3" /> Closed (Friday)</p>
+                        <p className="flex items-center gap-2 text-rose-500/90"><X className="w-3 h-3" /> Closed (First Saturday of the Month)</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="space-y-1 border-l-2 border-[#7B0099] pl-2.5">
+                        <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 5:30 PM (Monday – Friday)</p>
+                        <p className="flex items-center gap-2"><Clock className="w-3 h-3 text-[#7B0099]" /> 8:30 AM – 1:00 PM (Saturday)</p>
+                      </div>
+                      <div className="space-y-1 border-l-2 border-rose-500 pl-2.5">
+                        <p className="flex items-center gap-2 text-rose-500/90"><X className="w-3 h-3" /> Closed (Sunday)</p>
+                        <p className="flex items-center gap-2 text-rose-500/90"><X className="w-3 h-3" /> Closed (First Saturday of the Month)</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {loading ? (
+            <div className="flex flex-col items-center justify-center p-20 gap-4 bg-card/60 backdrop-blur-md rounded-[32px] border border-border/50">
+              <Loader2 className="h-10 w-10 animate-spin text-[#7B0099]" />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">
+                Syncing Branch Data...
+              </p>
+            </div>
+          ) : (
+            <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md rounded-[24px]">
+              <CardContent className="p-0">
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-muted/30 text-foreground border-b border-border">
+                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                          Personnel
+                        </th>
+                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                          Leave Balance
+                        </th>
+                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                          Attendance
+                        </th>
+                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                          Today
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/50">
+                      {employees.length > 0 ? (
+                        employees.map((employee) => (
+                          <tr
+                            key={employee.user_id}
+                            className={`cursor-pointer transition-colors group hover:bg-[#7B0099]/5 ${
+                              selectedEmployee?.user_id === employee.user_id
+                                ? "bg-[#7B0099]/10"
+                                : ""
+                            }`}
+                            onClick={() => {
+                              setSelectedEmployeeId(employee.user_id);
+                              setIsStatsOpen(true);
+                            }}
+                          >
+                            <td className="py-4 px-6">
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-[#7B0099]/10 flex items-center justify-center text-[11px] font-black text-[#7B0099] group-hover:scale-110 transition-transform">
+                                  {employee.full_name
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")
+                                    .slice(0, 2)
+                                    .toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-bold text-foreground group-hover:text-[#7B0099] transition-colors">
+                                    {employee.full_name}
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground truncate font-medium uppercase tracking-widest">
+                                    {employee.user_id}
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-6 font-bold text-foreground text-xs uppercase">
+                              {employee.annual_leave_balance} DAYS
+                            </td>
+                            <td className="py-4 px-6 font-bold text-muted-foreground text-xs">
+                              {employee.attendance_rate || 0}%
+                            </td>
+                            <td className="py-4 px-6">
+                              <Badge
+                                className={`text-[9px] font-black px-2.5 h-5 ${
+                                  employee.today_status === "Present (On Time)" || employee.today_status === "Present"
+                                    ? "bg-emerald-500 text-white"
+                                    : employee.today_status === "Present (Late)"
+                                      ? "bg-amber-500 text-white"
+                                      : employee.today_status === "Outstation"
+                                        ? "bg-pink-500 text-white"
+                                        : employee.today_status === "On Leave"
+                                          ? "bg-blue-500 text-white"
+                                          : employee.today_status === "Company Leave"
+                                            ? "bg-purple-500 text-white"
+                                            : "bg-rose-500 text-white"
+                                }`}
+                              >
+                                {employee.today_status}
+                              </Badge>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={4}
+                            className="py-12 text-center text-muted-foreground italic font-medium"
+                          >
+                            No personnel found in this branch.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="md:hidden divide-y divide-border/50">
+                  {employees.length > 0 ? (
+                    employees.map((employee) => (
+                      <div
+                        key={employee.user_id}
+                        className="p-4 active:bg-[#7B0099]/5 transition-colors flex items-center gap-4 cursor-pointer"
+                        onClick={() => {
+                          setSelectedEmployeeId(employee.user_id);
+                          setIsStatsOpen(true);
+                        }}
+                      >
+                        <div className="w-12 h-12 rounded-2xl bg-[#7B0099]/10 flex items-center justify-center text-sm font-black text-[#7B0099] shrink-0">
+                          {employee.full_name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .slice(0, 2)
+                            .toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <p className="font-black text-sm text-foreground truncate">
+                              {employee.full_name}
+                            </p>
+                            <Badge
+                              className={`text-[9px] font-black h-5 shrink-0 ${
+                                employee.today_status === "Present (On Time)" || employee.today_status === "Present"
+                                  ? "bg-emerald-500 text-white"
+                                  : employee.today_status === "Present (Late)"
+                                    ? "bg-amber-500 text-white"
+                                    : employee.today_status === "Outstation"
+                                      ? "bg-pink-500 text-white"
+                                      : employee.today_status === "On Leave"
+                                        ? "bg-blue-500 text-white"
+                                        : employee.today_status === "Company Leave"
+                                          ? "bg-purple-500 text-white"
+                                          : "bg-rose-500 text-white"
+                              }`}
+                            >
+                              {employee.today_status}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            <span>ID: {employee.user_id}</span>
+                            <span className="opacity-30">•</span>
+                            <span>Rate: {employee.attendance_rate || 0}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="py-12 text-center text-muted-foreground italic font-medium p-6">
+                      No personnel found.
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <Dialog open={isStatsOpen} onOpenChange={setIsStatsOpen}>
+            <DialogContent className="max-w-2xl w-full overflow-y-auto max-h-[90vh]">
+              <DialogHeader className="pb-4 border-b border-border/50">
+                <DialogTitle className="text-xl font-black text-foreground">
+                  Staff Profile
                 </DialogTitle>
                 <DialogDescription className="sr-only">
                   View and analyze staff attendance and leave metrics.
