@@ -480,6 +480,10 @@ export default function Calendar() {
       
       <PageActions>
         <div className="flex items-center gap-3">
+          <ExportDropdown 
+            onExportCSV={handleExportCalendar} 
+            onExportPDF={() => window.print()} 
+          />
           <Button 
             onClick={() => {
               setStartDate(format(selectedDate, "yyyy-MM-dd"));
@@ -492,17 +496,6 @@ export default function Calendar() {
           </Button>
         </div>
       </PageActions>
-
-
-      
-      <div className="mb-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
-          <ExportDropdown 
-            onExportCSV={handleExportCalendar} 
-            onExportPDF={() => window.print()} 
-          />
-        </div>
-      </div>
 
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

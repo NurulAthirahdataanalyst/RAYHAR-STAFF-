@@ -47,6 +47,7 @@ import { API_BASE_URL } from "../config/api";
 import { toast } from "sonner";
 import { useReactToPrint } from "react-to-print";
 import { getCleanReason } from "@/lib/leaveStorage";
+import PageActions from "@/components/layout/PageActions";
 
 const branches = [
   {
@@ -874,32 +875,19 @@ export default function Branches() {
         </div>
       ) : (
         <div className="space-y-4 sm:space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-responsive-2xl font-black text-foreground tracking-tight">
-                  Branches Overview
-                </h1>
-                {!loadingBranches && (
-                  <Badge
-                    variant="outline"
-                    className="px-3 py-1 text-xs font-bold bg-muted/30 border-border/60 flex items-center justify-center rounded-md h-fit"
-                  >
-                    Total{" "}
-                    <span className="ml-2 flex items-center justify-center bg-[#7B0099] text-white rounded-md h-5 min-w-[20px] px-1.5 text-[10px] leading-none shrink-0">
-                      {allBranches.length}
-                    </span>
-                  </Badge>
-                )}
-              </div>
-              <p className="text-responsive-sm text-muted-foreground font-medium mt-1">
-                Real-time status across all locations
-              </p>
-            </div>
-
+          <PageActions>
             {!loadingBranches && (
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 shrink-0 self-start sm:self-auto w-full sm:w-auto">
-                <div className="relative w-full sm:w-64">
+              <div className="flex items-center gap-3">
+                <Badge
+                  variant="outline"
+                  className="px-3 py-1.5 text-xs font-bold bg-muted/30 border-border/60 flex items-center justify-center rounded-md h-9"
+                >
+                  Total{" "}
+                  <span className="ml-2 flex items-center justify-center bg-[#7B0099] text-white rounded-md h-5 min-w-[20px] px-1.5 text-[10px] leading-none shrink-0">
+                    {allBranches.length}
+                  </span>
+                </Badge>
+                <div className="relative w-48 sm:w-64">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search branches..."
@@ -908,12 +896,12 @@ export default function Branches() {
                     className="pl-9 h-9 rounded-xl border-border/60 bg-muted/30 focus-visible:ring-[#7B0099]/30 text-xs font-medium"
                   />
                 </div>
-                <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/40 shrink-0 w-full sm:w-auto">
+                <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/40 shrink-0">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setViewMode("grid")}
-                    className={`rounded-lg px-3 py-1.5 h-8 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
+                    className={`rounded-lg px-3 py-1.5 h-7 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
                       viewMode === "grid"
                         ? "bg-[#7B0099] text-white hover:bg-[#7B0099]/90 shadow-md"
                         : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
@@ -926,7 +914,7 @@ export default function Branches() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setViewMode("line")}
-                    className={`rounded-lg px-3 py-1.5 h-8 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
+                    className={`rounded-lg px-3 py-1.5 h-7 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
                       viewMode === "line"
                         ? "bg-[#7B0099] text-white hover:bg-[#7B0099]/90 shadow-md"
                         : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
@@ -938,7 +926,7 @@ export default function Branches() {
                 </div>
               </div>
             )}
-          </div>
+          </PageActions>
           {loadingBranches ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3 bg-card/60 backdrop-blur-md rounded-[32px] border border-border/50">
               <Loader2 className="h-10 w-10 animate-spin text-[#7B0099]" />

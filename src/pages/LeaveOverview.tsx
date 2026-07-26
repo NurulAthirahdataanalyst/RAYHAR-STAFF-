@@ -220,14 +220,10 @@ export default function LeaveOverview() {
 
   return (
     <div className="space-y-3 sm:space-y-5 animate-in fade-in duration-500">
-      {/* Header */}
-      
-      
-      <div className="mb-4">
-
-        <div className="flex flex-wrap items-center gap-2.5">
+      <PageActions>
+        <div className="flex items-center gap-2.5">
           <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[90px] h-10 text-[10px] font-black uppercase tracking-widest rounded-xl border border-[#7B0099]/20 bg-card">
+            <SelectTrigger className="w-[90px] h-9 text-[10px] font-black uppercase tracking-widest rounded-xl border border-[#7B0099]/20 bg-card">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -238,14 +234,13 @@ export default function LeaveOverview() {
           </Select>
           <Button
             onClick={() => navigate("/leave/apply")}
-            className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-5 py-4 shadow-lg shadow-[#7B0099]/20 transition-all active:scale-95"
+            className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-4 h-9 shadow-lg shadow-[#7B0099]/20 transition-all active:scale-95"
           >
             <Plus className="w-4 h-4" />
             Apply for Leave
           </Button>
         </div>
-      
-      </div>
+      </PageActions>
 
 
       {/* Leave Balance Cards */}

@@ -981,14 +981,9 @@ export default function AttendanceDashboard() {
       {/* ── LIVE PRESENCE PANEL ─────────────────────────────────────────── */}
       
 
-      {/* Redesigned Standalone KPI Cards Grid */}
-      <div className="mb-4">
-
-        <div className="flex items-center gap-2">
-          <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
-        </div>
-      
-      </div>
+      <PageActions>
+        <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
+      </PageActions>
 
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4 mb-6">
             {(() => {
