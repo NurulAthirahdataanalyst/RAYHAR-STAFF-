@@ -168,7 +168,14 @@ const TemporaryAssignments = () => {
     return matchesSearch && matchesStatus;
   });
 
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const activeCount = assignments.filter(a => a.status === 'Active' && a.start_date.split('T')[0] <= todayStr && (!a.end_date || a.end_date.split('T')[0] >= todayStr)).length;
+  const upcomingCount = assignments.filter(a => a.status === 'Active' && a.start_date.split('T')[0] > todayStr).length;
+  const completedCount = assignments.filter(a => a.status === 'Completed' || (a.status === 'Active' && a.end_date && a.end_date.split('T')[0] < todayStr)).length;
+
   return (
+
     <div className="space-y-6 w-full">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -190,6 +197,21 @@ const TemporaryAssignments = () => {
           <Plus className="w-4 h-4 mr-2" />
           Assign Temporary Branch
         </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-md p-4 flex flex-col justify-between">
+          <div className="text-sm font-semibold text-slate-500">Active Assignments</div>
+          <div className="text-3xl font-black text-[#a01497] mt-2">{activeCount}</div>
+        </div>
+        <div className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-md p-4 flex flex-col justify-between">
+          <div className="text-sm font-semibold text-slate-500">Upcoming Assignments</div>
+          <div className="text-3xl font-black text-amber-600 mt-2">{upcomingCount}</div>
+        </div>
+        <div className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-md p-4 flex flex-col justify-between">
+          <div className="text-sm font-semibold text-slate-500">Completed Assignments</div>
+          <div className="text-3xl font-black text-emerald-600 mt-2">{completedCount}</div>
+        </div>
       </div>
 
       <Card className="border-none shadow-xl shadow-slate-200/40 dark:bg-slate-900/50 backdrop-blur-xl">
@@ -226,6 +248,7 @@ const TemporaryAssignments = () => {
             <TableHeader className="bg-slate-50/50 dark:bg-slate-900/50">
               <TableRow>
                 <TableHead className="font-bold">Employee</TableHead>
+                <TableHead className="font-bold">Permanent Branch</TableHead>
                 <TableHead className="font-bold">Temporary Branch</TableHead>
                 <TableHead className="font-bold">Duration</TableHead>
                 <TableHead className="font-bold">Status</TableHead>
@@ -235,13 +258,13 @@ const TemporaryAssignments = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={isHRAdmin ? 5 : 4} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={isHRAdmin ? 6 : 5} className="text-center py-10 text-muted-foreground">
                     Loading assignments...
                   </TableCell>
                 </TableRow>
               ) : filteredAssignments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={isHRAdmin ? 5 : 4} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={isHRAdmin ? 6 : 5} className="text-center py-10 text-muted-foreground">
                     No assignments found.
                   </TableCell>
                 </TableRow>

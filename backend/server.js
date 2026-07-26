@@ -1096,6 +1096,43 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
 let sseClients = [];
 let liveStatsClients = [];
 
+
+async function getEffectiveBranch(userId, dateStr) {
+  try {
+    const [assignments] = await pool.query(
+      `SELECT location, id, working_schedule_override FROM employee_work_assignment 
+       WHERE user_id = ? 
+         AND status = 'Active' 
+         AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND COALESCE((end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date, '2099-12-31'::date)
+       ORDER BY created_at DESC LIMIT 1`,
+      [userId, dateStr]
+    );
+
+    if (assignments.length > 0) {
+      return {
+        branch: assignments[0].location,
+        type: "Temporary Assignment",
+        assignment_id: assignments[0].id,
+        working_schedule_override: assignments[0].working_schedule_override
+      };
+    }
+    
+    // Fetch permanent branch
+    const [empRows] = await pool.query("SELECT branch FROM profiles WHERE user_id = ?", [userId]);
+    const permBranch = empRows.length > 0 ? empRows[0].branch : 'HQ';
+    
+    return {
+      branch: permBranch,
+      type: "Permanent Branch",
+      assignment_id: null,
+      working_schedule_override: false
+    };
+  } catch (err) {
+    console.error("Error in getEffectiveBranch:", err);
+    return { branch: 'HQ', type: "Permanent Branch", assignment_id: null, working_schedule_override: false };
+  }
+}
+
 async function getLiveAttendanceStats(queryDate, role, branch, department) {
   const dateStr = queryDate || new Date().toISOString().split('T')[0];
   try {
@@ -1176,6 +1213,20 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
 
     const branchZoneMap = await getBranchZoneMap();
     const dateObj = new Date(dateStr);
+
+
+    const branchZoneMap = await getBranchZoneMap();
+    const dateObj = new Date(dateStr);
+
+    // Temp Assignment Mapping for today
+    const [activeAssignments] = await pool.query(
+      `SELECT user_id, location, working_schedule_override FROM employee_work_assignment 
+       WHERE status = 'Active' 
+         AND ?::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND COALESCE((end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date, '2099-12-31'::date)`,
+      [dateStr]
+    );
+    const tempAssignMap = new Map();
+    activeAssignments.forEach(a => tempAssignMap.set(a.user_id, a));
 
     const presentList = [];
     const lateList = [];
@@ -5368,7 +5419,7 @@ app.get("/api/reports/monthly-attendance", async (req, res) => {
     );
 
     const [clockRows] = await pool.query(
-      `SELECT a.user_id, a.clock_in, a.clock_out,
+      `SELECT a.user_id, a.clock_in, a.clock_out, a.location, a.attendance_type,
               TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
               TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out
        FROM attendances a
@@ -5640,7 +5691,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
 
     // 2. Fetch all clock-ins for that date
     const [clockRows] = await pool.query(
-      `SELECT a.user_id, a.clock_in, a.clock_out,
+      `SELECT a.user_id, a.clock_in, a.clock_out, a.location, a.attendance_type,
               TO_CHAR(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
               TO_CHAR(a.clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out
        FROM attendances a
@@ -5697,7 +5748,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       const clockRowsForUser = clockMap[uid] || [];
       const leaveRow = leaveMap[uid];
       
-      const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
+      const userZone = branchZoneMap.get(pBranchZone) || 'ZONE_B';
       const isWeekend = checkIsWeekend(userZone, dateObj);
       const workHours = getWorkHoursForZone(userZone, dateObj);
       const [lateH, lateM] = workHours.off ? [23, 59] : getLateThresholdTime().split(':').map(Number);
@@ -6693,7 +6744,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
        const att = attRows.find(a => a.user_id === p.user_id && new Date(new Date(a.clock_in).getTime() + 8*3600*1000).toISOString().split('T')[0] === targetDateStr);
        const isPresent = !!att;
 
-       const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
+       const userZone = branchZoneMap.get(pBranchZone) || 'ZONE_B';
        const isWeekend = checkIsWeekend(userZone, dateObj);
        const matchingHoliday = malaysiaHolidays.find(h => h.date === targetDateStr);
 
