@@ -1080,7 +1080,7 @@ export default function LeaveAnalytics() {
       
       {/* 1. Page Actions (Filters) */}
       <div className="mb-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
+        <div className="flex flex-wrap items-center justify-start gap-2.5 w-full">
           <YearPopover
             year={selectedYear}
             onSelectYear={setSelectedYear}
