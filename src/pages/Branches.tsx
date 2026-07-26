@@ -205,6 +205,7 @@ export default function Branches() {
   const navigate = useNavigate();
   const [selectedBranch, setSelectedBranch] = useState<any | null>(null);
   const [employees, setEmployees] = useState<BranchEmployee[]>([]);
+  const [temporaryStaff, setTemporaryStaff] = useState<any[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   
@@ -655,6 +656,62 @@ export default function Branches() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* Temporary Staff Section */}
+          {!loading && temporaryStaff.filter((a: any) => a.temp_branch === selectedBranch?.code && a.status === 'Active').length > 0 && (
+            <div className="mt-8 mb-4">
+              <h3 className="text-sm font-black uppercase tracking-wider text-foreground mb-4">Temporary Staff On Duty</h3>
+              <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md rounded-[24px]">
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-purple-500/10 text-purple-900 dark:text-purple-100 border-b border-purple-500/20">
+                          <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                            Personnel
+                          </th>
+                          <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                            Original Branch
+                          </th>
+                          <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                            Assignment Period
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/50">
+                        {temporaryStaff
+                          .filter((a: any) => a.temp_branch === selectedBranch?.code && a.status === 'Active')
+                          .map((assignment: any) => (
+                            <tr key={assignment.id} className="hover:bg-purple-500/5 transition-colors">
+                              <td className="py-4 px-6">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center text-[11px] font-black text-purple-700 dark:text-purple-300">
+                                    {assignment.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="font-bold text-foreground">{assignment.name}</p>
+                                    <p className="text-[10px] text-muted-foreground truncate font-medium uppercase tracking-widest flex items-center gap-1">
+                                      <span className="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">TEMP</span>
+                                      {assignment.employee}
+                                    </p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="py-4 px-6 font-medium text-muted-foreground text-xs">
+                                {assignment.primary_branch} • {assignment.department}
+                              </td>
+                              <td className="py-4 px-6 text-xs font-semibold text-foreground">
+                                {new Date(assignment.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} - {new Date(assignment.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </td>
+                            </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           <Dialog open={isStatsOpen} onOpenChange={setIsStatsOpen}>
