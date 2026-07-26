@@ -428,7 +428,7 @@ export default function WorkforceInsights() {
           </div>
         </div>
 
-        {/* Redesigned Top Section: 5-column layout */}}
+        {/* Redesigned Top Section: 5-column layout */}
         {viewMode === 'day' ? (
           <>
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 mb-6">
