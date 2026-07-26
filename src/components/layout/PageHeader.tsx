@@ -22,7 +22,7 @@ export default function PageHeader({ title, description, breadcrumbs }: PageHead
         <div>
           <h1 className="text-2xl font-black text-foreground uppercase tracking-tight">{displayTitle}</h1>
           {displaySubtitle && (
-            <p className="text-xs text-muted-foreground tracking-wide font-normal italic opacity-80 mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground italic mt-1">
               {displaySubtitle}
             </p>
           )}
