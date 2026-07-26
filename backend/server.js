@@ -5292,8 +5292,8 @@ app.get("/api/reports/absent-employees", async (req, res) => {
         AND ? BETWEEN cl.start_date AND cl.end_date
         AND (
           cl.applies_to = 'all'
-          OR (cl.applies_to = 'branch' AND FIND_IN_SET(p.branch, cl.branch_id) > 0)
-          OR (cl.applies_to = 'department' AND FIND_IN_SET(p.department, cl.department_id) > 0)
+          OR (cl.applies_to = 'branch' AND p.branch = ANY(string_to_array(replace(cl.branch_id, ' ', ''), ',')))
+          OR (cl.applies_to = 'department' AND p.department = ANY(string_to_array(replace(cl.department_id, ' ', ''), ',')))
         )
       )
       ${profileFilter}
