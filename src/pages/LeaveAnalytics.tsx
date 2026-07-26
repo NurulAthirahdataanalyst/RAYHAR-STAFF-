@@ -24,8 +24,15 @@ import { CalendarDays, ChevronLeft, ChevronRight, ChevronDown } from "lucide-rea
 
 function YearPopover({ year, onSelectYear, className }: { year: string; onSelectYear: (y: string) => void; className?: string }) {
   const [open, setOpen] = useState(false);
-  const currentYearNum = parseInt(year) || new Date().getFullYear();
-  const [baseDecade, setBaseDecade] = useState(Math.floor(currentYearNum / 10) * 10);
+  const currentYear = new Date().getFullYear();
+  const activeYearNum = parseInt(year) || currentYear;
+  const [baseDecade, setBaseDecade] = useState(Math.floor(activeYearNum / 10) * 10);
+
+  useEffect(() => {
+    if (open) {
+      setBaseDecade(Math.floor(activeYearNum / 10) * 10);
+    }
+  }, [open, year]);
 
   const yearsList = Array.from({ length: 12 }, (_, i) => baseDecade - 1 + i);
 
@@ -38,12 +45,12 @@ function YearPopover({ year, onSelectYear, className }: { year: string; onSelect
         >
           <span className="flex items-center gap-1.5">
             <CalendarDays className="w-3.5 h-3.5 text-[#7B0099]" />
-            {year ? `${year}` : "Year"}
+            {year ? `${year}` : `${currentYear}`}
           </span>
           <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-card z-50" align="start">
+      <PopoverContent className="w-64 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-card z-50" align="end">
         <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
           <button
             type="button"
@@ -63,10 +70,10 @@ function YearPopover({ year, onSelectYear, className }: { year: string; onSelect
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2 mb-3">
           {yearsList.map(y => {
             const isSelected = y.toString() === year;
-            const isCurrent = y === new Date().getFullYear();
+            const isCurrent = y === currentYear;
             return (
               <button
                 key={y}
@@ -87,6 +94,30 @@ function YearPopover({ year, onSelectYear, className }: { year: string; onSelect
               </button>
             );
           })}
+        </div>
+        <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+          <button
+            type="button"
+            onClick={() => {
+              onSelectYear("");
+              setOpen(false);
+            }}
+            className="text-slate-400 hover:text-slate-600 text-[11px] font-semibold"
+          >
+            Clear
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const cy = new Date().getFullYear().toString();
+              onSelectYear(cy);
+              setBaseDecade(Math.floor(parseInt(cy) / 10) * 10);
+              setOpen(false);
+            }}
+            className="text-[#0091ff] hover:underline text-[11px] font-bold"
+          >
+            This year
+          </button>
         </div>
       </PopoverContent>
     </Popover>
@@ -1078,9 +1109,8 @@ export default function LeaveAnalytics() {
   return (
     <div className="space-y-4 animate-in fade-in duration-500 max-w-[1600px] mx-auto px-4 pt-2 pb-6">
       
-      {/* 1. Page Actions (Filters) */}
-      <div className="mb-4">
-        <div className="flex flex-wrap items-center justify-start gap-2.5 w-full">
+      <PageActions>
+        <div className="flex flex-wrap items-center justify-end gap-2.5 w-full">
           <YearPopover
             year={selectedYear}
             onSelectYear={setSelectedYear}
@@ -1115,7 +1145,7 @@ export default function LeaveAnalytics() {
             </Select>
             <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
         </div>
-      </div>
+      </PageActions>
 
       {/* 2. Executive KPI Cards (Row 1) */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-4">

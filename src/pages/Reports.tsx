@@ -28,8 +28,15 @@ import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 
 function YearPopover({ year, onSelectYear, className }: { year: string; onSelectYear: (y: string) => void; className?: string }) {
   const [open, setOpen] = useState(false);
-  const currentYearNum = parseInt(year) || new Date().getFullYear();
-  const [baseDecade, setBaseDecade] = useState(Math.floor(currentYearNum / 10) * 10);
+  const currentYear = new Date().getFullYear();
+  const activeYearNum = parseInt(year) || currentYear;
+  const [baseDecade, setBaseDecade] = useState(Math.floor(activeYearNum / 10) * 10);
+
+  useEffect(() => {
+    if (open) {
+      setBaseDecade(Math.floor(activeYearNum / 10) * 10);
+    }
+  }, [open, year]);
 
   const yearsList = Array.from({ length: 12 }, (_, i) => baseDecade - 1 + i);
 
@@ -42,12 +49,12 @@ function YearPopover({ year, onSelectYear, className }: { year: string; onSelect
         >
           <span className="flex items-center gap-2">
             <CalendarDays className="w-4 h-4 text-[#7B0099]" />
-            {year ? `${year}` : "Select Year"}
+            {year ? `${year}` : `${currentYear}`}
           </span>
           <ChevronDown className="w-4 h-4 text-muted-foreground" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-card" align="start">
+      <PopoverContent className="w-64 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-card z-50" align="start">
         <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
           <button
             type="button"
@@ -67,10 +74,10 @@ function YearPopover({ year, onSelectYear, className }: { year: string; onSelect
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2 mb-3">
           {yearsList.map(y => {
             const isSelected = y.toString() === year;
-            const isCurrent = y === new Date().getFullYear();
+            const isCurrent = y === currentYear;
             return (
               <button
                 key={y}
@@ -91,6 +98,30 @@ function YearPopover({ year, onSelectYear, className }: { year: string; onSelect
               </button>
             );
           })}
+        </div>
+        <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+          <button
+            type="button"
+            onClick={() => {
+              onSelectYear("");
+              setOpen(false);
+            }}
+            className="text-slate-400 hover:text-slate-600 text-[11px] font-semibold"
+          >
+            Clear
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const cy = new Date().getFullYear().toString();
+              onSelectYear(cy);
+              setBaseDecade(Math.floor(parseInt(cy) / 10) * 10);
+              setOpen(false);
+            }}
+            className="text-[#0091ff] hover:underline text-[11px] font-bold"
+          >
+            This year
+          </button>
         </div>
       </PopoverContent>
     </Popover>
