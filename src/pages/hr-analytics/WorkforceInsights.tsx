@@ -404,19 +404,19 @@ export default function WorkforceInsights() {
 
               <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
                 <button 
-                  className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${viewMode === 'day' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                  className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${viewMode === 'day' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
                   onClick={() => setViewMode('day')}
                 >
                   DAY
                 </button>
                 <button 
-                  className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${viewMode === 'month' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                  className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
                   onClick={() => setViewMode('month')}
                 >
                   MONTH
                 </button>
                 <button 
-                  className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${viewMode === 'year' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                  className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${viewMode === 'year' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
                   onClick={() => setViewMode('year')}
                 >
                   YEAR

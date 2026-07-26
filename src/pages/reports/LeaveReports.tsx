@@ -110,9 +110,9 @@ export default function LeaveReports() {
           <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
             <button
               onClick={() => setViewType("day")}
-              className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${
+              className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
                 viewType === "day"
-                  ? "bg-[#7B0099] text-white shadow-sm"
+                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
                   : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
               }`}
             >
@@ -120,9 +120,9 @@ export default function LeaveReports() {
             </button>
             <button
               onClick={() => setViewType("month")}
-              className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${
+              className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
                 viewType === "month"
-                  ? "bg-[#7B0099] text-white shadow-sm"
+                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
                   : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
               }`}
             >
@@ -130,9 +130,9 @@ export default function LeaveReports() {
             </button>
             <button
               onClick={() => setViewType("year")}
-              className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${
+              className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
                 viewType === "year"
-                  ? "bg-[#7B0099] text-white shadow-sm"
+                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
                   : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
               }`}
             >
