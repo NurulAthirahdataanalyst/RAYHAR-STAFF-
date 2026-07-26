@@ -45,7 +45,7 @@ export function getPageTitleInfo(pathname: string): { title: string; subtitle: s
   if (pathname === "/hr-analytics/calendar") return { title: "Workforce Calendar", subtitle: "View attendance, leave, outstation, and company events in one calendar." };
   
   // Reports
-  if (pathname === "/reports") return { title: "Attendance Reports", subtitle: "Generate attendance summaries and export detailed records." };
+  if (pathname === "/reports/attendance" || pathname === "/reports") return { title: "Attendance Report", subtitle: "Generate attendance summaries and export detailed records." };
   if (pathname === "/reports/leave") return { title: "Leave Reports", subtitle: "Generate leave utilization and approval reports." };
   if (pathname === "/reports/department") return { title: "Department & Branch Reports", subtitle: "Analyze workforce performance by department and branch." };
   

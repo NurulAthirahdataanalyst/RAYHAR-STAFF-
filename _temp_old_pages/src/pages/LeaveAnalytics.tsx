@@ -1006,9 +1006,9 @@ export default function LeaveAnalytics() {
     <div className="space-y-4 animate-in fade-in duration-500 max-w-[1600px] mx-auto px-4 pt-2 pb-6">
       
       {/* 1. Page Actions (Filters) */}
-      <div className="mb-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
+      <PageActions>
+        <div className="flex flex-wrap items-center gap-2">
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
               <SelectTrigger className="w-[100px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
                 <SelectValue placeholder="Year" />
               </SelectTrigger>
@@ -1044,8 +1044,8 @@ export default function LeaveAnalytics() {
               </SelectContent>
             </Select>
             <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
-        </div>
-      </div>
+          </div>
+      </PageActions>
 
       {/* 2. Executive KPI Cards (Row 1) */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-4">

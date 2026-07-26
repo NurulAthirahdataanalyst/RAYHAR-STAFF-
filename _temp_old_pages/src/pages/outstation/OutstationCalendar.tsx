@@ -1,0 +1,326 @@
+import { useState, useEffect, useMemo } from "react";
+import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isBefore, startOfDay } from "date-fns";
+import { useRole } from "@/contexts/RoleContext";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, ChevronLeft, ChevronRight, MapPin, CalendarDays, Users, Plane, X, Calendar, Clock } from "lucide-react";
+import PageHeader from "@/components/layout/PageHeader";
+import PageActions from "@/components/layout/PageActions";
+import { API_BASE_URL } from "../../config/api";
+
+const PINK = "#EC4899";
+
+function fmtDate(d: string) {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("en-MY", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function statusColor(status: string) {
+  switch (status) {
+    case "Active":    return { bg: "bg-pink-100 dark:bg-pink-500/20",  text: "text-pink-700 dark:text-pink-300",  border: "border-pink-200 dark:border-pink-500/30",  dot: "bg-pink-500"  };
+    case "Upcoming":  return { bg: "bg-amber-100 dark:bg-amber-500/20", text: "text-amber-700 dark:text-amber-300", border: "border-amber-200 dark:border-amber-500/30", dot: "bg-amber-400" };
+    case "Completed": return { bg: "bg-blue-100 dark:bg-blue-500/20",  text: "text-blue-700 dark:text-blue-300",  border: "border-blue-200 dark:border-blue-500/30",  dot: "bg-blue-400"  };
+    case "Cancelled": return { bg: "bg-gray-100 dark:bg-gray-500/20",  text: "text-gray-500 dark:text-gray-300",  border: "border-gray-200 dark:border-gray-500/30",  dot: "bg-gray-400"  };
+    default:          return { bg: "bg-gray-100 dark:bg-gray-500/20",  text: "text-gray-500 dark:text-gray-300",  border: "border-gray-200 dark:border-gray-500/30",  dot: "bg-gray-400"  };
+  }
+}
+
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+type Assignment = {
+  id: number;
+  user_id: string;
+  full_name: string;
+  department?: string;
+  branch?: string;
+  destination: string;
+  purpose?: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+  assigned_by_name?: string;
+  project?: string;
+};
+
+export default function OutstationCalendar() {
+  const { role, userBranch, userDepartment, userId, loading: roleLoading } = useRole();
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedEvent, setSelectedEvent] = useState<Assignment | null>(null);
+  const [filterStatus, setFilterStatus] = useState("All");
+
+  const today = new Date();
+  const [viewYear, setViewYear] = useState(today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(today.getMonth());
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const isEmployee = !["hr_admin", "managing_director", "finance_manager", "branch_leader", "head_of_department"].includes(role);
+        const params = new URLSearchParams({
+          role,
+          branch: userBranch || "",
+          department: userDepartment || "",
+          ...(isEmployee && userId ? { user_id: userId } : {}),
+        });
+        const res = await fetch(`${API_BASE_URL}/api/outstation?${params}`);
+        const data = await res.json();
+        if (data.success) setAssignments(data.assignments || []);
+      } catch { /* swallow */ } finally {
+        setLoading(false);
+      }
+    };
+    if (!roleLoading) void fetchData();
+  }, [role, userBranch, userDepartment, userId, roleLoading]);
+
+  // Get all days in the current view grid
+  const calDays = useMemo(() => {
+    const firstDayOfMonth = new Date(viewYear, viewMonth, 1);
+    return eachDayOfInterval({
+      start: startOfWeek(startOfMonth(firstDayOfMonth)),
+      end: endOfWeek(endOfMonth(firstDayOfMonth))
+    });
+  }, [viewYear, viewMonth]);
+
+  // For each day, get assignments that span that date
+  const getAssignmentsForDay = (day: Date) => {
+    const dateStr = format(day, 'yyyy-MM-dd');
+    return assignments.filter(a => {
+      if (filterStatus !== "All" && a.status !== filterStatus) return false;
+      return a.start_date.slice(0, 10) <= dateStr && a.end_date.slice(0, 10) >= dateStr;
+    });
+  };
+
+  const prevMonth = () => {
+    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
+    else setViewMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
+    else setViewMonth(m => m + 1);
+  };
+
+  const isToday = (day: Date) => {
+    return isSameDay(day, new Date());
+  };
+
+  if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-500" /></div>;
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500 pb-8">
+      <PageHeader
+        title="Outstation Calendar"
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Outstation Management", href: "/outstation" },
+          { label: "Outstation Calendar" }
+        ]}
+      />
+      {/* Controls */}
+      <PageActions>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
+          <div className="flex items-center gap-3">
+            <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+            <h2 className="text-base font-black text-gray-800 dark:text-gray-100 min-w-[180px] text-center">{MONTHS[viewMonth]} {viewYear}</h2>
+            <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronRight className="w-4 h-4" /></button>
+            <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { setViewMonth(today.getMonth()); setViewYear(today.getFullYear()); }}>Today</Button>
+          </div>
+          <div className="flex items-center gap-3">
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {["All","Active","Upcoming","Completed","Cancelled"].map(s => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </PageActions>
+
+      {/* Legend */}
+      <div className="flex items-center gap-4 flex-wrap px-1">
+        {[
+          { status: "Active",    label: "Active (On Outstation)" },
+          { status: "Upcoming",  label: "Upcoming" },
+          { status: "Completed", label: "Completed" },
+          { status: "Cancelled", label: "Cancelled" },
+        ].map(({ status, label }) => {
+          const c = statusColor(status);
+          return (
+            <div key={status} className="flex items-center gap-1.5">
+              <div className={`w-2.5 h-2.5 rounded-sm ${c.dot}`} />
+              <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400">{label}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Calendar Grid */}
+      <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="h-80 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-400" /></div>
+        ) : (
+          <>
+            {/* Day Headers */}
+            <div className="grid grid-cols-7 border-b border-border/60 bg-[#7B0099] divide-x divide-white/20">
+              {DAYS.map(d => (
+                <div key={d} className="px-2 py-3 text-center text-[11px] font-bold uppercase tracking-widest text-white">{d}</div>
+              ))}
+            </div>
+
+            {/* Cells */}
+            <div className="grid grid-cols-7 divide-x divide-border/40">
+              {calDays.map((day, idx) => {
+                const evts = getAssignmentsForDay(day);
+                const isCurrentMonth = isSameMonth(day, new Date(viewYear, viewMonth, 1));
+                const today = isToday(day);
+                const isPast = isBefore(day, startOfDay(new Date())) && !today;
+
+                let cellBg = "bg-white dark:bg-card";
+                let textCol = "text-foreground";
+                
+                if (today) {
+                  cellBg = "bg-[#DBC5E1]";
+                  textCol = "text-[#7B0099]";
+                } else if (!isCurrentMonth) {
+                  cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
+                  textCol = "text-muted-foreground opacity-50";
+                } else if (isPast) {
+                  cellBg = "bg-white dark:bg-card opacity-80";
+                  textCol = "text-gray-500 dark:text-gray-400";
+                }
+
+                return (
+                  <div
+                    key={idx}
+                    className={`min-h-[100px] border-b border-border/40 p-1.5 transition-colors ${cellBg} ${!today && isCurrentMonth ? 'hover:bg-muted/30' : ''}`}
+                  >
+                    <div className={`w-full text-right text-[12px] font-bold mb-1.5 px-1 ${textCol}`}>
+                      {format(day, 'd')}
+                    </div>
+                    <div className="space-y-0.5">
+                      {evts.slice(0, 2).map(a => {
+                        const c = statusColor(a.status);
+                        return (
+                          <div
+                            key={a.id}
+                            onClick={() => setSelectedEvent(a)}
+                            className={`px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer ${c.bg} ${c.text} truncate border ${c.border} hover:opacity-80 transition-opacity`}
+                            title={`${a.full_name} → ${a.destination}`}
+                          >
+                            {a.full_name?.split(" ")[0]} → {a.destination}
+                          </div>
+                        );
+                      })}
+                      {evts.length > 2 && (
+                        <div className={`text-[9px] font-bold pl-1 ${today ? 'text-white/80' : 'text-gray-400'}`}>+{evts.length - 2} more</div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </Card>
+
+      {/* Event Detail Popup */}
+      {selectedEvent && (() => {
+        const relatedAssignments = assignments.filter(a => 
+          a.destination === selectedEvent.destination && 
+          a.start_date === selectedEvent.start_date &&
+          a.end_date === selectedEvent.end_date
+        );
+        return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedEvent(null)}>
+          <div className="bg-white dark:bg-card rounded-2xl shadow-2xl p-6 max-w-md w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl" style={{ background: `linear-gradient(135deg, ${PINK}, #f9a8d4)` }}>
+                  <Plane className="w-5 h-5 text-white" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Outstation</p>
+                  <h3 className="font-black text-gray-800 dark:text-gray-100 truncate">{selectedEvent.project || selectedEvent.purpose || selectedEvent.destination}</h3>
+                </div>
+              </div>
+              <button onClick={() => setSelectedEvent(null)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 transition-colors"><X className="w-4 h-4" /></button>
+            </div>
+            
+            <div className="overflow-y-auto pr-1 space-y-4 custom-scrollbar">
+              <div className="space-y-3 border-t border-gray-100 dark:border-slate-800 pt-4">
+                <div className="flex items-center gap-2.5">
+                  <MapPin className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                  <div>
+                    <p className="text-[9px] font-black uppercase text-gray-400">Destination</p>
+                    <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{selectedEvent.destination}</p>
+                  </div>
+                </div>
+                {selectedEvent.purpose && (
+                  <div className="flex items-center gap-2.5">
+                    <Plane className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-gray-400">Purpose / Project</p>
+                      <p className="text-[12px] font-bold text-gray-700 dark:text-gray-200">{selectedEvent.purpose} {selectedEvent.project ? `· ${selectedEvent.project}` : ''}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-center gap-2.5">
+                  <Calendar className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                  <div>
+                    <p className="text-[9px] font-black uppercase text-gray-400">Duration</p>
+                    <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{fmtDate(selectedEvent.start_date)} → {fmtDate(selectedEvent.end_date)}</p>
+                  </div>
+                </div>
+                {selectedEvent.assigned_by_name && (
+                  <div className="flex items-center gap-2.5">
+                    <Clock className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-gray-400">Assigned By</p>
+                      <p className="text-[12px] font-bold text-gray-700 dark:text-gray-200">{selectedEvent.assigned_by_name}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="mt-2">
+                  {(() => {
+                    const c = statusColor(selectedEvent.status);
+                    return (
+                      <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-black ${c.bg} ${c.text} border ${c.border}`}>
+                        <div className={`w-2 h-2 rounded-full ${c.dot}`} />
+                        {selectedEvent.status}
+                      </span>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-100 dark:border-slate-800">
+                <p className="text-[10px] font-black uppercase text-gray-400 mb-3">Assigned Employees ({relatedAssignments.length})</p>
+                <div className="space-y-2">
+                  {relatedAssignments.map((a: any) => (
+                    <div key={a.id} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-colors ${a.id === selectedEvent.id ? 'border-pink-200 dark:border-pink-900/50 bg-pink-50/50 dark:bg-pink-900/10' : 'border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50'}`}>
+                      <div className="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-[10px] font-bold flex items-center justify-center shrink-0">
+                        {a.full_name?.split(' ').map((n:string)=>n[0]).join('').substring(0,2).toUpperCase()}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100 truncate leading-tight">{a.full_name}</p>
+                        <p className="text-[10px] text-gray-400 truncate mt-0.5">{a.user_id || a.department}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        );
+      })()}
+    </div>
+  );
+}
+

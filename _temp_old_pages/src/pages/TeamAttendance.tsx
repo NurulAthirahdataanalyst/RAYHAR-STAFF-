@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Users, Clock, AlertCircle, Building2, CalendarDays, Search } from "lucide-react";
-
+import PageHeader from "@/components/layout/PageHeader";
 import PageActions from "@/components/layout/PageActions";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { exportToCSV } from "@/utils/export";
@@ -200,15 +200,18 @@ export default function TeamAttendance() {
 
   return (
     <div className="min-h-screen bg-background space-y-6 animate-in fade-in duration-500 pb-8">
+      <PageHeader
+        title="Daily Team Attendance Overview"
+        description="Review employee attendance records, clock-in activities, and working hours for today"
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Attendance", href: "/attendance" },
+          { label: "Team Attendance" }
+        ]}
+      />
       
-      
-      
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0">
-        {/* Metrics */}
-        
-      <div className="mb-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
+      <PageActions>
+        <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
           <div className="flex flex-wrap gap-2 mr-auto sm:mr-4">
             <Badge variant="outline" className="text-xs font-semibold border-primary/20 bg-primary/5 px-3 py-1.5 flex items-center shadow-sm">
               <Building2 className="w-3.5 h-3.5 mr-1.5 text-primary" />
@@ -271,9 +274,11 @@ export default function TeamAttendance() {
             />
           </div>
         </div>
-      </div>
+      </PageActions>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0">
+        {/* Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <Card className="border-border shadow-sm">
             <CardContent className="p-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -358,70 +363,7 @@ export default function TeamAttendance() {
                 ))}
               </div>
             </div>
-            <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex flex-wrap gap-2 mr-auto sm:mr-4">
-            <Badge variant="outline" className="text-xs font-semibold border-primary/20 bg-primary/5 px-3 py-1.5 flex items-center shadow-sm">
-              <Building2 className="w-3.5 h-3.5 mr-1.5 text-primary" />
-              {role === 'hr_admin' ? 'All Branches' : userBranch || 'HQ'}
-            </Badge>
-            {role === 'head_of_department' && (
-              <Badge variant="outline" className="text-xs font-semibold border-primary/20 bg-primary/5 px-3 py-1.5 flex items-center shadow-sm">
-                <Users className="w-3.5 h-3.5 mr-1.5 text-primary" />
-                {userDepartment || 'All Departments'}
-              </Badge>
-            )}
-          </div>
-          
-          {/* Date Filter */}
-          <div className="relative">
-            {dateViewMode === "DAY" ? (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] gap-2 hover:border-[#7B0099] hover:ring-1 hover:ring-[#7B0099] transition-all">
-                    {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-1" align="start">
-                  <CalendarWidget
-                    mode="single"
-                    selected={new Date(selectedDate)}
-                    onSelect={(d) => {
-                      if (d) setSelectedDate(new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0]);
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            ) : (
-              <input
-                type="month"
-                value={`${new Date(selectedDate).getFullYear()}-${String(new Date(selectedDate).getMonth() + 1).padStart(2, '0')}`}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    setSelectedDate(`${e.target.value}-01`);
-                  }
-                }}
-                className="appearance-none px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none focus:border-[#7B0099] focus:ring-1 focus:ring-[#7B0099] uppercase tracking-widest h-[34px]"
-              />
-            )}
-          </div>
-
-          <ExportDropdown 
-            onExportCSV={() => exportToCSV(filteredList, 'Team_Attendance')} 
-            onExportPDF={() => window.print()} 
-          />
-
-          <div className="relative flex items-center">
-            <Search className="w-4 h-4 absolute left-3 text-muted-foreground" />
-            <Input
-              placeholder="Search Employee..."
-              className="pl-9 h-[34px] w-[200px] text-xs"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-</CardHeader>
+          </CardHeader>
           <CardContent>
             <div className="rounded-md border">
               <Table>

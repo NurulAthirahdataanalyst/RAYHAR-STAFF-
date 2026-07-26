@@ -220,10 +220,10 @@ export default function AttendanceReports() {
 
   return (
     <div className="min-h-screen bg-background">
-      
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-4">
+      <PageActions>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-4">
+          
+          {/* DAY / MONTH Toggle */}
           <div className="flex bg-gray-100 p-1 rounded-lg">
             <button
               onClick={() => setViewType("day")}
@@ -248,26 +248,6 @@ export default function AttendanceReports() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search name, ID, or branch..."
-                className="pl-8 pr-8 h-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
-                  type="button"
-                  aria-label="Clear search"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-
             {viewType === "day" ? (
               <input
                 type="date"
@@ -291,7 +271,7 @@ export default function AttendanceReports() {
             )}
             
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[160px] h-10 bg-white dark:bg-card">
+              <SelectTrigger className="w-[160px] bg-white dark:bg-card">
                 <SelectValue placeholder="Select Status" />
               </SelectTrigger>
               <SelectContent>
@@ -311,7 +291,9 @@ export default function AttendanceReports() {
             <ExportDropdown onExportCSV={handleExportCSV} />
           </div>
         </div>
+      </PageActions>
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
             <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="p-6 flex items-center gap-4">
@@ -426,6 +408,25 @@ export default function AttendanceReports() {
             <CardTitle className="text-lg">
               {viewType === "day" ? "Daily Attendance Log" : "Monthly Attendance Log"}
             </CardTitle>
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search name, ID, or branch..."
+                className="pl-8 pr-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
+                  type="button"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="p-0 sm:p-6">
             {loading ? (

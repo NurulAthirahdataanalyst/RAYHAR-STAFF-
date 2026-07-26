@@ -203,7 +203,14 @@ export default function OutstationReports() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-8">
-
+      <PageHeader
+        title="Outstation Reports"
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Outstation Management", href: "/outstation" },
+          { label: "Outstation Reports" }
+        ]}
+      />
 
       {/* Dynamic Header */}
       <div className="flex items-center gap-3 mb-2">
@@ -268,7 +275,7 @@ export default function OutstationReports() {
       )}
 
       {/* Filters */}
-      <div className="mb-4">
+      <PageActions>
         <div className="flex flex-col sm:flex-row items-center gap-3 justify-between w-full">
           <div className="flex items-center gap-3 flex-wrap">
             <Filter className="w-4 h-4 text-gray-400" />
@@ -313,7 +320,7 @@ export default function OutstationReports() {
             <Download className="w-3.5 h-3.5" /> Export CSV
           </Button>
         </div>
-      </div>
+      </PageActions>
 
       {/* Main Table Content */}
       <Card className="border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
