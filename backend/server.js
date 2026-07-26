@@ -1214,10 +1214,6 @@ async function getLiveAttendanceStats(queryDate, role, branch, department) {
     const branchZoneMap = await getBranchZoneMap();
     const dateObj = new Date(dateStr);
 
-
-    const branchZoneMap = await getBranchZoneMap();
-    const dateObj = new Date(dateStr);
-
     // Temp Assignment Mapping for today
     const [activeAssignments] = await pool.query(
       `SELECT user_id, location, working_schedule_override FROM employee_work_assignment 
@@ -3526,7 +3522,9 @@ app.get("/api/employees", async (req, res) => {
         COALESCE(leave_today.is_on_leave_today, 0) AS is_on_leave_today,
         COALESCE(outstation_today.is_outstation_today, 0) AS is_outstation_today,
         today.clock_in AS today_clock_in,
-        today.clock_out AS today_clock_out
+        today.clock_out AS today_clock_out,
+        today.attendance_type AS today_attendance_type,
+        today.location AS today_location
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
       LEFT JOIN (
@@ -3561,7 +3559,7 @@ app.get("/api/employees", async (req, res) => {
         GROUP BY user_id
       ) att ON att.user_id = p.user_id
       LEFT JOIN (
-        SELECT a.user_id, a.clock_in, a.clock_out
+        SELECT a.user_id, a.clock_in, a.clock_out, a.attendance_type, a.location
         FROM attendances a
         INNER JOIN (
           SELECT user_id, MAX(attendance_id) AS latest_attendance_id
@@ -4066,22 +4064,7 @@ app.post("/api/attendance", async (req, res) => {
     res.json({ success: true, record: rows[0], isOnOutstation: outstationRows.length > 0 });
     broadcastPresenceUpdate({ type: 'clock-in', userId: user_id });
 
-    // Send HR notification if temporary assignment or multi-location
-    if (finalType !== 'Normal' && empProfile.length > 0) {
-      try {
-        const emp = empProfile[0];
-        await pool.query(
-          `INSERT INTO notifications (user_id, title, message, type) 
-           SELECT user_id, ?, ?, 'system' FROM profiles WHERE role IN ('hr_admin', 'managing_director')`,
-          [
-            "Irregular Clock-In Location",
-            `${emp.name} clocked in at ${finalLocation} under ${finalType} assignment.`
-          ]
-        );
-      } catch (e) {
-        console.error("Failed to insert HR notification for irregular clock-in", e);
-      }
-    }
+
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

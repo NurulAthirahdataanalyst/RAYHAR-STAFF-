@@ -76,6 +76,8 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
               is_leave_submission: false,
               today_status: "Present",
               event_time: e.today_clock_in,
+              today_attendance_type: e.today_attendance_type,
+              today_location: e.today_location,
             });
             hasActivity = true;
           }
@@ -538,10 +540,15 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
                           )}
                         </div>
 
-                        <div className="mt-2.5 flex items-center">
+                        <div className="mt-2.5 flex items-center gap-2">
                           <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-purple-50 dark:bg-purple-950/40 text-[#7B0099] border border-purple-100 dark:border-purple-900/40 shrink-0">
                             {getDeptShortCode(emp.department, emp.branch)}
                           </span>
+                          {emp.today_attendance_type === "Temporary Assignment" && (
+                            <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-purple-500/10 text-purple-700 border border-purple-200 shrink-0 shadow-sm flex items-center gap-1">
+                              TEMP: {emp.today_location}
+                            </span>
+                          )}
                         </div>
                       </>
                     )}
