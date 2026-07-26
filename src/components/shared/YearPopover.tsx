@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface YearPopoverProps {
   year: string;
@@ -34,7 +34,7 @@ export function YearPopover({ year, onSelectYear, className }: YearPopoverProps)
           }
         >
           <span className="font-black text-foreground uppercase tracking-widest">{year || currentYear}</span>
-          <CalendarDays className="w-4 h-4 text-muted-foreground" />
+          <Calendar className="w-4 h-4 text-muted-foreground opacity-80" />
         </button>
       </PopoverTrigger>
       <PopoverContent
