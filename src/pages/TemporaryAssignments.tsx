@@ -248,7 +248,7 @@ const TemporaryAssignments = () => {
             <TableHeader className="bg-slate-50/50 dark:bg-slate-900/50">
               <TableRow>
                 <TableHead className="font-bold">Employee</TableHead>
-                <TableHead className="font-bold">Permanent Branch</TableHead>
+
                 <TableHead className="font-bold">Temporary Branch</TableHead>
                 <TableHead className="font-bold">Duration</TableHead>
                 <TableHead className="font-bold">Status</TableHead>
@@ -258,13 +258,13 @@ const TemporaryAssignments = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={isHRAdmin ? 6 : 5} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={isHRAdmin ? 5 : 4} className="text-center py-10 text-muted-foreground">
                     Loading assignments...
                   </TableCell>
                 </TableRow>
               ) : filteredAssignments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={isHRAdmin ? 6 : 5} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={isHRAdmin ? 5 : 4} className="text-center py-10 text-muted-foreground">
                     No assignments found.
                   </TableCell>
                 </TableRow>
