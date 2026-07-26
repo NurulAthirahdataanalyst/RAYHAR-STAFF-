@@ -980,38 +980,40 @@ export default function Attendance() {
                 )}
               </div>
 
-              {/* Bottom Details Row */}
-              <div className="w-full grid grid-cols-3 gap-2 border-t border-border/50 pt-3 sm:pt-4">
-                <div className="flex flex-col items-center gap-1.5 sm:gap-2">
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-50 dark:bg-purple-950/30 text-[#7B0099] dark:text-purple-400 flex items-center justify-center shadow-inner">
-                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              {/* Bottom Details Row - table style */}
+              <div className="w-full border border-border/50 rounded-lg overflow-hidden mt-3 sm:mt-4">
+                <div className="grid grid-cols-3 divide-x divide-border/50">
+                  <div className="flex flex-col items-center py-3 px-2 gap-1 bg-muted/20">
+                    <div className="w-7 h-7 rounded-full bg-purple-50 dark:bg-purple-950/30 text-[#7B0099] dark:text-purple-400 flex items-center justify-center">
+                      <Clock className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider text-center">Clock In</span>
+                    <span className="text-[11px] sm:text-xs font-bold text-foreground tabular-nums">
+                      {activeSession ? formatAttendanceTime(activeSession.clock_in) : "--:--"}
+                    </span>
                   </div>
-                  <span className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Clock In</span>
-                  <span className="text-[11px] sm:text-xs font-bold text-foreground">
-                    {activeSession ? formatAttendanceTime(activeSession.clock_in) : "--:--"}
-                  </span>
-                </div>
 
-                <div className="flex flex-col items-center gap-1.5 sm:gap-2">
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-rose-50 dark:bg-rose-950/30 text-rose-500 dark:text-rose-400 flex items-center justify-center shadow-inner">
-                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <div className="flex flex-col items-center py-3 px-2 gap-1 bg-muted/20">
+                    <div className="w-7 h-7 rounded-full bg-rose-50 dark:bg-rose-950/30 text-rose-500 dark:text-rose-400 flex items-center justify-center">
+                      <Clock className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider text-center">
+                      {activeSession ? "Est. Out" : "Clock Out"}
+                    </span>
+                    <span className="text-[11px] sm:text-xs font-bold text-foreground tabular-nums">
+                      {activeSession ? getEstClockOutTime() : "--:--"}
+                    </span>
                   </div>
-                  <span className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
-                    {activeSession ? "Est. Out" : "Clock Out"}
-                  </span>
-                  <span className="text-[11px] sm:text-xs font-bold text-foreground">
-                    {activeSession ? getEstClockOutTime() : "--:--"}
-                  </span>
-                </div>
 
-                <div className="flex flex-col items-center gap-1.5 sm:gap-2">
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-500 dark:text-emerald-400 flex items-center justify-center shadow-inner">
-                    <Timer className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <div className="flex flex-col items-center py-3 px-2 gap-1 bg-muted/20">
+                    <div className="w-7 h-7 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-500 dark:text-emerald-400 flex items-center justify-center">
+                      <Timer className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider text-center">Working Hrs</span>
+                    <span className="text-[11px] sm:text-xs font-bold text-foreground font-mono tabular-nums whitespace-nowrap">
+                      {workingHrs}
+                    </span>
                   </div>
-                  <span className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Working Hrs</span>
-                  <span className="text-[11px] sm:text-xs font-bold text-foreground font-mono">
-                    {workingHrs}
-                  </span>
                 </div>
               </div>
 
@@ -1248,7 +1250,7 @@ export default function Attendance() {
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="bg-muted/30">
+                <TableHeader className="bg-slate-100 dark:bg-slate-800">
                   <TableRow>
                     <TableHead className="py-4 pl-6 font-medium">Date</TableHead>
                     <TableHead className="font-medium">Time In</TableHead>

@@ -795,7 +795,8 @@ export default function AttendanceDashboard() {
     .sort((a, b) => b.rate - a.rate)
     .map(d => ({
        ...d,
-       fill: d.rate >= 90 ? '#16A34A' : d.rate >= 75 ? '#EAB308' : '#DC2626'
+       fill: d.rate >= 90 ? '#16A34A' : d.rate >= 75 ? '#EAB308' : '#DC2626',
+       isWeekend: (d.presentOnTime + d.presentLate + d.outstation + d.onLeave + d.companyLeave + d.absent) === 0 && d.totalEmployees > 0
     }));
 
   // Calculate live values
@@ -1594,9 +1595,9 @@ export default function AttendanceDashboard() {
               </SelectContent>
             </Select>
             <div className="flex items-center gap-3 flex-wrap">
-          <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
-        </div>
-</CardHeader>
+              <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
+            </div>
+          </CardHeader>
           <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col justify-between">
             <div className={`space-y-4 flex-1 pr-2 ${liveBranchRanking.length > 5 ? 'overflow-y-auto max-h-[220px]' : 'overflow-y-visible'}`}>
               <TooltipProvider>
@@ -1608,12 +1609,18 @@ export default function AttendanceDashboard() {
                           <span className="text-[11px] font-bold text-[#1A1F36]">{branch.branch}</span>
                           <span className="text-[9px] text-slate-400">{branch.totalEmployees} Employees</span>
                         </div>
-                        <span className={`text-[10px] font-black ${branch.rate >= 90 ? 'text-emerald-500' : branch.rate >= 75 ? 'text-amber-500' : 'text-red-500'}`}>{branch.rate}%</span>
+                        {branch.isWeekend ? (
+                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">Weekend</span>
+                        ) : (
+                          <span className={`text-[10px] font-black ${branch.rate >= 90 ? 'text-emerald-500' : branch.rate >= 75 ? 'text-amber-500' : 'text-red-500'}`}>{branch.rate}%</span>
+                        )}
                       </div>
                       <UITooltip delayDuration={100}>
                         <TooltipTrigger asChild>
-                          <div className="cursor-pointer w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
-                            {branch.totalEmployees > 0 ? (
+                      <div className="cursor-pointer w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
+                            {branch.isWeekend ? (
+                              <div className="h-full w-full bg-slate-300 rounded-full"></div>
+                            ) : branch.totalEmployees > 0 ? (
                               <>
                                 <div className="h-full bg-[#10b981]" style={{ width: `${(branch.presentOnTime / branch.totalEmployees) * 100}%` }}></div>
                                 <div className="h-full bg-[#f59e0b]" style={{ width: `${(branch.presentLate / branch.totalEmployees) * 100}%` }}></div>
@@ -1648,9 +1655,14 @@ export default function AttendanceDashboard() {
               )}
             </div>
             <div className="mt-4 pt-3 border-t border-gray-100 dark:border-slate-800 flex justify-between items-center">
-              <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1.5">
+              <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                 Showing {liveBranchRanking.length} locations
+                {liveBranchRanking.filter((b: any) => b.isWeekend).length > 0 && (
+                  <span className="ml-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+                    {liveBranchRanking.filter((b: any) => b.isWeekend).length} on Weekend
+                  </span>
+                )}
               </p>
               <p 
                 className="text-[10px] font-bold text-[#7B0099] cursor-pointer hover:underline flex items-center gap-1"
@@ -1705,6 +1717,16 @@ export default function AttendanceDashboard() {
 
             {/* Main Content Box */}
             <div className="flex flex-col gap-6">
+
+              {/* Weekend Banner */}
+              {(liveStats.weekend || 0) > 0 && (
+                <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2.5">
+                  <span className="w-2 h-2 rounded-full bg-slate-400 flex-shrink-0"></span>
+                  <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+                    <span className="font-black text-slate-800 dark:text-slate-200">{liveStats.weekend}</span> employees are on a <span className="font-black text-slate-800 dark:text-slate-200">Weekend / Rest Day</span> today.
+                  </p>
+                </div>
+              )}
               
               {/* Top: Donut Chart & Breakdown */}
               <div className="flex flex-row items-center gap-8">

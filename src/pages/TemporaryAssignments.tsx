@@ -245,7 +245,7 @@ const TemporaryAssignments = () => {
         </CardHeader>
         <CardContent className="p-0">
           <Table>
-            <TableHeader className="bg-slate-50/50 dark:bg-slate-900/50">
+            <TableHeader className="bg-slate-100 dark:bg-slate-800">
               <TableRow>
                 <TableHead className="font-bold">Employee</TableHead>
 
