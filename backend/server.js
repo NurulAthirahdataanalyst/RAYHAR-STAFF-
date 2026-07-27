@@ -3535,7 +3535,9 @@ app.get("/api/employees", async (req, res) => {
         p.user_id,
         p.full_name,
         p.email,
-        p.branch,
+        COALESCE(temp_ewa.temp_branch, p.branch) AS branch,
+        p.branch AS permanent_branch,
+        temp_ewa.temp_branch AS temp_branch,
         p.department,
         p.status,
         COALESCE(ur.role, 'employee') AS role,
@@ -3617,6 +3619,12 @@ app.get("/api/employees", async (req, res) => {
         AND ${date ? '?::date' : 'CURRENT_DATE'} BETWEEN DATE(start_date) AND DATE(end_date)
         GROUP BY user_id
       ) outstation_today ON outstation_today.user_id = p.user_id
+      LEFT JOIN (
+        SELECT user_id, location AS temp_branch
+        FROM employee_work_assignment
+        WHERE status = 'Active' 
+        AND ${date ? '?::date' : 'CURRENT_DATE'} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND COALESCE((end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date, '2099-12-31'::date)
+      ) temp_ewa ON temp_ewa.user_id = p.user_id
       ${branchFilter}
       ORDER BY 
         CASE 
@@ -5895,10 +5903,13 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         status = "Absent";
       }
 
+      const tempBranch = tempAssignmentMap.get(p.user_id);
       return {
         user_id: p.user_id,
         full_name: p.full_name,
-        branch: p.branch,
+        branch: tempBranch || p.branch,
+        permanent_branch: p.branch,
+        temp_branch: tempBranch || null,
         department: p.department,
         role: p.role,
         clock_in,
@@ -7347,8 +7358,16 @@ app.get("/api/reports/generator", async (req, res) => {
 
       let profWhere = profFilters.length > 0 ? "WHERE " + profFilters.join(" AND ") : "";
       const [targetProfiles] = await pool.query(`
-        SELECT p.user_id, p.full_name, p.branch, p.department
+        SELECT p.user_id, p.full_name, p.branch AS permanent_branch,
+               COALESCE(tw.temp_branch, p.branch) AS branch,
+               tw.temp_branch, p.department
         FROM profiles p
+        LEFT JOIN (
+          SELECT user_id, location AS temp_branch
+          FROM employee_work_assignment
+          WHERE status = 'Active'
+            AND CURRENT_DATE BETWEEN DATE(start_date) AND COALESCE(DATE(end_date), '2099-12-31')
+        ) tw ON tw.user_id = p.user_id
         ${profWhere}
         ORDER BY p.full_name ASC
       `, profParams);
@@ -7443,7 +7462,9 @@ app.get("/api/reports/generator", async (req, res) => {
             resultRows.push({
               user_id: prof.user_id,
               full_name: prof.full_name,
-              branch: prof.branch,
+              permanent_branch: prof.permanent_branch || prof.branch,
+              temp_branch: prof.temp_branch || null,
+              branch: prof.branch, // already resolved to temp if active
               date: dateFormatted,
               iso_date: isoDateStr,
               clock_in: att.clock_in,
@@ -7456,7 +7477,9 @@ app.get("/api/reports/generator", async (req, res) => {
             resultRows.push({
               user_id: prof.user_id,
               full_name: prof.full_name,
-              branch: prof.branch,
+              permanent_branch: prof.permanent_branch || prof.branch,
+              temp_branch: prof.temp_branch || null,
+              branch: prof.branch, // already resolved to temp if active
               date: dateFormatted,
               iso_date: isoDateStr,
               clock_in: null,

@@ -378,15 +378,21 @@ export default function Employees() {
   });
 
   const handleExportCSV = () => {
+    const today = new Date().toISOString().split('T')[0];
     const csvContent = [
-      ["Name", "Email", "Position", "Branch", "Status"],
-      ...filtered.map((emp) => [
-        `"${emp.name}"`,
-        `"${emp.email}"`,
-        `"${emp.position.replace(/_/g, ' ')}"`,
-        `"${emp.branch}"`,
-        `"${emp.status}"`,
-      ])
+      ["Name", "Email", "Position", "Permanent Branch", "Working Branch", "Status"],
+      ...filtered.map((emp) => {
+        // Use active temporary branch if available, otherwise permanent branch
+        const workingBranch = emp.tempBranch || emp.branch;
+        return [
+          `"${emp.name}"`,
+          `"${emp.email}"`,
+          `"${emp.position === "Finance Manager" || emp.position === "finance_manager" ? "Operation Manager" : emp.position.replace(/_/g, ' ')}"`,
+          `"${emp.branch}"`,
+          `"${workingBranch}"`,
+          `"${emp.status}"`,
+        ];
+      })
     ]
       .map(e => e.join(","))
       .join("\n");

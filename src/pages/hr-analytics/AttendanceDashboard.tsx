@@ -515,7 +515,7 @@ export default function AttendanceDashboard() {
 
       return [
         r.full_name,
-        r.branch,
+        (r as any).temp_branch || r.branch,
         r.clock_in ? formatAttendanceTime(r.clock_in) : "--:--",
         r.clock_out ? formatAttendanceTime(r.clock_out) : "--:--",
         attStatus,
@@ -595,10 +595,12 @@ export default function AttendanceDashboard() {
         ? 'badge-late' 
         : 'badge-remote';
 
+      const exportBranch = (r as any).temp_branch || r.branch;
+
       return `
         <tr>
           <td>${r.full_name}</td>
-          <td>${r.branch}</td>
+          <td>${exportBranch}</td>
           <td>${timeIn}</td>
           <td>${timeOut}</td>
           <td>
