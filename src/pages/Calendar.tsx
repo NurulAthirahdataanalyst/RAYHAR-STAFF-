@@ -122,6 +122,13 @@ function getTotalDays(startDateStr: string, endDateStr: string) {
   return days > 0 ? days : 1;
 }
 
+// Format a date string (yyyy-MM-dd or ISO) to yyyy/MM/dd display
+function fmtDate(dateStr: string | undefined | null): string {
+  if (!dateStr) return '';
+  const d = dateStr.slice(0, 10); // get yyyy-MM-dd
+  return d.replace(/-/g, '/');
+}
+
 function getLeaveTypeInfo(type: string) {
   const t = (type || "").toLowerCase();
   if (t.includes("medical") || t.includes("mc")) {
@@ -1143,6 +1150,16 @@ export default function Calendar() {
                       const end = cl.end_date?.split('T')[0] || cl.end_date;
                       return dayStr >= start && dayStr <= end && (!activeFilter || activeFilter === 'company_leave');
                     });
+                    const dayApprovedLeaves = leaveRequests.filter(l => {
+                      const start = l.start_date?.split('T')[0] || l.start_date;
+                      const end = l.end_date?.split('T')[0] || l.end_date;
+                      return dayStr >= start && dayStr <= end && (!activeFilter || activeFilter === 'leave');
+                    });
+                    const dayOutstations = outstations.filter(o => {
+                      const start = o.start_date?.split('T')[0] || o.start_date;
+                      const end = o.end_date?.split('T')[0] || o.end_date;
+                      return dayStr >= start && dayStr <= end && (!activeFilter || activeFilter === 'outstation');
+                    });
                     const dayAllDayNotes = notes.filter(n => {
                        if (activeFilter && activeFilter !== n.type) return false;
                        const parsed = parseEventTime(n, dayStr);
@@ -1164,6 +1181,29 @@ export default function Calendar() {
                             title={`${cl.leave_name} (${cl.leave_type})`}
                           >
                             🏢 {cl.leave_name}
+                          </div>
+                        ))}
+                        {dayApprovedLeaves.map((l, idx) => {
+                          const info = getLeaveTypeInfo(l.leave_type);
+                          return (
+                            <div
+                              key={`leave-${idx}`}
+                              onClick={(e) => { e.stopPropagation(); setSelectedLeave(l); }}
+                              className={`px-1.5 py-0.5 rounded-[4px] text-[10px] font-bold truncate shadow-sm cursor-pointer hover:brightness-95 transition-colors leading-tight ${info.bg}`}
+                              title={`${info.fullTitle}${l.reason ? `: ${l.reason}` : ''}`}
+                            >
+                              {info.pillLabel}
+                            </div>
+                          );
+                        })}
+                        {dayOutstations.map((o, idx) => (
+                          <div
+                            key={`out-${idx}`}
+                            onClick={(e) => { e.stopPropagation(); setSelectedOutstation(o); }}
+                            className="px-1.5 py-0.5 rounded-[4px] bg-pink-500/10 border-l-2 border-pink-500 text-[10px] font-bold text-pink-700 dark:text-pink-300 truncate shadow-sm cursor-pointer hover:bg-pink-500/20 transition-colors leading-tight"
+                            title={`Outstation: ${o.destination}`}
+                          >
+                            ✈️ {o.destination}
                           </div>
                         ))}
                         {dayAllDayNotes.map((note) => {
@@ -1268,18 +1308,35 @@ export default function Calendar() {
                             );
                           })}
 
-                          {/* Attendance */}
+                          {/* Attendance - with clock in and clock out */}
                           {dayAttendance.map((a, idx) => {
                             const d = new Date(a.clock_in);
                             const startMins = d.getHours() * 60 + d.getMinutes();
-                            const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            const inStr = formatTime12(a.clock_in);
+                            const outStr = a.clock_out ? formatTime12(a.clock_out) : null;
+                            const workingHrs = getWorkingHours(a.clock_in, a.clock_out);
+                            // Calculate height: from clock-in to clock-out (or at least 48px)
+                            let blockHeight = 48;
+                            if (a.clock_out) {
+                              const dOut = new Date(a.clock_out);
+                              const endMins = dOut.getHours() * 60 + dOut.getMinutes();
+                              blockHeight = Math.max(endMins - startMins, 48);
+                            }
                             return (
                               <div 
                                 key={`att-${idx}`}
-                                className="absolute left-[2%] right-[2%] h-[24px] rounded-sm bg-[#7B0099]/10 border-l-[3px] border-[#7B0099] text-[10px] font-bold text-[#7B0099] dark:text-purple-400 shadow-sm flex items-center px-1.5 truncate pointer-events-none"
-                                style={{ top: `${startMins}px` }}
+                                onClick={(e) => { e.stopPropagation(); setSelectedAttendance(a); }}
+                                className="absolute left-[2%] right-[2%] rounded-sm bg-[#7B0099]/10 border-l-[3px] border-[#7B0099] shadow-sm cursor-pointer hover:bg-[#7B0099]/20 transition-colors overflow-hidden flex flex-col p-1.5"
+                                style={{ top: `${startMins}px`, height: `${blockHeight}px` }}
                               >
-                                In: {timeStr}
+                                <span className="text-[10px] font-bold text-[#7B0099] dark:text-purple-400 leading-tight truncate">🟢 Present</span>
+                                <span className="text-[9px] text-[#7B0099]/80 dark:text-purple-400/80 font-semibold leading-tight truncate">In: {inStr}</span>
+                                {outStr && blockHeight >= 60 && (
+                                  <span className="text-[9px] text-[#7B0099]/80 dark:text-purple-400/80 font-semibold leading-tight truncate">Out: {outStr}</span>
+                                )}
+                                {workingHrs && blockHeight >= 80 && (
+                                  <span className="text-[9px] text-[#7B0099]/60 dark:text-purple-400/60 font-semibold leading-tight">⏱ {workingHrs}</span>
+                                )}
                               </div>
                             );
                           })}
@@ -1791,9 +1848,9 @@ export default function Calendar() {
 
       {/* Leave Request Detail Modal */}
       {selectedLeave && (() => {
-        const startStr = selectedLeave.start_date.slice(0, 10);
-        const endStr = selectedLeave.end_date.slice(0, 10);
-        const totalDays = getTotalDays(startStr, endStr);
+        const startStr = fmtDate(selectedLeave.start_date);
+        const endStr = fmtDate(selectedLeave.end_date);
+        const totalDays = getTotalDays(selectedLeave.start_date.slice(0, 10), selectedLeave.end_date.slice(0, 10));
         return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl transition-all duration-300" onClick={() => setSelectedLeave(null)}>
           <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-border" onClick={e => e.stopPropagation()}>
@@ -1841,9 +1898,9 @@ export default function Calendar() {
 
       {/* Outstation Detail Modal */}
       {selectedOutstation && (() => {
-        const startStr = selectedOutstation.start_date.slice(0, 10);
-        const endStr = selectedOutstation.end_date.slice(0, 10);
-        const totalDays = getTotalDays(startStr, endStr);
+        const startStr = fmtDate(selectedOutstation.start_date);
+        const endStr = fmtDate(selectedOutstation.end_date);
+        const totalDays = getTotalDays(selectedOutstation.start_date.slice(0, 10), selectedOutstation.end_date.slice(0, 10));
         const headerTitle = selectedOutstation.project || selectedOutstation.purpose || selectedOutstation.destination;
         return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl transition-all duration-300" onClick={() => setSelectedOutstation(null)}>
@@ -2004,7 +2061,7 @@ export default function Calendar() {
                         <div className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0 mt-1.5" />
                         <div>
                           <p className="font-semibold text-purple-700 dark:text-purple-300 text-sm">{cl.leave_name}</p>
-                          <p className="text-xs text-purple-500 dark:text-purple-400">{cl.leave_type} · {cl.start_date?.slice(0,10)} – {cl.end_date?.slice(0,10)}</p>
+                          <p className="text-xs text-purple-500 dark:text-purple-400">{cl.leave_type} · {fmtDate(cl.start_date)} – {fmtDate(cl.end_date)}</p>
                         </div>
                       </div>
                     ))}
@@ -2024,7 +2081,7 @@ export default function Calendar() {
                           <div className="flex-1">
                             <p className="font-semibold text-emerald-700 dark:text-emerald-300 text-sm">{info.fullTitle}</p>
                             {l.reason && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">Reason: {l.reason}</p>}
-                            <p className="text-xs text-emerald-500 mt-0.5">{l.start_date?.slice(0,10)} → {l.end_date?.slice(0,10)} · <span className="font-bold">{totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
+                            <p className="text-xs text-emerald-500 mt-0.5">{fmtDate(l.start_date)} → {fmtDate(l.end_date)} · <span className="font-bold">{totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
                           </div>
                         </div>
                       );
@@ -2047,7 +2104,7 @@ export default function Calendar() {
                             {(o.project || o.purpose) && (
                               <p className="text-xs text-pink-500 mt-0.5">{o.project ? `Project: ${o.project}` : ''}{o.project && o.purpose ? ' · ' : ''}{o.purpose ? `Purpose: ${o.purpose}` : ''}</p>
                             )}
-                            <p className="text-xs text-pink-500 mt-0.5">{o.start_date?.slice(0,10)} — {o.end_date?.slice(0,10)} · <span className="font-bold">{totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
+                            <p className="text-xs text-pink-500 mt-0.5">{fmtDate(o.start_date)} — {fmtDate(o.end_date)} · <span className="font-bold">{totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
                           </div>
                         </div>
                       );
