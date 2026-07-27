@@ -107,14 +107,58 @@ export default function OutstationAnalytics() {
     return () => es.close();
   }, [fetchData]);
 
-  const totalAssignments = assignments.length;
+  // Group individual employee assignments into distinct Outstation Events
+  const eventGroups = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    const groups: Record<string, {
+      key: string;
+      destination: string;
+      project: string;
+      purpose: string;
+      start_date: string;
+      end_date: string;
+      status: string;
+      assignments: any[];
+    }> = {};
+
+    assignments.forEach(a => {
+      const projectOrPurpose = (a.project && a.project !== '-') ? a.project : (a.purpose && a.purpose !== '-') ? a.purpose : 'General';
+      const startDateStr = a.start_date ? a.start_date.slice(0, 10) : today;
+      const endDateStr = a.end_date ? a.end_date.slice(0, 10) : today;
+      
+      const key = `${a.destination}_${startDateStr}_${endDateStr}_${projectOrPurpose}`;
+      
+      if (!groups[key]) {
+        let eventStatus = a.status || "Upcoming";
+        if (endDateStr < today && eventStatus !== "Cancelled") {
+          eventStatus = "Completed";
+        }
+
+        groups[key] = {
+          key,
+          destination: a.destination,
+          project: a.project,
+          purpose: a.purpose,
+          start_date: a.start_date,
+          end_date: a.end_date,
+          status: eventStatus,
+          assignments: []
+        };
+      }
+      groups[key].assignments.push(a);
+    });
+
+    return Object.values(groups);
+  }, [assignments]);
+
+  const totalEventsCount = eventGroups.length > 0 ? eventGroups.length : assignments.length;
   const activeStaffCount = useMemo(() => new Set(assignments.filter(a => a.status === "Active").map(a => a.user_id)).size, [assignments]);
   const totalDestinations = useMemo(() => new Set(assignments.map(a => a.destination || "Unknown")).size, [assignments]);
-  const activeCount = stats.active || 0;
-  const completedCount = stats.completed || 0;
-  const upcomingCount = stats.upcoming || 0;
+  const activeCount = eventGroups.filter(e => e.status === "Active").length;
+  const completedCount = eventGroups.filter(e => e.status === "Completed").length;
+  const upcomingCount = eventGroups.filter(e => e.status === "Upcoming").length;
 
-  // Monthly Outstation Tracker data
+  // Monthly Outstation Tracker data (grouped by Unique Events)
   const monthlyTrackerData = useMemo(() => {
     const monthsData = MONTH_SHORT.map((name, index) => ({
       name,
@@ -123,20 +167,20 @@ export default function OutstationAnalytics() {
       completedEvents: 0,
     }));
 
-    assignments.forEach(a => {
-      if (!a.start_date) return;
-      const startDate = new Date(a.start_date);
+    eventGroups.forEach(e => {
+      if (!e.start_date) return;
+      const startDate = new Date(e.start_date);
       const m = startDate.getMonth();
       if (m >= 0 && m < 12) {
         monthsData[m].totalEvents += 1;
-        if (a.status === "Completed") {
+        if (e.status === "Completed") {
           monthsData[m].completedEvents += 1;
         }
       }
     });
 
     return monthsData;
-  }, [assignments]);
+  }, [eventGroups]);
 
   // Summary Metrics above the chart for the selected month
   const trackerSummary = useMemo(() => {
@@ -162,13 +206,17 @@ export default function OutstationAnalytics() {
       .slice(0, 5);
   }, [assignments]);
 
+  // Outstation Status Donut Chart Data (grouped by Unique Events)
   const statusData = useMemo(() => {
-    const counts: Record<string, number> = { Active: 0, Upcoming: 0, Completed: 0, Cancelled: 0, Unknown: 0 };
-    assignments.forEach(a => {
-      counts[a.status || "Unknown"] = (counts[a.status || "Unknown"] || 0) + 1;
+    const counts: Record<string, number> = { Completed: 0, Active: 0, Upcoming: 0, Cancelled: 0 };
+    eventGroups.forEach(e => {
+      const st = e.status || "Completed";
+      counts[st] = (counts[st] || 0) + 1;
     });
     return Object.entries(counts).map(([status, value]) => ({ status, value })).filter(item => item.value > 0);
-  }, [assignments]);
+  }, [eventGroups]);
+
+  const totalStatusEvents = useMemo(() => statusData.reduce((sum, i) => sum + i.value, 0), [statusData]);
 
   const recentAssignments = useMemo(() => assignments
     .slice()
@@ -195,7 +243,7 @@ export default function OutstationAnalytics() {
         </Button>
       </PageActions>
 
-      {/* TOP KPI CARDS - No changes */}
+      {/* TOP KPI CARDS */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
         {/* 1. Total Outstation */}
         <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between">
@@ -206,15 +254,15 @@ export default function OutstationAnalytics() {
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099] shadow-xs"></div>
-                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
+                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Total Events</span>
               </div>
               <div className="my-1">
-                <span className="text-3xl font-black text-[#7B0099] dark:text-purple-300 leading-none">{totalAssignments}</span>
+                <span className="text-3xl font-black text-[#7B0099] dark:text-purple-300 leading-none">{totalEventsCount}</span>
               </div>
             </div>
             <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
               <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
-                Active outstation requests across all branches
+                Total outstation events created
               </p>
             </div>
           </CardContent>
@@ -275,7 +323,7 @@ export default function OutstationAnalytics() {
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-xs"></div>
-                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Ongoing</span>
+                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Ongoing Events</span>
               </div>
               <div className="my-1">
                 <span className="text-3xl font-black text-orange-700 dark:text-orange-300 leading-none">{activeCount}</span>
@@ -283,7 +331,7 @@ export default function OutstationAnalytics() {
             </div>
             <div className="mt-3 pt-2.5 border-t border-orange-200/80 dark:border-orange-800/60">
               <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
-                Assignments currently in progress
+                Events currently in progress
               </p>
             </div>
           </CardContent>
@@ -298,7 +346,7 @@ export default function OutstationAnalytics() {
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-xs"></div>
-                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Completed</span>
+                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Completed Events</span>
               </div>
               <div className="my-1">
                 <span className="text-3xl font-black text-purple-700 dark:text-purple-300 leading-none">{completedCount}</span>
@@ -306,19 +354,19 @@ export default function OutstationAnalytics() {
             </div>
             <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
               <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
-                Assignments finished in scope
+                Events finished in scope
               </p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* INSIGHTS SECTION */}
+      {/* ROW 1: Tracker (8 cols) & Outstation Status Donut (4 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
         
-        {/* Left Column: Monthly Outstation Tracker */}
-        <div className="lg:col-span-8 flex flex-col gap-6">
-          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card flex flex-col h-full">
+        {/* Monthly Outstation Tracker */}
+        <div className="lg:col-span-8">
+          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
             <CardHeader className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex flex-row flex-wrap items-center justify-between gap-4">
               <div>
                 <CardTitle className="text-lg font-bold text-slate-900 dark:text-slate-100">Monthly Outstation Tracker</CardTitle>
@@ -341,9 +389,9 @@ export default function OutstationAnalytics() {
               </div>
             </CardHeader>
 
-            <CardContent className="p-6 flex-1 flex flex-col justify-between">
+            <CardContent className="p-6 space-y-6">
               {/* Summary Metrics Above Chart */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/50 flex items-center justify-between">
                   <div>
                     <p className="text-[11px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Total Events</p>
@@ -371,8 +419,8 @@ export default function OutstationAnalytics() {
                 </div>
               </div>
 
-              {/* Bar Chart */}
-              <div className="h-[280px] w-full">
+              {/* Compact Bar Chart */}
+              <div className="h-[220px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={monthlyTrackerData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
@@ -382,8 +430,8 @@ export default function OutstationAnalytics() {
                       cursor={{ fill: 'rgba(123, 0, 153, 0.05)' }}
                     />
                     <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />
-                    <Bar dataKey="totalEvents" name="Total Events" fill="#7B0099" radius={[4, 4, 0, 0]} barSize={16} />
-                    <Bar dataKey="completedEvents" name="Total Completed Events" fill="#16a34a" radius={[4, 4, 0, 0]} barSize={16} />
+                    <Bar dataKey="totalEvents" name="Total Events" fill="#7B0099" radius={[4, 4, 0, 0]} barSize={14} />
+                    <Bar dataKey="completedEvents" name="Total Completed Events" fill="#16a34a" radius={[4, 4, 0, 0]} barSize={14} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -391,86 +439,95 @@ export default function OutstationAnalytics() {
           </Card>
         </div>
 
-        {/* Right Column: Side Grid without fixed height or width constraints */}
-        <div className="lg:col-span-4 flex flex-col gap-6">
-          {/* Outstation Status Card */}
-          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
+        {/* Outstation Status (Grouped by Unique Events) */}
+        <div className="lg:col-span-4 flex flex-col">
+          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card h-full flex flex-col justify-between">
             <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
               <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">Outstation Status</CardTitle>
             </CardHeader>
-            <CardContent className="p-4">
+            <CardContent className="p-4 flex-1 flex flex-col justify-center items-center">
               {statusData.length === 0 ? (
                 <div className="py-5 text-center text-slate-500 text-xs">No status data available.</div>
               ) : (
-                <ResponsiveContainer width="100%" height={180}>
-                  <PieChart>
-                    <Pie data={statusData} dataKey="value" nameKey="status" innerRadius={48} outerRadius={72} paddingAngle={2}>
-                      {statusData.map(entry => (
-                        <Cell key={entry.status} fill={STATUS_COLORS[entry.status] || STATUS_COLORS.Unknown} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip formatter={(value: number, name: string) => [`${value}`, name]} />
-                  </PieChart>
-                </ResponsiveContainer>
+                <div className="relative w-full flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height={180}>
+                    <PieChart>
+                      <Pie data={statusData} dataKey="value" nameKey="status" innerRadius={50} outerRadius={75} paddingAngle={3}>
+                        {statusData.map(entry => (
+                          <Cell key={entry.status} fill={STATUS_COLORS[entry.status] || STATUS_COLORS.Unknown} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip formatter={(value: number, name: string) => [`${value} Event${value > 1 ? 's' : ''}`, name]} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-2xl font-black text-slate-900 dark:text-slate-100">{totalStatusEvents}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total</span>
+                  </div>
+                </div>
               )}
-              <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300">
+              <div className="w-full mt-4 grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300 border-t border-slate-100 dark:border-slate-800 pt-3">
                 {statusData.map(item => (
                   <div key={item.status} className="flex items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[item.status] || STATUS_COLORS.Unknown }} />
-                    <span>{item.status}</span>
-                    <strong className="ml-auto">{item.value}</strong>
+                    <span className="font-medium">{item.status}</span>
+                    <strong className="ml-auto text-slate-900 dark:text-slate-100">{item.value}</strong>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
-
-          {/* Top Destinations Card */}
-          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
-            <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-              <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">Top Destinations</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 space-y-3">
-              {destinationData.length === 0 ? (
-                <div className="py-4 text-center text-slate-500 text-xs">No destinations available.</div>
-              ) : (
-                destinationData.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between gap-3 text-xs">
-                    <div className="w-28 font-medium text-slate-700 dark:text-slate-300 truncate">{item.destination}</div>
-                    <div className="flex-1 bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
-                      <div className="h-2.5 rounded-full bg-[#7B0099]" style={{ width: `${Math.min(100, (item.count / (destinationData[0]?.count || 1)) * 100)}%` }} />
-                    </div>
-                    <div className="w-8 text-right font-bold text-slate-700 dark:text-slate-300">{item.count}</div>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Quick Summary Card */}
-          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
-            <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-              <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">Quick Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 grid gap-3">
-              <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 text-xs flex justify-between items-center">
-                <div className="text-slate-500 dark:text-slate-400 font-medium">Departures today</div>
-                <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{stats.todayDepartures || 0}</div>
-              </div>
-              <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 text-xs flex justify-between items-center">
-                <div className="text-slate-500 dark:text-slate-400 font-medium">Returns today</div>
-                <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{stats.todayReturns || 0}</div>
-              </div>
-              <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 text-xs flex justify-between items-center">
-                <div className="text-slate-500 dark:text-slate-400 font-medium">Upcoming assignments</div>
-                <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{upcomingCount}</div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
+
       </div>
 
-      {/* BOTTOM TABLES SECTION */}
+      {/* ROW 2: Top Destinations (6 cols) & Quick Summary (6 cols) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* Top Destinations */}
+        <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
+          <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+            <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">Top Destinations</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 space-y-3">
+            {destinationData.length === 0 ? (
+              <div className="py-4 text-center text-slate-500 text-xs">No destinations available.</div>
+            ) : (
+              destinationData.map((item, index) => (
+                <div key={index} className="flex items-center justify-between gap-3 text-xs">
+                  <div className="w-32 font-medium text-slate-700 dark:text-slate-300 truncate">{item.destination}</div>
+                  <div className="flex-1 bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                    <div className="h-2.5 rounded-full bg-[#7B0099]" style={{ width: `${Math.min(100, (item.count / (destinationData[0]?.count || 1)) * 100)}%` }} />
+                  </div>
+                  <div className="w-12 text-right font-bold text-slate-700 dark:text-slate-300">{item.count} {item.count === 1 ? 'Trip' : 'Trips'}</div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Quick Summary */}
+        <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
+          <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+            <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">Quick Summary</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 grid gap-3">
+            <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 text-xs flex justify-between items-center">
+              <div className="text-slate-500 dark:text-slate-400 font-medium">Departures today</div>
+              <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{stats.todayDepartures || 0}</div>
+            </div>
+            <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 text-xs flex justify-between items-center">
+              <div className="text-slate-500 dark:text-slate-400 font-medium">Returns today</div>
+              <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{stats.todayReturns || 0}</div>
+            </div>
+            <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 text-xs flex justify-between items-center">
+              <div className="text-slate-500 dark:text-slate-400 font-medium">Upcoming assignments</div>
+              <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{upcomingCount}</div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ROW 3: Recent Outstation (8 cols) & Upcoming Outstation (4 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Recent Outstation */}
         <div className="lg:col-span-8">
