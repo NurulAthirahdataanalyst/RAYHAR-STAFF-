@@ -164,7 +164,7 @@ export default function WorkforceInsights() {
   const [liveEmployees, setLiveEmployees] = useState<any[]>([]);
   const [tempAssignments, setTempAssignments] = useState<any[]>([]);
 
-  const isAdminRole = ["hr_admin", "managing_director", "finance_manager"].includes(role || "");
+  const isAdminRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role || "");
 
   // SSE connection for live feed
   useEffect(() => {
@@ -231,8 +231,8 @@ export default function WorkforceInsights() {
     
     if (['head_of_department', 'branch_leader', 'hod'].includes(normRole)) {
       canApprove = st === 'Pending' || st.startsWith('Pending HOD') || st === 'Pending Branch Leader';
-    } else if (normRole === 'finance_manager' || normRole === 'finance') {
-      canApprove = st === 'Pending Finance' || st === 'Pending Finance Manager';
+    } else if (['operation_manager', 'operation', 'finance_manager', 'finance'].includes(normRole)) {
+      canApprove = st === 'Pending Operation' || st === 'Pending Operation Manager' || st === 'Pending Finance' || st === 'Pending Finance Manager';
     } else if (['managing_director', 'md'].includes(normRole)) {
       canApprove = st === 'Pending MD' || st === 'Pending Managing Director';
     }
@@ -252,8 +252,8 @@ export default function WorkforceInsights() {
     } else if (st === 'Pending' || st.startsWith('Pending HOD') || st === 'Pending Branch Leader') {
       displayStatus = "Pending HOD / Branch Leader";
       statusBadgeClass = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20";
-    } else if (st === 'Pending Finance' || st === 'Pending Finance Manager') {
-      displayStatus = "Pending Finance Manager";
+    } else if (st === 'Pending Operation' || st === 'Pending Operation Manager' || st === 'Pending Finance' || st === 'Pending Finance Manager') {
+      displayStatus = "Pending Operation Manager";
       statusBadgeClass = "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20";
     } else if (st === 'Pending MD' || st === 'Pending Managing Director') {
       displayStatus = "Pending Managing Director";

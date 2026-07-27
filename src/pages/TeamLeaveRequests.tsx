@@ -27,9 +27,11 @@ export default function TeamLeaveRequests() {
     switch (status) {
       case "Pending HOD":
         return "Awaiting HOD Approval";
+      case "Pending Operation":
+      case "Pending Operation Manager":
       case "Pending Finance":
       case "Pending Finance Manager":
-        return "Awaiting Finance Approval";
+        return "Awaiting Operation Manager Approval";
       case "Pending MD":
         return "Awaiting MD Approval";
       case "Pending Branch Leader":
