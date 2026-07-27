@@ -378,7 +378,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 className={`hidden lg:flex flex-col shrink-0 transition-all duration-500 ease-in-out py-1 sticky top-4 max-h-[calc(100vh-32px)] overflow-visible ${
                   sidebarCollapsed 
                     ? "w-[64px] relative border-l border-border/20 pl-2.5" 
-                    : "w-[280px] absolute right-0 z-40 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl shadow-[-10px_0_30px_rgba(0,0,0,0.1)] dark:shadow-[-10px_0_30px_rgba(0,0,0,0.5)] p-4 rounded-2xl border border-border/50 xl:relative xl:right-0 xl:bg-transparent xl:dark:bg-transparent xl:shadow-none xl:p-0 xl:rounded-none xl:border-none xl:border-l xl:border-border/20 xl:pl-2.5"
+                    : "w-[280px] relative border-l border-border/20 pl-3"
                 }`}
               >
               {/* Floating Toggle Button on Left Boundary */}

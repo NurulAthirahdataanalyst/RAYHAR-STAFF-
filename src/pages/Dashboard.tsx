@@ -567,7 +567,7 @@ export default function Dashboard() {
       ) : (
         <>
           {/* Stat Cards - responsive grid */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 ${role === "employee" ? "lg:grid-cols-4" : (isCompanyLeave && stats.activeCompanyLeave && ["hr_admin", "managing_director", "finance_manager"].includes(role) ? "lg:grid-cols-4 xl:grid-cols-8" : "lg:grid-cols-3 xl:grid-cols-7")}`}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 ${role === "employee" ? "lg:grid-cols-4" : (isCompanyLeave && stats.activeCompanyLeave && ["hr_admin", "managing_director", "finance_manager"].includes(role) ? "lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-8" : "lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7")}`}>
         {role === "employee" ? (
           <>
             <StatCard

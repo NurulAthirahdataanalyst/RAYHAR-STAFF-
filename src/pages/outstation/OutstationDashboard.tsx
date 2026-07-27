@@ -367,7 +367,7 @@ export default function OutstationDashboard() {
         </PageActions>
 
         {/* ROW 1: Enterprise KPI Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 2xl:grid-cols-6 gap-4 mb-6">
             {/* 0. Total Outstation */}
             <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
               <div className="absolute top-0 left-0 right-0 h-1 bg-[#7B0099]" />

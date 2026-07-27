@@ -147,7 +147,7 @@ export default function OutstationAnalytics() {
       </PageActions>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
-          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors shadow-none">
+          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 dark:bg-slate-900/50 transition-colors shadow-none">
             <CardContent className="p-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700 "><Briefcase className="h-6 w-6" /></div>
@@ -159,7 +159,7 @@ export default function OutstationAnalytics() {
               <p className="mt-4 text-sm leading-5 text-slate-500">Active outstation requests across all branches.</p>
             </CardContent>
           </Card>
-          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors shadow-none">
+          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 dark:bg-slate-900/50 transition-colors shadow-none">
             <CardContent className="p-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><Users className="h-7 w-7" /></div>
@@ -171,7 +171,7 @@ export default function OutstationAnalytics() {
               <p className="mt-4 text-sm text-slate-500">Unique team members currently away on assignment.</p>
             </CardContent>
           </Card>
-          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors shadow-none">
+          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 dark:bg-slate-900/50 transition-colors shadow-none">
             <CardContent className="p-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><MapPin className="h-6 w-6" /></div>
@@ -183,7 +183,7 @@ export default function OutstationAnalytics() {
               <p className="mt-4 text-sm text-slate-500">Distinct cities or sites visited by staff.</p>
             </CardContent>
           </Card>
-          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors shadow-none">
+          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 dark:bg-slate-900/50 transition-colors shadow-none">
             <CardContent className="p-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><Calendar className="h-6 w-5" /></div>
@@ -195,7 +195,7 @@ export default function OutstationAnalytics() {
               <p className="mt-4 text-sm text-slate-500">Assignments currently in progress.</p>
             </CardContent>
           </Card>
-          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors shadow-none">
+          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 dark:bg-slate-900/50 transition-colors shadow-none">
             <CardContent className="p-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><CheckCircle2 className="h-6 w-5" /></div>
@@ -296,7 +296,7 @@ export default function OutstationAnalytics() {
         </div>
 
         <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
-          <Card>
+          <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card">
             <CardHeader>
               <CardTitle className="text-lg font-semibold">Recent Outstation</CardTitle>
             </CardHeader>
@@ -308,7 +308,7 @@ export default function OutstationAnalytics() {
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
-                    <thead className="bg-slate-100 text-slate-500 text-xs uppercase tracking-[0.16em]">
+                    <thead className="bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-[0.16em] border-b border-slate-200 dark:border-slate-800">
                       <tr>
                         <th className="px-4 py-3">Employee</th>
                         <th className="px-4 py-3">Destination</th>
@@ -318,9 +318,9 @@ export default function OutstationAnalytics() {
                         <th className="px-4 py-3">Duration</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                       {recentAssignments.map((item, index) => (
-                        <tr key={index} className="hover:bg-slate-50">
+                        <tr key={index} className="hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors text-slate-800 dark:text-slate-200">
                           <td className="px-4 py-4 text-sm font-semibold">{item.full_name || item.user_id}</td>
                           <td className="px-4 py-4 text-sm">{item.destination || "-"}</td>
                           <td className="px-4 py-4 text-sm">{item.purpose || item.project || "-"}</td>
@@ -336,7 +336,7 @@ export default function OutstationAnalytics() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card">
             <CardHeader>
               <CardTitle className="text-lg font-semibold">Upcoming Outstation</CardTitle>
             </CardHeader>
@@ -344,15 +344,15 @@ export default function OutstationAnalytics() {
               {upcomingGroups.length === 0 ? (
                 <div className="py-12 text-center text-slate-500">No upcoming assignments.</div>
               ) : upcomingGroups.map((group, idx) => (
-                <div key={idx} className="rounded-2xl border border-slate-200 p-4 bg-white shadow-sm">
+                <div key={idx} className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4 bg-white dark:bg-slate-900/80 shadow-sm">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold">{group.destination || "Unknown"}</p>
-                      <p className="text-xs text-slate-500">{group.purpose}</p>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{group.destination || "Unknown"}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{group.purpose}</p>
                     </div>
-                    <span className="text-3xl font-bold text-slate-900">{group.count}</span>
+                    <span className="text-3xl font-bold text-slate-900 dark:text-slate-100">{group.count}</span>
                   </div>
-                  <p className="mt-2 text-xs text-slate-500">Starting {formatShortDate(group.start_date)}</p>
+                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Starting {formatShortDate(group.start_date)}</p>
                 </div>
               ))}
             </CardContent>
