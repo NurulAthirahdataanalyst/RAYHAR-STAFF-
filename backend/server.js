@@ -287,6 +287,8 @@ app.get("/api/roles", async (req, res) => {
       let displayName = row.name;
       if (row.name === 'hr_admin') {
         displayName = 'HR Admin';
+      } else if (row.name === 'finance_manager' || row.name === 'operation_manager' || row.name === 'Finance Manager') {
+        displayName = 'Operation Manager';
       } else if (row.name) {
         displayName = row.name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
       }

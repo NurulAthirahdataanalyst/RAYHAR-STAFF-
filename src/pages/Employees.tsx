@@ -291,7 +291,7 @@ export default function Employees() {
           id: employee.user_id,
           name: employee.full_name || "New User",
           email: employee.email || "Account Active",
-          position: employee.role === "hr_admin" ? "HR Admin" : employee.role ? employee.role.split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : "Employee",
+          position: (employee.role === "operation_manager" || employee.role === "finance_manager" || employee.position === "Finance Manager" || employee.position === "finance_manager") ? "Operation Manager" : employee.role === "hr_admin" ? "HR Admin" : employee.role ? employee.role.split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : "Employee",
           branch: employee.branch || "HQ",
           department: employee.department || "General",
           status: employee.status || "Active",
@@ -644,7 +644,9 @@ export default function Employees() {
                             </div>
                           </TableCell>
                           <TableCell className="py-4 px-6">
-                            <span className="text-xs font-bold text-muted-foreground capitalize">{emp.position.replace(/_/g, ' ')}</span>
+                            <span className="text-xs font-bold text-muted-foreground capitalize">
+                              {emp.position === "Finance Manager" || emp.position === "finance_manager" ? "Operation Manager" : emp.position.replace(/_/g, ' ')}
+                            </span>
                           </TableCell>
                           <TableCell className="py-4 px-6 text-xs font-bold text-muted-foreground">
                             <div className="flex flex-col gap-1 items-start">
@@ -724,7 +726,9 @@ export default function Employees() {
                           </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                          <span className="truncate max-w-[100px]">{emp.position.replace(/_/g, ' ')}</span>
+                          <span className="truncate max-w-[100px]">
+                            {emp.position === "Finance Manager" || emp.position === "finance_manager" ? "Operation Manager" : emp.position.replace(/_/g, ' ')}
+                          </span>
                           <span className="opacity-30">•</span>
                           <span>{emp.branch}</span>
                           {emp.tempBranch && (
@@ -838,7 +842,7 @@ export default function Employees() {
                       <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">{selectedEmployee.email}</p>
                       
                       <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-wider px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200">
-                        {selectedEmployee.position?.replace(/_/g, ' ')}
+                        {selectedEmployee.position === "Finance Manager" || selectedEmployee.position === "finance_manager" ? "Operation Manager" : selectedEmployee.position?.replace(/_/g, ' ')}
                       </Badge>
                       
                       <div className="mt-5 w-full flex flex-col gap-2">

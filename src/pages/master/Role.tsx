@@ -248,7 +248,9 @@ export default function Role() {
                 ) : (
                   roles.map((role) => (
                     <tr key={role.id} className="hover:bg-gray-50/50 transition-colors bg-white dark:bg-card group">
-                      <td className="px-6 py-4 font-semibold text-gray-700">{role.name}</td>
+                      <td className="px-6 py-4 font-semibold text-gray-700">
+                        {role.name === "Finance Manager" || role.name === "finance_manager" ? "Operation Manager" : role.name}
+                      </td>
                       <td className="px-6 py-4 text-gray-500 font-medium">
                         {new Date(role.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </td>
