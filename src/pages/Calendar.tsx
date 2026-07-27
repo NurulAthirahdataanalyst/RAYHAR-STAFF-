@@ -171,6 +171,18 @@ export default function Calendar() {
   const [selectedOutstation, setSelectedOutstation] = useState<OutstationItem | null>(null);
   const [selectedAttendance, setSelectedAttendance] = useState<AttendanceLog | null>(null);
 
+  // Day Summary popup state
+  const [selectedDaySummary, setSelectedDaySummary] = useState<{
+    date: Date;
+    dateStr: string;
+    holidays: typeof holidays;
+    companyLeaves: typeof companyLeaves;
+    approvedLeaves: typeof leaveRequests;
+    outstations: typeof outstations;
+    attendance: typeof attendance;
+    notes: typeof notes;
+  } | null>(null);
+
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   const [isAddEventModalOpen, setIsAddEventModalOpen] = useState(false);
@@ -985,10 +997,24 @@ export default function Calendar() {
                     textCol = "text-gray-500 dark:text-gray-400";
                   }
 
+                  const handleDayClick = () => {
+                    setSelectedDaySummary({
+                      date: day,
+                      dateStr: dayStr,
+                      holidays: dayHolidays,
+                      companyLeaves: dayCompanyLeaves,
+                      approvedLeaves: dayApprovedLeaves,
+                      outstations: dayOutstations,
+                      attendance: dayAttendance,
+                      notes: dayNotes,
+                    });
+                  };
+
                   return (
                     <div 
                       key={i} 
-                      className={`p-1.5 flex flex-col transition-colors ${cellBg} ${!today && isCurrentMonth ? 'hover:bg-muted/30' : ''}`}
+                      onClick={handleDayClick}
+                      className={`p-1.5 flex flex-col transition-all cursor-pointer ${cellBg} ${!today && isCurrentMonth ? 'hover:bg-muted/30' : ''} hover:ring-2 hover:ring-inset hover:ring-[#7B0099]/40`}
                     >
                       <div className={`text-right mb-1.5 p-1 text-[12px] font-bold ${textCol}`}>
                         {format(day, 'd')}
@@ -1007,7 +1033,7 @@ export default function Calendar() {
                         {dayCompanyLeaves.map((cl, idx) => (
                           <div
                             key={`cl-${idx}`}
-                            onClick={() => setSelectedCompanyLeave(cl)}
+                            onClick={(e) => { e.stopPropagation(); setSelectedCompanyLeave(cl); }}
                             className="px-2 py-1 rounded-[4px] bg-purple-500/10 border-l-2 border-purple-500 text-[11px] font-bold text-purple-700 dark:text-purple-400 truncate shadow-sm cursor-pointer hover:bg-purple-500/20 transition-colors"
                             title={`${cl.leave_name} (${cl.leave_type})`}
                           >
@@ -1021,7 +1047,7 @@ export default function Calendar() {
                           return (
                             <div
                               key={`leave-${idx}`}
-                              onClick={() => setSelectedLeave(l)}
+                              onClick={(e) => { e.stopPropagation(); setSelectedLeave(l); }}
                               className={`px-2 py-1 rounded-[4px] text-[11px] font-bold truncate shadow-sm cursor-pointer hover:brightness-95 transition-colors ${info.bg}`}
                               title={`${info.fullTitle}${l.reason ? `: ${l.reason}` : ''}`}
                             >
@@ -1034,7 +1060,7 @@ export default function Calendar() {
                         {dayOutstations.map((o, idx) => (
                           <div
                             key={`out-${idx}`}
-                            onClick={() => setSelectedOutstation(o)}
+                            onClick={(e) => { e.stopPropagation(); setSelectedOutstation(o); }}
                             className="px-2 py-1 rounded-[4px] bg-pink-500/10 border-l-2 border-pink-500 text-[11px] font-bold text-pink-700 dark:text-pink-300 truncate shadow-sm cursor-pointer hover:bg-pink-500/20 transition-colors"
                             title={`Outstation: ${o.destination}`}
                           >
@@ -1049,7 +1075,7 @@ export default function Calendar() {
                           return (
                             <div
                               key={`att-${idx}`}
-                              onClick={() => setSelectedAttendance(a)}
+                              onClick={(e) => { e.stopPropagation(); setSelectedAttendance(a); }}
                               className="px-2 py-1 rounded-[4px] bg-[#7B0099]/10 border-l-2 border-[#7B0099] text-[11px] font-bold text-[#7B0099] dark:text-purple-400 truncate shadow-sm cursor-pointer hover:bg-[#7B0099]/20 transition-colors"
                             >
                               In: {inStr} · Out: {outStr}
@@ -1908,6 +1934,206 @@ export default function Calendar() {
           </div>
         </div>
       )}
+
+      {/* Day Summary Modal */}
+      {selectedDaySummary && (() => {
+        const ds = selectedDaySummary;
+        const isToday = isSameDay(ds.date, new Date());
+        const hasContent = ds.holidays.length > 0 || ds.companyLeaves.length > 0 || ds.approvedLeaves.length > 0 || ds.outstations.length > 0 || ds.attendance.length > 0 || ds.notes.length > 0;
+        return (
+          <div
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl transition-all duration-300"
+            onClick={() => setSelectedDaySummary(null)}
+          >
+            <div
+              className="bg-card rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-border flex flex-col max-h-[85vh]"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-r from-[#5e0080] via-[#7B0099] to-purple-600 px-6 py-5 text-white flex-shrink-0">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <span className="text-xs font-semibold text-purple-100 uppercase tracking-wide bg-white/20 px-2.5 py-0.5 rounded-full">
+                      {isToday ? '📅 Today' : '📅 Daily Summary'}
+                    </span>
+                    <h2 className="text-2xl font-bold text-white mt-2">
+                      {format(ds.date, 'EEEE')}
+                    </h2>
+                    <p className="text-purple-100 text-sm font-medium mt-0.5">
+                      {format(ds.date, 'dd MMMM yyyy')}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedDaySummary(null)}
+                    className="text-white/70 hover:text-white transition-colors mt-1"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="overflow-y-auto flex-1 px-6 py-5 space-y-4">
+                {!hasContent && (
+                  <div className="flex flex-col items-center justify-center py-10 text-muted-foreground gap-2">
+                    <CalendarIcon className="w-10 h-10 opacity-30" />
+                    <p className="text-sm font-semibold">No activity recorded for this day</p>
+                  </div>
+                )}
+
+                {/* Holidays */}
+                {ds.holidays.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">🏖️ Public Holiday</p>
+                    {ds.holidays.map((h, i) => (
+                      <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                        <div className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
+                        <p className="font-semibold text-red-700 dark:text-red-300 text-sm">{h.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Company Leave */}
+                {ds.companyLeaves.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">🟣 Company Leave</p>
+                    {ds.companyLeaves.map((cl, i) => (
+                      <div key={i} className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+                        <div className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0 mt-1.5" />
+                        <div>
+                          <p className="font-semibold text-purple-700 dark:text-purple-300 text-sm">{cl.leave_name}</p>
+                          <p className="text-xs text-purple-500 dark:text-purple-400">{cl.leave_type} · {cl.start_date?.slice(0,10)} – {cl.end_date?.slice(0,10)}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Approved Leave */}
+                {ds.approvedLeaves.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">✅ Approved Leave</p>
+                    {ds.approvedLeaves.map((l, i) => {
+                      const info = getLeaveTypeInfo(l.leave_type);
+                      const totalDays = getTotalDays(l.start_date?.slice(0,10) || '', l.end_date?.slice(0,10) || '');
+                      return (
+                        <div key={i} className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0 mt-1.5" />
+                          <div className="flex-1">
+                            <p className="font-semibold text-emerald-700 dark:text-emerald-300 text-sm">{info.fullTitle}</p>
+                            {l.reason && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">Reason: {l.reason}</p>}
+                            <p className="text-xs text-emerald-500 mt-0.5">{l.start_date?.slice(0,10)} → {l.end_date?.slice(0,10)} · <span className="font-bold">{totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Outstation */}
+                {ds.outstations.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">✈️ Outstation</p>
+                    {ds.outstations.map((o, i) => {
+                      const totalDays = getTotalDays(o.start_date?.slice(0,10) || '', o.end_date?.slice(0,10) || '');
+                      return (
+                        <div key={i} className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-pink-50 dark:bg-pink-900/20 border border-pink-200 dark:border-pink-800">
+                          <div className="w-2 h-2 rounded-full bg-pink-500 flex-shrink-0 mt-1.5" />
+                          <div className="flex-1">
+                            <p className="font-semibold text-pink-700 dark:text-pink-300 text-sm uppercase">{o.project || o.purpose || o.destination}</p>
+                            <p className="text-xs text-pink-600 dark:text-pink-400 mt-0.5">📍 {o.destination}</p>
+                            {(o.project || o.purpose) && (
+                              <p className="text-xs text-pink-500 mt-0.5">{o.project ? `Project: ${o.project}` : ''}{o.project && o.purpose ? ' · ' : ''}{o.purpose ? `Purpose: ${o.purpose}` : ''}</p>
+                            )}
+                            <p className="text-xs text-pink-500 mt-0.5">{o.start_date?.slice(0,10)} — {o.end_date?.slice(0,10)} · <span className="font-bold">{totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Attendance */}
+                {ds.attendance.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">🟢 Attendance</p>
+                    {ds.attendance.map((a, i) => {
+                      const inStr = formatTime12(a.clock_in);
+                      const outStr = a.clock_out ? formatTime12(a.clock_out) : null;
+                      const workingHrs = getWorkingHours(a.clock_in, a.clock_out);
+                      return (
+                        <div key={i} className="px-3 py-2.5 rounded-xl bg-[#7B0099]/5 dark:bg-purple-900/20 border border-[#7B0099]/20 dark:border-purple-800 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-[#7B0099] dark:text-purple-300 uppercase tracking-wide">🟢 Present</span>
+                            {workingHrs && (
+                              <span className="text-xs font-bold bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full">⏱ {workingHrs}</span>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-green-500" />
+                              <div>
+                                <p className="text-[10px] text-muted-foreground uppercase font-semibold">Clock In</p>
+                                <p className="text-sm font-bold text-foreground">{inStr}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full ${outStr ? 'bg-red-400' : 'bg-gray-300'}`} />
+                              <div>
+                                <p className="text-[10px] text-muted-foreground uppercase font-semibold">Clock Out</p>
+                                <p className="text-sm font-bold text-foreground">{outStr || '—'}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Personal Notes / Events */}
+                {ds.notes.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">📝 Personal Events</p>
+                    {ds.notes.map((note, i) => {
+                      const isReminder = note.type === 'reminder';
+                      const isMeeting = note.type === 'meeting';
+                      const customCat = customCategories.find(c => c.id === note.type);
+                      const title = note.note_text.split('\n')[0];
+                      let dotColor = 'bg-blue-500';
+                      let bgClass = 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800';
+                      let textClass = 'text-blue-700 dark:text-blue-300';
+                      if (isReminder) { dotColor = 'bg-yellow-500'; bgClass = 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'; textClass = 'text-yellow-700 dark:text-yellow-300'; }
+                      if (isMeeting) { dotColor = 'bg-green-500'; bgClass = 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'; textClass = 'text-green-700 dark:text-green-300'; }
+                      if (customCat) { dotColor = customCat.color.replace('bg-', 'bg-'); bgClass = `${customCat.color}/10 border-${customCat.color.replace('bg-', '')}/30`; textClass = `text-foreground`; }
+                      return (
+                        <div key={i} className={`flex items-start gap-3 px-3 py-2.5 rounded-xl border ${bgClass}`}>
+                          <div className={`w-2 h-2 rounded-full ${dotColor} flex-shrink-0 mt-1.5`} />
+                          <div>
+                            <p className={`font-semibold text-sm ${textClass}`}>{title}</p>
+                            <p className="text-xs text-muted-foreground capitalize mt-0.5">{isReminder ? 'Reminder' : isMeeting ? 'Meeting' : customCat?.name || 'Note'}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-border flex-shrink-0 flex justify-end">
+                <Button
+                  onClick={() => setSelectedDaySummary(null)}
+                  className="bg-gradient-to-r from-[#7B0099] to-purple-600 hover:from-[#5e0080] hover:to-purple-700 text-white font-semibold px-6"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
     </div>
   );
