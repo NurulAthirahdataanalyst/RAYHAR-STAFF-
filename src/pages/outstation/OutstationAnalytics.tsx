@@ -148,8 +148,8 @@ export default function OutstationAnalytics() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
           {/* 1. Total Outstation */}
-          <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-sm bg-purple-50/60 dark:bg-purple-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+          <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
               <Briefcase className="w-24 h-24 text-[#7B0099]" />
             </div>
             <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
@@ -171,8 +171,8 @@ export default function OutstationAnalytics() {
           </Card>
 
           {/* 2. Staff on Outstation */}
-          <Card className="rounded-[20px] border border-emerald-200 dark:border-emerald-900/60 shadow-sm bg-emerald-50/60 dark:bg-emerald-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+          <Card className="rounded-[20px] border border-emerald-200 dark:border-emerald-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-emerald-50/60 dark:bg-emerald-950/30 group relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
               <Users className="w-24 h-24 text-emerald-600" />
             </div>
             <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
@@ -194,8 +194,8 @@ export default function OutstationAnalytics() {
           </Card>
 
           {/* 3. Destinations */}
-          <Card className="rounded-[20px] border border-blue-200 dark:border-blue-900/60 shadow-sm bg-blue-50/60 dark:bg-blue-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+          <Card className="rounded-[20px] border border-blue-200 dark:border-blue-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-blue-50/60 dark:bg-blue-950/30 group relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
               <MapPin className="w-24 h-24 text-blue-600" />
             </div>
             <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
@@ -217,8 +217,8 @@ export default function OutstationAnalytics() {
           </Card>
 
           {/* 4. Ongoing */}
-          <Card className="rounded-[20px] border border-orange-200 dark:border-orange-900/60 shadow-sm bg-orange-50/60 dark:bg-orange-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+          <Card className="rounded-[20px] border border-orange-200 dark:border-orange-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-orange-50/60 dark:bg-orange-950/30 group relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
               <Clock className="w-24 h-24 text-orange-600" />
             </div>
             <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
@@ -240,8 +240,8 @@ export default function OutstationAnalytics() {
           </Card>
 
           {/* 5. Completed */}
-          <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-sm bg-purple-50/60 dark:bg-purple-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+          <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
               <CheckCircle2 className="w-24 h-24 text-purple-600" />
             </div>
             <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">

@@ -771,8 +771,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       {/* ROW 1: Key Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         {/* Attendance Rate */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-[#7B0099]/[0.03] dark:bg-[#7B0099]/[0.05] group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden">
-          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-12 duration-500 pointer-events-none">
+        <Card className="rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-[#7B0099]/[0.03] dark:bg-[#7B0099]/[0.05] group relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-12 group-hover:-translate-y-1.5 pointer-events-none">
             <CalendarCheck2 className="w-28 h-28 text-[#7B0099]" />
           </div>
           <CardContent className="p-4 relative z-10 flex flex-col h-full">
@@ -804,8 +804,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Late Arrivals */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-amber-500/5 dark:bg-amber-500/10 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden">
-          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-12 duration-500 pointer-events-none">
+        <Card className="rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-amber-500/5 dark:bg-amber-500/10 group relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-12 group-hover:-translate-y-1.5 pointer-events-none">
             <Clock className="w-28 h-28 text-amber-500" />
           </div>
           <CardContent className="p-4 relative z-10 flex flex-col h-full">
@@ -826,8 +826,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Absent Days */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-rose-500/5 dark:bg-rose-500/10 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden">
-          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-12 duration-500 pointer-events-none">
+        <Card className="rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-rose-500/5 dark:bg-rose-500/10 group relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-12 group-hover:-translate-y-1.5 pointer-events-none">
             <Flame className="w-28 h-28 text-rose-500" />
           </div>
           <CardContent className="p-4 relative z-10 flex flex-col h-full">
@@ -848,8 +848,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Leave Balance */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-emerald-500/5 dark:bg-emerald-500/10 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden">
-          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-12 duration-500 pointer-events-none">
+        <Card className="rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-emerald-500/5 dark:bg-emerald-500/10 group relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-12 group-hover:-translate-y-1.5 pointer-events-none">
             <Briefcase className="w-28 h-28 text-emerald-500" />
           </div>
           <CardContent className="p-4 relative z-10 flex flex-col h-full">
@@ -871,8 +871,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Outstation Requests */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-blue-500/5 dark:bg-blue-500/10 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden">
-          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-12 duration-500 pointer-events-none">
+        <Card className="rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-blue-500/5 dark:bg-blue-500/10 group relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-12 group-hover:-translate-y-1.5 pointer-events-none">
             <MapPin className="w-28 h-28 text-blue-500" />
           </div>
           <CardContent className="p-4 relative z-10 flex flex-col h-full">
@@ -893,8 +893,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         </Card>
 
         {/* Top Leave */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-fuchsia-500/5 dark:bg-fuchsia-500/10 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden">
-          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-12 duration-500 pointer-events-none">
+        <Card className="rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-fuchsia-500/5 dark:bg-fuchsia-500/10 group relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-12 group-hover:-translate-y-1.5 pointer-events-none">
             <Trophy className="w-28 h-28 text-fuchsia-500" />
           </div>
           <CardContent className="p-4 relative z-10 flex flex-col h-full">
