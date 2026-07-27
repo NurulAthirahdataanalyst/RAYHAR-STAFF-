@@ -9,7 +9,7 @@ import {
   Loader2, Plane, TrendingUp, RefreshCw, Clock, 
   MapPin, CheckCircle2, Search, Filter, MoreHorizontal, 
   AlertCircle, ChevronRight, Activity, Map, ArrowRight,
-  User, CheckCircle, Calendar
+  User, CheckCircle, Calendar, Zap
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
@@ -783,21 +783,32 @@ export default function OutstationDashboard() {
             </Card>
 
             {/* Quick Actions */}
-            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card">
-              <CardHeader className="px-5 py-4 border-b border-gray-50">
-                <CardTitle className="text-[16px] font-bold text-gray-900 dark:text-gray-100">Quick Actions</CardTitle>
+            <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-[16px] bg-white dark:bg-card overflow-hidden">
+              <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center gap-2">
+                <Zap className="w-4 h-4 text-[#7B0099]" />
+                <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest">
+                  Quick Actions
+                </CardTitle>
               </CardHeader>
-              <CardContent className="p-2 grid grid-cols-2 gap-2">
-                {[
-                  { label: "New Assignment", icon: Plane, path: "/outstation/assignment" },
-                  { label: "Calendar View", icon: Calendar, path: "/outstation/calendar" },
-                  { label: "Analytics", icon: Activity, path: "/outstation/analytics" },
-                  { label: "Reports", icon: Map, path: "/outstation/reports" },
-                ].map((action, i) => (
-                  <Button key={i} variant="ghost" className="h-12 justify-start px-3 text-[13px] font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:bg-slate-900/50 hover:text-purple-700 rounded-[12px] group transition-colors" onClick={() => navigate(action.path)}>
-                    <action.icon className="w-4 h-4 mr-2 text-gray-400 group-hover:text-purple-600" /> {action.label}
-                  </Button>
-                ))}
+              <CardContent className="p-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div onClick={() => navigate("/outstation/assignment")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
+                    <Plane className="w-6 h-6 text-[#7B0099] mb-2" />
+                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase text-center">New Assignment</span>
+                  </div>
+                  <div onClick={() => navigate("/outstation/calendar")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
+                    <Calendar className="w-6 h-6 text-[#7B0099] mb-2" />
+                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase text-center">Calendar View</span>
+                  </div>
+                  <div onClick={() => navigate("/outstation/analytics")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
+                    <Activity className="w-6 h-6 text-[#7B0099] mb-2" />
+                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase text-center">Analytics</span>
+                  </div>
+                  <div onClick={() => navigate("/outstation/reports")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
+                    <Map className="w-6 h-6 text-[#7B0099] mb-2" />
+                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase text-center">Reports</span>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
