@@ -104,10 +104,12 @@ export default function LeaveReports() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageActions>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-6">
 
-          
-          <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
+        {/* Filter Toolbar Line directly under main header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
+          {/* LEFT: DAY | MONTH | YEAR View Toggle Bar */}
+          <div className="inline-flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700 shadow-xs shrink-0">
             <button
               onClick={() => setViewType("day")}
               className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
@@ -140,7 +142,8 @@ export default function LeaveReports() {
             </button>
           </div>
 
-          <div className="flex flex-wrap gap-2 items-center">
+          {/* RIGHT: Active Filter Controls (Date/Month Picker, Export Button) */}
+          <div className="flex flex-wrap gap-2 items-center sm:justify-end">
             {viewType === "day" ? (
               <input
                 type="date"
@@ -166,10 +169,7 @@ export default function LeaveReports() {
             )}
             <ExportDropdown onExportCSV={handleExportCSV} />
           </div>
-        
-</PageActions>
-
-<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        </div>
 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <Card className="border-border shadow-sm">
             <CardContent className="p-6 flex items-center gap-4">

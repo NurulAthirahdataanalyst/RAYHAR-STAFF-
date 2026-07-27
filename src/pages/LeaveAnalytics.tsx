@@ -358,6 +358,7 @@ export default function LeaveAnalytics() {
 
 
   // ─ Filter state ─
+  const [viewType, setViewType] = useState<"day" | "month" | "year">("month");
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [selectedYear, setSelectedYear] = useState(
     new Date().getFullYear().toString(),
@@ -1006,43 +1007,88 @@ export default function LeaveAnalytics() {
   return (
     <div className="space-y-4 animate-in fade-in duration-500 max-w-[1600px] mx-auto px-4 pt-2 pb-6">
       
-      <PageActions>
-        <div className="flex flex-wrap items-center justify-end gap-2.5 w-full">
+      {/* Filter Toolbar Line directly under main header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
+        {/* LEFT: DAY | MONTH | YEAR View Toggle Bar */}
+        <div className="inline-flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700 shadow-xs shrink-0">
+          <button
+            onClick={() => {
+              setViewType("day");
+              if (selectedMonth === "all") setSelectedMonth((new Date().getMonth() + 1).toString());
+            }}
+            className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
+              viewType === "day"
+                ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+            }`}
+          >
+            DAY
+          </button>
+          <button
+            onClick={() => {
+              setViewType("month");
+              if (selectedMonth === "all") setSelectedMonth((new Date().getMonth() + 1).toString());
+            }}
+            className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
+              viewType === "month"
+                ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+            }`}
+          >
+            MONTH
+          </button>
+          <button
+            onClick={() => {
+              setViewType("year");
+              setSelectedMonth("all");
+            }}
+            className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
+              viewType === "year"
+                ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+            }`}
+          >
+            YEAR
+          </button>
+        </div>
+
+        {/* RIGHT: Active Filter Controls (Year, Month, Branch, Leave Type, Export Button) */}
+        <div className="flex flex-wrap items-center justify-end gap-2.5">
           <YearPopover
             year={selectedYear}
             onSelectYear={setSelectedYear}
             className="w-[110px] h-9 px-3 text-[11px] font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-[#7B0099]/40 transition-colors flex items-center justify-between cursor-pointer"
           />
-            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-[120px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
-                <SelectValue placeholder="Month" />
-              </SelectTrigger>
-              <SelectContent>
-                {MONTHS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            {!isScopedRole && (
-              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="w-[140px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
-                  <SelectValue placeholder="Branch" />
-                </SelectTrigger>
-                <SelectContent>
-                  {BRANCHES.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            )}
-            <Select value={selectedType} onValueChange={setSelectedType}>
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger className="w-[120px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
+              <SelectValue placeholder="Month" />
+            </SelectTrigger>
+            <SelectContent>
+              {MONTHS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          {!isScopedRole && (
+            <Select value={selectedBranch} onValueChange={setSelectedBranch}>
               <SelectTrigger className="w-[140px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
-                <SelectValue placeholder="Leave Type" />
+                <SelectValue placeholder="Branch" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All Types">All Types</SelectItem>
-                {LEAVE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                {BRANCHES.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
               </SelectContent>
             </Select>
-            <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
+          )}
+          <Select value={selectedType} onValueChange={setSelectedType}>
+            <SelectTrigger className="w-[140px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
+              <SelectValue placeholder="Leave Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All Types">All Types</SelectItem>
+              {LEAVE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
         </div>
-      </PageActions>
+      </div>
 
       {/* 2. Executive KPI Cards (Row 1) */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-4">
