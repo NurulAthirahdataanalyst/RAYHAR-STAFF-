@@ -641,6 +641,8 @@ export default function Calendar() {
                 mode="single"
                 selected={selectedDate}
                 onSelect={(d) => d && setSelectedDate(d)}
+                month={selectedDate}
+                onMonthChange={(m) => setSelectedDate(m)}
                 className="w-full"
                 classNames={{
                   months: "w-full",
@@ -665,8 +667,24 @@ export default function Calendar() {
                   day_hidden: "invisible",
                 }}
               />
+              {/* Custom Clear / Today footer */}
+              <div className="flex items-center justify-between pt-1 px-1 border-t border-border/30 mt-2">
+                <button
+                  onClick={() => setSelectedDate(new Date())}
+                  className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors py-1 px-2 rounded hover:bg-muted"
+                >
+                  Clear
+                </button>
+                <button
+                  onClick={() => setSelectedDate(new Date())}
+                  className="text-xs font-bold text-[#7B0099] hover:text-[#5e0080] transition-colors py-1 px-2 rounded hover:bg-[#7B0099]/10"
+                >
+                  Today
+                </button>
+              </div>
             </div>
           </Card>
+
 
           <Card className="border-border/50 bg-card overflow-hidden rounded-[16px] shadow-sm">
             <div className="p-5">
