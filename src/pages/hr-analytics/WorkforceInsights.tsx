@@ -21,6 +21,32 @@ import { MissingPunchCard } from "./MissingPunchCard";
 
 const COLORS = ['#4f46e5', '#eab308', '#94a3b8', '#DC2626', '#a855f7', '#ec4899']; // Present, Late, On Leave, Absent, Comp Leave, Outstation
 
+const BRANCH_NAMES: Record<string, string> = {
+  HQ: "HQ",
+  KMM: "KMM - Kemaman",
+  TGG: "TGG - Kuala Terengganu",
+  CNH: "CNH - Cheneh",
+  KBG: "KBG - Kuala Berang",
+  DGN: "DGN - Dungun",
+  JTH: "JTH - Jertih",
+  KBR: "KBR - Kota Baru",
+  RMP: "RMP - Rompin",
+  MZM: "MZM - Muadzam Shah",
+  SHA: "SHA - Shah Alam",
+  BBB: "BBB - Bandar Baru Bangi",
+  KUL: "KUL - Kuala Lumpur",
+  IPH: "IPH - Ipoh",
+  MJG: "MJG - Manjung",
+  MLK: "MLK - Melaka",
+  KKS: "KKS - Kuala Kangsar",
+  TWU: "TWU - Tawau",
+  SNS: "SNS - Seremban",
+  AOR: "AOR - Alor Setar",
+  BTM: "BTM - Bertam",
+  BTP: "BTP - Batu Pahat",
+  JB: "JB - Johor Bharu"
+};
+
 const cardHoverEffects: Record<string, string> = {
   emerald: "cursor-pointer transition-all duration-200 hover:border-emerald-500 hover:ring-1 hover:ring-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-slate-900/50",
   orange: "cursor-pointer transition-all duration-200 hover:border-orange-500 hover:ring-1 hover:ring-orange-500 hover:bg-orange-50/50 dark:hover:bg-slate-900/50",
@@ -954,41 +980,53 @@ export default function WorkforceInsights() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                      {tempAssignments.slice(0, 3).map((a, i) => {
-                        const today = new Date();
-                        today.setHours(0,0,0,0);
-                        const start = new Date(a.start_date); start.setHours(0,0,0,0);
-                        const end = new Date(a.end_date); end.setHours(23,59,59,999);
-                        
-                        let sColor = "bg-gray-100 text-gray-700 border-gray-200";
-                        let sDot = "bg-gray-500";
-                        let sLabel = a.status;
-                        
-                        if (a.status === 'Completed' || (a.status === 'Active' && end < today)) {
+                      {tempAssignments.slice(0, 5).map((a, i) => {
+                        const empName = a.name || a.full_name || a.employee_name || 'N/A';
+                        const empRole = a.role ? a.role.replace(/_/g, ' ').toUpperCase() : '';
+                        const primaryBranch = a.primary_branch || a.branch || '';
+                        const empRoleBranch = empRole && primaryBranch ? `${empRole} • ${primaryBranch}` : (empRole || primaryBranch);
+
+                        const origBranchCode = a.primary_branch || a.original_branch || a.branch || 'HQ';
+                        const origBranchName = BRANCH_NAMES[origBranchCode] || origBranchCode;
+
+                        const tempBranchCode = a.temp_branch || a.temporary_branch || a.location || a.assigned_branch || 'N/A';
+                        const tempBranchName = BRANCH_NAMES[tempBranchCode] || tempBranchCode;
+
+                        const start = a.start_date ? new Date(a.start_date) : null;
+                        const end = a.end_date ? new Date(a.end_date) : null;
+
+                        const startDateStr = start ? format(start, "MMM d, yyyy") : "";
+                        const endDateStr = end ? format(end, "MMM d, yyyy") : "Ongoing";
+                        const durationText = start ? `${startDateStr} - ${endDateStr}` : "—";
+
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        const isCompleted = a.status === 'Completed' || (a.status === 'Active' && end && end.toISOString().split('T')[0] < todayStr);
+
+                        let sColor = "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20";
+                        let sDot = "bg-emerald-500";
+                        let sLabel = "Active";
+
+                        if (isCompleted) {
                           sColor = "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20";
                           sDot = "bg-blue-500";
                           sLabel = "Completed";
-                        } else if (a.status === 'Active' && today >= start && today <= end) {
-                          sColor = "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20";
-                          sDot = "bg-emerald-500";
-                          sLabel = "Active";
-                        } else if (a.status === 'Active' && today < start) {
-                          sColor = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20";
-                          sDot = "bg-amber-500";
-                          sLabel = "Upcoming";
+                        } else if (a.status === 'Cancelled') {
+                          sColor = "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20";
+                          sDot = "bg-red-500";
+                          sLabel = "Cancelled";
                         }
-                        
-                        const days = Math.round((new Date(a.end_date).getTime() - new Date(a.start_date).getTime()) / (1000 * 3600 * 24)) + 1;
-                        const durationText = sLabel === 'Upcoming' ? `Starts ${start.toLocaleString('default', { month: 'short' })}` : (sLabel === 'Completed' ? 'Completed' : `${days} Days`);
 
                         return (
                           <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                            <td className="py-3 pr-4 text-xs font-medium text-slate-900 dark:text-slate-100">{a.employee_name || a.full_name || 'N/A'}</td>
-                            <td className="py-3 pr-4 text-xs text-slate-500">{a.original_branch || a.branch || 'N/A'}</td>
-                            <td className="py-3 pr-4 text-xs font-medium text-slate-700 dark:text-slate-300">{a.assigned_branch || 'N/A'}</td>
-                            <td className="py-3 pr-4 text-xs text-slate-500">{durationText}</td>
+                            <td className="py-3 pr-4">
+                              <div className="text-xs font-bold text-slate-900 dark:text-slate-100">{empName}</div>
+                              {empRoleBranch && <div className="text-[10px] text-slate-500 font-medium mt-0.5">{empRoleBranch}</div>}
+                            </td>
+                            <td className="py-3 pr-4 text-xs text-slate-500 font-medium">{origBranchName}</td>
+                            <td className="py-3 pr-4 text-xs font-semibold text-slate-800 dark:text-slate-200">{tempBranchName}</td>
+                            <td className="py-3 pr-4 text-xs text-slate-500 font-medium">{durationText}</td>
                             <td className="py-3">
-                              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wide ${sColor}`}>
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wide ${sColor}`}>
                                 <span className={`w-1.5 h-1.5 rounded-full ${sDot}`}></span>
                                 {sLabel}
                               </span>
