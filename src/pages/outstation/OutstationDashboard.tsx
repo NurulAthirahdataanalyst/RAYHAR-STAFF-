@@ -366,7 +366,7 @@ export default function OutstationDashboard() {
         title="Outstation Dashboard" 
         subtitle="Monitor employee business travel across all branches." 
       />
-      <main className="p-6">
+      <div className="py-6">
         <PageActions>
           <Button className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#7B0099] hover:bg-[#3b0764] w-full sm:w-auto" onClick={() => navigate("/outstation/assignment", { state: { openNew: true } })}>
             <Plane className="w-4 h-4 mr-2" /> New Assignment 
