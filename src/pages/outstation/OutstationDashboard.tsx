@@ -9,7 +9,7 @@ import {
   Loader2, Plane, TrendingUp, RefreshCw, Clock, 
   MapPin, CheckCircle2, Search, Filter, MoreHorizontal, 
   AlertCircle, ChevronRight, Activity, Map, ArrowRight,
-  User, CheckCircle, Calendar, Zap
+  User, CheckCircle, Calendar, Zap, Briefcase, Users, RotateCcw
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
@@ -366,120 +366,167 @@ export default function OutstationDashboard() {
           </Button>
         </PageActions>
 
-        {/* ROW 1: Enterprise KPI Cards */}
+        {/* ROW 1: Enterprise Analytics-Style KPI Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 2xl:grid-cols-6 gap-4 mb-6">
-            {/* 0. Total Outstation */}
-            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-[#7B0099]" />
-              <CardContent className="p-4 flex flex-col flex-1 justify-center">
-                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1 whitespace-nowrap">Total Outstation</p>
-                {loading ? (
-                  <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
-                ) : (
-                  <div className="flex flex-col mt-1 mb-1">
-                    <span className="text-[28px] font-extrabold text-[#7B0099] dark:text-purple-400 leading-none">{totalEventsCount}</span>
-                    <span className="text-[11px] font-medium text-gray-500 mt-1 whitespace-nowrap">{completedEventsCount} Completed</span>
+            {/* 1. Total Outstation */}
+            <Card className="rounded-[20px] border border-purple-500/20 shadow-xs bg-[#7B0099]/[0.03] dark:bg-[#7B0099]/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+                <Briefcase className="w-24 h-24 text-[#7B0099]" />
+              </div>
+              <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099] shadow-xs"></div>
+                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
                   </div>
-                )}
+                  {loading ? (
+                    <Skeleton className="h-[36px] w-16 my-2" />
+                  ) : (
+                    <div className="my-1">
+                      <span className="text-3xl font-extrabold text-[#7B0099] dark:text-purple-400 leading-none">{totalEventsCount}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
+                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                    {completedEventsCount} Completed
+                  </p>
+                </div>
               </CardContent>
             </Card>
             
-            {/* 1. Active Outstation */}
-            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-green-500" />
-              <CardContent className="p-4 flex flex-col flex-1 justify-center">
-                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">Active Outstation</p>
-                {loading ? (
-                  <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
-                ) : (
-                  <div className="flex flex-col mt-1 mb-1">
-                    <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{activeCount}</span>
+            {/* 2. Active Outstation */}
+            <Card className="rounded-[20px] border border-emerald-500/20 shadow-xs bg-emerald-500/[0.03] dark:bg-emerald-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+                <Plane className="w-24 h-24 text-emerald-600" />
+              </div>
+              <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></div>
+                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Active Outstation</span>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* 2. Departing Today */}
-            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-orange-500" />
-              <CardContent className="p-4 flex flex-col flex-1 justify-center">
-                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">Departing Today</p>
-                {loading ? (
-                  <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
-                ) : (
-                  <div className="flex flex-col mt-1 mb-1">
-                    <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{departingTodayCount}</span>
-                    <span className="text-[11px] font-medium text-gray-500 mt-1">Starts Today</span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* 3. Returning Today */}
-            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-blue-500" />
-              <CardContent className="p-4 flex flex-col flex-1 justify-center">
-                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">Returning Today</p>
-                {loading ? (
-                  <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
-                ) : (
-                  <div className="flex flex-col mt-1 mb-1">
-                    <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{returningTodayCount}</span>
-                    <span className="text-[11px] font-medium text-gray-500 mt-1">Expected Back</span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* 4. Upcoming Events */}
-            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-purple-500" />
-              <CardContent className="p-4 flex flex-col flex-1 justify-center">
-                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">Upcoming Events</p>
-                {loading ? (
-                  <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
-                ) : (
-                  <div className="flex flex-col mt-1 mb-1">
-                    <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{upcomingAssignmentsCount}</span>
-                    <span className="text-[11px] font-medium text-gray-500 mt-1">Next 7 Days</span>
-                  </div>
-                )}
-                <div className="mt-auto pt-3 border-t border-gray-50 dark:border-slate-800/50">
-                  {(() => {
-                    if (upcomingNext7Days.length === 0) {
-                      return <p className="text-[11px] text-gray-500 font-medium">No upcoming events</p>;
-                    }
-                    const nearest = [...upcomingNext7Days].sort((a,b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())[0];
-                    const days = Math.max(1, Math.ceil((new Date(nearest.end_date).getTime() - new Date(nearest.start_date).getTime()) / (1000 * 3600 * 24)));
-                    return (
-                      <div className="flex flex-col gap-0.5">
-                        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-700 dark:text-gray-200">
-                          <Calendar className="w-3 h-3 text-gray-400" />
-                          <span>{formatShortDate(nearest.start_date)} - {formatShortDate(nearest.end_date)}</span>
-                        </div>
-                        <p className="text-[10px] font-medium text-orange-600 pl-[18px]">
-                          {days} {days === 1 ? 'Day' : 'Days'} Total
-                        </p>
-                      </div>
-                    );
-                  })()}
+                  {loading ? (
+                    <Skeleton className="h-[36px] w-16 my-2" />
+                  ) : (
+                    <div className="my-1">
+                      <span className="text-3xl font-extrabold text-emerald-700 dark:text-emerald-400 leading-none">{activeCount}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
+                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                    Currently Away
+                  </p>
                 </div>
               </CardContent>
             </Card>
 
-            {/* 5. Employees Scheduled */}
-            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-yellow-500" />
-              <CardContent className="p-4 flex flex-col flex-1 justify-center">
-                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1 whitespace-nowrap">Employees Scheduled</p>
-                {loading ? (
-                  <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
-                ) : (
-                  <div className="flex flex-col mt-1 mb-1">
-                    <span className="text-[28px] font-extrabold text-gray-900 dark:text-gray-100 leading-none">{employeesScheduledCount}</span>
-                    <span className="text-[11px] font-medium text-gray-500 mt-1 whitespace-nowrap">Across Upcoming Trips</span>
+            {/* 3. Departing Today */}
+            <Card className="rounded-[20px] border border-orange-500/20 shadow-xs bg-orange-500/[0.03] dark:bg-orange-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+                <Clock className="w-24 h-24 text-orange-600" />
+              </div>
+              <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-xs"></div>
+                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Departing Today</span>
                   </div>
-                )}
+                  {loading ? (
+                    <Skeleton className="h-[36px] w-16 my-2" />
+                  ) : (
+                    <div className="my-1">
+                      <span className="text-3xl font-extrabold text-orange-700 dark:text-orange-400 leading-none">{departingTodayCount}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
+                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                    Starts Today
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 4. Returning Today */}
+            <Card className="rounded-[20px] border border-blue-500/20 shadow-xs bg-blue-500/[0.03] dark:bg-blue-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+                <RotateCcw className="w-24 h-24 text-blue-600" />
+              </div>
+              <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs"></div>
+                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Returning Today</span>
+                  </div>
+                  {loading ? (
+                    <Skeleton className="h-[36px] w-16 my-2" />
+                  ) : (
+                    <div className="my-1">
+                      <span className="text-3xl font-extrabold text-blue-700 dark:text-blue-400 leading-none">{returningTodayCount}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
+                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                    Expected Back
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 5. Upcoming Events */}
+            <Card className="rounded-[20px] border border-purple-500/20 shadow-xs bg-purple-500/[0.03] dark:bg-purple-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+                <Calendar className="w-24 h-24 text-purple-600" />
+              </div>
+              <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-xs"></div>
+                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Upcoming Events</span>
+                  </div>
+                  {loading ? (
+                    <Skeleton className="h-[36px] w-16 my-2" />
+                  ) : (
+                    <div className="my-1">
+                      <span className="text-3xl font-extrabold text-purple-700 dark:text-purple-400 leading-none">{upcomingAssignmentsCount}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
+                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                    Next 7 Days
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 6. Employees Scheduled */}
+            <Card className="rounded-[20px] border border-amber-500/20 shadow-xs bg-amber-500/[0.03] dark:bg-amber-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+                <Users className="w-24 h-24 text-amber-600" />
+              </div>
+              <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs"></div>
+                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Employees Scheduled</span>
+                  </div>
+                  {loading ? (
+                    <Skeleton className="h-[36px] w-16 my-2" />
+                  ) : (
+                    <div className="my-1">
+                      <span className="text-3xl font-extrabold text-amber-700 dark:text-amber-400 leading-none">{employeesScheduledCount}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
+                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                    Across Upcoming Trips
+                  </p>
+                </div>
               </CardContent>
             </Card>
         </div>
