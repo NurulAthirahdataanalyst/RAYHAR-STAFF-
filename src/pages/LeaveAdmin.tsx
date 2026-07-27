@@ -228,8 +228,21 @@ export default function LeaveAdmin() {
   // Fetch bakiLayak when selectedRequest changes
   useEffect(() => {
     if (selectedRequest) {
-      if ((selectedRequest as any).balance !== undefined && (selectedRequest as any).balance !== null) {
-        setBakiLayak((selectedRequest as any).balance);
+      const typeUpper = (selectedRequest.type || "").toUpperCase();
+      let reqBal: number | string | undefined = (selectedRequest as any).balance;
+      
+      if (reqBal === undefined || reqBal === null) {
+        if (['ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN'].includes(typeUpper)) {
+          reqBal = (selectedRequest as any).annual_leave_balance;
+        } else if (['SICK LEAVE', 'MEDICAL LEAVE', 'CUTI SAKIT'].includes(typeUpper)) {
+          reqBal = (selectedRequest as any).medical_leave_balance;
+        } else if (['REPLACEMENT LEAVE', 'CUTI GANTI'].includes(typeUpper)) {
+          reqBal = (selectedRequest as any).replacement_leave_balance;
+        }
+      }
+
+      if (reqBal !== undefined && reqBal !== null) {
+        setBakiLayak(reqBal);
       } else {
         setBakiLayak("-");
       }
@@ -246,7 +259,6 @@ export default function LeaveAdmin() {
             } : null);
 
             if (balances) {
-              const typeUpper = selectedRequest.type.toUpperCase();
               let balanceToDisplay: string | number = "-";
               
               if (['ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN'].includes(typeUpper)) {
@@ -285,12 +297,17 @@ export default function LeaveAdmin() {
 
       const formatted = data.leaveRequests.map((request: any) => ({
         id: request.leave_id,
+        userId: request.user_id,
         employee: request.full_name || request.user_id,
         branch: request.branch || "HQ",
         type: request.leave_type,
         from: formatDate(request.start_date),
         to: formatDate(request.end_date),
         days: Number(request.days || 0),
+        balance: request.balance !== undefined && request.balance !== null ? Number(request.balance) : (request.annual_leave_balance !== undefined ? Number(request.annual_leave_balance) : undefined),
+        annual_leave_balance: request.annual_leave_balance,
+        medical_leave_balance: request.medical_leave_balance,
+        replacement_leave_balance: request.replacement_leave_balance,
         reason: request.reason || "-",
         status: request.status || "Pending HOD",
         // Mapped from backend snake_case to frontend camelCase
