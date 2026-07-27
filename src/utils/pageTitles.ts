@@ -13,7 +13,7 @@ export interface PageInfo {
   icon: LucideIcon;
 }
 
-export function getPageTitleInfo(pathname: string): PageInfo {
+export function getPageTitleInfo(pathname: string, userRole?: string): PageInfo {
   // Dashboard
   if (pathname === "/") return {
     title: "Dashboard",
@@ -48,7 +48,7 @@ export function getPageTitleInfo(pathname: string): PageInfo {
   // Outstation Management
   if (pathname === "/outstation") return {
     title: "Outstation Dashboard",
-    subtitle: "Monitor all business outstation activities and assignment status.",
+    subtitle: "Manage official business travel, location check-ins, and assignment schedules.",
     icon: MapPinned
   };
   if (pathname === "/outstation/assignment") return {
@@ -194,7 +194,7 @@ export function getPageTitleInfo(pathname: string): PageInfo {
 
   // Reports
   if (pathname === "/reports/attendance" || pathname === "/reports") return {
-    title: "Attendance Reports",
+    title: (userRole || "").toLowerCase() === "employee" ? "Workforce Reports & Analytics" : "Attendance Reports",
     subtitle: "Generate detailed attendance reports for monitoring and compliance.",
     icon: FileClock
   };

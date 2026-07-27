@@ -1,6 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { getPageTitleInfo } from "@/utils/pageTitles";
 import { LucideIcon } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface PageHeaderProps {
   title?: string;
@@ -10,7 +11,9 @@ export interface PageHeaderProps {
 
 export default function PageHeader({ title, description, icon }: PageHeaderProps) {
   const location = useLocation();
-  const pageInfo = getPageTitleInfo(location.pathname);
+  const { user } = useAuth();
+  const role = (user?.role || localStorage.getItem('user_role') || '').toLowerCase();
+  const pageInfo = getPageTitleInfo(location.pathname, role);
   
   const displayTitle = title || pageInfo.title;
   const displaySubtitle = description || pageInfo.subtitle;
