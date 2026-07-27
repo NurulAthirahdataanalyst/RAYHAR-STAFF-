@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 import { API_BASE_URL } from "../config/api";
 
-export type UserRole = "employee" | "branch_leader" | "hr_admin" | "managing_director" | "finance_manager" | "branch_officer" | "head_of_department";
+export type UserRole = "employee" | "branch_leader" | "hr_admin" | "managing_director" | "operation_manager" | "branch_officer" | "head_of_department";
 
 interface RoleContextType {
   role: UserRole;
@@ -54,7 +54,7 @@ export const RoleProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (parsedRole === 'hr' || parsedRole === 'hr admin') parsedRole = 'hr_admin';
           if (parsedRole === 'md' || parsedRole === 'managing director') parsedRole = 'managing_director';
           if (parsedRole === 'branch leader') parsedRole = 'branch_leader';
-          if (parsedRole === 'finance manager') parsedRole = 'finance_manager';
+          if (parsedRole === 'finance manager' || parsedRole === 'finance_manager' || parsedRole === 'operation manager' || parsedRole === 'operations manager' || parsedRole === 'operation_manager') parsedRole = 'operation_manager';
           if (parsedRole === 'head of department' || parsedRole === 'hod') parsedRole = 'head_of_department';
           
           setRole(parsedRole as UserRole);

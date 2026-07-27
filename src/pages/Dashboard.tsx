@@ -233,7 +233,7 @@ export default function Dashboard() {
   const fetchUpcomingOutstations = useCallback(async () => {
     try {
       if (!dashboardUserId) return;
-      const outstationRole = ["hr_admin", "managing_director", "finance_manager", "head_of_department", "branch_leader"].includes(role || "") ? role : "employee";
+      const outstationRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"].includes(role || "") ? role : "employee";
       const params = new URLSearchParams({
         role: outstationRole || "employee",
         user_id: dashboardUserId.toString(),
@@ -274,7 +274,7 @@ export default function Dashboard() {
   useEffect(() => {
     fetchDashboardData();
     fetchUpcomingOutstations();
-    if (["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role)) {
+    if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(role)) {
       fetchWhoOutToday();
     }
   }, [selectedDate, fetchDashboardData, fetchUpcomingOutstations, fetchWhoOutToday, role]);
@@ -332,7 +332,7 @@ export default function Dashboard() {
           data.type === 'refresh'
         ) {
           // If the event is from another branch, ignore if role is restricted
-          if (role === "branch_leader" || role === "branch_officer" || !["hr_admin", "managing_director", "finance_manager"].includes(role)) {
+          if (role === "branch_leader" || role === "branch_officer" || !["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role)) {
             if (data.branch && data.branch !== userBranch) return;
           }
           
@@ -342,7 +342,7 @@ export default function Dashboard() {
           }
           
           fetchDashboardData(true);
-          if (["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role)) {
+          if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(role)) {
             fetchWhoOutToday();
           }
         }
@@ -460,8 +460,8 @@ export default function Dashboard() {
   const isClockedOut = safeTodayStatus.includes("Clocked Out");
   const isOnLeave = safeTodayStatus === "On Leave";
   const isCompanyLeave = safeTodayStatus === "Company Leave";
-  const isElevatedRole = ["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role);
-  const canSeeSystem = ["hr_admin", "managing_director", "finance_manager", "head_of_department"].includes(role);
+  const isElevatedRole = ["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(role);
+  const canSeeSystem = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(role);
   
   const displayStatus = safeTodayStatus
     .replace("Clocked In (Outstation)", "Outstation")

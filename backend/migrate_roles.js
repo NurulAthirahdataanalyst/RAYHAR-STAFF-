@@ -40,7 +40,7 @@ const pgPool = connectionString ? new Pool({
       console.log("Inserting default roles...");
       const defaultRoles = [
         'employee', 'branch_officer', 'branch_leader', 'head_of_department', 
-        'finance_manager', 'hr_admin', 'managing_director'
+        'operation_manager', 'hr_admin', 'managing_director'
       ];
       
       for (const role of defaultRoles) {
@@ -48,7 +48,11 @@ const pgPool = connectionString ? new Pool({
       }
       console.log("Default roles inserted.");
     } else {
-      console.log("Roles already exist, skipping default inserts.");
+      console.log("Roles already exist, running migration for operation_manager...");
+      await pgPool.query("UPDATE roles SET name = 'operation_manager' WHERE name = 'finance_manager'");
+      await pgPool.query("UPDATE user_role SET role = 'operation_manager' WHERE role = 'finance_manager'");
+      await pgPool.query("UPDATE leave_requests SET status = 'Pending Operation Manager' WHERE status = 'Pending Finance' OR status = 'Pending Finance Manager'");
+      await pgPool.query("UPDATE leave_approval_history SET approver_role = 'operation_manager' WHERE approver_role = 'finance_manager'");
     }
     
     console.log("Migration successful!");

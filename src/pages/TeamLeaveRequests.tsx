@@ -43,7 +43,7 @@ export default function TeamLeaveRequests() {
     if (!approverRole) return "Admin";
     if (approverRole === "hr_admin") return "HR Admin";
     if (approverRole === "managing_director") return "Managing Director";
-    if (approverRole === "finance_manager") return "Finance Manager";
+    if (approverRole === "operation_manager" || approverRole === "finance_manager") return "Operation Manager";
     if (approverRole === "branch_leader") return `Branch Leader (${approverBranch || 'HQ'})`;
     if (approverRole === "head_of_department") return `HOD (${approverDepartment || 'General'})`;
     return formatRole(approverRole);

@@ -480,8 +480,8 @@ function formatApproverRole(role, department, branch) {
   if (normalized === "branch_leader") {
     return `Branch Leader (${branch || "N/A"})`;
   }
-  if (normalized === "finance_manager") {
-    return "Finance Manager";
+  if (normalized === "operation_manager" || normalized === "finance_manager") {
+    return "Operation Manager";
   }
   if (normalized === "managing_director") {
     return "Managing Director";
@@ -1003,7 +1003,7 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
         console.log("Inserting default roles into database...");
         const defaultRoles = [
           'employee', 'branch_officer', 'branch_leader', 'head_of_department', 
-          'finance_manager', 'hr_admin', 'managing_director'
+          'operation_manager', 'finance_manager', 'hr_admin', 'managing_director'
         ];
         for (const role of defaultRoles) {
           await connection.query("INSERT INTO roles (name, status) VALUES (?, 'Active')", [role]);
@@ -1695,7 +1695,7 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
   // Pending approvals — role-filtered
   let pendingFilters = ["lr.status IN ('Pending', 'Pending Finance', 'Pending MD', 'Pending HOD')"];
   let pendingParams = [];
-  if (!['hr_admin', 'managing_director', 'finance_manager'].includes(role)) {
+  if (!['hr_admin', 'managing_director', 'operation_manager', 'finance_manager'].includes(role)) {
     if (branch) { pendingFilters.push("p.branch = ?"); pendingParams.push(branch); }
     if (department) { pendingFilters.push("p.department = ?"); pendingParams.push(department); }
   }
@@ -2313,7 +2313,7 @@ app.get("/api/branch-employees", async (req, res) => {
       ORDER BY 
         CASE 
           WHEN ur.role = 'managing_director' THEN 1
-          WHEN ur.role = 'finance_manager' THEN 2
+          WHEN ur.role = 'operation_manager' OR ur.role = 'finance_manager' THEN 2
           WHEN ur.role = 'hr_admin' THEN 3
           WHEN ur.role = 'head_of_department' THEN 4
           WHEN ur.role = 'branch_leader' THEN 5
@@ -3182,15 +3182,15 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
         let notificationTitle = "";
         let notificationMessage = "";
 
-        if (nextStatus === "Pending Finance") {
-          const [fmRows] = await pool.query(`SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'finance_manager' AND p.status = 'Active' LIMIT 1`);
-          if (fmRows.length > 0) {
-            targetEmail = fmRows[0].email;
-            targetUserId = fmRows[0].user_id;
-            subject = `Leave Request Pending Finance Approval: ${leaveData.employee_name}`;
-            html = `<p>Approval stage complete for <strong>${leaveData.employee_name}</strong>. It is now pending your Finance review.</p>`;
+        if (nextStatus === "Pending Operation" || nextStatus === "Pending Operation Manager" || nextStatus === "Pending Finance") {
+          const [omRows] = await pool.query(`SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role IN ('operation_manager', 'finance_manager') AND p.status = 'Active' LIMIT 1`);
+          if (omRows.length > 0) {
+            targetEmail = omRows[0].email;
+            targetUserId = omRows[0].user_id;
+            subject = `Leave Request Pending Operation Manager Approval: ${leaveData.employee_name}`;
+            html = `<p>Approval stage complete for <strong>${leaveData.employee_name}</strong>. It is now pending your Operation Manager review.</p>`;
             notificationTitle = `Leave Approval Required`;
-            notificationMessage = `${leaveData.employee_name} requires your Finance approval for a leave request.`;
+            notificationMessage = `${leaveData.employee_name} requires your Operation Manager approval for a leave request.`;
           }
         } else if (nextStatus === "Pending MD") {
           const [mdRows] = await pool.query(`SELECT p.email, p.user_id FROM profiles p JOIN user_role ur ON p.user_id = ur.user_id WHERE ur.role = 'managing_director' AND p.status = 'Active' LIMIT 1`);
@@ -3619,7 +3619,7 @@ app.get("/api/employees", async (req, res) => {
       ORDER BY 
         CASE 
           WHEN ur.role = 'managing_director' THEN 1
-          WHEN ur.role = 'finance_manager' THEN 2
+          WHEN ur.role = 'operation_manager' OR ur.role = 'finance_manager' THEN 2
           WHEN ur.role = 'hr_admin' THEN 3
           WHEN ur.role = 'head_of_department' THEN 4
           WHEN ur.role = 'branch_leader' THEN 5
@@ -4559,7 +4559,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
   if (role === 'hr' || role === 'hr admin') role = 'hr_admin';
   if (role === 'md' || role === 'managing director') role = 'managing_director';
   if (role === 'branch leader') role = 'branch_leader';
-  if (role === 'finance manager') role = 'finance_manager';
+  if (role === 'finance manager' || role === 'operation manager' || role === 'operations manager') role = 'operation_manager';
   if (role === 'head of department' || role === 'hod') role = 'head_of_department';
 
   const branch = req.query.branch ? req.query.branch.toString().trim() : "";
@@ -4584,7 +4584,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     let adminStats = null;
     let globalRecentActivities = null;
 
-    if (["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role)) {
+    if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(role)) {
       const isBranchLeader = role === "branch_leader";
       const isHOD = role === "head_of_department";
       const department = req.query.department;
@@ -5055,7 +5055,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
             CASE LOWER(oa.assigned_by_role) 
               WHEN 'managing_director' THEN 'Managing Director' 
               WHEN 'hr_admin' THEN 'HR' 
-              WHEN 'finance_manager' THEN 'Finance Manager'
+              WHEN 'operation_manager' THEN 'Operation Manager' 
+              WHEN 'finance_manager' THEN 'Operation Manager'
               WHEN 'branch_leader' THEN CONCAT('Branch Leader, ', COALESCE(assigner.branch, oa.branch))
               WHEN 'head_of_department' THEN CONCAT('Head of Department, ', COALESCE(assigner.department, oa.department))
               ELSE oa.assigned_by_role 
@@ -5086,7 +5087,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     // ── Layer 2: TEAM ACTIVITY (branch_leader, hod, hr_admin, md, finance_manager) ─
     let teamActivityRows = [];
-    const isElevatedRole = ["hr_admin", "branch_leader", "managing_director", "finance_manager", "head_of_department"].includes(role);
+    const isElevatedRole = ["hr_admin", "branch_leader", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(role);
 
     if (isElevatedRole) {
       const department = req.query.department ? req.query.department.toString().trim() : "";
@@ -5170,7 +5171,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
               CASE LOWER(oa.assigned_by_role) 
                 WHEN 'managing_director' THEN 'Managing Director' 
                 WHEN 'hr_admin' THEN 'HR' 
-                WHEN 'finance_manager' THEN 'Finance Manager'
+                WHEN 'operation_manager' THEN 'Operation Manager' 
+                WHEN 'finance_manager' THEN 'Operation Manager'
                 WHEN 'branch_leader' THEN CONCAT('Branch Leader, ', COALESCE(assigner.branch, oa.branch))
                 WHEN 'head_of_department' THEN CONCAT('Head of Department, ', COALESCE(assigner.department, oa.department))
                 ELSE oa.assigned_by_role 
@@ -5208,7 +5210,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     // ── Layer 3: SYSTEM ACTIVITY (hr_admin, managing_director, finance_manager; hod limited) ─
     let systemActivityRows = [];
-    const canSeeSystem = ["hr_admin", "managing_director", "finance_manager", "head_of_department"].includes(role);
+    const canSeeSystem = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "head_of_department"].includes(role);
 
     if (canSeeSystem) {
       const department = req.query.department ? req.query.department.toString().trim() : "";
@@ -8156,7 +8158,8 @@ app.post('/api/outstation', async (req, res) => {
         'hr_admin': 'HR',
         'head_of_department': 'Head of Department',
         'branch_leader': 'Branch Leader',
-        'finance_manager': 'Finance Manager'
+        'operation_manager': 'Operation Manager',
+        'finance_manager': 'Operation Manager'
       };
       return map[r.toLowerCase()] || r;
     };
@@ -8285,7 +8288,8 @@ app.delete('/api/outstation/:id', async (req, res) => {
         'hr_admin': 'HR',
         'head_of_department': 'Head of Department',
         'branch_leader': 'Branch Leader',
-        'finance_manager': 'Finance Manager'
+        'operation_manager': 'Operation Manager',
+        'finance_manager': 'Operation Manager'
       };
       return map[r.toLowerCase()] || r;
     };

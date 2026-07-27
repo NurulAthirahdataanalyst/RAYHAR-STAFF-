@@ -27,9 +27,11 @@ const getDisplayStatus = (status: string) => {
   switch (status) {
     case "Pending HOD":
       return "Awaiting HOD Approval";
+    case "Pending Operation":
+    case "Pending Operation Manager":
     case "Pending Finance":
     case "Pending Finance Manager":
-      return "Awaiting Finance Approval";
+      return "Awaiting Operation Manager Approval";
     case "Pending MD":
       return "Awaiting MD Approval";
     case "Pending Branch Leader":
@@ -48,7 +50,7 @@ type LeaveRequest = {
   to: string;
   days: number;
   reason: string;
-  status: "Pending HOD" | "Pending Branch Leader" | "Pending Finance" | "Pending MD" | "Approved" | "Rejected";
+  status: "Pending HOD" | "Pending Branch Leader" | "Pending Operation Manager" | "Pending Finance" | "Pending MD" | "Approved" | "Rejected";
   warisNama: string;
   warisPhone: string;
   warisAlamat: string;
@@ -95,8 +97,8 @@ const formatApproverRole = (role: string, department?: string, branch?: string) 
   if (normalized === "branch_leader") {
     return `Branch Leader (${branch || "N/A"})`;
   }
-  if (normalized === "finance_manager") {
-    return "Finance Manager";
+  if (normalized === "operation_manager" || normalized === "finance_manager") {
+    return "Operation Manager";
   }
   if (normalized === "managing_director") {
     return "Managing Director";
@@ -105,7 +107,7 @@ const formatApproverRole = (role: string, department?: string, branch?: string) 
 };
 
 // Roles that can approve/reject leave requests
-const APPROVER_ROLES = ["managing_director", "finance_manager", "head_of_department", "branch_leader"];
+const APPROVER_ROLES = ["managing_director", "operation_manager", "finance_manager", "head_of_department", "branch_leader"];
 // Roles that can see the leave admin panel (view + approve or view only)
 const ADMIN_VIEW_ROLES = ["hr_admin", "branch_leader", ...APPROVER_ROLES];
 
@@ -546,7 +548,7 @@ export default function LeaveAdmin() {
                           <TableCell className="px-5 py-3.5 text-right">
                             {((req.status.startsWith("Pending HOD") && role === "head_of_department") ||
                               (req.status === "Pending Branch Leader" && role === "branch_leader") ||
-                              (req.status === "Pending Finance" && role === "finance_manager") ||
+                              ((req.status === "Pending Operation" || req.status === "Pending Finance") && (role === "operation_manager" || role === "finance_manager")) ||
                               (req.status === "Pending MD" && role === "managing_director")) ? (
                               <div className="flex justify-end gap-2">
                                 <Button

@@ -108,8 +108,8 @@ function formatApproverRole(role, department, branch) {
   if (normalized === "branch_leader") {
     return `Branch Leader (${branch || "N/A"})`;
   }
-  if (normalized === "finance_manager") {
-    return "Finance Manager";
+  if (normalized === "operation_manager" || normalized === "finance_manager") {
+    return "Operation Manager";
   }
   if (normalized === "managing_director") {
     return "Managing Director";

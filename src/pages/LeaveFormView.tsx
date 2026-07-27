@@ -29,9 +29,11 @@ const getDisplayStatus = (status: string) => {
   switch (status) {
     case "Pending HOD":
       return "Awaiting HOD Approval";
+    case "Pending Operation":
+    case "Pending Operation Manager":
     case "Pending Finance":
     case "Pending Finance Manager":
-      return "Awaiting Finance Approval";
+      return "Awaiting Operation Manager Approval";
     case "Pending MD":
       return "Awaiting MD Approval";
     case "Pending Branch Leader":
@@ -50,7 +52,7 @@ type LeaveForm = {
   to: string;
   days: number;
   reason: string;
-  status: "Pending HOD" | "Pending Branch Leader" | "Pending Finance" | "Pending MD" | "Approved" | "Rejected" | string;
+  status: "Pending HOD" | "Pending Branch Leader" | "Pending Operation Manager" | "Pending Finance" | "Pending MD" | "Approved" | "Rejected" | string;
   appliedAt: string;
   formFileName: string;
   warisNama: string;
@@ -93,8 +95,8 @@ const formatApproverRole = (role: string, department?: string, branch?: string) 
   if (normalized === "branch_leader") {
     return `Branch Leader (${branch || "N/A"})`;
   }
-  if (normalized === "finance_manager") {
-    return "Finance Manager";
+  if (normalized === "operation_manager" || normalized === "finance_manager") {
+    return "Operation Manager";
   }
   if (normalized === "managing_director") {
     return "Managing Director";

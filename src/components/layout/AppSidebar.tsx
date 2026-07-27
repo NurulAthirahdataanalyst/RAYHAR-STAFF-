@@ -87,10 +87,10 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   }, [handleKeyDown]);
 
   // Roles that can see admin-level menus
-  const ADMIN_ROLES = ["branch_leader", "hr_admin", "managing_director", "finance_manager", "head_of_department"];
+  const ADMIN_ROLES = ["branch_leader", "hr_admin", "managing_director", "operation_manager", "finance_manager", "head_of_department"];
   const ALL_ROLES = ["employee", "branch_officer", ...ADMIN_ROLES];
   const HOD_BL_ROLES = ["branch_leader", "head_of_department"];
-  const FULL_ADMIN_ROLES = ["hr_admin", "managing_director", "finance_manager"];
+  const FULL_ADMIN_ROLES = ["hr_admin", "managing_director", "operation_manager", "finance_manager"];
 
   // ── HOD / BRANCH LEADER sidebar ──────────────────────────────────────────
   const hodMenuItems = [

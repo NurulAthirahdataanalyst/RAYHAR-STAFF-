@@ -355,6 +355,7 @@ export default function Employees() {
   const getRolePriority = (roleStr: string) => {
     switch (roleStr) {
       case "managing_director": return 1;
+      case "operation_manager":
       case "finance_manager": return 2;
       case "hr_admin": return 3;
       case "head_of_department": return 4;
@@ -512,7 +513,7 @@ export default function Employees() {
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
       {portalTarget && createPortal(
         <>
-          {["hr_admin", "managing_director", "finance_manager"].includes(role) ? (
+          {["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) ? (
             <Button 
               onClick={() => setIsAddModalOpen(true)}
               className="bg-[#7B0099] hover:bg-[#5e0080] text-white font-bold gap-2 whitespace-nowrap touch-target"
@@ -556,7 +557,7 @@ export default function Employees() {
             />
           </div>
 
-          {(["hr_admin", "managing_director", "finance_manager"].includes(role) || uniqueBranches.length > 1) && (
+          {(["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueBranches.length > 1) && (
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
               <SelectTrigger className="w-full sm:w-[180px] h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#7B0099]/20 font-bold text-xs rounded-xl">
                 <SelectValue placeholder="All Branches" />

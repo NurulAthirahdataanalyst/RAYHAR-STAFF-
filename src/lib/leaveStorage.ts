@@ -23,7 +23,7 @@ export type LeaveRequest = {
   from: string;
   to: string;
   days: number;
-  status: "Pending Branch Leader" | "Pending HOD" | "Pending Finance" | "Pending MD" | "Approved" | "Rejected";
+  status: "Pending Branch Leader" | "Pending HOD" | "Pending Operation Manager" | "Pending Finance" | "Pending MD" | "Approved" | "Rejected";
   reason: string;
   appliedAt: string;
   formFileName: string;
