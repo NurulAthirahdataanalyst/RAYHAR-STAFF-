@@ -1,59 +1,222 @@
-export function getPageTitleInfo(pathname: string): { title: string; subtitle: string | null } {
-  if (pathname === "/") return { title: "Workforce Overview", subtitle: "Monitor employee activity, attendance status, leave updates, and workforce performance in real time" };
-  
-  if (pathname === "/calendar") return { title: "Workforce Calendar", subtitle: "Manage working schedules, company holidays, and important workforce events" };
-  if (pathname === "/calendar/company-leave") return { title: "Company Leave Calendar", subtitle: "All global leave dates that affect attendance calculation." };
-  
-  if (pathname === "/attendance") return { title: "Attendance Performance Insights", subtitle: "Track attendance patterns, punctuality, and daily workforce presence" };
-  if (pathname === "/team-attendance" || pathname === "/attendance/team") return { title: "Daily Team Attendance Overview", subtitle: "Review employee attendance records, clock-in activities, and working hours for today" };
-  
-  if (pathname === "/outstation") return { title: "Outstation Dashboard", subtitle: "Monitor employee business travel across all branches." };
-  if (pathname === "/outstation/assignment") return { title: "Outstation Assignment", subtitle: "Manage employee outstation requests, approvals, and travel activities" };
-  if (pathname === "/outstation/analytics") return { title: "Outstation Insight", subtitle: "Assign employees to official business travel and field duties." };
-  if (pathname === "/outstation/calendar") return { title: "Outstation Calendar", subtitle: "View upcoming and ongoing outstation schedules." };
-  if (pathname === "/outstation/my") return { title: "My Outstation", subtitle: "Track your assigned business trips and travel history." };
-  if (pathname === "/outstation/reports") return { title: "Outstation Reports", subtitle: "Generate and export outstation travel reports." };
-  
-  if (pathname === "/leave") return { title: "Leave Management Overview", subtitle: "Monitor leave applications, approvals, balances, and employee leave utilization" };
-  if (pathname === "/leave/apply") return { title: "Leave Application", subtitle: "Submit and manage employee leave requests." };
-  if (pathname === "/leave/forms") return { title: "My Leave Requests", subtitle: "Track your leave applications and approval progress." };
-  if (pathname === "/leave/team") return { title: "Team Leave Request", subtitle: "Track employee leave request and approval progress" };
-  
+import {
+  LayoutDashboard, CalendarDays, CalendarHeart, Clock3, UsersRound, MapPinned,
+  BriefcaseBusiness, CalendarRange, Route, ChartColumnIncreasing, FileSpreadsheet,
+  ClipboardList, FilePenLine, NotebookPen, Users, ChartPie, BadgeCheck,
+  CalendarCheck2, WalletCards, ShieldEllipsis, ContactRound, Building2, UserCog,
+  Building, ArrowRightLeft, MonitorSmartphone, ChartNoAxesCombined, ScanSearch,
+  CalendarClock, FileClock, FileCheck2, FileBarChart2, Settings, User, LucideIcon
+} from "lucide-react";
+
+export interface PageInfo {
+  title: string;
+  subtitle: string | null;
+  icon: LucideIcon;
+}
+
+export function getPageTitleInfo(pathname: string): PageInfo {
+  // Dashboard
+  if (pathname === "/") return {
+    title: "Dashboard",
+    subtitle: "Good afternoon! Here's your workforce overview and today's key business insights.",
+    icon: LayoutDashboard
+  };
+
+  // Calendar
+  if (pathname === "/calendar") return {
+    title: "Work Calendar",
+    subtitle: "View company working days, weekends, and scheduled events.",
+    icon: CalendarDays
+  };
+  if (pathname === "/calendar/company-leave") return {
+    title: "Company Leave Calendar",
+    subtitle: "Manage organization-wide holidays and company leave schedules.",
+    icon: CalendarHeart
+  };
+
+  // Attendance
+  if (pathname === "/attendance") return {
+    title: "Employee Attendance",
+    subtitle: "Track employee attendance, punctuality, and daily working hours.",
+    icon: Clock3
+  };
+  if (pathname === "/team-attendance" || pathname === "/attendance/team") return {
+    title: "Team Attendance",
+    subtitle: "Monitor attendance records across your assigned team members.",
+    icon: UsersRound
+  };
+
+  // Outstation Management
+  if (pathname === "/outstation") return {
+    title: "Outstation Dashboard",
+    subtitle: "Monitor all business outstation activities and assignment status.",
+    icon: MapPinned
+  };
+  if (pathname === "/outstation/assignment") return {
+    title: "Outstation Assignment",
+    subtitle: "Assign employees to official business travel and field duties.",
+    icon: BriefcaseBusiness
+  };
+  if (pathname === "/outstation/calendar") return {
+    title: "Outstation Calendar",
+    subtitle: "View upcoming and ongoing outstation schedules.",
+    icon: CalendarRange
+  };
+  if (pathname === "/outstation/my") return {
+    title: "My Outstation",
+    subtitle: "Track your assigned business trips and travel history.",
+    icon: Route
+  };
+  if (pathname === "/outstation/analytics") return {
+    title: "Outstation Analytics",
+    subtitle: "Analyze travel trends, branch movements, and assignment performance.",
+    icon: ChartColumnIncreasing
+  };
+  if (pathname === "/outstation/reports") return {
+    title: "Outstation Reports",
+    subtitle: "Generate and export comprehensive business travel reports.",
+    icon: FileSpreadsheet
+  };
+
+  // Leave Management
+  if (pathname === "/leave") return {
+    title: "Leave Overview",
+    subtitle: "Monitor leave balances, requests, and overall leave activity.",
+    icon: ClipboardList
+  };
+  if (pathname === "/leave/apply") return {
+    title: "Leave Application",
+    subtitle: "Submit and manage your leave application quickly and efficiently.",
+    icon: FilePenLine
+  };
+  if (pathname === "/leave/forms") return {
+    title: "My Leave Request",
+    subtitle: "Track your leave requests, approval progress, and leave history.",
+    icon: NotebookPen
+  };
+  if (pathname === "/leave/team") return {
+    title: "Team Leave Request",
+    subtitle: "Review and manage leave requests submitted by your team.",
+    icon: Users
+  };
+
+  // Analytics
+  if (pathname === "/analytics") return {
+    title: "Employee Analytics",
+    subtitle: "Discover workforce trends through attendance and employee performance insights.",
+    icon: ChartPie
+  };
+
   // Leave Administration
-  if (pathname === "/leave/admin") return { title: "Leave Approvals", subtitle: "Review and approve employee leave requests." };
-  if (pathname === "/leave/calendar") return { title: "Leave Calendar", subtitle: "Monitor leave schedules across departments and branches." };
-  if (pathname === "/leave/entitlement") return { title: "Leave Entitlement Management", subtitle: "Centralised administration for employee leave allocation, balance corrections, carry forward rules, and audit-ready entitlement history." };
-  
+  if (pathname === "/leave/admin") return {
+    title: "Leave Approvals",
+    subtitle: "Review, approve, or reject employee leave applications.",
+    icon: BadgeCheck
+  };
+  if (pathname === "/leave/calendar") return {
+    title: "Leave Calendar",
+    subtitle: "View approved leave schedules across the organization.",
+    icon: CalendarCheck2
+  };
+  if (pathname === "/leave/entitlement") return {
+    title: "Leave Entitlement Management",
+    subtitle: "Configure annual leave allocations and employee leave entitlements.",
+    icon: WalletCards
+  };
+
   // Employee Management
-  if (pathname === "/master") return { title: "Master Hub Control", subtitle: "System Administration & Core Directory Master" };
-  if (pathname === "/employees") return { title: "Employee Directory", subtitle: "Browse and manage employee information across the organization." };
-  if (pathname === "/master/department") return { title: "Department Management", subtitle: "Manage organizational departments and reporting structure." };
+  if (pathname === "/master") return {
+    title: "Master Hub Control",
+    subtitle: "Manage employee records, organizational structure, and system access.",
+    icon: ShieldEllipsis
+  };
+  if (pathname === "/employees") return {
+    title: "Employee Directory",
+    subtitle: "Browse and manage employee profiles across the organization.",
+    icon: ContactRound
+  };
+  if (pathname === "/master/department") return {
+    title: "Department",
+    subtitle: "Organize and manage departments within the company.",
+    icon: Building2
+  };
   if (pathname.startsWith("/master/department/")) {
     const deptName = pathname.split("/").pop()?.replace(/-/g, " ") || "Department Details";
-    return { title: deptName, subtitle: "Manage department-specific configurations and employee assignments." };
+    return {
+      title: deptName,
+      subtitle: "Manage department-specific configurations and employee assignments.",
+      icon: Building2
+    };
   }
-  if (pathname === "/master/role") return { title: "Role Management", subtitle: "Configure user roles and access permissions." };
-  
+  if (pathname === "/master/role") return {
+    title: "Role",
+    subtitle: "Configure employee roles and system permissions.",
+    icon: UserCog
+  };
+
   // Branch Management
-  if (pathname === "/branches") return { title: "Branch Overview", subtitle: "Monitor branch information, workforce distribution, and operations." };
-  if (pathname === "/branches/temporary-assignment") return { title: "Temporary Branch Assignment", subtitle: "Assign employees to another branch for temporary duties." };
-  
+  if (pathname === "/branches") return {
+    title: "Branch Overview",
+    subtitle: "View branch performance, workforce distribution, and operational status.",
+    icon: Building
+  };
+  if (pathname === "/branches/temporary-assignment") return {
+    title: "Branch Temporary Assignment",
+    subtitle: "Assign employees temporarily to different company branches.",
+    icon: ArrowRightLeft
+  };
+
   // Workforce Analytics
-  if (pathname === "/hr-analytics/attendance") return { title: "Attendance Dashboard", subtitle: "Organization-wide attendance performance" };
-  if (pathname === "/hr-analytics/leave") return { title: "Leave Insights", subtitle: "Leave Utilization Analytics" };
-  if (pathname === "/hr-analytics/workforce") return { title: "Workforce Insights", subtitle: "Company Attendance & Workforce Analytics" };
-  if (pathname === "/hr-analytics/calendar") return { title: "Workforce Calendar", subtitle: "View attendance, leave, outstation, and company events in one calendar." };
-  
+  if (pathname === "/hr-analytics/attendance") return {
+    title: "Attendance Dashboard",
+    subtitle: "Monitor live workforce attendance, presence, and daily workforce status.",
+    icon: MonitorSmartphone
+  };
+  if (pathname === "/hr-analytics/leave") return {
+    title: "Leave Analytics",
+    subtitle: "Analyze leave utilization, approval patterns, and workforce availability.",
+    icon: ChartNoAxesCombined
+  };
+  if (pathname === "/hr-analytics/workforce") return {
+    title: "Workforce Insight",
+    subtitle: "Gain actionable insights into workforce performance and attendance behavior.",
+    icon: ScanSearch
+  };
+  if (pathname === "/hr-analytics/calendar") return {
+    title: "Workforce Calendar",
+    subtitle: "Visualize attendance, leave, company holidays, and workforce schedules.",
+    icon: CalendarClock
+  };
+
   // Reports
-  if (pathname === "/reports/attendance" || pathname === "/reports") return { title: "Attendance Report", subtitle: "Generate attendance summaries and export detailed records." };
-  if (pathname === "/reports/leave") return { title: "Leave Reports", subtitle: "Generate leave utilization and approval reports." };
-  if (pathname === "/reports/department") return { title: "Department & Branch Reports", subtitle: "Analyze workforce performance by department and branch." };
-  
-  // Settings
-  if (pathname === "/settings") return { title: "Portal Configurations", subtitle: "Configure global branches, staff roles, and check-in parameters" };
-  if (pathname === "/profile") return { title: "My Profile", subtitle: "Manage your personal information and account settings." };
-  
+  if (pathname === "/reports/attendance" || pathname === "/reports") return {
+    title: "Attendance Reports",
+    subtitle: "Generate detailed attendance reports for monitoring and compliance.",
+    icon: FileClock
+  };
+  if (pathname === "/reports/leave") return {
+    title: "Leave Reports",
+    subtitle: "Export leave records, balances, and approval summaries.",
+    icon: FileCheck2
+  };
+  if (pathname === "/reports/department") return {
+    title: "Department & Branch Reports",
+    subtitle: "Analyze workforce performance across departments and branches.",
+    icon: FileBarChart2
+  };
+
+  // Settings & Profile
+  if (pathname === "/settings") return {
+    title: "Portal Configurations",
+    subtitle: "Configure global branches, staff roles, and check-in parameters.",
+    icon: Settings
+  };
+  if (pathname === "/profile") return {
+    title: "My Profile",
+    subtitle: "Manage your personal information and account settings.",
+    icon: User
+  };
+
   const last = pathname.split("/").filter(Boolean).pop() || "Page";
   const fallbackTitle = last.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-  return { title: fallbackTitle, subtitle: null };
+  return { title: fallbackTitle, subtitle: null, icon: LayoutDashboard };
 }

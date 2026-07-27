@@ -17,6 +17,7 @@ import {
 } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
+import PageHeader from "@/components/layout/PageHeader";
 import PageActions from "@/components/layout/PageActions";
 import { API_BASE_URL } from "../../config/api";
 
