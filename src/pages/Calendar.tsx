@@ -23,7 +23,9 @@ import {
   ChevronRight,
   Download,
   ChevronDown,
-  Plane
+  Plane,
+  Check,
+  Shuffle
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -870,46 +872,122 @@ export default function Calendar() {
               </div>
 
               {isAddCategoryOpen && (
-                <div className="mt-4 p-4 bg-muted/30 rounded-xl border border-border space-y-4 animate-in fade-in zoom-in-95 duration-200">
+                <div className="mt-4 p-5 bg-card rounded-2xl border border-border/70 space-y-5 animate-in fade-in zoom-in-95 duration-200 shadow-md">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Category Name</label>
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Category Name</label>
                     <input
                       type="text"
                       placeholder="e.g. Project Launch"
-                      className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#FFFE00] focus:ring-1 focus:ring-[#FFFE00] transition-all"
+                      className="w-full bg-background border border-border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#7B0099] focus:ring-1 focus:ring-[#7B0099] transition-all font-medium"
                       value={newCategoryName}
                       onChange={e => setNewCategoryName(e.target.value)}
                       autoFocus
                     />
                   </div>
                   
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Label Color</label>
-                    <div className="grid grid-cols-6 gap-2.5 items-center w-max">
-                      {Object.keys(CATEGORY_COLORS).map(color => (
-                        <div 
-                          key={color}
-                          onClick={() => setNewCategoryColor(color)}
-                          className={`w-6 h-6 rounded-full cursor-pointer transition-transform hover:scale-110 ${color} ${newCategoryColor === color ? 'ring-2 ring-offset-2 ring-slate-800 dark:ring-slate-300 shadow-sm' : 'opacity-80 hover:opacity-100'}`}
-                        />
-                      ))}
-
-                      {/* ColorPickerPopover (Placed in Row 2, Column 3 - Directly under Yellow!) */}
-                      <ColorPickerPopover
-                        color={newCategoryColor}
-                        onChange={(c) => setNewCategoryColor(c)}
-                      />
+                  <div className="space-y-4">
+                    {/* Preset Colours */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Preset Colours</label>
+                        <span className="text-[10px] font-bold text-slate-400">8 Swatches</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 items-center">
+                        {Object.entries(CATEGORY_COLORS).map(([colorKey, colorMeta]) => {
+                          const isSelected = newCategoryColor === colorKey;
+                          return (
+                            <button 
+                              key={colorKey}
+                              type="button"
+                              onClick={() => setNewCategoryColor(colorKey)}
+                              className={`w-8 h-8 rounded-full cursor-pointer transition-transform hover:scale-110 flex items-center justify-center shadow-xs ${colorKey} ${isSelected ? 'ring-2 ring-offset-2 ring-[#7B0099] scale-105' : 'opacity-85 hover:opacity-100'}`}
+                              title={colorMeta.hex}
+                            >
+                              {isSelected && <Check className="w-4 h-4 text-white drop-shadow-sm" />}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
+
+                    {/* Custom & Random Colour */}
+                    <div className="space-y-2 pt-3 border-t border-border/60">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Custom & Random Colour</label>
+                      <div className="flex items-center gap-3">
+                        <ColorPickerPopover
+                          color={newCategoryColor.startsWith('#') ? newCategoryColor : (CATEGORY_COLORS[newCategoryColor]?.hex || '#7B0099')}
+                          onChange={(hex) => setNewCategoryColor(hex)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const randomHex = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0').toUpperCase();
+                            setNewCategoryColor(randomHex);
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-extrabold text-[#7B0099] dark:text-purple-300 bg-[#7B0099]/10 hover:bg-[#7B0099]/20 rounded-xl border border-[#7B0099]/20 transition-all shadow-2xs cursor-pointer"
+                        >
+                          <Shuffle className="w-3.5 h-3.5" />
+                          <span>🎲 Random Colour</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Selected Colour Info Display (HEX, RGB, HSV) */}
+                    {(() => {
+                      const activeHex = newCategoryColor.startsWith('#') 
+                        ? newCategoryColor.toUpperCase() 
+                        : (CATEGORY_COLORS[newCategoryColor]?.hex || '#7B0099');
+                      
+                      const cleanHex = activeHex.replace('#', '');
+                      const r = parseInt(cleanHex.slice(0, 2), 16) || 0;
+                      const g = parseInt(cleanHex.slice(2, 4), 16) || 0;
+                      const b = parseInt(cleanHex.slice(4, 6), 16) || 0;
+                      
+                      const rN = r/255, gN = g/255, bN = b/255;
+                      const max = Math.max(rN, gN, bN), min = Math.min(rN, gN, bN);
+                      const d = max - min;
+                      let h = 0, s = max === 0 ? 0 : d / max;
+                      if (max !== min) {
+                        switch (max) {
+                          case rN: h = (gN - bN) / d + (gN < bN ? 6 : 0); break;
+                          case gN: h = (bN - rN) / d + 2; break;
+                          case bN: h = (rN - gN) / d + 4; break;
+                        }
+                        h /= 6;
+                      }
+                      const hDeg = Math.round(h * 360);
+                      const sPct = Math.round(s * 100);
+                      const vPct = Math.round(v * 100);
+
+                      return (
+                        <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-2.5 border border-border/60 flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2.5">
+                            <div 
+                              className="w-4 h-4 rounded-full border border-black/10 shadow-xs" 
+                              style={{ backgroundColor: activeHex }} 
+                            />
+                            <div className="flex flex-wrap items-center gap-2.5 font-mono font-bold text-foreground text-[10px]">
+                              <div><span className="text-muted-foreground font-sans text-[10px]">HEX:</span> {activeHex}</div>
+                              <div><span className="text-muted-foreground font-sans text-[10px]">RGB:</span> {r}, {g}, {b}</div>
+                              <div><span className="text-muted-foreground font-sans text-[10px]">HSV:</span> {hDeg}°, {sPct}%, {vPct}%</div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
 
-                  <div className="flex items-center justify-end gap-2 pt-3 border-t border-border/60">
+                  {/* 24px Gap & Action Buttons */}
+                  <div className="flex items-center justify-end gap-3 pt-6 border-t border-border/60">
                     <button 
+                      type="button"
                       onClick={() => setIsAddCategoryOpen(false)} 
-                      className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground rounded-md transition-colors"
+                      className="px-4 py-2 text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground rounded-xl transition-colors cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button 
+                      type="button"
                       onClick={() => {
                         if (newCategoryName.trim()) {
                           setCustomCategories([...customCategories, { id: `custom-${Date.now()}`, name: newCategoryName.trim(), color: newCategoryColor }]);
@@ -917,7 +995,7 @@ export default function Calendar() {
                           setNewCategoryName("");
                         }
                       }}
-                      className="px-4 py-1.5 text-xs font-bold bg-[#FFFE00] text-[#7B0099] border-2 border-[#7B0099] rounded-md shadow-sm hover:bg-[#E6E500] transition-colors"
+                      className="px-5 py-2 text-xs font-black bg-[#7B0099] text-white rounded-xl shadow-md hover:bg-[#6A0085] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                     >
                       Add Category
                     </button>
