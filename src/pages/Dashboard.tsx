@@ -583,7 +583,7 @@ export default function Dashboard() {
                   navigate("/hr-analytics/attendance#admin-attendance");
                 }
               }}
-              className={`rounded-[20px] shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] group relative overflow-hidden flex flex-col justify-between cursor-pointer ${
+              className={`rounded-2xl shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] group relative overflow-hidden flex flex-col justify-between cursor-pointer ${
                 isPresent 
                   ? "border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/60 dark:bg-emerald-950/30" 
                   : isClockedOut 
@@ -619,7 +619,7 @@ export default function Dashboard() {
             </Card>
 
             {/* 2. Attendance */}
-            <Card className="rounded-[20px] border border-blue-200 dark:border-blue-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-blue-50/60 dark:bg-blue-950/30 group relative overflow-hidden flex flex-col justify-between">
+            <Card className="rounded-2xl border border-blue-200 dark:border-blue-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-blue-50/60 dark:bg-blue-950/30 group relative overflow-hidden flex flex-col justify-between">
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
                 <TrendingUp className="w-24 h-24 text-blue-600" />
               </div>
@@ -642,7 +642,7 @@ export default function Dashboard() {
             </Card>
 
             {/* 3. Leave Balance */}
-            <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between">
+            <Card className="rounded-2xl border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between">
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
                 <CalendarCheck className="w-24 h-24 text-purple-600" />
               </div>
@@ -665,7 +665,7 @@ export default function Dashboard() {
             </Card>
 
             {/* 4. Pending */}
-            <Card className="rounded-[20px] border border-amber-200 dark:border-amber-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-amber-50/60 dark:bg-amber-950/30 group relative overflow-hidden flex flex-col justify-between">
+            <Card className="rounded-2xl border border-amber-200 dark:border-amber-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-amber-50/60 dark:bg-amber-950/30 group relative overflow-hidden flex flex-col justify-between">
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
                 <AlertTriangle className="w-24 h-24 text-amber-600" />
               </div>
