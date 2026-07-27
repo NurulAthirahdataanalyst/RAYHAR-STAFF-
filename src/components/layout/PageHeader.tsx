@@ -24,8 +24,8 @@ export default function PageHeader({ title, description, icon }: PageHeaderProps
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           {DisplayIcon && (
-            <div className="w-11 h-11 rounded-[18px] bg-[#7B0099] text-white shadow-lg shadow-[#7B0099]/25 flex items-center justify-center shrink-0">
-              <DisplayIcon className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-[#7B0099] text-white flex items-center justify-center shadow-xs shrink-0">
+              <DisplayIcon className="w-5 h-5 text-white" />
             </div>
           )}
           <div>
