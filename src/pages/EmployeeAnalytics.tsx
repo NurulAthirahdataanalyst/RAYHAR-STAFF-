@@ -409,8 +409,8 @@ export default function EmployeeAnalytics() {
       {/* ── Page Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#7B0099]/10 dark:bg-[#7B0099]/20 rounded-xl text-[#7B0099]">
-            <Activity className="w-5 h-5 sm:w-6 sm:h-6" />
+          <div className="w-11 h-11 rounded-[18px] bg-[#7B0099] text-white shadow-lg shadow-[#7B0099]/25 flex items-center justify-center shrink-0">
+            <Activity className="w-6 h-6 text-white" />
           </div>
           <div>
             <h1 className="text-responsive-xl font-black text-foreground tracking-tight uppercase">
