@@ -4,8 +4,11 @@ import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { API_BASE_URL } from "@/config/api";
-import { Loader2, RefreshCw, MapPin, Users, Briefcase, Calendar, CheckCircle2, Clock } from "lucide-react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
+import { Loader2, RefreshCw, MapPin, Users, Briefcase, Calendar, CheckCircle2, Clock, Filter } from "lucide-react";
+import {
+  PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip,
+  BarChart, Bar, XAxis, YAxis, Legend
+} from "recharts";
 
 import PageActions from "@/components/layout/PageActions";
 
@@ -17,6 +20,16 @@ const STATUS_COLORS: Record<string, string> = {
   Cancelled: "#dc2626",
   Unknown: "#6b7280"
 };
+
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+const MONTH_SHORT = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+];
 
 function formatShortDate(dStr: string) {
   if (!dStr) return "—";
@@ -38,6 +51,7 @@ export default function OutstationAnalytics() {
   const [assignments, setAssignments] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({});
   const [loading, setLoading] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState<string>("all");
 
   // Role authorization check
   useEffect(() => {
@@ -49,7 +63,6 @@ export default function OutstationAnalytics() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      // Build query params based on role
       const params = new URLSearchParams();
       if (role === "branch_leader") {
         params.append("role", "branch_leader");
@@ -101,6 +114,42 @@ export default function OutstationAnalytics() {
   const completedCount = stats.completed || 0;
   const upcomingCount = stats.upcoming || 0;
 
+  // Monthly Outstation Tracker data
+  const monthlyTrackerData = useMemo(() => {
+    const monthsData = MONTH_SHORT.map((name, index) => ({
+      name,
+      monthIndex: index,
+      totalEvents: 0,
+      completedEvents: 0,
+    }));
+
+    assignments.forEach(a => {
+      if (!a.start_date) return;
+      const startDate = new Date(a.start_date);
+      const m = startDate.getMonth();
+      if (m >= 0 && m < 12) {
+        monthsData[m].totalEvents += 1;
+        if (a.status === "Completed") {
+          monthsData[m].completedEvents += 1;
+        }
+      }
+    });
+
+    return monthsData;
+  }, [assignments]);
+
+  // Summary Metrics above the chart for the selected month
+  const trackerSummary = useMemo(() => {
+    if (selectedMonth === "all") {
+      const total = monthlyTrackerData.reduce((sum, item) => sum + item.totalEvents, 0);
+      const completed = monthlyTrackerData.reduce((sum, item) => sum + item.completedEvents, 0);
+      return { total, completed };
+    }
+    const mIdx = parseInt(selectedMonth, 10);
+    const mData = monthlyTrackerData[mIdx] || { totalEvents: 0, completedEvents: 0 };
+    return { total: mData.totalEvents, completed: mData.completedEvents };
+  }, [monthlyTrackerData, selectedMonth]);
+
   const destinationData = useMemo(() => {
     const counts: Record<string, number> = {};
     assignments.forEach(a => {
@@ -146,165 +195,216 @@ export default function OutstationAnalytics() {
         </Button>
       </PageActions>
 
+      {/* TOP KPI CARDS - No changes */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-          {/* 1. Total Outstation */}
-          <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
-              <Briefcase className="w-24 h-24 text-[#7B0099]" />
+        {/* 1. Total Outstation */}
+        <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between">
+          <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
+            <Briefcase className="w-24 h-24 text-[#7B0099]" />
+          </div>
+          <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099] shadow-xs"></div>
+                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
+              </div>
+              <div className="my-1">
+                <span className="text-3xl font-black text-[#7B0099] dark:text-purple-300 leading-none">{totalAssignments}</span>
+              </div>
             </div>
-            <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <div className="flex items-center gap-1.5 mb-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099] shadow-xs"></div>
-                  <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
-                </div>
-                <div className="my-1">
-                  <span className="text-3xl font-black text-[#7B0099] dark:text-purple-300 leading-none">{totalAssignments}</span>
-                </div>
-              </div>
-              <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
-                <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
-                  Active outstation requests across all branches
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+            <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
+              <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+                Active outstation requests across all branches
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* 2. Staff on Outstation */}
-          <Card className="rounded-[20px] border border-emerald-200 dark:border-emerald-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-emerald-50/60 dark:bg-emerald-950/30 group relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
-              <Users className="w-24 h-24 text-emerald-600" />
+        {/* 2. Staff on Outstation */}
+        <Card className="rounded-[20px] border border-emerald-200 dark:border-emerald-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-emerald-50/60 dark:bg-emerald-950/30 group relative overflow-hidden flex flex-col justify-between">
+          <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
+            <Users className="w-24 h-24 text-emerald-600" />
+          </div>
+          <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></div>
+                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Staff on Outstation</span>
+              </div>
+              <div className="my-1">
+                <span className="text-3xl font-black text-emerald-700 dark:text-emerald-300 leading-none">{activeStaffCount}</span>
+              </div>
             </div>
-            <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <div className="flex items-center gap-1.5 mb-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></div>
-                  <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Staff on Outstation</span>
-                </div>
-                <div className="my-1">
-                  <span className="text-3xl font-black text-emerald-700 dark:text-emerald-300 leading-none">{activeStaffCount}</span>
-                </div>
-              </div>
-              <div className="mt-3 pt-2.5 border-t border-emerald-200/80 dark:border-emerald-800/60">
-                <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
-                  Unique team members currently away
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+            <div className="mt-3 pt-2.5 border-t border-emerald-200/80 dark:border-emerald-800/60">
+              <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+                Unique team members currently away
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* 3. Destinations */}
-          <Card className="rounded-[20px] border border-blue-200 dark:border-blue-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-blue-50/60 dark:bg-blue-950/30 group relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
-              <MapPin className="w-24 h-24 text-blue-600" />
+        {/* 3. Destinations */}
+        <Card className="rounded-[20px] border border-blue-200 dark:border-blue-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-blue-50/60 dark:bg-blue-950/30 group relative overflow-hidden flex flex-col justify-between">
+          <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
+            <MapPin className="w-24 h-24 text-blue-600" />
+          </div>
+          <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs"></div>
+                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Destinations</span>
+              </div>
+              <div className="my-1">
+                <span className="text-3xl font-black text-blue-700 dark:text-blue-300 leading-none">{totalDestinations}</span>
+              </div>
             </div>
-            <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <div className="flex items-center gap-1.5 mb-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs"></div>
-                  <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Destinations</span>
-                </div>
-                <div className="my-1">
-                  <span className="text-3xl font-black text-blue-700 dark:text-blue-300 leading-none">{totalDestinations}</span>
-                </div>
-              </div>
-              <div className="mt-3 pt-2.5 border-t border-blue-200/80 dark:border-blue-800/60">
-                <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
-                  Distinct cities or sites visited
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+            <div className="mt-3 pt-2.5 border-t border-blue-200/80 dark:border-blue-800/60">
+              <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+                Distinct cities or sites visited
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* 4. Ongoing */}
-          <Card className="rounded-[20px] border border-orange-200 dark:border-orange-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-orange-50/60 dark:bg-orange-950/30 group relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
-              <Clock className="w-24 h-24 text-orange-600" />
+        {/* 4. Ongoing */}
+        <Card className="rounded-[20px] border border-orange-200 dark:border-orange-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-orange-50/60 dark:bg-orange-950/30 group relative overflow-hidden flex flex-col justify-between">
+          <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
+            <Clock className="w-24 h-24 text-orange-600" />
+          </div>
+          <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-xs"></div>
+                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Ongoing</span>
+              </div>
+              <div className="my-1">
+                <span className="text-3xl font-black text-orange-700 dark:text-orange-300 leading-none">{activeCount}</span>
+              </div>
             </div>
-            <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <div className="flex items-center gap-1.5 mb-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-xs"></div>
-                  <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Ongoing</span>
-                </div>
-                <div className="my-1">
-                  <span className="text-3xl font-black text-orange-700 dark:text-orange-300 leading-none">{activeCount}</span>
-                </div>
-              </div>
-              <div className="mt-3 pt-2.5 border-t border-orange-200/80 dark:border-orange-800/60">
-                <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
-                  Assignments currently in progress
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+            <div className="mt-3 pt-2.5 border-t border-orange-200/80 dark:border-orange-800/60">
+              <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+                Assignments currently in progress
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* 5. Completed */}
-          <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
-              <CheckCircle2 className="w-24 h-24 text-purple-600" />
+        {/* 5. Completed */}
+        <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between">
+          <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
+            <CheckCircle2 className="w-24 h-24 text-purple-600" />
+          </div>
+          <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-xs"></div>
+                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Completed</span>
+              </div>
+              <div className="my-1">
+                <span className="text-3xl font-black text-purple-700 dark:text-purple-300 leading-none">{completedCount}</span>
+              </div>
             </div>
-            <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <div className="flex items-center gap-1.5 mb-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-xs"></div>
-                  <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Completed</span>
-                </div>
-                <div className="my-1">
-                  <span className="text-3xl font-black text-purple-700 dark:text-purple-300 leading-none">{completedCount}</span>
-                </div>
-              </div>
-              <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
-                <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
-                  Assignments finished in scope
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+            <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
+              <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+                Assignments finished in scope
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-        <div className="grid gap-4 xl:grid-cols-[1.4fr_0.9fr_0.9fr] mb-6">
-          {/* Left: Destinations (bigger) */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Top Destinations</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 space-y-2">
-              {destinationData.length === 0 ? (
-                <div className="py-8 text-center text-slate-500">No destinations available.</div>
-              ) : (
-                <div className="space-y-3">
-                  {destinationData.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between gap-3">
-                      <div className="min-w-[140px] text-sm font-medium text-slate-700">{item.destination}</div>
-                      <div className="flex-1 bg-slate-100 h-3 rounded-full overflow-hidden mx-4">
-                        <div className="h-3 rounded-full bg-violet-600" style={{ width: `${Math.min(100, (item.count / (destinationData[0]?.count || 1)) * 100)}%` }} />
-                      </div>
-                      <div className="w-12 text-right text-sm font-semibold text-slate-700">{item.count}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-            {totalDestinations > destinationData.length && (
-              <div className="border-t border-slate-200 px-4 py-3 text-right text-sm text-slate-500">
-                View All {totalDestinations} destinations
+      {/* INSIGHTS SECTION */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+        
+        {/* Left Column: Monthly Outstation Tracker */}
+        <div className="lg:col-span-8 flex flex-col gap-6">
+          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card flex flex-col h-full">
+            <CardHeader className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex flex-row flex-wrap items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-lg font-bold text-slate-900 dark:text-slate-100">Monthly Outstation Tracker</CardTitle>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Track total outstation events and completions by month</p>
               </div>
-            )}
-          </Card>
 
-          {/* Middle: Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Outstation Status</CardTitle>
+              {/* Month Filter Selector */}
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-slate-400" />
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="h-9 px-3 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#7B0099] cursor-pointer shadow-xs"
+                >
+                  <option value="all">All Months (Jan - Dec)</option>
+                  {MONTH_NAMES.map((name, idx) => (
+                    <option key={idx} value={idx.toString()}>{name}</option>
+                  ))}
+                </select>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-6 flex-1 flex flex-col justify-between">
+              {/* Summary Metrics Above Chart */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div className="p-4 rounded-xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/50 flex items-center justify-between">
+                  <div>
+                    <p className="text-[11px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Total Events</p>
+                    <p className="text-2xl font-black text-purple-950 dark:text-purple-100 mt-1">{trackerSummary.total}</p>
+                    <p className="text-[10px] text-purple-600/80 dark:text-purple-400 mt-0.5">
+                      {selectedMonth === "all" ? "Across entire year" : `For ${MONTH_NAMES[parseInt(selectedMonth, 10)]}`}
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center text-[#7B0099] dark:text-purple-300 shadow-xs">
+                    <Briefcase className="w-5 h-5" />
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-between">
+                  <div>
+                    <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Total Completed Events</p>
+                    <p className="text-2xl font-black text-emerald-950 dark:text-emerald-100 mt-1">{trackerSummary.completed}</p>
+                    <p className="text-[10px] text-emerald-600/80 dark:text-emerald-400 mt-0.5">
+                      {selectedMonth === "all" ? "Across entire year" : `For ${MONTH_NAMES[parseInt(selectedMonth, 10)]}`}
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center text-emerald-600 dark:text-emerald-300 shadow-xs">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Bar Chart */}
+              <div className="h-[280px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={monthlyTrackerData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <RechartsTooltip 
+                      contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                      cursor={{ fill: 'rgba(123, 0, 153, 0.05)' }}
+                    />
+                    <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />
+                    <Bar dataKey="totalEvents" name="Total Events" fill="#7B0099" radius={[4, 4, 0, 0]} barSize={16} />
+                    <Bar dataKey="completedEvents" name="Total Completed Events" fill="#16a34a" radius={[4, 4, 0, 0]} barSize={16} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column: Side Grid without fixed height or width constraints */}
+        <div className="lg:col-span-4 flex flex-col gap-6">
+          {/* Outstation Status Card */}
+          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
+            <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+              <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">Outstation Status</CardTitle>
             </CardHeader>
             <CardContent className="p-4">
               {statusData.length === 0 ? (
-                <div className="py-5 text-center text-slate-500">No data yet.</div>
+                <div className="py-5 text-center text-slate-500 text-xs">No status data available.</div>
               ) : (
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height={180}>
                   <PieChart>
-                    <Pie data={statusData} dataKey="value" nameKey="status" innerRadius={52} outerRadius={80} paddingAngle={2}>
+                    <Pie data={statusData} dataKey="value" nameKey="status" innerRadius={48} outerRadius={72} paddingAngle={2}>
                       {statusData.map(entry => (
                         <Cell key={entry.status} fill={STATUS_COLORS[entry.status] || STATUS_COLORS.Unknown} />
                       ))}
@@ -313,7 +413,7 @@ export default function OutstationAnalytics() {
                   </PieChart>
                 </ResponsiveContainer>
               )}
-              <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-600">
+              <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300">
                 {statusData.map(item => (
                   <div key={item.status} className="flex items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[item.status] || STATUS_COLORS.Unknown }} />
@@ -325,44 +425,68 @@ export default function OutstationAnalytics() {
             </CardContent>
           </Card>
 
-          {/* Right: Quick summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Quick Summary</CardTitle>
+          {/* Top Destinations Card */}
+          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
+            <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+              <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">Top Destinations</CardTitle>
             </CardHeader>
-            <CardContent className="p-4 grid gap-3">
-              <div className="rounded-md bg-slate-100 dark:bg-slate-800/50 p-3 text-sm">
-                <div className="text-slate-500 dark:text-slate-400">Departures today</div>
-                <div className="mt-1 text-xl font-bold text-slate-900 dark:text-slate-100">{stats.todayDepartures || 0}</div>
-              </div>
-              <div className="rounded-md bg-slate-100 dark:bg-slate-800/50 p-3 text-sm">
-                <div className="text-slate-500 dark:text-slate-400">Returns today</div>
-                <div className="mt-1 text-xl font-bold text-slate-900 dark:text-slate-100">{stats.todayReturns || 0}</div>
-              </div>
-              <div className="rounded-md bg-slate-100 dark:bg-slate-800/50 p-3 text-sm">
-                <div className="text-slate-500 dark:text-slate-400">Upcoming assignments</div>
-                <div className="mt-1 text-xl font-bold text-slate-900 dark:text-slate-100">{upcomingCount}</div>
-              </div>
+            <CardContent className="p-4 space-y-3">
+              {destinationData.length === 0 ? (
+                <div className="py-4 text-center text-slate-500 text-xs">No destinations available.</div>
+              ) : (
+                destinationData.map((item, index) => (
+                  <div key={index} className="flex items-center justify-between gap-3 text-xs">
+                    <div className="w-28 font-medium text-slate-700 dark:text-slate-300 truncate">{item.destination}</div>
+                    <div className="flex-1 bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                      <div className="h-2.5 rounded-full bg-[#7B0099]" style={{ width: `${Math.min(100, (item.count / (destinationData[0]?.count || 1)) * 100)}%` }} />
+                    </div>
+                    <div className="w-8 text-right font-bold text-slate-700 dark:text-slate-300">{item.count}</div>
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
 
-          {/* Right: Map */}
+          {/* Quick Summary Card */}
+          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
+            <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+              <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">Quick Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 grid gap-3">
+              <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 text-xs flex justify-between items-center">
+                <div className="text-slate-500 dark:text-slate-400 font-medium">Departures today</div>
+                <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{stats.todayDepartures || 0}</div>
+              </div>
+              <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 text-xs flex justify-between items-center">
+                <div className="text-slate-500 dark:text-slate-400 font-medium">Returns today</div>
+                <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{stats.todayReturns || 0}</div>
+              </div>
+              <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 text-xs flex justify-between items-center">
+                <div className="text-slate-500 dark:text-slate-400 font-medium">Upcoming assignments</div>
+                <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{upcomingCount}</div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
+      </div>
 
-        <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
-          <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Recent Outstation</CardTitle>
+      {/* BOTTOM TABLES SECTION */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Recent Outstation */}
+        <div className="lg:col-span-8">
+          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
+            <CardHeader className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+              <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">Recent Outstation</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               {loading ? (
-                <div className="p-6 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-purple-700" /></div>
+                <div className="p-6 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-[#7B0099]" /></div>
               ) : recentAssignments.length === 0 ? (
-                <div className="p-6 text-center text-slate-500">No recent outstations found.</div>
+                <div className="p-6 text-center text-slate-500 text-xs">No recent outstations found.</div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
-                    <thead className="bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-[0.16em] border-b border-slate-200 dark:border-slate-800">
+                    <thead className="bg-slate-50/80 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
                       <tr>
                         <th className="px-4 py-3">Employee</th>
                         <th className="px-4 py-3">Destination</th>
@@ -372,15 +496,15 @@ export default function OutstationAnalytics() {
                         <th className="px-4 py-3">Duration</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
                       {recentAssignments.map((item, index) => (
-                        <tr key={index} className="hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors text-slate-800 dark:text-slate-200">
-                          <td className="px-4 py-4 text-sm font-semibold">{item.full_name || item.user_id}</td>
-                          <td className="px-4 py-4 text-sm">{item.destination || "-"}</td>
-                          <td className="px-4 py-4 text-sm">{item.purpose || item.project || "-"}</td>
-                          <td className="px-4 py-4 text-sm">{formatShortDate(item.start_date)} - {formatShortDate(item.end_date)}</td>
-                          <td className="px-4 py-4 text-sm">{statusBadge(item.status || "Unknown")}</td>
-                          <td className="px-4 py-4 text-sm">{item.total_days ? `${item.total_days} days` : "-"}</td>
+                        <tr key={index} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                          <td className="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100">{item.full_name || item.user_id}</td>
+                          <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{item.destination || "-"}</td>
+                          <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{item.purpose || item.project || "-"}</td>
+                          <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{formatShortDate(item.start_date)} - {formatShortDate(item.end_date)}</td>
+                          <td className="px-4 py-3">{statusBadge(item.status || "Unknown")}</td>
+                          <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{item.total_days ? `${item.total_days} days` : "-"}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -389,30 +513,34 @@ export default function OutstationAnalytics() {
               )}
             </CardContent>
           </Card>
+        </div>
 
-          <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Upcoming Outstation</CardTitle>
+        {/* Upcoming Outstation */}
+        <div className="lg:col-span-4">
+          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
+            <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+              <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">Upcoming Outstation</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="p-4 space-y-3">
               {upcomingGroups.length === 0 ? (
-                <div className="py-12 text-center text-slate-500">No upcoming assignments.</div>
+                <div className="py-8 text-center text-slate-500 text-xs">No upcoming assignments.</div>
               ) : upcomingGroups.map((group, idx) => (
-                <div key={idx} className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4 bg-white dark:bg-slate-900/80 shadow-sm">
+                <div key={idx} className="rounded-xl border border-slate-100 dark:border-slate-800 p-3.5 bg-slate-50/50 dark:bg-slate-900/50">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{group.destination || "Unknown"}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{group.purpose}</p>
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">{group.destination || "Unknown"}</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{group.purpose}</p>
                     </div>
-                    <span className="text-3xl font-bold text-slate-900 dark:text-slate-100">{group.count}</span>
+                    <span className="text-2xl font-black text-slate-800 dark:text-slate-200">{group.count}</span>
                   </div>
-                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Starting {formatShortDate(group.start_date)}</p>
+                  <p className="mt-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Starting {formatShortDate(group.start_date)}</p>
                 </div>
               ))}
             </CardContent>
           </Card>
         </div>
       </div>
+
+    </div>
   );
 }
-
