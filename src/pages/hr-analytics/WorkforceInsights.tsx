@@ -1854,34 +1854,36 @@ export default function WorkforceInsights() {
                           {item.initials}
                         </div>
                         <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">{item.name}</p>
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border ${statusBadgeClass}`}>
-                              {displayStatus}
-                            </span>
-                          </div>
+                          <p className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">{item.name}</p>
                           <p className="text-[10px] text-slate-500 font-medium mt-1 flex items-center gap-1.5">
                             <CalendarDays className="w-3 h-3 text-slate-400" /> {item.dates} <span className="text-slate-300">|</span> <span className="text-[#ff5b37] font-semibold">{item.days}</span>
                           </p>
                           <p className="text-[10px] text-slate-400 font-medium mt-0.5">Reason: {item.reason}</p>
                         </div>
                       </div>
-                      {canApprove && (
-                        <div className="flex sm:flex-col gap-1.5 self-end sm:self-center shrink-0">
-                          <button
-                            onClick={() => handleApproveLeave(item.id)}
-                            className="px-3 py-1 text-[10px] font-bold rounded bg-[#ff5b37] hover:bg-[#e04f2e] text-white transition-colors"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => handleDeclineLeave(item.id)}
-                            className="px-3 py-1 text-[10px] font-bold rounded border border-[#ff5b37] text-[#ff5b37] hover:bg-[#ff5b37]/5 transition-colors"
-                          >
-                            Decline
-                          </button>
-                        </div>
-                      )}
+                      
+                      <div className="flex sm:flex-col gap-1.5 self-end sm:self-center shrink-0 items-end sm:items-center">
+                        {canApprove ? (
+                          <>
+                            <button
+                              onClick={() => handleApproveLeave(item.id)}
+                              className="px-3 py-1 text-[10px] font-bold rounded bg-[#ff5b37] hover:bg-[#e04f2e] text-white transition-colors"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleDeclineLeave(item.id)}
+                              className="px-3 py-1 text-[10px] font-bold rounded border border-[#ff5b37] text-[#ff5b37] hover:bg-[#ff5b37]/5 transition-colors"
+                            >
+                              Decline
+                            </button>
+                          </>
+                        ) : (
+                          <span className={`px-2.5 py-1.5 rounded-md text-[10px] font-black tracking-wider uppercase text-center border ${statusBadgeClass}`}>
+                            {displayStatus}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   );
                 })
