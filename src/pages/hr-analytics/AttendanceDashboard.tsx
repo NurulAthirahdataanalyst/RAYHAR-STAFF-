@@ -777,48 +777,68 @@ export default function AttendanceDashboard() {
     "BTP": "South Malaysia",
   };
 
-  const liveBranchRanking = branchComparison
-    .map(b => {
-      const branchEmployees = liveEmployees.filter(emp => emp.branch === b.branch);
-      
-      const outstation = branchEmployees.filter(emp => emp.status === 'outstation').length;
-      const presentOnTime = branchEmployees.filter(emp => emp.status === 'present').length;
-      const presentLate = branchEmployees.filter(emp => emp.status === 'late').length;
-      const onLeave = branchEmployees.filter(emp => emp.status === 'onLeave').length;
-      const companyLeave = branchEmployees.filter(emp => emp.status === 'companyLeave').length;
-      
-      const totalEmployees = b.totalEmployees || 0;
-      const recordedCount = presentOnTime + presentLate + outstation + onLeave + companyLeave;
-      const isWeekend = recordedCount === 0 && totalEmployees > 0;
-      const absent = isWeekend ? 0 : Math.max(0, totalEmployees - recordedCount);
-      const expectedWorkingDays = isWeekend ? 0 : (totalEmployees - onLeave - companyLeave);
-      let rate = 0;
-      if (isWeekend || (totalEmployees > 0 && expectedWorkingDays === 0)) {
-        rate = 100;
-      } else if (expectedWorkingDays > 0) {
-        rate = Math.round(((presentOnTime + presentLate + outstation) / expectedWorkingDays) * 100);
-      }
+  const liveBranchRanking = useMemo(() => {
+    const listSource = (branchComparison && branchComparison.length > 0)
+      ? branchComparison
+      : branches.map(b => ({ branch: b.name, totalEmployees: 0 }));
 
-      return {
-        branch: b.branch,
-        rate,
-        region: branchRegions[b.branch] || "Unknown",
-        totalEmployees,
-        presentOnTime,
-        presentLate,
-        outstation,
-        onLeave,
-        companyLeave,
-        absent,
-        isWeekend
-      };
-    })
-    .filter(b => liveRegion === "all" || b.region.toLowerCase().includes(liveRegion.toLowerCase()))
-    .sort((a, b) => b.rate - a.rate)
-    .map(d => ({
-       ...d,
-       fill: d.isWeekend ? '#94A3B8' : d.rate >= 90 ? '#16A34A' : d.rate >= 75 ? '#EAB308' : '#DC2626'
-    }));
+    return listSource
+      .map(b => {
+        const branchEmployees = dailyAttendance.filter(emp => emp.branch === b.branch);
+        
+        const outstation = branchEmployees.filter(emp => emp.status === 'Outstation').length;
+        const presentOnTime = branchEmployees.filter(emp => emp.status === 'Present (On Time)' || emp.status === 'Present').length;
+        const presentLate = branchEmployees.filter(emp => emp.status === 'Present (Late)').length;
+        const onLeave = branchEmployees.filter(emp => emp.status === 'On Leave' || emp.status === 'Approved Leave').length;
+        const companyLeave = branchEmployees.filter(emp => emp.status === 'Company Leave').length;
+        
+        const totalEmployees = b.totalEmployees || branchEmployees.length || 0;
+        const recordedCount = presentOnTime + presentLate + outstation + onLeave + companyLeave;
+
+        // Check if branch is actually on Rest Day/Weekend today according to Zone logic or Daily Attendance status
+        const isWeekend = branchEmployees.length > 0
+          ? branchEmployees.every(r => r.status === "Weekend")
+          : (function() {
+              const dateObj = new Date(selectedDate);
+              const dayOfWeek = dateObj.getDay(); // 0=Sun, 1=Mon, 5=Fri, 6=Sat
+              const zone = (b as any).zone || (['AOR', 'KBR', 'TGG', 'DGN', 'KMM', 'CNH', 'KBG', 'JTH', 'RMP', 'MZM', 'TWU', 'BTM', 'KKS', 'MLK', 'SNS', 'JB', 'BTP'].includes(b.branch) ? 'ZONE_A' : 'ZONE_B');
+              if (zone === "ZONE_A") {
+                return dayOfWeek === 5 || dayOfWeek === 6; // Friday, Saturday
+              } else {
+                return dayOfWeek === 6 || dayOfWeek === 0; // Saturday, Sunday
+              }
+            })();
+
+        const absent = isWeekend ? 0 : Math.max(0, totalEmployees - recordedCount);
+        const expectedWorkingDays = isWeekend ? 0 : (totalEmployees - onLeave - companyLeave);
+        let rate = 0;
+        if (isWeekend) {
+          rate = 100;
+        } else if (expectedWorkingDays > 0) {
+          rate = Math.round(((presentOnTime + presentLate + outstation) / expectedWorkingDays) * 100);
+        }
+
+        return {
+          branch: b.branch,
+          rate,
+          region: branchRegions[b.branch] || "Unknown",
+          totalEmployees,
+          presentOnTime,
+          presentLate,
+          outstation,
+          onLeave,
+          companyLeave,
+          absent,
+          isWeekend
+        };
+      })
+      .filter(b => liveRegion === "all" || b.region.toLowerCase().includes(liveRegion.toLowerCase()))
+      .sort((a, b) => b.rate - a.rate)
+      .map(d => ({
+         ...d,
+         fill: d.isWeekend ? '#94A3B8' : d.rate >= 90 ? '#16A34A' : d.rate >= 75 ? '#EAB308' : '#DC2626'
+      }));
+  }, [branchComparison, branches, dailyAttendance, selectedDate, liveRegion]);
 
   // Calculate live values
   const activeRateAvg = branchComparison.length > 0
