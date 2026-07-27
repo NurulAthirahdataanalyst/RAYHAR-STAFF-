@@ -41,10 +41,26 @@ export default function TeamAttendance() {
           branch: userBranch || "",
           department: userDepartment || "",
         });
-        const empRes = await fetch(`${API_BASE_URL}/api/employees?${empParams}`);
+        const [empRes, workAssignRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/employees?${empParams}`),
+          fetch(`${API_BASE_URL}/api/work-assignments-all`)
+        ]);
         const empData = await empRes.json();
+        const workAssignData = await workAssignRes.json();
         
-        let teamEmployees = empData.success ? empData.employees : [];
+        const tempMap: Record<string, string> = {};
+        if (workAssignData.success && Array.isArray(workAssignData.assignments)) {
+          workAssignData.assignments.forEach((a: any) => {
+            if (a.status === 'Active') {
+              tempMap[a.user_id] = a.temp_branch;
+            }
+          });
+        }
+        
+        let teamEmployees = empData.success ? empData.employees.map((e: any) => ({
+          ...e,
+          temp_branch: e.temp_branch || tempMap[e.user_id] || null
+        })) : [];
         if (role === 'head_of_department') {
           teamEmployees = teamEmployees.filter((e: any) => e.department === userDepartment && e.branch === userBranch);
         }
@@ -454,7 +470,16 @@ export default function TeamAttendance() {
                           </TableCell>
                         )}
                         <TableCell className="font-medium">{emp.user_id}</TableCell>
-                        <TableCell>{emp.full_name}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-medium text-xs">{emp.full_name}</span>
+                            {(emp.temp_branch || (emp as any).temporary_branch) && (
+                              <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700 w-fit shadow-xs">
+                                <MapPin className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" /> Temp: {emp.temp_branch || (emp as any).temporary_branch}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell>{emp.department || "-"}</TableCell>
                         <TableCell>{emp.time_in}</TableCell>
                         <TableCell>{emp.time_out}</TableCell>

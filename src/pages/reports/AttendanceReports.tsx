@@ -90,10 +90,26 @@ export default function AttendanceReports() {
         params.append("year", selectedYear);
         url = `${API_BASE_URL}/api/reports/monthly-attendance?${params.toString()}`;
       }
-      const res = await fetch(url);
+      const [res, workAssignRes] = await Promise.all([
+        fetch(url),
+        fetch(`${API_BASE_URL}/api/work-assignments-all`)
+      ]);
       const data = await res.json();
+      const workAssignData = await workAssignRes.json();
+      const tempMap: Record<string, string> = {};
+      if (workAssignData.success && Array.isArray(workAssignData.assignments)) {
+        workAssignData.assignments.forEach((a: any) => {
+          if (a.status === 'Active') {
+            tempMap[a.user_id] = a.temp_branch;
+          }
+        });
+      }
       if (data.success) {
-        const processedData = data.data.map((r: any) => ({ ...r, status: r.status || "Unknown" }));
+        const processedData = data.data.map((r: any) => ({
+          ...r,
+          status: r.status || "Unknown",
+          temp_branch: r.temp_branch || tempMap[r.user_id] || null
+        }));
         setAttendanceData(processedData);
         setMonthlySummary(data.summary || null);
       } else {
@@ -441,7 +457,16 @@ export default function AttendanceReports() {
                           {viewType === "month" && <TableCell>{formatDate(req.date)}</TableCell>}
                           <TableCell className="font-medium">{req.user_id}</TableCell>
                           <TableCell className="max-w-[180px] truncate" title={req.full_name}>{req.full_name}</TableCell>
-                          <TableCell>{req.branch || "-"}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-0.5">
+                              <span className="font-medium text-xs">{req.branch || "-"}</span>
+                              {(req.temp_branch || (req as any).temporary_branch) && (
+                                <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700 w-fit shadow-xs">
+                                  <MapPin className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" /> Temp: {req.temp_branch || (req as any).temporary_branch}
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell>
                             <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full ${
                               req.status === 'Present (On Time)' ? 'bg-green-100 text-green-700' :

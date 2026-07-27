@@ -280,21 +280,36 @@ export default function AttendanceDashboard() {
     setLoadingDaily(true);
     setLoadingAbsent(true);
     try {
-      const [resDaily, resStats, resAbsent, resOutstation, resLeave] = await Promise.all([
+      const [resDaily, resStats, resAbsent, resOutstation, resLeave, resWorkAssign] = await Promise.all([
         fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
         fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "All")}&department=${encodeURIComponent(userDepartment || "All")}&date=${encodeURIComponent(selectedDate)}`),
         fetch(`${API_BASE_URL}/api/reports/absent-employees?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
         fetch(`${API_BASE_URL}/api/outstation?role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
-        fetch(`${API_BASE_URL}/api/reports/on-leave-employees?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`)
+        fetch(`${API_BASE_URL}/api/reports/on-leave-employees?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
+        fetch(`${API_BASE_URL}/api/work-assignments-all`)
       ]);
       const data = await resDaily.json();
       const statsData = await resStats.json();
       const absentData = await resAbsent.json();
       const outstationData = await resOutstation.json();
       const leaveData = await resLeave.json();
+      const workAssignData = await resWorkAssign.json();
 
-      if (data.success) {
-        setDailyAttendance(data.report);
+      const tempMap: Record<string, string> = {};
+      if (workAssignData.success && Array.isArray(workAssignData.assignments)) {
+        workAssignData.assignments.forEach((a: any) => {
+          if (a.status === 'Active') {
+            tempMap[a.user_id] = a.temp_branch;
+          }
+        });
+      }
+
+      if (data.success && Array.isArray(data.report)) {
+        const enrichedReport = data.report.map((r: any) => ({
+          ...r,
+          temp_branch: r.temp_branch || tempMap[r.user_id] || null
+        }));
+        setDailyAttendance(enrichedReport);
       }
 
       let combinedAbsentees: any[] = [];
@@ -304,7 +319,11 @@ export default function AttendanceDashboard() {
       if (leaveData.success && leaveData.report) {
         combinedAbsentees = [...combinedAbsentees, ...leaveData.report];
       }
-      setAbsentEmployees(combinedAbsentees);
+      const enrichedAbsentees = combinedAbsentees.map((e: any) => ({
+        ...e,
+        temp_branch: e.temp_branch || tempMap[e.user_id] || null
+      }));
+      setAbsentEmployees(enrichedAbsentees);
       
       if (outstationData.success) {
         setOutstationRecords(outstationData.assignments.filter((a: any) => a.status !== "Cancelled"));
@@ -1257,10 +1276,13 @@ export default function AttendanceDashboard() {
                                 {record.full_name.charAt(0)}
                               </div>
                               <div>
-                                <div className="flex items-center gap-1.5 mb-0.5">
+                                <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
                                   <span className="font-semibold text-gray-800 dark:text-gray-200 block text-xs">{record.full_name}</span>
-                                  { (record as any).attendance_type === "Temporary Assignment" && (
-                                    <span className="bg-purple-100 text-[#7B0099] border border-purple-200 text-[8px] font-bold px-1.5 py-0.5 rounded shadow-sm">TEMP</span>
+                                  { ((record as any).temp_branch || (record as any).attendance_type === "Temporary Assignment") && (
+                                    <span className="bg-amber-100 text-amber-900 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-300 dark:border-amber-700 text-[9px] font-extrabold px-1.5 py-0.5 rounded shadow-xs flex items-center gap-1">
+                                      <MapPin className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" />
+                                      TEMP: {(record as any).temp_branch || "ASSIGNED"}
+                                    </span>
                                   ) }
                                 </div>
                                 <span className="text-[10px] text-gray-400 capitalize">{((record as any).role || "").replace(/_/g, ' ')} • {record.branch}{record.branch === "HQ" && record.department ? `, • ${record.department}` : ""}</span>

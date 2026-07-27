@@ -5247,7 +5247,7 @@ app.get("/api/reports/absent-employees", async (req, res) => {
 
   try {
     let profileFilter = "";
-    let queryParams = [queryDate, queryDate, queryDate, queryDate];
+    let queryParams = [queryDate, queryDate, queryDate, queryDate, queryDate];
 
     if (role === 'branch_leader') {
       const safeBranch = (branch && branch !== "All") ? branch : "INVALID_BYPASS";
@@ -5267,10 +5267,14 @@ app.get("/api/reports/absent-employees", async (req, res) => {
         p.user_id,
         p.full_name,
         p.branch,
+        ewa.location AS temp_branch,
         p.department,
         COALESCE(ur.role, 'employee') AS role
       FROM profiles p
       LEFT JOIN user_role ur ON ur.user_id = p.user_id
+      LEFT JOIN employee_work_assignment ewa ON ewa.user_id = p.user_id 
+        AND ewa.status = 'Active' 
+        AND ?::date BETWEEN (ewa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND COALESCE((ewa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date, '2099-12-31'::date)
       WHERE p.status = 'Active'
       AND DATE(p.created_at) <= ?
       -- 1. No attendance record today
@@ -5721,6 +5725,21 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
     const outstationMap = new Map();
     for (const row of outstationRows) {
       outstationMap.set(row.user_id, row);
+    }
+
+    // 5.5. Fetch active temporary branch assignments for that date
+    const [tempAssignmentRows] = await pool.query(
+      `SELECT ewa.user_id, ewa.location AS temp_branch
+       FROM employee_work_assignment ewa
+       JOIN profiles p ON p.user_id = ewa.user_id
+       WHERE ewa.status = 'Active' 
+         AND ?::date BETWEEN (ewa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND COALESCE((ewa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date, '2099-12-31'::date)
+         ${profileFilter}`,
+      [queryDate, ...queryParams]
+    );
+    const tempAssignmentMap = new Map();
+    for (const row of tempAssignmentRows) {
+      tempAssignmentMap.set(row.user_id, row.temp_branch);
     }
 
     const branchZoneMap = await getBranchZoneMap();
