@@ -606,8 +606,8 @@ export default function Dashboard() {
                     }`}></div>
                     <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Today's Status</span>
                   </div>
-                  <div className="my-1">
-                    <span className={`text-2xl font-black leading-tight ${todayStatusTextClass}`}>{displayStatus}</span>
+                  <div className="my-1 h-[36px] flex items-center">
+                    <span className={`text-2xl font-black leading-none ${todayStatusTextClass}`}>{displayStatus}</span>
                   </div>
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-slate-200/80 dark:border-slate-800/60">
@@ -625,26 +625,12 @@ export default function Dashboard() {
               </div>
               <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
                 <div>
-                  <div className="flex items-center justify-between gap-1.5 mb-2">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs"></div>
-                      <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Attendance</span>
-                    </div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs"></div>
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Attendance</span>
                   </div>
-                  <div className="my-1 flex items-center justify-between">
+                  <div className="my-1 h-[36px] flex items-center">
                     <span className="text-3xl font-black text-blue-700 dark:text-blue-300 leading-none">{stats.attendanceRate}%</span>
-                    <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
-                      <svg className="w-full h-full transform -rotate-90">
-                        <circle cx="50%" cy="50%" r="42%" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-blue-200/60 dark:text-blue-900/40" />
-                        <circle cx="50%" cy="50%" r="42%" stroke="currentColor" strokeWidth="4" fill="transparent" 
-                          strokeDasharray={125.6}
-                          strokeDashoffset={125.6 - (stats.attendanceRate / 100) * 125.6}
-                          className="text-[#7B0099] dark:text-indigo-400 transition-all duration-1000 ease-out" 
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      <span className="absolute text-[8px] font-bold text-slate-700 dark:text-slate-200">{stats.attendanceRate}%</span>
-                    </div>
                   </div>
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-blue-200/80 dark:border-blue-800/60">
@@ -666,7 +652,7 @@ export default function Dashboard() {
                     <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-xs"></div>
                     <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Leave Balance</span>
                   </div>
-                  <div className="my-1">
+                  <div className="my-1 h-[36px] flex items-center">
                     <span className="text-3xl font-black text-purple-700 dark:text-purple-300 leading-none">{stats.leaveBalance} days</span>
                   </div>
                 </div>
@@ -689,7 +675,7 @@ export default function Dashboard() {
                     <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs"></div>
                     <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Pending</span>
                   </div>
-                  <div className="my-1">
+                  <div className="my-1 h-[36px] flex items-center">
                     <span className="text-3xl font-black text-amber-700 dark:text-amber-300 leading-none">{stats.pendingLeaves}</span>
                   </div>
                 </div>
