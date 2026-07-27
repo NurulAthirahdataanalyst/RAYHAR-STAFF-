@@ -204,60 +204,12 @@ export default function AttendanceReports() {
   return (
     <div className="min-h-screen bg-background">
 
-      {/* Global page header filters (top-right alongside the page title) */}
-      <PageActions>
-        <div className="flex flex-wrap items-center gap-3">
-          {viewType === "day" ? (
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
-            />
-          ) : viewType === "month" ? (
-            <input
-              type="month"
-              value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
-              onChange={(e) => {
-                if (e.target.value) {
-                  const [yyyy, mm] = e.target.value.split('-');
-                  setSelectedYear(yyyy);
-                  setSelectedMonth(parseInt(mm).toString());
-                }
-              }}
-              className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
-            />
-          ) : (
-            <YearPopover year={selectedYear} onSelectYear={setSelectedYear} />
-          )}
-
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[160px] h-10 bg-white dark:bg-card">
-              <SelectValue placeholder="Select Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="All">Select Status</SelectItem>
-              <SelectItem value="Present (On Time)">Present (On Time)</SelectItem>
-              <SelectItem value="Present (Late)">Present (Late)</SelectItem>
-              <SelectItem value="Approved Leave">Approved Leave</SelectItem>
-              <SelectItem value="Company Leave">Company Leave</SelectItem>
-              <SelectItem value="Outstation">Outstation</SelectItem>
-              <SelectItem value="Missing Clock-Out">Missing Clock-Out</SelectItem>
-              <SelectItem value="Absent">Absent</SelectItem>
-              <SelectItem value="Weekend">Weekend</SelectItem>
-              <SelectItem value="Clocked Out">Clocked Out</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <ExportDropdown onExportCSV={handleExportCSV} />
-        </div>
-      </PageActions>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-6">
 
-        {/* Day, Month, Year View Toggle (Positioned on the Left under the Page Title) */}
-        <div className="flex items-center">
-          <div className="inline-flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700 shadow-xs">
+        {/* Filter Toolbar Line directly under main header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
+          {/* LEFT: DAY | MONTH | YEAR View Toggle Bar */}
+          <div className="inline-flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700 shadow-xs shrink-0">
             <button
               onClick={() => setViewType("day")}
               className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
@@ -288,6 +240,53 @@ export default function AttendanceReports() {
             >
               YEAR
             </button>
+          </div>
+
+          {/* RIGHT: Active Filter Controls (Date/Month Picker, Status Dropdown, Export Button) */}
+          <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+            {viewType === "day" ? (
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
+              />
+            ) : viewType === "month" ? (
+              <input
+                type="month"
+                value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    const [yyyy, mm] = e.target.value.split('-');
+                    setSelectedYear(yyyy);
+                    setSelectedMonth(parseInt(mm).toString());
+                  }
+                }}
+                className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
+              />
+            ) : (
+              <YearPopover year={selectedYear} onSelectYear={setSelectedYear} />
+            )}
+
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[160px] h-10 bg-white dark:bg-card">
+                <SelectValue placeholder="Select Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">Select Status</SelectItem>
+                <SelectItem value="Present (On Time)">Present (On Time)</SelectItem>
+                <SelectItem value="Present (Late)">Present (Late)</SelectItem>
+                <SelectItem value="Approved Leave">Approved Leave</SelectItem>
+                <SelectItem value="Company Leave">Company Leave</SelectItem>
+                <SelectItem value="Outstation">Outstation</SelectItem>
+                <SelectItem value="Missing Clock-Out">Missing Clock-Out</SelectItem>
+                <SelectItem value="Absent">Absent</SelectItem>
+                <SelectItem value="Weekend">Weekend</SelectItem>
+                <SelectItem value="Clocked Out">Clocked Out</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <ExportDropdown onExportCSV={handleExportCSV} />
           </div>
         </div>
 
