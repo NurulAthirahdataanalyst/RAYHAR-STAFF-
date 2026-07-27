@@ -570,14 +570,8 @@ export default function Dashboard() {
       <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 ${role === "employee" ? "lg:grid-cols-4" : (isCompanyLeave && stats.activeCompanyLeave && ["hr_admin", "managing_director", "finance_manager"].includes(role) ? "lg:grid-cols-4 xl:grid-cols-8" : "lg:grid-cols-3 xl:grid-cols-7")}`}>
         {role === "employee" ? (
           <>
-            <StatCard
-              icon={Clock}
-              title="Today's Status"
-              value={displayStatus}
-              valueClassName={todayStatusTextClass}
-              subtitle={todayStatusSubtitle}
-              variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
-              isAnalyticsStyle={true}
+            {/* 1. Today's Status */}
+            <Card 
               onClick={() => {
                 if (safeTodayStatus.includes("Absent")) {
                   navigate("/hr-analytics/attendance#employee-absenteeism");
@@ -589,31 +583,123 @@ export default function Dashboard() {
                   navigate("/hr-analytics/attendance#admin-attendance");
                 }
               }}
-            />
-            <StatCard
-              icon={CalendarCheck}
-              title="Attendance"
-              value={`${stats.attendanceRate}%`}
-              progress={stats.attendanceRate}
-              subtitle="Monthly Average"
-              variant="gauge"
-            />
-            <StatCard
-              icon={CalendarCheck}
-              title="Leave Balance"
-              value={`${stats.leaveBalance} days`}
-              subtitle="Annual Leave"
-              variant="success"
-              isAnalyticsStyle={true}
-            />
-            <StatCard
-              icon={AlertTriangle}
-              title="Pending"
-              value={stats.pendingLeaves.toString()}
-              subtitle="Leave Requests"
-              variant="gold"
-              isAnalyticsStyle={true}
-            />
+              className={`rounded-[20px] shadow-sm group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between cursor-pointer ${
+                isPresent 
+                  ? "border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/60 dark:bg-emerald-950/30" 
+                  : isClockedOut 
+                  ? "border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40" 
+                  : (isOnLeave || isCompanyLeave) 
+                  ? "border border-purple-200 dark:border-purple-900/60 bg-purple-50/60 dark:bg-purple-950/30" 
+                  : "border border-rose-200 dark:border-rose-900/60 bg-rose-50/60 dark:bg-rose-950/30"
+              }`}
+            >
+              <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+                <Clock className={`w-24 h-24 ${
+                  isPresent ? "text-emerald-600" : isClockedOut ? "text-slate-600" : (isOnLeave || isCompanyLeave) ? "text-purple-600" : "text-rose-600"
+                }`} />
+              </div>
+              <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className={`w-2.5 h-2.5 rounded-full shadow-xs ${
+                      isPresent ? "bg-emerald-500" : isClockedOut ? "bg-slate-500" : (isOnLeave || isCompanyLeave) ? "bg-purple-500" : "bg-rose-500"
+                    }`}></div>
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Today's Status</span>
+                  </div>
+                  <div className="my-1">
+                    <span className={`text-2xl font-black leading-tight ${todayStatusTextClass}`}>{displayStatus}</span>
+                  </div>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-slate-200/80 dark:border-slate-800/60">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 truncate">
+                    {todayStatusSubtitle}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 2. Attendance */}
+            <Card className="rounded-[20px] border border-blue-200 dark:border-blue-900/60 shadow-sm bg-blue-50/60 dark:bg-blue-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+                <TrendingUp className="w-24 h-24 text-blue-600" />
+              </div>
+              <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center justify-between gap-1.5 mb-2">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs"></div>
+                      <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Attendance</span>
+                    </div>
+                  </div>
+                  <div className="my-1 flex items-center justify-between">
+                    <span className="text-3xl font-black text-blue-700 dark:text-blue-300 leading-none">{stats.attendanceRate}%</span>
+                    <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
+                      <svg className="w-full h-full transform -rotate-90">
+                        <circle cx="50%" cy="50%" r="42%" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-blue-200/60 dark:text-blue-900/40" />
+                        <circle cx="50%" cy="50%" r="42%" stroke="currentColor" strokeWidth="4" fill="transparent" 
+                          strokeDasharray={125.6}
+                          strokeDashoffset={125.6 - (stats.attendanceRate / 100) * 125.6}
+                          className="text-[#7B0099] dark:text-indigo-400 transition-all duration-1000 ease-out" 
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <span className="absolute text-[8px] font-bold text-slate-700 dark:text-slate-200">{stats.attendanceRate}%</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-blue-200/80 dark:border-blue-800/60">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+                    Monthly Average
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 3. Leave Balance */}
+            <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-sm bg-purple-50/60 dark:bg-purple-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+                <CalendarCheck className="w-24 h-24 text-purple-600" />
+              </div>
+              <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-xs"></div>
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Leave Balance</span>
+                  </div>
+                  <div className="my-1">
+                    <span className="text-3xl font-black text-purple-700 dark:text-purple-300 leading-none">{stats.leaveBalance} days</span>
+                  </div>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+                    Annual Leave
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 4. Pending */}
+            <Card className="rounded-[20px] border border-amber-200 dark:border-amber-900/60 shadow-sm bg-amber-50/60 dark:bg-amber-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+                <AlertTriangle className="w-24 h-24 text-amber-600" />
+              </div>
+              <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs"></div>
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Pending</span>
+                  </div>
+                  <div className="my-1">
+                    <span className="text-3xl font-black text-amber-700 dark:text-amber-300 leading-none">{stats.pendingLeaves}</span>
+                  </div>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-amber-200/80 dark:border-amber-800/60">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+                    Leave Requests
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </>
         ) : (
           <>
