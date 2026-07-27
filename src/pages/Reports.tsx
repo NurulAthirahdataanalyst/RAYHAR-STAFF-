@@ -684,37 +684,36 @@ export default function Reports() {
   const rawTypeDist = leaveUtilization?.leaveTypeDistribution || [];
   return (
     <div className={`p-4 ${sidebarCollapsed ? "md:p-8" : "md:p-6"} space-y-6 max-w-7xl mx-auto transition-all duration-300`}>
+      {/* PAGE HEADER */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-[#7B0099] rounded-[20px] text-white shadow-xl shadow-[#7B0099]/20">
+            <FileBarChart className="w-6 h-6 sm:w-8 sm:h-8" />
+          </div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight uppercase leading-none">
+              ATTENDANCE REPORTS
+            </h1>
+            <p className="text-xs sm:text-sm font-semibold text-muted-foreground mt-1.5 uppercase tracking-widest opacity-60">
+              Generate detailed attendance reports for monitoring and compliance.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <Card className="border border-white/60 bg-white/40 dark:bg-card/40 backdrop-blur-2xl shadow-2xl rounded-[32px] overflow-hidden relative">
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#7B0099] to-transparent opacity-50" />
         <CardContent className="p-6 sm:p-8">
-          <div className="space-y-4 sm:space-y-5">
-            {/* HEADER SECTION */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-border/40">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-[#7B0099] rounded-[20px] text-white shadow-xl shadow-[#7B0099]/20">
-                  <FileBarChart className="w-6 h-6 sm:w-8 sm:h-8" />
-                </div>
+          {/* GENERATE REPORT SECTION */}
+          <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 items-start">
+              
+              {/* Generator Settings Form */}
+              <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] lg:col-span-2 p-4 space-y-4 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight uppercase leading-none">
-                    {role === 'employee' ? 'Workforce Reports & Analytics' : 'Attendance Reports'}
-                  </h1>
-                  <p className="text-xs sm:text-sm font-semibold text-muted-foreground mt-1.5 uppercase tracking-widest opacity-60">
-                    Generate detailed attendance reports for monitoring and compliance.
-                  </p>
+                  <h3 className="text-base sm:text-lg font-black text-foreground uppercase tracking-tight">Configure Analytical Report</h3>
+                  <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider opacity-60">Generate targeted PDF/CSV datasets compiled directly from live database logs</p>
                 </div>
-              </div>
-            </div>
-
-            {/* GENERATE REPORT SECTION */}
-            <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 items-start">
-                
-                {/* Generator Settings Form */}
-                <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] lg:col-span-2 p-4 space-y-4 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-                  <div>
-                    <h3 className="text-base sm:text-lg font-black text-foreground uppercase tracking-tight">Configure Analytical Report</h3>
-                    <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider opacity-60">Generate targeted PDF/CSV datasets compiled directly from live database logs</p>
-                  </div>
 
                   {/* 1. Report Type Selection */}
                   <div className="space-y-2">
@@ -971,9 +970,8 @@ export default function Reports() {
 
           </div>
         </div>
-        </div>
       </CardContent>
-     </Card>
-    </div>
-  );
+    </Card>
+  </div>
+);
 }
