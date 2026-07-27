@@ -33,17 +33,17 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
   };
 
   const customFooter = (
-    <div className="flex items-center justify-between mt-3 pt-3 border-t border-border w-full">
+    <div className="flex items-center justify-between pt-2 px-1 border-t border-border/40 mt-3 w-full">
       <button
         onClick={handleClear}
-        className="text-[#3b82f6] hover:text-[#2563eb] font-normal text-sm bg-transparent border-none cursor-pointer"
+        className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors py-1 px-2.5 rounded hover:bg-muted cursor-pointer bg-transparent border-none"
         type="button"
       >
         Clear
       </button>
       <button
         onClick={handleToday}
-        className="text-[#3b82f6] hover:text-[#2563eb] font-normal text-sm bg-transparent border-none cursor-pointer"
+        className="text-xs font-bold text-[#7B0099] hover:text-[#5e0080] transition-colors py-1 px-2.5 rounded hover:bg-[#7B0099]/10 cursor-pointer bg-transparent border-none"
         type="button"
       >
         Today

@@ -165,6 +165,7 @@ export default function Calendar() {
   const isHR = role === 'hr_admin';
   const location = useLocation();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
   const [notes, setNotes] = useState<PersonalNote[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
@@ -640,9 +641,13 @@ export default function Calendar() {
               <CalendarComponent
                 mode="single"
                 selected={selectedDate}
-                onSelect={(d) => d && setSelectedDate(d)}
-                month={selectedDate}
-                onMonthChange={(m) => setSelectedDate(m)}
+                onSelect={(d) => {
+                  const target = d || new Date();
+                  setSelectedDate(target);
+                  setCalendarMonth(target);
+                }}
+                month={calendarMonth}
+                onMonthChange={(m) => setCalendarMonth(m)}
                 className="w-full"
                 classNames={{
                   months: "w-full",
@@ -667,21 +672,6 @@ export default function Calendar() {
                   day_hidden: "invisible",
                 }}
               />
-              {/* Custom Clear / Today footer */}
-              <div className="flex items-center justify-between pt-1 px-1 border-t border-border/30 mt-2">
-                <button
-                  onClick={() => setSelectedDate(new Date())}
-                  className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors py-1 px-2 rounded hover:bg-muted"
-                >
-                  Clear
-                </button>
-                <button
-                  onClick={() => setSelectedDate(new Date())}
-                  className="text-xs font-bold text-[#7B0099] hover:text-[#5e0080] transition-colors py-1 px-2 rounded hover:bg-[#7B0099]/10"
-                >
-                  Today
-                </button>
-              </div>
             </div>
           </Card>
 
@@ -935,17 +925,23 @@ export default function Calendar() {
           
           <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-b border-border/60 gap-4">
             <div className="flex items-center gap-3">
-              <Button variant="outline" className="h-9 px-4 font-bold bg-muted/30" onClick={() => setSelectedDate(new Date())}>Today</Button>
+              <Button variant="outline" className="h-9 px-4 font-bold bg-muted/30" onClick={() => {
+                const today = new Date();
+                setSelectedDate(today);
+                setCalendarMonth(today);
+              }}>Today</Button>
               <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-0.5 border border-border/50">
                 <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white dark:bg-card dark:hover:bg-card" onClick={() => {
-                  if (viewMode === 'week') setSelectedDate(new Date(selectedDate.getTime() - 7 * 24 * 60 * 60 * 1000));
-                  else setSelectedDate(subMonths(selectedDate, 1));
+                  const newD = viewMode === 'week' ? new Date(selectedDate.getTime() - 7 * 24 * 60 * 60 * 1000) : subMonths(selectedDate, 1);
+                  setSelectedDate(newD);
+                  setCalendarMonth(newD);
                 }}>
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
                 <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white dark:bg-card dark:hover:bg-card" onClick={() => {
-                  if (viewMode === 'week') setSelectedDate(new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000));
-                  else setSelectedDate(addMonths(selectedDate, 1));
+                  const newD = viewMode === 'week' ? new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000) : addMonths(selectedDate, 1);
+                  setSelectedDate(newD);
+                  setCalendarMonth(newD);
                 }}>
                   <ChevronRight className="w-4 h-4" />
                 </Button>
