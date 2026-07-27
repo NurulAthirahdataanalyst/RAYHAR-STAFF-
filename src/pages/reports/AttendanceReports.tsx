@@ -206,39 +206,6 @@ export default function AttendanceReports() {
 
       {/* Global page header filters (top-right alongside the page title) */}
       <PageActions>
-        <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
-          <button
-            onClick={() => setViewType("day")}
-            className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
-              viewType === "day"
-                ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
-                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
-            }`}
-          >
-            DAY
-          </button>
-          <button
-            onClick={() => setViewType("month")}
-            className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
-              viewType === "month"
-                ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
-                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
-            }`}
-          >
-            MONTH
-          </button>
-          <button
-            onClick={() => setViewType("year")}
-            className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
-              viewType === "year"
-                ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
-                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
-            }`}
-          >
-            YEAR
-          </button>
-        </div>
-
         <div className="flex flex-wrap items-center gap-3">
           {viewType === "day" ? (
             <input
@@ -286,7 +253,43 @@ export default function AttendanceReports() {
         </div>
       </PageActions>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-6">
+
+        {/* Day, Month, Year View Toggle (Positioned on the Left under the Page Title) */}
+        <div className="flex items-center">
+          <div className="inline-flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700 shadow-xs">
+            <button
+              onClick={() => setViewType("day")}
+              className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
+                viewType === "day"
+                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+              }`}
+            >
+              DAY
+            </button>
+            <button
+              onClick={() => setViewType("month")}
+              className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
+                viewType === "month"
+                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+              }`}
+            >
+              MONTH
+            </button>
+            <button
+              onClick={() => setViewType("year")}
+              className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
+                viewType === "year"
+                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+              }`}
+            >
+              YEAR
+            </button>
+          </div>
+        </div>
 
         {/* KPI Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">

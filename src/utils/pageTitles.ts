@@ -193,7 +193,12 @@ export function getPageTitleInfo(pathname: string, userRole?: string): PageInfo 
   };
 
   // Reports
-  if (pathname === "/reports/attendance" || pathname === "/reports") return {
+  if (pathname === "/reports/attendance") return {
+    title: "Attendance Reports",
+    subtitle: "Generate attendance record following the month filter",
+    icon: FileClock
+  };
+  if (pathname === "/reports") return {
     title: "Workforce Reports & Analytics",
     subtitle: "Generate detailed attendance reports for monitoring and compliance.",
     icon: FileClock
