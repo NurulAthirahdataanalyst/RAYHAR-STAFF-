@@ -254,7 +254,7 @@ export default function OutstationAnalytics() {
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099] shadow-xs"></div>
-                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Total Events</span>
+                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
               </div>
               <div className="my-1">
                 <span className="text-3xl font-black text-[#7B0099] dark:text-purple-300 leading-none">{totalEventsCount}</span>
@@ -323,7 +323,7 @@ export default function OutstationAnalytics() {
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-xs"></div>
-                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Ongoing Events</span>
+                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Ongoing</span>
               </div>
               <div className="my-1">
                 <span className="text-3xl font-black text-orange-700 dark:text-orange-300 leading-none">{activeCount}</span>
@@ -346,7 +346,7 @@ export default function OutstationAnalytics() {
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-xs"></div>
-                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Completed Events</span>
+                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Completed</span>
               </div>
               <div className="my-1">
                 <span className="text-3xl font-black text-purple-700 dark:text-purple-300 leading-none">{completedCount}</span>
