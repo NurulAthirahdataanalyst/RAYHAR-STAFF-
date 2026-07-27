@@ -2474,7 +2474,7 @@ app.post("/api/profiles/:userId/leave-adjustments", async (req, res) => {
   }
 });
 
-app.get("/api/profiles/:userId/leave-balance", async (req, res) => {
+app.get(["/api/profiles/:userId/leave-balance", "/api/leave-balance/:userId"], async (req, res) => {
   const { userId } = req.params;
   try {
     // 1. Get Base Entitlements
@@ -2516,7 +2516,6 @@ app.get("/api/profiles/:userId/leave-balance", async (req, res) => {
 
     let annualUsed = 0;
     let medicalUsed = 0;
-    // We don't deduct Replacement Used from a "base" because Replacement leave is earned via adjustment.
     let replacementUsed = 0;
 
     for (const row of usedLeaves) {
@@ -2526,12 +2525,13 @@ app.get("/api/profiles/:userId/leave-balance", async (req, res) => {
         medicalUsed += parseFloat(row.total_used);
       } else if (['Replacement Leave', 'Cuti Ganti'].includes(row.leave_type)) {
         replacementUsed += parseFloat(row.total_used);
-        // Note: As per recent Replacement Leave logic, approved Replacement Leave also temporarily adds to annualUsed?
-        // Wait, yes, in server.js Replacement Leave counts as annual_days_used.
-        // We'll keep it consistent with the dashboard logic. If it counts as annualUsed, we add it there.
         annualUsed += parseFloat(row.total_used);
       }
     }
+
+    const annualBal = Math.max(baseAnnual + annualAdj - annualUsed, 0);
+    const medicalBal = Math.max(baseMedical + medicalAdj - medicalUsed, 0);
+    const replacementBal = Math.max(replacementAdj - replacementUsed, 0);
 
     res.json({
       success: true,
@@ -2540,20 +2540,25 @@ app.get("/api/profiles/:userId/leave-balance", async (req, res) => {
           base: baseAnnual,
           adjustment: annualAdj,
           used: annualUsed,
-          balance: Math.max(baseAnnual + annualAdj - annualUsed, 0)
+          balance: annualBal
         },
         medical: {
           base: baseMedical,
           adjustment: medicalAdj,
           used: medicalUsed,
-          balance: Math.max(baseMedical + medicalAdj - medicalUsed, 0)
+          balance: medicalBal
         },
         replacement: {
           base: 0,
           adjustment: replacementAdj,
-          used: replacementUsed, // Already factored into annual deductions temporarily, but we can display it
-          balance: Math.max(replacementAdj - replacementUsed, 0)
+          used: replacementUsed,
+          balance: replacementBal
         }
+      },
+      balances: {
+        annual: annualBal,
+        medical: medicalBal,
+        replacement: replacementBal
       }
     });
 

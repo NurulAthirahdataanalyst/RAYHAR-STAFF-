@@ -228,22 +228,35 @@ export default function LeaveAdmin() {
   // Fetch bakiLayak when selectedRequest changes
   useEffect(() => {
     if (selectedRequest) {
-      setBakiLayak("-");
+      if ((selectedRequest as any).balance !== undefined && (selectedRequest as any).balance !== null) {
+        setBakiLayak((selectedRequest as any).balance);
+      } else {
+        setBakiLayak("-");
+      }
+
       const userId = (selectedRequest as any).userId || (selectedRequest as any).user_id || "";
       if (userId) {
-        fetch(`${API_BASE_URL}/api/leave-balance/${userId}`)
+        fetch(`${API_BASE_URL}/api/profiles/${encodeURIComponent(userId)}/leave-balance`)
           .then(res => res.json())
           .then(data => {
-            if (data.success && data.balances) {
+            const balances = data.balances || (data.data ? {
+              annual: data.data.annual?.balance,
+              medical: data.data.medical?.balance,
+              replacement: data.data.replacement?.balance
+            } : null);
+
+            if (balances) {
               const typeUpper = selectedRequest.type.toUpperCase();
               let balanceToDisplay: string | number = "-";
               
               if (['ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN'].includes(typeUpper)) {
-                balanceToDisplay = data.balances.annual;
+                balanceToDisplay = balances.annual ?? "-";
               } else if (['SICK LEAVE', 'MEDICAL LEAVE', 'CUTI SAKIT'].includes(typeUpper)) {
-                balanceToDisplay = data.balances.medical;
+                balanceToDisplay = balances.medical ?? "-";
               } else if (['REPLACEMENT LEAVE', 'CUTI GANTI'].includes(typeUpper)) {
-                balanceToDisplay = data.balances.replacement;
+                balanceToDisplay = balances.replacement ?? "-";
+              } else {
+                balanceToDisplay = balances.annual ?? "-";
               }
               
               setBakiLayak(balanceToDisplay);
