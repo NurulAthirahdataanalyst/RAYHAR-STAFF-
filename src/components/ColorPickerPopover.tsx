@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Pipette, Copy, Check, Shuffle, X } from 'lucide-react';
 
 interface ColorPickerProps {
@@ -102,8 +103,12 @@ export default function ColorPickerPopover({ color, onChange }: ColorPickerProps
   const [hexInput, setHexInput] = useState(activeColorHex.replace('#', ''));
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const satValRef = useRef<HTMLDivElement>(null);
   const isDraggingSatVal = useRef(false);
+
+  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
   useEffect(() => {
     if (color.startsWith('#')) {
@@ -115,6 +120,28 @@ export default function ColorPickerPopover({ color, onChange }: ColorPickerProps
       setHexInput(color.replace('#', ''));
     }
   }, [color]);
+
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const popoverHeight = 350;
+      const popoverWidth = 270;
+      
+      const spaceBelow = window.innerHeight - rect.bottom;
+      let top = rect.bottom + 8;
+      if (spaceBelow < popoverHeight && rect.top > popoverHeight) {
+        top = rect.top - popoverHeight - 8;
+      }
+      
+      let left = rect.left;
+      if (left + popoverWidth > window.innerWidth) {
+        left = window.innerWidth - popoverWidth - 16;
+      }
+      left = Math.max(16, left);
+
+      setPopoverPos({ top, left });
+    }
+  }, [isOpen]);
 
   const updateHsv = (h: number, s: number, v: number) => {
     setHue(h);
@@ -191,7 +218,10 @@ export default function ColorPickerPopover({ color, onChange }: ColorPickerProps
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current && !containerRef.current.contains(event.target as Node) &&
+        popoverRef.current && !popoverRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -211,6 +241,7 @@ export default function ColorPickerPopover({ color, onChange }: ColorPickerProps
     <div className="relative inline-block" ref={containerRef}>
       {/* Trigger Button - Apple iCloud Rainbow Wheel */}
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={`w-6 h-6 rounded-full cursor-pointer flex items-center justify-center transition-transform hover:scale-110 p-[2.5px] shadow-sm ${color.startsWith('#') ? 'ring-2 ring-offset-2 ring-slate-800 dark:ring-slate-300 scale-105' : 'opacity-90 hover:opacity-100'}`}
@@ -225,9 +256,13 @@ export default function ColorPickerPopover({ color, onChange }: ColorPickerProps
         />
       </button>
 
-      {/* Color Picker Card Popover */}
-      {isOpen && (
-        <div className="absolute top-8 left-0 z-50 w-[270px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-3.5 shadow-2xl animate-in zoom-in-95 duration-200 space-y-3">
+      {/* Color Picker Card Popover rendered via Body Portal */}
+      {isOpen && createPortal(
+        <div 
+          ref={popoverRef}
+          style={{ top: `${popoverPos.top}px`, left: `${popoverPos.left}px` }}
+          className="fixed z-[99999] w-[270px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-3.5 shadow-2xl animate-in zoom-in-95 duration-200 space-y-3"
+        >
           
           {/* Header Bar with Random & Close */}
           <div className="flex items-center justify-between px-1">
@@ -371,7 +406,8 @@ export default function ColorPickerPopover({ color, onChange }: ColorPickerProps
             ))}
           </div>
 
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
