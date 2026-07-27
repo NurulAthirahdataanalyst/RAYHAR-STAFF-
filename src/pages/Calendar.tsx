@@ -946,7 +946,7 @@ export default function Calendar() {
                       const rN = r/255, gN = g/255, bN = b/255;
                       const max = Math.max(rN, gN, bN), min = Math.min(rN, gN, bN);
                       const d = max - min;
-                      let h = 0, s = max === 0 ? 0 : d / max;
+                      let h = 0, s = max === 0 ? 0 : d / max, v = max;
                       if (max !== min) {
                         switch (max) {
                           case rN: h = (gN - bN) / d + (gN < bN ? 6 : 0); break;
