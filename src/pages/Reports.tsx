@@ -692,7 +692,7 @@ export default function Reports() {
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight uppercase leading-none">
-              ATTENDANCE REPORTS
+              {role === 'employee' ? 'Workforce Reports & Analytics' : 'Attendance Reports'}
             </h1>
             <p className="text-xs sm:text-sm font-semibold text-muted-foreground mt-1.5 uppercase tracking-widest opacity-60">
               Generate detailed attendance reports for monitoring and compliance.

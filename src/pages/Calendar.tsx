@@ -894,21 +894,20 @@ export default function Calendar() {
                         />
                       ))}
 
-                      {/* Custom Rainbow Color Picker Button */}
+                      {/* Custom Rainbow Color Picker Button (Apple iCloud Style) */}
                       <div className="relative flex items-center justify-center">
                         <label 
                           htmlFor="custom-color-picker-input"
-                          className={`w-7 h-7 rounded-full cursor-pointer flex items-center justify-center transition-all hover:scale-110 p-0.5 shadow-sm bg-gradient-to-tr from-pink-500 via-red-500 via-yellow-400 via-green-500 via-cyan-400 to-purple-600 ${newCategoryColor.startsWith('#') ? 'ring-2 ring-offset-2 ring-slate-800 dark:ring-slate-300 scale-105' : 'opacity-90 hover:opacity-100'}`}
+                          className={`w-6 h-6 rounded-full cursor-pointer flex items-center justify-center transition-transform hover:scale-110 p-[2.5px] shadow-sm ${newCategoryColor.startsWith('#') ? 'ring-2 ring-offset-2 ring-slate-800 dark:ring-slate-300 scale-105' : 'opacity-90 hover:opacity-100'}`}
+                          style={{
+                            background: 'conic-gradient(from 0deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff, #ff0080, #ff0000)'
+                          }}
                           title="Custom Color Picker"
                         >
                           <div 
-                            className="w-full h-full rounded-full border border-white/60 shadow-inner flex items-center justify-center"
-                            style={{ backgroundColor: newCategoryColor.startsWith('#') ? newCategoryColor : '#000000' }}
-                          >
-                            {!newCategoryColor.startsWith('#') && (
-                              <span className="text-[9px] font-black text-white drop-shadow-sm">+</span>
-                            )}
-                          </div>
+                            className="w-full h-full rounded-full transition-colors"
+                            style={{ backgroundColor: newCategoryColor.startsWith('#') ? newCategoryColor : '#121212' }}
+                          />
                           <input
                             id="custom-color-picker-input"
                             type="color"
