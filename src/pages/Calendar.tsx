@@ -67,6 +67,80 @@ type CustomCategory = {
   color: string;
 };
 
+type LeaveRequest = {
+  id: number;
+  user_id: string;
+  leave_type: string;
+  start_date: string;
+  end_date: string;
+  reason?: string;
+  status: string;
+};
+
+type OutstationItem = {
+  id: number;
+  user_id: string;
+  destination: string;
+  purpose?: string;
+  project?: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+};
+
+function formatTime12(dateStr: string | null) {
+  if (!dateStr) return "-";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+  } catch {
+    return dateStr;
+  }
+}
+
+function getWorkingHours(clockIn: string, clockOut: string | null) {
+  if (!clockOut) return null;
+  const start = new Date(clockIn).getTime();
+  const end = new Date(clockOut).getTime();
+  if (isNaN(start) || isNaN(end) || end <= start) return null;
+  const diffMs = end - start;
+  const totalMins = Math.floor(diffMs / (1000 * 60));
+  const hrs = Math.floor(totalMins / 60);
+  const mins = totalMins % 60;
+  return `${hrs}h ${mins}m`;
+}
+
+function getLeaveTypeInfo(type: string) {
+  const t = (type || "").toLowerCase();
+  if (t.includes("medical") || t.includes("mc")) {
+    return {
+      bg: "bg-amber-500/10 border-l-2 border-amber-500 text-amber-700 dark:text-amber-300",
+      pillLabel: "🟡 MC",
+      fullTitle: "Medical Leave (MC)"
+    };
+  }
+  if (t.includes("unpaid")) {
+    return {
+      bg: "bg-orange-500/10 border-l-2 border-orange-500 text-orange-700 dark:text-orange-300",
+      pillLabel: "🟠 Unpaid Leave",
+      fullTitle: "Unpaid Leave"
+    };
+  }
+  if (t.includes("replacement") || t.includes("ganti")) {
+    return {
+      bg: "bg-blue-500/10 border-l-2 border-blue-500 text-blue-700 dark:text-blue-300",
+      pillLabel: "🔵 Replacement Leave",
+      fullTitle: "Replacement Leave"
+    };
+  }
+  return {
+    bg: "bg-emerald-500/10 border-l-2 border-emerald-500 text-emerald-700 dark:text-emerald-300",
+    pillLabel: "🟢 Annual Leave",
+    fullTitle: "Annual Leave (AL)"
+  };
+}
+
 export default function Calendar() {
   const { user } = useAuth();
   const { role } = useRole();
@@ -78,10 +152,18 @@ export default function Calendar() {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [attendance, setAttendance] = useState<AttendanceLog[]>([]);
   const [companyLeaves, setCompanyLeaves] = useState<CompanyLeaveEvent[]>([]);
-  
+  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+  const [outstations, setOutstations] = useState<OutstationItem[]>([]);
+
+  const [selectedEvent, setSelectedEvent] = useState<PersonalNote | null>(null);
+  const [selectedCompanyLeave, setSelectedCompanyLeave] = useState<CompanyLeaveEvent | null>(null);
+  const [selectedLeave, setSelectedLeave] = useState<LeaveRequest | null>(null);
+  const [selectedOutstation, setSelectedOutstation] = useState<OutstationItem | null>(null);
+  const [selectedAttendance, setSelectedAttendance] = useState<AttendanceLog | null>(null);
+
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+
   const [isAddEventModalOpen, setIsAddEventModalOpen] = useState(false);
-  
-  // New Event Form State
   const [eventName, setEventName] = useState("");
   const [isAllDay, setIsAllDay] = useState(false);
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -91,9 +173,6 @@ export default function Calendar() {
   const [eventLocation, setEventLocation] = useState("");
   const [eventDescription, setEventDescription] = useState("");
   const [eventType, setEventType] = useState("reminder");
-  const [selectedEvent, setSelectedEvent] = useState<PersonalNote | null>(null);
-  const [selectedCompanyLeave, setSelectedCompanyLeave] = useState<CompanyLeaveEvent | null>(null);
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   // Custom Categories State
   const [customCategories, setCustomCategories] = useState<CustomCategory[]>(() => {
@@ -157,6 +236,29 @@ export default function Calendar() {
       const attRes = await fetch(`${API_BASE_URL}/api/attendance/history?userId=${currentUserId}`);
       const attData = await attRes.json();
       if (attData.success) setAttendance(attData.history);
+
+      // Fetch user's approved leave requests (personal only!)
+      const leaveRes = await fetch(`${API_BASE_URL}/api/leave-requests?userId=${currentUserId}`);
+      const leaveData = await leaveRes.json();
+      if (leaveData.success) {
+        const raw = leaveData.requests || leaveData.leaveRequests || [];
+        const userApproved = raw.filter((r: any) =>
+          (r.user_id === currentUserId || r.userId === currentUserId || (user?.id && r.user_id === user.id)) &&
+          (r.status === 'Approved' || r.status === 'approved')
+        );
+        setLeaveRequests(userApproved);
+      }
+
+      // Fetch user's assigned outstations (personal only!)
+      const outRes = await fetch(`${API_BASE_URL}/api/outstation?user_id=${currentUserId}`);
+      const outData = await outRes.json();
+      if (outData.success && outData.assignments) {
+        const userOuts = outData.assignments.filter((a: any) =>
+          (a.user_id === currentUserId || a.userId === currentUserId || (user?.id && a.user_id === user.id)) &&
+          a.status !== 'Cancelled'
+        );
+        setOutstations(userOuts);
+      }
 
       // Fetch company leaves and filter for this user
       const clRes = await fetch(`${API_BASE_URL}/api/company-leaves`);
@@ -677,6 +779,30 @@ export default function Calendar() {
                     </div>
                   </div>
                 )}
+                {leaveRequests.length > 0 && (
+                  <div 
+                    onClick={() => setActiveFilter(activeFilter === 'leave' ? null : 'leave')}
+                    className={`flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'leave' ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30' : 'bg-emerald-500/5 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10'}`}>
+                    <div className="flex items-center gap-3">
+                      <span className="w-3 h-3 rounded-full bg-emerald-500 border border-emerald-600/20" /> Approved Leave
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {activeFilter === 'leave' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
+                    </div>
+                  </div>
+                )}
+                {outstations.length > 0 && (
+                  <div 
+                    onClick={() => setActiveFilter(activeFilter === 'outstation' ? null : 'outstation')}
+                    className={`flex items-center justify-between px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors ${activeFilter === 'outstation' ? 'bg-pink-500/20 text-pink-700 dark:text-pink-400 border border-pink-500/30' : 'bg-pink-500/5 text-pink-700 dark:text-pink-400 hover:bg-pink-500/10'}`}>
+                    <div className="flex items-center gap-3">
+                      <span className="w-3 h-3 rounded-full bg-pink-500 border border-pink-600/20" /> Outstation
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {activeFilter === 'outstation' && <X className="w-4 h-4 opacity-50 hover:opacity-100" />}
+                    </div>
+                  </div>
+                )}
                 {customCategories.map(cat => (
                   <div 
                     key={cat.id}
@@ -819,7 +945,17 @@ export default function Calendar() {
                   const dayCompanyLeaves = companyLeaves.filter(cl => {
                     const start = cl.start_date?.split('T')[0] || cl.start_date;
                     const end = cl.end_date?.split('T')[0] || cl.end_date;
-                    return dayStr >= start && dayStr <= end && (!activeFilter || activeFilter === 'company_leave');
+                    return dayStr >= start && dayStr <= end && (!activeFilter || activeFilter === 'company_leave' || activeFilter === 'leave');
+                  });
+                  const dayApprovedLeaves = leaveRequests.filter(l => {
+                    const start = l.start_date?.split('T')[0] || l.start_date;
+                    const end = l.end_date?.split('T')[0] || l.end_date;
+                    return dayStr >= start && dayStr <= end && (!activeFilter || activeFilter === 'leave');
+                  });
+                  const dayOutstations = outstations.filter(o => {
+                    const start = o.start_date?.split('T')[0] || o.start_date;
+                    const end = o.end_date?.split('T')[0] || o.end_date;
+                    return dayStr >= start && dayStr <= end && (!activeFilter || activeFilter === 'outstation');
                   });
                   
                   const today = isSameDay(day, new Date());
@@ -850,14 +986,14 @@ export default function Calendar() {
                       
                       <div className="flex-1 overflow-y-auto space-y-1.5 no-scrollbar px-0.5">
                         
-                        {/* Holidays */}
+                        {/* 1. Holidays */}
                         {dayHolidays.map((h, idx) => (
                           <div key={`hol-${idx}`} className="px-2 py-1 rounded-[4px] bg-red-500/10 border-l-2 border-red-500 text-[11px] font-bold text-red-700 dark:text-red-400 truncate shadow-sm">
                             {h.name}
                           </div>
                         ))}
 
-                        {/* Company Leaves */}
+                        {/* 2. Company Leaves */}
                         {dayCompanyLeaves.map((cl, idx) => (
                           <div
                             key={`cl-${idx}`}
@@ -865,16 +1001,48 @@ export default function Calendar() {
                             className="px-2 py-1 rounded-[4px] bg-purple-500/10 border-l-2 border-purple-500 text-[11px] font-bold text-purple-700 dark:text-purple-400 truncate shadow-sm cursor-pointer hover:bg-purple-500/20 transition-colors"
                             title={`${cl.leave_name} (${cl.leave_type})`}
                           >
-                            🏢 {cl.leave_name}
+                            🟣 {cl.leave_name}
+                          </div>
+                        ))}
+
+                        {/* 3. Approved Leaves */}
+                        {dayApprovedLeaves.map((l, idx) => {
+                          const info = getLeaveTypeInfo(l.leave_type);
+                          return (
+                            <div
+                              key={`leave-${idx}`}
+                              onClick={() => setSelectedLeave(l)}
+                              className={`px-2 py-1 rounded-[4px] text-[11px] font-bold truncate shadow-sm cursor-pointer hover:brightness-95 transition-colors ${info.bg}`}
+                              title={`${info.fullTitle}${l.reason ? `: ${l.reason}` : ''}`}
+                            >
+                              {info.pillLabel}{l.reason ? ` · ${l.reason}` : ''}
+                            </div>
+                          );
+                        })}
+
+                        {/* 4. Outstations */}
+                        {dayOutstations.map((o, idx) => (
+                          <div
+                            key={`out-${idx}`}
+                            onClick={() => setSelectedOutstation(o)}
+                            className="px-2 py-1 rounded-[4px] bg-pink-500/10 border-l-2 border-pink-500 text-[11px] font-bold text-pink-700 dark:text-pink-300 truncate shadow-sm cursor-pointer hover:bg-pink-500/20 transition-colors"
+                            title={`Outstation: ${o.destination}`}
+                          >
+                            ✈️ {o.destination}
                           </div>
                         ))}
                         
-                        {/* Attendance */}
+                        {/* 5. Attendance */}
                         {dayAttendance.map((a, idx) => {
-                          const timeStr = new Date(a.clock_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                          const inStr = formatTime12(a.clock_in);
+                          const outStr = a.clock_out ? formatTime12(a.clock_out) : '-';
                           return (
-                            <div key={`att-${idx}`} className="px-2 py-1 rounded-[4px] bg-[#7B0099]/10 border-l-2 border-[#7B0099] text-[11px] font-bold text-[#7B0099] dark:text-purple-400 truncate shadow-sm">
-                              In: {timeStr}
+                            <div
+                              key={`att-${idx}`}
+                              onClick={() => setSelectedAttendance(a)}
+                              className="px-2 py-1 rounded-[4px] bg-[#7B0099]/10 border-l-2 border-[#7B0099] text-[11px] font-bold text-[#7B0099] dark:text-purple-400 truncate shadow-sm cursor-pointer hover:bg-[#7B0099]/20 transition-colors"
+                            >
+                              In: {inStr} · Out: {outStr}
                             </div>
                           )
                         })}
@@ -1579,6 +1747,142 @@ export default function Calendar() {
               >
                 Close
               </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Leave Request Detail Modal */}
+      {selectedLeave && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl transition-all duration-300" onClick={() => setSelectedLeave(null)}>
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-border" onClick={e => e.stopPropagation()}>
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5 text-white">
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-xs font-semibold text-emerald-100 uppercase tracking-wide bg-white/20 px-2.5 py-0.5 rounded-full">Approved Leave</span>
+                  <h2 className="text-xl font-bold text-white mt-1">{selectedLeave.leave_type}</h2>
+                </div>
+                <button onClick={() => setSelectedLeave(null)} className="text-white/70 hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <div className="flex items-start gap-3">
+                <CalendarIcon className="w-4 h-4 text-emerald-600 mt-1" />
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Duration</p>
+                  <p className="font-semibold text-foreground">{selectedLeave.start_date.slice(0, 10)} → {selectedLeave.end_date.slice(0, 10)}</p>
+                </div>
+              </div>
+              {selectedLeave.reason && (
+                <div className="flex items-start gap-3">
+                  <FileText className="w-4 h-4 text-emerald-600 mt-1" />
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Reason</p>
+                    <p className="font-semibold text-foreground">{selectedLeave.reason}</p>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center gap-3">
+                <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                  🟢 Status: Approved
+                </Badge>
+              </div>
+            </div>
+            <div className="px-6 pb-5 flex justify-end">
+              <Button onClick={() => setSelectedLeave(null)} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">Close</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Outstation Detail Modal */}
+      {selectedOutstation && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl transition-all duration-300" onClick={() => setSelectedOutstation(null)}>
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-border" onClick={e => e.stopPropagation()}>
+            <div className="bg-gradient-to-r from-pink-600 to-rose-600 px-6 py-5 text-white">
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-xs font-semibold text-pink-100 uppercase tracking-wide bg-white/20 px-2.5 py-0.5 rounded-full">✈️ Outstation</span>
+                  <h2 className="text-xl font-bold text-white mt-1">{selectedOutstation.destination}</h2>
+                </div>
+                <button onClick={() => setSelectedOutstation(null)} className="text-white/70 hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <div className="flex items-start gap-3">
+                <MapPin className="w-4 h-4 text-pink-600 mt-1" />
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Destination</p>
+                  <p className="font-semibold text-foreground">{selectedOutstation.destination}</p>
+                </div>
+              </div>
+              {selectedOutstation.purpose && (
+                <div className="flex items-start gap-3">
+                  <Plane className="w-4 h-4 text-pink-600 mt-1" />
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Purpose / Project</p>
+                    <p className="font-semibold text-foreground">{selectedOutstation.purpose} {selectedOutstation.project ? `· ${selectedOutstation.project}` : ''}</p>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-start gap-3">
+                <CalendarIcon className="w-4 h-4 text-pink-600 mt-1" />
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Duration</p>
+                  <p className="font-semibold text-foreground">{selectedOutstation.start_date.slice(0, 10)} → {selectedOutstation.end_date.slice(0, 10)}</p>
+                </div>
+              </div>
+            </div>
+            <div className="px-6 pb-5 flex justify-end">
+              <Button onClick={() => setSelectedOutstation(null)} className="bg-pink-600 hover:bg-pink-700 text-white font-semibold">Close</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Attendance Detail Modal */}
+      {selectedAttendance && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl transition-all duration-300" onClick={() => setSelectedAttendance(null)}>
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-border" onClick={e => e.stopPropagation()}>
+            <div className="bg-gradient-to-r from-[#5e0080] via-[#7B0099] to-purple-600 px-6 py-5 text-white">
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-xs font-semibold text-purple-100 uppercase tracking-wide bg-white/20 px-2.5 py-0.5 rounded-full">🟢 Attendance Log</span>
+                  <h2 className="text-xl font-bold text-white mt-1">Present</h2>
+                </div>
+                <button onClick={() => setSelectedAttendance(null)} className="text-white/70 hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Clock In</p>
+                  <p className="text-base font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{formatTime12(selectedAttendance.clock_in)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Clock Out</p>
+                  <p className="text-base font-extrabold text-purple-600 dark:text-purple-400 mt-1">{selectedAttendance.clock_out ? formatTime12(selectedAttendance.clock_out) : '-'}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-purple-600" />
+                  <span className="text-sm font-semibold text-muted-foreground">Working Hours:</span>
+                </div>
+                <span className="text-sm font-extrabold text-foreground bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full">
+                  {getWorkingHours(selectedAttendance.clock_in, selectedAttendance.clock_out) || '-'}
+                </span>
+              </div>
+            </div>
+            <div className="px-6 pb-5 flex justify-end">
+              <Button onClick={() => setSelectedAttendance(null)} className="bg-[#7B0099] hover:bg-[#5e0080] text-white font-semibold">Close</Button>
             </div>
           </div>
         </div>
