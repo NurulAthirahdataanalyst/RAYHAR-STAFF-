@@ -26,6 +26,7 @@ export function getBreadcrumbs(pathname: string): BreadcrumbSegment[] {
   if (pathname === "/outstation") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "OUTSTATION DASHBOARD" }];
   if (pathname === "/outstation/assignment") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "OUTSTATION ASSIGNMENT" }];
   if (pathname === "/outstation/calendar") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "OUTSTATION CALENDAR" }];
+  if (pathname === "/outstation/my-calendar" || pathname === "/outstation/my_calendar") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation/my" }, { label: "MY OUTSTATION CALENDAR" }];
   if (pathname === "/outstation/my") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "MY OUTSTATION" }];
   if (pathname === "/outstation/analytics") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "OUTSTATION ANALYTICS" }];
   if (pathname === "/outstation/reports") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "OUTSTATION REPORTS" }];

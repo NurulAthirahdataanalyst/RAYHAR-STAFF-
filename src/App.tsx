@@ -116,6 +116,8 @@ function ProtectedRoutes() {
           <Route path="/outstation" element={<OutstationDashboard />} />
           <Route path="/outstation/assignment" element={<OutstationAssignment />} />
           <Route path="/outstation/my" element={<MyOutstation />} />
+          <Route path="/outstation/my-calendar" element={<OutstationCalendar onlyMine={true} />} />
+          <Route path="/outstation/my_calendar" element={<OutstationCalendar onlyMine={true} />} />
           <Route path="/outstation/calendar" element={<OutstationCalendar />} />
           <Route path="/outstation/analytics" element={<OutstationAnalytics />} />
           <Route path="/outstation/reports" element={<OutstationReports />} />

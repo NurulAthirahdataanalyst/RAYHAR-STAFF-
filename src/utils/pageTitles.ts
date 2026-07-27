@@ -61,6 +61,11 @@ export function getPageTitleInfo(pathname: string): PageInfo {
     subtitle: "View upcoming and ongoing outstation schedules.",
     icon: CalendarRange
   };
+  if (pathname === "/outstation/my-calendar" || pathname === "/outstation/my_calendar") return {
+    title: "My Outstation Calendar",
+    subtitle: "View your personal scheduled business trips and travel calendar.",
+    icon: CalendarRange
+  };
   if (pathname === "/outstation/my") return {
     title: "My Outstation",
     subtitle: "Track your assigned business trips and travel history.",

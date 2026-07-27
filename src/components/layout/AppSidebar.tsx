@@ -124,7 +124,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       roles: HOD_BL_ROLES,
       children: [
         { title: "My Outstation", icon: Plane, path: "/outstation/my", roles: HOD_BL_ROLES },
-        { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar", roles: HOD_BL_ROLES },
+        { title: "My Outstation Calendar", icon: Calendar, path: "/outstation/my-calendar", roles: HOD_BL_ROLES },
       ],
     },
     {
@@ -213,7 +213,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       roles: ALL_ROLES,
       children: [
         { title: "My Outstation", icon: Plane, path: "/outstation/my", roles: ALL_ROLES },
-        { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar", roles: ALL_ROLES },
+        { title: "My Outstation Calendar", icon: Calendar, path: "/outstation/my-calendar", roles: ALL_ROLES },
       ],
     },
     {

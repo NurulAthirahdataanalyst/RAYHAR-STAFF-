@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isBefore, startOfDay } from "date-fns";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,7 +46,9 @@ type Assignment = {
   project?: string;
 };
 
-export default function OutstationCalendar() {
+export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: boolean }) {
+  const location = useLocation();
+  const isMyCalendar = onlyMine || location.pathname.includes("my-calendar") || location.pathname.includes("my_calendar");
   const { role, userBranch, userDepartment, userId, loading: roleLoading } = useRole();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,21 +64,29 @@ export default function OutstationCalendar() {
       setLoading(true);
       try {
         const isEmployee = !["hr_admin", "managing_director", "finance_manager", "branch_leader", "head_of_department"].includes(role);
+        const shouldFilterMine = isMyCalendar || isEmployee;
+
         const params = new URLSearchParams({
           role,
           branch: userBranch || "",
           department: userDepartment || "",
-          ...(isEmployee && userId ? { user_id: userId } : {}),
+          ...(shouldFilterMine && userId ? { user_id: userId } : {}),
         });
         const res = await fetch(`${API_BASE_URL}/api/outstation?${params}`);
         const data = await res.json();
-        if (data.success) setAssignments(data.assignments || []);
+        if (data.success) {
+          let list: Assignment[] = data.assignments || [];
+          if (isMyCalendar && userId) {
+            list = list.filter((a) => a.user_id === userId || (a as any).userId === userId);
+          }
+          setAssignments(list);
+        }
       } catch { /* swallow */ } finally {
         setLoading(false);
       }
     };
     if (!roleLoading) void fetchData();
-  }, [role, userBranch, userDepartment, userId, roleLoading]);
+  }, [role, userBranch, userDepartment, userId, roleLoading, isMyCalendar]);
 
   // Get all days in the current view grid
   const calDays = useMemo(() => {
@@ -90,6 +101,7 @@ export default function OutstationCalendar() {
   const getAssignmentsForDay = (day: Date) => {
     const dateStr = format(day, 'yyyy-MM-dd');
     return assignments.filter(a => {
+      if (isMyCalendar && userId && a.user_id !== userId && (a as any).userId !== userId) return false;
       if (filterStatus !== "All" && a.status !== filterStatus) return false;
       return a.start_date.slice(0, 10) <= dateStr && a.end_date.slice(0, 10) >= dateStr;
     });
@@ -111,10 +123,10 @@ export default function OutstationCalendar() {
   if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-500" /></div>;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-8">
+    <div className="animate-in fade-in duration-500">
       {/* Calendar Card */}
-      <Card className="border border-gray-200 dark:border-slate-800/80 shadow-sm overflow-hidden">
-        <CardHeader className="flex flex-col gap-4 border-b border-border/50 pb-4 px-4 sm:px-5">
+      <Card className="border border-slate-200 dark:border-slate-800/80 shadow-xs overflow-hidden rounded-2xl">
+        <CardHeader className="flex flex-col gap-4 border-b border-border/50 p-4 sm:p-5">
           {/* Controls */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
             <div className="flex items-center gap-3">
