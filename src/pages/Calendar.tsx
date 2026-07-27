@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { useLocation } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
-import { toast } from "sonner";
+import ColorPickerPopover from "@/components/ColorPickerPopover";
 
 import PageActions from "@/components/layout/PageActions";
 import { 
@@ -885,7 +885,7 @@ export default function Calendar() {
                   
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Label Color</label>
-                    <div className="flex flex-wrap gap-2.5 items-center">
+                    <div className="grid grid-cols-6 gap-2.5 items-center w-max">
                       {Object.keys(CATEGORY_COLORS).map(color => (
                         <div 
                           key={color}
@@ -894,29 +894,11 @@ export default function Calendar() {
                         />
                       ))}
 
-                      {/* Custom Rainbow Color Picker Button (Apple iCloud Style) */}
-                      <div className="relative flex items-center justify-center">
-                        <label 
-                          htmlFor="custom-color-picker-input"
-                          className={`w-6 h-6 rounded-full cursor-pointer flex items-center justify-center transition-transform hover:scale-110 p-[2.5px] shadow-sm ${newCategoryColor.startsWith('#') ? 'ring-2 ring-offset-2 ring-slate-800 dark:ring-slate-300 scale-105' : 'opacity-90 hover:opacity-100'}`}
-                          style={{
-                            background: 'conic-gradient(from 0deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff, #ff0080, #ff0000)'
-                          }}
-                          title="Custom Color Picker"
-                        >
-                          <div 
-                            className="w-full h-full rounded-full transition-colors"
-                            style={{ backgroundColor: newCategoryColor.startsWith('#') ? newCategoryColor : '#121212' }}
-                          />
-                          <input
-                            id="custom-color-picker-input"
-                            type="color"
-                            value={newCategoryColor.startsWith('#') ? newCategoryColor : '#7B0099'}
-                            onChange={(e) => setNewCategoryColor(e.target.value)}
-                            className="sr-only opacity-0 w-0 h-0 cursor-pointer"
-                          />
-                        </label>
-                      </div>
+                      {/* ColorPickerPopover (Placed in Row 2, Column 3 - Directly under Yellow!) */}
+                      <ColorPickerPopover
+                        color={newCategoryColor}
+                        onChange={(c) => setNewCategoryColor(c)}
+                      />
                     </div>
                   </div>
 
