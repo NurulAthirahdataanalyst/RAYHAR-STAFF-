@@ -117,17 +117,14 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       ],
     },
     {
+      id: "hod_main_outstation",
       title: "Outstation Management",
       icon: Plane,
-      path: "/outstation",
+      path: "/outstation/my",
       roles: HOD_BL_ROLES,
       children: [
-        { title: "Outstation Dashboard", icon: Plane, path: "/outstation", roles: HOD_BL_ROLES },
-        { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment", roles: HOD_BL_ROLES },
         { title: "My Outstation", icon: Plane, path: "/outstation/my", roles: HOD_BL_ROLES },
         { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar", roles: HOD_BL_ROLES },
-        { title: "Outstation Analytics", icon: BarChart3, path: "/outstation/analytics", roles: HOD_BL_ROLES },
-        { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports", roles: HOD_BL_ROLES },
       ],
     },
     {
@@ -157,6 +154,20 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     },
     { title: "Administration", isSection: true, roles: HOD_BL_ROLES },
     { title: "Employee Directory", icon: Users, path: "/employees", roles: HOD_BL_ROLES },
+    {
+      id: "hod_admin_outstation",
+      title: "Outstation Management",
+      icon: Plane,
+      path: "/outstation",
+      roles: HOD_BL_ROLES,
+      children: [
+        { title: "Outstation Dashboard", icon: Plane, path: "/outstation", roles: HOD_BL_ROLES },
+        { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment", roles: HOD_BL_ROLES },
+        { title: "Outstation Analytics", icon: BarChart3, path: "/outstation/analytics", roles: HOD_BL_ROLES },
+        { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar", roles: HOD_BL_ROLES },
+        { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports", roles: HOD_BL_ROLES },
+      ],
+    },
     {
       title: "Workforce Analytics",
       icon: PieChart,
@@ -195,17 +206,14 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       ],
     },
     {
+      id: "main_outstation",
       title: "Outstation Management",
       icon: Plane,
-      path: "/outstation",
+      path: "/outstation/my",
       roles: ALL_ROLES,
       children: [
-        { title: "Outstation Dashboard", icon: Plane, path: "/outstation", roles: FULL_ADMIN_ROLES },
-        { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment", roles: FULL_ADMIN_ROLES },
         { title: "My Outstation", icon: Plane, path: "/outstation/my", roles: ALL_ROLES },
         { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar", roles: ALL_ROLES },
-        { title: "Outstation Analytics", icon: BarChart3, path: "/outstation/analytics", roles: FULL_ADMIN_ROLES },
-        { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports", roles: FULL_ADMIN_ROLES },
       ],
     },
     {
@@ -232,6 +240,20 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "Leave Approval", icon: ClipboardList, path: "/leave/admin", roles: FULL_ADMIN_ROLES },
         { title: "Leave Calendar", icon: Calendar, path: "/leave/calendar", roles: FULL_ADMIN_ROLES },
         { title: "Leave Entitlement Management", icon: CalendarDays, path: "/leave/entitlement", roles: ["hr_admin"] },
+      ],
+    },
+    {
+      id: "admin_outstation",
+      title: "Outstation Management",
+      icon: Plane,
+      path: "/outstation",
+      roles: FULL_ADMIN_ROLES,
+      children: [
+        { title: "Outstation Dashboard", icon: Plane, path: "/outstation", roles: FULL_ADMIN_ROLES },
+        { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment", roles: FULL_ADMIN_ROLES },
+        { title: "Outstation Analytics", icon: BarChart3, path: "/outstation/analytics", roles: FULL_ADMIN_ROLES },
+        { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar", roles: FULL_ADMIN_ROLES },
+        { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports", roles: FULL_ADMIN_ROLES },
       ],
     },
     {
@@ -284,14 +306,13 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   // Pick the right menu based on role
   const activeMenu = HOD_BL_ROLES.includes(role || "") ? hodMenuItems : menuItems;
 
-
   const filteredItems = activeMenu.filter((item) =>
     item.roles.includes(role || "employee")
   );
 
   // Automatically expand submenus if any child page is active
   useEffect(() => {
-    let activeParentTitle = "";
+    let activeParentKey = "";
     filteredItems.forEach(item => {
       if (item.children) {
         const visibleChildren = item.children.filter((child) =>
@@ -302,12 +323,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         );
         const isParentActive = item.path && location.pathname === item.path;
         if (hasActiveChild || isParentActive) {
-          activeParentTitle = item.title;
+          activeParentKey = (item as any).id || item.title;
         }
       }
     });
-    if (activeParentTitle) {
-      setExpandedMenus({ [activeParentTitle]: true });
+    if (activeParentKey) {
+      setExpandedMenus({ [activeParentKey]: true });
     }
   }, [location.pathname, role]);
 
@@ -388,11 +409,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
               item.path === "/"
                 ? location.pathname === item.path
                 : (item.path && location.pathname === item.path) || hasActiveChild || (!hasChildren && item.path && location.pathname.startsWith(`${item.path}/`));
-            const isMenuExpanded = expandedMenus[item.title];
+            const menuKey = (item as any).id || item.title;
+            const isMenuExpanded = expandedMenus[menuKey];
             const ItemIcon = item.icon;
 
             return (
-              <div key={item.title} className="relative group/menu-item space-y-1">
+              <div key={menuKey} className="relative group/menu-item space-y-1">
                 <Link
                   to={item.path || "#"}
                   onClick={(e) => {
@@ -400,7 +422,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                       onMobileClose();
                     }
                     if (hasChildren && !effectiveCollapsed) {
-                      setExpandedMenus(prev => prev[item.title] ? {} : { [item.title]: true });
+                      setExpandedMenus(prev => prev[menuKey] ? {} : { [menuKey]: true });
                     }
                   }}
                   className={`group relative flex items-center gap-2.5 transition-all duration-300 touch-target ${
@@ -439,7 +461,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        setExpandedMenus(prev => prev[item.title] ? {} : { [item.title]: true });
+                        setExpandedMenus(prev => prev[menuKey] ? {} : { [menuKey]: true });
                       }}
                       className="ml-auto p-0.5 rounded-md text-slate-400 dark:text-slate-500 hover:text-[#7B0099] dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all"
                       aria-label={isMenuExpanded ? "Collapse submenu" : "Expand submenu"}
