@@ -799,13 +799,17 @@ export default function AttendanceDashboard() {
         const isWeekend = branchEmployees.length > 0
           ? branchEmployees.every(r => r.status === "Weekend")
           : (function() {
-              const dateObj = new Date(selectedDate);
-              const dayOfWeek = dateObj.getDay(); // 0=Sun, 1=Mon, 5=Fri, 6=Sat
+              const parts = (selectedDate || '').split('-').map(Number);
+              if (parts.length < 3) return false;
+              const [y, m, d] = parts;
+              const dateObj = new Date(y, m - 1, d);
+              const dayOfWeek = dateObj.getDay(); // 0=Sun, 1=Mon, 2=Tue, 5=Fri, 6=Sat
+              const isFirstWeek = d <= 7;
               const zone = (b as any).zone || (['AOR', 'KBR', 'TGG', 'DGN', 'KMM', 'CNH', 'KBG', 'JTH', 'RMP', 'MZM', 'TWU', 'BTM', 'KKS', 'MLK', 'SNS', 'JB', 'BTP'].includes(b.branch) ? 'ZONE_A' : 'ZONE_B');
               if (zone === "ZONE_A") {
-                return dayOfWeek === 5 || dayOfWeek === 6; // Friday, Saturday
+                return dayOfWeek === 5 || (dayOfWeek === 6 && isFirstWeek); // Friday & 1st Saturday
               } else {
-                return dayOfWeek === 6 || dayOfWeek === 0; // Saturday, Sunday
+                return dayOfWeek === 0 || (dayOfWeek === 6 && isFirstWeek); // Sunday & 1st Saturday
               }
             })();
 
