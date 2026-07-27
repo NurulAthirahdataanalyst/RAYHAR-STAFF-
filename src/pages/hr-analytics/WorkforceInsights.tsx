@@ -222,13 +222,60 @@ export default function WorkforceInsights() {
     return () => es.close();
   }, [role, userBranch, userDepartment, isAdminRole, month, year, day]);
 
+  const getApprovalState = (userRole: string | undefined, itemStatus: string) => {
+    const normRole = (userRole || '').toLowerCase();
+    const st = itemStatus || '';
+
+    // 1. Is this item waiting for userRole to approve?
+    let canApprove = false;
+    
+    if (['head_of_department', 'branch_leader', 'hod'].includes(normRole)) {
+      canApprove = st === 'Pending' || st.startsWith('Pending HOD') || st === 'Pending Branch Leader';
+    } else if (normRole === 'finance_manager' || normRole === 'finance') {
+      canApprove = st === 'Pending Finance' || st === 'Pending Finance Manager';
+    } else if (['managing_director', 'md'].includes(normRole)) {
+      canApprove = st === 'Pending MD' || st === 'Pending Managing Director';
+    }
+
+    // HR & Employees NEVER get approve/decline buttons
+    if (['hr_admin', 'hr', 'employee'].includes(normRole)) {
+      canApprove = false;
+    }
+
+    // 2. Display Status Badge text & styling
+    let displayStatus = st;
+    let statusBadgeClass = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20";
+
+    if (canApprove) {
+      displayStatus = "Pending Your Approval";
+      statusBadgeClass = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20";
+    } else if (st === 'Pending' || st.startsWith('Pending HOD') || st === 'Pending Branch Leader') {
+      displayStatus = "Pending HOD / Branch Leader";
+      statusBadgeClass = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20";
+    } else if (st === 'Pending Finance' || st === 'Pending Finance Manager') {
+      displayStatus = "Pending Finance Manager";
+      statusBadgeClass = "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20";
+    } else if (st === 'Pending MD' || st === 'Pending Managing Director') {
+      displayStatus = "Pending Managing Director";
+      statusBadgeClass = "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20";
+    } else if (st === 'Approved') {
+      displayStatus = "Approved";
+      statusBadgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20";
+    } else if (st === 'Rejected') {
+      displayStatus = "Rejected";
+      statusBadgeClass = "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20";
+    }
+
+    return { canApprove, displayStatus, statusBadgeClass };
+  };
+
   const handleApproveLeave = async (id: number) => {
     setPendingApprovalsList(prev => prev.filter(item => item.id !== id));
     try {
       await fetch(`${API_BASE_URL}/api/leave-requests/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'Approved', approver_id: null, approver_note: '' })
+        body: JSON.stringify({ action: 'Approve', status: 'Approved', approver_id: userId, role: role })
       });
     } catch (err) { console.error('Approve error:', err); }
   };
@@ -239,7 +286,7 @@ export default function WorkforceInsights() {
       await fetch(`${API_BASE_URL}/api/leave-requests/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'Rejected', approver_id: null, approver_note: '' })
+        body: JSON.stringify({ action: 'Reject', status: 'Rejected', approver_id: userId, role: role })
       });
     } catch (err) { console.error('Decline error:', err); }
   };
@@ -1798,36 +1845,46 @@ export default function WorkforceInsights() {
                   <p className="text-[10px] mt-0.5">No pending approvals remaining.</p>
                 </div>
               ) : (
-                pendingApprovalsList.map((item) => (
-                  <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:bg-slate-900/50 transition-all gap-3">
-                    <div className="flex items-start gap-2.5">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm shrink-0 mt-0.5 ${getAvatarColor(item.name)}`}>
-                        {item.initials}
+                pendingApprovalsList.map((item) => {
+                  const { canApprove, displayStatus, statusBadgeClass } = getApprovalState(role, item.status);
+                  return (
+                    <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:bg-slate-900/50 transition-all gap-3">
+                      <div className="flex items-start gap-2.5">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm shrink-0 mt-0.5 ${getAvatarColor(item.name)}`}>
+                          {item.initials}
+                        </div>
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">{item.name}</p>
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border ${statusBadgeClass}`}>
+                              {displayStatus}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-slate-500 font-medium mt-1 flex items-center gap-1.5">
+                            <CalendarDays className="w-3 h-3 text-slate-400" /> {item.dates} <span className="text-slate-300">|</span> <span className="text-[#ff5b37] font-semibold">{item.days}</span>
+                          </p>
+                          <p className="text-[10px] text-slate-400 font-medium mt-0.5">Reason: {item.reason}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">{item.name}</p>
-                        <p className="text-[10px] text-slate-500 font-medium mt-1 flex items-center gap-1.5">
-                          <CalendarDays className="w-3 h-3 text-slate-400" /> {item.dates} <span className="text-slate-300">|</span> <span className="text-[#ff5b37] font-semibold">{item.days}</span>
-                        </p>
-                        <p className="text-[10px] text-slate-400 font-medium mt-0.5">Reason: {item.reason}</p>
-                      </div>
+                      {canApprove && (
+                        <div className="flex sm:flex-col gap-1.5 self-end sm:self-center shrink-0">
+                          <button
+                            onClick={() => handleApproveLeave(item.id)}
+                            className="px-3 py-1 text-[10px] font-bold rounded bg-[#ff5b37] hover:bg-[#e04f2e] text-white transition-colors"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleDeclineLeave(item.id)}
+                            className="px-3 py-1 text-[10px] font-bold rounded border border-[#ff5b37] text-[#ff5b37] hover:bg-[#ff5b37]/5 transition-colors"
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex sm:flex-col gap-1.5 self-end sm:self-center shrink-0">
-                      <button
-                        onClick={() => handleApproveLeave(item.id)}
-                        className="px-3 py-1 text-[10px] font-bold rounded bg-[#ff5b37] hover:bg-[#e04f2e] text-white transition-colors"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleDeclineLeave(item.id)}
-                        className="px-3 py-1 text-[10px] font-bold rounded border border-[#ff5b37] text-[#ff5b37] hover:bg-[#ff5b37]/5 transition-colors"
-                      >
-                        Decline
-                      </button>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </Card>
