@@ -167,46 +167,35 @@ export default function Reports() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewCount, setPreviewCount] = useState(0);
 
+  const fetchPreviewCount = useCallback(async () => {
+    try {
+      const params = new URLSearchParams({
+        type: generatorType,
+        month: selectedMonth,
+        year: selectedYear,
+        branch: generatorBranch,
+        department: generatorDept,
+        requesterRole: role || "",
+        requesterBranch: userBranch || "",
+        requesterDept: userDepartment || "",
+        requesterId: userId || ""
+      });
+      const response = await fetch(`${API_BASE_URL}/api/reports/generator?${params}`);
+      const data = await response.json();
+      if (data.success && Array.isArray(data.data)) {
+        setPreviewCount(data.data.length);
+      } else {
+        setPreviewCount(0);
+      }
+    } catch (e) {
+      console.error("Error fetching preview count:", e);
+      setPreviewCount(0);
+    }
+  }, [generatorType, selectedMonth, selectedYear, generatorBranch, generatorDept, role, userBranch, userDepartment, userId]);
+
   useEffect(() => {
-    // Generate a realistic preview count based on current filters
-    let baseCount = 0;
-    
-    // Calculate total employees based on selected dept/branch
-    let empCount = 0;
-    if (generatorDept === "all") {
-      empCount = deptStats.reduce((sum, d) => sum + (d.employee_count || 0), 0) || 150;
-    } else {
-      const d = deptStats.find(x => x.name === generatorDept);
-      empCount = d ? (d.employee_count || 0) : 20;
-    }
-
-    if (generatorBranch !== "all") {
-      empCount = Math.max(1, Math.floor(empCount / 5)); // Rough estimate
-    }
-
-    let daysInMonth = 30;
-    if (selectedMonth !== "all") {
-       const m = parseInt(selectedMonth);
-       const y = selectedYear !== "all" ? parseInt(selectedYear) : new Date().getFullYear();
-       daysInMonth = new Date(y, m, 0).getDate();
-    } else {
-       daysInMonth = 365;
-    }
-
-    if (generatorType === "trends") {
-      baseCount = empCount * daysInMonth; 
-    } else if (generatorType === "leave") {
-      baseCount = Math.floor(empCount * (daysInMonth / 30) * 1.5);
-    } else if (generatorType === "outstation") {
-      baseCount = Math.floor(empCount * (daysInMonth / 30) * 0.2);
-    } else if (generatorType === "company_leave") {
-      baseCount = 12; // Static company leaves
-    }
-
-    // Add some organic jitter
-    const jitter = Math.floor(Math.random() * (baseCount * 0.05));
-    setPreviewCount(Math.max(0, baseCount - jitter));
-  }, [generatorType, generatorDept, generatorBranch, selectedMonth, selectedYear, deptStats]);
+    fetchPreviewCount();
+  }, [fetchPreviewCount]);
 
   const months = [
     { value: "1", label: "January" },
@@ -530,13 +519,14 @@ export default function Reports() {
         let rows: any[] = [];
         
         if (generatorType === "trends" || generatorType === "stability") {
-          headers = ["Employee ID", "Employee Name", "Branch", "Date", "Clock In", "Clock Out", "Total Hours"];
+          headers = ["Employee ID", "Employee Name", "Branch", "Date", "Status", "Clock In", "Clock Out", "Total Hours"];
           rows = data.data.map((r: any) => {
-             const dateStr = new Date(r.clock_in).toLocaleDateString();
-             const timeIn = new Date(r.clock_in).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+             const dateStr = r.date || (r.clock_in ? new Date(r.clock_in).toLocaleDateString() : "--");
+             const timeIn = r.clock_in ? new Date(r.clock_in).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "--:--";
              const timeOut = r.clock_out ? new Date(r.clock_out).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "--:--";
-             const totalHrs = calculateWorkingHours(r.clock_in, r.clock_out);
-             return [r.user_id, r.full_name, r.branch, dateStr, timeIn, timeOut, totalHrs];
+             const statusStr = r.status || "Present";
+             const totalHrs = r.total_hours || calculateWorkingHours(r.clock_in, r.clock_out);
+             return [r.user_id, r.full_name, r.branch, dateStr, statusStr, timeIn, timeOut, totalHrs];
           });
         } else if (generatorType === "outstation") {
           headers = ["Event Name", "Destination", "Start Date", "End Date", "Days", "Status", "Employee Name", "Department", "Branch"];
@@ -700,180 +690,193 @@ export default function Reports() {
           <div className="space-y-4 sm:space-y-5">
             {/* HEADER SECTION */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-border/40">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-[#7B0099] rounded-[20px] text-white shadow-xl shadow-[#7B0099]/20">
-            <FileBarChart className="w-6 h-6 sm:w-8 sm:h-8" />
-          </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight uppercase leading-none">Workforce Reports & Analytics</h1>
-            <p className="text-xs sm:text-sm font-semibold text-muted-foreground mt-1.5 uppercase tracking-widest opacity-60">Enterprise Administration & Analytics Report</p>
-          </div>
-        </div>
-      </div>
-      {/* ================================================================= */}
-      {/* GENERATE REPORT SECTION */}
-      {/* ================================================================= */}
-        <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 items-start">
-            
-            {/* Generator Settings Form */}
-            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] lg:col-span-2 p-4 space-y-4 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#7B0099]/10 transition-all duration-300">
-              <div>
-                <h3 className="text-base sm:text-lg font-black text-foreground uppercase tracking-tight">Configure Analytical Report</h3>
-                <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider opacity-60">Generate targeted PDF/CSV datasets compiled directly from live database logs</p>
-              </div>
-
-              {/* 1. Report Type Selection */}
-              <div className="space-y-2">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">1. Report Type Selection</span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <button
-                    onClick={() => setGeneratorType("trends")}
-                    className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-                      generatorType === "trends"
-                        ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground shadow-[0_0_20px_rgba(123,0,153,0.15)]"
-                        : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:border-[#7B0099] hover:shadow-md hover:ring-1 hover:ring-inset hover:ring-[#7B0099] hover:bg-[#7B0099]/5 dark:hover:bg-slate-900/50 hover:text-foreground"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                        generatorType === "trends" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-muted-foreground"
-                      }`}>
-                        <Clock className="w-5 h-5" />
-                      </div>
-                      <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Attendance Trends</span>
-                    </div>
-                    <hr className="border-border/50 my-2.5 w-full" />
-                    <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Clock-in, late check audits, and raw timelines</span>
-
-
-                  </button>
-
-                  <button
-                    onClick={() => setGeneratorType("leave")}
-                    className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-                      generatorType === "leave"
-                        ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground shadow-[0_0_20px_rgba(123,0,153,0.15)]"
-                        : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:border-[#7B0099] hover:shadow-md hover:ring-1 hover:ring-inset hover:ring-[#7B0099] hover:bg-[#7B0099]/5 dark:hover:bg-slate-900/50 hover:text-foreground"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                        generatorType === "leave" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-muted-foreground"
-                      }`}>
-                        <PieChart className="w-5 h-5" />
-                      </div>
-                      <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Leave Utilization</span>
-                    </div>
-                    <hr className="border-border/50 my-2.5 w-full" />
-                    <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Department utilization rates and absence charts</span>
-
-                  </button>
-
-                  <button
-                    onClick={() => setGeneratorType("outstation")}
-                    className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-                      generatorType === "outstation"
-                        ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground shadow-[0_0_20px_rgba(123,0,153,0.15)]"
-                        : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:border-[#7B0099] hover:shadow-md hover:ring-1 hover:ring-inset hover:ring-[#7B0099] hover:bg-[#7B0099]/5 dark:hover:bg-slate-900/50 hover:text-foreground"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                        generatorType === "outstation" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-muted-foreground"
-                      }`}>
-                        <Briefcase className="w-5 h-5" />
-                      </div>
-                      <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Outstation Assignment</span>
-                    </div>
-                    <hr className="border-border/50 my-2.5 w-full" />
-                    <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Official business travel and assignment activities</span>
-
-                  </button>
-
-                  <button
-                    onClick={() => setGeneratorType("company_leave")}
-                    className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-                      generatorType === "company_leave"
-                        ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground shadow-[0_0_20px_rgba(123,0,153,0.15)]"
-                        : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:border-[#7B0099] hover:shadow-md hover:ring-1 hover:ring-inset hover:ring-[#7B0099] hover:bg-[#7B0099]/5 dark:hover:bg-slate-900/50 hover:text-foreground"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                        generatorType === "company_leave" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-muted-foreground"
-                      }`}>
-                        <Building2 className="w-5 h-5" />
-                      </div>
-                      <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Company Leave Calendar</span>
-                    </div>
-                    <hr className="border-border/50 my-2.5 w-full" />
-                    <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Corporate holidays and organization-wide leave schedule</span>
-
-                  </button>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-[#7B0099] rounded-[20px] text-white shadow-xl shadow-[#7B0099]/20">
+                  <FileBarChart className="w-6 h-6 sm:w-8 sm:h-8" />
+                </div>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight uppercase leading-none">
+                    {role === 'employee' ? 'Workforce Reports & Analytics' : 'Attendance Reports'}
+                  </h1>
+                  <p className="text-xs sm:text-sm font-semibold text-muted-foreground mt-1.5 uppercase tracking-widest opacity-60">
+                    Generate detailed attendance reports for monitoring and compliance.
+                  </p>
                 </div>
               </div>
+            </div>
 
-              {/* 2. Scope Select */}
-              <div className="space-y-2">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">2. Scope Selection</span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Branch Location</label>
-                    <Select value={generatorBranch} onValueChange={setGeneratorBranch}>
-                      <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
-                        <SelectValue placeholder="All Branches" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        <SelectItem value="all" className="text-[10px] font-black uppercase tracking-widest">All Branches</SelectItem>
-                        {branches.map(b => (
-                          <SelectItem key={b.code} value={b.code} className="text-[10px] font-black uppercase tracking-widest">{b.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+            {/* GENERATE REPORT SECTION */}
+            <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 items-start">
+                
+                {/* Generator Settings Form */}
+                <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] lg:col-span-2 p-4 space-y-4 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+                  <div>
+                    <h3 className="text-base sm:text-lg font-black text-foreground uppercase tracking-tight">Configure Analytical Report</h3>
+                    <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider opacity-60">Generate targeted PDF/CSV datasets compiled directly from live database logs</p>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Department</label>
-                    <Select value={generatorDept} onValueChange={setGeneratorDept}>
-                      <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
-                        <SelectValue placeholder="All Departments" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        <SelectItem value="all" className="text-[10px] font-black uppercase tracking-widest">All Departments</SelectItem>
-                        {departments.map(d => (
-                          <SelectItem key={d} value={d} className="text-[10px] font-black uppercase tracking-widest">{d}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  {/* 1. Report Type Selection */}
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">1. Report Type Selection</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <button
+                        onClick={() => setGeneratorType("trends")}
+                        className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
+                          generatorType === "trends"
+                            ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground"
+                            : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            generatorType === "trends" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-muted-foreground"
+                          }`}>
+                            <Clock className="w-5 h-5" />
+                          </div>
+                          <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Attendance Trends</span>
+                        </div>
+                        <hr className="border-border/50 my-2.5 w-full" />
+                        <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Clock-in, late check audits, and raw timelines</span>
+                      </button>
+
+                      <button
+                        onClick={() => setGeneratorType("leave")}
+                        className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
+                          generatorType === "leave"
+                            ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground"
+                            : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            generatorType === "leave" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-muted-foreground"
+                          }`}>
+                            <PieChart className="w-5 h-5" />
+                          </div>
+                          <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Leave Utilization</span>
+                        </div>
+                        <hr className="border-border/50 my-2.5 w-full" />
+                        <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Department utilization rates and absence charts</span>
+                      </button>
+
+                      <button
+                        onClick={() => setGeneratorType("outstation")}
+                        className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
+                          generatorType === "outstation"
+                            ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground"
+                            : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            generatorType === "outstation" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-muted-foreground"
+                          }`}>
+                            <Briefcase className="w-5 h-5" />
+                          </div>
+                          <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Outstation Assignment</span>
+                        </div>
+                        <hr className="border-border/50 my-2.5 w-full" />
+                        <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Official business travel and assignment activities</span>
+                      </button>
+
+                      <button
+                        onClick={() => setGeneratorType("company_leave")}
+                        className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
+                          generatorType === "company_leave"
+                            ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground"
+                            : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            generatorType === "company_leave" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-muted-foreground"
+                          }`}>
+                            <Building2 className="w-5 h-5" />
+                          </div>
+                          <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Company Leave Calendar</span>
+                        </div>
+                        <hr className="border-border/50 my-2.5 w-full" />
+                        <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Corporate holidays and organization-wide leave schedule</span>
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Month (YYYY-MM)</label>
-                    <input
-                      type="month"
-                      value={selectedMonth === 'all' ? `${selectedYear}-01` : `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          const [y, m] = e.target.value.split('-');
-                          setSelectedYear(y);
-                          setSelectedMonth(m);
-                        }
-                      }}
-                      className="w-full h-11 px-3 text-xs font-black uppercase tracking-widest rounded-xl border border-border bg-background/30 text-foreground outline-none cursor-pointer hover:border-[#7B0099]/40 focus:ring-1 focus:ring-[#7B0099]"
-                    />
-                  </div>
+                  {/* 2. Scope Select */}
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">2. Scope Selection</span>
+                    {(() => {
+                      const isEmployee = role === 'employee';
+                      const isBranchLeader = role === 'branch_leader';
+                      const isHOD = role === 'head_of_department';
 
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Year (YYYY)</label>
-                    <YearPopover
-                      year={selectedYear}
-                      onSelectYear={setSelectedYear}
-                      className="w-full h-11 px-3 text-xs font-black uppercase tracking-widest rounded-xl border border-border bg-background/30 flex items-center justify-between text-foreground hover:border-[#7B0099]/40 cursor-pointer"
-                    />
+                      const showBranchFilter = !isEmployee && !isHOD;
+                      const showDeptFilter = !isEmployee && !isBranchLeader;
+
+                      return (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {showBranchFilter && (
+                            <div className="space-y-1.5">
+                              <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Branch Location</label>
+                              <Select value={generatorBranch} onValueChange={setGeneratorBranch}>
+                                <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
+                                  <SelectValue placeholder="All Branches" />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-xl">
+                                  <SelectItem value="all" className="text-[10px] font-black uppercase tracking-widest">All Branches</SelectItem>
+                                  {branches.map(b => (
+                                    <SelectItem key={b.code} value={b.code} className="text-[10px] font-black uppercase tracking-widest">{b.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+
+                          {showDeptFilter && (
+                            <div className="space-y-1.5">
+                              <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Department</label>
+                              <Select value={generatorDept} onValueChange={setGeneratorDept}>
+                                <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
+                                  <SelectValue placeholder="All Departments" />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-xl">
+                                  <SelectItem value="all" className="text-[10px] font-black uppercase tracking-widest">All Departments</SelectItem>
+                                  {departments.map(d => (
+                                    <SelectItem key={d} value={d} className="text-[10px] font-black uppercase tracking-widest">{d}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+
+                          <div className="space-y-1.5">
+                            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Month (YYYY-MM)</label>
+                            <input
+                              type="month"
+                              value={selectedMonth === 'all' ? `${selectedYear}-01` : `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
+                              onChange={(e) => {
+                                if (e.target.value) {
+                                  const [y, m] = e.target.value.split('-');
+                                  setSelectedYear(y);
+                                  setSelectedMonth(m);
+                                }
+                              }}
+                              className="w-full h-11 px-3 text-xs font-black uppercase tracking-widest rounded-xl border border-border bg-background/30 text-foreground outline-none cursor-pointer hover:border-[#7B0099]/40 focus:ring-1 focus:ring-[#7B0099]"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Year (YYYY)</label>
+                            <YearPopover
+                              year={selectedYear}
+                              onSelectYear={setSelectedYear}
+                              className="w-full h-11 px-3 text-xs font-black uppercase tracking-widest rounded-xl border border-border bg-background/30 flex items-center justify-between text-foreground hover:border-[#7B0099]/40 cursor-pointer"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
-                </div>
-              </div>
 
               {/* 3. Export Format */}
               <div className="space-y-2">
@@ -917,7 +920,7 @@ export default function Reports() {
             </Card>
 
             {/* Synthesis Preview Panel */}
-            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-4 flex flex-col gap-4 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#7B0099]/10 transition-all duration-300">
+            <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-4 flex flex-col gap-4 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
               <div>
                 <h4 className="text-xs font-black text-foreground uppercase tracking-widest">Synthesis Preview</h4>
                 <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider opacity-60 mt-0.5">Real-time compilation preview</p>
