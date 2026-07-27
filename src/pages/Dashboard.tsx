@@ -577,6 +577,7 @@ export default function Dashboard() {
               valueClassName={todayStatusTextClass}
               subtitle={todayStatusSubtitle}
               variant={isPresent ? "success" : isClockedOut ? "default" : (isOnLeave || isCompanyLeave) ? "purple" : "maroon"}
+              isAnalyticsStyle={true}
               onClick={() => {
                 if (safeTodayStatus.includes("Absent")) {
                   navigate("/hr-analytics/attendance#employee-absenteeism");
@@ -603,6 +604,7 @@ export default function Dashboard() {
               value={`${stats.leaveBalance} days`}
               subtitle="Annual Leave"
               variant="success"
+              isAnalyticsStyle={true}
             />
             <StatCard
               icon={AlertTriangle}
@@ -610,6 +612,7 @@ export default function Dashboard() {
               value={stats.pendingLeaves.toString()}
               subtitle="Leave Requests"
               variant="gold"
+              isAnalyticsStyle={true}
             />
           </>
         ) : (

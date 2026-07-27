@@ -146,68 +146,122 @@ export default function OutstationAnalytics() {
         </Button>
       </PageActions>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
-          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 dark:bg-slate-900/50 transition-colors shadow-none">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700 "><Briefcase className="h-6 w-6" /></div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Total Outstation</p>
-                  <p className="mt-2 text-3xl font-bold">{totalAssignments}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+          {/* 1. Total Outstation */}
+          <Card className="rounded-[20px] border border-purple-500/20 shadow-xs bg-[#7B0099]/[0.03] dark:bg-[#7B0099]/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+              <Briefcase className="w-24 h-24 text-[#7B0099]" />
+            </div>
+            <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099] shadow-xs"></div>
+                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
+                </div>
+                <div className="my-1">
+                  <span className="text-3xl font-extrabold text-[#7B0099] dark:text-purple-400 leading-none">{totalAssignments}</span>
                 </div>
               </div>
-              <p className="mt-4 text-sm leading-5 text-slate-500">Active outstation requests across all branches.</p>
+              <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
+                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                  Active outstation requests across all branches
+                </p>
+              </div>
             </CardContent>
           </Card>
-          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 dark:bg-slate-900/50 transition-colors shadow-none">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><Users className="h-7 w-7" /></div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Staff on Outstation</p>
-                  <p className="mt-2 text-3xl font-bold">{activeStaffCount}</p>
+
+          {/* 2. Staff on Outstation */}
+          <Card className="rounded-[20px] border border-emerald-500/20 shadow-xs bg-emerald-500/[0.03] dark:bg-emerald-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+              <Users className="w-24 h-24 text-emerald-600" />
+            </div>
+            <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></div>
+                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Staff on Outstation</span>
+                </div>
+                <div className="my-1">
+                  <span className="text-3xl font-extrabold text-emerald-700 dark:text-emerald-400 leading-none">{activeStaffCount}</span>
                 </div>
               </div>
-              <p className="mt-4 text-sm text-slate-500">Unique team members currently away on assignment.</p>
+              <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
+                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                  Unique team members currently away
+                </p>
+              </div>
             </CardContent>
           </Card>
-          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 dark:bg-slate-900/50 transition-colors shadow-none">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><MapPin className="h-6 w-6" /></div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Destinations</p>
-                  <p className="mt-2 text-3xl font-bold">{totalDestinations}</p>
+
+          {/* 3. Destinations */}
+          <Card className="rounded-[20px] border border-blue-500/20 shadow-xs bg-blue-500/[0.03] dark:bg-blue-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+              <MapPin className="w-24 h-24 text-blue-600" />
+            </div>
+            <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs"></div>
+                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Destinations</span>
+                </div>
+                <div className="my-1">
+                  <span className="text-3xl font-extrabold text-blue-700 dark:text-blue-400 leading-none">{totalDestinations}</span>
                 </div>
               </div>
-              <p className="mt-4 text-sm text-slate-500">Distinct cities or sites visited by staff.</p>
+              <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
+                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                  Distinct cities or sites visited
+                </p>
+              </div>
             </CardContent>
           </Card>
-          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 dark:bg-slate-900/50 transition-colors shadow-none">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><Calendar className="h-6 w-5" /></div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Ongoing</p>
-                  <p className="mt-2 text-3xl font-bold">{activeCount}</p>
+
+          {/* 4. Ongoing */}
+          <Card className="rounded-[20px] border border-orange-500/20 shadow-xs bg-orange-500/[0.03] dark:bg-orange-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+              <Clock className="w-24 h-24 text-orange-600" />
+            </div>
+            <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-xs"></div>
+                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Ongoing</span>
+                </div>
+                <div className="my-1">
+                  <span className="text-3xl font-extrabold text-orange-700 dark:text-orange-400 leading-none">{activeCount}</span>
                 </div>
               </div>
-              <p className="mt-4 text-sm text-slate-500">Assignments currently in progress.</p>
+              <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
+                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                  Assignments currently in progress
+                </p>
+              </div>
             </CardContent>
           </Card>
-          <Card className="lg:col-span-1 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 dark:bg-slate-900/50 transition-colors shadow-none">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-violet-700"><CheckCircle2 className="h-6 w-5" /></div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Completed</p>
-                  <p className="mt-2 text-3xl font-bold">{completedCount}</p>
+
+          {/* 5. Completed */}
+          <Card className="rounded-[20px] border border-purple-500/20 shadow-xs bg-purple-500/[0.03] dark:bg-purple-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+              <CheckCircle2 className="w-24 h-24 text-purple-600" />
+            </div>
+            <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-xs"></div>
+                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Completed</span>
+                </div>
+                <div className="my-1">
+                  <span className="text-3xl font-extrabold text-purple-700 dark:text-purple-400 leading-none">{completedCount}</span>
                 </div>
               </div>
-              <p className="mt-4 text-sm text-slate-500">Assignments finished in your current scope.</p>
+              <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
+                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                  Assignments finished in scope
+                </p>
+              </div>
             </CardContent>
           </Card>
-        </div>
+      </div>
 
         <div className="grid gap-4 xl:grid-cols-[1.4fr_0.9fr_0.9fr] mb-6">
           {/* Left: Destinations (bigger) */}
