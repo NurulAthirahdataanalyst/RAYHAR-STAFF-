@@ -187,6 +187,7 @@ export default function LeaveFormView() {
           cutiTanpaGajiPhone: request.cuti_tanpa_gaji_phone,
           cutiTanpaGajiSignature: request.cuti_tanpa_gaji_signature,
           mcFileUrl: request.mc_file_url,
+          balance: request.balance !== undefined && request.balance !== null ? Number(request.balance) : (request.annual_leave_balance !== undefined ? Number(request.annual_leave_balance) : undefined),
           approvalHistory: request.approval_history || [],
         };
       });
@@ -220,6 +221,27 @@ export default function LeaveFormView() {
       }
     }
   }, [searchParams, forms]);
+
+  // Fetch leave balance for selected form if missing
+  useEffect(() => {
+    if (selectedForm && (selectedForm.balance === undefined || selectedForm.balance === null) && userId) {
+      fetch(`${API_BASE_URL}/api/profiles/${encodeURIComponent(userId)}/leave-balance`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.data) {
+            const leaveType = selectedForm.type;
+            let bal = data.data.annual?.balance ?? 0;
+            if (["Sick Leave", "Medical Leave", "Cuti Sakit"].includes(leaveType)) {
+              bal = data.data.medical?.balance ?? 0;
+            } else if (["Replacement Leave", "Cuti Ganti"].includes(leaveType)) {
+              bal = data.data.replacement?.balance ?? 0;
+            }
+            setSelectedForm((prev) => (prev ? { ...prev, balance: bal } : null));
+          }
+        })
+        .catch((err) => console.error("Error fetching fallback leave balance:", err));
+    }
+  }, [selectedForm?.id, userId]);
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">

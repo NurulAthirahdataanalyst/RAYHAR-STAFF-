@@ -2703,6 +2703,16 @@ app.get("/api/leave-requests", async (req, res) => {
         p.branch,
         p.department,
         COALESCE(ur_approver.role, '') AS approver_role,
+        GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.annual_adj, 0)) - COALESCE(l_used.annual_days_used, 0), 0)::int AS annual_leave_balance,
+        GREATEST((COALESCE(p.medical_leave_entitlement, 14) + COALESCE(adj.medical_adj, 0)) - COALESCE(l_used.medical_days_used, 0), 0)::int AS medical_leave_balance,
+        GREATEST(COALESCE(adj.replacement_adj, 0) - COALESCE(l_used.replacement_days_used, 0), 0)::int AS replacement_leave_balance,
+        (
+          CASE 
+            WHEN UPPER(lr.leave_type) IN ('SICK LEAVE', 'MEDICAL LEAVE', 'CUTI SAKIT') THEN GREATEST((COALESCE(p.medical_leave_entitlement, 14) + COALESCE(adj.medical_adj, 0)) - COALESCE(l_used.medical_days_used, 0), 0)
+            WHEN UPPER(lr.leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI') THEN GREATEST(COALESCE(adj.replacement_adj, 0) - COALESCE(l_used.replacement_days_used, 0), 0)
+            ELSE GREATEST((COALESCE(p.annual_leave_entitlement, 14) + COALESCE(adj.annual_adj, 0)) - COALESCE(l_used.annual_days_used, 0), 0)
+          END
+        )::int AS balance,
         (
           SELECT json_agg(
             json_build_object(
@@ -2735,6 +2745,22 @@ app.get("/api/leave-requests", async (req, res) => {
       FROM leave_requests lr
       JOIN profiles p ON p.user_id = lr.user_id
       LEFT JOIN user_role ur_approver ON ur_approver.user_id = lr.approver_id
+      LEFT JOIN (
+        SELECT employee_id, 
+               SUM(CASE WHEN UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN') THEN adjustment_days ELSE 0 END) AS annual_adj,
+               SUM(CASE WHEN leave_type IN ('Sick Leave', 'Medical Leave', 'Cuti Sakit') THEN adjustment_days ELSE 0 END) AS medical_adj,
+               SUM(CASE WHEN UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI') THEN adjustment_days ELSE 0 END) AS replacement_adj
+        FROM leave_balance_adjustments
+        GROUP BY employee_id
+      ) adj ON adj.employee_id = lr.user_id
+      LEFT JOIN (
+        SELECT user_id,
+               SUM(CASE WHEN leave_type IN ('Cuti Tahunan', 'Annual/Emergency Leave', 'Replacement Leave', 'Cuti Ganti') AND status = 'Approved' THEN days ELSE 0 END) AS annual_days_used,
+               SUM(CASE WHEN leave_type IN ('Cuti Sakit', 'Sick Leave', 'Medical Leave') AND status = 'Approved' THEN days ELSE 0 END) AS medical_days_used,
+               SUM(CASE WHEN UPPER(leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI') AND status = 'Approved' THEN days ELSE 0 END) AS replacement_days_used
+        FROM leave_requests
+        GROUP BY user_id
+      ) l_used ON l_used.user_id = lr.user_id
       ${whereClause}
       ORDER BY lr.created_at DESC, lr.leave_id DESC
       `,
