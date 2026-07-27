@@ -359,15 +359,7 @@ export default function OutstationDashboard() {
 
   return (
     <div className="animate-in fade-in duration-500 pb-12">
-      {/* 
-        Spacing System: 8, 16, 24, 32, 48px
-        Using standard Tailwind: 2 (8px), 4 (16px), 6 (24px), 8 (32px), 12 (48px)
-      */}
-      <PageHeader 
-        title="Outstation Dashboard" 
-        subtitle="Monitor employee business travel across all branches." 
-      />
-      <div className="py-6">
+      <div className="py-2">
         <PageActions>
           <Button className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#7B0099] hover:bg-[#3b0764] w-full sm:w-auto" onClick={() => navigate("/outstation/assignment", { state: { openNew: true } })}>
             <Plane className="w-4 h-4 mr-2" /> New Assignment 

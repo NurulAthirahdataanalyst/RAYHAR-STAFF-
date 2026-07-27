@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useRole } from "@/contexts/RoleContext";
+import PageActions from "@/components/layout/PageActions";
 
 interface TemporaryAssignment {
   id: number;
@@ -177,15 +178,7 @@ const TemporaryAssignments = () => {
   return (
 
     <div className="space-y-6 w-full">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Temporary Assignments
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            View and track all temporary branch assignments across the organization.
-          </p>
-        </div>
+      <PageActions>
         <Button 
           onClick={() => {
             setEditId(null);
@@ -197,7 +190,7 @@ const TemporaryAssignments = () => {
           <Plus className="w-4 h-4 mr-2" />
           Assign Temporary Branch
         </Button>
-      </div>
+      </PageActions>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-md p-4 flex flex-col justify-between">
