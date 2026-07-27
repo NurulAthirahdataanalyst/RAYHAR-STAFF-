@@ -287,6 +287,40 @@ export default function OutstationDashboard() {
   ], []);
 
   // NEW KPI CALCULATIONS
+  const eventGroups = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const groups: Record<string, any> = {};
+    assignments.forEach(a => {
+      const eventName = (a.project && a.project !== '-') ? a.project : (a.purpose && a.purpose !== '-') ? a.purpose : 'General';
+      if (!groups[eventName]) {
+        groups[eventName] = {
+          eventName,
+          destination: a.destination,
+          startDate: a.start_date,
+          endDate: a.end_date,
+          status: "Upcoming",
+          assignments: []
+        };
+      }
+      const g = groups[eventName];
+      g.assignments.push(a);
+      if (!g.startDate || a.start_date < g.startDate) g.startDate = a.start_date;
+      if (!g.endDate || a.end_date > g.endDate) g.endDate = a.end_date;
+    });
+
+    return Object.values(groups).map(g => {
+      const s = g.startDate?.slice(0, 10) || today;
+      const e = g.endDate?.slice(0, 10) || today;
+      if (today > e) g.status = "Completed";
+      else if (today >= s && today <= e) g.status = "Active";
+      else g.status = "Upcoming";
+      return g;
+    });
+  }, [assignments]);
+
+  const totalEventsCount = eventGroups.length > 0 ? eventGroups.length : (assignments.length > 0 ? assignments.length : 0);
+  const completedEventsCount = eventGroups.filter(e => e.status === "Completed").length;
+
   const activeDomestic = activeNow.filter(a => !a.destination.toLowerCase().includes("singapore") && !a.destination.toLowerCase().includes("indonesia") && !a.destination.toLowerCase().includes("overseas")).length;
   const activeInternational = activeCount - activeDomestic;
 
@@ -328,10 +362,11 @@ export default function OutstationDashboard() {
         Spacing System: 8, 16, 24, 32, 48px
         Using standard Tailwind: 2 (8px), 4 (16px), 6 (24px), 8 (32px), 12 (48px)
       */}
-      <div className="py-6">
-        
-        {/* Header Actions */}
-        
+      <PageHeader 
+        title="Outstation Dashboard" 
+        subtitle="Monitor employee business travel across all branches." 
+      />
+      <main className="p-6">
         <PageActions>
           <Button className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#7B0099] hover:bg-[#3b0764] w-full sm:w-auto" onClick={() => navigate("/outstation/assignment", { state: { openNew: true } })}>
             <Plane className="w-4 h-4 mr-2" /> New Assignment 
@@ -339,7 +374,23 @@ export default function OutstationDashboard() {
         </PageActions>
 
         {/* ROW 1: Enterprise KPI Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+            {/* 0. Total Outstation */}
+            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-[#7B0099]" />
+              <CardContent className="p-4 flex flex-col flex-1 justify-center">
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1 whitespace-nowrap">Total Outstation</p>
+                {loading ? (
+                  <Skeleton className="h-[36px] w-16 mb-2 mt-2" />
+                ) : (
+                  <div className="flex flex-col mt-1 mb-1">
+                    <span className="text-[28px] font-extrabold text-[#7B0099] dark:text-purple-400 leading-none">{totalEventsCount}</span>
+                    <span className="text-[11px] font-medium text-gray-500 mt-1 whitespace-nowrap">{completedEventsCount} Completed</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            
             {/* 1. Active Outstation */}
             <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden hover:shadow-md transition-shadow relative flex flex-col">
               <div className="absolute top-0 left-0 right-0 h-1 bg-green-500" />
