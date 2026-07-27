@@ -369,26 +369,26 @@ export default function OutstationDashboard() {
         {/* ROW 1: Enterprise Analytics-Style KPI Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 2xl:grid-cols-6 gap-4 mb-6">
             {/* 1. Total Outstation */}
-            <Card className="rounded-[20px] border border-purple-500/20 shadow-xs bg-[#7B0099]/[0.03] dark:bg-[#7B0099]/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
-              <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+            <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-sm bg-purple-50/60 dark:bg-purple-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
                 <Briefcase className="w-24 h-24 text-[#7B0099]" />
               </div>
               <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099] shadow-xs"></div>
-                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
                   </div>
                   {loading ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
                   ) : (
                     <div className="my-1">
-                      <span className="text-3xl font-extrabold text-[#7B0099] dark:text-purple-400 leading-none">{totalEventsCount}</span>
+                      <span className="text-3xl font-black text-[#7B0099] dark:text-purple-300 leading-none">{totalEventsCount}</span>
                     </div>
                   )}
                 </div>
-                <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
-                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
                     {completedEventsCount} Completed
                   </p>
                 </div>
@@ -396,26 +396,26 @@ export default function OutstationDashboard() {
             </Card>
             
             {/* 2. Active Outstation */}
-            <Card className="rounded-[20px] border border-emerald-500/20 shadow-xs bg-emerald-500/[0.03] dark:bg-emerald-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
-              <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+            <Card className="rounded-[20px] border border-emerald-200 dark:border-emerald-900/60 shadow-sm bg-emerald-50/60 dark:bg-emerald-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
                 <Plane className="w-24 h-24 text-emerald-600" />
               </div>
               <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></div>
-                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Active Outstation</span>
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Active Outstation</span>
                   </div>
                   {loading ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
                   ) : (
                     <div className="my-1">
-                      <span className="text-3xl font-extrabold text-emerald-700 dark:text-emerald-400 leading-none">{activeCount}</span>
+                      <span className="text-3xl font-black text-emerald-700 dark:text-emerald-300 leading-none">{activeCount}</span>
                     </div>
                   )}
                 </div>
-                <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
-                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                <div className="mt-3 pt-2.5 border-t border-emerald-200/80 dark:border-emerald-800/60">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
                     Currently Away
                   </p>
                 </div>
@@ -423,26 +423,26 @@ export default function OutstationDashboard() {
             </Card>
 
             {/* 3. Departing Today */}
-            <Card className="rounded-[20px] border border-orange-500/20 shadow-xs bg-orange-500/[0.03] dark:bg-orange-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
-              <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+            <Card className="rounded-[20px] border border-orange-200 dark:border-orange-900/60 shadow-sm bg-orange-50/60 dark:bg-orange-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
                 <Clock className="w-24 h-24 text-orange-600" />
               </div>
               <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-xs"></div>
-                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Departing Today</span>
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Departing Today</span>
                   </div>
                   {loading ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
                   ) : (
                     <div className="my-1">
-                      <span className="text-3xl font-extrabold text-orange-700 dark:text-orange-400 leading-none">{departingTodayCount}</span>
+                      <span className="text-3xl font-black text-orange-700 dark:text-orange-300 leading-none">{departingTodayCount}</span>
                     </div>
                   )}
                 </div>
-                <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
-                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                <div className="mt-3 pt-2.5 border-t border-orange-200/80 dark:border-orange-800/60">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
                     Starts Today
                   </p>
                 </div>
@@ -450,26 +450,26 @@ export default function OutstationDashboard() {
             </Card>
 
             {/* 4. Returning Today */}
-            <Card className="rounded-[20px] border border-blue-500/20 shadow-xs bg-blue-500/[0.03] dark:bg-blue-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
-              <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+            <Card className="rounded-[20px] border border-blue-200 dark:border-blue-900/60 shadow-sm bg-blue-50/60 dark:bg-blue-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
                 <RotateCcw className="w-24 h-24 text-blue-600" />
               </div>
               <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs"></div>
-                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Returning Today</span>
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Returning Today</span>
                   </div>
                   {loading ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
                   ) : (
                     <div className="my-1">
-                      <span className="text-3xl font-extrabold text-blue-700 dark:text-blue-400 leading-none">{returningTodayCount}</span>
+                      <span className="text-3xl font-black text-blue-700 dark:text-blue-300 leading-none">{returningTodayCount}</span>
                     </div>
                   )}
                 </div>
-                <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
-                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                <div className="mt-3 pt-2.5 border-t border-blue-200/80 dark:border-blue-800/60">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
                     Expected Back
                   </p>
                 </div>
@@ -477,26 +477,26 @@ export default function OutstationDashboard() {
             </Card>
 
             {/* 5. Upcoming Events */}
-            <Card className="rounded-[20px] border border-purple-500/20 shadow-xs bg-purple-500/[0.03] dark:bg-purple-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
-              <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+            <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-sm bg-purple-50/60 dark:bg-purple-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
                 <Calendar className="w-24 h-24 text-purple-600" />
               </div>
               <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-xs"></div>
-                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Upcoming Events</span>
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Upcoming Events</span>
                   </div>
                   {loading ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
                   ) : (
                     <div className="my-1">
-                      <span className="text-3xl font-extrabold text-purple-700 dark:text-purple-400 leading-none">{upcomingAssignmentsCount}</span>
+                      <span className="text-3xl font-black text-purple-700 dark:text-purple-300 leading-none">{upcomingAssignmentsCount}</span>
                     </div>
                   )}
                 </div>
-                <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
-                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
                     Next 7 Days
                   </p>
                 </div>
@@ -504,26 +504,26 @@ export default function OutstationDashboard() {
             </Card>
 
             {/* 6. Employees Scheduled */}
-            <Card className="rounded-[20px] border border-amber-500/20 shadow-xs bg-amber-500/[0.03] dark:bg-amber-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
-              <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+            <Card className="rounded-[20px] border border-amber-200 dark:border-amber-900/60 shadow-sm bg-amber-50/60 dark:bg-amber-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
                 <Users className="w-24 h-24 text-amber-600" />
               </div>
               <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs"></div>
-                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Employees Scheduled</span>
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Employees Scheduled</span>
                   </div>
                   {loading ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
                   ) : (
                     <div className="my-1">
-                      <span className="text-3xl font-extrabold text-amber-700 dark:text-amber-400 leading-none">{employeesScheduledCount}</span>
+                      <span className="text-3xl font-black text-amber-700 dark:text-amber-300 leading-none">{employeesScheduledCount}</span>
                     </div>
                   )}
                 </div>
-                <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
-                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                <div className="mt-3 pt-2.5 border-t border-amber-200/80 dark:border-amber-800/60">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
                     Across Upcoming Trips
                   </p>
                 </div>

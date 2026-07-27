@@ -148,22 +148,22 @@ export default function OutstationAnalytics() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
           {/* 1. Total Outstation */}
-          <Card className="rounded-[20px] border border-purple-500/20 shadow-xs bg-[#7B0099]/[0.03] dark:bg-[#7B0099]/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+          <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-sm bg-purple-50/60 dark:bg-purple-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
               <Briefcase className="w-24 h-24 text-[#7B0099]" />
             </div>
             <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
               <div>
                 <div className="flex items-center gap-1.5 mb-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099] shadow-xs"></div>
-                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
+                  <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
                 </div>
                 <div className="my-1">
-                  <span className="text-3xl font-extrabold text-[#7B0099] dark:text-purple-400 leading-none">{totalAssignments}</span>
+                  <span className="text-3xl font-black text-[#7B0099] dark:text-purple-300 leading-none">{totalAssignments}</span>
                 </div>
               </div>
-              <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
-                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+              <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
+                <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
                   Active outstation requests across all branches
                 </p>
               </div>
@@ -171,22 +171,22 @@ export default function OutstationAnalytics() {
           </Card>
 
           {/* 2. Staff on Outstation */}
-          <Card className="rounded-[20px] border border-emerald-500/20 shadow-xs bg-emerald-500/[0.03] dark:bg-emerald-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+          <Card className="rounded-[20px] border border-emerald-200 dark:border-emerald-900/60 shadow-sm bg-emerald-50/60 dark:bg-emerald-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
               <Users className="w-24 h-24 text-emerald-600" />
             </div>
             <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
               <div>
                 <div className="flex items-center gap-1.5 mb-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></div>
-                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Staff on Outstation</span>
+                  <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Staff on Outstation</span>
                 </div>
                 <div className="my-1">
-                  <span className="text-3xl font-extrabold text-emerald-700 dark:text-emerald-400 leading-none">{activeStaffCount}</span>
+                  <span className="text-3xl font-black text-emerald-700 dark:text-emerald-300 leading-none">{activeStaffCount}</span>
                 </div>
               </div>
-              <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
-                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+              <div className="mt-3 pt-2.5 border-t border-emerald-200/80 dark:border-emerald-800/60">
+                <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
                   Unique team members currently away
                 </p>
               </div>
@@ -194,22 +194,22 @@ export default function OutstationAnalytics() {
           </Card>
 
           {/* 3. Destinations */}
-          <Card className="rounded-[20px] border border-blue-500/20 shadow-xs bg-blue-500/[0.03] dark:bg-blue-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+          <Card className="rounded-[20px] border border-blue-200 dark:border-blue-900/60 shadow-sm bg-blue-50/60 dark:bg-blue-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
               <MapPin className="w-24 h-24 text-blue-600" />
             </div>
             <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
               <div>
                 <div className="flex items-center gap-1.5 mb-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs"></div>
-                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Destinations</span>
+                  <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Destinations</span>
                 </div>
                 <div className="my-1">
-                  <span className="text-3xl font-extrabold text-blue-700 dark:text-blue-400 leading-none">{totalDestinations}</span>
+                  <span className="text-3xl font-black text-blue-700 dark:text-blue-300 leading-none">{totalDestinations}</span>
                 </div>
               </div>
-              <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
-                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+              <div className="mt-3 pt-2.5 border-t border-blue-200/80 dark:border-blue-800/60">
+                <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
                   Distinct cities or sites visited
                 </p>
               </div>
@@ -217,22 +217,22 @@ export default function OutstationAnalytics() {
           </Card>
 
           {/* 4. Ongoing */}
-          <Card className="rounded-[20px] border border-orange-500/20 shadow-xs bg-orange-500/[0.03] dark:bg-orange-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+          <Card className="rounded-[20px] border border-orange-200 dark:border-orange-900/60 shadow-sm bg-orange-50/60 dark:bg-orange-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
               <Clock className="w-24 h-24 text-orange-600" />
             </div>
             <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
               <div>
                 <div className="flex items-center gap-1.5 mb-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-xs"></div>
-                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Ongoing</span>
+                  <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Ongoing</span>
                 </div>
                 <div className="my-1">
-                  <span className="text-3xl font-extrabold text-orange-700 dark:text-orange-400 leading-none">{activeCount}</span>
+                  <span className="text-3xl font-black text-orange-700 dark:text-orange-300 leading-none">{activeCount}</span>
                 </div>
               </div>
-              <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
-                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+              <div className="mt-3 pt-2.5 border-t border-orange-200/80 dark:border-orange-800/60">
+                <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
                   Assignments currently in progress
                 </p>
               </div>
@@ -240,22 +240,22 @@ export default function OutstationAnalytics() {
           </Card>
 
           {/* 5. Completed */}
-          <Card className="rounded-[20px] border border-purple-500/20 shadow-xs bg-purple-500/[0.03] dark:bg-purple-500/[0.05] group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute -right-3 -top-3 opacity-10 dark:opacity-20 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
+          <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-sm bg-purple-50/60 dark:bg-purple-950/30 group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform group-hover:scale-110 group-hover:rotate-6 duration-500 pointer-events-none">
               <CheckCircle2 className="w-24 h-24 text-purple-600" />
             </div>
             <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
               <div>
                 <div className="flex items-center gap-1.5 mb-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-xs"></div>
-                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider whitespace-nowrap">Completed</span>
+                  <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Completed</span>
                 </div>
                 <div className="my-1">
-                  <span className="text-3xl font-extrabold text-purple-700 dark:text-purple-400 leading-none">{completedCount}</span>
+                  <span className="text-3xl font-black text-purple-700 dark:text-purple-300 leading-none">{completedCount}</span>
                 </div>
               </div>
-              <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60">
-                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+              <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
+                <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
                   Assignments finished in scope
                 </p>
               </div>
