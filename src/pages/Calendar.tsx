@@ -111,6 +111,16 @@ function getWorkingHours(clockIn: string, clockOut: string | null) {
   return `${hrs}h ${mins}m`;
 }
 
+function getTotalDays(startDateStr: string, endDateStr: string) {
+  if (!startDateStr || !endDateStr) return 1;
+  const start = new Date(startDateStr.slice(0, 10));
+  const end = new Date(endDateStr.slice(0, 10));
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return 1;
+  const diffMs = end.getTime() - start.getTime();
+  const days = Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1;
+  return days > 0 ? days : 1;
+}
+
 function getLeaveTypeInfo(type: string) {
   const t = (type || "").toLowerCase();
   if (t.includes("medical") || t.includes("mc")) {
@@ -1753,7 +1763,11 @@ export default function Calendar() {
       )}
 
       {/* Leave Request Detail Modal */}
-      {selectedLeave && (
+      {selectedLeave && (() => {
+        const startStr = selectedLeave.start_date.slice(0, 10);
+        const endStr = selectedLeave.end_date.slice(0, 10);
+        const totalDays = getTotalDays(startStr, endStr);
+        return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl transition-all duration-300" onClick={() => setSelectedLeave(null)}>
           <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-border" onClick={e => e.stopPropagation()}>
             <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5 text-white">
@@ -1772,7 +1786,7 @@ export default function Calendar() {
                 <CalendarIcon className="w-4 h-4 text-emerald-600 mt-1" />
                 <div>
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Duration</p>
-                  <p className="font-semibold text-foreground">{selectedLeave.start_date.slice(0, 10)} → {selectedLeave.end_date.slice(0, 10)}</p>
+                  <p className="font-semibold text-foreground">{startStr} → {endStr} <span className="ml-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">Total day: {totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
                 </div>
               </div>
               {selectedLeave.reason && (
@@ -1795,17 +1809,23 @@ export default function Calendar() {
             </div>
           </div>
         </div>
-      )}
+      );
+      })()}
 
       {/* Outstation Detail Modal */}
-      {selectedOutstation && (
+      {selectedOutstation && (() => {
+        const startStr = selectedOutstation.start_date.slice(0, 10);
+        const endStr = selectedOutstation.end_date.slice(0, 10);
+        const totalDays = getTotalDays(startStr, endStr);
+        const headerTitle = selectedOutstation.project || selectedOutstation.purpose || selectedOutstation.destination;
+        return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl transition-all duration-300" onClick={() => setSelectedOutstation(null)}>
           <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-border" onClick={e => e.stopPropagation()}>
             <div className="bg-gradient-to-r from-pink-600 to-rose-600 px-6 py-5 text-white">
               <div className="flex items-start justify-between">
                 <div>
                   <span className="text-xs font-semibold text-pink-100 uppercase tracking-wide bg-white/20 px-2.5 py-0.5 rounded-full">✈️ Outstation</span>
-                  <h2 className="text-xl font-bold text-white mt-1">{selectedOutstation.destination}</h2>
+                  <h2 className="text-xl font-bold text-white mt-1 uppercase">{headerTitle}</h2>
                 </div>
                 <button onClick={() => setSelectedOutstation(null)} className="text-white/70 hover:text-white transition-colors">
                   <X className="w-5 h-5" />
@@ -1817,15 +1837,15 @@ export default function Calendar() {
                 <MapPin className="w-4 h-4 text-pink-600 mt-1" />
                 <div>
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Destination</p>
-                  <p className="font-semibold text-foreground">{selectedOutstation.destination}</p>
+                  <p className="font-semibold text-foreground uppercase">{selectedOutstation.destination}</p>
                 </div>
               </div>
-              {selectedOutstation.purpose && (
+              {(selectedOutstation.project || selectedOutstation.purpose) && (
                 <div className="flex items-start gap-3">
                   <Plane className="w-4 h-4 text-pink-600 mt-1" />
                   <div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Purpose / Project</p>
-                    <p className="font-semibold text-foreground">{selectedOutstation.purpose} {selectedOutstation.project ? `· ${selectedOutstation.project}` : ''}</p>
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Project / Purpose</p>
+                    <p className="font-semibold text-foreground">{selectedOutstation.project ? selectedOutstation.project : selectedOutstation.purpose} {selectedOutstation.project && selectedOutstation.purpose ? `(${selectedOutstation.purpose})` : ''}</p>
                   </div>
                 </div>
               )}
@@ -1833,7 +1853,7 @@ export default function Calendar() {
                 <CalendarIcon className="w-4 h-4 text-pink-600 mt-1" />
                 <div>
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Duration</p>
-                  <p className="font-semibold text-foreground">{selectedOutstation.start_date.slice(0, 10)} → {selectedOutstation.end_date.slice(0, 10)}</p>
+                  <p className="font-semibold text-foreground">{startStr} — {endStr} <span className="ml-2 text-xs font-bold text-pink-600 dark:text-pink-400">Total day: {totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
                 </div>
               </div>
             </div>
@@ -1842,7 +1862,8 @@ export default function Calendar() {
             </div>
           </div>
         </div>
-      )}
+      );
+      })()}
 
       {/* Attendance Detail Modal */}
       {selectedAttendance && (
