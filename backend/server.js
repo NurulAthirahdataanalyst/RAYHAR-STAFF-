@@ -4708,6 +4708,16 @@ app.get("/api/dashboard-stats", async (req, res) => {
         outstationParams
       );
 
+      const [temporaryRows] = await pool.query(
+        `SELECT COUNT(DISTINCT user_id) AS total_temporary FROM employee_work_assignment WHERE status = 'Active' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date ${attendanceFilter}`,
+        onLeaveParams
+      );
+
+      const [multiLocationRows] = await pool.query(
+        `SELECT COUNT(DISTINCT eal.user_id) AS total_multi_location FROM employee_allowed_locations eal JOIN profiles p ON p.user_id = eal.user_id WHERE eal.allowed_branch != p.branch ${attendanceFilter.replace(/user_id/g, 'eal.user_id')}`,
+        [...queryParams]
+      );
+
       const [recentRows] = await pool.query(
         `
         SELECT p.full_name AS name, 'Leave' AS action, CONCAT('Leave ', lr.status) AS status, TO_CHAR(lr.created_at, 'HH12:MI AM') AS time
@@ -4784,6 +4794,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
         upcomingOutstation: parseInt(upcomingOutstationRows[0].upcoming_outstation || 0),
         absentToday: Math.max(0, parseInt(employeeRows[0].total_employees || 0) - parseInt(presentRows[0].present_today || 0) - parseInt(onLeaveRows[0].on_leave || 0) - companyLeaveCount - parseInt(outstationTodayRows[0].outstation_today || 0)),
         hasRecords: totalDayAttendances > 0 || companyLeaveCount > 0 || parseInt(onLeaveRows[0].on_leave || 0) > 0 || parseInt(outstationTodayRows[0].outstation_today || 0) > 0,
+        totalTemporary: parseInt(temporaryRows[0].total_temporary || 0),
+        totalMultiLocation: parseInt(multiLocationRows[0].total_multi_location || 0),
       };
       globalRecentActivities = recentRows;
     }
@@ -8870,6 +8882,16 @@ app.delete("/api/work-assignments/:id", async (req, res) => {
     res.json({ success: true });
   } catch(e) {
     res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+app.get("/api/multi-location-users", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT DISTINCT eal.user_id FROM employee_allowed_locations eal JOIN profiles p ON p.user_id = eal.user_id WHERE eal.allowed_branch != p.branch");
+    res.json({ success: true, users: rows.map(r => r.user_id) });
+  } catch (err) {
+    console.error("Multi location users error:", err);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

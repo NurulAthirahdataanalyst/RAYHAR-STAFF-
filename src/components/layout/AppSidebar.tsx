@@ -432,8 +432,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                   } ${
                     isActive
                       ? effectiveCollapsed && !isMobile
-                        ? "bg-[#7B0099]/20 text-white font-semibold"
-                        : "bg-[#7B0099]/10 text-white font-semibold border-l-[3px] border-[#7B0099]"
+                        ? "bg-[#FDE047]/10 text-white font-semibold shadow-[inset_3px_0_0_0_#FDE047]"
+                        : "bg-[#FDE047]/10 text-white font-semibold border-l-[3px] border-[#FDE047]"
                       : effectiveCollapsed && !isMobile
                         ? "text-sidebar-foreground/70 hover:bg-white/[0.06] hover:text-white"
                         : "text-sidebar-foreground/70 hover:bg-white/[0.02] hover:text-white border-l-[3px] border-transparent"
@@ -443,7 +443,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                     <ItemIcon
                       className={`h-4 w-4 shrink-0 transition-colors ${
                         isActive 
-                          ? "text-[#cda4ff]" 
+                          ? "text-[#FDE047]" 
                           : "text-sidebar-foreground/60 group-hover:text-white"
                       }`}
                     />
@@ -488,11 +488,11 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                           onClick={isMobile ? onMobileClose : undefined}
                           className={`group relative flex items-center gap-3 rounded-[14px] px-4 py-2 text-[11px] transition-all duration-300 touch-target ${
                             isChildActive
-                              ? "bg-white/5 font-semibold text-white"
+                              ? "bg-[#FDE047]/10 font-semibold text-[#FDE047]"
                               : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white"
                           }`}
                         >
-                          <div className={`absolute -left-[1.1rem] top-1/2 w-[1.1rem] border-t transition-colors ${isChildActive ? 'border-white/20' : 'border-sidebar-border group-hover:border-white/10'}`}></div>
+                          <div className={`absolute -left-[1.1rem] top-1/2 w-[1.1rem] border-t transition-colors ${isChildActive ? 'border-[#FDE047]/50' : 'border-sidebar-border group-hover:border-white/10'}`}></div>
                           <span className="whitespace-nowrap truncate">{child.title}</span>
                         </Link>
                       );
@@ -517,7 +517,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                             to={child.path}
                             className={`flex items-center gap-3 rounded-[14px] px-3 py-2 text-[11px] transition-all duration-200 ${
                               isChildActive
-                                ? "bg-white/10 font-semibold text-white"
+                                ? "bg-[#FDE047]/10 font-semibold text-[#FDE047]"
                                 : "text-white/70 hover:bg-white/5 hover:text-white"
                             }`}
                           >

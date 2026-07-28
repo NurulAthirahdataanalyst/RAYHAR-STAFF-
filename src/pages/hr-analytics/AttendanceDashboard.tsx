@@ -166,6 +166,8 @@ export default function AttendanceDashboard() {
   const [absentEmployees, setAbsentEmployees] = useState<any[]>([]);
   const [loadingAbsent, setLoadingAbsent] = useState(false);
   const [outstationRecords, setOutstationRecords] = useState<any[]>([]);
+  const [activeTempUsers, setActiveTempUsers] = useState<Record<string, string>>({});
+  const [multiLocationUsers, setMultiLocationUsers] = useState<string[]>([]);
 
   const [attendanceStats, setAttendanceStats] = useState({
     presentToday: 0,
@@ -286,7 +288,8 @@ export default function AttendanceDashboard() {
         fetch(`${API_BASE_URL}/api/reports/absent-employees?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
         fetch(`${API_BASE_URL}/api/outstation?role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
         fetch(`${API_BASE_URL}/api/reports/on-leave-employees?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
-        fetch(`${API_BASE_URL}/api/work-assignments-all`)
+        fetch(`${API_BASE_URL}/api/work-assignments-all`),
+        fetch(`${API_BASE_URL}/api/multi-location-users`)
       ]);
       const data = await resDaily.json();
       const statsData = await resStats.json();
@@ -294,15 +297,30 @@ export default function AttendanceDashboard() {
       const outstationData = await resOutstation.json();
       const leaveData = await resLeave.json();
       const workAssignData = await resWorkAssign.json();
+      const multiLocData = await resMultiLoc.json();
+
+      if (multiLocData.success && Array.isArray(multiLocData.users)) {
+        setMultiLocationUsers(multiLocData.users);
+      }
 
       const tempMap: Record<string, string> = {};
       if (workAssignData.success && Array.isArray(workAssignData.assignments)) {
+        const selDate = new Date(selectedDate).getTime();
         workAssignData.assignments.forEach((a: any) => {
           if (a.status === 'Active') {
-            tempMap[a.user_id] = a.temp_branch;
+            const sd = new Date(a.start_date);
+            const ed = new Date(a.end_date);
+            const selDateObj = new Date(selectedDate);
+            sd.setHours(0,0,0,0);
+            ed.setHours(0,0,0,0);
+            selDateObj.setHours(0,0,0,0);
+            if (selDateObj >= sd && selDateObj <= ed) {
+              tempMap[a.user_id] = a.location;
+            }
           }
         });
       }
+      setActiveTempUsers(tempMap);
 
       if (data.success && Array.isArray(data.report)) {
         const enrichedReport = data.report.map((r: any) => ({
@@ -906,7 +924,9 @@ export default function AttendanceDashboard() {
           (selectedStatusFilter === "outstation" && displayStatus === "Outstation") ||
           (selectedStatusFilter === "weekend" && displayStatus === "Weekend") ||
           (selectedStatusFilter === "absent" && displayStatus === "Absent") ||
-          (selectedStatusFilter === "clocked_out" && r.clock_out != null);
+          (selectedStatusFilter === "clocked_out" && r.clock_out != null) ||
+          (selectedStatusFilter === "temporary_branch" && !!activeTempUsers[r.user_id]) ||
+          (selectedStatusFilter === "multi_location" && multiLocationUsers.includes(r.user_id));
           
         return matchesBranch && matchesDept && matchesSearch && matchesStatus;
       })
@@ -1088,6 +1108,18 @@ export default function AttendanceDashboard() {
           </div>
             
             <div className="flex flex-wrap items-center gap-3">
+              {/* Search Filter */}
+              <div className="relative w-full sm:w-[220px]">
+                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                <input 
+                  type="text"
+                  placeholder="Search Employee..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full h-9 pl-9 pr-3 text-[11px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#7B0099] focus:border-[#7B0099] transition-all"
+                />
+              </div>
+
               {/* Date Filter */}
               <div className="relative">
                 <Popover>
@@ -1145,7 +1177,7 @@ export default function AttendanceDashboard() {
                   <SelectValue placeholder="Select Status" />
                 </SelectTrigger>
                 <SelectContent className="rounded-md">
-                  <SelectItem value="all">Select Status</SelectItem>
+                  <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="present_on_time">Present (On Time)</SelectItem>
                   <SelectItem value="present_late">Present (Late)</SelectItem>
                   <SelectItem value="approved_leave">Approved Leave</SelectItem>
@@ -1153,6 +1185,8 @@ export default function AttendanceDashboard() {
                   <SelectItem value="outstation">Outstation</SelectItem>
                   <SelectItem value="weekend">Weekend</SelectItem>
                   <SelectItem value="clocked_out">Clocked Out</SelectItem>
+                  <SelectItem value="temporary_branch">Temporary Branch</SelectItem>
+                  <SelectItem value="multi_location">Multi-Location</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -1197,17 +1231,6 @@ export default function AttendanceDashboard() {
                   <SelectItem value="50">50</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="relative w-full sm:w-[220px]">
-              <Search className="absolute left-3 top-2 h-3 w-3 text-gray-400" />
-              <input 
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 pr-3 py-1 w-full text-[11px] border border-gray-200 dark:border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-[#7B0099] h-7 shadow-sm"
-              />
             </div>
           </div>
         </div>
