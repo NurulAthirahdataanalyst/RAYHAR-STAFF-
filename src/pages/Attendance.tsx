@@ -843,6 +843,16 @@ export default function Attendance() {
     );
   }
 
+  const parseHoursStrToNum = (val: string | number | undefined) => {
+    if (!val) return 0;
+    if (typeof val === 'number') return val;
+    const parts = val.toString().split(':');
+    if (parts.length === 2) {
+      return parseInt(parts[0], 10) + (parseInt(parts[1], 10) / 60);
+    }
+    return parseFloat(val.toString()) || 0;
+  };
+
   return (
     <div className="relative flex flex-col mx-auto w-full animate-in fade-in duration-700">
 
@@ -1158,11 +1168,11 @@ export default function Attendance() {
             {/* Visual Timeline Bar */}
             <div className="w-full h-4 sm:h-5 bg-muted rounded-full flex overflow-hidden shadow-inner mt-auto mb-2">
                {/* Note: Mock widths for visualization if there is no data */}
-               {Number(stats.totalHoursMonth) > 0 ? (
+               {parseHoursStrToNum(stats.totalHoursMonth) > 0 ? (
                   <>
-                    <div className="bg-emerald-500 h-full" style={{ width: `${(Number(stats.productiveHours) / Number(stats.totalHoursMonth)) * 100}%` }}></div>
-                    <div className="bg-yellow-500 h-full" style={{ width: `${(Number(stats.breakHours) / Number(stats.totalHoursMonth)) * 100}%` }}></div>
-                    <div className="bg-blue-500 h-full" style={{ width: `${(Number(stats.overtimeMonth) / Number(stats.totalHoursMonth)) * 100}%` }}></div>
+                    <div className="bg-emerald-500 h-full" style={{ width: `${(parseHoursStrToNum(stats.productiveHours) / parseHoursStrToNum(stats.totalHoursMonth)) * 100}%` }}></div>
+                    <div className="bg-yellow-500 h-full" style={{ width: `${(parseHoursStrToNum(stats.breakHours) / parseHoursStrToNum(stats.totalHoursMonth)) * 100}%` }}></div>
+                    <div className="bg-blue-500 h-full" style={{ width: `${(parseHoursStrToNum(stats.overtimeMonth) / parseHoursStrToNum(stats.totalHoursMonth)) * 100}%` }}></div>
                   </>
                ) : (
                   <div className="w-full h-full bg-muted"></div>
