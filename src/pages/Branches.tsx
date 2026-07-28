@@ -744,7 +744,7 @@ export default function Branches() {
                           variant="secondary"
                           className="mt-4 text-[10px] uppercase font-black px-3 py-1 bg-[#7B0099]/10 text-[#7B0099] border-none"
                         >
-                          {selectedEmployee.role.replace(/_/g, " ")}
+                          {selectedEmployee.role === "finance_manager" || selectedEmployee.role === "Finance Manager" || selectedEmployee.role === "operation_manager" ? "Operation Manager" : selectedEmployee.role === "hr_admin" ? "HR Admin" : selectedEmployee.role.replace(/_/g, " ")}
                         </Badge>
 
                         <div className="mt-6 pt-6 border-t border-border/50 w-full space-y-3">

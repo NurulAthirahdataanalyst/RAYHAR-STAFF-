@@ -276,7 +276,7 @@ const TemporaryAssignments = () => {
                       <div className="text-xs text-muted-foreground">
                         {assignment.primary_branch === 'HQ' 
                           ? `HQ • ${assignment.department}` 
-                          : `${assignment.role.replace(/_/g, ' ').toUpperCase()} • ${assignment.primary_branch}`}
+                          : `${(assignment.role === "finance_manager" || assignment.role === "Finance Manager" || assignment.role === "operation_manager" ? "Operation Manager" : assignment.role === "hr_admin" ? "HR Admin" : assignment.role.replace(/_/g, ' ')).toUpperCase()} • ${assignment.primary_branch}`}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -425,7 +425,7 @@ const TemporaryAssignments = () => {
                   </div>
                   <div className="col-span-2">
                     <p className="text-xs text-slate-500 font-medium">Position</p>
-                    <p className="text-sm font-semibold text-slate-800">{selectedAssignment.role.replace(/_/g, ' ').toUpperCase()}</p>
+                    <p className="text-sm font-semibold text-slate-800">{(selectedAssignment.role === "finance_manager" || selectedAssignment.role === "Finance Manager" || selectedAssignment.role === "operation_manager" ? "Operation Manager" : selectedAssignment.role === "hr_admin" ? "HR Admin" : selectedAssignment.role.replace(/_/g, ' ')).toUpperCase()}</p>
                   </div>
                 </div>
               </div>
