@@ -1987,12 +1987,12 @@ export default function WorkforceInsights() {
         )}
         </>
         ) : (
-          <MonthViewDashboard data={data} clockInOut={clockInOut} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} liveLeaveTrend={liveLeaveTrend} month={month} liveWeeklyAttendanceTrend={liveWeeklyAttendanceTrend} trendWeekStart={trendWeekStart} setTrendWeekStart={setTrendWeekStart} />
+          <MonthViewDashboard data={data} clockInOut={clockInOut} absentList={absentList} tempAssignments={tempAssignments} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} liveLeaveTrend={liveLeaveTrend} month={month} year={year} day={day} liveWeeklyAttendanceTrend={liveWeeklyAttendanceTrend} trendWeekStart={trendWeekStart} setTrendWeekStart={setTrendWeekStart} />
         )}
       </div>
   );
 }
-function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts, liveLeaveTrend, month, liveWeeklyAttendanceTrend, trendWeekStart, setTrendWeekStart }: any) {
+function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssignments, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts, liveLeaveTrend, month, year, day, liveWeeklyAttendanceTrend, trendWeekStart, setTrendWeekStart }: any) {
   const navigate = useNavigate();
   const topKpi = data.topKpi || {};
   const monthlyComp = data.monthlyComparison || { attendance: {}, lateArrivals: {}, absences: {}, leaveRequests: {}, outstation: {} };
@@ -2022,10 +2022,108 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
   };
   const regionOrder = ['Central', 'Northern', 'Southern', 'East Coast', 'East Malaysia'];
   
+  const FULL_BRANCH_NAMES: Record<string, string> = {
+    "RMP": "RMP - Rompin", "CNH": "CNH - Cheneh", "KMM": "KMM - Kemaman", "IPH": "IPH - Ipoh",
+    "TGG": "TGG - Kuala Terengganu", "AOR": "AOR - Alor Setar", "DGN": "DGN - Dungun",
+    "KBR": "KBR - Kota Bharu", "JTH": "JTH - Jertih", "KBG": "KBG - Kuala Berang",
+    "MZM": "MZM - Muadzam Shah", "TWU": "TWU - Tawau", "BTM": "BTM - Bertam",
+    "KKS": "KKS - Kuala Kangsar", "MJG": "MJG - Manjung", "MLK": "MLK - Melaka",
+    "SNS": "SNS - Seremban", "JHB": "JHB - Johor Bahru", "BPT": "BPT - Batu Pahat",
+    "BBB": "BBB - Bandar Baru Bangi", "SHA": "SHA - Shah Alam", "KUL": "KUL - Kuala Lumpur",
+    "HQ": "HQ"
+  };
+
   const [selectedRegion, setSelectedRegion] = useState<string>('All Regions');
-  const filteredBranches = selectedRegion === 'All Regions' 
-    ? rawBranchMetrics 
-    : rawBranchMetrics.filter((b:any) => regionMap[b.name] === selectedRegion || (b.name==='HQ' && selectedRegion==='Central'));
+
+  const liveBranchRanking = useMemo(() => {
+    const listSource = rawBranchMetrics.map((b:any) => ({ branch: b.name, totalEmployees: b.count || 0 }));
+    
+    return listSource
+      .map((b:any) => {
+        const permanentStaffCount = b.totalEmployees || 0;
+        
+        const temporaryOut = (tempAssignments || []).filter((a: any) => {
+            const pb = a.primary_branch === 'HQ' ? 'HQ' : (a.primary_branch || '');
+            return pb === b.branch && a.location !== b.branch;
+        }).length;
+        
+        const temporaryIn = (tempAssignments || []).filter((a: any) => {
+            const pb = a.primary_branch === 'HQ' ? 'HQ' : (a.primary_branch || '');
+            return pb !== b.branch && a.location === b.branch;
+        }).length;
+        
+        const expectedWorkforce = Math.max(0, permanentStaffCount - temporaryOut) + temporaryIn;
+
+        const activePermanent = (clockInOut || []).filter((emp:any) => emp.branch === b.branch && (!emp.temp_branch || emp.temp_branch === b.branch));
+        const activeTemporary = (clockInOut || []).filter((emp:any) => emp.branch !== b.branch && emp.temp_branch === b.branch);
+        
+        const presentOnTime = activePermanent.filter((emp:any) => emp.status === 'Present (On Time)' || emp.status === 'Present').length;
+        const presentLate = activePermanent.filter((emp:any) => emp.status === 'Present (Late)').length;
+        const onLeave = activePermanent.filter((emp:any) => emp.status === 'On Leave' || emp.status === 'Approved Leave').length;
+        const companyLeave = activePermanent.filter((emp:any) => emp.status === 'Company Leave').length;
+        const outstation = activePermanent.filter((emp:any) => emp.status === 'Outstation').length;
+        
+        const tempPresent = activeTemporary.filter((emp:any) => emp.status === 'Present (On Time)' || emp.status === 'Present').length;
+        const tempLate = activeTemporary.filter((emp:any) => emp.status === 'Present (Late)').length;
+        const tempOnLeave = activeTemporary.filter((emp:any) => emp.status === 'On Leave' || emp.status === 'Approved Leave').length;
+        const tempCompanyLeave = activeTemporary.filter((emp:any) => emp.status === 'Company Leave').length;
+        const tempOutstation = activeTemporary.filter((emp:any) => emp.status === 'Outstation').length;
+
+        const isWeekend = activePermanent.length > 0
+          ? activePermanent.every((r:any) => r.status === "Weekend")
+          : (function() {
+              const dateObj = new Date(year || new Date().getFullYear(), (month || new Date().getMonth() + 1) - 1, day || new Date().getDate());
+              const dayOfWeek = dateObj.getDay();
+              const isFirstWeek = (day || new Date().getDate()) <= 7;
+              const zone = (['AOR', 'KBR', 'TGG', 'DGN', 'KMM', 'CNH', 'KBG', 'JTH', 'RMP', 'MZM', 'TWU', 'BTM', 'KKS', 'MLK', 'SNS', 'JB', 'BTP'].includes(b.branch) ? 'ZONE_A' : 'ZONE_B');
+              if (zone === "ZONE_A") {
+                return dayOfWeek === 5 || (dayOfWeek === 6 && isFirstWeek);
+              } else {
+                return dayOfWeek === 0 || (dayOfWeek === 6 && isFirstWeek);
+              }
+            })();
+
+        const totalRecorded = presentOnTime + presentLate + onLeave + companyLeave + outstation + tempPresent + tempLate + tempOnLeave + tempCompanyLeave + tempOutstation;
+        const absent = isWeekend ? 0 : Math.max(0, expectedWorkforce - totalRecorded);
+        
+        let rate = 0;
+        const expectedExcludingLeave = isWeekend ? 0 : (expectedWorkforce - onLeave - companyLeave - tempOnLeave - tempCompanyLeave);
+        if (isWeekend) {
+          rate = 100;
+        } else if (expectedExcludingLeave > 0) {
+          rate = Math.round(((presentOnTime + presentLate + outstation + tempPresent + tempLate + tempOutstation) / expectedExcludingLeave) * 100);
+        }
+
+        return {
+          branch: b.branch,
+          rate,
+          region: regionMap[b.branch] || "Unknown",
+          totalEmployees: expectedWorkforce,
+          permanentStaffCount,
+          temporaryOut,
+          temporaryIn,
+          presentOnTime,
+          presentLate,
+          absent,
+          onLeave,
+          companyLeave,
+          outstation,
+          tempPresent,
+          tempLate,
+          tempOnLeave,
+          tempCompanyLeave,
+          tempOutstation,
+          isWeekend
+        };
+      })
+      .filter((b:any) => selectedRegion === "All Regions" || b.region === selectedRegion || (b.branch === 'HQ' && selectedRegion === 'Central'))
+      .filter((b:any) => b.permanentStaffCount > 0 || b.temporaryIn > 0 || b.temporaryOut > 0)
+      .sort((a:any, b:any) => b.rate - a.rate)
+      .map((d:any) => ({
+         ...d,
+         displayRate: d.isWeekend ? 100 : d.rate
+      }));
+  }, [rawBranchMetrics, clockInOut, tempAssignments, selectedRegion, year, month, day]);
 
   const departmentMetrics = (data.departmentMetrics || []).map((d: any) => ({ ...d, name: (d.name || '').toUpperCase() }));
   const topDepartments = [...departmentMetrics].sort((a:any,b:any)=>b.value-a.value).slice(0, 5);
@@ -2451,49 +2549,104 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, pendingApp
                </Select>
              </div>
              
-             <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
+             <div className={`space-y-4 flex-1 pr-2 ${liveBranchRanking.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px]' : 'overflow-y-visible'}`}>
                <TooltipProvider>
-                {filteredBranches.sort((a:any,b:any)=>b.attendanceRate-a.attendanceRate).map((branch: any, idx: number) => {
-                  return (
-                    <div key={idx} className="flex flex-col gap-1">
-                      <div className="flex justify-between items-end">
-                        <div className="flex flex-col">
-                          <span className="text-[11px] font-bold text-[#1A1F36] dark:text-gray-200">{branch.name}</span>
-                          <span className="text-[9px] text-slate-400">{branch.count} Employees</span>
+                {liveBranchRanking.map((branch: any, idx: number) => {
+                    const greenPerc = branch.isWeekend ? 0 : (branch.totalEmployees > 0 ? ((branch.presentOnTime) / branch.totalEmployees) * 100 : 0);
+                    const yellowPerc = branch.isWeekend ? 0 : (branch.totalEmployees > 0 ? ((branch.presentLate + branch.tempLate) / branch.totalEmployees) * 100 : 0);
+                    const bluePerc = branch.isWeekend ? 0 : (branch.totalEmployees > 0 ? ((branch.onLeave + branch.tempOnLeave + branch.companyLeave + branch.tempCompanyLeave) / branch.totalEmployees) * 100 : 0);
+                    const redPerc = branch.isWeekend ? 0 : (branch.totalEmployees > 0 ? (branch.absent / branch.totalEmployees) * 100 : 0);
+                    const brownPerc = branch.isWeekend ? 0 : (branch.totalEmployees > 0 ? (branch.tempPresent / branch.totalEmployees) * 100 : 0);
+
+                    return (
+                      <div key={idx} className="flex flex-col gap-1">
+                        <div className="flex justify-between items-end">
+                          <div className="flex flex-col">
+                            <span className="text-[11px] font-bold text-[#1A1F36] dark:text-gray-200">
+                              {FULL_BRANCH_NAMES[branch.branch] || branch.branch}
+                            </span>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="text-[9px] font-semibold text-slate-500 flex items-center gap-1">
+                                👥 {branch.permanentStaffCount} Staff
+                              </span>
+                              {branch.temporaryIn > 0 && (
+                                <span className="text-[9px] font-bold text-[#8b4513] bg-orange-100/70 dark:bg-amber-900/30 dark:text-amber-500 px-1 rounded flex items-center gap-1">
+                                  🟤 {branch.temporaryIn} Temporary Staff
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <span className={`text-[10px] font-black ${branch.displayRate >= 95 ? 'text-emerald-500' : branch.displayRate >= 80 ? 'text-amber-500' : 'text-red-500'}`}>
+                            {branch.displayRate}%
+                          </span>
                         </div>
-                        <span className={`text-[10px] font-black ${branch.attendanceRate >= 95 ? 'text-emerald-500' : 'text-amber-500'}`}>{branch.attendanceRate}%</span>
+                        <UITooltip delayDuration={100}>
+                          <TooltipTrigger asChild>
+                            <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full flex overflow-hidden mt-1 cursor-pointer">
+                              {branch.isWeekend ? (
+                                <div className="h-full bg-slate-300 dark:bg-slate-600" style={{ width: '100%' }}></div>
+                              ) : (
+                                <>
+                                  {greenPerc > 0 && <div className="h-full bg-[#10b981]" style={{ width: `${greenPerc}%` }}></div>}
+                                  {brownPerc > 0 && <div className="h-full bg-[#b45309]" style={{ width: `${brownPerc}%` }}></div>}
+                                  {yellowPerc > 0 && <div className="h-full bg-[#f59e0b]" style={{ width: `${yellowPerc}%` }}></div>}
+                                  {bluePerc > 0 && <div className="h-full bg-[#3b82f6]" style={{ width: `${bluePerc}%` }}></div>}
+                                  {redPerc > 0 && <div className="h-full bg-[#ef4444]" style={{ width: `${redPerc}%` }}></div>}
+                                </>
+                              )}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" align="center" className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[200px]">
+                            <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">
+                              {FULL_BRANCH_NAMES[branch.branch] || branch.branch}
+                            </p>
+                            <div className="flex flex-col gap-1.5 text-[9px] text-slate-600 dark:text-slate-400 mb-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                              <p className="flex justify-between items-center gap-4">
+                                <span>Permanent Staff:</span> 
+                                <span className="font-semibold text-slate-700 dark:text-slate-300">{branch.permanentStaffCount}</span>
+                              </p>
+                              <p className="flex justify-between items-center gap-4">
+                                <span>Temporary In:</span> 
+                                <span className="font-semibold text-amber-600">{branch.temporaryIn}</span>
+                              </p>
+                              <p className="flex justify-between items-center gap-4">
+                                <span>Temporary Out:</span> 
+                                <span className="font-semibold text-amber-600">{branch.temporaryOut}</span>
+                              </p>
+                              <p className="flex justify-between items-center gap-4 pt-1 border-t border-slate-100 dark:border-slate-800">
+                                <span className="font-bold text-slate-700 dark:text-slate-300">Expected Workforce:</span> 
+                                <span className="font-bold text-slate-900 dark:text-slate-100">{branch.totalEmployees}</span>
+                              </p>
+                            </div>
+                            <div className="flex flex-col gap-1 text-[9px] text-slate-600 dark:text-slate-400">
+                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
+                              {branch.tempPresent > 0 && <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-amber-700"></div>Temporary Present:</span> <span className="font-bold text-amber-700">{branch.tempPresent}</span></p>}
+                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Late:</span> <span className="font-bold text-amber-600">{branch.presentLate + branch.tempLate}</span></p>
+                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-600">{branch.outstation}</span></p>
+                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]"></div>On Leave:</span> <span className="font-bold text-blue-600">{branch.onLeave + branch.tempOnLeave}</span></p>
+                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-600">{branch.companyLeave + branch.tempCompanyLeave}</span></p>
+                              <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#ef4444]"></div>Absent:</span> <span className="font-bold text-red-600">{branch.absent}</span></p>
+                            </div>
+                          </TooltipContent>
+                        </UITooltip>
                       </div>
-                      <UITooltip delayDuration={100}>
-                        <TooltipTrigger asChild>
-                          <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mt-1 cursor-pointer">
-                            <div className={`h-full rounded-full ${branch.attendanceRate >= 95 ? 'bg-[#10b981]' : 'bg-[#f59e0b]'}`} style={{ width: `${branch.attendanceRate}%` }}></div>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" align="center" className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[150px]">
-                          <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{branch.name}</p>
-                          <div className="flex flex-col gap-1 text-[9px] text-slate-600">
-                            <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className={`w-1.5 h-1.5 rounded-full ${branch.attendanceRate >= 95 ? 'bg-[#10b981]' : 'bg-[#f59e0b]'}`}></div>Attendance Rate:</span> <span className={`font-bold ${branch.attendanceRate >= 95 ? 'text-emerald-600' : 'text-amber-500'}`}>{branch.attendanceRate}%</span></p>
-                          </div>
-                        </TooltipContent>
-                      </UITooltip>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
                </TooltipProvider>
-               {filteredBranches.length === 0 && (
+               {liveBranchRanking.length === 0 && (
                  <div className="text-center text-slate-400 text-xs py-10 font-medium">No branches found in this region.</div>
                )}
              </div>
 
-             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-               <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1.5">
-                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                 Showing {filteredBranches.length} locations
-               </p>
-               <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">See All <ChevronRight className="w-3 h-3" /></button>
-             </div>
-           </Card>
-         </div>
+              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Showing {liveBranchRanking.length} locations
+                </p>
+                <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">See All <ChevronRight className="w-3 h-3" /></button>
+              </div>
+            </Card>
+          </div>
 
          {/* Row 2: 3 Columns */}
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
