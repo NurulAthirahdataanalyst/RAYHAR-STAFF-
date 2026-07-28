@@ -1168,23 +1168,56 @@ export default function Attendance() {
             {/* Visual Timeline Bar */}
             <div className="w-full h-4 sm:h-5 bg-muted rounded-full flex overflow-hidden shadow-inner mt-auto mb-2">
                {(() => {
-                  const parseHours = (val: string | number) => {
-                     if (!val) return 0;
-                     if (typeof val === 'number') return val;
-                     const parts = val.toString().split(':');
-                     if (parts.length === 2) return parseInt(parts[0], 10) + (parseInt(parts[1], 10) / 60);
-                     return parseFloat(val.toString()) || 0;
-                  };
-                  const totalNum = parseHours(stats.totalHoursMonth);
-                  return totalNum > 0 ? (
-                    <>
-                      <div className="bg-emerald-500 h-full transition-all duration-1000" style={{ width: `${(parseHours(stats.productiveHours) / totalNum) * 100}%` }}></div>
-                      <div className="bg-yellow-500 h-full transition-all duration-1000" style={{ width: `${(parseHours(stats.breakHours) / totalNum) * 100}%` }}></div>
-                      <div className="bg-blue-500 h-full transition-all duration-1000" style={{ width: `${(parseHours(stats.overtimeMonth) / totalNum) * 100}%` }}></div>
-                    </>
-                  ) : (
-                    <div className="w-full h-full bg-muted"></div>
-                  );
+                  const today = new Date();
+                  today.setHours(23, 59, 59, 999);
+                  const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
+                  
+                  const timelineBlocks = [];
+                  let totalWorkingDays = 0;
+                  
+                  for (let d = 1; d <= lastDay; d++) {
+                    const dt = new Date(selectedYear, selectedMonth - 1, d);
+                    const wk = dt.getDay();
+                    if (wk === 5) continue;
+                    if (wk === 6 && d <= 7) continue;
+                    
+                    totalWorkingDays++;
+                    const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    const log = historyLogs.find(l => l.date && l.date.startsWith(dateStr));
+                    
+                    let status = "Future";
+                    if (dt <= today) {
+                      if (log) {
+                        status = log.status;
+                        if (status === "Present" && log.late && log.late !== "00:00" && log.late !== "--") {
+                          status = "Present (Late)";
+                        }
+                      } else {
+                        status = "Absent";
+                      }
+                    }
+                    
+                    timelineBlocks.push(status);
+                  }
+                  
+                  return timelineBlocks.map((status, idx) => {
+                    let bgColor = "bg-muted dark:bg-slate-700/50";
+                    if (status === "Present") bgColor = "bg-emerald-500";
+                    else if (status === "Present (Late)") bgColor = "bg-yellow-500";
+                    else if (status === "Company Leave") bgColor = "bg-purple-500";
+                    else if (status === "Outstation") bgColor = "bg-pink-500";
+                    else if (status === "Leave") bgColor = "bg-amber-500";
+                    else if (status === "Absent") bgColor = "bg-red-500";
+                    
+                    return (
+                      <div 
+                        key={idx} 
+                        className={`${bgColor} h-full transition-all duration-1000`} 
+                        style={{ width: `${(1 / totalWorkingDays) * 100}%` }}
+                        title={status}
+                      ></div>
+                    );
+                  });
                })()}
             </div>
             
