@@ -704,13 +704,15 @@ export default function AttendanceDashboard() {
         let rows: any[] = [];
         
         if (generatorType === "trends" || generatorType === "stability") {
-          headers = ["Employee ID", "Employee Name", "Branch", "Date", "Clock In", "Clock Out", "Total Hours"];
+          headers = ["Employee ID", "Employee Name", "Permanent Branch", "Working Branch", "Date", "Clock In", "Clock Out", "Status", "Total Hours"];
           rows = data.data.map((r: any) => {
-             const dateStr = new Date(r.clock_in).toLocaleDateString();
-             const timeIn = new Date(r.clock_in).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+             const dateStr = r.date || (r.clock_in ? new Date(r.clock_in).toLocaleDateString() : "--");
+             const timeIn = r.clock_in ? new Date(r.clock_in).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "--:--";
              const timeOut = r.clock_out ? new Date(r.clock_out).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "--:--";
-             const totalHrs = calculateWorkingHours(r.clock_in, r.clock_out);
-             return [r.user_id, r.full_name, r.branch, dateStr, timeIn, timeOut, totalHrs];
+             const totalHrs = r.total_hours || (r.clock_in && r.clock_out ? calculateWorkingHours(r.clock_in, r.clock_out) : "--");
+             const permanentBranch = r.permanent_branch || r.branch;
+             const workingBranch = r.temp_branch || r.branch;
+             return [r.user_id, `"${r.full_name}"`, permanentBranch, workingBranch, dateStr, timeIn, timeOut, r.status || "--", totalHrs];
           });
         } else {
           headers = ["Employee ID", "Employee Name", "Branch", "Leave Type", "Days", "Status"];
