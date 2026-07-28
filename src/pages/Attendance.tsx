@@ -1220,11 +1220,11 @@ export default function Attendance() {
                   
                   return groupedBlocks.map((block, idx) => {
                     let bgColor = "bg-muted dark:bg-slate-700/50";
-                    if (block.status === "Present (On Time)") bgColor = "bg-[#10b981]";
-                    else if (block.status === "Present (Late)") bgColor = "bg-[#f59e0b]";
+                    if (block.status === "Present (On Time)" || block.status === "Present") bgColor = "bg-[#10b981]";
+                    else if (block.status === "Present (Late)" || block.status === "Late") bgColor = "bg-[#f59e0b]";
                     else if (block.status === "Company Leave") bgColor = "bg-purple-500";
                     else if (block.status === "Outstation") bgColor = "bg-pink-500";
-                    else if (block.status === "Leave") bgColor = "bg-blue-500";
+                    else if (block.status === "Leave" || block.status === "On Leave" || block.status === "Approved Leave") bgColor = "bg-blue-500";
                     else if (block.status === "Absent") bgColor = "bg-red-500";
                     
                     return (
