@@ -7357,20 +7357,20 @@ app.get("/api/reports/generator", async (req, res) => {
       }
 
       let profWhere = profFilters.length > 0 ? "WHERE " + profFilters.join(" AND ") : "";
+      // Fetch profiles with permanent branch only; temp branch resolved per-row below
       const [targetProfiles] = await pool.query(`
-        SELECT p.user_id, p.full_name, p.branch AS permanent_branch,
-               COALESCE(tw.temp_branch, p.branch) AS branch,
-               tw.temp_branch, p.department
+        SELECT p.user_id, p.full_name, p.branch AS permanent_branch, p.department
         FROM profiles p
-        LEFT JOIN (
-          SELECT user_id, location AS temp_branch
-          FROM employee_work_assignment
-          WHERE status = 'Active'
-            AND CURRENT_DATE BETWEEN DATE(start_date) AND COALESCE(DATE(end_date), '2099-12-31')
-        ) tw ON tw.user_id = p.user_id
         ${profWhere}
         ORDER BY p.full_name ASC
       `, profParams);
+
+      // Also fetch all temp assignments for these users so we can resolve per-date
+      const [tempAssignments] = await pool.query(`
+        SELECT user_id, location AS temp_branch, DATE(start_date) AS start_date, COALESCE(DATE(end_date), '2099-12-31') AS end_date
+        FROM employee_work_assignment
+        WHERE status = 'Active'
+      `);
 
       if (targetProfiles.length === 0) {
         return res.json({ success: true, data: [] });
@@ -7399,20 +7399,42 @@ app.get("/api/reports/generator", async (req, res) => {
         ORDER BY a.clock_in DESC
       `, attParams);
 
-      // Map attendances by user_id_YYYY-MM-DD
+      // Map attendances by user_id_YYYY-MM-DD (use MYT offset UTC+8 to match displayed date)
+      const MYT_OFFSET_MS = 8 * 60 * 60 * 1000;
       const attendanceMap = new Map();
       attendanceRows.forEach(a => {
         if (a.clock_in) {
-          const d = new Date(a.clock_in);
-          const yyyy = d.getFullYear();
-          const mm = String(d.getMonth() + 1).padStart(2, '0');
-          const dd = String(d.getDate()).padStart(2, '0');
+          const d = new Date(new Date(a.clock_in).getTime() + MYT_OFFSET_MS);
+          const yyyy = d.getUTCFullYear();
+          const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+          const dd = String(d.getUTCDate()).padStart(2, '0');
           const key = `${a.user_id}_${yyyy}-${mm}-${dd}`;
           if (!attendanceMap.has(key)) {
             attendanceMap.set(key, a);
           }
         }
       });
+
+      // Helper: resolve which branch was active for a user on a given ISO date string (YYYY-MM-DD)
+      const toISOStr = (d) => {
+        if (!d) return '2099-12-31';
+        if (typeof d === 'string') return d.slice(0, 10);
+        // MySQL Date object
+        const dd = new Date(d);
+        return dd.toISOString().slice(0, 10);
+      };
+      const getEffectiveBranch = (userId, isoDate, permanentBranch) => {
+        const active = tempAssignments.find(ta =>
+          ta.user_id === userId &&
+          isoDate >= toISOStr(ta.start_date) &&
+          isoDate <= toISOStr(ta.end_date)
+        );
+        return {
+          branch: active ? active.temp_branch : permanentBranch,
+          temp_branch: active ? active.temp_branch : null,
+          permanent_branch: permanentBranch
+        };
+      };
 
       // 3. Determine timeframe dates
       const selectedY = year && year !== 'all' ? parseInt(year) : new Date().getFullYear();
@@ -7440,16 +7462,20 @@ app.get("/api/reports/generator", async (req, res) => {
           const key = `${prof.user_id}_${isoDateStr}`;
           const att = attendanceMap.get(key);
 
+          // Resolve effective branch for THIS specific date
+          const branchInfo = getEffectiveBranch(prof.user_id, isoDateStr, prof.permanent_branch);
+
           if (att && att.clock_in) {
-            const clockInDate = new Date(att.clock_in);
-            const hours = clockInDate.getHours();
-            const mins = clockInDate.getMinutes();
+            // Use MYT-adjusted time for hour/minute check
+            const clockInMYT = new Date(new Date(att.clock_in).getTime() + MYT_OFFSET_MS);
+            const hours = clockInMYT.getUTCHours();
+            const mins = clockInMYT.getUTCMinutes();
             const isLate = hours > 9 || (hours === 9 && mins > 0);
             const status = isLate ? "Present (Late)" : "Present (On Time)";
 
             let totalHrsText = "--";
             if (att.clock_out) {
-              const diffMs = new Date(att.clock_out).getTime() - clockInDate.getTime();
+              const diffMs = new Date(att.clock_out).getTime() - new Date(att.clock_in).getTime();
               if (diffMs > 0) {
                 const h = Math.floor(diffMs / 3600000);
                 const m = Math.floor((diffMs % 3600000) / 60000);
@@ -7462,9 +7488,9 @@ app.get("/api/reports/generator", async (req, res) => {
             resultRows.push({
               user_id: prof.user_id,
               full_name: prof.full_name,
-              permanent_branch: prof.permanent_branch || prof.branch,
-              temp_branch: prof.temp_branch || null,
-              branch: prof.branch, // already resolved to temp if active
+              permanent_branch: branchInfo.permanent_branch,
+              temp_branch: branchInfo.temp_branch,
+              branch: branchInfo.branch,
               date: dateFormatted,
               iso_date: isoDateStr,
               clock_in: att.clock_in,
@@ -7477,9 +7503,9 @@ app.get("/api/reports/generator", async (req, res) => {
             resultRows.push({
               user_id: prof.user_id,
               full_name: prof.full_name,
-              permanent_branch: prof.permanent_branch || prof.branch,
-              temp_branch: prof.temp_branch || null,
-              branch: prof.branch, // already resolved to temp if active
+              permanent_branch: branchInfo.permanent_branch,
+              temp_branch: branchInfo.temp_branch,
+              branch: branchInfo.branch,
               date: dateFormatted,
               iso_date: isoDateStr,
               clock_in: null,
