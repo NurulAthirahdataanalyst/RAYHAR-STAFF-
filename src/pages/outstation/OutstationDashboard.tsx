@@ -21,7 +21,7 @@ import PageHeader from "@/components/layout/PageHeader";
 import PageActions from "@/components/layout/PageActions";
 import { API_BASE_URL } from "../../config/api";
 
-const OUTSTATION_ROLES = ["hr_admin", "managing_director", "finance_manager", "branch_leader", "head_of_department"];
+const OUTSTATION_ROLES = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "branch_leader", "head_of_department"];
 
 // Semantic Colors
 const C_PURPLE =  "#7B0099]"; // Brand

@@ -12,7 +12,7 @@ import {
 
 import PageActions from "@/components/layout/PageActions";
 
-const ALLOWED_ROLES = ["hr_admin", "managing_director", "finance_manager", "branch_leader", "head_of_department"];
+const ALLOWED_ROLES = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "branch_leader", "head_of_department"];
 const STATUS_COLORS: Record<string, string> = {
   Active: "#16a34a",
   Upcoming: "#f97316",

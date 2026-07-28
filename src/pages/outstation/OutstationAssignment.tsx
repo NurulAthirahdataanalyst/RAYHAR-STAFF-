@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { API_BASE_URL } from "../../config/api";
 
-const OUTSTATION_ROLES = ["hr_admin", "managing_director", "finance_manager", "branch_leader", "head_of_department"];
+const OUTSTATION_ROLES = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "branch_leader", "head_of_department"];
 const PINK = "#7B0099]";
 
 const BRANCHES = ["HQ","KMM","TGG","CNH","KBG","DGN","JTH","KBR","RMP","MZM","TWU","AOR","BTM","KKS","SHA","BBB","KUL","IPH","MJG","MLK","SNS","JB","BTP"];
