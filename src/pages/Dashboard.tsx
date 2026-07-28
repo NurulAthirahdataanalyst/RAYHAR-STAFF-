@@ -567,7 +567,16 @@ export default function Dashboard() {
       ) : (
         <>
           {/* Stat Cards - responsive grid */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 ${role === "employee" ? "lg:grid-cols-4" : "lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5"}`}>
+      <div className={`grid gap-3 sm:gap-4 pb-2 snap-x hide-scrollbar ${role === "employee" ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : "grid-flow-col auto-cols-[85vw] sm:auto-cols-[240px] xl:auto-cols-[260px] overflow-x-auto"}`}>
+        <style>{`
+          .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+          .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}</style>
         {role === "employee" ? (
           <>
             {/* 1. Today's Status */}
