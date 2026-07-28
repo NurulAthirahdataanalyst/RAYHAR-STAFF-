@@ -1175,6 +1175,7 @@ export default function Attendance() {
                   const groupedBlocks: { status: string; count: number }[] = [];
                   let currentStatus: string | null = null;
                   let currentCount = 0;
+                  let totalWorkingDays = 0;
                   
                   for (let d = 1; d <= lastDay; d++) {
                     const dt = new Date(selectedYear, selectedMonth - 1, d);
