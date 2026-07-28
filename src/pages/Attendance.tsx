@@ -911,20 +911,8 @@ export default function Attendance() {
                   </>
                 )}
 
-                {!activeSession && attendanceMode === 'multi' && allowedLocations.length > 1 && (
-                  <div className="absolute -top-14 left-1/2 -translate-x-1/2 w-48 z-10 bg-card rounded-md shadow-lg border border-border p-1">
-                    <label className="text-[10px] font-semibold text-muted-foreground px-2 mb-1 block uppercase">Select Working Location</label>
-                    <select
-                      className="w-full bg-background border-none text-sm font-semibold p-1.5 focus:ring-0 outline-none rounded text-foreground cursor-pointer"
-                      value={selectedLocation}
-                      onChange={(e) => setSelectedLocation(e.target.value)}
-                    >
-                      {allowedLocations.map((loc, i) => (
-                        <option key={i} value={loc}>{loc}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+
+
 
                 <button
                   onClick={handleAttendanceAction}
@@ -960,6 +948,37 @@ export default function Attendance() {
                   )}
                 </button>
               </div>
+
+              {/* Working Location Selector — shown before clock-in for multi-location employees */}
+              {!activeSession && attendanceMode === 'multi' && allowedLocations.length > 1 && (
+                <div className="w-full mb-3 bg-purple-50/60 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/50 rounded-xl p-3">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                    <span className="text-[10px] font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider">Working Location</span>
+                  </div>
+                  <select
+                    className="w-full bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-800 text-sm font-semibold px-3 py-2 focus:ring-1 focus:ring-purple-400 outline-none rounded-lg text-foreground cursor-pointer"
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                  >
+                    {allowedLocations.map((loc, i) => (
+                      <option key={i} value={loc}>{loc}</option>
+                    ))}
+                  </select>
+                  <p className="text-[9px] text-purple-500/80 dark:text-purple-400/60 mt-1">Select your working branch before clocking in.</p>
+                </div>
+              )}
+
+              {/* Single location display when NOT multi-mode */}
+              {!activeSession && attendanceMode !== 'multi' && selectedLocation && (
+                <div className="w-full mb-3 flex items-center gap-2 bg-muted/30 px-3 py-2 rounded-xl border border-border/50">
+                  <MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Working Location</span>
+                    <span className="text-xs font-bold text-foreground">{selectedLocation}</span>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-xs font-bold mb-3 sm:mb-4 bg-muted/30 dark:bg-muted/50 py-1.5 px-4 rounded-md w-full border border-border/50">
                 {activeSession ? (
