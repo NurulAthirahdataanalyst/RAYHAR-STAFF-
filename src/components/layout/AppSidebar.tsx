@@ -492,7 +492,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                             onClick={isMobile ? onMobileClose : undefined}
                             className={`group relative flex items-center gap-3 rounded-[14px] px-4 py-2 text-[11px] transition-all duration-300 touch-target ${
                               isChildActive
-                                ? "bg-[#FDE047]/10 font-semibold text-[#cda4ff]"
+                                ? "bg-[#FDE047]/10 font-semibold text-[#a01497]"
                                 : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white"
                             }`}
                           >
@@ -523,7 +523,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                                   to={child.path}
                                   className={`flex items-center gap-3 rounded-[14px] px-3 py-2 text-[11px] transition-all duration-200 ${
                                     isChildActive
-                                      ? "bg-[#FDE047]/10 font-semibold text-[#cda4ff]"
+                                      ? "bg-[#FDE047]/10 font-semibold text-[#a01497]"
                                       : "text-white/70 hover:bg-white/5 hover:text-white"
                                   }`}
                                 >
