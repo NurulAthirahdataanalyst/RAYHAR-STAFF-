@@ -167,6 +167,7 @@ export default function AttendanceDashboard() {
   const [loadingAbsent, setLoadingAbsent] = useState(false);
   const [outstationRecords, setOutstationRecords] = useState<any[]>([]);
   const [activeTempUsers, setActiveTempUsers] = useState<Record<string, string>>({});
+  const [activeAssignments, setActiveAssignments] = useState<any[]>([]);
   const [multiLocationUsers, setMultiLocationUsers] = useState<string[]>([]);
 
   const [attendanceStats, setAttendanceStats] = useState({
@@ -304,6 +305,7 @@ export default function AttendanceDashboard() {
       }
 
       const tempMap: Record<string, string> = {};
+      const activeAssigns: any[] = [];
       if (workAssignData.success && Array.isArray(workAssignData.assignments)) {
         const selDate = new Date(selectedDate).getTime();
         workAssignData.assignments.forEach((a: any) => {
@@ -315,12 +317,15 @@ export default function AttendanceDashboard() {
             ed.setHours(0,0,0,0);
             selDateObj.setHours(0,0,0,0);
             if (selDateObj >= sd && selDateObj <= ed) {
-              tempMap[a.user_id] = a.location;
+              const normLoc = a.location ? a.location.split('-')[0].trim() : a.location;
+              tempMap[a.user_id] = normLoc;
+              activeAssigns.push({ ...a, location: normLoc });
             }
           }
         });
       }
       setActiveTempUsers(tempMap);
+      setActiveAssignments(activeAssigns);
 
       if (data.success && Array.isArray(data.report)) {
         const enrichedReport = data.report.map((r: any) => ({
@@ -809,8 +814,17 @@ export default function AttendanceDashboard() {
     return listSource
       .map(b => {
         const permanentStaffCount = b.totalEmployees || 0;
-        const temporaryOut = allRecords.filter(emp => emp.branch === b.branch && emp.temp_branch && emp.temp_branch !== b.branch).length;
-        const temporaryIn = allRecords.filter(emp => emp.branch !== b.branch && emp.temp_branch === b.branch).length;
+        
+        // Use activeAssignments directly for 100% accurate movement tracking (regardless of if employee clocked in yet)
+        const temporaryOut = activeAssignments.filter((a: any) => {
+            const pb = a.primary_branch === 'HQ' ? 'HQ' : (a.primary_branch || '');
+            return pb === b.branch && a.location !== b.branch;
+        }).length;
+        
+        const temporaryIn = activeAssignments.filter((a: any) => {
+            const pb = a.primary_branch === 'HQ' ? 'HQ' : (a.primary_branch || '');
+            return pb !== b.branch && a.location === b.branch;
+        }).length;
         
         const expectedWorkforce = Math.max(0, permanentStaffCount - temporaryOut) + temporaryIn;
 
@@ -877,7 +891,7 @@ export default function AttendanceDashboard() {
         };
       })
       .filter(b => liveRegion === "all" || b.region.toLowerCase().includes(liveRegion.toLowerCase()))
-      .filter(b => b.permanentStaffCount > 0 || b.temporaryIn > 0)
+      .filter(b => b.permanentStaffCount > 0 || b.temporaryIn > 0 || b.temporaryOut > 0)
       .sort((a, b) => b.rate - a.rate)
       .map(d => ({
          ...d,
