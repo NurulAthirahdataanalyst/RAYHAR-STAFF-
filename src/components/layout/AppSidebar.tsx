@@ -34,6 +34,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import rayharLogo from "@/assets/rayhar-logo.png";
 
 interface AppSidebarProps {
@@ -414,130 +415,135 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
             const ItemIcon = item.icon;
 
             return (
-              <div key={menuKey} className="relative group/menu-item space-y-1">
-                <Link
-                  to={item.path || "#"}
-                  onClick={(e) => {
-                    if (isMobile && !hasChildren) {
-                      onMobileClose();
-                    }
-                    if (hasChildren && !effectiveCollapsed) {
-                      setExpandedMenus(prev => prev[menuKey] ? {} : { [menuKey]: true });
-                    }
-                  }}
-                  className={`group relative flex items-center gap-2.5 transition-all duration-300 touch-target ${
-                    effectiveCollapsed && !isMobile 
-                      ? "justify-center px-0 w-11 h-11 mx-auto rounded-xl" 
-                      : "px-3.5 py-2 rounded-r-2xl mr-4"
-                  } ${
-                    isActive
-                      ? effectiveCollapsed && !isMobile
-                        ? "bg-[#FDE047]/10 text-white font-semibold shadow-[inset_3px_0_0_0_#FDE047]"
-                        : "bg-[#FDE047]/10 text-white font-semibold border-l-[3px] border-[#FDE047]"
-                      : effectiveCollapsed && !isMobile
-                        ? "text-sidebar-foreground/70 hover:bg-white/[0.06] hover:text-white"
-                        : "text-sidebar-foreground/70 hover:bg-white/[0.02] hover:text-white border-l-[3px] border-transparent"
-                  }`}
-                >
-                  {ItemIcon && (
-                    <ItemIcon
-                      className={`h-4 w-4 shrink-0 transition-colors ${
-                        isActive 
-                          ? "text-[#FDE047]" 
-                          : "text-sidebar-foreground/60 group-hover:text-white"
-                      }`}
-                    />
-                  )}
-                  {(!effectiveCollapsed || isMobile) && (
-                    <span className={`text-[11px] tracking-wide whitespace-nowrap truncate animate-in fade-in slide-in-from-left-2 duration-300 ${
-                      isActive 
-                        ? "text-white font-semibold" 
-                        : "text-sidebar-foreground/80 group-hover:text-white font-semibold"
-                    }`}>
-                      {item.title}
-                    </span>
-                  )}
-
-                  {/* Collapse/Expand chevron indicator */}
-                  {hasChildren && (!effectiveCollapsed || isMobile) && (
-                    <button
-                      type="button"
+              <HoverCard key={menuKey} openDelay={0} closeDelay={100} open={effectiveCollapsed && !isMobile ? undefined : false}>
+                <div className="relative group/menu-item space-y-1">
+                  <HoverCardTrigger asChild>
+                    <Link
+                      to={item.path || "#"}
                       onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setExpandedMenus(prev => prev[menuKey] ? {} : { [menuKey]: true });
+                        if (isMobile && !hasChildren) {
+                          onMobileClose();
+                        }
+                        if (hasChildren && !effectiveCollapsed) {
+                          setExpandedMenus(prev => prev[menuKey] ? {} : { [menuKey]: true });
+                        }
                       }}
-                      className="ml-auto p-0.5 rounded-md text-slate-400 dark:text-slate-500 hover:text-[#7B0099] dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all"
-                      aria-label={isMenuExpanded ? "Collapse submenu" : "Expand submenu"}
+                      className={`group relative flex items-center gap-2.5 transition-all duration-300 touch-target ${
+                        effectiveCollapsed && !isMobile 
+                          ? "justify-center px-0 w-11 h-11 mx-auto rounded-xl" 
+                          : "px-3.5 py-2 rounded-r-2xl mr-4"
+                      } ${
+                        isActive
+                          ? effectiveCollapsed && !isMobile
+                            ? "bg-[#FDE047]/10 text-white font-semibold shadow-[inset_3px_0_0_0_#FDE047]"
+                            : "bg-[#FDE047]/10 text-white font-semibold border-l-[3px] border-[#FDE047]"
+                          : effectiveCollapsed && !isMobile
+                            ? "text-sidebar-foreground/70 hover:bg-white/[0.06] hover:text-white"
+                            : "text-sidebar-foreground/70 hover:bg-white/[0.02] hover:text-white border-l-[3px] border-transparent"
+                      }`}
                     >
-                      {isMenuExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </button>
-                  )}
-                </Link>
-
-                {/* Submenu for Expanded State (Desktop or Mobile) */}
-                {hasChildren && isMenuExpanded && (!effectiveCollapsed || isMobile) && (
-                  <div className="relative pl-[2.25rem] pr-6 py-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <div className="absolute left-[1.1rem] top-0 bottom-4 w-px bg-sidebar-border"></div>
-                    {visibleChildren.map((child) => {
-                      const isChildActive = child.path && (location.pathname === child.path || (child.path !== item.path && location.pathname.startsWith(`${child.path}/`)));
-                      return (
-                        <Link
-                          key={child.title}
-                          to={child.path}
-                          onClick={isMobile ? onMobileClose : undefined}
-                          className={`group relative flex items-center gap-3 rounded-[14px] px-4 py-2 text-[11px] transition-all duration-300 touch-target ${
-                            isChildActive
-                              ? "bg-[#FDE047]/10 font-semibold text-[#FDE047]"
-                              : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white"
+                      {ItemIcon && (
+                        <ItemIcon
+                          className={`h-4 w-4 shrink-0 transition-colors ${
+                            isActive 
+                              ? "text-[#FDE047]" 
+                              : "text-sidebar-foreground/60 group-hover:text-white"
                           }`}
-                        >
-                          <div className={`absolute -left-[1.1rem] top-1/2 w-[1.1rem] border-t transition-colors ${isChildActive ? 'border-[#FDE047]/50' : 'border-sidebar-border group-hover:border-white/10'}`}></div>
-                          <span className="whitespace-nowrap truncate">{child.title}</span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
+                        />
+                      )}
+                      {(!effectiveCollapsed || isMobile) && (
+                        <span className={`text-[11px] tracking-wide whitespace-nowrap truncate animate-in fade-in slide-in-from-left-2 duration-300 ${
+                          isActive 
+                            ? "text-white font-semibold" 
+                            : "text-sidebar-foreground/80 group-hover:text-white font-semibold"
+                        }`}>
+                          {item.title}
+                        </span>
+                      )}
 
-                {/* Submenu Popover Card for Collapsed State */}
-                {hasChildren && effectiveCollapsed && !isMobile && (
-                  <div className="absolute left-full top-0 ml-3 z-50 hidden group-hover/menu-item:block min-w-[200px] bg-sidebar border border-sidebar-border rounded-[18px] p-2 shadow-[0_8px_30px_rgba(123,0,153,0.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200">
-                    {/* Category Header */}
-                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/60 border-b border-white/5 mb-2">
-                      {item.title}
-                    </div>
-                    {/* Submenu Items */}
-                    <div className="space-y-1">
+                      {/* Collapse/Expand chevron indicator */}
+                      {hasChildren && (!effectiveCollapsed || isMobile) && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setExpandedMenus(prev => prev[menuKey] ? {} : { [menuKey]: true });
+                          }}
+                          className="ml-auto p-0.5 rounded-md text-slate-400 dark:text-slate-500 hover:text-[#7B0099] dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all"
+                          aria-label={isMenuExpanded ? "Collapse submenu" : "Expand submenu"}
+                        >
+                          {isMenuExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        </button>
+                      )}
+                    </Link>
+                  </HoverCardTrigger>
+
+                  {/* Submenu for Expanded State (Desktop or Mobile) */}
+                  {hasChildren && isMenuExpanded && (!effectiveCollapsed || isMobile) && (
+                    <div className="relative pl-[2.25rem] pr-6 py-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <div className="absolute left-[1.1rem] top-0 bottom-4 w-px bg-sidebar-border"></div>
                       {visibleChildren.map((child) => {
                         const isChildActive = child.path && (location.pathname === child.path || (child.path !== item.path && location.pathname.startsWith(`${child.path}/`)));
                         return (
                           <Link
                             key={child.title}
                             to={child.path}
-                            className={`flex items-center gap-3 rounded-[14px] px-3 py-2 text-[11px] transition-all duration-200 ${
+                            onClick={isMobile ? onMobileClose : undefined}
+                            className={`group relative flex items-center gap-3 rounded-[14px] px-4 py-2 text-[11px] transition-all duration-300 touch-target ${
                               isChildActive
                                 ? "bg-[#FDE047]/10 font-semibold text-[#FDE047]"
-                                : "text-white/70 hover:bg-white/5 hover:text-white"
+                                : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-white"
                             }`}
                           >
+                            <div className={`absolute -left-[1.1rem] top-1/2 w-[1.1rem] border-t transition-colors ${isChildActive ? 'border-[#FDE047]/50' : 'border-sidebar-border group-hover:border-white/10'}`}></div>
                             <span className="whitespace-nowrap truncate">{child.title}</span>
                           </Link>
                         );
                       })}
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Tooltip Popover Card for Collapsed State (No Children) */}
-                {!hasChildren && effectiveCollapsed && !isMobile && (
-                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 hidden group-hover/menu-item:block bg-sidebar border border-sidebar-border rounded-[12px] px-3.5 py-2 shadow-[0_8px_25px_rgba(123,0,153,0.08)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200">
-                    <span className="text-[11px] font-bold text-white whitespace-nowrap">
-                      {item.title}
-                    </span>
-                  </div>
-                )}
-              </div>
+                  {/* HoverCardContent for Collapsed State */}
+                  {effectiveCollapsed && !isMobile && (
+                    <HoverCardContent side="right" align="start" sideOffset={12} className="w-auto p-0 border-none bg-transparent shadow-none !z-[100] animate-in fade-in zoom-in-95 duration-200">
+                      {hasChildren ? (
+                        <div className="min-w-[200px] bg-sidebar border border-sidebar-border rounded-[18px] p-2 shadow-[0_8px_30px_rgba(123,0,153,0.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                          {/* Category Header */}
+                          <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/60 border-b border-white/5 mb-2">
+                            {item.title}
+                          </div>
+                          {/* Submenu Items */}
+                          <div className="space-y-1">
+                            {visibleChildren.map((child) => {
+                              const isChildActive = child.path && (location.pathname === child.path || (child.path !== item.path && location.pathname.startsWith(`${child.path}/`)));
+                              return (
+                                <Link
+                                  key={child.title}
+                                  to={child.path}
+                                  className={`flex items-center gap-3 rounded-[14px] px-3 py-2 text-[11px] transition-all duration-200 ${
+                                    isChildActive
+                                      ? "bg-[#FDE047]/10 font-semibold text-[#FDE047]"
+                                      : "text-white/70 hover:bg-white/5 hover:text-white"
+                                  }`}
+                                >
+                                  <span className="whitespace-nowrap truncate">{child.title}</span>
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-sidebar border border-sidebar-border rounded-[12px] px-3.5 py-2 shadow-[0_8px_25px_rgba(123,0,153,0.08)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.5)]">
+                          <span className="text-[11px] font-bold text-white whitespace-nowrap">
+                            {item.title}
+                          </span>
+                        </div>
+                      )}
+                    </HoverCardContent>
+                  )}
+                </div>
+              </HoverCard>
             );
           })}
         </nav>
