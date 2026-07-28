@@ -282,7 +282,7 @@ export default function AttendanceDashboard() {
     setLoadingDaily(true);
     setLoadingAbsent(true);
     try {
-      const [resDaily, resStats, resAbsent, resOutstation, resLeave, resWorkAssign] = await Promise.all([
+      const [resDaily, resStats, resAbsent, resOutstation, resLeave, resWorkAssign, resMultiLoc] = await Promise.all([
         fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
         fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "All")}&department=${encodeURIComponent(userDepartment || "All")}&date=${encodeURIComponent(selectedDate)}`),
         fetch(`${API_BASE_URL}/api/reports/absent-employees?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}`),
@@ -1203,7 +1203,7 @@ export default function AttendanceDashboard() {
               <span title="Absent employees are shown in the 'Employee Absenteeism' table to avoid duplication" className="text-xs text-gray-400">(Absentees listed separately)</span>
             </div>
             
-            <div className="flex items-center gap-3 mt-1">
+            <div className="flex flex-wrap items-center gap-3 mt-1">
               <div className="bg-pink-50/80 border border-pink-100 px-3 py-1.5 rounded-md flex items-center gap-2">
                 <span className="text-[10px] font-bold text-pink-500 uppercase tracking-wider">Total Outstation</span>
                 <span className="text-[13px] font-black text-pink-700">{liveStats.outstation || 0}</span>
@@ -1215,6 +1215,14 @@ export default function AttendanceDashboard() {
               <div className="bg-blue-50/80 border border-blue-100 px-3 py-1.5 rounded-md flex items-center gap-2">
                 <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">Total On Leave</span>
                 <span className="text-[13px] font-black text-blue-700">{liveStats.onLeave || 0}</span>
+              </div>
+              <div className="bg-purple-50/80 border border-purple-100 px-3 py-1.5 rounded-md flex items-center gap-2">
+                <span className="text-[10px] font-bold text-purple-500 uppercase tracking-wider">Total Temporary</span>
+                <span className="text-[13px] font-black text-purple-700">{Object.keys(activeTempUsers).length}</span>
+              </div>
+              <div className="bg-slate-50/80 border border-slate-200 px-3 py-1.5 rounded-md flex items-center gap-2">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Multi Location</span>
+                <span className="text-[13px] font-black text-slate-700">{multiLocationUsers.length}</span>
               </div>
             </div>
           </div>

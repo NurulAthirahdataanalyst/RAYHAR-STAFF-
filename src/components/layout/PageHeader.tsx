@@ -21,7 +21,7 @@ export default function PageHeader({ title, description, icon }: PageHeaderProps
 
   return (
     <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500 pb-2">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col gap-4">
         <div className="flex items-center gap-3">
           {DisplayIcon && (
             <div className="w-10 h-10 rounded-xl bg-[#7B0099] text-white flex items-center justify-center shadow-xs shrink-0">
@@ -37,7 +37,7 @@ export default function PageHeader({ title, description, icon }: PageHeaderProps
             )}
           </div>
         </div>
-        <div id="page-header-actions" className="flex flex-wrap items-center gap-3 w-full sm:w-auto"></div>
+        <div id="page-header-actions" className="flex flex-wrap items-center justify-end gap-3 w-full"></div>
       </div>
     </div>
   );

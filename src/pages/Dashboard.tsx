@@ -913,20 +913,6 @@ export default function Dashboard() {
                         variant="success"
                       />
                     </div>
-                    <StatCard
-                      icon={Building2}
-                      title="Total Temporary"
-                      value={String(stats.totalTemporary ?? 0)}
-                      subtitle="Active Temp Branches"
-                      variant="purple"
-                    />
-                    <StatCard
-                      icon={MapPin}
-                      title="Multi Location"
-                      value={String(stats.totalMultiLocation ?? 0)}
-                      subtitle="Staff with Multi Access"
-                      variant="default"
-                    />
                   </>
                 )}
               </>
