@@ -804,67 +804,86 @@ export default function AttendanceDashboard() {
       ? branchComparison
       : branches.map(b => ({ branch: b.name, totalEmployees: 0 }));
 
+    const allRecords = [...dailyAttendance, ...absentEmployees];
+
     return listSource
       .map(b => {
-        const branchEmployees = dailyAttendance.filter(emp => emp.branch === b.branch);
+        const permanentStaffCount = b.totalEmployees || 0;
+        const temporaryOut = allRecords.filter(emp => emp.branch === b.branch && emp.temp_branch && emp.temp_branch !== b.branch).length;
+        const temporaryIn = allRecords.filter(emp => emp.branch !== b.branch && emp.temp_branch === b.branch).length;
         
-        const outstation = branchEmployees.filter(emp => emp.status === 'Outstation').length;
-        const presentOnTime = branchEmployees.filter(emp => emp.status === 'Present (On Time)' || emp.status === 'Present').length;
-        const presentLate = branchEmployees.filter(emp => emp.status === 'Present (Late)').length;
-        const onLeave = branchEmployees.filter(emp => emp.status === 'On Leave' || emp.status === 'Approved Leave').length;
-        const companyLeave = branchEmployees.filter(emp => emp.status === 'Company Leave').length;
-        
-        const totalEmployees = b.totalEmployees || branchEmployees.length || 0;
-        const recordedCount = presentOnTime + presentLate + outstation + onLeave + companyLeave;
+        const expectedWorkforce = Math.max(0, permanentStaffCount - temporaryOut) + temporaryIn;
 
-        // Check if branch is actually on Rest Day/Weekend today according to Zone logic or Daily Attendance status
-        const isWeekend = branchEmployees.length > 0
-          ? branchEmployees.every(r => r.status === "Weekend")
+        const activePermanent = dailyAttendance.filter(emp => emp.branch === b.branch && (!emp.temp_branch || emp.temp_branch === b.branch));
+        const activeTemporary = dailyAttendance.filter(emp => emp.branch !== b.branch && emp.temp_branch === b.branch);
+        
+        const presentOnTime = activePermanent.filter(emp => emp.status === 'Present (On Time)' || emp.status === 'Present').length;
+        const presentLate = activePermanent.filter(emp => emp.status === 'Present (Late)').length;
+        const onLeave = activePermanent.filter(emp => emp.status === 'On Leave' || emp.status === 'Approved Leave').length;
+        const companyLeave = activePermanent.filter(emp => emp.status === 'Company Leave').length;
+        const outstation = activePermanent.filter(emp => emp.status === 'Outstation').length;
+        
+        const tempPresent = activeTemporary.filter(emp => emp.status === 'Present (On Time)' || emp.status === 'Present').length;
+        const tempLate = activeTemporary.filter(emp => emp.status === 'Present (Late)').length;
+        const tempOnLeave = activeTemporary.filter(emp => emp.status === 'On Leave' || emp.status === 'Approved Leave').length;
+        const tempCompanyLeave = activeTemporary.filter(emp => emp.status === 'Company Leave').length;
+        const tempOutstation = activeTemporary.filter(emp => emp.status === 'Outstation').length;
+
+        const isWeekend = activePermanent.length > 0
+          ? activePermanent.every(r => r.status === "Weekend")
           : (function() {
               const parts = (selectedDate || '').split('-').map(Number);
               if (parts.length < 3) return false;
               const [y, m, d] = parts;
               const dateObj = new Date(y, m - 1, d);
-              const dayOfWeek = dateObj.getDay(); // 0=Sun, 1=Mon, 2=Tue, 5=Fri, 6=Sat
+              const dayOfWeek = dateObj.getDay();
               const isFirstWeek = d <= 7;
               const zone = (b as any).zone || (['AOR', 'KBR', 'TGG', 'DGN', 'KMM', 'CNH', 'KBG', 'JTH', 'RMP', 'MZM', 'TWU', 'BTM', 'KKS', 'MLK', 'SNS', 'JB', 'BTP'].includes(b.branch) ? 'ZONE_A' : 'ZONE_B');
               if (zone === "ZONE_A") {
-                return dayOfWeek === 5 || (dayOfWeek === 6 && isFirstWeek); // Friday & 1st Saturday
+                return dayOfWeek === 5 || (dayOfWeek === 6 && isFirstWeek);
               } else {
-                return dayOfWeek === 0 || (dayOfWeek === 6 && isFirstWeek); // Sunday & 1st Saturday
+                return dayOfWeek === 0 || (dayOfWeek === 6 && isFirstWeek);
               }
             })();
 
-        const absent = isWeekend ? 0 : Math.max(0, totalEmployees - recordedCount);
-        const expectedWorkingDays = isWeekend ? 0 : (totalEmployees - onLeave - companyLeave);
+        const totalRecorded = presentOnTime + presentLate + onLeave + companyLeave + outstation + tempPresent + tempLate + tempOnLeave + tempCompanyLeave + tempOutstation;
+        const absent = isWeekend ? 0 : Math.max(0, expectedWorkforce - totalRecorded);
+        
         let rate = 0;
+        const expectedExcludingLeave = isWeekend ? 0 : (expectedWorkforce - onLeave - companyLeave - tempOnLeave - tempCompanyLeave);
         if (isWeekend) {
           rate = 100;
-        } else if (expectedWorkingDays > 0) {
-          rate = Math.round(((presentOnTime + presentLate + outstation) / expectedWorkingDays) * 100);
+        } else if (expectedExcludingLeave > 0) {
+          rate = Math.round(((presentOnTime + presentLate + outstation + tempPresent + tempLate + tempOutstation) / expectedExcludingLeave) * 100);
         }
 
         return {
           branch: b.branch,
           rate,
           region: branchRegions[b.branch] || "Unknown",
-          totalEmployees,
+          totalEmployees: expectedWorkforce,
+          permanentStaffCount,
+          temporaryOut,
+          temporaryIn,
           presentOnTime,
           presentLate,
-          outstation,
-          onLeave,
-          companyLeave,
+          tempPresent,
+          tempLate,
+          outstation: outstation + tempOutstation,
+          onLeave: onLeave + tempOnLeave,
+          companyLeave: companyLeave + tempCompanyLeave,
           absent,
           isWeekend
         };
       })
       .filter(b => liveRegion === "all" || b.region.toLowerCase().includes(liveRegion.toLowerCase()))
+      .filter(b => b.permanentStaffCount > 0 || b.temporaryIn > 0)
       .sort((a, b) => b.rate - a.rate)
       .map(d => ({
          ...d,
          fill: d.isWeekend ? '#94A3B8' : d.rate >= 90 ? '#16A34A' : d.rate >= 75 ? '#EAB308' : '#DC2626'
       }));
-  }, [branchComparison, branches, dailyAttendance, selectedDate, liveRegion]);
+  }, [branchComparison, branches, dailyAttendance, absentEmployees, selectedDate, liveRegion]);
 
   // Calculate live values
   const activeRateAvg = branchComparison.length > 0
@@ -1685,7 +1704,16 @@ export default function AttendanceDashboard() {
                       <div className="flex justify-between items-end">
                         <div className="flex flex-col">
                           <span className="text-[11px] font-bold text-[#1A1F36]">{branch.branch}</span>
-                          <span className="text-[9px] text-slate-400">{branch.totalEmployees} Employees</span>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[9px] font-semibold text-slate-500 flex items-center gap-1">
+                              👥 {branch.permanentStaffCount} Staff
+                            </span>
+                            {branch.temporaryIn > 0 && (
+                              <span className="text-[9px] font-bold text-[#8b4513] bg-orange-100/70 px-1 rounded flex items-center gap-1">
+                                🟤 {branch.temporaryIn} Temporary Staff
+                              </span>
+                            )}
+                          </div>
                         </div>
                         {branch.isWeekend ? (
                           <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">Weekend</span>
@@ -1700,20 +1728,27 @@ export default function AttendanceDashboard() {
                               <div className="h-full w-full bg-slate-300 rounded-full"></div>
                             ) : branch.totalEmployees > 0 ? (
                               <>
-                                <div className="h-full bg-[#10b981]" style={{ width: `${(branch.presentOnTime / branch.totalEmployees) * 100}%` }}></div>
-                                <div className="h-full bg-[#f59e0b]" style={{ width: `${(branch.presentLate / branch.totalEmployees) * 100}%` }}></div>
-                                <div className="h-full bg-pink-500" style={{ width: `${(branch.outstation / branch.totalEmployees) * 100}%` }}></div>
-                                <div className="h-full bg-blue-500" style={{ width: `${(branch.onLeave / branch.totalEmployees) * 100}%` }}></div>
-                                <div className="h-full bg-purple-500" style={{ width: `${(branch.companyLeave / branch.totalEmployees) * 100}%` }}></div>
-                                <div className="h-full bg-red-500" style={{ width: `${(branch.absent / branch.totalEmployees) * 100}%` }}></div>
+                                {branch.presentOnTime > 0 && <div className="h-full bg-[#10b981]" style={{ width: `${(branch.presentOnTime / branch.totalEmployees) * 100}%` }}></div>}
+                                {branch.tempPresent > 0 && <div className="h-full bg-[#8b4513]" style={{ width: `${(branch.tempPresent / branch.totalEmployees) * 100}%` }}></div>}
+                                {(branch.presentLate + branch.tempLate) > 0 && <div className="h-full bg-[#f59e0b]" style={{ width: `${((branch.presentLate + branch.tempLate) / branch.totalEmployees) * 100}%` }}></div>}
+                                {branch.outstation > 0 && <div className="h-full bg-pink-500" style={{ width: `${(branch.outstation / branch.totalEmployees) * 100}%` }}></div>}
+                                {branch.onLeave > 0 && <div className="h-full bg-blue-500" style={{ width: `${(branch.onLeave / branch.totalEmployees) * 100}%` }}></div>}
+                                {branch.companyLeave > 0 && <div className="h-full bg-purple-500" style={{ width: `${(branch.companyLeave / branch.totalEmployees) * 100}%` }}></div>}
+                                {branch.absent > 0 && <div className="h-full bg-red-500" style={{ width: `${(branch.absent / branch.totalEmployees) * 100}%` }}></div>}
                               </>
                             ) : (
                               <div className="h-full w-full bg-slate-200"></div>
                             )}
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent side="top" align="center" className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[150px]">
+                        <TooltipContent side="top" align="center" className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 shadow-xl rounded p-3 z-50 w-max whitespace-nowrap text-left min-w-[200px]">
                           <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">{branch.branch}</p>
+                          <div className="flex flex-col gap-1 text-[9px] text-slate-600 mb-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                            <p className="flex justify-between items-center gap-4"><span>Permanent Staff:</span> <span className="font-bold text-slate-700 dark:text-slate-300">{branch.permanentStaffCount}</span></p>
+                            <p className="flex justify-between items-center gap-4"><span>Temporary In:</span> <span className="font-bold text-slate-700 dark:text-slate-300">{branch.temporaryIn}</span></p>
+                            <p className="flex justify-between items-center gap-4"><span>Temporary Out:</span> <span className="font-bold text-slate-700 dark:text-slate-300">{branch.temporaryOut}</span></p>
+                            <p className="flex justify-between items-center gap-4 font-black mt-1"><span>Expected Workforce:</span> <span className="font-bold text-slate-800 dark:text-slate-100">{branch.totalEmployees}</span></p>
+                          </div>
                           <div className="flex flex-col gap-1 text-[9px] text-slate-600">
                             {branch.isWeekend ? (
                               <>
@@ -1723,7 +1758,8 @@ export default function AttendanceDashboard() {
                             ) : (
                               <>
                                 <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
-                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Present (Late):</span> <span className="font-bold text-amber-500">{branch.presentLate}</span></p>
+                                {branch.tempPresent > 0 && <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#8b4513]"></div>Temporary Present:</span> <span className="font-bold text-[#8b4513]">{branch.tempPresent}</span></p>}
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Late {branch.tempLate > 0 && <span className="text-[8px] font-medium opacity-60">({branch.tempLate} Temp)</span>}:</span> <span className="font-bold text-amber-500">{branch.presentLate + branch.tempLate}</span></p>
                                 <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Outstation:</span> <span className="font-bold text-pink-500">{branch.outstation}</span></p>
                                 <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>On Leave:</span> <span className="font-bold text-blue-500">{branch.onLeave}</span></p>
                                 <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>Company Leave:</span> <span className="font-bold text-purple-500">{branch.companyLeave}</span></p>

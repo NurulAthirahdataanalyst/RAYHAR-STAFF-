@@ -1172,8 +1172,9 @@ export default function Attendance() {
                   today.setHours(23, 59, 59, 999);
                   const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
                   
-                  const timelineBlocks = [];
-                  let totalWorkingDays = 0;
+                  const groupedBlocks: { status: string; count: number }[] = [];
+                  let currentStatus: string | null = null;
+                  let currentCount = 0;
                   
                   for (let d = 1; d <= lastDay; d++) {
                     const dt = new Date(selectedYear, selectedMonth - 1, d);
@@ -1189,32 +1190,48 @@ export default function Attendance() {
                     if (dt <= today) {
                       if (log) {
                         status = log.status;
-                        if (status === "Present" && log.late && log.late !== "00:00" && log.late !== "--") {
+                        if ((status === "Present" || status === "Present (On Time)") && log.late && log.late !== "00:00" && log.late !== "--") {
                           status = "Present (Late)";
+                        } else if (status === "Present") {
+                          status = "Present (On Time)";
+                        } else if (status === "Approved Leave" || status === "On Leave") {
+                          status = "Leave";
                         }
                       } else {
                         status = "Absent";
                       }
                     }
                     
-                    timelineBlocks.push(status);
+                    if (status === currentStatus) {
+                      currentCount++;
+                    } else {
+                      if (currentStatus) {
+                        groupedBlocks.push({ status: currentStatus, count: currentCount });
+                      }
+                      currentStatus = status;
+                      currentCount = 1;
+                    }
                   }
                   
-                  return timelineBlocks.map((status, idx) => {
+                  if (currentStatus) {
+                    groupedBlocks.push({ status: currentStatus, count: currentCount });
+                  }
+                  
+                  return groupedBlocks.map((block, idx) => {
                     let bgColor = "bg-muted dark:bg-slate-700/50";
-                    if (status === "Present") bgColor = "bg-emerald-500";
-                    else if (status === "Present (Late)") bgColor = "bg-yellow-500";
-                    else if (status === "Company Leave") bgColor = "bg-purple-500";
-                    else if (status === "Outstation") bgColor = "bg-pink-500";
-                    else if (status === "Leave") bgColor = "bg-amber-500";
-                    else if (status === "Absent") bgColor = "bg-red-500";
+                    if (block.status === "Present (On Time)") bgColor = "bg-[#10b981]";
+                    else if (block.status === "Present (Late)") bgColor = "bg-[#f59e0b]";
+                    else if (block.status === "Company Leave") bgColor = "bg-purple-500";
+                    else if (block.status === "Outstation") bgColor = "bg-pink-500";
+                    else if (block.status === "Leave") bgColor = "bg-blue-500";
+                    else if (block.status === "Absent") bgColor = "bg-red-500";
                     
                     return (
                       <div 
                         key={idx} 
                         className={`${bgColor} h-full transition-all duration-1000`} 
-                        style={{ width: `${(1 / totalWorkingDays) * 100}%` }}
-                        title={status}
+                        style={{ width: `${(block.count / totalWorkingDays) * 100}%` }}
+                        title={`${block.status} (${block.count} days)`}
                       ></div>
                     );
                   });
