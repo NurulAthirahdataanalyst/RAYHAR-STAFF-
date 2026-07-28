@@ -1191,7 +1191,7 @@ export default function Attendance() {
                     if (dt <= today) {
                       if (log) {
                         status = log.status;
-                        if ((status === "Present" || status === "Present (On Time)") && log.late && log.late !== "00:00" && log.late !== "--") {
+                        if (status.toUpperCase() === "LATE" || String(status).toUpperCase().includes("LATE") || ((status === "Present" || status === "Present (On Time)") && ((log.late && log.late !== "00:00" && log.late !== "--") || log.is_late === 1 || log.is_late === true))) {
                           status = "Present (Late)";
                         } else if (status === "Present") {
                           status = "Present (On Time)";
@@ -1220,9 +1220,10 @@ export default function Attendance() {
                   
                   return groupedBlocks.map((block, idx) => {
                     let bgColor = "bg-muted dark:bg-slate-700/50";
-                    if (block.status === "Present (On Time)" || block.status === "Present") bgColor = "bg-emerald-500";
-                    else if (block.status === "Present (Late)" || block.status === "Late") bgColor = "bg-amber-400";
-                    else if (block.status === "Company Leave") bgColor = "bg-purple-500";
+                    const s = block.status.toLowerCase();
+                    if (s === "present (on time)" || s === "present") bgColor = "bg-emerald-500";
+                    else if (s === "present (late)" || s === "late" || s.includes("late")) bgColor = "bg-yellow-500";
+                    else if (s === "company leave") bgColor = "bg-purple-500";
                     else if (block.status === "Outstation") bgColor = "bg-pink-500";
                     else if (block.status === "Leave" || block.status === "On Leave" || block.status === "Approved Leave") bgColor = "bg-blue-500";
                     else if (block.status === "Absent") bgColor = "bg-red-500";
