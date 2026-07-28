@@ -2038,6 +2038,12 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
   const liveBranchRanking = useMemo(() => {
     const listSource = rawBranchMetrics.map((b:any) => ({ branch: b.name, totalEmployees: b.count || 0 }));
     
+    (tempAssignments || []).forEach((a: any) => {
+       if (a.location && !listSource.find((b:any) => b.branch === a.location)) {
+           listSource.push({ branch: a.location, totalEmployees: 0 });
+       }
+    });
+
     return listSource
       .map((b:any) => {
         const permanentStaffCount = b.totalEmployees || 0;

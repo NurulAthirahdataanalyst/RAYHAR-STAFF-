@@ -817,8 +817,14 @@ export default function AttendanceDashboard() {
 
   const liveBranchRanking = useMemo(() => {
     const listSource = (branchComparison && branchComparison.length > 0)
-      ? branchComparison
+      ? [...branchComparison]
       : branches.map(b => ({ branch: b.name, totalEmployees: 0 }));
+
+    activeAssignments.forEach((a: any) => {
+       if (a.location && !listSource.find((b:any) => b.branch === a.location)) {
+           listSource.push({ branch: a.location, totalEmployees: 0 });
+       }
+    });
 
     const allRecords = [...dailyAttendance, ...absentEmployees];
 
