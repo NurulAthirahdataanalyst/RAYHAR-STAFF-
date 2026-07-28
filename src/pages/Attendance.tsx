@@ -831,12 +831,7 @@ export default function Attendance() {
   };
 
   const totalWorkdays = calculateTotalWorkdaysUpTo(selectedYear, selectedMonth);
-  const presentDays = historyLogs.filter(l => l.clock_in).length;
-  const lateArrivals = historyLogs.filter(l => l.status === "Late").length;
-  const outstationDaysCount = historyLogs.filter(l => l.status === "Outstation").length;
-  const absentDays = historyLogs.filter(l => l.status === "Absent").length;
-  const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
-  const monthNameFull = new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' }).toUpperCase();
+
   if (initialFetch) {
     return (
       <div className="flex h-[60vh] sm:h-[80vh] items-center justify-center">
@@ -1136,57 +1131,60 @@ export default function Attendance() {
 
           </div>
 
-          {/* Attendance Summary Card */}
-          <div className="bg-card dark:bg-card border border-border shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl p-5 sm:p-6 flex flex-col relative min-h-[220px]">
-            <h3 className="text-xs font-black text-muted-foreground/60 uppercase tracking-widest mb-4">
-              ATTENDANCE SUMMARY ({monthNameFull})
+          {/* Timeline Bar Card */}
+          <div className="bg-card dark:bg-card border border-border shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl p-5 sm:p-6 flex flex-col relative overflow-hidden min-h-[220px]">
+            <h3 className="text-xs font-black text-muted-foreground/60 uppercase tracking-widest mb-6">
+              Monthly Attendance Breakdown
             </h3>
+
+            {/* Stats Overview */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-purple-200"></span> Total Working
+                </span>
+                <span className="text-sm font-black font-mono">{stats.totalHoursMonth} hrs</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] uppercase font-bold text-emerald-600 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Productive
+                </span>
+                <span className="text-sm font-black font-mono">{stats.productiveHours} hrs</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] uppercase font-bold text-yellow-600 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-yellow-500"></span> Break Hours
+                </span>
+                <span className="text-sm font-black font-mono">{stats.breakHours} hrs</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] uppercase font-bold text-blue-600 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-blue-500"></span> Overtime
+                </span>
+                <span className="text-sm font-black font-mono">{stats.overtimeMonth} hrs</span>
+              </div>
+            </div>
+
+            {/* Visual Timeline Bar */}
+            <div className="w-full h-4 sm:h-5 bg-muted rounded-full flex overflow-hidden shadow-inner mt-auto mb-2">
+               {/* Note: Mock widths for visualization if there is no data */}
+               {parseHoursStrToNum(stats.totalHoursMonth) > 0 ? (
+                  <>
+                    <div className="bg-emerald-500 h-full" style={{ width: `${(parseHoursStrToNum(stats.productiveHours) / parseHoursStrToNum(stats.totalHoursMonth)) * 100}%` }}></div>
+                    <div className="bg-yellow-500 h-full" style={{ width: `${(parseHoursStrToNum(stats.breakHours) / parseHoursStrToNum(stats.totalHoursMonth)) * 100}%` }}></div>
+                    <div className="bg-blue-500 h-full" style={{ width: `${(parseHoursStrToNum(stats.overtimeMonth) / parseHoursStrToNum(stats.totalHoursMonth)) * 100}%` }}></div>
+                  </>
+               ) : (
+                  <div className="w-full h-full bg-muted"></div>
+               )}
+            </div>
             
-            <div className="flex-1 flex flex-col justify-start">
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">WORKING DAYS</span>
-                  <span className="text-base font-black text-foreground mt-0.5">{totalWorkdays} Days</span>
-                </div>
-                <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">PUNCTUALITY</span>
-                  <span className="text-base font-black text-foreground mt-0.5">
-                    {presentDays > 0 ? Math.round(((presentDays - lateArrivals) / presentDays) * 100) : 100}%
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-2.5">
-                {[
-                  { label: "Present (On Time)", value: presentDays - lateArrivals, color: "bg-emerald-500" },
-                  { label: "Present (Late)", value: lateArrivals, color: "bg-amber-400" },
-                  { label: "Outstation", value: outstationDaysCount, color: "bg-pink-500" },
-                  { label: "On Leave", value: approvedLeaveCount, color: "bg-blue-500" },
-                  { label: "Company Leave", value: companyLeaveCount, color: "bg-purple-500" },
-                  { label: "Absent", value: absentDays, color: "bg-rose-500" }
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-muted-foreground w-[110px] shrink-0">{item.label}</span>
-                    <div className="flex-1 h-2 bg-muted/40 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full ${item.color} transition-all duration-1000`} 
-                        style={{ width: `${daysInMonth > 0 ? (item.value / daysInMonth) * 100 : 0}%` }} 
-                      />
-                    </div>
-                    <div className="w-16 text-right shrink-0">
-                      <span className="text-xs font-black">{item.value}</span>
-                      <span className="text-[10px] text-muted-foreground ml-1">({daysInMonth > 0 ? Math.round((item.value / daysInMonth) * 100) : 0}%)</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-4 flex justify-between pl-[122px] pr-[76px] text-[10px] font-bold text-muted-foreground/50">
-                <span>0</span>
-                <span>10</span>
-                <span>20</span>
-                <span>30</span>
-              </div>
+            {/* Timeline Axis Markers */}
+            <div className="flex justify-between items-center text-[9px] font-bold text-muted-foreground mt-2 px-1">
+               <span>Week 1</span>
+               <span>Week 2</span>
+               <span>Week 3</span>
+               <span>Week 4</span>
             </div>
           </div>
         </div>
