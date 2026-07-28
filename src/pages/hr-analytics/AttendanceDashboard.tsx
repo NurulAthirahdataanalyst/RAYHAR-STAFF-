@@ -914,7 +914,7 @@ export default function AttendanceDashboard() {
          ...d,
          fill: d.isWeekend ? '#94A3B8' : d.rate >= 90 ? '#16A34A' : d.rate >= 75 ? '#EAB308' : '#DC2626'
       }));
-  }, [branchComparison, branches, dailyAttendance, absentEmployees, selectedDate, liveRegion]);
+  }, [branchComparison, branches, dailyAttendance, absentEmployees, selectedDate, liveRegion, activeAssignments]);
 
   // Calculate live values
   const activeRateAvg = branchComparison.length > 0

@@ -2038,7 +2038,21 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
   const liveBranchRanking = useMemo(() => {
     const listSource = rawBranchMetrics.map((b:any) => ({ branch: b.name, totalEmployees: b.count || 0 }));
     
-    (tempAssignments || []).forEach((a: any) => {
+    const activeTempOnDate = (tempAssignments || []).filter((a: any) => {
+      if (a.status !== 'Active') return false;
+      const sd = new Date(a.start_date);
+      const ed = new Date(a.end_date);
+      const selDateObj = new Date(year, month - 1, day);
+      sd.setHours(0,0,0,0);
+      ed.setHours(0,0,0,0);
+      selDateObj.setHours(0,0,0,0);
+      return selDateObj >= sd && selDateObj <= ed;
+    }).map((a: any) => ({
+      ...a,
+      location: a.location ? a.location.split('-')[0].trim() : a.location
+    }));
+
+    activeTempOnDate.forEach((a: any) => {
        if (a.location && !listSource.find((b:any) => b.branch === a.location)) {
            listSource.push({ branch: a.location, totalEmployees: 0 });
        }
@@ -2048,12 +2062,12 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
       .map((b:any) => {
         const permanentStaffCount = b.totalEmployees || 0;
         
-        const temporaryOut = (tempAssignments || []).filter((a: any) => {
+        const temporaryOut = activeTempOnDate.filter((a: any) => {
             const pb = a.primary_branch === 'HQ' ? 'HQ' : (a.primary_branch || '');
             return pb === b.branch && a.location !== b.branch;
         }).length;
         
-        const temporaryIn = (tempAssignments || []).filter((a: any) => {
+        const temporaryIn = activeTempOnDate.filter((a: any) => {
             const pb = a.primary_branch === 'HQ' ? 'HQ' : (a.primary_branch || '');
             return pb !== b.branch && a.location === b.branch;
         }).length;
