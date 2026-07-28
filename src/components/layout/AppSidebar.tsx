@@ -384,7 +384,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       </div>
 
       {/* MENU */}
-      <div className={`flex-1 scrollbar-none pt-6 pb-4 border-r border-sidebar-border ${effectiveCollapsed && !isMobile ? "overflow-visible" : "overflow-y-auto"}`}>
+      <div className={`flex-1 overflow-y-auto scrollbar-none pt-6 pb-4 border-r border-sidebar-border`}>
         <nav className={`space-y-1 mt-2 ${effectiveCollapsed && !isMobile ? "px-2" : "px-0 sm:px-0"}`}>
           {filteredItems.map((item, index) => {
             if (item.isSection) {
@@ -431,8 +431,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
                       : "px-3.5 py-2 rounded-r-2xl mr-4"
                   } ${
                     isActive
-                      ? "bg-[#7B0099]/10 text-white font-semibold border-l-[3px] border-[#7B0099]"
-                      : "text-sidebar-foreground/70 hover:bg-white/[0.02] hover:text-white border-l-[3px] border-transparent"
+                      ? effectiveCollapsed && !isMobile
+                        ? "bg-[#7B0099]/20 text-white font-semibold"
+                        : "bg-[#7B0099]/10 text-white font-semibold border-l-[3px] border-[#7B0099]"
+                      : effectiveCollapsed && !isMobile
+                        ? "text-sidebar-foreground/70 hover:bg-white/[0.06] hover:text-white"
+                        : "text-sidebar-foreground/70 hover:bg-white/[0.02] hover:text-white border-l-[3px] border-transparent"
                   }`}
                 >
                   {ItemIcon && (
