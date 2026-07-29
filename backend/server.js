@@ -4227,6 +4227,8 @@ app.get("/api/attendance/history", async (req, res) => {
         attendance_id,
         clock_in,
         clock_out,
+        location,
+        attendance_type,
         TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
         TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
         DATE(clock_in) AS date
@@ -4542,7 +4544,9 @@ app.get("/api/attendance/history", async (req, res) => {
         late: late,
         duration: duration,
         location_type: location_type,
-        location_name: location_name
+        location_name: location_name,
+        clock_in_location: clockRow ? (clockRow.location || null) : null,
+        attendance_type: clockRow ? (clockRow.attendance_type || null) : null
       };
       };
 
@@ -5922,6 +5926,8 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         branch: tempBranch || p.branch,
         permanent_branch: p.branch,
         temp_branch: tempBranch || null,
+        clock_in_location: clockRow ? (clockRow.location || null) : null,
+        attendance_type: clockRow ? (clockRow.attendance_type || null) : null,
         department: p.department,
         role: p.role,
         clock_in,

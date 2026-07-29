@@ -1348,19 +1348,22 @@ export default function Attendance() {
                     <TableHead className="font-medium">Status</TableHead>
                     <TableHead className="font-medium">Late</TableHead>
                     <TableHead className="text-right pr-6 font-medium">Working Hours</TableHead>
+                    {attendanceMode === 'multi' && (
+                      <TableHead className="font-medium">Branch</TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                 {fetchingHistory && historyLogs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="py-12 text-center">
+                    <TableCell colSpan={attendanceMode === 'multi' ? 7 : 6} className="py-12 text-center">
                       <Loader2 className="w-6 h-6 animate-spin text-[#7B0099] mx-auto mb-2" />
                       <p className="text-sm font-medium text-muted-foreground">Loading Data...</p>
                     </TableCell>
                   </TableRow>
                 ) : displayedLogs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="py-12 text-center">
+                    <TableCell colSpan={attendanceMode === 'multi' ? 7 : 6} className="py-12 text-center">
                        <Clock className="w-8 h-8 opacity-20 mx-auto mb-2" />
                        <p className="text-sm font-medium text-muted-foreground">No logs found</p>
                     </TableCell>
@@ -1407,6 +1410,24 @@ export default function Attendance() {
                         </TableCell>
                         <TableCell className="font-medium text-rose-600">{log.late === "00:00" ? "--" : log.late}</TableCell>
                         <TableCell className="font-bold text-emerald-600 text-right pr-6">{log.duration}</TableCell>
+                        {attendanceMode === 'multi' && (
+                          <TableCell className="font-medium whitespace-nowrap">
+                            {log.clock_in_location ? (
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-md border ${
+                                log.attendance_type === 'Multi-Location' && log.clock_in_location !== allowedLocations[0]
+                                  ? 'bg-cyan-50 text-cyan-800 border-cyan-200 dark:bg-cyan-950/40 dark:text-cyan-300 dark:border-cyan-700'
+                                  : 'bg-muted/30 text-muted-foreground border-border'
+                              }`}>
+                                {log.clock_in_location}
+                                {log.attendance_type === 'Multi-Location' && log.clock_in_location !== allowedLocations[0] && (
+                                  <span className="text-[8px] font-extrabold text-cyan-600 dark:text-cyan-400 uppercase">• Alt</span>
+                                )}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground text-[10px]">--</span>
+                            )}
+                          </TableCell>
+                        )}
                       </TableRow>
                     );
                   })

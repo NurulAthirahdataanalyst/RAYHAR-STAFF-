@@ -1393,6 +1393,12 @@ export default function AttendanceDashboard() {
                                       TEMP: {(record as any).temp_branch || "ASSIGNED"}
                                     </span>
                                   ) }
+                                  { !((record as any).temp_branch) && (record as any).attendance_type === "Multi-Location" && multiLocationUsers.includes(record.user_id) && (record as any).clock_in_location && (record as any).clock_in_location !== (record as any).permanent_branch && (
+                                    <span className="bg-cyan-100 text-cyan-900 dark:bg-cyan-950/70 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-700 text-[9px] font-extrabold px-1.5 py-0.5 rounded shadow-xs flex items-center gap-1">
+                                      <MapPin className="w-2.5 h-2.5 text-cyan-600 dark:text-cyan-400" />
+                                      MULTI-LOCATION: {(record as any).clock_in_location}
+                                    </span>
+                                  ) }
                                 </div>
                                 <span className="text-[10px] text-gray-400 capitalize">{((record as any).role || "").replace(/_/g, ' ')} • {record.branch}{record.branch === "HQ" && record.department ? `, • ${record.department}` : ""}</span>
                               </div>
