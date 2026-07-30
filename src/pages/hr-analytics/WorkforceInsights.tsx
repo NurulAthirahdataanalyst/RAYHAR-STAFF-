@@ -1,5 +1,5 @@
 import { useRole } from "@/contexts/RoleContext";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import PageActions from "@/components/layout/PageActions";
