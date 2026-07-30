@@ -1165,33 +1165,35 @@ export default function Employees() {
                         </Card>
                       </div>
 
-                      {/* Allowed Branches */}
-                      <Card>
-                        <CardContent className="p-4 space-y-4">
-                          <div className="flex justify-between items-center border-b pb-2">
-                            <h3 className="font-bold text-lg">Allowed Branches</h3>
-                          </div>
-                          <div className="text-xs text-muted-foreground mb-2">Select the branches this employee is permitted to clock into.</div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2">
-                            {Object.entries(BRANCH_NAMES).map(([code, name]) => (
-                              <div key={code} className="flex items-center space-x-2 border p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-800">
-                                <Checkbox 
-                                  id={`branch-${code}`} 
-                                  checked={allowedLocations.includes(code)}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) setAllowedLocations([...allowedLocations, code]);
-                                    else setAllowedLocations(allowedLocations.filter(c => c !== code));
-                                  }}
-                                />
-                                <Label htmlFor={`branch-${code}`} className="text-sm cursor-pointer flex-1">
-                                  {code} - {name}
-                                </Label>
-                              </div>
-                            ))}
-                          </div>
-                          <Button className="w-full mt-4 bg-[#a01497] hover:bg-[#850f7c] text-white" onClick={saveAllowedLocations}>Save Allowed Branches</Button>
-                        </CardContent>
-                      </Card>
+                      {/* Allowed Branches — HR Admin only */}
+                      {role === "hr_admin" && (
+                        <Card>
+                          <CardContent className="p-4 space-y-4">
+                            <div className="flex justify-between items-center border-b pb-2">
+                              <h3 className="font-bold text-lg">Allowed Branches</h3>
+                            </div>
+                            <div className="text-xs text-muted-foreground mb-2">Select the branches this employee is permitted to clock into.</div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2">
+                              {Object.entries(BRANCH_NAMES).map(([code, name]) => (
+                                <div key={code} className="flex items-center space-x-2 border p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-800">
+                                  <Checkbox 
+                                    id={`branch-${code}`} 
+                                    checked={allowedLocations.includes(code)}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) setAllowedLocations([...allowedLocations, code]);
+                                      else setAllowedLocations(allowedLocations.filter(c => c !== code));
+                                    }}
+                                  />
+                                  <Label htmlFor={`branch-${code}`} className="text-sm cursor-pointer flex-1">
+                                    {code} - {name}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+                            <Button className="w-full mt-4 bg-[#a01497] hover:bg-[#850f7c] text-white" onClick={saveAllowedLocations}>Save Allowed Branches</Button>
+                          </CardContent>
+                        </Card>
+                      )}
                     </div>
                   )}
                 </TabsContent>
