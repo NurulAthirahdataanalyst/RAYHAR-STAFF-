@@ -2640,8 +2640,25 @@ async function validateReplacementLeaves() {
 
 // Scheduled Cron Job
 const cron = require('node-cron');
+
+async function autoRejectPendingLeaves() {
+  try {
+    await pool.query(`
+      UPDATE leave_requests
+      SET 
+        status = 'Rejected', 
+        approver_note = 'Automatically rejected: Leave start date reached without approval',
+        updated_at = NOW()
+      WHERE status LIKE 'Pending%' AND start_date <= CURRENT_DATE
+    `);
+  } catch (error) {
+    console.error('Error auto-rejecting pending leaves:', error);
+  }
+}
+
 cron.schedule('0 0 * * *', async () => {
   await validateReplacementLeaves();
+  await autoRejectPendingLeaves();
 });
 
 
@@ -2652,6 +2669,9 @@ app.get("/api/leave-requests", async (req, res) => {
   const date = req.query.date;
 
   try {
+    // Proactively auto-reject leaves before fetching
+    await autoRejectPendingLeaves();
+
     const params = [];
     const filters = [];
 

@@ -122,6 +122,7 @@ export default function LeaveAdmin() {
   const [bakiLayak, setBakiLayak] = useState<number | string>('-');
   const [activeTab, setActiveTab] = useState<TabFilter>("history");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const [selectedLeaveType, setSelectedLeaveType] = useState<string>("all");
 
   const months = [
     { value: "all", label: "All Months" },
@@ -145,6 +146,8 @@ export default function LeaveAdmin() {
   const [remarks, setRemarks] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const uniqueLeaveTypes = Array.from(new Set(requests.map(r => r.type))).filter(Boolean).sort();
+
   // First, filter by month
   const requestsByMonth = requests.filter((req) => {
     if (selectedMonth === "all") return true;
@@ -152,7 +155,7 @@ export default function LeaveAdmin() {
   });
 
   // Then, filter by active tab
-  const filteredRequests = requestsByMonth.filter((req) => {
+  const filteredRequestsByTab = requestsByMonth.filter((req) => {
     switch (activeTab) {
       case "pending":
         return req.status.startsWith("Pending");
@@ -164,6 +167,12 @@ export default function LeaveAdmin() {
         return true; // Show all
     }
     return false;
+  });
+
+  // Then filter by leave type
+  const filteredRequests = filteredRequestsByTab.filter((req) => {
+    if (selectedLeaveType === "all") return true;
+    return req.type === selectedLeaveType;
   });
 
   const pendingCount = requestsByMonth.filter((r) => r.status.startsWith("Pending")).length;
@@ -432,7 +441,7 @@ export default function LeaveAdmin() {
 
       {/* Main Content Area */}
       <div className="mb-4">
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center justify-end gap-2.5">
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
               <SelectTrigger className="w-[140px] h-9 text-xs font-medium rounded-md bg-transparent">
                 <SelectValue placeholder="All Months" />
@@ -448,6 +457,18 @@ export default function LeaveAdmin() {
               onExportCSV={() => exportToCSV(filteredRequests, 'Leave_Requests')} 
               onExportPDF={() => window.print()} 
             />
+
+            <Select value={selectedLeaveType} onValueChange={setSelectedLeaveType}>
+              <SelectTrigger className="w-[180px] h-9 text-xs font-medium rounded-md bg-transparent">
+                <SelectValue placeholder="All Leave Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="text-xs">All Leave Types</SelectItem>
+                {uniqueLeaveTypes.map(type => (
+                  <SelectItem key={type} value={type} className="text-xs">{type}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             <Select value={activeTab} onValueChange={(val: any) => setActiveTab(val)}>
               <SelectTrigger className="w-[140px] h-9 text-xs font-medium rounded-md bg-transparent">
