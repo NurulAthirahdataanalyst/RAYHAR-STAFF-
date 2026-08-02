@@ -252,6 +252,7 @@ export default function LeaveFormView() {
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full justify-between">
           <div className="flex gap-1 overflow-x-auto w-full sm:w-auto">
             {([
+              { key: "history" as FormTabFilter, label: "History", count: forms.length },
               { key: "pending" as FormTabFilter, label: "Pending", count: pendingCount },
               { key: "approved" as FormTabFilter, label: "Approved", count: approvedCount },
               { key: "rejected" as FormTabFilter, label: "Rejected", count: rejectedCount }
