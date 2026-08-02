@@ -430,7 +430,7 @@ export default function TeamLeaveRequests() {
                       </div>
                       <div className="space-y-1">
                         <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
-                        <p className="text-[10px] font-bold text-muted-foreground break-words">{selectedRequest.warisAlamat}</p>
+                        <p className="text-[11px] font-bold break-words">{selectedRequest.warisAlamat}</p>
                       </div>
                     </div>
                   </div>

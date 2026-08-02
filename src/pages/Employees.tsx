@@ -1457,7 +1457,7 @@ export default function Employees() {
                         </div>
                         <div className="space-y-1">
                           <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">Alamat</span>
-                          <p className="text-[10px] font-bold text-muted-foreground break-words">{req.waris_alamat || "-"}</p>
+                          <p className="text-[11px] font-bold break-words">{req.waris_alamat || "-"}</p>
                         </div>
                       </div>
                     </div>
