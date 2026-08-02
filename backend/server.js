@@ -2688,7 +2688,7 @@ app.get("/api/leave-requests", async (req, res) => {
       } else if (role === "head_of_department") {
         // Safety: HOD must have a department to see anything
         filters.push("1 = 0");
-      } else if (!["hr_admin", "managing_director", "finance_manager"].includes(role) && branch) {
+      } else if (!["hr_admin", "managing_director", "finance_manager", "operation_manager"].includes(role) && branch) {
         filters.push("p.branch = ?");
         params.push(branch);
       }
