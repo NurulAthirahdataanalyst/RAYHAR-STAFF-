@@ -17,7 +17,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock, CheckCircle2, XCircle, ChevronRight, ClipboardList, Download } from "lucide-react";
+import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock, CheckCircle2, XCircle, ChevronRight, ClipboardList, Download, RotateCcw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
@@ -481,6 +481,20 @@ export default function LeaveAdmin() {
                 <SelectItem value="rejected" className="text-xs">Rejected</SelectItem>
               </SelectContent>
             </Select>
+
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-9 px-3 border-dashed text-xs"
+              onClick={() => {
+                setSelectedMonth("all");
+                setSelectedLeaveType("all");
+                setActiveTab("history");
+              }}
+            >
+              <RotateCcw className="w-3.5 h-3.5 mr-2" />
+              Reset
+            </Button>
           </div>
       </div>
 
