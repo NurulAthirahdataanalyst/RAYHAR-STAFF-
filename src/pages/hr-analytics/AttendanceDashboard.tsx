@@ -1122,13 +1122,7 @@ export default function AttendanceDashboard() {
                   color: "text-rose-600", 
                   bg: "bg-rose-50", 
                   icon: <ShieldAlert className="w-5 h-5"/>, 
-                  trend: "—",
-                  footer: liveStats.weekend && liveStats.weekend > 0 ? (
-                    <div className="flex items-center gap-1 mt-2 border-t border-rose-100 dark:border-rose-900/30 pt-1">
-                      <span className="font-bold text-slate-700 dark:text-slate-300 text-xs">{liveStats.weekend}</span>
-                      <span className="text-[9px] text-slate-500 font-medium tracking-wide uppercase">— On Rest Day</span>
-                    </div>
-                  ) : undefined
+                  trend: "—"
                 },
                 { label: "Leave", val: `${denom > 0 ? Math.round((liveStats.onLeave / denom) * 100) : 0}%`, sub: `${liveStats.onLeave} / ${denom} Employees`, color: "text-blue-600", bg: "bg-blue-50", icon: <CalendarIcon className="w-5 h-5"/>, trend: "—" },
                 card6,
