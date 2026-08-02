@@ -509,7 +509,7 @@ export default function LeaveAdmin() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <Table className="whitespace-nowrap">
+              <Table>
                 <TableHeader className="bg-muted/20 border-b border-border/40">
                   <TableRow>
                     <TableHead className="px-5 py-4 font-semibold text-muted-foreground">Employee</TableHead>
