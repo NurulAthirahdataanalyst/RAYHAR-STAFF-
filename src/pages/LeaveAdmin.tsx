@@ -17,7 +17,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock, CheckCircle2, XCircle, ChevronRight, ClipboardList, Download, RotateCcw } from "lucide-react";
+import { Check, X, Users, MapPin, Info, Loader2, FileText, Printer, PhoneCall, Clock, CheckCircle2, XCircle, ChevronRight, ChevronLeft, ClipboardList, Download, RotateCcw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
@@ -174,6 +174,16 @@ export default function LeaveAdmin() {
     if (selectedLeaveType === "all") return true;
     return req.type === selectedLeaveType;
   });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedMonth, selectedLeaveType, activeTab]);
+
+  const currentData = filteredRequests.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const pendingCount = requestsByMonth.filter((r) => r.status.startsWith("Pending")).length;
   const approvedCount = requestsByMonth.filter((r) => r.status === "Approved").length;
@@ -522,8 +532,8 @@ export default function LeaveAdmin() {
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-border/40">
-                  {filteredRequests.length > 0 ? (
-                    filteredRequests.map((req) => (
+                  {currentData.length > 0 ? (
+                    currentData.map((req) => (
                       <TableRow 
                         key={req.id} 
                         className="hover:bg-muted/30 transition-colors group cursor-pointer"
@@ -621,14 +631,45 @@ export default function LeaveAdmin() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={canApprove ? 7 : 6} className="py-12 text-center">
-                        <FileText className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
-                        <p className="text-muted-foreground font-medium">No leave requests found</p>
+                      <TableCell colSpan={canApprove ? 7 : 6} className="h-32 text-center text-muted-foreground">
+                        No leave requests found.
                       </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
               </Table>
+            </div>
+          )}
+          {!loading && totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-border/40 bg-muted/10">
+              <span className="text-xs text-muted-foreground">
+                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredRequests.length)} of {filteredRequests.length} entries
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-xs rounded-lg"
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Prev
+                </Button>
+                <div className="flex items-center justify-center min-w-[32px] text-xs font-bold bg-white dark:bg-card border border-border/50 rounded-lg">
+                  {currentPage}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-xs rounded-lg"
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
@@ -710,8 +751,8 @@ export default function LeaveAdmin() {
 
                   <div className="space-y-2">
                     <p className="text-[9px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-widest">Sebab / Tujuan</p>
-                    <p className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed">
-                      "{getCleanReason(selectedRequest.reason) || "-"}"
+                    <p className="rounded-[16px] border border-border/40 p-4 font-bold text-foreground bg-muted/10 text-sm leading-relaxed whitespace-pre-wrap">
+                      {getCleanReason(selectedRequest.reason) || "-"}
                     </p>
                   </div>
 
