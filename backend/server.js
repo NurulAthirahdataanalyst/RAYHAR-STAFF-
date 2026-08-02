@@ -3659,7 +3659,7 @@ app.get("/api/employees", async (req, res) => {
         END ASC,
         p.full_name ASC
       `,
-      [...(date ? [date, date, date, date, date] : []), ...params]
+      [...(date ? [date, date, date, date, date, date] : []), ...params]
     );
 
     const employees = rows.map((employee) => ({

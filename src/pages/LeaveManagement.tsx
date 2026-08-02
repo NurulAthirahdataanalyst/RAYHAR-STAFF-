@@ -733,6 +733,32 @@ export default function LeaveManagement() {
                       onChange={e => setFormData({ ...formData, tujuanCuti: e.target.value.toUpperCase() })}
                     />
                   </div>
+
+                  {(formData.jenisCuti === "Unpaid Leave" || formData.jenisCuti === "Cuti Tanpa Gaji") && (
+                    <div className="space-y-4 p-4 border border-rose-200 bg-rose-50 dark:border-rose-900/30 dark:bg-rose-900/10 rounded-[20px]">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-rose-700 dark:text-rose-400 px-1">No. Telefon Semasa Cuti *</Label>
+                        <Input
+                          placeholder="0123456789"
+                          className="h-12 border-rose-200 bg-white dark:bg-black/20 rounded-xl font-bold"
+                          value={formData.cutiTanpaGajiPhone}
+                          onChange={e => setFormData({ ...formData, cutiTanpaGajiPhone: e.target.value })}
+                        />
+                      </div>
+                      <div className="flex items-start space-x-3 pt-2">
+                        <input
+                          type="checkbox"
+                          id="unpaid-signature"
+                          className="mt-1 w-4 h-4 rounded border-rose-300 text-rose-600 focus:ring-rose-500"
+                          checked={formData.cutiTanpaGajiSignature}
+                          onChange={e => setFormData({ ...formData, cutiTanpaGajiSignature: e.target.checked })}
+                        />
+                        <label htmlFor="unpaid-signature" className="text-xs text-rose-800 dark:text-rose-300 font-medium leading-relaxed">
+                          Saya mengesahkan permohonan Cuti Tanpa Gaji ini dan memahami implikasi pemotongan gaji yang berkaitan.
+                        </label>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
