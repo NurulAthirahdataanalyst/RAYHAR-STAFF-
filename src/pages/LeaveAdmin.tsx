@@ -440,7 +440,8 @@ export default function LeaveAdmin() {
       </div>
 
       {/* Main Content Area */}
-      <div className="mb-4">
+      <div className="mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex-1"></div>
         <div className="flex flex-wrap items-center justify-end gap-2.5">
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
               <SelectTrigger className="w-[140px] h-9 text-xs font-medium rounded-md bg-transparent">
@@ -453,13 +454,8 @@ export default function LeaveAdmin() {
               </SelectContent>
             </Select>
 
-            <ExportDropdown 
-              onExportCSV={() => exportToCSV(filteredRequests, 'Leave_Requests')} 
-              onExportPDF={() => window.print()} 
-            />
-
             <Select value={selectedLeaveType} onValueChange={setSelectedLeaveType}>
-              <SelectTrigger className="w-[180px] h-9 text-xs font-medium rounded-md bg-transparent">
+              <SelectTrigger className="w-[160px] h-9 text-xs font-medium rounded-md bg-transparent">
                 <SelectValue placeholder="All Leave Types" />
               </SelectTrigger>
               <SelectContent>
@@ -495,6 +491,11 @@ export default function LeaveAdmin() {
               <RotateCcw className="w-3.5 h-3.5 mr-2" />
               Reset
             </Button>
+
+            <ExportDropdown 
+              onExportCSV={() => exportToCSV(filteredRequests, 'Leave_Requests')} 
+              onExportPDF={() => window.print()} 
+            />
           </div>
       </div>
 

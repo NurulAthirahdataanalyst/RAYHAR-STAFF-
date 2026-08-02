@@ -755,6 +755,14 @@ export default function Dashboard() {
                       subtitle={(stats.absentToday ?? 0) > 0 ? "Not Clocked In" : "All Present"}
                       variant={(stats.absentToday ?? 0) > 0 ? "maroon" : "default"}
                       onClick={() => navigate("/hr-analytics/attendance#employee-absenteeism")}
+                      footer={
+                        (stats.restDayToday ?? 0) > 0 ? (
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-slate-700 dark:text-slate-300">{stats.restDayToday}</span>
+                            <span className="text-[10px] text-slate-500 font-medium tracking-wide">— On Rest Day</span>
+                          </div>
+                        ) : undefined
+                      }
                     />
                     <StatCard
                       icon={Users}
@@ -940,6 +948,14 @@ export default function Dashboard() {
                   subtitle={(stats.absentToday ?? 0) > 0 ? "Not Clocked In" : "All Present"}
                   variant={(stats.absentToday ?? 0) > 0 ? "maroon" : "default"}
                   onClick={() => navigate("/hr-analytics/attendance#employee-absenteeism")}
+                  footer={
+                    (stats.restDayToday ?? 0) > 0 ? (
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-700 dark:text-slate-300">{stats.restDayToday}</span>
+                        <span className="text-[10px] text-slate-500 font-medium tracking-wide">— On Rest Day</span>
+                      </div>
+                    ) : undefined
+                  }
                 />
                 <StatCard
                   icon={(stats.lateArrivals ?? 0) > 0 ? AlertTriangle : CheckCircle2}

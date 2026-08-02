@@ -11,6 +11,7 @@ interface StatCardProps {
   onClick?: () => void;
   valueClassName?: string;
   isAnalyticsStyle?: boolean;
+  footer?: React.ReactNode;
 }
 
 const variantStyles = {
@@ -33,7 +34,8 @@ export default function StatCard({
   progress = 0,
   onClick,
   valueClassName,
-  isAnalyticsStyle = false
+  isAnalyticsStyle = false,
+  footer
 }: StatCardProps) {
   
   const currentStyle = variantStyles[variant] || variantStyles.default;
@@ -120,6 +122,11 @@ export default function StatCard({
             )}
           </div>
         )}
+        {footer && (
+          <div className="mt-2">
+            {footer}
+          </div>
+        )}
       </div>
     );
   }
@@ -170,6 +177,11 @@ export default function StatCard({
                 {subtitle}
               </p>
             )}
+          </div>
+        )}
+        {footer && (
+          <div className="mt-2 border-t border-slate-100 dark:border-slate-800/60 pt-2">
+            {footer}
           </div>
         )}
       </div>

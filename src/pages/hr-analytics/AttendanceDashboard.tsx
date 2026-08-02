@@ -186,6 +186,7 @@ export default function AttendanceDashboard() {
     lateArrivals: 0,
     absentToday: 0,
     attendanceRate: 0,
+    restDayToday: 0,
   });
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
   const [branchComparison, setBranchComparison] = useState<any[]>([]);
@@ -369,14 +370,14 @@ export default function AttendanceDashboard() {
         const present = s.presentToday || 0;
         const late = s.lateArrivals || 0;
         const onLeave = s.onLeave || 0;
-        const absent = Math.max(0, total - present - onLeave);
         const rate = (total - onLeave) > 0 ? Math.round((present / (total - onLeave)) * 100) : 0;
 
         setAttendanceStats({
           presentToday: present,
           lateArrivals: late,
-          absentToday: absent,
+          absentToday: s.absentToday || 0,
           attendanceRate: rate,
+          restDayToday: s.restDayToday || 0,
         });
       }
     } catch (error) {
@@ -1114,7 +1115,21 @@ export default function AttendanceDashboard() {
                 { label: "Present Today", val: `${denom > 0 ? Math.round((liveStats.present / denom) * 100) : 0}%`, sub: `${liveStats.present} / ${denom} Employees`, color: "text-[#7B0099]", bg: "bg-[#7B0099]/10", icon: <CheckCircle2 className="w-5 h-5"/>, trend: "↑ 5% vs Yesterday" },
                 { label: "On Time", val: `${denom > 0 ? Math.round(((liveStats.present - liveStats.late) / denom) * 100) : 0}%`, sub: `${Math.max(0, liveStats.present - liveStats.late)} / ${denom} Employees`, color: "text-emerald-600", bg: "bg-emerald-50", icon: <Clock className="w-5 h-5"/>, trend: "—" },
                 { label: "Late", val: `${denom > 0 ? Math.round((liveStats.late / denom) * 100) : 0}%`, sub: `${liveStats.late} / ${denom} Employees`, color: "text-amber-600", bg: "bg-amber-50", icon: <AlertCircle className="w-5 h-5"/>, trend: "—" },
-                { label: "Absent", val: `${denom > 0 ? Math.round((liveStats.absent / denom) * 100) : 0}%`, sub: `${liveStats.absent} / ${denom} Employees`, color: "text-rose-600", bg: "bg-rose-50", icon: <ShieldAlert className="w-5 h-5"/>, trend: "—" },
+                { 
+                  label: "Absent", 
+                  val: `${denom > 0 ? Math.round((liveStats.absent / denom) * 100) : 0}%`, 
+                  sub: `${liveStats.absent} / ${denom} Employees`, 
+                  color: "text-rose-600", 
+                  bg: "bg-rose-50", 
+                  icon: <ShieldAlert className="w-5 h-5"/>, 
+                  trend: "—",
+                  footer: liveStats.weekend && liveStats.weekend > 0 ? (
+                    <div className="flex items-center gap-1 mt-2 border-t border-rose-100 dark:border-rose-900/30 pt-1">
+                      <span className="font-bold text-slate-700 dark:text-slate-300 text-xs">{liveStats.weekend}</span>
+                      <span className="text-[9px] text-slate-500 font-medium tracking-wide uppercase">— On Rest Day</span>
+                    </div>
+                  ) : undefined
+                },
                 { label: "Leave", val: `${denom > 0 ? Math.round((liveStats.onLeave / denom) * 100) : 0}%`, sub: `${liveStats.onLeave} / ${denom} Employees`, color: "text-blue-600", bg: "bg-blue-50", icon: <CalendarIcon className="w-5 h-5"/>, trend: "—" },
                 card6,
                 { label: "Outstation", val: `${liveStats.total > 0 ? Math.round(((liveStats.outstation || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.outstation || 0} / ${liveStats.total} Employees`, color: "text-pink-600", bg: "bg-pink-50", icon: <MapPin className="w-5 h-5"/>, trend: "—" },
@@ -1140,6 +1155,7 @@ export default function AttendanceDashboard() {
                       style={{ width: k.val }}
                     />
                   </div>
+                  {k.footer}
                 </div>
               </div>
             ))}

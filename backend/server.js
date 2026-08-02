@@ -4781,10 +4781,29 @@ app.get("/api/dashboard-stats", async (req, res) => {
       const outstationSet = new Set(outstationTodayRows.map(r => r.user_id));
 
       let companyLeaveCount = 0;
+      let restDayCount = 0;
+      let absentCount = 0;
+
+      const branchZoneMap = await getBranchZoneMap();
+      const dateParts = queryDate.split('-');
+      const queryDateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1])-1, parseInt(dateParts[2]));
+
       allActiveProfiles.forEach(p => {
         const uid = p.user_id;
-        if (!clockedInSet.has(uid) && !personalLeaveSet.has(uid) && !outstationSet.has(uid)) {
-          const matchesCompanyLeave = companyLeaveDays.some(cl => {
+        const isClockedIn = clockedInSet.has(uid);
+        const isPersonalLeave = personalLeaveSet.has(uid);
+        const isOutstation = outstationSet.has(uid);
+        
+        const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
+        const isRestDay = checkIsWeekend(userZone, queryDateObj);
+        
+        if (isRestDay) {
+          restDayCount++;
+        }
+
+        let isCompanyLeave = false;
+        if (!isClockedIn && !isPersonalLeave && !isOutstation) {
+          isCompanyLeave = companyLeaveDays.some(cl => {
             if (cl.applies_to === 'all') return true;
             if (cl.applies_to === 'branch' && cl.branch_id) {
               return cl.branch_id.split(',').map(s => s.trim()).includes(p.branch);
@@ -4799,9 +4818,14 @@ app.get("/api/dashboard-stats", async (req, res) => {
             }
             return false;
           });
-          if (matchesCompanyLeave) {
+          if (isCompanyLeave) {
             companyLeaveCount++;
           }
+        }
+
+        // Only count as absent if they are NOT on rest day, NOT clocked in, NOT on leave, NOT outstation, NOT company leave
+        if (!isRestDay && !isClockedIn && !isPersonalLeave && !isOutstation && !isCompanyLeave) {
+          absentCount++;
         }
       });
 
@@ -4816,7 +4840,8 @@ app.get("/api/dashboard-stats", async (req, res) => {
         activeCompanyLeave: upcomingCompanyLeaveRows.length > 0 ? upcomingCompanyLeaveRows[0] : null,
         outstationToday: parseInt(outstationTodayRows[0].outstation_today || 0),
         upcomingOutstation: parseInt(upcomingOutstationRows[0].upcoming_outstation || 0),
-        absentToday: Math.max(0, parseInt(employeeRows[0].total_employees || 0) - parseInt(presentRows[0].present_today || 0) - parseInt(onLeaveRows[0].on_leave || 0) - companyLeaveCount - parseInt(outstationTodayRows[0].outstation_today || 0)),
+        absentToday: absentCount,
+        restDayToday: restDayCount,
         hasRecords: totalDayAttendances > 0 || companyLeaveCount > 0 || parseInt(onLeaveRows[0].on_leave || 0) > 0 || parseInt(outstationTodayRows[0].outstation_today || 0) > 0,
         totalTemporary: parseInt(temporaryRows[0].total_temporary || 0),
         totalMultiLocation: parseInt(multiLocationRows[0].total_multi_location || 0),
