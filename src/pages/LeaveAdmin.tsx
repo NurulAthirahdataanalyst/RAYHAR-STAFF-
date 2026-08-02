@@ -512,13 +512,13 @@ export default function LeaveAdmin() {
               <Table>
                 <TableHeader className="bg-muted/20 border-b border-border/40">
                   <TableRow>
-                    <TableHead className="px-5 py-4 font-semibold text-muted-foreground">Employee</TableHead>
-                    <TableHead className="px-5 py-4 font-semibold text-muted-foreground">Leave Type</TableHead>
-                    <TableHead className="px-5 py-4 font-semibold text-muted-foreground">From</TableHead>
-                    <TableHead className="px-5 py-4 font-semibold text-muted-foreground">To</TableHead>
-                    <TableHead className="px-5 py-4 font-semibold text-muted-foreground">No of Days</TableHead>
-                    <TableHead className="px-5 py-4 font-semibold text-muted-foreground">Status</TableHead>
-                    {canApprove && <TableHead className="px-5 py-4 font-semibold text-muted-foreground text-right">Actions</TableHead>}
+                    <TableHead className="px-3 py-4 text-[13px] font-semibold text-muted-foreground">Employee</TableHead>
+                    <TableHead className="px-3 py-4 text-[13px] font-semibold text-muted-foreground">Leave Type</TableHead>
+                    <TableHead className="px-3 py-4 text-[13px] font-semibold text-muted-foreground">From</TableHead>
+                    <TableHead className="px-3 py-4 text-[13px] font-semibold text-muted-foreground">To</TableHead>
+                    <TableHead className="px-3 py-4 text-[13px] font-semibold text-muted-foreground">Days</TableHead>
+                    <TableHead className="px-3 py-4 text-[13px] font-semibold text-muted-foreground">Status</TableHead>
+                    {canApprove && <TableHead className="px-3 py-4 text-[13px] font-semibold text-muted-foreground text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-border/40">
@@ -536,7 +536,7 @@ export default function LeaveAdmin() {
                           }
                         }}
                       >
-                        <TableCell className="px-5 py-3.5">
+                        <TableCell className="px-3 py-3.5">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-md bg-[#7B0099]/10 text-[#7B0099] flex items-center justify-center text-xs font-bold shrink-0">
                               {req.employee.charAt(0).toUpperCase()}
@@ -551,24 +551,24 @@ export default function LeaveAdmin() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="px-5 py-3.5">
-                          <span className="text-[13px] font-medium text-foreground flex items-center gap-1.5">
+                        <TableCell className="px-3 py-3.5">
+                          <span className="text-[12px] font-medium text-foreground flex items-center gap-1.5">
                             {req.type}
                             {req.reason && <Info className="w-3.5 h-3.5 text-slate-950 dark:text-slate-50" />}
                           </span>
                         </TableCell>
-                        <TableCell className="px-5 py-3.5 text-[13px] font-medium text-muted-foreground">
+                        <TableCell className="px-3 py-3.5 text-[12px] font-medium text-muted-foreground">
                           {req.from}
                         </TableCell>
-                        <TableCell className="px-5 py-3.5 text-[13px] font-medium text-muted-foreground">
+                        <TableCell className="px-3 py-3.5 text-[12px] font-medium text-muted-foreground">
                           {req.to}
                         </TableCell>
-                        <TableCell className="px-5 py-3.5">
+                        <TableCell className="px-3 py-3.5">
                           <Badge variant="secondary" className="bg-muted/50 font-medium text-foreground rounded-md px-2 py-0.5">
                             {req.days} {req.days > 1 ? 'Days' : 'Day'}
                           </Badge>
                         </TableCell>
-                        <TableCell className="px-5 py-3.5">
+                        <TableCell className="px-3 py-3.5">
                           <span 
                             className={`inline-flex justify-center items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider whitespace-normal text-center leading-tight max-w-[140px] ${
                               req.status === "Approved" ? "bg-emerald-100/50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
@@ -581,7 +581,7 @@ export default function LeaveAdmin() {
                           </span>
                         </TableCell>
                         {canApprove && (
-                          <TableCell className="px-5 py-3.5 text-right">
+                          <TableCell className="px-3 py-3.5 text-right">
                             {((req.status.startsWith("Pending HOD") && role === "head_of_department") ||
                               (req.status === "Pending Branch Leader" && role === "branch_leader") ||
                               ((req.status === "Pending Operation" || req.status === "Pending Finance") && (role === "operation_manager" || role === "finance_manager")) ||
