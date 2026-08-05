@@ -44,6 +44,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
+import { LeaveDetailsModal } from "@/components/leave/LeaveDetailsModal";
+import { toast } from "sonner";
 
 
 const getStoredUser = () => {
@@ -111,6 +113,9 @@ export default function Dashboard() {
   const [whoOutToday, setWhoOutToday] = useState<any[]>([]);
   const [upcomingOutstations, setUpcomingOutstations] = useState<any[]>([]);
   const [activeOutstations, setActiveOutstations] = useState<any[]>([]);
+
+  const [selectedLeaveRequest, setSelectedLeaveRequest] = useState<any>(null);
+  const [isFetchingLeave, setIsFetchingLeave] = useState(false);
 
   const rawName = userName || user?.full_name || "User";
   
@@ -229,6 +234,68 @@ export default function Dashboard() {
       console.error("Who Out Today Error:", err);
     }
   }, [role, userBranch, userDepartment, selectedDate]);
+
+  const handleLeaveClick = async (leaveId: number, leaveType: string) => {
+    if (leaveType === "Outstation") {
+      navigate(`/outstation/assignment`);
+      return;
+    }
+    
+    setIsFetchingLeave(true);
+    try {
+      const params = new URLSearchParams({
+        role,
+        branch: userBranch || "",
+        department: userDepartment || "",
+      });
+      const response = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const rawRequest = data.leaveRequests.find((r: any) => r.leave_id === leaveId);
+        if (rawRequest) {
+          const formatDate = (val: string) => val ? val.slice(0, 10) : "";
+          const formatted = {
+            id: rawRequest.leave_id,
+            userId: rawRequest.user_id,
+            employee: rawRequest.full_name || rawRequest.user_id,
+            branch: rawRequest.branch || "HQ",
+            type: rawRequest.leave_type,
+            from: formatDate(rawRequest.start_date),
+            to: formatDate(rawRequest.end_date),
+            days: Number(rawRequest.days || 0),
+            balance: rawRequest.balance !== undefined && rawRequest.balance !== null ? Number(rawRequest.balance) : (rawRequest.annual_leave_balance !== undefined ? Number(rawRequest.annual_leave_balance) : undefined),
+            annual_leave_balance: rawRequest.annual_leave_balance,
+            medical_leave_balance: rawRequest.medical_leave_balance,
+            replacement_leave_balance: rawRequest.replacement_leave_balance,
+            reason: rawRequest.reason || "-",
+            status: rawRequest.status || "Pending HOD",
+            warisNama: rawRequest.waris_nama || "N/A",
+            warisPhone: rawRequest.waris_phone || "N/A",
+            warisAlamat: rawRequest.waris_alamat || "N/A",
+            warisHubungan: rawRequest.waris_hubungan || "N/A",
+            approverRole: rawRequest.approver_role,
+            cutiGantiTarikh: rawRequest.cuti_ganti_tarikh ? formatDate(rawRequest.cuti_ganti_tarikh) : undefined,
+            cutiGantiHari: rawRequest.cuti_ganti_hari,
+            cutiGantiJam: rawRequest.cuti_ganti_jam,
+            cutiTanpaGajiPhone: rawRequest.cuti_tanpa_gaji_phone,
+            cutiTanpaGajiSignature: rawRequest.cuti_tanpa_gaji_signature,
+            mcFileUrl: rawRequest.mc_file_url,
+            approvalHistory: rawRequest.approval_history || [],
+            replacementValidations: rawRequest.replacement_validations || [],
+          };
+          setSelectedLeaveRequest(formatted);
+        } else {
+          toast.error("Leave request not found or you don't have access.");
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching leave details:", err);
+      toast.error("Failed to fetch leave details.");
+    } finally {
+      setIsFetchingLeave(false);
+    }
+  };
 
   const fetchUpcomingOutstations = useCallback(async () => {
     try {
@@ -1246,13 +1313,10 @@ export default function Dashboard() {
                         <div
                           key={emp.leave_id}
                           onClick={() => {
-                            if (emp.leave_type === "Outstation") {
-                              navigate(`/outstation/assignment`);
-                            } else {
-                              navigate(`/leave/admin?leaveId=${emp.leave_id}`);
-                            }
+                            if (isFetchingLeave) return;
+                            handleLeaveClick(emp.leave_id, emp.leave_type);
                           }}
-                          className="cursor-pointer rounded-md border border-slate-200 dark:border-slate-800 hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200 p-3"
+                          className={`cursor-pointer rounded-md border border-slate-200 dark:border-slate-800 hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200 p-3 ${isFetchingLeave ? 'opacity-50 pointer-events-none' : ''}`}
                         >
                           <div className="flex items-start gap-3">
                             <div className="w-10 h-10 rounded bg-purple-100 flex items-center justify-center text-sm font-bold text-[#a01497] shrink-0">
@@ -1660,6 +1724,11 @@ export default function Dashboard() {
       </div>
       </>
       )}
+      <LeaveDetailsModal
+        selectedRequest={selectedLeaveRequest}
+        onClose={() => setSelectedLeaveRequest(null)}
+        role={role}
+      />
     </div>
   );
 }

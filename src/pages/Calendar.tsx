@@ -266,7 +266,7 @@ export default function Calendar() {
       const holData = await holRes.json();
       if (holData.success) setHolidays(holData.holidays);
 
-      const attRes = await fetch(`${API_BASE_URL}/api/attendance/history?userId=${currentUserId}`);
+      const attRes = await fetch(`${API_BASE_URL}/api/attendance/history?userId=${currentUserId}&month=all&year=${calendarMonth.getFullYear()}`);
       const attData = await attRes.json();
       if (attData.success) setAttendance(attData.history);
 
@@ -329,7 +329,7 @@ export default function Calendar() {
     if (user) {
       fetchCalendarData();
     }
-  }, [user]);
+  }, [user, calendarMonth.getFullYear()]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
