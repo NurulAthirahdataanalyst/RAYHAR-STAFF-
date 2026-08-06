@@ -252,7 +252,7 @@ export default function Dashboard() {
       const data = await response.json();
       
       if (data.success) {
-        const rawRequest = data.leaveRequests.find((r: any) => r.leave_id === leaveId);
+        const rawRequest = data.leaveRequests.find((r: any) => Number(r.leave_id) === Number(leaveId));
         if (rawRequest) {
           const formatDate = (val: string) => val ? val.slice(0, 10) : "";
           const formatted = {
