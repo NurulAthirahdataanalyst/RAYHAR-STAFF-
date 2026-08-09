@@ -3145,9 +3145,9 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
       nextStatus = 'Rejected';
     } else if (action === 'Approve' || status === 'Approved') {
       if (currentStatus === 'Pending' || currentStatus.startsWith('Pending HOD') || currentStatus === 'Pending Branch Leader') {
-        nextStatus = 'Pending Finance';
-      } else if (currentStatus === 'Pending Finance' || currentStatus === 'Pending Finance Manager') {
-        nextStatus = 'Pending MD';
+        nextStatus = 'Pending Operation Manager';
+      } else if (currentStatus === 'Pending Operation Manager' || currentStatus === 'Pending Finance' || currentStatus === 'Pending Finance Manager') {
+        nextStatus = 'Approved';
       } else if (currentStatus === 'Pending MD' || currentStatus === 'Pending Managing Director') {
         nextStatus = 'Approved';
       } else {
