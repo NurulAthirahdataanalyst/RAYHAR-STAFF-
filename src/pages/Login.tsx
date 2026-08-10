@@ -18,6 +18,7 @@ import rayharLogo from "@/assets/favicon.png";
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login"); // Controlled tab state
+  const [isExiting, setIsExiting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { loginLocal } = useAuth();
@@ -99,10 +100,11 @@ export default function Login() {
         const displayName = data.user?.full_name || data.user?.name || loginEmail;
         toast({ title: "Welcome back!", description: `Logged in as ${displayName}` });
         
-        // Use a small timeout to ensure state is saved before navigation
+        setIsExiting(true);
+        // Wait for the animation to finish before navigation
         setTimeout(() => {
           navigate("/");
-        }, 100);
+        }, 700);
       } else {
         toast({ title: "Login failed", description: data.error || data.message || "Invalid credentials", variant: "destructive" });
       }
@@ -158,7 +160,7 @@ export default function Login() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 force-light safe-area-top safe-area-bottom"
+      className={`min-h-screen flex items-center justify-center p-4 force-light safe-area-top safe-area-bottom transition-all duration-700 ease-in-out ${isExiting ? 'opacity-0 blur-md scale-95' : 'opacity-100 blur-0 scale-100'}`}
       style={{
         backgroundImage: `url(${watercolorBg})`,
         backgroundSize: 'cover',
