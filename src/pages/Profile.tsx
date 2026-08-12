@@ -59,15 +59,7 @@ const Profile = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
-      <div className="flex items-center gap-3 mb-2">
-        <div className="p-2 bg-primary/10 rounded-xl text-primary">
-          <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />
-        </div>
-        <div>
-          <h1 className="text-responsive-xl font-black text-foreground tracking-tight uppercase">My Profile</h1>
-          <p className="text-responsive-sm text-muted-foreground font-medium italic">Manage and view your personal account information</p>
-        </div>
-      </div>
+
 
       <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-6 items-start">
         {/* Left Column (Profile Info & Security Card) */}
