@@ -4844,7 +4844,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         upcomingOutstation: parseInt(upcomingOutstationRows[0].upcoming_outstation || 0),
         absentToday: absentCount,
         restDayToday: restDayCount,
-        hasRecords: totalDayAttendances > 0 || companyLeaveCount > 0 || parseInt(onLeaveRows[0].on_leave || 0) > 0 || parseInt(outstationTodayRows[0].outstation_today || 0) > 0,
+        hasRecords: totalDayAttendances > 0 || companyLeaveCount > 0 || parseInt(onLeaveRows[0].on_leave || 0) > 0 || parseInt(outstationTodayRows[0].outstation_today || 0) > 0 || absentCount > 0 || restDayCount > 0,
         totalTemporary: parseInt(temporaryRows[0].total_temporary || 0),
         totalMultiLocation: parseInt(multiLocationRows[0].total_multi_location || 0),
       };
