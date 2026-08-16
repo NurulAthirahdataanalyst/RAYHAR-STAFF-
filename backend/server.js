@@ -206,6 +206,8 @@ function computeEmployeeTodayStatus(employee, lateThresholdOverride = null) {
     return hours > threshold ? "Present (Late)" : "Present (On Time)";
   }
   
+  if (employee.is_rest_day) return "Rest Day";
+
   return "Absent";
 }
 
@@ -2332,6 +2334,11 @@ app.get("/api/branch-employees", async (req, res) => {
       `SELECT * FROM company_leave_calendar WHERE status = 'Active' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`
     );
 
+    const branchZoneMap = await getBranchZoneMap();
+    const now = new Date();
+    const klOffset = 8 * 60;
+    const queryDateObj = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (klOffset * 60000));
+
     const employees = rows.map((employee) => {
       const matchingLeave = companyLeaves.find(cl => {
         if (cl.applies_to === 'all') return true;
@@ -2350,6 +2357,10 @@ app.get("/api/branch-employees", async (req, res) => {
       });
 
       employee.company_leave_match = matchingLeave;
+      
+      const userZone = branchZoneMap.get(employee.branch) || 'ZONE_B';
+      employee.is_rest_day = checkIsWeekend(userZone, queryDateObj);
+      
       const todayStatus = computeEmployeeTodayStatus(employee);
 
       return {
@@ -3664,14 +3675,30 @@ app.get("/api/employees", async (req, res) => {
       [...(date ? [date, date, date, date, date, date] : []), ...params]
     );
 
-    const employees = rows.map((employee) => ({
-      ...employee,
-      today_status: computeEmployeeTodayStatus({
+    const branchZoneMap = await getBranchZoneMap();
+    let queryDateObj;
+    if (date) {
+      const parts = date.split('-');
+      queryDateObj = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+    } else {
+      const now = new Date();
+      const klOffset = 8 * 60;
+      queryDateObj = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (klOffset * 60000));
+    }
+
+    const employees = rows.map((employee) => {
+      const userZone = branchZoneMap.get(employee.branch) || 'ZONE_B';
+      const isRestDay = checkIsWeekend(userZone, queryDateObj);
+      return {
         ...employee,
-        is_outstation: employee.is_outstation_today,
-        is_on_leave: employee.is_on_leave_today
-      })
-    }));
+        today_status: computeEmployeeTodayStatus({
+          ...employee,
+          is_outstation: employee.is_outstation_today,
+          is_on_leave: employee.is_on_leave_today,
+          is_rest_day: isRestDay
+        })
+      };
+    });
 
     res.json({ success: true, employees });
   } catch (err) {
@@ -4861,6 +4888,18 @@ app.get("/api/dashboard-stats", async (req, res) => {
     );
 
     let todayStatus = "Absent";
+    const [empProfileZone] = await pool.query(
+      `SELECT b.operating_zone FROM branches b JOIN profiles p ON b.code = p.branch WHERE p.user_id = ?`,
+      [userId]
+    );
+    if (empProfileZone.length > 0) {
+      const zone = empProfileZone[0].operating_zone || 'ZONE_B';
+      const dateParts = queryDate.split('-');
+      const queryDateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1])-1, parseInt(dateParts[2]));
+      if (checkIsWeekend(zone, queryDateObj)) {
+        todayStatus = "Rest Day";
+      }
+    }
     let clockInTime = "--:--";
     let clockOutTime = "--:--";
     let todayStatusTime = "--:--";
