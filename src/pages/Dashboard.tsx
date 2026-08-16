@@ -196,6 +196,11 @@ export default function Dashboard() {
             localUpdate &&
             String(localUpdate.userId) === String(dashboardUserId)
           ) {
+            setStats((current) => ({ ...current, ...(data.stats || {}) }));
+            setActivities(data.recentActivities || []);
+            if (data.activityFeed) {
+              setActivityFeed(data.activityFeed);
+            }
             applyAttendanceUpdate(localUpdate);
           } else {
             setStats((current) => ({ ...current, ...(data.stats || {}) }));
