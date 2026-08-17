@@ -903,7 +903,7 @@ export default function SettingsPage() {
                       <div className="md:col-span-2 relative h-full">
                         <MapContainer 
                           center={branchLat && branchLng ? [parseFloat(branchLat), parseFloat(branchLng)] : [4.2248, 103.4194]} 
-                          zoom={10} 
+                          zoom={16} 
                           style={{ height: "100%", width: "100%" }}
                         >
                           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
