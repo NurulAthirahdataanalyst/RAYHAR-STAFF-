@@ -43,6 +43,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "../config/api";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import 'leaflet/dist/leaflet.css';
@@ -216,6 +217,7 @@ type BranchEmployee = {
 
 export default function Branches() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedBranch, setSelectedBranch] = useState<any | null>(null);
   const [employees, setEmployees] = useState<BranchEmployee[]>([]);
   const [temporaryStaff, setTemporaryStaff] = useState<any[]>([]);
