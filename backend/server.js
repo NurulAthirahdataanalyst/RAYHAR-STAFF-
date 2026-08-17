@@ -4055,11 +4055,7 @@ app.get("/api/attendance-status", async (req, res) => {
       }
     }
 
-      const [outstationRows] = await pool.query(
-        `SELECT destination FROM outstation_assignments WHERE user_id = ? AND status != 'Cancelled' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date`,
-        [empId]
-      );
-      const isOnOutstation = outstationRows.length > 0;
+
 
     res.json({
       success: true,
