@@ -95,7 +95,7 @@ function MapController({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
     if (center && !isNaN(center[0]) && !isNaN(center[1])) {
-      map.setView(center, map.getZoom());
+      map.flyTo(center, map.getZoom(), { animate: true, duration: 1 });
     }
   }, [center, map]);
   return null;
@@ -1867,7 +1867,21 @@ export default function Branches() {
                     placeholder="Longitude"
                     className="h-10 rounded-xl text-xs font-bold"
                   />
-                  <Button type="button" variant="outline" className="w-full h-10 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border-purple-200">
+                  <Button type="button" variant="outline" className="w-full h-10 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border-purple-200" onClick={() => {
+                    const lat = parseFloat(String(editBranchData.latitude));
+                    const lng = parseFloat(String(editBranchData.longitude));
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                      // Force re-render to trigger MapController flyTo
+                      setEditBranchData(prev => ({...prev, latitude: String(lat), longitude: String(lng)}));
+                      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                        .then(r => r.json())
+                        .then(data => {
+                          if (data && data.display_name) {
+                            setEditBranchData(prev => ({...prev, location: data.display_name}));
+                          }
+                        }).catch(console.error);
+                    }
+                  }}>
                     Apply Location
                   </Button>
                 </div>

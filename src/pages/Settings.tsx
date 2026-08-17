@@ -62,7 +62,7 @@ function MapController({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
     if (center && !isNaN(center[0]) && !isNaN(center[1])) {
-      map.setView(center, map.getZoom());
+      map.flyTo(center, map.getZoom(), { animate: true, duration: 1 });
     }
   }, [center, map]);
   return null;
