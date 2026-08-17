@@ -48,6 +48,49 @@ import { API_BASE_URL } from "../config/api";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import 'leaflet/dist/leaflet.css';
 
+
+// Smart geocoding: tries multiple strategies for Malaysian addresses
+async function smartGeocode(address: string): Promise<{lat: string, lon: string} | null> {
+  const trySearch = async (q: string) => {
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=my&limit=1&accept-language=en`);
+    const data = await r.json();
+    return data && data.length > 0 ? data[0] : null;
+  };
+
+  // Strategy 1: Full address + Malaysia
+  let result = await trySearch(address + ", Malaysia");
+  if (result) return result;
+
+  // Strategy 2: Strip lot/unit numbers (common in Malaysian addresses)
+  // Remove LOT XXXX, NO. X, PT XXX patterns
+  const stripped = address
+    .replace(/\b(LOT|PT|NO\.?|UNIT|BLOK|BLK|KM|KILOMETER)\s*[\d\w-]+[,\s]*/gi, '')
+    .replace(/^[,\s]+/, '').trim();
+  if (stripped && stripped !== address) {
+    result = await trySearch(stripped + ", Malaysia");
+    if (result) return result;
+  }
+
+  // Strategy 3: Extract words that look like town/city (skip lot numbers, ignore short tokens)
+  // Split by commas and try from right to left (city/state usually at end)
+  const parts = address.split(',').map(s => s.trim()).filter(Boolean);
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const partial = parts.slice(i).join(', ');
+    if (partial.length > 3) {
+      result = await trySearch(partial + ", Malaysia");
+      if (result) return result;
+    }
+  }
+
+  // Strategy 4: Try just last 2 parts (town, state)
+  if (parts.length >= 2) {
+    result = await trySearch(parts.slice(-2).join(', ') + ", Malaysia");
+    if (result) return result;
+  }
+
+  return null;
+}
+
 function MapController({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
@@ -1676,18 +1719,15 @@ export default function Branches() {
                       const addr = editBranchData.location;
                       if (!addr) return;
                       toast.loading("Searching coordinates...");
-                      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}&limit=1`)
-                        .then(r => r.json())
-                        .then(data => {
-                          toast.dismiss();
-                          if (data && data.length > 0) {
-                            setEditBranchData(prev => ({...prev, latitude: data[0].lat, longitude: data[0].lon}));
-                            toast.success("Coordinates found!");
-                          } else {
-                            toast.error("Address not found. Try a more specific address.");
-                          }
-                        })
-                        .catch(() => { toast.dismiss(); toast.error("Search failed"); });
+                      smartGeocode(addr).then(result => {
+                        toast.dismiss();
+                        if (result) {
+                          setEditBranchData(prev => ({...prev, latitude: result.lat, longitude: result.lon}));
+                          toast.success("Coordinates found!");
+                        } else {
+                          toast.error("Could not find coordinates. Try entering just the town/city name.");
+                        }
+                      }).catch(() => { toast.dismiss(); toast.error("Search failed"); });
                     }
                   }}
                   placeholder="Type address & press Enter or click 🔍"
@@ -1697,22 +1737,20 @@ export default function Branches() {
                   type="button"
                   title="Find Coordinates from Address"
                   className="h-11 px-4 rounded-xl border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors flex items-center gap-1 text-xs font-bold"
-                  onClick={() => {
+                  onClick={async () => {
                     const addr = editBranchData.location;
                     if (!addr) { toast.error("Please enter an address first"); return; }
                     toast.loading("Searching coordinates...");
-                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}&limit=1`)
-                      .then(r => r.json())
-                      .then(data => {
-                        toast.dismiss();
-                        if (data && data.length > 0) {
-                          setEditBranchData(prev => ({...prev, latitude: data[0].lat, longitude: data[0].lon}));
-                          toast.success("Coordinates found! Click 'Update Location' to view on map.");
-                        } else {
-                          toast.error("Address not found. Try a more specific address.");
-                        }
-                      })
-                      .catch(() => { toast.dismiss(); toast.error("Search failed"); });
+                    try {
+                      const result = await smartGeocode(addr);
+                      toast.dismiss();
+                      if (result) {
+                        setEditBranchData(prev => ({...prev, latitude: result.lat, longitude: result.lon}));
+                        toast.success("Coordinates found! Click 'Update Location' to view on map.");
+                      } else {
+                        toast.error("Could not find coordinates. Try entering just the town/city name.");
+                      }
+                    } catch { toast.dismiss(); toast.error("Search failed"); }
                   }}
                 >
                   🔍
