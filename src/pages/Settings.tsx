@@ -12,8 +12,18 @@ import { toast } from "sonner";
 import { useState, useEffect, useCallback } from "react";
 import { API_BASE_URL } from "../config/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import 'leaflet/dist/leaflet.css';
+
+function MapController({ center }: { center: [number, number] }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center && !isNaN(center[0]) && !isNaN(center[1])) {
+      map.setView(center, map.getZoom());
+    }
+  }, [center, map]);
+  return null;
+}
 
 function LocationPicker({ setLocation }: { setLocation: (lat: number, lng: number) => void }) {
   useMapEvents({
