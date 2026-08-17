@@ -20,6 +20,7 @@ import { EmployeesRequiringAttentionCard } from '@/components/shared/EmployeesRe
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { YearPopover } from "@/components/shared/YearPopover";
+import { MonthPicker } from "@/components/shared/MonthPicker";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -1101,11 +1102,10 @@ export default function LeaveAnalytics() {
             </div>
           )}
           {viewType === "month" && (
-            <input 
-              type="month" 
-              value={selectedMonthYear} 
-              onChange={e => setSelectedMonthYear(e.target.value)} 
-              className="h-9 px-3 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 outline-none hover:border-[#7B0099]/40 focus:ring-1 focus:ring-[#7B0099]"
+            <MonthPicker
+              monthYear={selectedMonthYear}
+              onSelectMonthYear={setSelectedMonthYear}
+              className="appearance-none flex items-center justify-between px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-medium rounded-lg shadow-none outline-none cursor-pointer h-9 gap-2 hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]"
             />
           )}
           {viewType === "year" && (
