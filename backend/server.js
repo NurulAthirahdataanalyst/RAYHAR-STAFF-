@@ -7141,10 +7141,10 @@ app.get("/api/outstation/history/:user_id", async (req, res) => {
 
 app.put("/api/branches/:code", async (req, res) => {
   try {
-    const { name, location, latitude, longitude, radius, zone } = req.body;
+    const { name, location, latitude, longitude, radius, zone, operating_zone } = req.body;
     await pool.query(
       `UPDATE branches SET name = ?, location = ?, latitude = ?, longitude = ?, radius = ?, operating_zone = ? WHERE code = ?`,
-      [name, location, latitude || null, longitude || null, radius || 50, zone || 'ZONE_B', req.params.code]
+      [name, location, latitude || null, longitude || null, radius || 50, zone || operating_zone || 'ZONE_B', req.params.code]
     );
     res.json({ success: true });
   } catch (e) {
@@ -7160,6 +7160,9 @@ app.get("/api/branches", async (req, res) => {
         b.code, 
         b.name,
         b.location,
+        b.latitude,
+        b.longitude,
+        b.radius,
         b.operating_zone,
         (
           SELECT p.full_name 
