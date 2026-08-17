@@ -44,6 +44,18 @@ import {
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../config/api";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import 'leaflet/dist/leaflet.css';
+
+function LocationPicker({ setLocation }: { setLocation: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click(e) {
+      setLocation(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
+
 import { toast } from "sonner";
 import { useReactToPrint } from "react-to-print";
 import { getCleanReason } from "@/lib/leaveStorage";
@@ -227,6 +239,51 @@ export default function Branches() {
     );
   });
   const [searchQuery, setSearchQuery] = useState("");
+  const [isEditBranchModalOpen, setIsEditBranchModalOpen] = useState(false);
+  const [editBranchData, setEditBranchData] = useState<any>({});
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+
+  const openEditModal = () => {
+    setEditBranchData({
+      code: selectedBranch.code,
+      name: selectedBranch.name,
+      location: selectedBranch.location || "",
+      operating_zone: selectedBranch.operating_zone || "ZONE_B",
+      latitude: selectedBranch.latitude || "",
+      longitude: selectedBranch.longitude || "",
+      radius: selectedBranch.radius || 50
+    });
+    setIsEditBranchModalOpen(true);
+  };
+
+  const handleEditBranch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/branches/${encodeURIComponent(editBranchData.code)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editBranchData.name,
+          location: editBranchData.location,
+          operating_zone: editBranchData.operating_zone,
+          latitude: parseFloat(editBranchData.latitude) || null,
+          longitude: parseFloat(editBranchData.longitude) || null,
+          radius: parseFloat(editBranchData.radius) || 50,
+        })
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        toast.success("Branch updated successfully!");
+        setIsEditBranchModalOpen(false);
+        fetchBranchesList();
+        setSelectedBranch(data.branch || { ...selectedBranch, ...editBranchData });
+      } else {
+        toast.error(data.error || "Failed to update branch");
+      }
+    } catch (err) {
+      toast.error("Network error");
+    }
+  };
 
   const filteredBranches = useMemo(() => {
     return allBranches.filter(
@@ -456,6 +513,7 @@ export default function Branches() {
                 >
                   {selectedBranch.code}
                 </Badge>
+                <Button variant="outline" size="sm" onClick={openEditModal} className="h-8 text-xs font-bold ml-2">Edit Branch</Button>
               </div>
               <p className="text-responsive-sm text-muted-foreground font-medium mt-1">
                 Branch staff overview and analytics
@@ -1564,6 +1622,106 @@ export default function Branches() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={isEditBranchModalOpen} onOpenChange={setIsEditBranchModalOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Edit Branch</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditBranch} className="space-y-4 pt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold">Branch Code (Readonly)</label>
+                <Input value={editBranchData.code || ""} readOnly disabled className="bg-muted" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold">Branch Name</label>
+                <Input 
+                  value={editBranchData.name || ""} 
+                  onChange={(e) => setEditBranchData({...editBranchData, name: e.target.value})} 
+                  required
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold">Location</label>
+              <Input 
+                value={editBranchData.location || ""} 
+                onChange={(e) => setEditBranchData({...editBranchData, location: e.target.value})} 
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold">Operating Zone</label>
+              <select
+                value={editBranchData.operating_zone || "ZONE_B"}
+                onChange={(e) => setEditBranchData({...editBranchData, operating_zone: e.target.value})}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <option value="ZONE_B">ZONE B (West Coast)</option>
+                <option value="ZONE_A">ZONE A (East Coast)</option>
+              </select>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold">Coordinates</label>
+                <div className="flex gap-2">
+                  <Input 
+                    value={editBranchData.latitude && editBranchData.longitude ? `${editBranchData.latitude}, ${editBranchData.longitude}` : ""} 
+                    readOnly 
+                    className="bg-muted"
+                  />
+                  <Button type="button" onClick={() => setIsMapModalOpen(true)} className="shrink-0 bg-[#7B0099] text-white">
+                    <MapPin className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold">Radius (m): {editBranchData.radius}</label>
+                <input 
+                  type="range" 
+                  min="10" 
+                  max="1000" 
+                  step="10" 
+                  value={editBranchData.radius || 50} 
+                  onChange={(e) => setEditBranchData({...editBranchData, radius: e.target.value})}
+                  className="w-full h-9"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button type="button" variant="outline" onClick={() => setIsEditBranchModalOpen(false)}>Cancel</Button>
+              <Button type="submit" className="bg-[#7B0099] text-white hover:bg-[#7B0099]/90">Save Changes</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isMapModalOpen} onOpenChange={setIsMapModalOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Select Location</DialogTitle>
+          </DialogHeader>
+          <div className="h-[400px] rounded-md overflow-hidden relative">
+            <MapContainer 
+              center={[4.2105, 101.9758]} 
+              zoom={6} 
+              style={{ height: "100%", width: "100%" }}
+            >
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <LocationPicker setLocation={(lat, lng) => {
+                setEditBranchData({...editBranchData, latitude: lat.toString(), longitude: lng.toString()});
+              }} />
+              {editBranchData.latitude && editBranchData.longitude && (
+                <Marker position={[parseFloat(editBranchData.latitude), parseFloat(editBranchData.longitude)]} />
+              )}
+            </MapContainer>
+          </div>
+          <div className="flex justify-end pt-4">
+            <Button type="button" onClick={() => setIsMapModalOpen(false)} className="bg-[#7B0099] text-white">Done</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+

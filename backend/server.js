@@ -4071,7 +4071,7 @@ app.get("/api/attendance-status", async (req, res) => {
 // CLOCK IN
 // ===============================
 app.post("/api/attendance", async (req, res) => {
-  const { user_id, location, attendance_type } = req.body;
+  const { user_id, location, attendance_type, latitude, longitude, accuracy } = req.body;
 
   if (!user_id) {
     return res
@@ -7086,6 +7086,73 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
+app.post("/api/outstation/log-location", async (req, res) => {
+  try {
+    const { employee_id, attendance_id, latitude, longitude, accuracy } = req.body;
+    await pool.query(
+        `INSERT INTO employee_location_logs (employee_id, attendance_id, latitude, longitude, accuracy, location_type, ip_address) VALUES (?, ?, ?, ?, ?, 'UPDATE', ?)`,
+        [employee_id, attendance_id || null, latitude, longitude, accuracy, req.ip || req.connection.remoteAddress]
+    );
+    res.json({ success: true });
+  } catch(e) {
+    console.error(e);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+app.get("/api/outstation/today", async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT a.attendance_id, a.user_id, p.full_name, p.department, a.clock_in, a.clock_out, a.attendance_type
+      FROM attendances a
+      JOIN profiles p ON p.user_id = a.user_id
+      WHERE DATE(a.clock_in) = CURRENT_DATE AND a.attendance_type = 'OUTSTATION'
+    `);
+    
+    // Postgres specific: getting latest row per employee_id
+    const [logs] = await pool.query(`
+      SELECT DISTINCT ON (employee_id) employee_id, latitude, longitude, accuracy, recorded_at, location_type
+      FROM employee_location_logs
+      WHERE DATE(recorded_at) = CURRENT_DATE
+      ORDER BY employee_id, recorded_at DESC
+    `);
+    
+    res.json({ success: true, attendances: rows, latest_locations: logs });
+  } catch(e) {
+    console.error(e);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+app.get("/api/outstation/history/:user_id", async (req, res) => {
+  try {
+    const [logs] = await pool.query(`
+      SELECT * FROM employee_location_logs
+      WHERE employee_id = ? AND DATE(recorded_at) = CURRENT_DATE
+      ORDER BY recorded_at ASC
+    `, [req.params.user_id]);
+    res.json({ success: true, history: logs });
+  } catch(e) {
+    console.error(e);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+app.put("/api/branches/:code", async (req, res) => {
+  try {
+    const { name, location, latitude, longitude, radius, zone } = req.body;
+    await pool.query(
+      `UPDATE branches SET name = ?, location = ?, latitude = ?, longitude = ?, radius = ?, operating_zone = ? WHERE code = ?`,
+      [name, location, latitude || null, longitude || null, radius || 50, zone || 'ZONE_B', req.params.code]
+    );
+    res.json({ success: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 app.get("/api/branches", async (req, res) => {
   try {
     const queryStr = `

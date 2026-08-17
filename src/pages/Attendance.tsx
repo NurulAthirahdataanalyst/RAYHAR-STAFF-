@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Loader2, Clock, Fingerprint, Hand, Timer, MapPin, Home, SlidersHorizontal, Download, ChevronDown, FileText, FileSpreadsheet, Sparkles, CalendarDays } from "lucide-react";
 import { API_BASE_URL } from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -119,6 +120,32 @@ export default function Attendance() {
   });
 
   // Location selection state
+  
+  // Outstation & Geolocation States
+  const [branches, setBranches] = useState<any[]>([]);
+  const [outstationPromptOpen, setOutstationPromptOpen] = useState(false);
+  const [pendingLocation, setPendingLocation] = useState<{lat: number, lng: number, acc: number} | null>(null);
+  const [outstationLocationLoading, setOutstationLocationLoading] = useState(false);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/branches`)
+      .then(res => res.json())
+      .then(data => {
+        if(data.success && data.branches) setBranches(data.branches);
+      }).catch(console.error);
+  }, []);
+
+  const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371e3;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
   const [allowedLocations, setAllowedLocations] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [attendanceMode, setAttendanceMode] = useState<"permanent" | "temporary" | "multi">("permanent");
@@ -655,31 +682,23 @@ export default function Attendance() {
   };
 
   // 5. THE CORE ACTION: Clock In / Clock Out
-  const handleAttendanceAction = async () => {
-    const employeeId = user?.user_id || user?.id;
-
-    if (!employeeId) {
-      toast({
-        title: "Auth Error",
-        description: "User ID is missing. Please log out and back in.",
-        variant: "destructive"
-      });
-      return;
-    }
-
+  const performClockInOrOut = async (employeeId: string, attendance_type: string, lat?: number, lng?: number, acc?: number) => {
     setLoading(true);
     try {
       const isClockOut = !!activeSession;
       const endpoint = isClockOut ? "/api/clock-out" : "/api/attendance";
-      
-      let attendance_type = "Normal";
-      if (attendanceMode === 'temporary') attendance_type = "Temporary Assignment";
-      else if (attendanceMode === 'multi') attendance_type = "Multi-Location";
 
       const payload: any = { user_id: String(employeeId).trim() };
       if (!isClockOut) {
         payload.location = selectedLocation;
         payload.attendance_type = attendance_type;
+        if (lat !== undefined) payload.latitude = lat;
+        if (lng !== undefined) payload.longitude = lng;
+        if (acc !== undefined) payload.accuracy = acc;
+      } else {
+        if (lat !== undefined) payload.latitude = lat;
+        if (lng !== undefined) payload.longitude = lng;
+        if (acc !== undefined) payload.accuracy = acc;
       }
 
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -705,10 +724,7 @@ export default function Attendance() {
 
         sessionStorage.setItem("latestAttendanceUpdate", JSON.stringify(dashboardUpdate));
         sessionStorage.setItem("dashboardRefresh", Date.now().toString());
-
-        window.dispatchEvent(
-          new CustomEvent("attendanceUpdated", { detail: dashboardUpdate })
-        );
+        window.dispatchEvent(new CustomEvent("attendanceUpdated", { detail: dashboardUpdate }));
 
         toast({
           title: isClockOut ? "Successfully Clocked Out" : "Successfully Clocked In",
@@ -733,6 +749,123 @@ export default function Attendance() {
       setLoading(false);
     }
   };
+
+  const handleAttendanceAction = async () => {
+    const employeeId = user?.user_id || user?.id;
+    if (!employeeId) {
+      toast({ title: "Auth Error", description: "User ID is missing. Please log out and back in.", variant: "destructive" });
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      toast({ title: "Geolocation Error", description: "Geolocation is not supported by your browser.", variant: "destructive" });
+      return;
+    }
+
+    setLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const acc = position.coords.accuracy;
+
+        const isClockOut = !!activeSession;
+        if (isClockOut) {
+          // Send lat, lng, acc on clock-out
+          performClockInOrOut(employeeId, "Normal", lat, lng, acc);
+          return;
+        }
+
+        // It is Clock In
+        let attendance_type = "BRANCH";
+        if (attendanceMode === 'temporary') attendance_type = "Temporary Assignment";
+        else if (attendanceMode === 'multi') attendance_type = "Multi-Location";
+
+        // Find branch coords
+        const branchCode = user?.branch || 'HQ';
+        const branchInfo = branches.find((b: any) => b.code === branchCode || b.name === branchCode);
+
+        if (branchInfo && branchInfo.latitude && branchInfo.longitude) {
+          const radius = branchInfo.radius || 50;
+          const dist = haversineDistance(lat, lng, parseFloat(branchInfo.latitude), parseFloat(branchInfo.longitude));
+          
+          if (dist > radius) {
+             setPendingLocation({lat, lng, acc});
+             setOutstationPromptOpen(true);
+             setLoading(false);
+             return;
+          }
+        }
+        
+        // Either distance <= radius or no branch info found (fallback to normal clockin)
+        performClockInOrOut(employeeId, attendance_type, lat, lng, acc);
+      },
+      (error) => {
+        setLoading(false);
+        toast({ title: "Location Error", description: "Unable to retrieve your location.", variant: "destructive" });
+      },
+      { enableHighAccuracy: true }
+    );
+  };
+
+  const confirmOutstationMode = () => {
+    if (!pendingLocation) return;
+    const {lat, lng, acc} = pendingLocation;
+    const employeeId = user?.user_id || user?.id;
+    
+    if (acc <= 30) {
+      setOutstationPromptOpen(false);
+      performClockInOrOut(employeeId, "OUTSTATION", lat, lng, acc);
+    } else if (acc <= 50) {
+      toast({ title: "Low Accuracy", description: "Location accuracy is currently low. Please move to an open area and try again", variant: "default" });
+      // Keep prompt open or let user retry
+    } else {
+      toast({ title: "Location Error", description: "Accuracy too low (>50m) to clock in. Please try again outside.", variant: "destructive" });
+    }
+  };
+
+  const handleUpdateLocation = () => {
+    if (!navigator.geolocation) return;
+    setOutstationLocationLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const acc = position.coords.accuracy;
+        const employeeId = user?.user_id || user?.id;
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/outstation/log-location`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              employee_id: employeeId,
+              attendance_id: activeSession?.id || activeSession?.attendance_id,
+              latitude: lat,
+              longitude: lng,
+              accuracy: acc
+            })
+          });
+          const result = await response.json();
+          if (result.success) {
+            toast({ title: "Location Updated", description: "Your outstation location has been logged." });
+          } else {
+            throw new Error(result.error);
+          }
+        } catch (e: any) {
+          toast({ title: "Update Failed", description: e.message || "Failed to log location", variant: "destructive" });
+        } finally {
+          setOutstationLocationLoading(false);
+        }
+      },
+      (err) => {
+        setOutstationLocationLoading(false);
+        toast({ title: "Location Error", description: "Unable to get location", variant: "destructive" });
+      },
+      { enableHighAccuracy: true }
+    );
+  };
+
 
   // Calculate shift progress percentage (based on 9 hours standard shift)
   const getShiftProgress = () => {
@@ -957,6 +1090,20 @@ export default function Attendance() {
                     </>
                   )}
                 </button>
+                  {activeSession && (activeSession.attendance_type === 'OUTSTATION' || activeSession.status === 'OUTSTATION' || attendanceStatus?.status === 'OUTSTATION' || (activeSession.location && activeSession.location !== 'HQ')) && (
+                    <div className="absolute -bottom-12 w-full flex justify-center">
+                      <Button
+                        type="button"
+                        onClick={handleUpdateLocation}
+                        disabled={outstationLocationLoading}
+                        className="bg-purple-600 text-white hover:bg-purple-700 rounded-full shadow-lg h-9 px-5 font-bold text-[11px] uppercase tracking-wider"
+                      >
+                        {outstationLocationLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <MapPin className="w-4 h-4 mr-2" />}
+                        Update My Location
+                      </Button>
+                    </div>
+                  )}
+    
               </div>
 
               {/* Working Location Selector — shown before clock-in for multi-location employees */}
@@ -1459,6 +1606,27 @@ export default function Attendance() {
 
         </Card>
       </div>
+
+      {/* Outstation Prompt Modal */}
+      <Dialog open={outstationPromptOpen} onOpenChange={setOutstationPromptOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DTitle>Outside Branch Area</DTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm text-muted-foreground">
+              You're outside your assigned branch. Would you like to check in using Outstation Mode?
+            </p>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={() => setOutstationPromptOpen(false)}>Cancel</Button>
+              <Button type="button" onClick={confirmOutstationMode} className="bg-[#7B0099] text-white hover:bg-[#7B0099]/90">
+                Outstation Mode
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+

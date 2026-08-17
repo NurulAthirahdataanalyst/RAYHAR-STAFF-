@@ -11,6 +11,19 @@ import {
 import { toast } from "sonner";
 import { useState, useEffect, useCallback } from "react";
 import { API_BASE_URL } from "../config/api";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import 'leaflet/dist/leaflet.css';
+
+function LocationPicker({ setLocation }: { setLocation: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click(e) {
+      setLocation(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
+
 
 interface Branch {
   code: string;
@@ -48,6 +61,10 @@ export default function SettingsPage() {
   const [branchNameInput, setBranchNameInput] = useState("");
   const [branchLocationInput, setBranchLocationInput] = useState("");
   const [branchZoneInput, setBranchZoneInput] = useState("ZONE_B");
+  const [branchLat, setBranchLat] = useState("");
+  const [branchLng, setBranchLng] = useState("");
+  const [branchRadius, setBranchRadius] = useState("50");
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [submittingBranch, setSubmittingBranch] = useState(false);
 
   // Add Department Form State
@@ -264,6 +281,9 @@ export default function SettingsPage() {
           name: branchNameInput.trim(),
           location: branchLocationInput.trim(),
           operating_zone: branchZoneInput,
+          latitude: parseFloat(branchLat) || null,
+          longitude: parseFloat(branchLng) || null,
+          radius: parseFloat(branchRadius) || 50,
           operatorName: user?.full_name || user?.name || "Athirah Rahman",
           operatorRole: role || "hr_admin"
         })
@@ -275,6 +295,9 @@ export default function SettingsPage() {
         setBranchNameInput("");
         setBranchLocationInput("");
         setBranchZoneInput("ZONE_B");
+        setBranchLat("");
+        setBranchLng("");
+        setBranchRadius("50");
         
         // Refresh branches list
         const branchRes = await fetch(`${API_BASE_URL}/api/branches`);
@@ -840,6 +863,64 @@ export default function SettingsPage() {
                   </select>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Coordinates</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        readOnly
+                        placeholder="Lat, Lng"
+                        value={branchLat && branchLng ? `${branchLat}, ${branchLng}` : ""}
+                        className="w-full h-11 px-4 bg-background/30 border border-border/80 rounded-xl text-xs font-bold outline-none cursor-not-allowed text-muted-foreground"
+                      />
+                      <Button type="button" onClick={() => setIsMapModalOpen(true)} className="h-11 bg-[#7B0099] text-white hover:bg-[#7B0099]/90 rounded-xl px-4 shrink-0 text-xs font-bold">
+                        <MapPin className="w-4 h-4 mr-2" /> Select
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Radius (m): {branchRadius}</label>
+                    <input
+                      type="range"
+                      min="10"
+                      max="1000"
+                      step="10"
+                      value={branchRadius}
+                      onChange={(e) => setBranchRadius(e.target.value)}
+                      className="w-full h-11"
+                    />
+                  </div>
+                </div>
+
+                <Dialog open={isMapModalOpen} onOpenChange={setIsMapModalOpen}>
+                  <DialogContent className="max-w-3xl">
+                    <DialogHeader>
+                      <DialogTitle>Select Branch Location</DialogTitle>
+                    </DialogHeader>
+                    <div className="h-[400px] rounded-md overflow-hidden relative">
+                      <MapContainer 
+                        center={[4.2105, 101.9758]} 
+                        zoom={6} 
+                        style={{ height: "100%", width: "100%" }}
+                      >
+                        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                        <LocationPicker setLocation={(lat, lng) => {
+                          setBranchLat(lat.toString());
+                          setBranchLng(lng.toString());
+                        }} />
+                        {branchLat && branchLng && (
+                          <Marker position={[parseFloat(branchLat), parseFloat(branchLng)]} />
+                        )}
+                      </MapContainer>
+                    </div>
+                    <div className="flex justify-end pt-4">
+                      <Button type="button" onClick={() => setIsMapModalOpen(false)} className="bg-[#7B0099] text-white hover:bg-[#7B0099]/90">Done</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+
                 <div className="flex gap-3 justify-end pt-4">
                   <Button
                     type="button"
@@ -848,6 +929,9 @@ export default function SettingsPage() {
                       setBranchNameInput("");
                       setBranchLocationInput("");
                       setBranchZoneInput("ZONE_B");
+        setBranchLat("");
+        setBranchLng("");
+        setBranchRadius("50");
                     }}
                     className="h-11 px-6 rounded-xl border border-border bg-background/20 hover:bg-background/40 text-foreground font-black text-[9px] uppercase tracking-wider"
                   >
