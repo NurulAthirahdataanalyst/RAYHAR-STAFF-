@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -51,7 +51,7 @@ export function YearPopover({ year, onSelectYear, className }: YearPopoverProps)
             <ChevronLeft className="w-4 h-4" />
           </button>
           <span className="text-sm font-bold tracking-wide">
-            {baseDecade} â€“ {baseDecade + 9}
+            {baseDecade} - {baseDecade + 9}
           </span>
           <button
             type="button"

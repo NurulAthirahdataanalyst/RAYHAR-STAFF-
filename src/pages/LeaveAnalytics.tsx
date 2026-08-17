@@ -61,7 +61,9 @@ import {
   AlertCircle,
   MoreHorizontal,
   ArrowRight,
-  BarChart3, Calendar, Clock, MapPin, Search, ShieldAlert, Check, X, ShieldCheck, HelpCircle, Layers, Building2, ChevronRight, CheckSquare, ListFilter, SlidersHorizontal, Activity, Sparkles
+} from "lucide-react";
+import { 
+  BarChart3, Calendar as CalendarIcon, Clock, MapPin, Search, ShieldAlert, Check, X, ShieldCheck, HelpCircle, Layers, Building2, ChevronRight, CheckSquare, ListFilter, SlidersHorizontal, Activity, Sparkles 
 } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
@@ -1145,7 +1147,7 @@ export default function LeaveAnalytics() {
           { label: "Approval Rate", val: `${total > 0 ? Math.round((approved / total) * 100) : 0}%`, color: "text-emerald-600", bg: "bg-emerald-50", icon: <CheckCircle2 className="w-5 h-5"/>, trend: "↑ 5% vs last month" },
           { label: "Pending Approval", val: pending, color: "text-amber-600", bg: "bg-amber-50", icon: <AlertCircle className="w-5 h-5"/>, trend: "↓ 2 vs last month" },
           { label: "Rejected Rate", val: `${total > 0 ? Math.round((rejected / total) * 100) : 0}%`, color: "text-rose-600", bg: "bg-rose-50", icon: <XCircle className="w-5 h-5"/>, trend: "↓ 1% vs last month" },
-          { label: "Avg Leave Days / Employee", val: avgLeaveDays, color: "text-indigo-600", bg: "bg-indigo-50", icon: <Calendar className="w-5 h-5"/>, trend: "↓ 0.5 vs last month" },
+          { label: "Avg Leave Days / Employee", val: avgLeaveDays, color: "text-indigo-600", bg: "bg-indigo-50", icon: <CalendarIcon className="w-5 h-5"/>, trend: "↓ 0.5 vs last month" },
           { label: "Sick Leave Rate", val: `${sickLeaveRate}%`, color: "text-pink-600", bg: "bg-pink-50", icon: <BriefcaseMedical className="w-5 h-5"/>, trend: "↑ 2% vs last month" },
         ].map((k, i) => (
           <Card key={i} className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col justify-between ">
@@ -1428,21 +1430,21 @@ export default function LeaveAnalytics() {
           <div className="space-y-4 flex-1">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-50 text-blue-600"><Calendar className="w-4 h-4"/></div>
+                <div className="p-2 rounded-lg bg-blue-50 text-blue-600"><CalendarIcon className="w-4 h-4"/></div>
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Tomorrow</span>
               </div>
               <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{upcomingLeaves.tomorrow} Employees</span>
             </div>
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-purple-50 text-purple-600"><Calendar className="w-4 h-4"/></div>
+                <div className="p-2 rounded-lg bg-purple-50 text-purple-600"><CalendarIcon className="w-4 h-4"/></div>
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Next 7 Days</span>
               </div>
               <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{upcomingLeaves.nextWeek} Employees</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600"><Calendar className="w-4 h-4"/></div>
+                <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600"><CalendarIcon className="w-4 h-4"/></div>
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Next 30 Days</span>
               </div>
               <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{upcomingLeaves.nextMonth} Employees</span>
