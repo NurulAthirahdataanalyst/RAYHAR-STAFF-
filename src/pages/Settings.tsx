@@ -64,6 +64,7 @@ export default function SettingsPage() {
   const [branchLat, setBranchLat] = useState("");
   const [branchLng, setBranchLng] = useState("");
   const [branchRadius, setBranchRadius] = useState("50");
+  const [branchAddress, setBranchAddress] = useState("");
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [submittingBranch, setSubmittingBranch] = useState(false);
 
@@ -909,6 +910,13 @@ export default function SettingsPage() {
                           <LocationPicker setLocation={(lat, lng) => {
                             setBranchLat(lat.toString());
                             setBranchLng(lng.toString());
+                            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                              .then(res => res.json())
+                              .then(data => {
+                                if(data && data.display_name) {
+                                  setBranchAddress(data.display_name);
+                                }
+                              }).catch(console.error);
                           }} />
                           {branchLat && branchLng && (
                             <Marker position={[parseFloat(branchLat), parseFloat(branchLng)]} />
@@ -939,7 +947,7 @@ export default function SettingsPage() {
                           <div className="space-y-2 pt-4">
                             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Address / Display Name</label>
                             <div className="p-4 bg-white dark:bg-card border rounded-xl shadow-sm text-xs text-muted-foreground leading-relaxed">
-                              Select a location on the map
+                              {branchAddress || "Select a location on the map"}
                             </div>
                           </div>
                         </div>

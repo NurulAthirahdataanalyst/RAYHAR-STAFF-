@@ -1721,6 +1721,13 @@ export default function Branches() {
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <LocationPicker setLocation={(lat, lng) => {
                   setEditBranchData({...editBranchData, latitude: lat.toString(), longitude: lng.toString()});
+                  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                    .then(res => res.json())
+                    .then(data => {
+                      if(data && data.display_name) {
+                        setEditBranchData(prev => ({...prev, location: data.display_name}));
+                      }
+                    }).catch(console.error);
                 }} />
                 {editBranchData.latitude && editBranchData.longitude && (
                   <Marker position={[parseFloat(editBranchData.latitude), parseFloat(editBranchData.longitude)]} />

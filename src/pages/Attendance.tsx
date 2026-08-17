@@ -1611,7 +1611,7 @@ export default function Attendance() {
       <Dialog open={outstationPromptOpen} onOpenChange={setOutstationPromptOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DTitle>Outside Branch Area</DTitle>
+            <DialogTitle>Outside Branch Area</DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-4">
             <p className="text-sm text-muted-foreground">
