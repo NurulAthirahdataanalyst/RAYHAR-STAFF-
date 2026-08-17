@@ -740,6 +740,13 @@ export default function Attendance() {
             : `Welcome! Session started at ${new Date().toLocaleTimeString()}`,
         });
 
+        // Immediately update activeSession from the response (don't wait for fetchStatus)
+        if (isClockOut) {
+          setActiveSession(null);
+        } else if (result.record) {
+          setActiveSession(result.record);
+        }
+
         await fetchStatus(employeeId);
         await fetchHistoryLogs(employeeId, selectedMonth, selectedYear);
       } else {
