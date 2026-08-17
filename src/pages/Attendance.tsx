@@ -124,6 +124,7 @@ export default function Attendance() {
   // Outstation & Geolocation States
   const [branches, setBranches] = useState<any[]>([]);
   const [outstationPromptOpen, setOutstationPromptOpen] = useState(false);
+  const [isOutstationAssigned, setIsOutstationAssigned] = useState(false);
   const [pendingLocation, setPendingLocation] = useState<{lat: number, lng: number, acc: number} | null>(null);
   const [outstationLocationLoading, setOutstationLocationLoading] = useState(false);
 
@@ -222,6 +223,11 @@ export default function Attendance() {
       if (data.isOnLeave) {
         setIsOnLeave(true);
       }
+        if (data.isOutstation) {
+          setIsOutstationAssigned(true);
+        } else {
+          setIsOutstationAssigned(false);
+        }
 
       if (data.attendanceStatus) {
         setAttendanceStatus(data.attendanceStatus);
@@ -790,11 +796,17 @@ export default function Attendance() {
           const dist = haversineDistance(lat, lng, parseFloat(branchInfo.latitude), parseFloat(branchInfo.longitude));
           
           if (dist > radius) {
-             setPendingLocation({lat, lng, acc});
-             setOutstationPromptOpen(true);
-             setLoading(false);
-             return;
-          }
+               if (isOutstationAssigned) {
+                 setPendingLocation({lat, lng, acc});
+                 setOutstationPromptOpen(true);
+                 setLoading(false);
+                 return;
+               } else {
+                 toast({ title: "Clock In Failed", description: `You are outside the branch radius (${radius}m). Distance: ${Math.round(dist)}m`, variant: "destructive" });
+                 setLoading(false);
+                 return;
+               }
+            }
         }
         
         // Either distance <= radius or no branch info found (fallback to normal clockin)

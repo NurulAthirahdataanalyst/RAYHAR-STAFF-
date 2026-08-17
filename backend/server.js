@@ -3993,6 +3993,13 @@ app.get("/api/attendance-status", async (req, res) => {
 
     const isOnLeave = leaveRows.length > 0;
 
+      const [outstationRows] = await pool.query(`
+        SELECT * FROM outstation_assignments 
+        WHERE user_id = ? AND status != 'Cancelled' AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+      `, [empId]);
+      
+      const isOutstation = outstationRows.length > 0;
+
     const [rows] = await pool.query(`
       SELECT * FROM attendances
       WHERE user_id = ?
