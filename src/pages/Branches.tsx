@@ -1716,7 +1716,7 @@ export default function Branches() {
               <MapContainer 
                 center={editBranchData.latitude && editBranchData.longitude ? [parseFloat(editBranchData.latitude), parseFloat(editBranchData.longitude)] : [4.2248, 103.4194]} 
                 zoom={10} 
-                style={{ height: "100%", width: "100%", zIndex: 1 }}
+                style={{ height: "100%", width: "100%" }}
               >
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <LocationPicker setLocation={(lat, lng) => {
@@ -1758,7 +1758,7 @@ export default function Branches() {
               
               <div className="mt-auto flex gap-3 pt-6">
                 <Button type="button" variant="outline" onClick={() => setIsMapModalOpen(false)} className="flex-1 h-11 rounded-xl text-[10px] font-black uppercase tracking-wider bg-white">Cancel</Button>
-                <Button type="button" onClick={() => setIsMapModalOpen(false)} className="flex-1 h-11 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/90 text-[10px] font-black uppercase tracking-wider shadow-md whitespace-nowrap">Save Branch Location</Button>
+                <Button type="button" onClick={() => setIsMapModalOpen(false)} className="flex-1 h-11 rounded-xl bg-[#7B0099] text-white hover:bg-[#7B0099]/90 text-[10px] font-black uppercase tracking-wider shadow-md">Save</Button>
               </div>
             </div>
           </div>
