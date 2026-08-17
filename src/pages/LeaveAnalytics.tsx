@@ -20,6 +20,8 @@ import { EmployeesRequiringAttentionCard } from '@/components/shared/EmployeesRe
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { YearPopover } from "@/components/shared/YearPopover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import {
   PieChart,
   Pie,
@@ -53,6 +55,7 @@ import {
   FileSpreadsheet,
   CalendarCheck,
   BriefcaseMedical,
+  CalendarDays,
   Umbrella,
   AlertCircle,
   MoreHorizontal,
@@ -1077,12 +1080,25 @@ export default function LeaveAnalytics() {
         {/* RIGHT: Active Filter Controls (Year, Month, Branch, Leave Type, Export Button) */}
         <div className="flex flex-wrap items-center justify-end gap-2.5">
           {viewType === "day" && (
-            <input 
-              type="date" 
-              value={selectedDate} 
-              onChange={e => setSelectedDate(e.target.value)} 
-              className="h-9 px-3 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 outline-none hover:border-[#7B0099]/40 focus:ring-1 focus:ring-[#7B0099]"
-            />
+            <div className="relative">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="appearance-none flex items-center justify-center px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-medium rounded-lg shadow-none outline-none cursor-pointer h-9 gap-2 hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
+                    {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-3.5 h-3.5 text-gray-400" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-1" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={new Date(selectedDate)}
+                    onSelect={(d) => {
+                      if (d) setSelectedDate(new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0]);
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           )}
           {viewType === "month" && (
             <input 
