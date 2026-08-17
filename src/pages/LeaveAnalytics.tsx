@@ -365,6 +365,10 @@ export default function LeaveAnalytics() {
   const [selectedYear, setSelectedYear] = useState(
     new Date().getFullYear().toString(),
   );
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const tzOffset = new Date().getTimezoneOffset() * 60000;
+    return (new Date(Date.now() - tzOffset)).toISOString().slice(0, 10);
+  });
   const [selectedBranch, setSelectedBranch] = useState("All Branches");
   const [selectedType, setSelectedType] = useState("All Types");
   const [selectedStatus, setSelectedStatus] = useState("All");
@@ -580,17 +584,23 @@ export default function LeaveAnalytics() {
   // ─ Filter logic ─────────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     return records.filter((r) => {
-      // Month/Year filter
-      if (selectedMonth !== "all" || selectedYear) {
-        const d = new Date(r.start_date);
-        if (selectedYear && d.getFullYear().toString() !== selectedYear)
-          return false;
-        if (
-          selectedMonth !== "all" &&
-          (d.getMonth() + 1).toString() !== selectedMonth
-        )
-          return false;
+      const d = new Date(r.start_date);
+      
+      // Date filter based on viewType
+      if (viewType === "day") {
+        if (selectedDate) {
+           // Local date string comparison
+           const tzOffset = d.getTimezoneOffset() * 60000;
+           const localISOTime = (new Date(d.getTime() - tzOffset)).toISOString().slice(0, 10);
+           if (localISOTime !== selectedDate) return false;
+        }
+      } else if (viewType === "month") {
+        if (selectedYear && d.getFullYear().toString() !== selectedYear) return false;
+        if (selectedMonth !== "all" && (d.getMonth() + 1).toString() !== selectedMonth) return false;
+      } else if (viewType === "year") {
+        if (selectedYear && d.getFullYear().toString() !== selectedYear) return false;
       }
+
       // Branch filter
       if (selectedBranch !== "All Branches" && r.branch !== selectedBranch)
         return false;
@@ -608,6 +618,8 @@ export default function LeaveAnalytics() {
     });
   }, [
     records,
+    viewType,
+    selectedDate,
     selectedMonth,
     selectedYear,
     selectedBranch,
@@ -1056,19 +1068,31 @@ export default function LeaveAnalytics() {
 
         {/* RIGHT: Active Filter Controls (Year, Month, Branch, Leave Type, Export Button) */}
         <div className="flex flex-wrap items-center justify-end gap-2.5">
-          <YearPopover
-            year={selectedYear}
-            onSelectYear={setSelectedYear}
-            className="w-[110px] h-9 px-3 text-[11px] font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-[#7B0099]/40 transition-colors flex items-center justify-between cursor-pointer"
-          />
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-[120px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
-              <SelectValue placeholder="Month" />
-            </SelectTrigger>
-            <SelectContent>
-              {MONTHS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          {viewType === "day" && (
+            <input 
+              type="date" 
+              value={selectedDate} 
+              onChange={e => setSelectedDate(e.target.value)} 
+              className="h-9 px-3 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 outline-none hover:border-[#7B0099]/40 focus:ring-1 focus:ring-[#7B0099]"
+            />
+          )}
+          {viewType !== "day" && (
+            <YearPopover
+              year={selectedYear}
+              onSelectYear={setSelectedYear}
+              className="w-[110px] h-9 px-3 text-[11px] font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-[#7B0099]/40 transition-colors flex items-center justify-between cursor-pointer"
+            />
+          )}
+          {viewType === "month" && (
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-[120px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
+                <SelectValue placeholder="Month" />
+              </SelectTrigger>
+              <SelectContent>
+                {MONTHS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
           {!isScopedRole && (
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
               <SelectTrigger className="w-[140px] h-9 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-none outline-none hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
