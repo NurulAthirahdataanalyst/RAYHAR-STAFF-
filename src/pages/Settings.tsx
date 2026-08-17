@@ -851,13 +851,57 @@ export default function SettingsPage() {
                 
                 <div className="space-y-1.5">
                   <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Branch Location / District</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. ALOR SETAR, KEDAH"
-                    value={branchLocationInput}
-                    onChange={(e) => setBranchLocationInput(e.target.value)}
-                    className="w-full h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case uppercase outline-none"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Type address & press Enter or click 🔍"
+                      value={branchLocationInput}
+                      onChange={(e) => setBranchLocationInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (!branchLocationInput) return;
+                          toast.loading("Searching coordinates...");
+                          fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(branchLocationInput)}&limit=1`)
+                            .then(r => r.json())
+                            .then(data => {
+                              toast.dismiss();
+                              if (data && data.length > 0) {
+                                setNewBranchData(prev => ({...prev, latitude: data[0].lat, longitude: data[0].lon}));
+                                toast.success("Coordinates found!");
+                              } else {
+                                toast.error("Address not found. Try a more specific address.");
+                              }
+                            })
+                            .catch(() => { toast.dismiss(); toast.error("Search failed"); });
+                        }
+                      }}
+                      className="flex-1 h-11 px-4 bg-background/30 border border-border/80 focus:border-[#7B0099] focus:ring-2 focus:ring-[#7B0099]/10 rounded-xl text-xs font-bold placeholder:normal-case uppercase outline-none"
+                    />
+                    <button
+                      type="button"
+                      title="Find Coordinates from Address"
+                      className="h-11 px-4 rounded-xl border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors text-sm font-bold"
+                      onClick={() => {
+                        if (!branchLocationInput) { toast.error("Please enter an address first"); return; }
+                        toast.loading("Searching coordinates...");
+                        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(branchLocationInput)}&limit=1`)
+                          .then(r => r.json())
+                          .then(data => {
+                            toast.dismiss();
+                            if (data && data.length > 0) {
+                              setNewBranchData(prev => ({...prev, latitude: data[0].lat, longitude: data[0].lon}));
+                              toast.success("Coordinates found!");
+                            } else {
+                              toast.error("Address not found. Try a more specific address.");
+                            }
+                          })
+                          .catch(() => { toast.dismiss(); toast.error("Search failed"); });
+                      }}
+                    >
+                      🔍
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">

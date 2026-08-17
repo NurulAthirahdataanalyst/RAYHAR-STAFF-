@@ -1666,11 +1666,58 @@ export default function Branches() {
             </div>
             <div className="space-y-1.5">
               <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">BRANCH LOCATION / DISTRICT</label>
-              <Input 
-                value={editBranchData.location || ""} 
-                onChange={(e) => setEditBranchData({...editBranchData, location: e.target.value})} 
-                className="h-11 rounded-xl text-xs font-bold uppercase"
-              />
+              <div className="flex gap-2">
+                <Input 
+                  value={editBranchData.location || ""} 
+                  onChange={(e) => setEditBranchData({...editBranchData, location: e.target.value})}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const addr = editBranchData.location;
+                      if (!addr) return;
+                      toast.loading("Searching coordinates...");
+                      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}&limit=1`)
+                        .then(r => r.json())
+                        .then(data => {
+                          toast.dismiss();
+                          if (data && data.length > 0) {
+                            setEditBranchData(prev => ({...prev, latitude: data[0].lat, longitude: data[0].lon}));
+                            toast.success("Coordinates found!");
+                          } else {
+                            toast.error("Address not found. Try a more specific address.");
+                          }
+                        })
+                        .catch(() => { toast.dismiss(); toast.error("Search failed"); });
+                    }
+                  }}
+                  placeholder="Type address & press Enter or click 🔍"
+                  className="h-11 rounded-xl text-xs font-bold flex-1"
+                />
+                <button
+                  type="button"
+                  title="Find Coordinates from Address"
+                  className="h-11 px-4 rounded-xl border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors flex items-center gap-1 text-xs font-bold"
+                  onClick={() => {
+                    const addr = editBranchData.location;
+                    if (!addr) { toast.error("Please enter an address first"); return; }
+                    toast.loading("Searching coordinates...");
+                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}&limit=1`)
+                      .then(r => r.json())
+                      .then(data => {
+                        toast.dismiss();
+                        if (data && data.length > 0) {
+                          setEditBranchData(prev => ({...prev, latitude: data[0].lat, longitude: data[0].lon}));
+                          toast.success("Coordinates found! Click 'Update Location' to view on map.");
+                        } else {
+                          toast.error("Address not found. Try a more specific address.");
+                        }
+                      })
+                      .catch(() => { toast.dismiss(); toast.error("Search failed"); });
+                  }}
+                >
+                  🔍
+                </button>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1.5">
