@@ -795,31 +795,66 @@ export default function Attendance() {
         if (attendanceMode === 'temporary') attendance_type = "Temporary Assignment";
         else if (attendanceMode === 'multi') attendance_type = "Multi-Location";
 
-        // Find branch coords
-        const branchCode = user?.branch || 'HQ';
+        // Find branch coords — for multi-location users, check ALL allowed branches
+        let dist_meters: number | undefined = undefined;
+        let withinAnyBranch = false;
+        let closestBranchCode: string | undefined = undefined;
+
+        if (attendanceMode === 'multi' && allowedLocations.length > 0) {
+          // Check against every allowed branch — pass if within ANY one
+          for (const locCode of allowedLocations) {
+            const locInfo = branches.find((b: any) => b.code === locCode || b.name === locCode);
+            if (locInfo && locInfo.latitude && locInfo.longitude) {
+              const r = locInfo.radius || 50;
+              const d = Math.round(haversineDistance(lat, lng, parseFloat(locInfo.latitude), parseFloat(locInfo.longitude)));
+              if (d <= r) {
+                withinAnyBranch = true;
+                dist_meters = d;
+                closestBranchCode = locCode;
+                break;
+              }
+              // Track smallest distance for error message
+              if (dist_meters === undefined || d < dist_meters) dist_meters = d;
+            }
+          }
+          if (!withinAnyBranch) {
+            if (isOutstationAssigned) {
+              setPendingLocation({lat, lng, acc});
+              setOutstationPromptOpen(true);
+              setLoading(false);
+              return;
+            } else {
+              toast({ title: "Clock In Failed", description: `You are outside all your assigned branch locations. Closest distance: ${dist_meters}m`, variant: "destructive" });
+              setLoading(false);
+              return;
+            }
+          }
+        } else {
+          // Single branch mode — check user's home branch only
+          const branchCode = selectedLocation || user?.branch || 'HQ';
           const branchInfo = branches.find((b: any) => b.code === branchCode || b.name === branchCode);
-          let dist_meters: number | undefined = undefined;
 
           if (branchInfo && branchInfo.latitude && branchInfo.longitude) {
             const radius = branchInfo.radius || 50;
             dist_meters = Math.round(haversineDistance(lat, lng, parseFloat(branchInfo.latitude), parseFloat(branchInfo.longitude)));
             
             if (dist_meters > radius) {
-               if (isOutstationAssigned) {
-                 setPendingLocation({lat, lng, acc});
-                 setOutstationPromptOpen(true);
-                 setLoading(false);
-                 return;
-               } else {
-                 toast({ title: "Clock In Failed", description: `You are outside the branch radius (${radius}m). Distance: ${dist_meters}m`, variant: "destructive" });
-                 setLoading(false);
-                 return;
-               }
+              if (isOutstationAssigned) {
+                setPendingLocation({lat, lng, acc});
+                setOutstationPromptOpen(true);
+                setLoading(false);
+                return;
+              } else {
+                toast({ title: "Clock In Failed", description: `You are outside the branch radius (${radius}m). Distance: ${dist_meters}m`, variant: "destructive" });
+                setLoading(false);
+                return;
+              }
             }
           }
+        }
           
-          // Either distance <= radius or no branch info found (fallback to normal clockin)
-          performClockInOrOut(employeeId, attendance_type, lat, lng, acc, dist_meters);
+        // Either within a branch radius or no coords found (fallback to normal clockin)
+        performClockInOrOut(employeeId, attendance_type, lat, lng, acc, dist_meters);
       },
       (error) => {
         setLoading(false);
