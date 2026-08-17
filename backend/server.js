@@ -4078,7 +4078,7 @@ app.get("/api/attendance-status", async (req, res) => {
 // CLOCK IN
 // ===============================
 app.post("/api/attendance", async (req, res) => {
-  const { user_id, location, attendance_type, latitude, longitude, accuracy } = req.body;
+  const { user_id, location, attendance_type, latitude, longitude, accuracy, distance } = req.body;
 
   if (!user_id) {
     return res
@@ -4133,8 +4133,8 @@ app.post("/api/attendance", async (req, res) => {
     }
 
     const [result] = await pool.query(
-      `INSERT INTO attendances (user_id, clock_in, location, attendance_type) VALUES (?, NOW(), ?, ?)`,
-      [user_id, finalLocation, finalType]
+      `INSERT INTO attendances (user_id, clock_in, location, attendance_type, distance_meters) VALUES (?, NOW(), ?, ?, ?)`,
+        [user_id, finalLocation, finalType, distance || null]
     );
 
     const insertedId = result.insertId || result.rows?.[0]?.attendance_id; // Support both mysql/postgres result structures or fallback to a query later
@@ -4287,7 +4287,8 @@ app.get("/api/attendance/history", async (req, res) => {
         attendance_type,
         TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_in,
         TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS time_out,
-        DATE(clock_in) AS date
+          DATE(clock_in) AS date,
+          distance_meters
       FROM attendances
       WHERE user_id = ?
       AND EXTRACT(YEAR FROM clock_in) = ?
@@ -4509,15 +4510,17 @@ app.get("/api/attendance/history", async (req, res) => {
         const isLate = clockInHour > lateH || (clockInHour === lateH && clockInMinute > lateM);
         is_late = isLate;
 
-        if (isLate && !workHours.off) {
-          const clockInMins = clockInHour * 60 + clockInMinute;
-          const thresholdMins = lateH * 60 + lateM;
-          const diff = clockInMins - thresholdMins;
-          late = `${diff} mins`;
-          status = "LATE";
-        } else {
-          late = "00:00";
-        }
+                  if (isLate && !workHours.off) {
+            const clockInMins = clockInHour * 60 + clockInMinute;
+            const thresholdMins = lateH * 60 + lateM;
+            const diff = clockInMins - thresholdMins;
+            const diffH = Math.floor(diff / 60);
+            const diffM = diff % 60;
+            late = `${diffH.toString().padStart(2, '0')}h ${diffM.toString().padStart(2, '0')}m`;
+            status = "LATE";
+          } else {
+            late = "00h 00m";
+          }
 
         // Calculate Working Hours = Time Out - Time In
         if (clock_out) {
@@ -4599,8 +4602,9 @@ app.get("/api/attendance/history", async (req, res) => {
         is_late: is_late ? 1 : 0,
         late: late,
         duration: duration,
-        location_type: location_type,
-        location_name: location_name,
+          location_type: location_type,
+          location_name: location_name,
+          distance: clockRow ? clockRow.distance_meters : null,
         clock_in_location: clockRow ? (clockRow.location || null) : null,
         attendance_type: clockRow ? (clockRow.attendance_type || null) : null
       };

@@ -688,7 +688,7 @@ export default function Attendance() {
   };
 
   // 5. THE CORE ACTION: Clock In / Clock Out
-  const performClockInOrOut = async (employeeId: string, attendance_type: string, lat?: number, lng?: number, acc?: number) => {
+  const performClockInOrOut = async (employeeId: string, attendance_type: string, lat?: number, lng?: number, acc?: number, dist?: number) => {
     setLoading(true);
     try {
       const isClockOut = !!activeSession;
@@ -701,8 +701,9 @@ export default function Attendance() {
         if (lat !== undefined) payload.latitude = lat;
         if (lng !== undefined) payload.longitude = lng;
         if (acc !== undefined) payload.accuracy = acc;
-      } else {
-        if (lat !== undefined) payload.latitude = lat;
+          if (dist !== undefined) payload.distance = dist;
+        } else {
+          if (lat !== undefined) payload.latitude = lat;
         if (lng !== undefined) payload.longitude = lng;
         if (acc !== undefined) payload.accuracy = acc;
       }
@@ -789,28 +790,29 @@ export default function Attendance() {
 
         // Find branch coords
         const branchCode = user?.branch || 'HQ';
-        const branchInfo = branches.find((b: any) => b.code === branchCode || b.name === branchCode);
+          const branchInfo = branches.find((b: any) => b.code === branchCode || b.name === branchCode);
+          let dist_meters: number | undefined = undefined;
 
-        if (branchInfo && branchInfo.latitude && branchInfo.longitude) {
-          const radius = branchInfo.radius || 50;
-          const dist = haversineDistance(lat, lng, parseFloat(branchInfo.latitude), parseFloat(branchInfo.longitude));
-          
-          if (dist > radius) {
+          if (branchInfo && branchInfo.latitude && branchInfo.longitude) {
+            const radius = branchInfo.radius || 50;
+            dist_meters = Math.round(haversineDistance(lat, lng, parseFloat(branchInfo.latitude), parseFloat(branchInfo.longitude)));
+            
+            if (dist_meters > radius) {
                if (isOutstationAssigned) {
                  setPendingLocation({lat, lng, acc});
                  setOutstationPromptOpen(true);
                  setLoading(false);
                  return;
                } else {
-                 toast({ title: "Clock In Failed", description: `You are outside the branch radius (${radius}m). Distance: ${Math.round(dist)}m`, variant: "destructive" });
+                 toast({ title: "Clock In Failed", description: `You are outside the branch radius (${radius}m). Distance: ${dist_meters}m`, variant: "destructive" });
                  setLoading(false);
                  return;
                }
             }
-        }
-        
-        // Either distance <= radius or no branch info found (fallback to normal clockin)
-        performClockInOrOut(employeeId, attendance_type, lat, lng, acc);
+          }
+          
+          // Either distance <= radius or no branch info found (fallback to normal clockin)
+          performClockInOrOut(employeeId, attendance_type, lat, lng, acc, dist_meters);
       },
       (error) => {
         setLoading(false);
@@ -1506,6 +1508,7 @@ export default function Attendance() {
                     <TableHead className="font-medium">Time Out</TableHead>
                     <TableHead className="font-medium">Status</TableHead>
                     <TableHead className="font-medium">Late</TableHead>
+                      <TableHead className="font-medium">Distance</TableHead>
                     <TableHead className="text-right pr-6 font-medium">Working Hours</TableHead>
                     {attendanceMode === 'multi' && (
                       <TableHead className="font-medium">Branch</TableHead>
@@ -1515,14 +1518,14 @@ export default function Attendance() {
                 <TableBody>
                 {fetchingHistory && historyLogs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={attendanceMode === 'multi' ? 7 : 6} className="py-12 text-center">
+                    <TableCell colSpan={attendanceMode === 'multi' ? 8 : 7} className="py-12 text-center">
                       <Loader2 className="w-6 h-6 animate-spin text-[#7B0099] mx-auto mb-2" />
                       <p className="text-sm font-medium text-muted-foreground">Loading Data...</p>
                     </TableCell>
                   </TableRow>
                 ) : displayedLogs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={attendanceMode === 'multi' ? 7 : 6} className="py-12 text-center">
+                    <TableCell colSpan={attendanceMode === 'multi' ? 8 : 7} className="py-12 text-center">
                        <Clock className="w-8 h-8 opacity-20 mx-auto mb-2" />
                        <p className="text-sm font-medium text-muted-foreground">No logs found</p>
                     </TableCell>
@@ -1567,7 +1570,8 @@ export default function Attendance() {
                             {log.status}
                           </span>
                         </TableCell>
-                        <TableCell className="font-medium text-rose-600">{log.late === "00:00" ? "--" : log.late}</TableCell>
+                        <TableCell className="font-medium text-rose-600">{log.late === "00h 00m" || log.late === "00:00" || log.late === "--" ? "--" : log.late}</TableCell>
+                          <TableCell className="font-medium text-foreground">{log.distance ? `${log.distance} m` : "--"}</TableCell>
                         <TableCell className="font-bold text-emerald-600 text-right pr-6">{log.duration}</TableCell>
                         {attendanceMode === 'multi' && (
                           <TableCell className="font-medium whitespace-nowrap">
