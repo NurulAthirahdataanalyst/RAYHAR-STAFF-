@@ -890,17 +890,39 @@ export default function SettingsPage() {
                       </Button>
                     </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Radius (m): {branchRadius}</label>
-                    <input
-                      type="range"
-                      min="10"
-                      max="1000"
-                      step="10"
-                      value={branchRadius}
-                      onChange={(e) => setBranchRadius(e.target.value)}
-                      className="w-full h-11"
-                    />
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Radius</label>
+                      <span className="text-[9px] font-black text-muted-foreground">0m – 500m</span>
+                    </div>
+                    <div className="relative pt-6">
+                      {/* Floating animated label */}
+                      <div
+                        className="absolute -top-1 flex flex-col items-center pointer-events-none transition-all duration-150"
+                        style={{ left: `calc(${(((parseFloat(branchRadius || "50") - 0) / 500) * 100)}% - ${(((parseFloat(branchRadius || "50") - 0) / 500) * 100) * 0.28}px)` }}
+                      >
+                        <div className="bg-[#7B0099] text-white text-[11px] font-black px-2 py-0.5 rounded-md shadow-lg whitespace-nowrap">
+                          {branchRadius || 50}m
+                        </div>
+                        <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px] border-t-[#7B0099]" />
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="500"
+                        step="5"
+                        value={branchRadius}
+                        onChange={(e) => setBranchRadius(e.target.value)}
+                        className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                        style={{
+                          background: `linear-gradient(to right, #7B0099 0%, #7B0099 ${(((parseFloat(branchRadius || "50") - 0) / 500) * 100)}%, #e5e7eb ${(((parseFloat(branchRadius || "50") - 0) / 500) * 100)}%, #e5e7eb 100%)`
+                        }}
+                      />
+                      <div className="flex justify-between mt-1">
+                        <span className="text-[9px] text-muted-foreground font-bold">0m</span>
+                        <span className="text-[9px] text-muted-foreground font-bold">500m</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

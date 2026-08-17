@@ -1696,17 +1696,39 @@ export default function Branches() {
                 </div>
               </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">RADIUS (m): {editBranchData.radius || 50}</label>
-              <input 
-                type="range" 
-                min="10" 
-                max="1000" 
-                step="10" 
-                value={editBranchData.radius || 50} 
-                onChange={(e) => setEditBranchData({...editBranchData, radius: e.target.value})}
-                className="w-full h-9"
-              />
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Radius</label>
+                <span className="text-[10px] font-black text-muted-foreground">0m – 500m</span>
+              </div>
+              <div className="relative pt-6">
+                {/* Floating animated label */}
+                <div
+                  className="absolute -top-1 flex flex-col items-center pointer-events-none transition-all duration-150"
+                  style={{ left: `calc(${(((parseFloat(String(editBranchData.radius || 50)) - 0) / 500) * 100)}% - ${(((parseFloat(String(editBranchData.radius || 50)) - 0) / 500) * 100) * 0.28}px)` }}
+                >
+                  <div className="bg-[#7B0099] text-white text-[11px] font-black px-2 py-0.5 rounded-md shadow-lg whitespace-nowrap">
+                    {editBranchData.radius || 50}m
+                  </div>
+                  <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px] border-t-[#7B0099]" />
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="500"
+                  step="5"
+                  value={editBranchData.radius || 50}
+                  onChange={(e) => setEditBranchData({...editBranchData, radius: e.target.value})}
+                  className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, #7B0099 0%, #7B0099 ${(((parseFloat(String(editBranchData.radius || 50)) - 0) / 500) * 100)}%, #e5e7eb ${(((parseFloat(String(editBranchData.radius || 50)) - 0) / 500) * 100)}%, #e5e7eb 100%)`
+                  }}
+                />
+                <div className="flex justify-between mt-1">
+                  <span className="text-[9px] text-muted-foreground font-bold">0m</span>
+                  <span className="text-[9px] text-muted-foreground font-bold">500m</span>
+                </div>
+              </div>
             </div>
             <div className="flex justify-end gap-3 pt-4 border-t">
               <Button type="button" variant="outline" onClick={() => setIsEditBranchModalOpen(false)} className="h-11 px-6 rounded-xl text-[10px] font-black uppercase tracking-wider">Discard</Button>
