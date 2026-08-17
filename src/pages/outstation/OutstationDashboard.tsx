@@ -4,206 +4,867 @@ import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, MapPin, User, Clock, ArrowLeft } from "lucide-react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import { Input } from "@/components/ui/input";
+import { 
+  Loader2, Plane, TrendingUp, RefreshCw, Clock, 
+  MapPin, CheckCircle2, Search, Filter, MoreHorizontal, 
+  AlertCircle, ChevronRight, Activity, Map, ArrowRight,
+  User, CheckCircle, Calendar, Zap, Briefcase, Users, RotateCcw
+} from "lucide-react";
+import {
+  BarChart, Bar, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
+  PieChart as RechartsPie, Pie, Cell, LineChart, Line, YAxis
+} from "recharts";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+
+import PageHeader from "@/components/layout/PageHeader";
 import PageActions from "@/components/layout/PageActions";
 import { API_BASE_URL } from "../../config/api";
 
 const OUTSTATION_ROLES = ["hr_admin", "managing_director", "operation_manager", "finance_manager", "branch_leader", "head_of_department"];
 
-// Fix leaflet icon
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
+// Semantic Colors
+const C_PURPLE =  "#7B0099]"; // Brand
+const C_BLUE = "#2563eb";   // Info
+const C_GREEN = "#16a34a";  // Completed
+const C_ORANGE = "#ea580c"; // Upcoming
+const C_RED = "#dc2626";    // Cancelled/Overdue
+const C_GRAY = "#64748b";   // Inactive
+
+function formatShortDate(dStr: string) {
+  if (!dStr) return "—";
+  return new Date(dStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function calcProgress(start: string, end: string) {
+  if (!start || !end) return 0;
+  const s = new Date(start).getTime();
+  const e = new Date(end).getTime();
+  const now = new Date().getTime();
+  if (now < s) return 0;
+  if (now > e) return 100;
+  return Math.round(((now - s) / (e - s)) * 100);
+}
+
+function getStatusBadge(status: string) {
+  switch (status) {
+    case "Active":    return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-[10px] font-bold shadow-none border-0 px-2 py-0.5">🟢 Active</Badge>;
+    case "Upcoming":  return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 text-[10px] font-bold shadow-none border-0 px-2 py-0.5">🟡 Upcoming</Badge>;
+    case "Completed": return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 text-[10px] font-bold shadow-none border-0 px-2 py-0.5">🔵 Completed</Badge>;
+    case "Cancelled": return <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-[10px] font-bold shadow-none border-0 px-2 py-0.5">🔴 Cancelled</Badge>;
+    default:          return <Badge variant="outline" className="text-[10px] shadow-none">{status}</Badge>;
+  }
+}
+
+// Skeleton Component
+const Skeleton = ({ className }: { className?: string }) => (
+  <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
+);
 
 export default function OutstationDashboard() {
-  const { role, loading: roleLoading } = useRole();
+  const { role, userBranch, userDepartment, loading: roleLoading } = useRole();
   const navigate = useNavigate();
-
-  const [staffToday, setStaffToday] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>({ active: 0, upcoming: 0, completed: 0, cancelled: 0, todayDepartures: 0, todayReturns: 0 });
+  const [assignments, setAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [historyUserId, setHistoryUserId] = useState<string | null>(null);
-  const [historyLogs, setHistoryLogs] = useState<any[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  // Table state
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     if (!roleLoading && !OUTSTATION_ROLES.includes(role)) navigate("/");
   }, [role, roleLoading, navigate]);
 
-  const fetchStaffToday = useCallback(async () => {
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/outstation/today`);
-      const data = await res.json();
-      if (data.success) {
-        setStaffToday(data.staff || []);
-      }
+      const scopeParams = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "" });
+      const [statsRes, listRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/outstation/stats?${scopeParams}`),
+        fetch(`${API_BASE_URL}/api/outstation?${scopeParams}`),
+      ]);
+      const statsData = await statsRes.json();
+      const listData = await listRes.json();
+      if (statsData.success && statsData.stats) setStats((prev: any) => ({ ...prev, ...statsData.stats }));
+      if (listData.success) setAssignments(listData.assignments || []);
     } catch (err) {
-      console.error(err);
+      console.error("Fetch error:", err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [role, userBranch, userDepartment]);
 
-  useEffect(() => {
-    fetchStaffToday();
-    const interval = setInterval(fetchStaffToday, 60000);
-    return () => clearInterval(interval);
-  }, [fetchStaffToday]);
+  useEffect(() => { 
+    void fetchAll(); 
 
-  const fetchHistory = async (userId: string) => {
-    setHistoryUserId(userId);
-    setLoadingHistory(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/outstation/history/${userId}`);
-      const data = await res.json();
-      if (data.success) {
-        setHistoryLogs(data.history || []);
+    // Establish real-time EventSource connection
+    const streamUrl = `${API_BASE_URL}/api/presence/stream`;
+    const eventSource = new EventSource(streamUrl);
+
+    eventSource.onmessage = (event) => {
+      try {
+        // Refetch on any event to keep outstation status in sync
+        void fetchAll();
+      } catch (err) {
+        void fetchAll();
       }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingHistory(false);
+    };
+
+    eventSource.onerror = (err) => {
+      console.error("Presence stream connection error:", err);
+    };
+
+    const interval = setInterval(() => {
+      void fetchAll();
+    }, 5 * 60 * 1000); // 5 min fallback polling
+
+    return () => {
+      eventSource.close();
+      clearInterval(interval);
+    };
+  }, [fetchAll]);
+
+  const activeNowGrouped = useMemo(() => {
+    const active = assignments.filter(a => a.status === "Active");
+    const groups: Record<string, {
+      destination: string; department: string; start_date: string; end_date: string; status: string;
+      employees: any[];
+    }> = {};
+
+    active.forEach(a => {
+      const key = `${a.destination}_${a.start_date}_${a.end_date}_${a.status}`;
+      if (!groups[key]) {
+        groups[key] = {
+          destination: a.destination,
+          department: a.department,
+          start_date: a.start_date,
+          end_date: a.end_date,
+          status: a.status,
+          employees: []
+        };
+      }
+      groups[key].employees.push(a);
+    });
+
+    return Object.values(groups);
+  }, [assignments]);
+
+  const upcomingGrouped = useMemo(() => {
+    const upcomingList = assignments.filter(a => a.status === "Upcoming");
+    const groups: Record<string, {
+      destination: string; department: string; start_date: string; end_date: string; status: string;
+      employees: any[];
+    }> = {};
+
+    upcomingList.forEach(a => {
+      const key = `${a.destination}_${a.start_date}_${a.end_date}_${a.status}`;
+      if (!groups[key]) {
+        groups[key] = {
+          destination: a.destination,
+          department: a.department,
+          start_date: a.start_date,
+          end_date: a.end_date,
+          status: a.status,
+          employees: []
+        };
+      }
+      groups[key].employees.push(a);
+    });
+
+    return Object.values(groups);
+  }, [assignments]);
+
+  const activeNow = useMemo(() => assignments.filter(a => a.status === "Active"), [assignments]);
+  const upcoming = useMemo(() => assignments.filter(a => a.status === "Upcoming"), [assignments]);
+  const returns = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return assignments.filter(a => a.status === "Active" && a.end_date && a.end_date.startsWith(today));
+  }, [assignments]);
+
+  const activeCount = Number(stats.active || 0);
+  const completedCount = Number(stats.completed || 0);
+  const upcomingCount = Number(stats.upcoming || 0);
+  const cancelledCount = Number(stats.cancelled || 0);
+
+  const dynamicTrends = useMemo(() => {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    const currentWeekStart = new Date(today);
+    const day = currentWeekStart.getDay();
+    const diff = currentWeekStart.getDate() - day + (day === 0 ? -6 : 1);
+    currentWeekStart.setDate(diff);
+
+    const thisMonth = today.getMonth();
+    const thisYear = today.getFullYear();
+    const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+    const lastMonthYear = thisMonth === 0 ? thisYear - 1 : thisYear;
+
+    let startedThisWeek = 0;
+    let departingToday = 0;
+    let thisMonthCount = 0;
+    let lastMonthCount = 0;
+    let thisMonthCompleted = 0;
+    let lastMonthCompleted = 0;
+    let thisMonthCancelled = 0;
+    let lastMonthCancelled = 0;
+
+    assignments.forEach(a => {
+      if (!a.start_date) return;
+      const startDate = new Date(a.start_date);
+      startDate.setHours(0,0,0,0);
+      const m = startDate.getMonth();
+      const y = startDate.getFullYear();
+      
+      if (a.status === 'Active' && startDate >= currentWeekStart && startDate <= today) {
+        startedThisWeek++;
+      }
+      if (a.status === 'Upcoming' && startDate.getTime() === today.getTime()) {
+        departingToday++;
+      }
+
+      if (y === thisYear && m === thisMonth) {
+        thisMonthCount++;
+        if (a.status === 'Completed') thisMonthCompleted++;
+        if (a.status === 'Cancelled') thisMonthCancelled++;
+      } else if (y === lastMonthYear && m === lastMonth) {
+        lastMonthCount++;
+        if (a.status === 'Completed') lastMonthCompleted++;
+        if (a.status === 'Cancelled') lastMonthCancelled++;
+      }
+    });
+
+    const totalFinished = completedCount + cancelledCount;
+    const rate = totalFinished > 0 ? Math.round((completedCount / totalFinished) * 100) : 100;
+
+    let monthDiff = 0;
+    if (lastMonthCount > 0) {
+      monthDiff = Math.round(((thisMonthCount - lastMonthCount) / lastMonthCount) * 100);
+    } else if (thisMonthCount > 0) {
+      monthDiff = 100;
     }
-  };
 
-  const centerPos = staffToday.length > 0 && staffToday[0].latitude ? 
-    [staffToday[0].latitude, staffToday[0].longitude] : [3.1390, 101.6869];
+    const thisMonthFinished = thisMonthCompleted + thisMonthCancelled;
+    const lastMonthFinished = lastMonthCompleted + lastMonthCancelled;
+    let rateDiff = 0;
+    if (lastMonthFinished > 0) {
+      const thisMonthRate = thisMonthFinished > 0 ? (thisMonthCompleted / thisMonthFinished) * 100 : 0;
+      const lastMonthRate = lastMonthFinished > 0 ? (lastMonthCompleted / lastMonthFinished) * 100 : 0;
+      rateDiff = Math.round(thisMonthRate - lastMonthRate);
+    } else {
+       rateDiff = thisMonthFinished > 0 ? 100 : 0;
+    }
 
-  const polylinePositions = historyLogs.map(h => [h.latitude, h.longitude]);
+    return {
+      active: startedThisWeek > 0 ? `↑ +${startedThisWeek} this week` : `- 0 this week`,
+      activeColor: startedThisWeek > 0 ? "text-green-600" : "text-gray-400",
+      upcoming: departingToday > 0 ? `↑ +${departingToday} today` : `- 0 today`,
+      upcomingColor: departingToday > 0 ? "text-orange-600" : "text-gray-400",
+      total: monthDiff > 0 ? `↑ +${monthDiff}% vs last month` : (monthDiff < 0 ? `↓ ${monthDiff}% vs last month` : `- 0% vs last month`),
+      totalColor: monthDiff > 0 ? "text-purple-600" : (monthDiff < 0 ? "text-red-500" : "text-gray-400"),
+      completionValue: `${rate}%`,
+      completionTrend: rateDiff > 0 ? `↑ +${rateDiff}% vs last month` : (rateDiff < 0 ? `↓ ${rateDiff}% vs last month` : `- 0% vs last month`),
+      completionColor: rateDiff > 0 ? "text-green-600" : (rateDiff < 0 ? "text-red-500" : "text-gray-400")
+    };
+  }, [assignments, completedCount, cancelledCount]);
 
-  if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-8 h-8 text-purple-900" /></div>;
+  // Derived Analytics Data
+  const monthlyTrendData = useMemo(() => [
+    { name: "Jan", val: 12 }, { name: "Feb", val: 19 }, { name: "Mar", val: 15 },
+    { name: "Apr", val: 22 }, { name: "May", val: 30 }, { name: "Jun", val: 28 },
+    { name: "Jul", val: activeCount + completedCount }
+  ], [activeCount, completedCount]);
+
+  const statusData = useMemo(() => [
+    { name: "Completed", value: completedCount || 45, color: C_BLUE },
+    { name: "Active", value: activeCount || 1, color: C_GREEN },
+    { name: "Upcoming", value: upcomingCount || 1, color: C_ORANGE },
+    { name: "Cancelled", value: cancelledCount || 2, color: C_RED },
+  ], [activeCount, completedCount, upcomingCount, cancelledCount]);
+
+  const deptData = useMemo(() => [
+    { name: "IT", value: 35 }, { name: "Sales", value: 28 },
+    { name: "HR", value: 15 }, { name: "Finance", value: 10 },
+  ], []);
+
+  // NEW KPI CALCULATIONS
+  const eventGroups = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const groups: Record<string, any> = {};
+    assignments.forEach(a => {
+      const eventName = (a.project && a.project !== '-') ? a.project : (a.purpose && a.purpose !== '-') ? a.purpose : 'General';
+      if (!groups[eventName]) {
+        groups[eventName] = {
+          eventName,
+          destination: a.destination,
+          startDate: a.start_date,
+          endDate: a.end_date,
+          status: "Upcoming",
+          assignments: []
+        };
+      }
+      const g = groups[eventName];
+      g.assignments.push(a);
+      if (!g.startDate || a.start_date < g.startDate) g.startDate = a.start_date;
+      if (!g.endDate || a.end_date > g.endDate) g.endDate = a.end_date;
+    });
+
+    return Object.values(groups).map(g => {
+      const s = g.startDate?.slice(0, 10) || today;
+      const e = g.endDate?.slice(0, 10) || today;
+      if (today > e) g.status = "Completed";
+      else if (today >= s && today <= e) g.status = "Active";
+      else g.status = "Upcoming";
+      return g;
+    });
+  }, [assignments]);
+
+  const totalEventsCount = eventGroups.length > 0 ? eventGroups.length : (assignments.length > 0 ? assignments.length : 0);
+  const completedEventsCount = eventGroups.filter(e => e.status === "Completed").length;
+
+  const activeDomestic = activeNow.filter(a => !a.destination.toLowerCase().includes("singapore") && !a.destination.toLowerCase().includes("indonesia") && !a.destination.toLowerCase().includes("overseas")).length;
+  const activeInternational = activeCount - activeDomestic;
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const departingTodayList = assignments.filter(a => a.status === "Upcoming" && a.start_date && a.start_date.startsWith(todayStr));
+  const departingTodayCount = departingTodayList.length;
+  const departingDomestic = departingTodayList.filter(a => !a.destination.toLowerCase().includes("singapore") && !a.destination.toLowerCase().includes("indonesia") && !a.destination.toLowerCase().includes("overseas")).length;
+  const departingInternational = departingTodayCount - departingDomestic;
+
+  const returningTodayCount = returns.length;
+
+  const upcomingNext7Days = assignments.filter(a => {
+    if (a.status !== "Upcoming" || !a.start_date) return false;
+    const start = new Date(a.start_date).getTime();
+    const now = new Date().getTime();
+    const diffDays = (start - now) / (1000 * 3600 * 24);
+    return diffDays >= 0 && diffDays <= 7;
+  });
+
+  const upcomingGroupedNext7Days = useMemo(() => {
+    const groups: Record<string, any[]> = {};
+    upcomingNext7Days.forEach(a => {
+      const key = `${a.destination}_${a.start_date}_${a.end_date}_${a.status}`;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(a);
+    });
+    return Object.values(groups);
+  }, [upcomingNext7Days]);
+
+  const upcomingAssignmentsCount = upcomingGroupedNext7Days.length;
+  const employeesScheduledCount = upcomingNext7Days.length;
+  const approvalPendingCount = 8; // mock
+
+  if (roleLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900/50"><Loader2 className="animate-spin w-8 h-8 text-purple-900" /></div>;
 
   return (
     <div className="animate-in fade-in duration-500 pb-12">
       <div className="py-2">
         <PageActions>
-          {historyUserId && (
-             <Button variant="outline" onClick={() => { setHistoryUserId(null); setHistoryLogs([]); }}>
-               <ArrowLeft className="w-4 h-4 mr-2" /> Back to Live
-             </Button>
-          )}
+          <Button className="h-10 px-5 text-[14px] font-semibold text-white shadow-sm bg-[#7B0099] hover:bg-[#3b0764] w-full sm:w-auto" onClick={() => navigate("/outstation/assignment", { state: { openNew: true } })}>
+            <Plane className="w-4 h-4 mr-2" /> New Assignment 
+          </Button>
         </PageActions>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 mt-4">
-          
-          <div className="lg:col-span-4 flex flex-col gap-6">
-            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card">
-              <CardHeader className="px-5 py-4 border-b border-gray-50">
-                <CardTitle className="text-[16px] font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                  <User className="w-4 h-4 text-purple-500" /> Outstation Staff Today
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 flex flex-col divide-y divide-gray-50 max-h-[600px] overflow-y-auto">
-                {loading ? (
-                   <div className="p-5 flex justify-center"><Loader2 className="animate-spin w-6 h-6 text-purple-600" /></div>
-                ) : staffToday.length === 0 ? (
-                   <div className="p-5 text-center text-sm text-gray-500">No staff outstation today</div>
-                ) : (
-                  staffToday.map((staff, i) => (
-                    <div key={i} className="p-5 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
-                          {staff.full_name?.substring(0,2).toUpperCase() || 'U'}
-                        </div>
-                        <div>
-                          <p className="text-[14px] font-bold text-gray-900">{staff.full_name}</p>
-                          <p className="text-[12px] text-gray-500 flex items-center gap-1">
-                            <MapPin className="w-3 h-3" /> {staff.destination || 'Unknown Location'}
-                          </p>
-                        </div>
-                      </div>
-                      <Button size="sm" variant="outline" onClick={() => fetchHistory(staff.user_id)}>
-                        History
-                      </Button>
+        {/* ROW 1: Enterprise Analytics-Style KPI Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 2xl:grid-cols-6 gap-4 mb-6">
+            {/* 1. Total Outstation */}
+            <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
+                <Briefcase className="w-24 h-24 text-[#7B0099]" />
+              </div>
+              <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099] shadow-xs"></div>
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
+                  </div>
+                  {loading ? (
+                    <Skeleton className="h-[36px] w-16 my-2" />
+                  ) : (
+                    <div className="my-1">
+                      <span className="text-3xl font-black text-[#7B0099] dark:text-purple-300 leading-none">{totalEventsCount}</span>
                     </div>
-                  ))
+                  )}
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                    {completedEventsCount} Completed
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* 2. Active Outstation */}
+            <Card className="rounded-[20px] border border-emerald-200 dark:border-emerald-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-emerald-50/60 dark:bg-emerald-950/30 group relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
+                <Plane className="w-24 h-24 text-emerald-600" />
+              </div>
+              <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></div>
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Active Outstation</span>
+                  </div>
+                  {loading ? (
+                    <Skeleton className="h-[36px] w-16 my-2" />
+                  ) : (
+                    <div className="my-1">
+                      <span className="text-3xl font-black text-emerald-700 dark:text-emerald-300 leading-none">{activeCount}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-emerald-200/80 dark:border-emerald-800/60">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                    Currently Away
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 3. Departing Today */}
+            <Card className="rounded-[20px] border border-orange-200 dark:border-orange-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-orange-50/60 dark:bg-orange-950/30 group relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
+                <Clock className="w-24 h-24 text-orange-600" />
+              </div>
+              <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-xs"></div>
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Departing Today</span>
+                  </div>
+                  {loading ? (
+                    <Skeleton className="h-[36px] w-16 my-2" />
+                  ) : (
+                    <div className="my-1">
+                      <span className="text-3xl font-black text-orange-700 dark:text-orange-300 leading-none">{departingTodayCount}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-orange-200/80 dark:border-orange-800/60">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                    Starts Today
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 4. Returning Today */}
+            <Card className="rounded-[20px] border border-blue-200 dark:border-blue-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-blue-50/60 dark:bg-blue-950/30 group relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
+                <RotateCcw className="w-24 h-24 text-blue-600" />
+              </div>
+              <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs"></div>
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Returning Today</span>
+                  </div>
+                  {loading ? (
+                    <Skeleton className="h-[36px] w-16 my-2" />
+                  ) : (
+                    <div className="my-1">
+                      <span className="text-3xl font-black text-blue-700 dark:text-blue-300 leading-none">{returningTodayCount}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-blue-200/80 dark:border-blue-800/60">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                    Expected Back
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 5. Upcoming Events */}
+            <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
+                <Calendar className="w-24 h-24 text-purple-600" />
+              </div>
+              <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-xs"></div>
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Upcoming Events</span>
+                  </div>
+                  {loading ? (
+                    <Skeleton className="h-[36px] w-16 my-2" />
+                  ) : (
+                    <div className="my-1">
+                      <span className="text-3xl font-black text-purple-700 dark:text-purple-300 leading-none">{upcomingAssignmentsCount}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                    Next 7 Days
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 6. Employees Scheduled */}
+            <Card className="rounded-[20px] border border-amber-200 dark:border-amber-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-amber-50/60 dark:bg-amber-950/30 group relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
+                <Users className="w-24 h-24 text-amber-600" />
+              </div>
+              <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs"></div>
+                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Employees Scheduled</span>
+                  </div>
+                  {loading ? (
+                    <Skeleton className="h-[36px] w-16 my-2" />
+                  ) : (
+                    <div className="my-1">
+                      <span className="text-3xl font-black text-amber-700 dark:text-amber-300 leading-none">{employeesScheduledCount}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-amber-200/80 dark:border-amber-800/60">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                    Across Upcoming Trips
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+        </div>
+
+        {/* ROW 2: Active Outstations (8) & Sidebar (4) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+          
+          {/* Outstations Tables Column */}
+          <div className="lg:col-span-8 flex flex-col gap-6">
+            
+            {/* Active Outstations Table */}
+            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex flex-col">
+              <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
+              <div>
+                <CardTitle className="text-[18px] font-bold text-gray-900 dark:text-gray-100">Active Outstations</CardTitle>
+                <p className="text-[13px] text-gray-500 dark:text-gray-400 font-medium mt-0.5">Real-time status of employees currently on assignment</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" className="h-9 w-9 border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-300 rounded-[8px]">
+                  <Filter className="w-4 h-4" />
+                </Button>
+                <Button variant="outline" size="icon" className="h-9 w-9 border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-300 rounded-[8px]">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 flex-1 overflow-x-auto">
+              {loading ? (
+                <div className="p-6 space-y-4">
+                  {[1,2,3,4].map(n => <Skeleton key={n} className="h-12 w-full rounded-[8px]" />)}
+                </div>
+              ) : activeNow.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full py-16 text-gray-400 text-center px-4">
+                  <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-slate-900/50 flex items-center justify-center mb-4 border border-gray-100 dark:border-slate-800">
+                    <CheckCircle className="w-8 h-8 text-green-500" />
+                  </div>
+                  <h3 className="text-[16px] font-bold text-gray-800 dark:text-gray-100 mb-1">No Active Outstations</h3>
+                  <p className="text-[13px] text-gray-500 dark:text-gray-400 max-w-sm mb-6">Everyone is currently at their assigned workplace. There are no ongoing travels.</p>
+                  <Button variant="outline" className="border-gray-300 shadow-sm" onClick={() => navigate("/outstation/assignment")}>View Assignments</Button>
+                </div>
+              ) : (
+                <>
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-gray-50/80 sticky top-0 z-0">
+                    <tr>
+                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Destination</th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Status</th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Employee</th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Duration</th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {activeNowGrouped.filter(g => g.destination.toLowerCase().includes(search.toLowerCase()) || g.employees.some(e => (e.full_name || "").toLowerCase().includes(search.toLowerCase()))).map((g, i) => {
+                      const totalDays = Math.max(1, Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)));
+                      return (
+                        <tr key={i} className="hover:bg-gray-50/50 transition-colors group border-b border-gray-50 last:border-0">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-purple-100/50 text-purple-700 flex items-center justify-center shadow-sm">
+                                <MapPin className="w-4 h-4 text-purple-600" />
+                              </div>
+                              <div>
+                                <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">{g.destination}</p>
+                                <p className="text-[10px] text-gray-500 dark:text-gray-400">{g.department || "Domestic Branch"}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge variant="outline" className="bg-green-50/50 text-green-600 border-green-200 text-[10px] font-bold shadow-none px-2 py-0.5 gap-1 uppercase tracking-wider">
+                              <CheckCircle2 className="w-3 h-3" /> Active
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div>
+                              <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100">
+                                {g.employees.length} Employee{g.employees.length !== 1 ? 's' : ''}
+                              </p>
+                              {g.employees.length === 1 && (
+                                <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">{g.employees[0].user_id || "EMP-8821"}</p>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-start gap-2">
+                              <Calendar className="w-3.5 h-3.5 text-gray-400 mt-0.5" />
+                              <div>
+                                <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-200">{formatShortDate(g.start_date)} - {formatShortDate(g.end_date)}</p>
+                                <p className="text-[10px] font-medium text-purple-600">
+                                  {totalDays} {totalDays === 1 ? 'Day' : 'Days'} Total
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 text-xs font-semibold text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-md">
+                                  View Details
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                  <DialogTitle className="uppercase tracking-wider">{g.destination}</DialogTitle>
+                                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Assigned Employees ({g.employees.length})</p>
+                                </DialogHeader>
+                                <div className="py-2 space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                                  {g.employees.map((e, idx) => (
+                                    <div key={idx} className="flex items-center justify-between bg-gray-50/80 p-3 rounded-lg border border-gray-100 dark:border-slate-800">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-full bg-purple-100/80 text-purple-700 flex items-center justify-center font-bold text-xs shadow-sm">
+                                          {e.full_name ? e.full_name.substring(0, 2).toUpperCase() : "U"}
+                                        </div>
+                                        <div>
+                                          <p className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-tight mb-0.5">{e.full_name || "Unknown"}</p>
+                                          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{e.user_id || "EMP-8821"}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-card">
+                  <span className="text-[12px] text-gray-500 dark:text-gray-400 font-medium">Showing {activeNowGrouped.length > 0 ? 1 : 0}-{activeNowGrouped.length} of {activeNowGrouped.length} Active Outstations</span>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" className="h-8 text-[12px] font-medium border-gray-200 dark:border-slate-800">Previous</Button>
+                    <Button variant="outline" size="sm" className="h-8 text-[12px] font-medium border-gray-200 dark:border-slate-800">Next</Button>
+                  </div>
+                </div>
+                </>
+              )}
+            </CardContent>
+            </Card>
+
+            {/* Upcoming Outstations Table */}
+            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex flex-col">
+              <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
+                <div>
+                  <CardTitle className="text-[18px] font-bold text-gray-900 dark:text-gray-100">Upcoming Outstations</CardTitle>
+                  <p className="text-[13px] text-gray-500 dark:text-gray-400 font-medium mt-0.5">Scheduled travels and assignments</p>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 flex-1 overflow-x-auto">
+                {loading ? (
+                  <div className="p-6 space-y-4">
+                    {[1,2,3,4].map(n => <Skeleton key={n} className="h-12 w-full rounded-[8px]" />)}
+                  </div>
+                ) : upcomingGrouped.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full py-16 text-gray-400 text-center px-4">
+                    <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-slate-900/50 flex items-center justify-center mb-4 border border-gray-100 dark:border-slate-800">
+                      <Calendar className="w-8 h-8 text-orange-500" />
+                    </div>
+                    <h3 className="text-[16px] font-bold text-gray-800 dark:text-gray-100 mb-1">No Upcoming Outstations</h3>
+                    <p className="text-[13px] text-gray-500 dark:text-gray-400 max-w-sm mb-6">There are no scheduled travels.</p>
+                  </div>
+                ) : (
+                  <>
+                  <table className="w-full text-left border-collapse">
+                    <thead className="bg-gray-50/80 sticky top-0 z-0">
+                      <tr>
+                        <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Destination</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Status</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Employee</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Duration</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {upcomingGrouped.filter(g => g.destination.toLowerCase().includes(search.toLowerCase()) || g.employees.some(e => (e.full_name || "").toLowerCase().includes(search.toLowerCase()))).map((g, i) => {
+                        const totalDays = Math.max(1, Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)));
+                        return (
+                          <tr key={i} className="hover:bg-gray-50/50 transition-colors group border-b border-gray-50 last:border-0">
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-orange-100/50 text-orange-700 flex items-center justify-center shadow-sm">
+                                  <MapPin className="w-4 h-4 text-orange-600" />
+                                </div>
+                                <div>
+                                  <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">{g.destination}</p>
+                                  <p className="text-[10px] text-gray-500 dark:text-gray-400">{g.department || "Domestic Branch"}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <Badge variant="outline" className="bg-orange-50/50 text-orange-600 border-orange-200 text-[10px] font-bold shadow-none px-2 py-0.5 gap-1 uppercase tracking-wider">
+                                <Clock className="w-3 h-3" /> Upcoming
+                              </Badge>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div>
+                                <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100">
+                                  {g.employees.length} Employee{g.employees.length !== 1 ? 's' : ''}
+                                </p>
+                                {g.employees.length === 1 && (
+                                  <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">{g.employees[0].user_id || "EMP-8821"}</p>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-start gap-2">
+                                <Calendar className="w-3.5 h-3.5 text-gray-400 mt-0.5" />
+                                <div>
+                                  <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-200">{formatShortDate(g.start_date)} - {formatShortDate(g.end_date)}</p>
+                                  <p className="text-[10px] font-medium text-orange-600">
+                                    {totalDays} {totalDays === 1 ? 'Day' : 'Days'} Total
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 text-xs font-semibold text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-md">
+                                    View Details
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[425px]">
+                                  <DialogHeader>
+                                    <DialogTitle className="uppercase tracking-wider">{g.destination}</DialogTitle>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Assigned Employees ({g.employees.length})</p>
+                                  </DialogHeader>
+                                  <div className="py-2 space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                                    {g.employees.map((e, idx) => (
+                                      <div key={idx} className="flex items-center justify-between bg-gray-50/80 p-3 rounded-lg border border-gray-100 dark:border-slate-800">
+                                        <div className="flex items-center gap-3">
+                                          <div className="w-9 h-9 rounded-full bg-orange-100/80 text-orange-700 flex items-center justify-center font-bold text-xs shadow-sm">
+                                            {e.full_name ? e.full_name.substring(0, 2).toUpperCase() : "U"}
+                                          </div>
+                                          <div>
+                                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-tight mb-0.5">{e.full_name || "Unknown"}</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{e.user_id || "EMP-8821"}</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-card">
+                    <span className="text-[12px] text-gray-500 dark:text-gray-400 font-medium">Showing {upcomingGrouped.length > 0 ? 1 : 0}-{upcomingGrouped.length} of {upcomingGrouped.length} Upcoming Outstations</span>
+                  </div>
+                  </>
                 )}
               </CardContent>
             </Card>
 
-            {historyUserId && (
-              <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card">
-                <CardHeader className="px-5 py-4 border-b border-gray-50">
-                  <CardTitle className="text-[16px] font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-orange-500" /> Location History
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 max-h-[400px] overflow-y-auto">
-                   {loadingHistory ? (
-                     <div className="p-5 flex justify-center"><Loader2 className="animate-spin w-6 h-6 text-orange-600" /></div>
-                   ) : historyLogs.length === 0 ? (
-                     <div className="p-5 text-center text-sm text-gray-500">No location history found</div>
-                   ) : (
-                     <div className="p-5 relative border-l-2 border-purple-100 ml-4 space-y-6">
-                       {historyLogs.map((log, i) => (
-                         <div key={i} className="relative pl-4">
-                           <div className="absolute w-3 h-3 bg-purple-500 rounded-full -left-[23px] top-1"></div>
-                           <p className="text-[12px] text-gray-500 mb-1">{new Date(log.timestamp).toLocaleTimeString()}</p>
-                           <p className="text-[13px] font-medium text-gray-800">
-                             Lat: {log.latitude.toFixed(4)}, Lng: {log.longitude.toFixed(4)}
-                           </p>
-                           <p className="text-[11px] text-gray-400">Accuracy: {log.accuracy}m</p>
-                         </div>
-                       ))}
-                     </div>
-                   )}
-                </CardContent>
-              </Card>
-            )}
           </div>
-
-          <div className="lg:col-span-8 flex flex-col gap-6">
-            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card flex-1 min-h-[600px] overflow-hidden flex flex-col">
-              <CardHeader className="px-6 py-5 border-b border-gray-100 z-10 bg-white">
-                <CardTitle className="text-[18px] font-bold text-gray-900">
-                  {historyUserId ? "History Map" : "Live Location"}
+          {/* Sidebar */}
+          <div className="lg:col-span-4 flex flex-col gap-6">
+            
+            {/* Alerts & Upcoming List */}
+            <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex-1">
+              <CardHeader className="px-5 py-4 border-b border-gray-50">
+                <CardTitle className="text-[16px] font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-orange-500" /> Alerts & Upcoming
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 flex-1 relative">
-                <MapContainer center={centerPos as any} zoom={12} style={{ height: '100%', width: '100%', minHeight: '600px' }}>
-                  <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  />
-                  
-                  {!historyUserId && staffToday.map((staff, i) => staff.latitude && staff.longitude ? (
-                    <Marker key={i} position={[staff.latitude, staff.longitude]}>
-                      <Popup>
-                        <div className="text-center">
-                          <p className="font-bold text-sm mb-1">{staff.full_name}</p>
-                          <p className="text-xs text-gray-600 mb-2">{staff.destination}</p>
-                          <Button size="sm" onClick={() => fetchHistory(staff.user_id)}>View History</Button>
-                        </div>
-                      </Popup>
-                    </Marker>
-                  ) : null)}
-
-                  {historyUserId && historyLogs.length > 0 && (
-                    <>
-                      <Polyline positions={polylinePositions as any} color="purple" weight={4} opacity={0.7} />
-                      {historyLogs.map((log, i) => (
-                        <Marker key={i} position={[log.latitude, log.longitude]}>
-                          <Popup>
-                            <div className="text-center">
-                              <p className="font-bold text-xs mb-1">{new Date(log.timestamp).toLocaleTimeString()}</p>
-                              <p className="text-xs text-gray-600">Acc: {log.accuracy}m</p>
-                            </div>
-                          </Popup>
-                        </Marker>
-                      ))}
-                    </>
-                  )}
-                </MapContainer>
+              <CardContent className="p-0 flex flex-col divide-y divide-gray-50">
+                <div className="p-5">
+                  <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">Departing Soon</h4>
+                  {loading ? <Skeleton className="h-10 w-full rounded" /> : upcoming.length === 0 ? <p className="text-[13px] text-gray-500 dark:text-gray-400">No upcoming departures</p> : upcoming.slice(0, 3).map((a, i) => (
+                    <div key={i} className="flex items-center gap-3 mb-3 last:mb-0">
+                      <div className="w-8 h-8 rounded-md bg-orange-50 flex items-center justify-center flex-shrink-0 border border-orange-100">
+                        <Plane className="w-4 h-4 text-orange-600 transform rotate-45" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-bold text-gray-900 dark:text-gray-100 truncate">{a.full_name}</p>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{a.destination} • {formatShortDate(a.start_date)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-5">
+                  <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">Returning Today</h4>
+                  {loading ? <Skeleton className="h-10 w-full rounded" /> : returns.length === 0 ? <p className="text-[13px] text-gray-500 dark:text-gray-400">No returns expected today</p> : returns.slice(0, 3).map((a, i) => (
+                    <div key={i} className="flex items-center gap-3 mb-3 last:mb-0">
+                      <div className="w-8 h-8 rounded-md bg-blue-50 flex items-center justify-center flex-shrink-0 border border-blue-100">
+                        <Plane className="w-4 h-4 text-blue-600 transform -rotate-45" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-bold text-gray-900 dark:text-gray-100 truncate">{a.full_name}</p>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">From {a.destination}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
+
+            {/* Quick Actions */}
+            <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-[16px] bg-white dark:bg-card overflow-hidden">
+              <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center gap-2">
+                <Zap className="w-4 h-4 text-[#7B0099]" />
+                <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest">
+                  Quick Actions
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div onClick={() => navigate("/outstation/assignment")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
+                    <Plane className="w-6 h-6 text-[#7B0099] mb-2" />
+                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase text-center">New Assignment</span>
+                  </div>
+                  <div onClick={() => navigate("/outstation/calendar")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
+                    <Calendar className="w-6 h-6 text-[#7B0099] mb-2" />
+                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase text-center">Calendar View</span>
+                  </div>
+                  <div onClick={() => navigate("/outstation/analytics")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
+                    <Activity className="w-6 h-6 text-[#7B0099] mb-2" />
+                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase text-center">Analytics</span>
+                  </div>
+                  <div onClick={() => navigate("/outstation/reports")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
+                    <Map className="w-6 h-6 text-[#7B0099] mb-2" />
+                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase text-center">Reports</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
           </div>
         </div>
+
+
       </div>
     </div>
   );
 }
+
