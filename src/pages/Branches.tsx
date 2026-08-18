@@ -349,6 +349,16 @@ export default function Branches() {
     );
   }, [allBranches, searchQuery]);
 
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // Reset to page 1 whenever search or pageSize changes
+  useEffect(() => { setCurrentPage(1); }, [searchQuery, pageSize]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredBranches.length / pageSize));
+  const paginatedBranches = filteredBranches.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+
 
   const fetchTemporaryStaff = async () => {
     try {
@@ -1049,7 +1059,7 @@ export default function Branches() {
             </div>
           ) : viewMode === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {filteredBranches.map((branch) => {
+              {paginatedBranches.map((branch) => {
                 const stat = branchStats.find((s) => s.branch === branch.code);
                 const totalEmployees = stat ? stat.total_employees : 0;
                 const presentToday = stat ? stat.present_today : 0;
@@ -1214,7 +1224,7 @@ export default function Branches() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredBranches.map((branch) => {
+                      {paginatedBranches.map((branch) => {
                         const stat = branchStats.find(
                           (s) => s.branch === branch.code,
                         );
@@ -1375,6 +1385,81 @@ export default function Branches() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* ── Pagination Bar ── */}
+          {!loadingBranches && filteredBranches.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-1 pt-2">
+              {/* Rows per page */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Rows per page</span>
+                <div className="flex items-center gap-1">
+                  {[10, 15, 25, 50].map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setPageSize(size)}
+                      className={`h-7 min-w-[32px] px-2 rounded-md text-xs font-black transition-all duration-150 ${
+                        pageSize === size
+                          ? "bg-[#7B0099] text-white shadow"
+                          : "bg-muted/40 text-muted-foreground hover:bg-muted/70 hover:text-foreground border border-border/40"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Page info + nav */}
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-bold text-muted-foreground">
+                  {Math.min((currentPage - 1) * pageSize + 1, filteredBranches.length)}–{Math.min(currentPage * pageSize, filteredBranches.length)} of {filteredBranches.length}
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="h-7 w-7 rounded-md flex items-center justify-center text-xs font-black bg-muted/40 border border-border/40 hover:bg-muted/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    aria-label="Previous page"
+                  >
+                    ‹
+                  </button>
+                  {/* Page number pills */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                    .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                      if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                      acc.push(p);
+                      return acc;
+                    }, [])
+                    .map((item, idx) =>
+                      item === "..." ? (
+                        <span key={`ellipsis-${idx}`} className="text-xs text-muted-foreground px-1">…</span>
+                      ) : (
+                        <button
+                          key={item}
+                          onClick={() => setCurrentPage(item as number)}
+                          className={`h-7 min-w-[28px] px-1.5 rounded-md text-xs font-black transition-all duration-150 ${
+                            currentPage === item
+                              ? "bg-[#7B0099] text-white shadow"
+                              : "bg-muted/40 text-muted-foreground hover:bg-muted/70 hover:text-foreground border border-border/40"
+                          }`}
+                        >
+                          {item}
+                        </button>
+                      )
+                    )}
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="h-7 w-7 rounded-md flex items-center justify-center text-xs font-black bg-muted/40 border border-border/40 hover:bg-muted/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    aria-label="Next page"
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -1831,11 +1916,20 @@ export default function Branches() {
           <div className="grid grid-cols-1 md:grid-cols-3 h-[500px]">
             <div className="md:col-span-2 relative h-full">
               <MapContainer 
-                center={editBranchData.latitude && editBranchData.longitude ? [parseFloat(editBranchData.latitude), parseFloat(editBranchData.longitude)] : [4.2248, 103.4194]} 
+                center={(() => {
+                  const _lat = parseFloat(String(editBranchData.latitude));
+                  const _lng = parseFloat(String(editBranchData.longitude));
+                  return (!isNaN(_lat) && !isNaN(_lng)) ? [_lat, _lng] : [4.2248, 103.4194];
+                })() as [number, number]}
                 zoom={16} 
                 style={{ height: "100%", width: "100%" }}
               >
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                <MapController center={(() => {
+                  const _clat = parseFloat(String(editBranchData.latitude));
+                  const _clng = parseFloat(String(editBranchData.longitude));
+                  return (!isNaN(_clat) && !isNaN(_clng)) ? [_clat, _clng] : [4.2248, 103.4194];
+                })() as [number, number]} />
                 <LocationPicker setLocation={(lat, lng) => {
                   setEditBranchData({...editBranchData, latitude: lat.toString(), longitude: lng.toString()});
                   fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
@@ -1846,9 +1940,11 @@ export default function Branches() {
                       }
                     }).catch(console.error);
                 }} />
-                {editBranchData.latitude && editBranchData.longitude && (
-                  <Marker position={[parseFloat(editBranchData.latitude), parseFloat(editBranchData.longitude)]} />
-                )}
+                {(() => {
+                  const _mlat = parseFloat(String(editBranchData.latitude));
+                  const _mlng = parseFloat(String(editBranchData.longitude));
+                  return (!isNaN(_mlat) && !isNaN(_mlng)) ? <Marker position={[_mlat, _mlng]} /> : null;
+                })()}
               </MapContainer>
             </div>
             <div className="p-6 bg-slate-50 dark:bg-slate-900 flex flex-col h-full overflow-y-auto">
