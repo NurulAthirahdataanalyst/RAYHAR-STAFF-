@@ -402,30 +402,30 @@ export default function WorkforceCalendar() {
           return e.start_date <= dateStr && e.end_date >= dateStr;
         }).sort((a, b) => getEventPriority(a) - getEventPriority(b));
         const c = getEventColor(selectedEvent);
+        const Icon = selectedEvent.source === "outstation" ? Plane : selectedEvent.source === "company_leave" ? Building2 : FileText;
+        const title = selectedEvent.source === "outstation" ? "Outstation" : selectedEvent.source === "company_leave" ? "Company Leave" : "Leave Request";
         return createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedEventInfo(null)}>
-            <div className="bg-white dark:bg-card rounded-2xl shadow-2xl p-6 max-w-md w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden max-w-md w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
               {/* Header */}
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center justify-between bg-[#7B0099] text-white p-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl" style={{ background: `linear-gradient(135deg, ${PRIMARY}, #b366ff)` }}>
-                    {selectedEvent.source === "outstation" ? <Plane className="w-5 h-5 text-white" /> :
-                     selectedEvent.source === "company_leave" ? <Building2 className="w-5 h-5 text-white" /> :
-                     <FileText className="w-5 h-5 text-white" />}
+                  <div className="p-2 rounded-lg bg-white/20">
+                    <Icon className="w-5 h-5 text-white" />
                   </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Workforce Event</p>
-                    <h3 className="font-black text-gray-800 dark:text-gray-100">{selectedEvent.name || selectedEvent.type}</h3>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/80 mb-0.5">{title}</p>
+                    <h3 className="font-black text-white truncate">{selectedEvent.name || selectedEvent.type}</h3>
                   </div>
                 </div>
-                <button onClick={() => setSelectedEventInfo(null)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 transition-colors">
+                <button onClick={() => setSelectedEventInfo(null)} className="p-1.5 rounded-lg hover:bg-white/20 text-white/80 hover:text-white transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </div>
-
-              <div className="overflow-y-auto space-y-4 custom-scrollbar">
+              
+              <div className="p-6 pt-4 overflow-y-auto custom-scrollbar">
                 {/* Selected Event Detail */}
-                <div className="space-y-3 border-t border-gray-100 dark:border-slate-800 pt-4">
+                <div className="space-y-3">
                   {selectedEvent.source !== "company_leave" && (
                     <div className="flex items-center gap-2.5">
                       <User className="w-3.5 h-3.5 text-[#7B0099] shrink-0" />

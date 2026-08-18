@@ -1184,7 +1184,7 @@ export default function AttendanceDashboard() {
               <div className="relative">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-9 gap-2 hover:border-[#7B0099]/40 w-[140px]">
+                    <button className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer tracking-widest h-10 gap-3 hover:border-[#7B0099]/40 min-w-[140px]">
                       {new Date(selectedDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} <CalendarDays className="w-4 h-4 text-gray-400" />
                     </button>
                   </PopoverTrigger>
