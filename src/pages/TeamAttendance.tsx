@@ -377,10 +377,10 @@ export default function TeamAttendance() {
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Show</span>
                     <Select value={entriesPerPage.toString()} onValueChange={(val) => setEntriesPerPage(Number(val))}>
-                      <SelectTrigger className="w-[70px] h-[34px] bg-white dark:bg-card border-2 border-[#7B0099] rounded-xl text-black dark:text-white font-bold text-xs focus:ring-0">
+                      <SelectTrigger className="w-[70px] h-[34px] bg-white border-2 border-[#7B0099] rounded-xl text-black font-bold text-xs focus:ring-0">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="text-black font-bold">
                         <SelectItem value="25">25</SelectItem>
                         <SelectItem value="50">50</SelectItem>
                         <SelectItem value="75">75</SelectItem>
@@ -388,6 +388,28 @@ export default function TeamAttendance() {
                       </SelectContent>
                     </Select>
                   </div>
+
+                    <div className="flex items-center gap-1 bg-white border-2 border-[#7B0099] rounded-xl p-0.5 h-[34px]">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="h-6 px-2 text-[10px] font-black text-black hover:text-[#7B0099] hover:bg-[#7B0099]/10"
+                      >
+                        PREV
+                      </Button>
+                      <span className="text-[10px] font-black px-2 text-black">{currentPage} / {totalPages || 1}</span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.max(1, totalPages)))}
+                        disabled={currentPage >= totalPages || totalPages === 0}
+                        className="h-6 px-2 text-[10px] font-black text-black hover:text-[#7B0099] hover:bg-[#7B0099]/10"
+                      >
+                        NEXT
+                      </Button>
+                    </div>
 
                   <div className="relative flex items-center">
                     <Search className="w-4 h-4 absolute left-3 text-muted-foreground" />
