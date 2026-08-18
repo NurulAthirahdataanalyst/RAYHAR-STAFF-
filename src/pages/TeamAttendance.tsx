@@ -8,6 +8,7 @@ import { Loader2, Users, Clock, AlertCircle, Building2, CalendarDays, Search, Ma
 import PageActions from "@/components/layout/PageActions";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { exportToCSV } from "@/utils/export";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -26,6 +27,15 @@ export default function TeamAttendance() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [dateViewMode, setDateViewMode] = useState("DAY");
   const [statusFilter, setStatusFilter] = useState("ALL");
+
+  const [entriesPerPage, setEntriesPerPage] = useState(25);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, selectedDate, dateViewMode, entriesPerPage]);
+
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -103,7 +113,13 @@ export default function TeamAttendance() {
   }, [role, userBranch, userDepartment, selectedDate, dateViewMode]);
 
   if (loading) {
-    return (
+    
+  // Pagination logic
+  const totalPages = Math.ceil(filteredList.length / entriesPerPage);
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const paginatedList = filteredList.slice(startIndex, startIndex + entriesPerPage);
+
+  return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
@@ -355,15 +371,32 @@ export default function TeamAttendance() {
                   ))}
                 </div>
 
-                {/* Search */}
-                <div className="relative flex items-center">
-                  <Search className="w-4 h-4 absolute left-3 text-muted-foreground" />
-                  <Input
-                    placeholder="Search Employee..."
-                    className="pl-9 h-[34px] w-[200px] text-xs bg-white dark:bg-card"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
+                {/* Search & Pagination */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Show</span>
+                    <Select value={entriesPerPage.toString()} onValueChange={(val) => setEntriesPerPage(Number(val))}>
+                      <SelectTrigger className="w-[70px] h-[34px] bg-white dark:bg-card border-2 border-[#7B0099] rounded-xl text-black dark:text-white font-bold text-xs focus:ring-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="25">25</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="75">75</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="relative flex items-center">
+                    <Search className="w-4 h-4 absolute left-3 text-muted-foreground" />
+                    <Input
+                      placeholder="Search Employee..."
+                      className="pl-9 h-[34px] w-[200px] text-xs bg-white dark:bg-card"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -385,14 +418,14 @@ export default function TeamAttendance() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredList.length === 0 ? (
+                  {paginatedList.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         No team members found.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredList.map((emp, idx) => (
+                    paginatedList.map((emp, idx) => (
                       <TableRow key={dateViewMode === 'MONTH' ? `${emp.user_id}-${emp.date}-${idx}` : emp.user_id}>
                         {dateViewMode === 'MONTH' && (
                           <TableCell className="whitespace-nowrap font-medium text-gray-700">
