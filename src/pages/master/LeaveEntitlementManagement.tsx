@@ -242,6 +242,9 @@ export default function LeaveEntitlementManagement() {
             </CardContent>
           </Card>
 
+          {/* Leave Entitlement Activity KPI Panel */}
+          <EntitlementActivityCard onViewHistory={() => setActiveModule("Leave Balance History")} />
+
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
             <Card className="xl:col-span-2 border-border/60 bg-card/77 backdrop-blur-sm">
               <CardHeader className="border-b border-border/50 bg-muted/20">
@@ -294,9 +297,6 @@ export default function LeaveEntitlementManagement() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Leave Entitlement Activity KPI Panel */}
-          <EntitlementActivityCard onViewHistory={() => setActiveModule("Leave Balance History")} />
 
         </>
       ) : (
