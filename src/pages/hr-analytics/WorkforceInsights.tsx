@@ -489,12 +489,6 @@ export default function WorkforceInsights() {
                 >
                   MONTH
                 </button>
-                <button 
-                  className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${viewMode === 'year' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
-                  onClick={() => setViewMode('year')}
-                >
-                  YEAR
-                </button>
               </div>
             </div>
 
@@ -1999,6 +1993,7 @@ export default function WorkforceInsights() {
   );
 }
 function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssignments, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts, liveLeaveTrend, month, year, day, liveWeeklyAttendanceTrend, trendWeekStart, setTrendWeekStart }: any) {
+    const [selectedRegion, setSelectedRegion] = useState<string>('All Regions');
   const navigate = useNavigate();
   const topKpi = data.topKpi || {};
   const monthlyComp = data.monthlyComparison || { attendance: {}, lateArrivals: {}, absences: {}, leaveRequests: {}, outstation: {} };

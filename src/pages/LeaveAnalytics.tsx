@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { StaffProfileDialog } from '@/components/shared/StaffProfileDialog';
 import { EmployeesRequiringAttentionCard } from '@/components/shared/EmployeesRequiringAttentionCard';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -1543,10 +1544,14 @@ export default function LeaveAnalytics() {
 
       {/* 7. Employees Requiring Attention */}
       <div className="mb-4 w-full">
-        <EmployeesRequiringAttentionCard data={attentionEmployees} variant="grid" />
+        <EmployeesRequiringAttentionCard data={attentionEmployees} variant="grid" onEmployeeClick={(id) => setSelectedStaffId(id)} />
       </div>
 
+      <StaffProfileDialog 
+        employeeId={selectedStaffId} 
+        isOpen={!!selectedStaffId} 
+        onClose={() => setSelectedStaffId(null)} 
+      />
     </div>
   );
-
 }
