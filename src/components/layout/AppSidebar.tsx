@@ -94,6 +94,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
   const FULL_ADMIN_ROLES = ["hr_admin", "managing_director", "operation_manager", "finance_manager"];
 
   // ── HOD / BRANCH LEADER sidebar ──────────────────────────────────────────
+  const adminSectionTitle = 
+    role === "branch_leader" ? "BRANCH ADMINISTRATION" :
+    role === "head_of_department" ? "HOD ADMINISTRATION" :
+    (role === "managing_director" || role === "operation_manager") ? "MANAGEMENT & ADMINISTRATION" :
+    "HR ADMINISTRATION";
+
   const hodMenuItems = [
     { title: "Main Navigation", isSection: true, roles: HOD_BL_ROLES },
     { title: "Dashboard", icon: LayoutDashboard, path: "/", roles: HOD_BL_ROLES },
@@ -142,18 +148,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       ],
     },
     { title: "Employee Analytics", icon: BarChart3, path: "/analytics", roles: HOD_BL_ROLES },
-    {
-      title: "Reports",
-      icon: FileSearch,
-      path: "/reports",
-      roles: HOD_BL_ROLES,
-      children: [
-        { title: "Attendance Reports", icon: Clock, path: "/reports/attendance", roles: HOD_BL_ROLES },
-        { title: "Leave Reports", icon: CalendarDays, path: "/reports/leave", roles: HOD_BL_ROLES },
-        { title: "Department & Branch Report", icon: Building2, path: "/reports/department", roles: HOD_BL_ROLES },
-      ],
-    },
-    { title: "Administration", isSection: true, roles: HOD_BL_ROLES },
+    { title: adminSectionTitle, isSection: true, roles: HOD_BL_ROLES },
     { title: "Employee Directory", icon: Users, path: "/employees", roles: HOD_BL_ROLES },
     {
       id: "hod_admin_outstation",
@@ -231,7 +226,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     },
     { title: "Analytics", icon: BarChart3, path: "/analytics", roles: ALL_ROLES },
 
-    { title: "HR Administration", isSection: true, roles: FULL_ADMIN_ROLES },
+    { title: adminSectionTitle, isSection: true, roles: FULL_ADMIN_ROLES },
     {
       title: "Leave Administration",
       icon: ClipboardList,
