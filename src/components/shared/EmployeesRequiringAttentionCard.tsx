@@ -64,7 +64,7 @@ const getColors = (percent: number, idx: number) => {
   };
 };
 
-export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid' }: { data?: EmployeeAttentionData[], variant?: 'compact' | 'grid' }) => {
+export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', onEmployeeClick }: { data?: EmployeeAttentionData[], variant?: 'compact' | 'grid', onEmployeeClick?: (id: string) => void }) => {
   const navigate = useNavigate();
   
   return (
@@ -157,7 +157,7 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid' }:
                           <span className="text-[10px] font-bold">days left</span>
                         </div>
                         <button 
-                          onClick={() => navigate('/employees')}
+                          onClick={() => onEmployeeClick ? onEmployeeClick(emp.id) : navigate('/employees')}
                           className="text-blue-600 font-bold text-sm flex items-center opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
                         >
                           View <ChevronRight className="w-4 h-4" />

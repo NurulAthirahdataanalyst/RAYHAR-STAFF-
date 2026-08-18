@@ -1,3 +1,4 @@
+import { StaffProfileDialog } from '@/components/shared/StaffProfileDialog';
 import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
@@ -1987,7 +1988,13 @@ export default function WorkforceInsights() {
         ) : (
           <MonthViewDashboard data={data} clockInOut={clockInOut} absentList={absentList} tempAssignments={tempAssignments} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} liveLeaveTrend={liveLeaveTrend} month={month} year={year} day={day} liveWeeklyAttendanceTrend={liveWeeklyAttendanceTrend} trendWeekStart={trendWeekStart} setTrendWeekStart={setTrendWeekStart} />
         )}
-      </div>
+  
+      <StaffProfileDialog 
+        employeeId={selectedStaffId} 
+        isOpen={!!selectedStaffId} 
+        onClose={() => setSelectedStaffId(null)} 
+      />
+    </div>
   );
 }
 function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssignments, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts, liveLeaveTrend, month, year, day, liveWeeklyAttendanceTrend, trendWeekStart, setTrendWeekStart }: any) {
@@ -2829,7 +2836,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
 
         {/* Row 3: Employees Requiring Attention */}
          <div className="w-full mb-6">
-           <EmployeesRequiringAttentionCard data={data.performance?.attentionEmployees || []} variant="grid" />
+           <EmployeesRequiringAttentionCard data={data.performance?.attentionEmployees || []} variant="grid" onEmployeeClick={(id) => setSelectedStaffId(id)} />
          </div>
 
          {/* SUPPORTING SECTION */}
@@ -2898,4 +2905,6 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
 
 
 
+
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
 
