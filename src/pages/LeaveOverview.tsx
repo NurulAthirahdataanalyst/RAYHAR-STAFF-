@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import PageActions from "@/components/layout/PageActions";
+import { YearPopover } from "@/components/shared/YearPopover";
 import { CheckCircle2, Clock3, FileText, Plus, XCircle, Calendar } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { API_BASE_URL } from "../config/api";
@@ -224,16 +225,11 @@ export default function LeaveOverview() {
     <div className="space-y-3 sm:space-y-5 animate-in fade-in duration-500">
       <PageActions>
         <div className="flex items-center gap-2.5">
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[90px] h-9 text-[10px] font-black uppercase tracking-widest rounded-xl border border-[#7B0099]/20 bg-card">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              {YEARS.map(y => (
-                <SelectItem key={y} value={y} className="text-[10px] font-black uppercase tracking-widest">{y}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <YearPopover 
+            year={selectedYear} 
+            onSelectYear={setSelectedYear} 
+            className="appearance-none flex items-center justify-between px-3 py-1.5 h-9 w-[90px] bg-card border border-[#7B0099]/20 text-foreground text-[10px] font-black rounded-xl shadow-sm outline-none cursor-pointer uppercase tracking-widest gap-2"
+          />
           <Button
             onClick={() => navigate("/leave/apply")}
             className="gap-2 bg-[#7B0099] text-white hover:bg-[#5e0080] rounded-xl font-black text-[10px] uppercase tracking-widest px-4 h-9 shadow-lg shadow-[#7B0099]/20 transition-all active:scale-95"
@@ -292,18 +288,13 @@ export default function LeaveOverview() {
         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-3 px-4 sm:px-5">
           <CardTitle className="text-base sm:text-lg font-black text-foreground">Recent Applications</CardTitle>
           <div className="flex items-center gap-3 flex-wrap">
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[90px] h-10 text-[10px] font-black uppercase tracking-widest rounded-xl border border-[#7B0099]/20 bg-card">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              {YEARS.map(y => (
-                <SelectItem key={y} value={y} className="text-[10px] font-black uppercase tracking-widest">{y}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-</CardHeader>
+            <YearPopover 
+              year={selectedYear} 
+              onSelectYear={setSelectedYear} 
+              className="appearance-none flex items-center justify-between px-3 py-1.5 h-10 w-[90px] bg-card border border-[#7B0099]/20 text-foreground text-[10px] font-black rounded-xl shadow-sm outline-none cursor-pointer uppercase tracking-widest gap-2"
+            />
+          </div>
+        </CardHeader>
         <CardContent className="p-0">
           {/* Desktop Table */}
           <div className="overflow-x-auto hidden sm:block">

@@ -426,12 +426,16 @@ export default function EmployeeAnalytics() {
         {/* Month/Year Filter */}
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <MonthPicker
-            monthYear={selectedMonth === "all" ? "" : `${selectedYear}-${selectedMonth.padStart(2, '0')}`}
+            monthYear={selectedMonth === "all" ? `${selectedYear}-all` : `${selectedYear}-${selectedMonth.padStart(2, '0')}`}
             onSelectMonthYear={(val) => {
               if (val) {
                 const [year, month] = val.split('-');
                 setSelectedYear(year);
-                setSelectedMonth(parseInt(month, 10).toString());
+                if (month === 'all') {
+                  setSelectedMonth("all");
+                } else {
+                  setSelectedMonth(parseInt(month, 10).toString());
+                }
               } else {
                 setSelectedMonth("all");
               }

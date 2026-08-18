@@ -457,11 +457,15 @@ export default function LeaveAdmin() {
         <div className="flex-1"></div>
         <div className="flex flex-wrap items-center justify-end gap-2.5">
             <MonthPicker
-              monthYear={selectedMonth === "all" ? "" : `${new Date().getFullYear()}-${selectedMonth}`}
+              monthYear={selectedMonth === "all" ? `${new Date().getFullYear()}-all` : `${new Date().getFullYear()}-${selectedMonth}`}
               onSelectMonthYear={(val) => {
                 if (val) {
                   const [, month] = val.split('-');
-                  setSelectedMonth(month);
+                  if (month === 'all') {
+                    setSelectedMonth("all");
+                  } else {
+                    setSelectedMonth(month);
+                  }
                 } else {
                   setSelectedMonth("all");
                 }

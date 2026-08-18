@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 
@@ -8,6 +8,7 @@ interface MonthPickerProps {
   className?: string;
 }
 
+const FULL_MONTHS = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export function MonthPicker({ monthYear, onSelectMonthYear, className }: MonthPickerProps) {
@@ -18,7 +19,10 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className }: MonthPi
   const currentMonthIdx = currentDate.getMonth();
 
   // Parse selected
+  // format can be "YYYY-MM" or "YYYY-all"
+  const isAllYear = monthYear.endsWith('-all');
   const [selectedYear, selectedMonthStr] = monthYear ? monthYear.split('-') : [currentYearNum.toString(), (currentMonthIdx + 1).toString().padStart(2, '0')];
+  
   const activeYearNum = parseInt(selectedYear) || currentYearNum;
   const activeMonthIdx = (parseInt(selectedMonthStr) || (currentMonthIdx + 1)) - 1;
 
@@ -30,7 +34,14 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className }: MonthPi
     }
   }, [open, activeYearNum]);
 
-  const displayString = `${MONTHS[activeMonthIdx]} ${activeYearNum}`;
+  let displayString = "";
+  if (isAllYear) {
+    displayString = `${activeYearNum}`;
+  } else if (!monthYear) {
+    displayString = "ALL MONTHS"; // Default fallback if really empty, though it shouldn't be now
+  } else {
+    displayString = `${FULL_MONTHS[activeMonthIdx]}, ${activeYearNum}`;
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -115,7 +126,7 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className }: MonthPi
             <button
               type="button"
               onClick={() => {
-                onSelectMonthYear(""); // clear
+                onSelectMonthYear(`${viewYear}-all`); // clear
                 setOpen(false);
               }}
               className="text-[#7B0099] hover:underline text-[11px] font-bold"

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import PageActions from "@/components/layout/PageActions";
+import { MonthPicker } from "@/components/shared/MonthPicker";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -168,15 +169,21 @@ export default function OutstationAssignment() {
       if (a.start_date && filterMonthYear) {
         const [fYear, fMonth] = filterMonthYear.split('-');
         const d = new Date(a.start_date);
-        if (d.getFullYear().toString() !== fYear || (d.getMonth() + 1).toString().padStart(2, '0') !== fMonth) {
-          return false;
+        if (fMonth === 'all') {
+          if (d.getFullYear().toString() !== fYear) return false;
+        } else {
+          if (d.getFullYear().toString() !== fYear || (d.getMonth() + 1).toString().padStart(2, '0') !== fMonth) {
+            return false;
+          }
         }
       }
 
       if (filterStatus !== "All" && a.status !== filterStatus) return false;
       if (filterSearch) {
         const q = filterSearch.toLowerCase();
-        if (!a.full_name?.toLowerCase().includes(q) && !a.destination?.toLowerCase().includes(q) && !a.department?.toLowerCase().includes(q)) return false;
+        if (!(a.full_name || "").toLowerCase().includes(q) && !(a.destination || "").toLowerCase().includes(q)) {
+          return false;
+        }
       }
       return true;
     });
@@ -349,11 +356,16 @@ export default function OutstationAssignment() {
             </div>
             
             {/* Month/Year Filter */}
-            <input
-              type="month"
-              value={filterMonthYear}
-              onChange={(e) => setFilterMonthYear(e.target.value)}
-              className="appearance-none flex items-center justify-center px-3 py-1.5 h-8 bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 text-[11px] font-bold rounded shadow-sm outline-none cursor-pointer uppercase tracking-widest"
+            <MonthPicker
+              monthYear={filterMonthYear}
+              onSelectMonthYear={(val) => {
+                if (val) {
+                  setFilterMonthYear(val);
+                } else {
+                  setFilterMonthYear(`${currentDate.getFullYear()}-all`);
+                }
+              }}
+              className="appearance-none flex items-center justify-between px-3 py-1.5 h-8 bg-gray-50 dark:bg-card border border-gray-200 dark:border-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 text-[11px] font-bold rounded shadow-sm outline-none cursor-pointer uppercase tracking-widest gap-2"
             />
 
             <Select value={filterStatus} onValueChange={setFilterStatus}>
