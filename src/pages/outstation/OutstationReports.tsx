@@ -291,102 +291,101 @@ export default function OutstationReports() {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="mb-4 space-y-4">
-        {/* Tabs for Month/Year View */}
-        <div className="flex items-center gap-6 border-b border-gray-200 dark:border-gray-800 pb-2 px-2">
-          <button
-            onClick={() => setViewType("month")}
-            className={`text-lg font-medium pb-2 -mb-2.5 transition-colors ${
-              viewType === "month" 
-                ? "text-[#7B0099] border-b-4 border-[#7B0099]" 
-                : "text-gray-500 hover:text-gray-800"
-            }`}
-          >
-            Month View
-          </button>
-          <button
-            onClick={() => setViewType("year")}
-            className={`text-lg font-medium pb-2 -mb-2.5 transition-colors ${
-              viewType === "year" 
-                ? "text-blue-700 border-b-4 border-blue-700" 
-                : "text-gray-500 hover:text-gray-800"
-            }`}
-          >
-            Year View
-          </button>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center gap-3 justify-between w-full">
-          <div className="flex items-center gap-3 flex-wrap">
-            <Filter className="w-4 h-4 text-gray-400" />
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-              <Input placeholder={selectedEventName ? "Search employee..." : "Search event..."} value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-48" />
-            </div>
-
-            {viewType === "month" ? (
-              <MonthPicker 
-                monthYear={selectedMonthYear} 
-                onSelectMonthYear={setSelectedMonthYear} 
-                className="appearance-none flex items-center justify-between px-3 py-1.5 bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-[#7B0099]/40"
-              />
-            ) : (
-              <YearPopover 
-                year={selectedYear} 
-                onSelectYear={setSelectedYear}
-                className="appearance-none flex items-center justify-between px-3 py-1.5 bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-blue-700/40"
-              />
-            )}
-            
-            {!selectedEventName ? (
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-[130px] h-8 text-xs">
-                  <SelectValue placeholder="Status">{filterStatus === "All" ? "All Status" : filterStatus}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {["All","Active","Upcoming","Completed","Cancelled"].map(s => <SelectItem key={s} value={s}>{s === "All" ? "All Status" : s}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            ) : (
-              <>
-                <Select value={filterBranch} onValueChange={setFilterBranch}>
-                  <SelectTrigger className="w-[150px] h-8 text-xs">
-                    <SelectValue placeholder="Branch">{filterBranch === "All" ? "All Branch" : filterBranch}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {branches.map(b => <SelectItem key={b} value={b}>{b === "All" ? "All Branch" : b}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={filterDept} onValueChange={setFilterDept}>
-                  <SelectTrigger className="w-[150px] h-8 text-xs">
-                    <SelectValue placeholder="Department">{filterDept === "All" ? "All Department" : filterDept}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departments.map(d => <SelectItem key={d} value={d}>{d === "All" ? "All Department" : d}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </>
-            )}
-            
-            <span className="text-[10px] text-gray-400 font-bold">{selectedEventName ? filteredAssignments.length : filteredEvents.length} records</span>
-          </div>
-          <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5 shrink-0" onClick={exportCSV}>
-            <Download className="w-3.5 h-3.5" /> Export CSV
-          </Button>
-        </div>
-      </div>
-
       {/* Main Table Content */}
-      <Card className="border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <CardHeader className="border-b border-gray-100 dark:border-slate-800 pb-3 bg-slate-50/50 dark:bg-slate-900/50">
-          <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
-            <Plane className="w-4 h-4 text-pink-500" />
+      <Card className="border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden mt-4">
+        <CardHeader className="pb-0 bg-white dark:bg-card space-y-4 pt-4 px-4 sm:px-6">
+          <CardTitle className="text-sm font-black uppercase tracking-wide flex items-center gap-2 mb-1">
+            <Plane className="w-4 h-4 text-[#7B0099]" />
             {selectedEventName ? `Event Details: ${selectedEventName}` : "Events Overview"}
-            <Badge className="bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-500/30 text-[10px] font-black">
+            <Badge className="bg-[#7B0099]/10 text-[#7B0099] border border-[#7B0099]/20 text-[10px] font-black">
               {selectedEventName ? filteredAssignments.length : filteredEvents.length}
             </Badge>
           </CardTitle>
+
+          <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between w-full gap-4 border-b border-gray-100 dark:border-gray-800">
+            {/* Tabs for Month/Year View */}
+            <div className="flex items-center gap-6">
+              <button
+                onClick={() => setViewType("month")}
+                className={`text-sm sm:text-base font-medium pb-3 -mb-[1px] transition-colors border-b-[3px] ${
+                  viewType === "month" 
+                    ? "text-[#7B0099] border-[#7B0099]" 
+                    : "text-gray-500 hover:text-yellow-500 border-transparent hover:border-yellow-500"
+                }`}
+              >
+                Month View
+              </button>
+              <button
+                onClick={() => setViewType("year")}
+                className={`text-sm sm:text-base font-medium pb-3 -mb-[1px] transition-colors border-b-[3px] ${
+                  viewType === "year" 
+                    ? "text-yellow-500 border-yellow-500" 
+                    : "text-gray-500 hover:text-yellow-500 border-transparent hover:border-yellow-500"
+                }`}
+              >
+                Year View
+              </button>
+            </div>
+
+            {/* Filters on the right side */}
+            <div className="flex items-center gap-3 flex-wrap pb-2">
+              <Filter className="w-4 h-4 text-gray-400 hidden sm:block" />
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Input placeholder={selectedEventName ? "Search employee..." : "Search event..."} value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-48 bg-gray-50" />
+              </div>
+
+              {viewType === "month" ? (
+                <MonthPicker 
+                  monthYear={selectedMonthYear} 
+                  onSelectMonthYear={setSelectedMonthYear} 
+                  className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-[#7B0099]/40"
+                />
+              ) : (
+                <YearPopover 
+                  year={selectedYear} 
+                  onSelectYear={setSelectedYear}
+                  className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-yellow-500/40"
+                />
+              )}
+              
+              {!selectedEventName ? (
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-[130px] h-8 text-xs bg-gray-50">
+                    <SelectValue placeholder="Status">{filterStatus === "All" ? "All Status" : filterStatus}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["All","Active","Upcoming","Completed","Cancelled"].map(s => <SelectItem key={s} value={s}>{s === "All" ? "All Status" : s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <>
+                  <Select value={filterBranch} onValueChange={setFilterBranch}>
+                    <SelectTrigger className="w-[150px] h-8 text-xs bg-gray-50">
+                      <SelectValue placeholder="Branch">{filterBranch === "All" ? "All Branch" : filterBranch}</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {branches.map(b => <SelectItem key={b} value={b}>{b === "All" ? "All Branch" : b}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterDept} onValueChange={setFilterDept}>
+                    <SelectTrigger className="w-[150px] h-8 text-xs bg-gray-50">
+                      <SelectValue placeholder="Department">{filterDept === "All" ? "All Department" : filterDept}</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departments.map(d => <SelectItem key={d} value={d}>{d === "All" ? "All Department" : d}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+              
+              <span className="text-[10px] text-gray-400 font-bold ml-1 hidden sm:inline-block">{selectedEventName ? filteredAssignments.length : filteredEvents.length} records</span>
+              
+              <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5 shrink-0 ml-auto xl:ml-2" onClick={exportCSV}>
+                <Download className="w-3.5 h-3.5" /> Export CSV
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
