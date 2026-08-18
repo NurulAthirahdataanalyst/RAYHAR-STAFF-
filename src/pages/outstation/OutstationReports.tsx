@@ -489,11 +489,11 @@ export default function OutstationReports() {
 
       {/* View Form Dialog */}
       <Dialog open={!!viewFormEvent} onOpenChange={() => setViewFormEvent(null)}>
-        <DialogContent className="max-w-lg w-full rounded-2xl p-0 overflow-hidden">
+        <DialogContent className="max-w-lg w-[95vw] sm:w-full rounded-2xl p-0 overflow-hidden max-h-[90vh] flex flex-col">
           {viewFormEvent && (
             <>
-              {/* Header */}
-              <div className="bg-[#7B0099] px-6 py-5 text-white">
+              {/* Header (Fixed) */}
+              <div className="bg-[#7B0099] px-6 py-5 text-white shrink-0">
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-xl bg-white/20 shrink-0">
                     <Plane className="w-5 h-5 text-white" />
@@ -508,8 +508,8 @@ export default function OutstationReports() {
                 </div>
               </div>
 
-              {/* Body */}
-              <div className="px-6 py-5 space-y-5">
+              {/* Body (Scrollable) */}
+              <div className="px-6 py-5 space-y-5 overflow-y-auto flex-1">
                 {/* Trip Information */}
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-1.5">
@@ -557,7 +557,7 @@ export default function OutstationReports() {
                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-1.5">
                     <Users className="w-3.5 h-3.5" /> Employees Assigned ({viewFormEvent.assignments.length})
                   </p>
-                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  <div className="space-y-2">
                     {viewFormEvent.assignments.map((a, idx) => (
                       <div key={idx} className="flex items-center gap-3 bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7B0099]/20 to-pink-200 flex items-center justify-center text-[10px] font-black text-[#7B0099] shrink-0">
@@ -574,7 +574,7 @@ export default function OutstationReports() {
                 </div>
               </div>
 
-              {/* Footer */}
+              {/* Footer (Fixed) */}
               <div className="px-6 pb-5 flex justify-end">
                 <Button variant="outline" onClick={() => setViewFormEvent(null)} className="rounded-xl font-black text-[11px]">
                   Close
