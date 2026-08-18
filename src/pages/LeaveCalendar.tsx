@@ -230,7 +230,7 @@ export default function LeaveCalendar() {
         return (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedEvent(null)}>
             <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden max-w-sm w-full flex flex-col relative" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between bg-[#7B0099] text-white p-4">
+              <div className="flex items-center justify-between bg-blue-500 text-white p-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-white/20">
                     <FileText className="w-5 h-5 text-white" />

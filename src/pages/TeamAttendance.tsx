@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { MonthPicker } from "@/components/shared/MonthPicker";
 import { Calendar as CalendarWidget } from "@/components/ui/calendar";
 
 export default function TeamAttendance() {
@@ -513,3 +514,4 @@ export default function TeamAttendance() {
     </div>
   );
 }
+

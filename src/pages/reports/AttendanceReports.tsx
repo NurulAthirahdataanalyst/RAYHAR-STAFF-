@@ -10,6 +10,7 @@ import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import PageActions from "@/components/layout/PageActions";
 import { useRole } from "@/contexts/RoleContext";
 import { YearPopover } from "@/components/shared/YearPopover";
+import { MonthPicker } from "@/components/shared/MonthPicker";
 
 const calculateWorkingHours = (clockIn: string | null | undefined, clockOut: string | null | undefined) => {
   if (!clockIn) return "--";
@@ -252,20 +253,17 @@ export default function AttendanceReports() {
                 className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
               />
             ) : viewType === "month" ? (
-              <input
-                type="month"
-                value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    const [yyyy, mm] = e.target.value.split('-');
-                    setSelectedYear(yyyy);
-                    setSelectedMonth(parseInt(mm).toString());
-                  }
+              <MonthPicker
+                monthYear={selectedMonth === 'all' ? `${selectedYear}-all` : `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
+                onSelectMonthYear={(val) => {
+                  const [y, m] = val.split('-');
+                  setSelectedYear(y);
+                  setSelectedMonth(parseInt(m).toString());
                 }}
-                className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
+                className="h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]"
               />
             ) : (
-              <YearPopover year={selectedYear} onSelectYear={setSelectedYear} />
+              <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
             )}
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -534,3 +532,5 @@ export default function AttendanceReports() {
     </div>
   );
 }
+
+

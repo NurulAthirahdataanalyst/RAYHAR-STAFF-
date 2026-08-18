@@ -219,19 +219,19 @@ export default function NotificationBell() {
                   </div>
                   <div className="flex-1 pr-6 relative">
                     <h4 className={`text-xs font-bold mb-1 ${!notif.is_read ? 'text-white' : 'text-white/70'}`}>
-                      {notif.title}
+                      {notif.title.replace(/Pending Finance(?: Manager)?/g, "Pending Operation Manager")}
                     </h4>
-                    <p className="text-[11px] text-white/50 leading-relaxed">
-                      {notif.message}
+                    <p className={`text-[11px] leading-relaxed ${!notif.is_read ? 'text-white/90' : 'text-white/70'}`}>
+                      {notif.message.replace(/Pending Finance(?: Manager)?/g, "Pending Operation Manager")}
                     </p>
-                    <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest mt-2 block">
+                    <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest mt-2 block">
                       {new Date(notif.created_at).toLocaleString(undefined, {
                         month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                       })}
                     </span>
                     <button 
                       onClick={(e) => deleteNotification(e, notif.id)}
-                      className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-white/10 text-white/40 hover:text-rose-400 transition-all"
+                      className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-white/10 text-white/50 hover:text-rose-400 transition-all"
                       title="Delete notification"
                     >
                       <Trash className="w-3.5 h-3.5" />

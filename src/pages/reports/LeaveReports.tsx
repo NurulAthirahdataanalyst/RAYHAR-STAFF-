@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import PageActions from "@/components/layout/PageActions";
 import { YearPopover } from "@/components/shared/YearPopover";
+import { MonthPicker } from "@/components/shared/MonthPicker";
 
 const formatDate = (value: string) => (value ? value.slice(0, 10) : "");
 
@@ -165,7 +166,7 @@ export default function LeaveReports() {
                 className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
               />
             ) : (
-              <YearPopover year={selectedYear} onSelectYear={setSelectedYear} />
+              <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
             )}
             <ExportDropdown onExportCSV={handleExportCSV} />
           </div>
@@ -285,3 +286,5 @@ export default function LeaveReports() {
     </div>
   );
 }
+
+

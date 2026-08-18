@@ -24,6 +24,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { YearPopover } from "@/components/shared/YearPopover";
+import { MonthPicker } from "@/components/shared/MonthPicker";
 
 const fallbackMonthlyData = [
   { month: "Jan", attendance: 94, leave_request: 18 },
@@ -958,3 +959,4 @@ export default function Reports() {
   </div>
 );
 }
+
