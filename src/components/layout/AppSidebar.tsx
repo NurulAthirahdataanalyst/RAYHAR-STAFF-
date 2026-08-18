@@ -161,7 +161,6 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment", roles: HOD_BL_ROLES },
         { title: "Outstation Analytics", icon: BarChart3, path: "/outstation/analytics", roles: HOD_BL_ROLES },
         { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar", roles: HOD_BL_ROLES },
-        { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports", roles: HOD_BL_ROLES },
       ],
     },
     {
@@ -176,7 +175,20 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "Workforce Calendar", icon: Calendar, path: "/hr-analytics/calendar", roles: HOD_BL_ROLES },
       ],
     },
+    {
+      title: "Reports",
+      icon: FileSearch,
+      path: "/reports",
+      roles: HOD_BL_ROLES,
+      children: [
+        { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance", roles: HOD_BL_ROLES },
+        { title: "Leave Reports", icon: FileSearch, path: "/reports/leave", roles: HOD_BL_ROLES },
+        { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports", roles: HOD_BL_ROLES },
+        { title: "Department & Branch Reports", icon: Building2, path: "/reports/department", roles: HOD_BL_ROLES },
+      ],
+    },
   ];
+
 
   // ── Standard sidebar (employee, branch_officer, hr_admin, MD, finance) ───
   const menuItems = [
@@ -249,7 +261,6 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "Outstation Assignment", icon: Plane, path: "/outstation/assignment", roles: FULL_ADMIN_ROLES },
         { title: "Outstation Analytics", icon: BarChart3, path: "/outstation/analytics", roles: FULL_ADMIN_ROLES },
         { title: "Outstation Calendar", icon: Calendar, path: "/outstation/calendar", roles: FULL_ADMIN_ROLES },
-        { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports", roles: FULL_ADMIN_ROLES },
       ],
     },
     {
@@ -293,7 +304,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       children: [
         { title: "Attendance Reports", icon: FileSearch, path: "/reports/attendance", roles: FULL_ADMIN_ROLES },
         { title: "Leave Reports", icon: FileSearch, path: "/reports/leave", roles: FULL_ADMIN_ROLES },
-        { title: "Department & Branch Report", icon: Building2, path: "/reports/department", roles: FULL_ADMIN_ROLES },
+        { title: "Outstation Reports", icon: FileSearch, path: "/outstation/reports", roles: FULL_ADMIN_ROLES },
+        { title: "Department & Branch Reports", icon: Building2, path: "/reports/department", roles: FULL_ADMIN_ROLES },
       ]
     },
     { title: "Settings", icon: Settings, path: "/settings", roles: ["hr_admin"] },
