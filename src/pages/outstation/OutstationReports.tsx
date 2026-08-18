@@ -415,11 +415,11 @@ export default function OutstationReports() {
                 <thead>
                   <tr className="border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
                     {selectedEventName ? (
-                      ["NO","Employee","Department","Branch","Destination","Start","End","Days","Status","Assigned By"].map(h => (
+                      ["Employee","Department","Branch","Destination","Start","End","Days","Status","Assigned By"].map(h => (
                         <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">{h}</th>
                       ))
                     ) : (
-                      ["NO","Event Name","Destination","Start Date","End Date","Days","Status","Participants","Actions"].map(h => (
+                      ["Event Name","Destination","Start Date","End Date","Days","Status","Participants","Actions"].map(h => (
                         <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">{h}</th>
                       ))
                     )}
@@ -433,19 +433,18 @@ export default function OutstationReports() {
                         onClick={() => setSelectedEventName(e.eventName)}
                         className="border-b border-gray-50 dark:border-slate-800 hover:bg-pink-50/30 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
                       >
-                        <td className="px-4 py-3 text-gray-400 font-bold text-[10px] group-hover:text-pink-500">{i + 1}</td>
-                        <td className="px-4 py-3 font-bold text-gray-800 dark:text-gray-100 max-w-[200px] truncate">{e.eventName}</td>
+                        <td className="px-4 py-3 font-bold text-gray-900 dark:text-gray-100 max-w-[220px] truncate">{e.eventName}</td>
                         <td className="px-4 py-3">
-                          <div className="flex items-center gap-1 font-semibold text-gray-600 dark:text-gray-300">
+                          <div className="flex items-center gap-1 font-semibold text-gray-900 dark:text-gray-100">
                             <MapPin className="w-3 h-3 text-pink-400 shrink-0" />{e.destination}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{fmtDate(e.startDate)}</td>
-                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{fmtDate(e.endDate)}</td>
+                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium whitespace-nowrap">{fmtDate(e.startDate)}</td>
+                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium whitespace-nowrap">{fmtDate(e.endDate)}</td>
                         <td className="px-4 py-3 text-center font-black text-pink-600">{e.totalDays}</td>
                         <td className="px-4 py-3">{statusBadge(e.status)}</td>
                         <td className="px-4 py-3">
-                          <Badge variant="outline" className="text-slate-600 dark:text-slate-300">{e.assignments.length} Staff</Badge>
+                          <Badge variant="outline" className="text-gray-800 dark:text-slate-300 font-semibold">{e.assignments.length} Staff</Badge>
                         </td>
                         <td className="px-4 py-3" onClick={(ev) => ev.stopPropagation()}>
                           <Button
@@ -462,23 +461,22 @@ export default function OutstationReports() {
                   ) : (
                     filteredAssignments.map((a, i) => (
                       <tr key={a.id} className="border-b border-gray-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                        <td className="px-4 py-3 text-gray-400 font-bold text-[10px]">{i + 1}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center text-[9px] font-black text-pink-800 shrink-0">
                               {(a.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0,2).toUpperCase()}
                             </div>
-                            <span className="font-semibold text-gray-800 dark:text-gray-100">{a.full_name}</span>
+                            <span className="font-semibold text-gray-900 dark:text-gray-100">{a.full_name}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{a.department || "—"}</td>
-                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{a.branch || "—"}</td>
-                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{a.destination}</td>
-                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{fmtDate(a.start_date)}</td>
-                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{fmtDate(a.end_date)}</td>
+                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium">{a.department || "—"}</td>
+                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium">{a.branch || "—"}</td>
+                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium">{a.destination}</td>
+                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium whitespace-nowrap">{fmtDate(a.start_date)}</td>
+                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium whitespace-nowrap">{fmtDate(a.end_date)}</td>
                         <td className="px-4 py-3 text-center font-black text-pink-600">{diffDays(a.start_date, a.end_date)}</td>
                         <td className="px-4 py-3">{statusBadge(a.status)}</td>
-                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{a.assigned_by_name || "—"}</td>
+                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium">{a.assigned_by_name || "—"}</td>
                       </tr>
                     ))
                   )}
