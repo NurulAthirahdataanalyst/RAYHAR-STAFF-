@@ -2038,7 +2038,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
     "HQ": "HQ"
   };
 
-  const [selectedRegion, setSelectedRegion] = useState<string>('All Regions');
+  
 
   const liveBranchRanking = useMemo(() => {
     const listSource = rawBranchMetrics.map((b:any) => ({ branch: b.name, totalEmployees: b.count || 0 }));
