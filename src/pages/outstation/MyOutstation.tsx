@@ -169,102 +169,111 @@ export default function MyOutstation() {
       )}
 
       
-      {/* Table Card */}
-      <Card className="border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <CardHeader className="p-4 sm:p-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              {/* Tabs */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-                {(["Upcoming", "Active", "Completed", "Cancelled"] as const).map(s => (
-                  <button
-                    key={s}
-                    onClick={() => setTab(s)}
-                    className={`relative px-4 py-2 text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-colors ${
-                      tab === s 
-                        ? "text-[#7B0099]" 
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {s}
-                      <span className={`flex items-center justify-center h-5 px-1.5 rounded-full text-[9px] ${
-                        tab === s 
-                          ? "bg-[#7B0099] text-white" 
-                          : "bg-muted text-muted-foreground"
-                      }`}>
-                        {counts[s]}
-                      </span>
-                    </div>
-                    {tab === s && (
-                      <div className="absolute bottom-[-17px] left-0 right-0 h-0.5 bg-[#7B0099]" />
-                    )}
-                  </button>
-                ))}
-              </div>
+      {/* Top Bar with Tabs and Export */}
+      <div className="mb-4">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full justify-between">
+          {/* Tabs */}
+          <div className="flex gap-1 overflow-x-auto w-full sm:w-auto">
+            {(["Upcoming", "Active", "Completed", "Cancelled"] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => setTab(s)}
+                className={`relative px-4 sm:px-5 py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all rounded-md whitespace-nowrap ${
+                  tab === s 
+                    ? "text-[#7B0099] bg-[#7B0099]/10" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
+              >
+                {s}
+                {counts[s] > 0 && (
+                  <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[9px] ${
+                    tab === s 
+                      ? "bg-[#7B0099] text-white" 
+                      : "bg-muted-foreground/20 text-muted-foreground"
+                  }`}>
+                    {counts[s]}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <ExportDropdown onExportCSV={() => exportToCSV(filtered, `My_Outstations_${tab}`)} />
+          </div>
+        </div>
+      </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-3">
-                <ExportDropdown onExportCSV={() => exportToCSV(filtered, `My_Outstations_${tab}`)} />
-              </div>
+      {/* Main Content Card */}
+      <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">
+        {/* Filters Row */}
+        <div className="p-4 sm:p-6 border-b border-gray-100 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="relative flex-1 sm:max-w-xs">
+              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Input
+                placeholder="Search destination..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-8 h-9 text-xs border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50 focus-visible:ring-[#7B0099] uppercase font-bold tracking-wider rounded-xl"
+              />
             </div>
 
-            {/* Filters Row */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="relative flex-1 sm:max-w-xs">
-                <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <Input
-                  placeholder="Search destination..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-8 h-9 text-xs border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50 focus-visible:ring-[#7B0099] uppercase font-bold tracking-wider"
+            <div className="flex items-center gap-3">
+              <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
+                <button 
+                  className={`h-7 px-3 text-[10px] font-black tracking-widest rounded-md transition-all ${viewMode === 'month' ? 'bg-white dark:bg-slate-800 text-[#7B0099] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  onClick={() => setViewMode('month')}
+                >
+                  MONTH
+                </button>
+                <button 
+                  className={`h-7 px-3 text-[10px] font-black tracking-widest rounded-md transition-all ${viewMode === 'year' ? 'bg-white dark:bg-slate-800 text-[#7B0099] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  onClick={() => setViewMode('year')}
+                >
+                  YEAR
+                </button>
+              </div>
+              
+              {viewMode === "month" ? (
+                <MonthPicker
+                  monthYear={`${selectedYear}-${selectedMonth.padStart(2, '0')}`}
+                  onSelectMonthYear={(val) => {
+                    const [y, m] = val.split('-');
+                    setSelectedYear(y);
+                    setSelectedMonth(parseInt(m).toString());
+                  }}
+                  className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]"
                 />
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
-                  <button 
-                    className={`h-7 px-3 text-[10px] font-black tracking-widest rounded-md transition-all ${viewMode === 'month' ? 'bg-white dark:bg-slate-800 text-[#7B0099] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                    onClick={() => setViewMode('month')}
-                  >
-                    MONTH
-                  </button>
-                  <button 
-                    className={`h-7 px-3 text-[10px] font-black tracking-widest rounded-md transition-all ${viewMode === 'year' ? 'bg-white dark:bg-slate-800 text-[#7B0099] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                    onClick={() => setViewMode('year')}
-                  >
-                    YEAR
-                  </button>
-                </div>
-                
-                {viewMode === "month" ? (
-                  <MonthPicker
-                    monthYear={`${selectedYear}-${selectedMonth.padStart(2, '0')}`}
-                    onSelectMonthYear={(val) => {
-                      const [y, m] = val.split('-');
-                      setSelectedYear(y);
-                      setSelectedMonth(parseInt(m).toString());
-                    }}
-                    className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]"
-                  />
-                ) : (
-                  <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
-                )}
-              </div>
+              ) : (
+                <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
+              )}
             </div>
           </div>
-        </CardHeader>
+        </div>
 
         <CardContent className="p-0">
           {loading ? (
-            <div className="py-20 flex justify-center"><Loader2 className="animate-spin w-8 h-8 text-[#7B0099]" /></div>
+            <div className="flex flex-col items-center justify-center p-12 gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Syncing Outstations...</p>
+            </div>
           ) : filtered.length === 0 ? (
-            <div className="py-16 flex flex-col items-center justify-center text-slate-400 border border-dashed border-gray-200 dark:border-slate-800 mx-4 my-4 rounded-xl">
-              <div className="p-4 rounded-full bg-slate-100 dark:bg-slate-800/50 mb-3 border border-slate-200 dark:border-slate-700">
-                <Plane className="w-6 h-6 text-slate-400 opacity-50" />
+            <div className="flex flex-col items-center justify-center p-12 gap-4 text-center">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-20 h-20 rounded-[32px] bg-muted/30 flex items-center justify-center border-2 border-dashed border-border/50 group hover:border-[#7B0099]/30 transition-colors">
+                  <Plane className="h-10 w-10 text-muted-foreground/30 group-hover:text-[#7B0099]/30 transition-colors" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-black text-foreground uppercase tracking-widest">
+                    No {tab} Outstations
+                  </p>
+                  <p className="text-[10px] font-medium text-muted-foreground italic">
+                    No assignments found for the selected criteria
+                  </p>
+                </div>
               </div>
-              <p className="text-[11px] font-black uppercase tracking-widest text-slate-500">NO {tab} OUTSTATIONS</p>
-              <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-wider">No assignments found for the selected criteria</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-100 dark:divide-slate-800">
