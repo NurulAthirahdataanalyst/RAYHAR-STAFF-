@@ -1,93 +1,31 @@
-import { useState, useEffect } from "react";
-import { useRole } from "@/contexts/RoleContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import PageHeader from "@/components/layout/PageHeader";
-import PageActions from "@/components/layout/PageActions";
-import { ExportDropdown } from "@/components/shared/ExportDropdown";
-import { exportToCSV } from "@/utils/export";
-import { Loader2, Plane, MapPin, Calendar, Clock, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+# -*- coding: utf-8 -*-
+import codecs
+
+with codecs.open('src/pages/outstation/MyOutstation.tsx', 'r', encoding='utf-8') as f:
+    content = f.read()
+
+imports_to_add = """
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { YearPopover } from "@/components/shared/YearPopover";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { API_BASE_URL } from "../../config/api";
+"""
 
-const PINK = "#EC4899";
+if 'MonthPicker' not in content:
+    content = content.replace('import { API_BASE_URL }', imports_to_add.strip() + '\nimport { API_BASE_URL }')
 
-function fmtDate(d: string) {
-  if (!d) return "—";
-  return new Date(d).toLocaleDateString("en-MY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" });
-}
-
-function diffDays(start: string, end: string) {
-  const s = new Date(start), e = new Date(end);
-  return Math.max(1, Math.ceil((e.getTime() - s.getTime()) / 86400000) + 1);
-}
-
-function daysRemaining(end: string) {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  const e = new Date(end);
-  e.setHours(0, 0, 0, 0);
-  return Math.ceil((e.getTime() - now.getTime()) / 86400000);
-}
-
-function statusBadge(status: string) {
-  switch (status) {
-    case "Active":    return <Badge className="bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-500/30 font-bold">🟣 Active</Badge>;
-    case "Upcoming":  return <Badge className="bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 font-bold">🟡 Upcoming</Badge>;
-    case "Completed": return <Badge className="bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 font-bold">🔵 Completed</Badge>;
-    case "Cancelled": return <Badge className="bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-800 dark:border-gray-500/30 font-bold">⬜ Cancelled</Badge>;
-    default:          return <Badge variant="outline">{status}</Badge>;
-  }
-}
-
-type Assignment = {
-  id: number;
-  destination: string;
-  client_company?: string;
-  purpose?: string;
-  project?: string;
-  start_date: string;
-  end_date: string;
-  total_days?: number;
-  status: string;
-  assigned_by_name?: string;
-  assigned_at: string;
-  meeting_title?: string;
-};
-
-export default function MyOutstation() {
-  const { userId, loading: roleLoading } = useRole();
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"Upcoming"|"Active"|"Completed"|"Cancelled">("Upcoming");
-
+states_to_add = """
   const [viewMode, setViewMode] = useState<"month"|"year">("month");
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [search, setSearch] = useState("");
+"""
 
+if 'viewMode' not in content:
+    content = content.replace('const [tab, setTab] = useState<"Upcoming"|"Active"|"Completed"|"Cancelled">("Upcoming");', 
+                              'const [tab, setTab] = useState<"Upcoming"|"Active"|"Completed"|"Cancelled">("Upcoming");\n' + states_to_add)
 
-  useEffect(() => {
-    if (!userId) return;
-    const fetch_ = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/outstation?role=employee&user_id=${userId}`);
-        const data = await res.json();
-        if (data.success) setAssignments(data.assignments || []);
-      } catch (err) {
-        console.error("MyOutstation error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    void fetch_();
-  }, [userId]);
-
+old_filtered = """
   const counts = {
     Upcoming: assignments.filter(a => a.status === "Upcoming").length,
     Active: assignments.filter(a => a.status === "Active").length,
@@ -95,80 +33,45 @@ export default function MyOutstation() {
     Cancelled: assignments.filter(a => a.status === "Cancelled").length,
   };
 
-  const filtered = assignments.filter(a => a.status === tab);
-  const active = assignments.find(a => a.status === "Active");
-  const nextUpcoming = assignments.filter(a => a.status === "Upcoming").sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())[0];
+  const filtered = assignments.filter(a => a.status === tab).sort((a,b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+"""
 
-  if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-500" /></div>;
+new_filtered = """
+  const filteredByDateAndSearch = assignments.filter(a => {
+    // Search
+    if (search && !(a.destination || "").toLowerCase().includes(search.toLowerCase()) && !(a.project || "").toLowerCase().includes(search.toLowerCase())) {
+      return false;
+    }
+    // Date
+    if (a.start_date) {
+      const d = new Date(a.start_date);
+      if (viewMode === "year") {
+        if (d.getFullYear().toString() !== selectedYear) return false;
+      } else {
+        if (d.getFullYear().toString() !== selectedYear || (d.getMonth() + 1).toString() !== selectedMonth) return false;
+      }
+    }
+    return true;
+  });
 
-  return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto px-4 pt-2 pb-8">
+  const counts = {
+    Upcoming: filteredByDateAndSearch.filter(a => a.status === "Upcoming").length,
+    Active: filteredByDateAndSearch.filter(a => a.status === "Active").length,
+    Completed: filteredByDateAndSearch.filter(a => a.status === "Completed").length,
+    Cancelled: filteredByDateAndSearch.filter(a => a.status === "Cancelled").length,
+  };
 
-      {/* Current / Active Trip Banner */}
-      {active && (
-        <Card className="border-2 border-pink-200 dark:border-pink-500/30 bg-gradient-to-r from-pink-50 to-white shadow-sm overflow-hidden">
-          <CardContent className="p-5">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl shadow-sm" style={{ background: `linear-gradient(135deg, ${PINK}, #f9a8d4)` }}>
-                  <Plane className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                   <p className="text-[10px] font-black uppercase tracking-widest text-pink-400 mb-0.5">Currently On Outstation</p>
-                  <h3 className="text-lg font-black text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-pink-500 shrink-0" />
-                    {active.purpose
-                      ? <>{active.purpose} <span className="text-pink-400 font-bold">·</span> {active.destination}</>
-                      : active.destination
-                    }
-                  </h3>
-                </div>
-              </div>
-              <div className="text-right shrink-0">
-                {statusBadge(active.status)}
-                <p className="text-xs text-pink-500 font-black mt-1.5">
-                  {daysRemaining(active.end_date) >= 0 ? `${daysRemaining(active.end_date)} day(s) remaining` : "Overdue"}
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-pink-100">
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Start</p>
-                <p className="text-[11px] font-bold text-gray-700 dark:text-gray-200 mt-0.5">{fmtDate(active.start_date)}</p>
-              </div>
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">End</p>
-                <p className="text-[11px] font-bold text-gray-700 dark:text-gray-200 mt-0.5">{fmtDate(active.end_date)}</p>
-              </div>
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Assigned By</p>
-                <p className="text-[11px] font-bold text-gray-700 dark:text-gray-200 mt-0.5">{active.assigned_by_name || "—"}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+  const filtered = filteredByDateAndSearch.filter(a => a.status === tab).sort((a,b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+"""
 
-      {/* Next Upcoming */}
-      {!active && nextUpcoming && (
-        <Card className="border border-amber-200 dark:border-amber-500/30 bg-amber-50/50 shadow-sm">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-2.5 rounded-xl bg-amber-100 dark:bg-amber-500/20 border border-amber-200 dark:border-amber-500/30">
-              <Clock className="w-5 h-5 text-amber-600" />
-            </div>
-            <div className="flex-1">
-              <p className="text-[10px] font-black uppercase tracking-widest text-amber-500">Upcoming Trip</p>
-              <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5 flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-amber-500" /> {nextUpcoming.destination}
-              </p>
-              <p className="text-[11px] text-amber-600 font-bold mt-0.5">{fmtDate(nextUpcoming.start_date)} → {fmtDate(nextUpcoming.end_date)}</p>
-            </div>
-            {statusBadge(nextUpcoming.status)}
-          </CardContent>
-        </Card>
-      )}
+content = content.replace(old_filtered, new_filtered)
 
-      
+idx_empty = content.find('{/* No assignments */}')
+idx_status_tabs = content.find('{/* Status Tabs */}')
+if idx_empty != -1 and idx_status_tabs != -1:
+    content = content[:idx_empty] + content[idx_status_tabs:]
+
+bottom_new = """
       {/* Table Card */}
       <Card className="border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
         <CardHeader className="p-4 sm:p-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
@@ -294,7 +197,13 @@ export default function MyOutstation() {
           )}
         </CardContent>
       </Card>
+"""
 
-    </div>
-  );
-}
+idx_status_tabs = content.find('{/* Status Tabs */}')
+if idx_status_tabs != -1:
+    content = content[:idx_status_tabs] + bottom_new + '\n    </div>\n  );\n}'
+
+with codecs.open('src/pages/outstation/MyOutstation.tsx', 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print("Rewrite successful")
