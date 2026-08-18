@@ -260,10 +260,10 @@ export default function AttendanceReports() {
                   setSelectedYear(y);
                   setSelectedMonth(parseInt(m).toString());
                 }}
-                className="h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]"
+                className="flex items-center justify-between h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]"
               />
             ) : (
-              <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
+              <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
             )}
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>

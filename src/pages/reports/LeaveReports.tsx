@@ -163,7 +163,7 @@ export default function LeaveReports() {
                 className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
               />
             ) : (
-              <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
+              <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-10 px-4 text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
             )}
             <ExportDropdown onExportCSV={handleExportCSV} />
           </div>
