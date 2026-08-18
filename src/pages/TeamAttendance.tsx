@@ -113,11 +113,6 @@ export default function TeamAttendance() {
   }, [role, userBranch, userDepartment, selectedDate, dateViewMode]);
 
   if (loading) {
-    
-  // Pagination logic
-  const totalPages = Math.ceil(filteredList.length / entriesPerPage);
-  const startIndex = (currentPage - 1) * entriesPerPage;
-  const paginatedList = filteredList.slice(startIndex, startIndex + entriesPerPage);
 
   return (
       <div className="min-h-screen flex items-center justify-center bg-background">
