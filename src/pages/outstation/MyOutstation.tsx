@@ -102,7 +102,7 @@ export default function MyOutstation() {
   if (roleLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-500" /></div>;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto px-4 pt-2 pb-8">
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
 
       {/* Current / Active Trip Banner */}
       {active && (
