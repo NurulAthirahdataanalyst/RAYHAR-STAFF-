@@ -339,13 +339,13 @@ export default function OutstationReports() {
                 <MonthPicker 
                   monthYear={selectedMonthYear} 
                   onSelectMonthYear={setSelectedMonthYear} 
-                  className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-[#7B0099]/40"
+                  className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-[#7B0099]/40"
                 />
               ) : (
                 <YearPopover 
                   year={selectedYear} 
                   onSelectYear={setSelectedYear}
-                  className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-yellow-500/40"
+                  className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-yellow-500/40"
                 />
               )}
               

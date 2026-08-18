@@ -1184,8 +1184,8 @@ export default function AttendanceDashboard() {
               <div className="relative">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="appearance-none flex items-center justify-center px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-medium rounded-lg shadow-none outline-none cursor-pointer h-9 gap-2 hover:border-[#7B0099]/40 hover:ring-1 hover:ring-[#7B0099]/40 hover:bg-[#7B0099]/5 dark:hover:border-[#7B0099]/60 dark:hover:ring-[#7B0099]/60 dark:hover:bg-[#7B0099]/20 transition-all duration-200 focus:ring-1 focus:ring-[#7B0099]">
-                      {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-3.5 h-3.5 text-gray-400" />
+                    <button className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-9 gap-2 hover:border-[#7B0099]/40 w-[140px]">
+                      {new Date(selectedDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} <CalendarDays className="w-4 h-4 text-gray-400" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-1" align="start">

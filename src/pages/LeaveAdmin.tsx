@@ -470,7 +470,7 @@ export default function LeaveAdmin() {
                   setSelectedMonth("all");
                 }
               }}
-              className="appearance-none flex items-center justify-center px-4 py-2 bg-transparent border border-border text-foreground text-xs font-medium rounded-md shadow-sm outline-none cursor-pointer h-9 hover:border-[#7B0099] hover:ring-1 hover:ring-[#7B0099] transition-all"
+              className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-9 gap-2 hover:border-[#7B0099]/40"
             />
 
             <Select value={selectedLeaveType} onValueChange={setSelectedLeaveType}>
