@@ -76,7 +76,7 @@ export function YearPopover({ year, onSelectYear, className }: YearPopoverProps)
                   type="button"
                   onClick={() => {
                     onSelectYear(y.toString());
-                    setOpen(false);
+                    // setOpen(false);
                   }}
                   className={`py-2 px-1 text-xs font-bold rounded-lg transition-all text-center ${
                     isSelected && isCurrent
@@ -104,7 +104,7 @@ export function YearPopover({ year, onSelectYear, className }: YearPopoverProps)
                 const cy = new Date().getFullYear().toString();
                 onSelectYear(cy);
                 setBaseDecade(Math.floor(parseInt(cy) / 10) * 10);
-                setOpen(false);
+                // setOpen(false);
               }}
               className="text-slate-700 dark:text-slate-300 hover:underline text-[11px] font-bold"
             >
@@ -114,7 +114,7 @@ export function YearPopover({ year, onSelectYear, className }: YearPopoverProps)
               type="button"
               onClick={() => {
                 onSelectYear("");
-                setOpen(false);
+                // setOpen(false);
               }}
               className="text-slate-700 dark:text-slate-300 hover:underline text-[11px] font-bold"
             >

@@ -95,7 +95,7 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className }: MonthPi
                   onClick={() => {
                     const monthStr = (idx + 1).toString().padStart(2, '0');
                     onSelectMonthYear(`${viewYear}-${monthStr}`);
-                    setOpen(false);
+                    // setOpen(false);
                   }}
                   className={`py-2 px-1 text-xs font-bold rounded-lg transition-all text-center ${
                     isSelected
@@ -117,7 +117,7 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className }: MonthPi
                 const monthStr = (currentMonthIdx + 1).toString().padStart(2, '0');
                 onSelectMonthYear(`${currentYearNum}-${monthStr}`);
                 setViewYear(currentYearNum);
-                setOpen(false);
+                // setOpen(false);
               }}
               className="text-[#0091ff] hover:underline text-[11px] font-bold"
             >
@@ -127,7 +127,7 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className }: MonthPi
               type="button"
               onClick={() => {
                 onSelectMonthYear(`${viewYear}-all`); // clear
-                setOpen(false);
+                // setOpen(false);
               }}
               className="text-[#7B0099] hover:underline text-[11px] font-bold"
             >
