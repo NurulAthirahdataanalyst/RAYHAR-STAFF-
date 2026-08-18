@@ -1090,7 +1090,7 @@ export default function LeaveAnalytics() {
                     {new Date(selectedDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} <CalendarDays className="w-4 h-4 text-gray-400" />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-1" align="start">
+                <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-card z-50" align="start">
                   <Calendar
                     mode="single"
                     selected={new Date(selectedDate)}

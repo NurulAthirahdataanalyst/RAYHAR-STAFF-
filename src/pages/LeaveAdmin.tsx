@@ -125,10 +125,10 @@ export default function LeaveAdmin() {
   const [bakiLayak, setBakiLayak] = useState<number | string>('-');
   const [activeTab, setActiveTab] = useState<TabFilter>("history");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [selectedLeaveType, setSelectedLeaveType] = useState<string>("all");
 
   const months = [
-    { value: "all", label: "All Months" },
     { value: "01", label: "January" },
     { value: "02", label: "February" },
     { value: "03", label: "March" },
@@ -457,10 +457,11 @@ export default function LeaveAdmin() {
         <div className="flex-1"></div>
         <div className="flex flex-wrap items-center justify-end gap-2.5">
             <MonthPicker
-              monthYear={selectedMonth === "all" ? `${new Date().getFullYear()}-all` : `${new Date().getFullYear()}-${selectedMonth}`}
+              monthYear={selectedMonth === "all" ? `${selectedYear}-all` : `${selectedYear}-${selectedMonth}`}
               onSelectMonthYear={(val) => {
                 if (val) {
-                  const [, month] = val.split('-');
+                  const [year, month] = val.split('-');
+                  setSelectedYear(year);
                   if (month === 'all') {
                     setSelectedMonth("all");
                   } else {
@@ -503,6 +504,7 @@ export default function LeaveAdmin() {
               className="h-9 px-3 border-dashed text-xs"
               onClick={() => {
                 setSelectedMonth("all");
+                setSelectedYear(new Date().getFullYear().toString());
                 setSelectedLeaveType("all");
                 setActiveTab("history");
               }}

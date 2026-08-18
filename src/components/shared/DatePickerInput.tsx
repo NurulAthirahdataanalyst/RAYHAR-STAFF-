@@ -35,7 +35,7 @@ export function DatePickerInput({ value, onChange, placeholder = "Select date", 
           <CalendarIcon className="w-4 h-4 text-muted-foreground opacity-80" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-1 rounded-xl shadow-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-card" align="start">
+      <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-card z-50" align="start">
         <Calendar
           mode="single"
           selected={date}
