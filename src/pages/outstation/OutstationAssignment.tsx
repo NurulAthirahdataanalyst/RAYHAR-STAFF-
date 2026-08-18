@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarWidget } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -17,7 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import {
   Plane, Plus, Filter, Loader2, MapPin, Edit2, XCircle, Trash2,
-  Users, Search, Calendar, CheckCircle2, X, ChevronLeft, ChevronRight
+  Users, Search, Calendar, CheckCircle2, X, ChevronLeft, ChevronRight, CalendarDays
 } from "lucide-react";
 import { API_BASE_URL } from "../../config/api";
 
@@ -648,7 +650,24 @@ export default function OutstationAssignment() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
                   <Label className="text-[10px] font-bold text-gray-600 dark:text-gray-300 mb-1 block">Start Date <span className="text-red-500">*</span></Label>
-                  <Input type="date" value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} className="h-8 text-xs" />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button type="button" className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-ring">
+                        {form.start_date ? new Date(form.start_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : "dd/mm/yyyy"}
+                        <CalendarDays className="w-3.5 h-3.5 text-gray-500 opacity-50" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-card z-[9999]" align="start">
+                      <CalendarWidget
+                        mode="single"
+                        selected={form.start_date ? new Date(form.start_date) : undefined}
+                        onSelect={(d) => {
+                          if (d) setForm(f => ({ ...f, start_date: new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0] }));
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
                   <Label className="text-[10px] font-bold text-gray-600 dark:text-gray-300 mb-1 block">Start Time</Label>
@@ -656,7 +675,24 @@ export default function OutstationAssignment() {
                 </div>
                 <div>
                   <Label className="text-[10px] font-bold text-gray-600 dark:text-gray-300 mb-1 block">End Date <span className="text-red-500">*</span></Label>
-                  <Input type="date" value={form.end_date} onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))} className="h-8 text-xs" />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button type="button" className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-ring">
+                        {form.end_date ? new Date(form.end_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : "dd/mm/yyyy"}
+                        <CalendarDays className="w-3.5 h-3.5 text-gray-500 opacity-50" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-card z-[9999]" align="start">
+                      <CalendarWidget
+                        mode="single"
+                        selected={form.end_date ? new Date(form.end_date) : undefined}
+                        onSelect={(d) => {
+                          if (d) setForm(f => ({ ...f, end_date: new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0] }));
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
                   <Label className="text-[10px] font-bold text-gray-600 dark:text-gray-300 mb-1 block">End Time</Label>
