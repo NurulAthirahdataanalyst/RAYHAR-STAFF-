@@ -99,6 +99,7 @@ interface PendingItem {
 }
 
 export default function WorkforceInsights() {
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const { role, userBranch, userDepartment, userId } = useRole();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -2906,5 +2907,4 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
 
 
 
-  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
 
