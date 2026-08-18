@@ -98,7 +98,7 @@ interface PendingItem {
 }
 
 export default function WorkforceInsights() {
-  const { role, userBranch, userDepartment } = useRole();
+  const { role, userBranch, userDepartment, userId } = useRole();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
