@@ -34,7 +34,6 @@ const C_GRAY = "#64748b";   // Inactive
 function formatShortDate(dStr: string) {
   if (!dStr) return "-";
   return new Date(dStr).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }).toUpperCase();
-});
 }
 
 function calcProgress(start: string, end: string) {

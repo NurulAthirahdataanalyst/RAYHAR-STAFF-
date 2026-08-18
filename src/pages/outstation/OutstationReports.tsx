@@ -405,48 +405,48 @@ export default function OutstationReports() {
                     {selectedEventName ? (
                       ["NO","Employee","Department","Branch","Destination","Start","End","Days","Status","Assigned By"].map(h => (
                         <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">{h}</th>
-                      ))\r
-                    ) : (\r
-                      [\"NO\",\"Event Name\",\"Destination\",\"Start Date\",\"End Date\",\"Days\",\"Status\",\"Participants\",\"Actions\"].map(h => (\r
-                        <th key={h} className=\"px-4 py-3 text-left text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap\">{h}</th>\r
-                      ))\r
-                    )}\r
-                  </tr>\r
-                </thead>\r
-                <tbody>\r
-                  {!selectedEventName ? (\r
-                    filteredEvents.map((e, i) => (\r
-                      <tr \r
-                        key={e.eventName} \r
-                        onClick={() => setSelectedEventName(e.eventName)}\r
-                        className=\"border-b border-gray-50 dark:border-slate-800 hover:bg-pink-50/30 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group\"\r
-                      >\r
-                        <td className=\"px-4 py-3 text-gray-400 font-bold text-[10px] group-hover:text-pink-500\">{i + 1}</td>\r
-                        <td className=\"px-4 py-3 font-bold text-gray-800 dark:text-gray-100 max-w-[200px] truncate\">{e.eventName}</td>\r
-                        <td className=\"px-4 py-3\">\r
-                          <div className=\"flex items-center gap-1 font-semibold text-gray-600 dark:text-gray-300\">\r
-                            <MapPin className=\"w-3 h-3 text-pink-400 shrink-0\" />{e.destination}\r
-                          </div>\r
-                        </td>\r
-                        <td className=\"px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap\">{fmtDate(e.startDate)}</td>\r
-                        <td className=\"px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap\">{fmtDate(e.endDate)}</td>\r
-                        <td className=\"px-4 py-3 text-center font-black text-pink-600\">{e.totalDays}</td>\r
-                        <td className=\"px-4 py-3\">{statusBadge(e.status)}</td>\r
-                        <td className=\"px-4 py-3\">\r
-                          <Badge variant=\"outline\" className=\"text-slate-600 dark:text-slate-300\">{e.assignments.length} Staff</Badge>\r
-                        </td>\r
-                        <td className=\"px-4 py-3\" onClick={(ev) => ev.stopPropagation()}>\r
-                          <Button\r
-                            size=\"sm\"\r
-                            variant=\"outline\"\r
-                            className=\"h-7 text-[10px] font-bold gap-1.5 border-[#7B0099]/30 text-[#7B0099] hover:bg-[#7B0099]/5 whitespace-nowrap\"\r
-                            onClick={() => setViewFormEvent(e)}\r
-                          >\r
-                            <FileText className=\"w-3 h-3\" /> View Form\r
-                          </Button>\r
-                        </td>\r
-                      </tr>\r
-                    ))\r
+                      ))
+                    ) : (
+                      ["NO","Event Name","Destination","Start Date","End Date","Days","Status","Participants","Actions"].map(h => (
+                        <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">{h}</th>
+                      ))
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {!selectedEventName ? (
+                    filteredEvents.map((e, i) => (
+                      <tr
+                        key={e.eventName}
+                        onClick={() => setSelectedEventName(e.eventName)}
+                        className="border-b border-gray-50 dark:border-slate-800 hover:bg-pink-50/30 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
+                      >
+                        <td className="px-4 py-3 text-gray-400 font-bold text-[10px] group-hover:text-pink-500">{i + 1}</td>
+                        <td className="px-4 py-3 font-bold text-gray-800 dark:text-gray-100 max-w-[200px] truncate">{e.eventName}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1 font-semibold text-gray-600 dark:text-gray-300">
+                            <MapPin className="w-3 h-3 text-pink-400 shrink-0" />{e.destination}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{fmtDate(e.startDate)}</td>
+                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{fmtDate(e.endDate)}</td>
+                        <td className="px-4 py-3 text-center font-black text-pink-600">{e.totalDays}</td>
+                        <td className="px-4 py-3">{statusBadge(e.status)}</td>
+                        <td className="px-4 py-3">
+                          <Badge variant="outline" className="text-slate-600 dark:text-slate-300">{e.assignments.length} Staff</Badge>
+                        </td>
+                        <td className="px-4 py-3" onClick={(ev) => ev.stopPropagation()}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-[10px] font-bold gap-1.5 border-[#7B0099]/30 text-[#7B0099] hover:bg-[#7B0099]/5 whitespace-nowrap"
+                            onClick={() => setViewFormEvent(e)}
+                          >
+                            <FileText className="w-3 h-3" /> View Form
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
                   ) : (
                     filteredAssignments.map((a, i) => (
                       <tr key={a.id} className="border-b border-gray-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
