@@ -228,6 +228,12 @@ export default function TeamAttendance() {
     filteredList = filteredList.filter(e => e.status === "Absent");
   }
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredList.length / entriesPerPage);
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const paginatedList = filteredList.slice(startIndex, startIndex + entriesPerPage);
+
+
   return (
     <div className="min-h-screen bg-background space-y-6 animate-in fade-in duration-500 pb-8">
       
