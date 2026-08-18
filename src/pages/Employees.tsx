@@ -1,3 +1,4 @@
+﻿import { MonthPicker } from '@/components/shared/MonthPicker';
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -735,11 +736,11 @@ export default function Employees() {
                           <span className="truncate max-w-[100px]">
                             {emp.position === "Finance Manager" || emp.position === "finance_manager" ? "Operation Manager" : emp.position.replace(/_/g, ' ')}
                           </span>
-                          <span className="opacity-30">•</span>
+                          <span className="opacity-30">â€¢</span>
                           <span>{emp.branch}</span>
                           {emp.tempBranch && (
                             <>
-                              <span className="opacity-30">•</span>
+                              <span className="opacity-30">â€¢</span>
                               <Badge variant="outline" className="text-[9px] bg-[#a01497]/10 text-[#a01497] border-[#a01497]/20">
                                 Temp: {emp.tempBranch}
                               </Badge>
@@ -788,7 +789,7 @@ export default function Employees() {
                       disabled={currentPage === 1}
                       className="h-8 px-3 text-xs font-bold"
                     >
-                      «
+                      Â«
                     </Button>
                     <div className="flex items-center gap-1 overflow-x-auto max-w-[200px] sm:max-w-none">
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
@@ -810,7 +811,7 @@ export default function Employees() {
                       disabled={currentPage === totalPages}
                       className="h-8 px-3 text-xs font-bold"
                     >
-                      »
+                      Â»
                     </Button>
                   </div>
                 </div>
@@ -884,12 +885,7 @@ export default function Employees() {
                         <h3 className="text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">Attendance Performance</h3>
                       </div>
                       <div className="flex items-center gap-2">
-                        <input 
-                          type="month" 
-                          value={analyticsDate}
-                          onChange={(e) => setAnalyticsDate(e.target.value)}
-                          className="h-8 px-3 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full cursor-pointer hover:bg-slate-50 transition-colors focus:outline-none focus:ring-1 focus:ring-[#7B0099]"
-                        />
+                        <MonthPicker monthYear={analyticsDate} onSelectMonthYear={setAnalyticsDate} className="h-8 px-3 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full cursor-pointer hover:bg-slate-50 transition-colors focus:outline-none focus:ring-1 focus:ring-[#7B0099]" />
                       </div>
                     </div>
 
@@ -915,7 +911,7 @@ export default function Employees() {
                                       </TooltipTrigger>
                                       <TooltipContent className="max-w-[200px] p-2 text-[10px] leading-relaxed">
                                         <p className="font-bold mb-1 text-slate-800 dark:text-slate-200">Formula:</p>
-                                        <p className="text-slate-600 dark:text-slate-300">(Present Days / Expected Working Days) × 100</p>
+                                        <p className="text-slate-600 dark:text-slate-300">(Present Days / Expected Working Days) Ã— 100</p>
                                       </TooltipContent>
                                     </Tooltip>
                                   </div>
@@ -1040,7 +1036,7 @@ export default function Employees() {
                                   </p>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p className="text-xs">Formula: (Approved Leave / Total Entitled) × 100</p>
+                                  <p className="text-xs">Formula: (Approved Leave / Total Entitled) Ã— 100</p>
                                 </TooltipContent>
                               </Tooltip>
                             </div>
@@ -1165,7 +1161,7 @@ export default function Employees() {
                         </Card>
                       </div>
 
-                      {/* Allowed Branches — HR Admin only */}
+                      {/* Allowed Branches â€” HR Admin only */}
                       {role === "hr_admin" && (
                         <Card>
                           <CardContent className="p-4 space-y-4">
@@ -1304,7 +1300,7 @@ export default function Employees() {
                       Leave Application Detail
                     </DialogTitle>
                     <DialogDescription className="text-white/80 font-bold uppercase text-[10px] tracking-widest">
-                      HR Approval Registry • ID: {req.leave_id}
+                      HR Approval Registry â€¢ ID: {req.leave_id}
                     </DialogDescription>
                   </DialogHeader>
                 </div>
@@ -1412,7 +1408,7 @@ export default function Employees() {
                         <div>
                           <p className="uppercase font-black text-rose-600 opacity-60">Tandatangan</p>
                           <p className="font-black mt-0.5 text-rose-700">
-                            {req.cuti_tanpa_gaji_signature ? "✓ DISAHKAN" : "TIADA PENGESAHAN"}
+                            {req.cuti_tanpa_gaji_signature ? "âœ“ DISAHKAN" : "TIADA PENGESAHAN"}
                           </p>
                         </div>
                       </div>
@@ -1634,5 +1630,6 @@ export default function Employees() {
     </div>
   );
 }
+
 
 

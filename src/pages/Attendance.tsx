@@ -1494,15 +1494,12 @@ export default function Attendance() {
                     </PopoverContent>
                   </Popover>
                 ) : (
-                  <input
-                    type="month"
-                    value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        setSelectedDate(`${e.target.value}-01`);
-                      }
+                  <MonthPicker
+                    monthYear={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
+                    onSelectMonthYear={(val) => {
+                      setSelectedDate(`${val}-01`);
                     }}
-                    className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest"
+                    className="appearance-none flex items-center justify-center h-[34px] px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest"
                   />
                 )}
               </div>

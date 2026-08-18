@@ -1,4 +1,4 @@
-import { useRole } from "@/contexts/RoleContext";
+﻿import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { API_BASE_URL } from "@/config/api";
@@ -260,15 +260,12 @@ export default function TeamAttendance() {
                 </PopoverContent>
               </Popover>
             ) : (
-              <input
-                type="month"
-                value={`${new Date(selectedDate).getFullYear()}-${String(new Date(selectedDate).getMonth() + 1).padStart(2, '0')}`}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    setSelectedDate(`${e.target.value}-01`);
-                  }
+              <MonthPicker
+                monthYear={`${new Date(selectedDate).getFullYear()}-${String(new Date(selectedDate).getMonth() + 1).padStart(2, '0')}`}
+                onSelectMonthYear={(val) => {
+                  setSelectedDate(`${val}-01`);
                 }}
-                className="appearance-none px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none focus:border-[#7B0099] focus:ring-1 focus:ring-[#7B0099] uppercase tracking-widest h-[34px]"
+                className="appearance-none flex items-center justify-between min-w-[120px] px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none focus:border-[#7B0099] focus:ring-1 focus:ring-[#7B0099] uppercase tracking-widest h-[34px]"
               />
             )}
           </div>
@@ -410,15 +407,12 @@ export default function TeamAttendance() {
                 </PopoverContent>
               </Popover>
             ) : (
-              <input
-                type="month"
-                value={`${new Date(selectedDate).getFullYear()}-${String(new Date(selectedDate).getMonth() + 1).padStart(2, '0')}`}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    setSelectedDate(`${e.target.value}-01`);
-                  }
+              <MonthPicker
+                monthYear={`${new Date(selectedDate).getFullYear()}-${String(new Date(selectedDate).getMonth() + 1).padStart(2, '0')}`}
+                onSelectMonthYear={(val) => {
+                  setSelectedDate(`${val}-01`);
                 }}
-                className="appearance-none px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none focus:border-[#7B0099] focus:ring-1 focus:ring-[#7B0099] uppercase tracking-widest h-[34px]"
+                className="appearance-none flex items-center justify-between min-w-[120px] px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none focus:border-[#7B0099] focus:ring-1 focus:ring-[#7B0099] uppercase tracking-widest h-[34px]"
               />
             )}
           </div>
@@ -514,4 +508,5 @@ export default function TeamAttendance() {
     </div>
   );
 }
+
 

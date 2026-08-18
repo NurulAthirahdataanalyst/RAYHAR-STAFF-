@@ -153,15 +153,12 @@ export default function LeaveReports() {
                 className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
               />
             ) : viewType === "month" ? (
-              <input
-                type="month"
-                value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    const [yyyy, mm] = e.target.value.split('-');
-                    setSelectedYear(yyyy);
-                    setSelectedMonth(parseInt(mm).toString());
-                  }
+              <MonthPicker
+                monthYear={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
+                onSelectMonthYear={(val) => {
+                  const [yyyy, mm] = val.split('-');
+                  setSelectedYear(yyyy);
+                  setSelectedMonth(parseInt(mm).toString());
                 }}
                 className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
               />

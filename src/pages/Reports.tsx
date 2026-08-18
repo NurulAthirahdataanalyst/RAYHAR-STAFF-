@@ -1,3 +1,4 @@
+import { MonthPicker } from '@/components/shared/MonthPicker';
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -834,17 +835,14 @@ export default function Reports() {
 
                           <div className="space-y-1.5">
                             <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Month (YYYY-MM)</label>
-                            <input
-                              type="month"
-                              value={selectedMonth === 'all' ? `${selectedYear}-01` : `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
-                              onChange={(e) => {
-                                if (e.target.value) {
-                                  const [y, m] = e.target.value.split('-');
-                                  setSelectedYear(y);
-                                  setSelectedMonth(m);
-                                }
+                            <MonthPicker
+                              monthYear={selectedMonth === 'all' ? `${selectedYear}-all` : `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
+                              onSelectMonthYear={(val) => {
+                                const [y, m] = val.split('-');
+                                setSelectedYear(y);
+                                setSelectedMonth(m);
                               }}
-                              className="w-full h-11 px-3 text-xs font-black uppercase tracking-widest rounded-xl border border-border bg-background/30 text-foreground outline-none cursor-pointer hover:border-[#7B0099]/40 focus:ring-1 focus:ring-[#7B0099]"
+                              className="w-full h-11 px-3 flex items-center justify-between text-xs font-black uppercase tracking-widest rounded-xl border border-border bg-background/30 text-foreground outline-none cursor-pointer hover:border-[#7B0099]/40 focus:ring-1 focus:ring-[#7B0099]"
                             />
                           </div>
 
@@ -959,4 +957,5 @@ export default function Reports() {
   </div>
 );
 }
+
 
