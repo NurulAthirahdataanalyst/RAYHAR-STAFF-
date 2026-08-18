@@ -18,6 +18,7 @@ import {
   type LeaveType,
   type CutiGantiRow,
 } from "@/lib/leaveStorage";
+import { DatePickerInput } from "@/components/shared/DatePickerInput";
 
 export default function LeaveManagement() {
   const navigate = useNavigate();
@@ -568,22 +569,20 @@ export default function LeaveManagement() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Tarikh Mula *</Label>
-                        <Input 
-                          type="date" 
-                          value={formData.tarikhMula} 
-                          min={new Date().toISOString().split('T')[0]}
-                          onChange={e => setFormData({ ...formData, tarikhMula: e.target.value })} 
-                          className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold" 
+                        <DatePickerInput
+                          value={formData.tarikhMula}
+                          minDate={new Date().toISOString().split('T')[0]}
+                          onChange={(val) => setFormData({ ...formData, tarikhMula: val })}
+                          className="bg-muted/30 border-border/50"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Tarikh Akhir *</Label>
-                        <Input 
-                          type="date" 
-                          value={formData.tarikhAkhir} 
-                          min={formData.tarikhMula || new Date().toISOString().split('T')[0]}
-                          onChange={e => setFormData({ ...formData, tarikhAkhir: e.target.value })} 
-                          className="h-12 sm:h-14 border-border/50 bg-muted/30 rounded-2xl font-bold" 
+                        <DatePickerInput
+                          value={formData.tarikhAkhir}
+                          minDate={formData.tarikhMula || new Date().toISOString().split('T')[0]}
+                          onChange={(val) => setFormData({ ...formData, tarikhAkhir: val })}
+                          className="bg-muted/30 border-border/50"
                         />
                       </div>
                     </div>
@@ -661,12 +660,11 @@ export default function LeaveManagement() {
                           <div key={idx} className={`grid grid-cols-1 sm:grid-cols-4 gap-3 ${idx > 0 ? 'pt-4' : ''}`}>
                             <div className="space-y-2">
                               <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh Cuti {idx + 1} *</Label>
-                              <Input
-                                type="date"
+                              <DatePickerInput
                                 value={row.tarikhCuti}
-                                onChange={e => {
+                                onChange={(val) => {
                                   const newRows = [...formData.cutiGantiRows];
-                                  newRows[idx].tarikhCuti = e.target.value;
+                                  newRows[idx].tarikhCuti = val;
                                   setFormData({ ...formData, cutiGantiRows: newRows });
                                 }}
                                 className="h-12 bg-card rounded-xl font-bold"
@@ -674,12 +672,11 @@ export default function LeaveManagement() {
                             </div>
                             <div className="space-y-2">
                               <Label className="text-[9px] font-black uppercase text-[#7B0099]/70">Tarikh/Hari Ganti {idx + 1} *</Label>
-                              <Input
-                                type="date"
+                              <DatePickerInput
                                 value={row.tarikhGanti}
-                                onChange={e => {
+                                onChange={(val) => {
                                   const newRows = [...formData.cutiGantiRows];
-                                  newRows[idx].tarikhGanti = e.target.value;
+                                  newRows[idx].tarikhGanti = val;
                                   setFormData({ ...formData, cutiGantiRows: newRows });
                                 }}
                                 className="h-12 bg-card rounded-xl font-bold"

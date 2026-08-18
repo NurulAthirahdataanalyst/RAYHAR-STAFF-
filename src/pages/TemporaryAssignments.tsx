@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useRole } from "@/contexts/RoleContext";
 import PageActions from "@/components/layout/PageActions";
+import { DatePickerInput } from "@/components/shared/DatePickerInput";
 
 interface TemporaryAssignment {
   id: number;
@@ -369,12 +370,12 @@ const TemporaryAssignments = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Start Date</Label>
-                <Input type="date" value={assignForm.start_date} onChange={(e) => setAssignForm({...assignForm, start_date: e.target.value})} />
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 block">Start Date</Label>
+                <DatePickerInput value={assignForm.start_date} onChange={(val) => setAssignForm({...assignForm, start_date: val})} />
               </div>
               <div>
-                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">End Date</Label>
-                <Input type="date" value={assignForm.end_date} onChange={(e) => setAssignForm({...assignForm, end_date: e.target.value})} />
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 block">End Date</Label>
+                <DatePickerInput value={assignForm.end_date} onChange={(val) => setAssignForm({...assignForm, end_date: val})} />
               </div>
             </div>
             <div className="flex gap-2 pt-2">

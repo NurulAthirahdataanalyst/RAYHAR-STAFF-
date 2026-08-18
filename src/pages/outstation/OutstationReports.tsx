@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Plane, Download, Search, Filter, MapPin, ArrowLeft } from "lucide-react";
+import { MonthPicker } from "@/components/shared/MonthPicker";
+import { YearPopover } from "@/components/shared/YearPopover";
 import PageHeader from "@/components/layout/PageHeader";
 import PageActions from "@/components/layout/PageActions";
 import { API_BASE_URL } from "../../config/api";
@@ -65,6 +67,13 @@ export default function OutstationReports() {
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterBranch, setFilterBranch] = useState("All");
   const [filterDept, setFilterDept] = useState("All");
+
+  const [viewType, setViewType] = useState<"month" | "year">("month");
+  const [selectedMonthYear, setSelectedMonthYear] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear().toString());
 
   const [selectedEventName, setSelectedEventName] = useState<string | null>(null);
 
@@ -134,11 +143,26 @@ export default function OutstationReports() {
       if (filterStatus !== "All" && e.status !== filterStatus) return false;
       if (filterSearch) {
         const q = filterSearch.toLowerCase();
-        return (e.eventName || "").toLowerCase().includes(q) || (e.destination || "").toLowerCase().includes(q);
+        if (!(e.eventName || "").toLowerCase().includes(q) && !(e.destination || "").toLowerCase().includes(q)) return false;
       }
+      
+      if (e.startDate) {
+        const dateObj = new Date(e.startDate);
+        if (viewType === "month" && selectedMonthYear) {
+          const [y, m] = selectedMonthYear.split('-');
+          if (dateObj.getFullYear() !== parseInt(y) || (dateObj.getMonth() + 1) !== parseInt(m)) {
+            return false;
+          }
+        } else if (viewType === "year" && selectedYear) {
+          if (dateObj.getFullYear() !== parseInt(selectedYear)) {
+            return false;
+          }
+        }
+      }
+
       return true;
     });
-  }, [eventGroups, filterStatus, filterSearch]);
+  }, [eventGroups, filterStatus, filterSearch, viewType, selectedMonthYear, selectedYear]);
 
   const selectedEvent = useMemo(() => {
     return eventGroups.find(e => e.eventName === selectedEventName) || null;
@@ -268,14 +292,52 @@ export default function OutstationReports() {
       )}
 
       {/* Filters */}
-      <div className="mb-4">
+      <div className="mb-4 space-y-4">
+        {/* Tabs for Month/Year View */}
+        <div className="flex items-center gap-6 border-b border-gray-200 dark:border-gray-800 pb-2 px-2">
+          <button
+            onClick={() => setViewType("month")}
+            className={`text-lg font-medium pb-2 -mb-2.5 transition-colors ${
+              viewType === "month" 
+                ? "text-[#7B0099] border-b-4 border-[#7B0099]" 
+                : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            Month View
+          </button>
+          <button
+            onClick={() => setViewType("year")}
+            className={`text-lg font-medium pb-2 -mb-2.5 transition-colors ${
+              viewType === "year" 
+                ? "text-blue-700 border-b-4 border-blue-700" 
+                : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            Year View
+          </button>
+        </div>
+
         <div className="flex flex-col sm:flex-row items-center gap-3 justify-between w-full">
           <div className="flex items-center gap-3 flex-wrap">
             <Filter className="w-4 h-4 text-gray-400" />
             <div className="relative">
               <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-              <Input placeholder={selectedEventName ? "Search employee..." : "Search event..."} value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-56" />
+              <Input placeholder={selectedEventName ? "Search employee..." : "Search event..."} value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-48" />
             </div>
+
+            {viewType === "month" ? (
+              <MonthPicker 
+                monthYear={selectedMonthYear} 
+                onSelectMonthYear={setSelectedMonthYear} 
+                className="appearance-none flex items-center justify-between px-3 py-1.5 bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-[#7B0099]/40"
+              />
+            ) : (
+              <YearPopover 
+                year={selectedYear} 
+                onSelectYear={setSelectedYear}
+                className="appearance-none flex items-center justify-between px-3 py-1.5 bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-blue-700/40"
+              />
+            )}
             
             {!selectedEventName ? (
               <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -340,12 +402,12 @@ export default function OutstationReports() {
                 <thead>
                   <tr className="border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
                     {selectedEventName ? (
-                      ["#","Employee","Department","Branch","Destination","Start","End","Days","Status","Assigned By"].map(h => (
-                        <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
+                      ["NO","Employee","Department","Branch","Destination","Start","End","Days","Status","Assigned By"].map(h => (
+                        <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">{h}</th>
                       ))
                     ) : (
-                      ["#","Event Name","Destination","Start Date","End Date","Days","Status","Participants"].map(h => (
-                        <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
+                      ["NO","Event Name","Destination","Start Date","End Date","Days","Status","Participants"].map(h => (
+                        <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">{h}</th>
                       ))
                     )}
                   </tr>

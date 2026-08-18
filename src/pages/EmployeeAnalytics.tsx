@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
 import EmployeeAnalyticsView from "./EmployeeAnalyticsView";
+import { MonthPicker } from "@/components/shared/MonthPicker";
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface AttendanceLog {
   attendance_id: number;
@@ -424,14 +425,15 @@ export default function EmployeeAnalytics() {
 
         {/* Month/Year Filter */}
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <input
-            type="month"
-            value={`${selectedYear}-${selectedMonth.padStart(2, '0')}`}
-            onChange={(e) => {
-              if (e.target.value) {
-                const [year, month] = e.target.value.split('-');
+          <MonthPicker
+            monthYear={selectedMonth === "all" ? "" : `${selectedYear}-${selectedMonth.padStart(2, '0')}`}
+            onSelectMonthYear={(val) => {
+              if (val) {
+                const [year, month] = val.split('-');
                 setSelectedYear(year);
                 setSelectedMonth(parseInt(month, 10).toString());
+              } else {
+                setSelectedMonth("all");
               }
             }}
             className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] hover:border-[#7B0099] hover:ring-1 hover:ring-[#7B0099] transition-all"

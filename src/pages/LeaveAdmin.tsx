@@ -6,6 +6,8 @@ import PageActions from "@/components/layout/PageActions";
 import { exportToCSV } from "@/utils/export";
 import { LeaveDetailsModal } from "@/components/leave/LeaveDetailsModal";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { MonthPicker } from "@/components/shared/MonthPicker";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -454,16 +456,18 @@ export default function LeaveAdmin() {
       <div className="mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex-1"></div>
         <div className="flex flex-wrap items-center justify-end gap-2.5">
-            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-[140px] h-9 text-xs font-medium rounded-md bg-transparent">
-                <SelectValue placeholder="All Months" />
-              </SelectTrigger>
-              <SelectContent>
-                {months.map(m => (
-                  <SelectItem key={m.value} value={m.value} className="text-xs">{m.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <MonthPicker
+              monthYear={selectedMonth === "all" ? "" : `${new Date().getFullYear()}-${selectedMonth}`}
+              onSelectMonthYear={(val) => {
+                if (val) {
+                  const [, month] = val.split('-');
+                  setSelectedMonth(month);
+                } else {
+                  setSelectedMonth("all");
+                }
+              }}
+              className="appearance-none flex items-center justify-center px-4 py-2 bg-transparent border border-border text-foreground text-xs font-medium rounded-md shadow-sm outline-none cursor-pointer h-9 hover:border-[#7B0099] hover:ring-1 hover:ring-[#7B0099] transition-all"
+            />
 
             <Select value={selectedLeaveType} onValueChange={setSelectedLeaveType}>
               <SelectTrigger className="w-[160px] h-9 text-xs font-medium rounded-md bg-transparent">
