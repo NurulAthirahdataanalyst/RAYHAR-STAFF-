@@ -210,33 +210,33 @@ export default function AttendanceReports() {
         {/* Filter Toolbar Line directly under main header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
           {/* LEFT: DAY | MONTH | YEAR View Toggle Bar */}
-          <div className="inline-flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700 shadow-xs shrink-0">
+          <div className="flex items-center gap-4 sm:gap-6 border-b border-gray-200 dark:border-slate-800 w-full sm:w-auto">
             <button
               onClick={() => setViewType("day")}
-              className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
+              className={`text-[11px] font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] ${
                 viewType === "day"
-                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
-                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                  ? "text-[#7B0099] border-[#7B0099]"
+                  : "text-gray-500 hover:text-yellow-500 border-transparent hover:border-yellow-500"
               }`}
             >
               DAY
             </button>
             <button
               onClick={() => setViewType("month")}
-              className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
+              className={`text-[11px] font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] ${
                 viewType === "month"
-                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
-                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                  ? "text-[#7B0099] border-[#7B0099]"
+                  : "text-gray-500 hover:text-yellow-500 border-transparent hover:border-yellow-500"
               }`}
             >
               MONTH
             </button>
             <button
               onClick={() => setViewType("year")}
-              className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
+              className={`text-[11px] font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] ${
                 viewType === "year"
-                  ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
-                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                  ? "text-[#7B0099] border-[#7B0099]"
+                  : "text-gray-500 hover:text-yellow-500 border-transparent hover:border-yellow-500"
               }`}
             >
               YEAR
