@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Plane, Download, Search, Filter, MapPin, ArrowLeft } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Loader2, Plane, Download, Search, Filter, MapPin, ArrowLeft, FileText, Calendar, Users, Clock } from "lucide-react";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { YearPopover } from "@/components/shared/YearPopover";
 import PageHeader from "@/components/layout/PageHeader";
@@ -76,6 +77,7 @@ export default function OutstationReports() {
   const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear().toString());
 
   const [selectedEventName, setSelectedEventName] = useState<string | null>(null);
+  const [viewFormEvent, setViewFormEvent] = useState<EventGroup | null>(null);
 
   useEffect(() => {
     if (roleLoading) return;
@@ -403,38 +405,48 @@ export default function OutstationReports() {
                     {selectedEventName ? (
                       ["NO","Employee","Department","Branch","Destination","Start","End","Days","Status","Assigned By"].map(h => (
                         <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">{h}</th>
-                      ))
-                    ) : (
-                      ["NO","Event Name","Destination","Start Date","End Date","Days","Status","Participants"].map(h => (
-                        <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">{h}</th>
-                      ))
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {!selectedEventName ? (
-                    filteredEvents.map((e, i) => (
-                      <tr 
-                        key={e.eventName} 
-                        onClick={() => setSelectedEventName(e.eventName)}
-                        className="border-b border-gray-50 dark:border-slate-800 hover:bg-pink-50/30 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
-                      >
-                        <td className="px-4 py-3 text-gray-400 font-bold text-[10px] group-hover:text-pink-500">{i + 1}</td>
-                        <td className="px-4 py-3 font-bold text-gray-800 dark:text-gray-100 max-w-[200px] truncate">{e.eventName}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1 font-semibold text-gray-600 dark:text-gray-300">
-                            <MapPin className="w-3 h-3 text-pink-400 shrink-0" />{e.destination}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{fmtDate(e.startDate)}</td>
-                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{fmtDate(e.endDate)}</td>
-                        <td className="px-4 py-3 text-center font-black text-pink-600">{e.totalDays}</td>
-                        <td className="px-4 py-3">{statusBadge(e.status)}</td>
-                        <td className="px-4 py-3">
-                          <Badge variant="outline" className="text-slate-600 dark:text-slate-300">{e.assignments.length} Staff</Badge>
-                        </td>
-                      </tr>
-                    ))
+                      ))\r
+                    ) : (\r
+                      [\"NO\",\"Event Name\",\"Destination\",\"Start Date\",\"End Date\",\"Days\",\"Status\",\"Participants\",\"Actions\"].map(h => (\r
+                        <th key={h} className=\"px-4 py-3 text-left text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap\">{h}</th>\r
+                      ))\r
+                    )}\r
+                  </tr>\r
+                </thead>\r
+                <tbody>\r
+                  {!selectedEventName ? (\r
+                    filteredEvents.map((e, i) => (\r
+                      <tr \r
+                        key={e.eventName} \r
+                        onClick={() => setSelectedEventName(e.eventName)}\r
+                        className=\"border-b border-gray-50 dark:border-slate-800 hover:bg-pink-50/30 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group\"\r
+                      >\r
+                        <td className=\"px-4 py-3 text-gray-400 font-bold text-[10px] group-hover:text-pink-500\">{i + 1}</td>\r
+                        <td className=\"px-4 py-3 font-bold text-gray-800 dark:text-gray-100 max-w-[200px] truncate\">{e.eventName}</td>\r
+                        <td className=\"px-4 py-3\">\r
+                          <div className=\"flex items-center gap-1 font-semibold text-gray-600 dark:text-gray-300\">\r
+                            <MapPin className=\"w-3 h-3 text-pink-400 shrink-0\" />{e.destination}\r
+                          </div>\r
+                        </td>\r
+                        <td className=\"px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap\">{fmtDate(e.startDate)}</td>\r
+                        <td className=\"px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap\">{fmtDate(e.endDate)}</td>\r
+                        <td className=\"px-4 py-3 text-center font-black text-pink-600\">{e.totalDays}</td>\r
+                        <td className=\"px-4 py-3\">{statusBadge(e.status)}</td>\r
+                        <td className=\"px-4 py-3\">\r
+                          <Badge variant=\"outline\" className=\"text-slate-600 dark:text-slate-300\">{e.assignments.length} Staff</Badge>\r
+                        </td>\r
+                        <td className=\"px-4 py-3\" onClick={(ev) => ev.stopPropagation()}>\r
+                          <Button\r
+                            size=\"sm\"\r
+                            variant=\"outline\"\r
+                            className=\"h-7 text-[10px] font-bold gap-1.5 border-[#7B0099]/30 text-[#7B0099] hover:bg-[#7B0099]/5 whitespace-nowrap\"\r
+                            onClick={() => setViewFormEvent(e)}\r
+                          >\r
+                            <FileText className=\"w-3 h-3\" /> View Form\r
+                          </Button>\r
+                        </td>\r
+                      </tr>\r
+                    ))\r
                   ) : (
                     filteredAssignments.map((a, i) => (
                       <tr key={a.id} className="border-b border-gray-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
@@ -464,6 +476,104 @@ export default function OutstationReports() {
           )}
         </CardContent>
       </Card>
+
+      {/* View Form Dialog */}
+      <Dialog open={!!viewFormEvent} onOpenChange={() => setViewFormEvent(null)}>
+        <DialogContent className="max-w-lg w-full rounded-2xl p-0 overflow-hidden">
+          {viewFormEvent && (
+            <>
+              {/* Header */}
+              <div className="bg-[#7B0099] px-6 py-5 text-white">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-xl bg-white/20 shrink-0">
+                    <Plane className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white/70 mb-1">Outstation Assignment</p>
+                    <DialogTitle className="text-lg font-black text-white leading-tight">
+                      {viewFormEvent.eventName}
+                    </DialogTitle>
+                    <p className="text-[11px] text-white/80 mt-1">The outstation details below.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="px-6 py-5 space-y-5">
+                {/* Trip Information */}
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5" /> Trip Information
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2 bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
+                      <p className="text-[10px] text-gray-400 font-bold uppercase">Destination</p>
+                      <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{viewFormEvent.destination}</p>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
+                      <p className="text-[10px] text-gray-400 font-bold uppercase">Event Name</p>
+                      <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{viewFormEvent.eventName}</p>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
+                      <p className="text-[10px] text-gray-400 font-bold uppercase">Status</p>
+                      <div className="mt-1">{statusBadge(viewFormEvent.status)}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Duration */}
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" /> Duration
+                  </p>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
+                      <p className="text-[10px] text-gray-400 font-bold uppercase">Start Date</p>
+                      <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{fmtDate(viewFormEvent.startDate)}</p>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
+                      <p className="text-[10px] text-gray-400 font-bold uppercase">End Date</p>
+                      <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{fmtDate(viewFormEvent.endDate)}</p>
+                    </div>
+                    <div className="bg-[#7B0099]/5 rounded-xl p-3 border border-[#7B0099]/20">
+                      <p className="text-[10px] text-[#7B0099] font-bold uppercase">Total Days</p>
+                      <p className="text-lg font-black text-[#7B0099] mt-0.5">{viewFormEvent.totalDays} {viewFormEvent.totalDays === 1 ? 'Day' : 'Days'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Employees Assigned */}
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5" /> Employees Assigned ({viewFormEvent.assignments.length})
+                  </p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    {viewFormEvent.assignments.map((a, idx) => (
+                      <div key={idx} className="flex items-center gap-3 bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7B0099]/20 to-pink-200 flex items-center justify-center text-[10px] font-black text-[#7B0099] shrink-0">
+                          {(a.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100 truncate">{a.full_name}</p>
+                          <p className="text-[10px] text-gray-400">{a.department || "—"} · {a.branch || "—"}</p>
+                        </div>
+                        {statusBadge(a.status)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 pb-5 flex justify-end">
+                <Button variant="outline" onClick={() => setViewFormEvent(null)} className="rounded-xl font-black text-[11px]">
+                  Close
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

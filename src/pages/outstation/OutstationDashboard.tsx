@@ -32,8 +32,9 @@ const C_RED = "#dc2626";    // Cancelled/Overdue
 const C_GRAY = "#64748b";   // Inactive
 
 function formatShortDate(dStr: string) {
-  if (!dStr) return "—";
-  return new Date(dStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  if (!dStr) return "-";
+  return new Date(dStr).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }).toUpperCase();
+});
 }
 
 function calcProgress(start: string, end: string) {
@@ -127,7 +128,7 @@ export default function OutstationDashboard() {
   const activeNowGrouped = useMemo(() => {
     const active = assignments.filter(a => a.status === "Active");
     const groups: Record<string, {
-      destination: string; department: string; start_date: string; end_date: string; status: string;
+      destination: string; department: string; project: string; start_date: string; end_date: string; status: string;
       employees: any[];
     }> = {};
 
@@ -136,6 +137,7 @@ export default function OutstationDashboard() {
       if (!groups[key]) {
         groups[key] = {
           destination: a.destination,
+          project: a.project || '',
           department: a.department,
           start_date: a.start_date,
           end_date: a.end_date,
@@ -152,7 +154,7 @@ export default function OutstationDashboard() {
   const upcomingGrouped = useMemo(() => {
     const upcomingList = assignments.filter(a => a.status === "Upcoming");
     const groups: Record<string, {
-      destination: string; department: string; start_date: string; end_date: string; status: string;
+      destination: string; department: string; project: string; start_date: string; end_date: string; status: string;
       employees: any[];
     }> = {};
 
@@ -161,6 +163,7 @@ export default function OutstationDashboard() {
       if (!groups[key]) {
         groups[key] = {
           destination: a.destination,
+          project: a.project || '',
           department: a.department,
           start_date: a.start_date,
           end_date: a.end_date,
@@ -297,6 +300,7 @@ export default function OutstationDashboard() {
         groups[eventName] = {
           eventName,
           destination: a.destination,
+          project: a.project || '',
           startDate: a.start_date,
           endDate: a.end_date,
           status: "Upcoming",
@@ -367,7 +371,7 @@ export default function OutstationDashboard() {
         </PageActions>
 
         {/* ROW 1: Enterprise Analytics-Style KPI Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 2xl:grid-cols-6 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
             {/* 1. Total Outstation */}
             <Card className="rounded-[20px] border border-purple-200 dark:border-purple-900/60 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-purple-50/60 dark:bg-purple-950/30 group relative overflow-hidden flex flex-col justify-between">
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
@@ -572,7 +576,7 @@ export default function OutstationDashboard() {
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-gray-50/80 sticky top-0 z-0">
                     <tr>
-                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Destination</th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Event Name</th>
                       <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Status</th>
                       <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Employee</th>
                       <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Duration</th>
@@ -581,7 +585,7 @@ export default function OutstationDashboard() {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {activeNowGrouped.filter(g => g.destination.toLowerCase().includes(search.toLowerCase()) || g.employees.some(e => (e.full_name || "").toLowerCase().includes(search.toLowerCase()))).map((g, i) => {
-                      const totalDays = Math.max(1, Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)));
+                      const totalDays = Math.round((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)) + 1;
                       return (
                         <tr key={i} className="hover:bg-gray-50/50 transition-colors group border-b border-gray-50 last:border-0">
                           <td className="px-4 py-3">
@@ -590,9 +594,9 @@ export default function OutstationDashboard() {
                                 <MapPin className="w-4 h-4 text-purple-600" />
                               </div>
                               <div>
-                                <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">{g.destination}</p>
-                                <p className="text-[10px] text-gray-500 dark:text-gray-400">{g.department || "Domestic Branch"}</p>
-                              </div>
+                                  <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">{g.project || g.destination}</p>
+                                  <p className="text-[10px] text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5 whitespace-nowrap"><MapPin className="w-3 h-3 text-gray-400" /> {g.destination}</p>
+                                </div>
                             </div>
                           </td>
                           <td className="px-4 py-3">
@@ -694,7 +698,7 @@ export default function OutstationDashboard() {
                   <table className="w-full text-left border-collapse">
                     <thead className="bg-gray-50/80 sticky top-0 z-0">
                       <tr>
-                        <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Destination</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Event Name</th>
                         <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Status</th>
                         <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Employee</th>
                         <th className="px-4 py-3 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Duration</th>
@@ -703,7 +707,7 @@ export default function OutstationDashboard() {
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {upcomingGrouped.filter(g => g.destination.toLowerCase().includes(search.toLowerCase()) || g.employees.some(e => (e.full_name || "").toLowerCase().includes(search.toLowerCase()))).map((g, i) => {
-                        const totalDays = Math.max(1, Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)));
+                        const totalDays = Math.round((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)) + 1;
                         return (
                           <tr key={i} className="hover:bg-gray-50/50 transition-colors group border-b border-gray-50 last:border-0">
                             <td className="px-4 py-3">
@@ -712,8 +716,8 @@ export default function OutstationDashboard() {
                                   <MapPin className="w-4 h-4 text-orange-600" />
                                 </div>
                                 <div>
-                                  <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">{g.destination}</p>
-                                  <p className="text-[10px] text-gray-500 dark:text-gray-400">{g.department || "Domestic Branch"}</p>
+                                  <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">{g.project || g.destination}</p>
+                                  <p className="text-[10px] text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5 whitespace-nowrap"><MapPin className="w-3 h-3 text-gray-400" /> {g.destination}</p>
                                 </div>
                               </div>
                             </td>

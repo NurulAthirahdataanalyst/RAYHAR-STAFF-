@@ -622,8 +622,8 @@ export default function OutstationAssignment() {
                   <Input value={form.client_company} onChange={e => setForm(f => ({ ...f, client_company: e.target.value }))} placeholder="e.g. ABC Sdn Bhd" className="h-8 text-xs" />
                 </div>
                 <div>
-                  <Label className="text-[10px] font-bold text-gray-600 dark:text-gray-300 mb-1 block">Project</Label>
-                  <Input value={form.project} onChange={e => setForm(f => ({ ...f, project: e.target.value }))} placeholder="Project name" className="h-8 text-xs" />
+                  <Label className="text-[10px] font-bold text-gray-600 dark:text-gray-300 mb-1 block">Event Name</Label>
+                  <Input value={form.project} onChange={e => setForm(f => ({ ...f, project: e.target.value }))} placeholder="Event name" className="h-8 text-xs" />
                 </div>
                 <div>
                   <Label className="text-[10px] font-bold text-gray-600 dark:text-gray-300 mb-1 block">Meeting Title</Label>
