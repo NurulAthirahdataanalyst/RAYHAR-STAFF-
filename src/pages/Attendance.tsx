@@ -704,9 +704,10 @@ export default function Attendance() {
           if (dist !== undefined) payload.distance = dist;
         } else {
           if (lat !== undefined) payload.latitude = lat;
-        if (lng !== undefined) payload.longitude = lng;
-        if (acc !== undefined) payload.accuracy = acc;
-      }
+          if (lng !== undefined) payload.longitude = lng;
+          if (acc !== undefined) payload.accuracy = acc;
+          if (dist !== undefined) payload.distance = dist;
+        }
 
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: "POST",
@@ -785,8 +786,14 @@ export default function Attendance() {
 
         const isClockOut = !!activeSession;
         if (isClockOut) {
-          // Send lat, lng, acc on clock-out
-          performClockInOrOut(employeeId, "Normal", lat, lng, acc);
+          // Compute distance from the session's branch on clock-out (same as clock-in)
+          let dist_out: number | undefined = undefined;
+          const clockOutBranchCode = activeSession?.location || selectedLocation || user?.branch || 'HQ';
+          const clockOutBranchInfo = branches.find((b: any) => b.code === clockOutBranchCode || b.name === clockOutBranchCode);
+          if (clockOutBranchInfo && clockOutBranchInfo.latitude && clockOutBranchInfo.longitude) {
+            dist_out = Math.round(haversineDistance(lat, lng, parseFloat(clockOutBranchInfo.latitude), parseFloat(clockOutBranchInfo.longitude)));
+          }
+          performClockInOrOut(employeeId, "Normal", lat, lng, acc, dist_out);
           return;
         }
 

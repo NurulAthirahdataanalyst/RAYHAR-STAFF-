@@ -1001,6 +1001,17 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
       console.error('⚠️ Attendances column migration warning:', colErr.message);
     }
 
+    // Add clock-out coordinate columns to attendances table
+    try {
+      await connection.query(`ALTER TABLE attendances ADD COLUMN IF NOT EXISTS clock_out_latitude DOUBLE PRECISION`);
+      await connection.query(`ALTER TABLE attendances ADD COLUMN IF NOT EXISTS clock_out_longitude DOUBLE PRECISION`);
+      await connection.query(`ALTER TABLE attendances ADD COLUMN IF NOT EXISTS clock_out_accuracy DOUBLE PRECISION`);
+      await connection.query(`ALTER TABLE attendances ADD COLUMN IF NOT EXISTS clock_out_distance_meters INTEGER`);
+      console.log('✅ Auto-migration for attendances clock-out coordinate columns completed.');
+    } catch (coordErr) {
+      console.error('⚠️ Clock-out coordinate column migration warning:', coordErr.message);
+    }
+
     try {
       const [roleCountRows] = await connection.query("SELECT COUNT(*) as count FROM roles");
       if (parseInt(roleCountRows[0].count) === 0) {
@@ -4169,26 +4180,37 @@ app.post("/api/attendance", async (req, res) => {
 // CLOCK OUT
 // ===============================
 app.post("/api/clock-out", async (req, res) => {
-  const { user_id } = req.body;
+  const { user_id, latitude, longitude, accuracy, distance } = req.body;
   if (!user_id) {
     return res.status(400).json({ success: false, error: "Missing user_id" });
   }
 
   try {
-    await pool.query(`
-      UPDATE attendances
-      SET clock_out = NOW()
-      WHERE user_id = ?
-      AND DATE(clock_in) = CURRENT_DATE
-      AND clock_out IS NULL
-      `,
-      [user_id]
+    // Build the SET clause dynamically to include coordinates if provided
+    const coordUpdates = [];
+    const coordValues = [];
+    if (latitude !== undefined && latitude !== null) { coordUpdates.push(`clock_out_latitude = $${coordValues.length + 2}`); coordValues.push(latitude); }
+    if (longitude !== undefined && longitude !== null) { coordUpdates.push(`clock_out_longitude = $${coordValues.length + 2}`); coordValues.push(longitude); }
+    if (accuracy !== undefined && accuracy !== null) { coordUpdates.push(`clock_out_accuracy = $${coordValues.length + 2}`); coordValues.push(accuracy); }
+    if (distance !== undefined && distance !== null) { coordUpdates.push(`clock_out_distance_meters = $${coordValues.length + 2}`); coordValues.push(distance); }
+
+    const setClause = coordUpdates.length > 0
+      ? `clock_out = NOW(), ${coordUpdates.join(", ")}`
+      : `clock_out = NOW()`;
+
+    await pool.query(
+      `UPDATE attendances
+       SET ${setClause}
+       WHERE user_id = $1
+       AND clock_in::date = CURRENT_DATE
+       AND clock_out IS NULL`,
+      [user_id, ...coordValues]
     );
 
     const [rows] = await pool.query(`
       SELECT * FROM attendances
-      WHERE user_id = ?
-      AND DATE(clock_in) = CURRENT_DATE
+      WHERE user_id = $1
+      AND clock_in::date = CURRENT_DATE
       ORDER BY clock_in DESC
       LIMIT 1
       `,
@@ -4203,7 +4225,7 @@ app.post("/api/clock-out", async (req, res) => {
       const [allToday] = await pool.query(`
         SELECT clock_in, clock_out 
         FROM attendances 
-        WHERE user_id = ? AND DATE(clock_in) = CURRENT_DATE AND clock_out IS NOT NULL
+        WHERE user_id = $1 AND clock_in::date = CURRENT_DATE AND clock_out IS NOT NULL
       `, [user_id]);
       
       let totalMs = 0;
@@ -4216,7 +4238,7 @@ app.post("/api/clock-out", async (req, res) => {
       const [pendingReps] = await pool.query(`
         SELECT id, required_hours 
         FROM replacement_leave_requests 
-        WHERE employee_id = ? 
+        WHERE employee_id = $1 
         AND replacement_date = CURRENT_DATE 
         AND validation_status IN ('Pending', 'Failed')
       `, [user_id]);
@@ -4225,16 +4247,16 @@ app.post("/api/clock-out", async (req, res) => {
         if (totalHours >= parseFloat(rep.required_hours || 4)) {
           await pool.query(`
             UPDATE replacement_leave_requests 
-            SET validation_status = 'Validated', actual_hours = ?, validated_at = CURRENT_TIMESTAMP 
-            WHERE id = ?
+            SET validation_status = 'Validated', actual_hours = $1, validated_at = CURRENT_TIMESTAMP 
+            WHERE id = $2
           `, [totalHours, rep.id]);
         } else {
           // Note: If they clock out but < 4 hours, we mark it Failed. 
           // If they clock back in later, the NEXT clock out will re-evaluate and might flip it to Validated.
           await pool.query(`
             UPDATE replacement_leave_requests 
-            SET validation_status = 'Failed', actual_hours = ?, validated_at = CURRENT_TIMESTAMP 
-            WHERE id = ?
+            SET validation_status = 'Failed', actual_hours = $1, validated_at = CURRENT_TIMESTAMP 
+            WHERE id = $2
           `, [totalHours, rep.id]);
         }
       }
