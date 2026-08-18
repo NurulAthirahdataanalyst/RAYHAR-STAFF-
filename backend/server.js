@@ -4002,8 +4002,8 @@ app.get("/api/attendance-status", async (req, res) => {
 
     const [rows] = await pool.query(`
       SELECT * FROM attendances
-      WHERE user_id = ?
-      AND DATE(clock_in) = CURRENT_DATE
+      WHERE user_id = $1
+      AND clock_in::date = CURRENT_DATE
       AND clock_out IS NULL
       ORDER BY clock_in DESC
       LIMIT 1
@@ -4062,7 +4062,7 @@ app.get("/api/attendance-status", async (req, res) => {
       active: rows.length > 0,
       record: rows[0] || null,
       isOnLeave: isOnLeave,
-      isOnOutstation: isOnOutstation,
+      isOutstation: isOutstation,
       attendanceStatus: attendanceStatus
     });
   } catch (err) {
