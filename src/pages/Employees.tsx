@@ -86,6 +86,7 @@ export default function Employees() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [analytics, setAnalytics] = useState<any>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+  const [deleteConfirmEmp, setDeleteConfirmEmp] = useState<any>(null);
   const [analyticsDate, setAnalyticsDate] = useState<string>(new Date().toISOString().substring(0, 7));
 
   const fetchAnalytics = async (userId: string, dateStr = analyticsDate) => {
