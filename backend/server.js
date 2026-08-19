@@ -4429,7 +4429,7 @@ app.post('/api/employee-location-update', async (req, res) => {
 app.get('/api/employee-location-history', async (req, res) => {
   try {
     const userId = req.query.userId || req.query.user_id;
-    const days = parseInt((req.query.days as any) || '7', 10) || 7;
+    const days = parseInt(req.query.days || '7', 10) || 7;
     if (!userId) return res.status(400).json({ success: false, error: 'Missing userId' });
 
     const to = new Date();
