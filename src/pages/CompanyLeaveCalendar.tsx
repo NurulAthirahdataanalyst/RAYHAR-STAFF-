@@ -205,13 +205,13 @@ const CompanyLeaveCalendar = () => {
               <table className="w-full text-sm text-left">
                 <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
                   <tr>
-                    <th className="px-4 py-3">Leave Name</th>
-                    <th className="px-4 py-3">Date Range</th>
-                    <th className="px-4 py-3">Applies To</th>
-                    <th className="px-4 py-3">Type</th>
-                    <th className="px-4 py-3">Paid?</th>
-                    <th className="px-4 py-3">Status</th>
-                    {isHR && <th className="px-4 py-3 text-right">Actions</th>}
+                    <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Leave Name</th>
+                    <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Date Range</th>
+                    <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Applies To</th>
+                    <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Type</th>
+                    <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Paid?</th>
+                    <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
+                    {isHR && <th className="px-4 py-3 text-right text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Actions</th>}
                   </tr>
                 </thead>
                 <tbody>

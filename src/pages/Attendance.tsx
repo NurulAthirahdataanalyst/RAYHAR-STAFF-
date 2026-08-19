@@ -1550,15 +1550,15 @@ export default function Attendance() {
               <Table>
                 <TableHeader className="bg-slate-100 dark:bg-slate-800">
                   <TableRow>
-                    <TableHead className="py-4 pl-6 font-medium">Date</TableHead>
-                    <TableHead className="font-medium">Time In</TableHead>
-                    <TableHead className="font-medium">Time Out</TableHead>
-                    <TableHead className="font-medium">Status</TableHead>
-                    <TableHead className="font-medium">Late</TableHead>
-                      <TableHead className="font-medium">Distance</TableHead>
-                    <TableHead className="text-right pr-6 font-medium">Working Hours</TableHead>
+                    <TableHead className="py-4 pl-6">Date</TableHead>
+                    <TableHead>Time In</TableHead>
+                    <TableHead>Time Out</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Late</TableHead>
+                      <TableHead>Distance</TableHead>
+                    <TableHead className="text-right pr-6">Working Hours</TableHead>
                     {attendanceMode === 'multi' && (
-                      <TableHead className="font-medium">Branch</TableHead>
+                      <TableHead>Branch</TableHead>
                     )}
                   </TableRow>
                 </TableHeader>

@@ -241,12 +241,12 @@ const TemporaryAssignments = () => {
           <Table>
             <TableHeader className="bg-slate-100 dark:bg-slate-800">
               <TableRow>
-                <TableHead className="font-bold">Employee</TableHead>
+                <TableHead>Employee</TableHead>
 
-                <TableHead className="font-bold">Temporary Branch</TableHead>
-                <TableHead className="font-bold">Duration</TableHead>
-                <TableHead className="font-bold">Status</TableHead>
-                {isHRAdmin && <TableHead className="font-bold text-right">Action</TableHead>}
+                <TableHead>Temporary Branch</TableHead>
+                <TableHead>Duration</TableHead>
+                <TableHead>Status</TableHead>
+                {isHRAdmin && <TableHead className="text-right">Action</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>

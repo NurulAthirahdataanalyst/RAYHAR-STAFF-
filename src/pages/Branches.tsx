@@ -632,16 +632,16 @@ export default function Branches() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-muted/30 text-foreground border-b border-border">
-                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                        <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                           Personnel
                         </th>
-                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                        <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                           Leave Balance
                         </th>
-                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                        <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                           Attendance
                         </th>
-                        <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                        <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                           Today
                         </th>
                       </tr>
@@ -792,13 +792,13 @@ export default function Branches() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-purple-500/10 text-purple-900 dark:text-purple-100 border-b border-purple-500/20">
-                          <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                          <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                             Personnel
                           </th>
-                          <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                          <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                             Original Branch
                           </th>
-                          <th className="text-left py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em]">
+                          <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                             Assignment Period
                           </th>
                         </tr>

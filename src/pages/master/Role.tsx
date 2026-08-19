@@ -225,10 +225,10 @@ export default function Role() {
             <table className="w-full text-sm text-left whitespace-nowrap">
               <thead className="text-gray-700 font-semibold bg-gray-50/80 border-b border-gray-100 dark:border-slate-800">
                 <tr>
-                  <th className="px-6 py-4">Role</th>
-                  <th className="px-6 py-4">Created Date</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 w-32 text-right"></th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Role</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Created Date</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
+                  <th className="px-6 py-4 w-32 text-right text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">

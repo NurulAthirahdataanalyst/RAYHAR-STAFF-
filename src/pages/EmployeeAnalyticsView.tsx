@@ -1328,10 +1328,10 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr>
-                      <th className="pb-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Leave Date</th>
-                      <th className="pb-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Replacement Date</th>
-                      <th className="pb-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Hours Required</th>
-                      <th className="pb-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Status</th>
+                      <th className="pb-3 border-b border-border/50 text-[10px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Leave Date</th>
+                      <th className="pb-3 border-b border-border/50 text-[10px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Replacement Date</th>
+                      <th className="pb-3 border-b border-border/50 text-[10px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Hours Required</th>
+                      <th className="pb-3 border-b border-border/50 text-[10px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
                     </tr>
                   </thead>
                   <tbody>

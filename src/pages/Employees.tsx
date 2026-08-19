@@ -628,10 +628,10 @@ export default function Employees() {
                 <Table>
                   <TableHeader className="bg-muted/30">
                     <TableRow>
-                      <TableHead className="py-4 px-6 font-medium text-muted-foreground whitespace-nowrap">Staff Member</TableHead>
-                      <TableHead className="py-4 px-6 font-medium text-muted-foreground whitespace-nowrap">Position</TableHead>
-                      <TableHead className="py-4 px-6 font-medium text-muted-foreground whitespace-nowrap">Branch</TableHead>
-                      <TableHead className="py-4 px-6 font-medium text-muted-foreground whitespace-nowrap">Status</TableHead>
+                      <TableHead className="py-4 px-6 text-muted-foreground">Staff Member</TableHead>
+                      <TableHead className="py-4 px-6 text-muted-foreground">Position</TableHead>
+                      <TableHead className="py-4 px-6 text-muted-foreground">Branch</TableHead>
+                      <TableHead className="py-4 px-6 text-muted-foreground">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-border/50">
@@ -1227,9 +1227,9 @@ export default function Employees() {
                           <Table>
                             <TableHeader>
                               <TableRow className="bg-[#7B0099] hover:bg-[#7B0099]">
-                                <TableHead className="font-bold text-white text-xs">Temporary Branch</TableHead>
-                                <TableHead className="font-bold text-white text-xs">Period</TableHead>
-                                <TableHead className="font-bold text-white text-xs">Status</TableHead>
+                                <TableHead className="text-white">Temporary Branch</TableHead>
+                                <TableHead className="text-white">Period</TableHead>
+                                <TableHead className="text-white">Status</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -1299,11 +1299,11 @@ export default function Employees() {
                   <Table>
                     <TableHeader className="bg-muted/50">
                       <TableRow>
-                        <TableHead className="font-black text-[10px] uppercase tracking-wider">Leave Type</TableHead>
-                        <TableHead className="font-black text-[10px] uppercase tracking-wider">Start Date</TableHead>
-                        <TableHead className="font-black text-[10px] uppercase tracking-wider">End Date</TableHead>
-                        <TableHead className="font-black text-[10px] uppercase tracking-wider">Days</TableHead>
-                        <TableHead className="font-black text-[10px] uppercase tracking-wider text-right">Action</TableHead>
+                        <TableHead className="text-[10px]">Leave Type</TableHead>
+                        <TableHead className="text-[10px]">Start Date</TableHead>
+                        <TableHead className="text-[10px]">End Date</TableHead>
+                        <TableHead className="text-[10px]">Days</TableHead>
+                        <TableHead className="text-[10px] text-right">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1441,10 +1441,10 @@ export default function Employees() {
                             <Table>
                               <TableHeader>
                                 <TableRow className="bg-blue-500/10 hover:bg-blue-500/10 border-b border-blue-500/20">
-                                  <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh Cuti</TableHead>
-                                  <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh/Hari Cuti Ganti</TableHead>
-                                  <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Keterangan / Tugasan</TableHead>
-                                  <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase text-right">Jam Bekerja</TableHead>
+                                  <TableHead className="py-2.5 px-4 text-[10px]">Tarikh Cuti</TableHead>
+                                  <TableHead className="py-2.5 px-4 text-[10px]">Tarikh/Hari Cuti Ganti</TableHead>
+                                  <TableHead className="py-2.5 px-4 text-[10px]">Keterangan / Tugasan</TableHead>
+                                  <TableHead className="py-2.5 px-4 text-[10px] text-right">Jam Bekerja</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody className="divide-y divide-blue-500/10 font-bold text-foreground/80">

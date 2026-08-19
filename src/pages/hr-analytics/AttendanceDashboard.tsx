@@ -1314,16 +1314,16 @@ export default function AttendanceDashboard() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-gray-50/80 text-gray-500 uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800">
                   <tr>
-                    <th className="px-4 py-2 w-4">
+                    <th className="px-4 py-2 w-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                       <input type="checkbox" className="rounded border-gray-300 text-[#7B0099] focus:ring-[#7B0099]" />
                     </th>
-                    <th className="px-4 py-2">Employee</th>
-                    <th className="px-4 py-2">Status</th>
-                    <th className="px-4 py-2">Time In</th>
-                    <th className="px-4 py-2">Time Out</th>
-                    <th className="px-4 py-2">Late</th>
-                    <th className="px-4 py-2">Working Hours</th>
-                    <th className="px-4 py-2 w-8"></th>
+                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
+                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
+                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Time In</th>
+                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Time Out</th>
+                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Late</th>
+                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Working Hours</th>
+                    <th className="px-4 py-2 w-8 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -1555,11 +1555,11 @@ export default function AttendanceDashboard() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-gray-50/80 text-gray-500 uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800">
                   <tr>
-                    <th className="px-4 py-2">Employee</th>
-                    <th className="px-4 py-2">Branch</th>
-                    <th className="px-4 py-2">Department</th>
-                    <th className="px-4 py-2">Role</th>
-                    <th className="px-4 py-2">Status</th>
+                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
+                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Branch</th>
+                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Department</th>
+                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Role</th>
+                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -1646,8 +1646,8 @@ export default function AttendanceDashboard() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-gray-50/80 dark:bg-slate-900 text-gray-500 dark:text-gray-400 uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800 sticky top-0">
                   <tr>
-                    <th className="px-4 py-2">Employee</th>
-                    <th className="px-4 py-2">Branch</th>
+                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
+                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Branch</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
@@ -1687,8 +1687,8 @@ export default function AttendanceDashboard() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-gray-50/80 dark:bg-slate-900 text-gray-500 dark:text-gray-400 uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800 sticky top-0">
                   <tr>
-                    <th className="px-4 py-2">Employee</th>
-                    <th className="px-4 py-2">Branch</th>
+                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
+                    <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Branch</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-slate-800">

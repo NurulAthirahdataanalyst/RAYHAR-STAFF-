@@ -1007,11 +1007,11 @@ export default function WorkforceInsights() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b border-slate-200 dark:border-slate-700">
-                        <th className="pb-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Employee</th>
-                        <th className="pb-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Original Branch</th>
-                        <th className="pb-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Assigned Branch</th>
-                        <th className="pb-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Duration</th>
-                        <th className="pb-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                        <th className="pb-3 text-[11px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
+                        <th className="pb-3 text-[11px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Original Branch</th>
+                        <th className="pb-3 text-[11px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assigned Branch</th>
+                        <th className="pb-3 text-[11px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Duration</th>
+                        <th className="pb-3 text-[11px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
@@ -2434,10 +2434,10 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                <table className="w-full text-sm text-left">
                  <thead className="text-xs text-slate-500 bg-slate-50/50 uppercase">
                    <tr className="border-b border-slate-200 dark:border-slate-700">
-                     <th className="px-4 py-3 font-semibold">Metric</th>
-                     <th className="px-4 py-3 font-semibold text-right border-l border-slate-200 dark:border-slate-700">This Month {feedConnected && <span className="ml-1 text-[8px] bg-red-500 text-white px-1 rounded animate-pulse">LIVE</span>}</th>
-                     <th className="px-4 py-3 font-semibold text-right">Last Month</th>
-                     <th className="px-4 py-3 font-semibold text-right">Change</th>
+                     <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Metric</th>
+                     <th className="px-4 py-3 text-right border-l border-slate-200 dark:border-slate-700 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">This Month {feedConnected && <span className="ml-1 text-[8px] bg-red-500 text-white px-1 rounded animate-pulse">LIVE</span>}</th>
+                     <th className="px-4 py-3 text-right text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Last Month</th>
+                     <th className="px-4 py-3 text-right text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Change</th>
                    </tr>
                  </thead>
                  <tbody className="divide-y divide-slate-100">

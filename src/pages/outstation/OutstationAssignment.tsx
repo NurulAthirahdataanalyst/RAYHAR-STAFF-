@@ -403,16 +403,16 @@ export default function OutstationAssignment() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50/60 hover:bg-slate-50/60">
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Employee</TableHead>
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Department</TableHead>
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Branch</TableHead>
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Destination</TableHead>
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Start</TableHead>
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">End</TableHead>
-                    <TableHead className="text-center font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Days</TableHead>
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Assigned By</TableHead>
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Status</TableHead>
-                    <TableHead className="font-medium text-black uppercase tracking-widest whitespace-nowrap text-[10px] px-2.5">Actions</TableHead>
+                    <TableHead className="text-black text-[10px] px-2.5">Employee</TableHead>
+                    <TableHead className="text-black text-[10px] px-2.5">Department</TableHead>
+                    <TableHead className="text-black text-[10px] px-2.5">Branch</TableHead>
+                    <TableHead className="text-black text-[10px] px-2.5">Destination</TableHead>
+                    <TableHead className="text-black text-[10px] px-2.5">Start</TableHead>
+                    <TableHead className="text-black text-[10px] px-2.5">End</TableHead>
+                    <TableHead className="text-center text-black text-[10px] px-2.5">Days</TableHead>
+                    <TableHead className="text-black text-[10px] px-2.5">Assigned By</TableHead>
+                    <TableHead className="text-black text-[10px] px-2.5">Status</TableHead>
+                    <TableHead className="text-black text-[10px] px-2.5">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

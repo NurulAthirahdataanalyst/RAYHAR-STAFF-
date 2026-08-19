@@ -2018,11 +2018,11 @@ function ReplacementLeaveValidationForm({ employees, onCancel }: { employees: an
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-muted/30">
-                  <th className="p-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase">Employee ID</th>
-                  <th className="p-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase">Leave Date</th>
-                  <th className="p-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase">Replacement Date</th>
-                  <th className="p-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase">Hours</th>
-                  <th className="p-3 border-b border-border/50 text-[10px] font-bold text-muted-foreground uppercase">Status</th>
+                  <th className="p-3 border-b border-border/50 text-[10px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee ID</th>
+                  <th className="p-3 border-b border-border/50 text-[10px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Leave Date</th>
+                  <th className="p-3 border-b border-border/50 text-[10px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Replacement Date</th>
+                  <th className="p-3 border-b border-border/50 text-[10px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Hours</th>
+                  <th className="p-3 border-b border-border/50 text-[10px] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
                 </tr>
               </thead>
               <tbody>

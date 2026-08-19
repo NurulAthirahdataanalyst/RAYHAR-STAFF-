@@ -301,11 +301,11 @@ export default function LeaveOverview() {
             <Table>
               <TableHeader className="bg-muted/30">
                 <TableRow>
-                  <TableHead className="px-5 py-3.5 text-foreground uppercase text-[10px] font-black tracking-widest whitespace-nowrap">Leave Type</TableHead>
-                  <TableHead className="px-5 py-3.5 text-foreground uppercase text-[10px] font-black tracking-widest whitespace-nowrap">From</TableHead>
-                  <TableHead className="px-5 py-3.5 text-foreground uppercase text-[10px] font-black tracking-widest whitespace-nowrap">To</TableHead>
-                  <TableHead className="px-5 py-3.5 text-foreground uppercase text-[10px] font-black tracking-widest text-center whitespace-nowrap">Days</TableHead>
-                  <TableHead className="px-5 py-3.5 text-foreground uppercase text-[10px] font-black tracking-widest text-center whitespace-nowrap">Status</TableHead>
+                  <TableHead className="px-5 py-3.5 text-[10px]">Leave Type</TableHead>
+                  <TableHead className="px-5 py-3.5 text-[10px]">From</TableHead>
+                  <TableHead className="px-5 py-3.5 text-[10px]">To</TableHead>
+                  <TableHead className="px-5 py-3.5 text-[10px] text-center">Days</TableHead>
+                  <TableHead className="px-5 py-3.5 text-[10px] text-center">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-border/50">

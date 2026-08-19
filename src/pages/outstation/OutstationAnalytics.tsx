@@ -545,12 +545,12 @@ export default function OutstationAnalytics() {
                   <table className="w-full text-left border-collapse">
                     <thead className="bg-slate-50/80 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
                       <tr>
-                        <th className="px-4 py-3">Employee</th>
-                        <th className="px-4 py-3">Destination</th>
-                        <th className="px-4 py-3">Purpose</th>
-                        <th className="px-4 py-3">Period</th>
-                        <th className="px-4 py-3">Status</th>
-                        <th className="px-4 py-3">Duration</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Destination</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Purpose</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Period</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Duration</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">

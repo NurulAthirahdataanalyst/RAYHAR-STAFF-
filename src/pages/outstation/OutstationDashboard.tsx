@@ -575,11 +575,11 @@ export default function OutstationDashboard() {
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-gray-50/80 sticky top-0 z-0">
                     <tr>
-                      <th className="px-4 py-3 text-[11px] font-bold text-black dark:text-white uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Event Name</th>
-                      <th className="px-4 py-3 text-[11px] font-bold text-black dark:text-white uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Status</th>
-                      <th className="px-4 py-3 text-[11px] font-bold text-black dark:text-white uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Employee</th>
-                      <th className="px-4 py-3 text-[11px] font-bold text-black dark:text-white uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Duration</th>
-                      <th className="px-4 py-3 text-[11px] font-bold text-black dark:text-white uppercase tracking-wider border-b border-gray-100 dark:border-slate-800 text-right">Actions</th>
+                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Event Name</th>
+                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
+                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
+                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Duration</th>
+                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-right text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -836,11 +836,11 @@ export default function OutstationDashboard() {
                   <table className="w-full text-left border-collapse">
                     <thead className="bg-gray-50/80 sticky top-0 z-0">
                       <tr>
-                        <th className="px-4 py-3 text-[11px] font-bold text-black dark:text-white uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Event Name</th>
-                        <th className="px-4 py-3 text-[11px] font-bold text-black dark:text-white uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Status</th>
-                        <th className="px-4 py-3 text-[11px] font-bold text-black dark:text-white uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Employee</th>
-                        <th className="px-4 py-3 text-[11px] font-bold text-black dark:text-white uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">Duration</th>
-                        <th className="px-4 py-3 text-[11px] font-bold text-black dark:text-white uppercase tracking-wider border-b border-gray-100 dark:border-slate-800 text-right">Actions</th>
+                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Event Name</th>
+                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
+                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
+                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Duration</th>
+                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-right text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">

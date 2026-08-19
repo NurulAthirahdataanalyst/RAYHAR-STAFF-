@@ -192,11 +192,11 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                         <Table>
                           <TableHeader>
                             <TableRow className="bg-blue-500/10 hover:bg-blue-500/10 border-b border-blue-500/20">
-                              <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh Cuti</TableHead>
-                              <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Tarikh/Hari Cuti Ganti</TableHead>
-                              <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase">Keterangan / Tugasan</TableHead>
-                              <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase text-right">Jam Bekerja</TableHead>
-                              <TableHead className="py-2.5 px-4 text-[10px] text-blue-700 font-bold uppercase text-center">Status</TableHead>
+                              <TableHead className="py-2.5 px-4 text-[10px]">Tarikh Cuti</TableHead>
+                              <TableHead className="py-2.5 px-4 text-[10px]">Tarikh/Hari Cuti Ganti</TableHead>
+                              <TableHead className="py-2.5 px-4 text-[10px]">Keterangan / Tugasan</TableHead>
+                              <TableHead className="py-2.5 px-4 text-[10px] text-right">Jam Bekerja</TableHead>
+                              <TableHead className="py-2.5 px-4 text-[10px] text-center">Status</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody className="divide-y divide-blue-500/10 font-bold text-foreground/80">
