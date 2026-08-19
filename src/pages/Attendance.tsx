@@ -846,12 +846,18 @@ export default function Attendance() {
             setLoading(false);
             return;
           }
-        } else {
-          // Single branch mode — check user's home branch only
-          const branchCode = selectedLocation || user?.branch || 'HQ';
-          const branchInfo = branches.find((b: any) => b.code === branchCode || b.name === branchCode);
+                  } else {
+            // Single branch mode — check user's home branch only
+            const branchCode = selectedLocation || user?.branch || 'HQ';
+            const branchInfo = branches.find((b: any) => b.code === branchCode || b.name === branchCode);
 
-          if (branchInfo && branchInfo.latitude && branchInfo.longitude) {
+            if (!branchInfo || !branchInfo.latitude || !branchInfo.longitude) {
+              toast({ title: "Clock In Failed", description: "Your branch location coordinates are not configured in the system. Please contact HR.", variant: "destructive" });
+              setLoading(false);
+              return;
+            }
+
+            if (branchInfo && branchInfo.latitude && branchInfo.longitude) {
             const radius = branchInfo.radius || 50;
             dist_meters = Math.round(haversineDistance(lat, lng, parseFloat(branchInfo.latitude), parseFloat(branchInfo.longitude)));
             
