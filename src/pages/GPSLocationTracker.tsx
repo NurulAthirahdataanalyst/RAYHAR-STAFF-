@@ -130,6 +130,25 @@ export default function GPSLocationTracker() {
     setSelected(empId);
   };
 
+  // Location history modal
+  const [historyFor, setHistoryFor] = useState<string | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const openHistory = async (userId: string) => {
+    setHistoryFor(userId);
+    setHistoryLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/employee-location-history?userId=${encodeURIComponent(userId)}&days=14`);
+      const j = await res.json();
+      if (j && j.success) setHistory(j.history || []);
+      else setHistory([]);
+    } catch (e) { setHistory([]); }
+    setHistoryLoading(false);
+  };
+
+  const closeHistory = () => { setHistoryFor(null); setHistory([]); };
+
   const statusDot = (last_iso?: string | null) => {
     if (!last_iso) return "🔴";
     const diff = Date.now() - new Date(last_iso).getTime();
@@ -239,9 +258,12 @@ export default function GPSLocationTracker() {
                       <TableCell>{loc?.last_updated ? new Date(loc.last_updated).toLocaleString() : "-"}</TableCell>
                       <TableCell>{loc?.accuracy ? `±${loc.accuracy}m` : "—"}</TableCell>
                       <TableCell>
-                        <Button onClick={() => focusOn(e.user_id)} variant={selected === e.user_id ? "secondary" : "ghost"}>
-                          <MapPin className="w-4 h-4 mr-2" /> View
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button onClick={() => focusOn(e.user_id)} variant={selected === e.user_id ? "secondary" : "ghost"}>
+                            <MapPin className="w-4 h-4 mr-2" /> View
+                          </Button>
+                          <Button onClick={() => openHistory(e.user_id)} variant="outline">History</Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -252,6 +274,44 @@ export default function GPSLocationTracker() {
         </div>
       </div>
     </div>
+    {historyFor && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="w-full max-w-2xl bg-card rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold">Location History - {historyFor}</h3>
+            <div className="flex items-center gap-2">
+              <Button onClick={closeHistory} variant="ghost">Close</Button>
+            </div>
+          </div>
+          <div className="max-h-96 overflow-auto">
+            {historyLoading ? (
+              <div className="p-6 text-center">Loading...</div>
+            ) : history.length === 0 ? (
+              <div className="p-6 text-center text-muted-foreground">No history found</div>
+            ) : (
+              <table className="w-full table-auto">
+                <thead>
+                  <tr className="text-left text-xs text-muted-foreground">
+                    <th className="p-2">Time</th>
+                    <th className="p-2">Coordinates</th>
+                    <th className="p-2">Accuracy (m)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {history.map((h, i) => (
+                    <tr key={i} className="border-t border-border">
+                      <td className="p-2 text-sm">{h.timestamp ? new Date(h.timestamp).toLocaleString() : '-'}</td>
+                      <td className="p-2 text-sm">{h.lat},{' '}{h.lng}</td>
+                      <td className="p-2 text-sm">{h.accuracy ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
   );
 }
 import { useEffect, useMemo, useState } from "react";

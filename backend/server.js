@@ -1110,6 +1110,39 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
 // ===============================
 let sseClients = [];
 let liveStatsClients = [];
+let employeeLocationsClients = [];
+
+async function getEmployeeLocations(branch) {
+  try {
+    let params = [];
+    let branchFilter = "";
+    if (branch && branch !== "All") {
+      branchFilter = "AND p.branch = ?";
+      params.push(branch);
+    }
+    const sql = `
+      SELECT a.user_id, p.full_name, p.branch,
+             a.clock_in AS last_updated,
+             a.clock_in_latitude AS latitude,
+             a.clock_in_longitude AS longitude,
+             a.clock_in_accuracy AS accuracy
+      FROM attendances a
+      JOIN (
+        SELECT user_id, MAX(clock_in) AS max_in
+        FROM attendances
+        WHERE DATE(clock_in) = CURRENT_DATE
+        GROUP BY user_id
+      ) m ON a.user_id = m.user_id AND a.clock_in = m.max_in
+      LEFT JOIN profiles p ON p.user_id = a.user_id
+      ${branchFilter}
+    `;
+    const [rows] = await pool.query(sql, params);
+    return rows || [];
+  } catch (e) {
+    console.error('getEmployeeLocations error', e.message || e);
+    return [];
+  }
+}
 
 
 async function getEffectiveBranch(userId, dateStr) {
@@ -1385,6 +1418,20 @@ function broadcastPresenceUpdate(payload = { type: 'refresh' }) {
   sseClients.forEach((client) => {
     client.write(`data: ${JSON.stringify(payload)}\n\n`);
   });
+  // Also push full employee locations to any registered clients
+  if (employeeLocationsClients.length > 0) {
+    (async () => {
+      try {
+        const rows = await getEmployeeLocations();
+        const payload = { type: 'employee-locations', timestamp: new Date().toISOString(), locations: rows };
+        employeeLocationsClients.forEach((c) => {
+          try { c.write(`data: ${JSON.stringify(payload)}\n\n`); } catch (e) { /* ignore */ }
+        });
+      } catch (e) {
+        console.error('Error broadcasting employee locations:', e.message || e);
+      }
+    })();
+  }
   // Also refresh live stats clients
   if (liveStatsClients.length > 0) {
     const today = new Date().toISOString().split('T')[0];
@@ -1416,6 +1463,46 @@ app.get("/api/presence/stream", (req, res) => {
   req.on("close", () => {
     sseClients = sseClients.filter((c) => c !== res);
     console.log(`ðŸ”Œ SSE Client disconnected. Total: ${sseClients.length}`);
+  });
+});
+
+// SSE stream that pushes full employee location payloads (avoids refetching)
+app.get('/api/employee-locations/stream', async (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.flushHeaders();
+
+  // Send initial heartbeat
+  res.write(': connected\n\n');
+
+  // Send initial payload
+  try {
+    const rows = await getEmployeeLocations(req.query.branch ? String(req.query.branch) : undefined);
+    res.write(`data: ${JSON.stringify({ type: 'employee-locations', timestamp: new Date().toISOString(), locations: rows })}\n\n`);
+  } catch (e) {
+    console.error('employee-locations stream initial send error', e);
+  }
+
+  const client = res;
+  employeeLocationsClients.push(client);
+  console.log(`📡 Employee-locations SSE client connected. Total: ${employeeLocationsClients.length}`);
+
+  // Periodic snapshot every 30s to keep client in sync
+  const interval = setInterval(async () => {
+    try {
+      const rows = await getEmployeeLocations(req.query.branch ? String(req.query.branch) : undefined);
+      client.write(`data: ${JSON.stringify({ type: 'employee-locations', timestamp: new Date().toISOString(), locations: rows })}\n\n`);
+    } catch (e) {
+      console.error('employee-locations periodic error', e);
+    }
+  }, 30000);
+
+  req.on('close', () => {
+    clearInterval(interval);
+    employeeLocationsClients = employeeLocationsClients.filter(c => c !== client);
+    console.log(`📡 Employee-locations SSE client disconnected. Total: ${employeeLocationsClients.length}`);
   });
 });
 
@@ -4190,6 +4277,81 @@ app.post('/api/employee-location-update', async (req, res) => {
   } catch (err) {
     console.error('/api/employee-location-update error', err);
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Location history for an employee
+app.get('/api/employee-location-history', async (req, res) => {
+  try {
+    const userId = req.query.userId || req.query.user_id;
+    const days = parseInt((req.query.days as any) || '7', 10) || 7;
+    if (!userId) return res.status(400).json({ success: false, error: 'Missing userId' });
+
+    const to = new Date();
+    const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    // Prefer employee_location_logs if present
+    const [rows] = await pool.query(
+      `SELECT latitude, longitude, accuracy, recorded_at as timestamp FROM employee_location_logs WHERE user_id = ? AND recorded_at BETWEEN ? AND ? ORDER BY recorded_at DESC LIMIT 100`,
+      [String(userId), from, to]
+    );
+
+    if (rows && rows.length > 0) {
+      return res.json({ success: true, history: rows.map(r => ({ lat: r.latitude, lng: r.longitude, accuracy: r.accuracy, timestamp: r.timestamp })) });
+    }
+
+    // Fallback to attendances table
+    const [att] = await pool.query(
+      `SELECT user_id, clock_in, clock_in_latitude AS latitude, clock_in_longitude AS longitude, clock_in_accuracy AS accuracy FROM attendances WHERE user_id = ? AND clock_in BETWEEN ? AND ? ORDER BY clock_in DESC LIMIT 100`,
+      [String(userId), from, to]
+    );
+    return res.json({ success: true, history: (att || []).map(a => ({ lat: a.latitude, lng: a.longitude, accuracy: a.accuracy, timestamp: a.clock_in })) });
+  } catch (e) {
+    console.error('/api/employee-location-history error', e.message || e);
+    res.status(500).json({ success: false, error: e.message || String(e) });
+  }
+});
+
+// Outstation arrival/area check endpoint
+app.post('/api/outstation/check-arrival', async (req, res) => {
+  try {
+    const { user_id, latitude, longitude } = req.body || {};
+    if (!user_id || latitude == null || longitude == null) return res.status(400).json({ success: false, error: 'Missing fields' });
+
+    // Find active outstation assignment for today
+    const today = new Date().toISOString().split('T')[0];
+    const [rows] = await pool.query(`SELECT * FROM outstation_assignments WHERE user_id = ? AND status = 'Active' AND ? BETWEEN start_date AND COALESCE(end_date, ?) LIMIT 1`, [user_id, today, '2099-12-31']);
+    if (!rows || rows.length === 0) return res.json({ success: true, arrived: false, message: 'No active outstation assignment' });
+    const assign = rows[0];
+
+    let targetLat = assign.latitude || null;
+    let targetLng = assign.longitude || null;
+    let radius = assign.radius || assign.allowed_radius || 100;
+
+    if ((!targetLat || !targetLng) && assign.branch) {
+      const [brows] = await pool.query('SELECT latitude, longitude FROM branches WHERE code = ? OR name = ? LIMIT 1', [assign.branch, assign.branch]);
+      if (brows && brows.length > 0) {
+        targetLat = brows[0].latitude;
+        targetLng = brows[0].longitude;
+      }
+    }
+
+    if (!targetLat || !targetLng) return res.json({ success: true, arrived: false, message: 'Assignment has no target coordinates' });
+
+    // Haversine
+    const toRad = (v) => v * Math.PI / 180;
+    const R = 6371e3;
+    const dLat = toRad(targetLat - latitude);
+    const dLon = toRad(targetLng - longitude);
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(toRad(latitude)) * Math.cos(toRad(targetLat)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const dist = R * c;
+
+    const arrived = dist <= (radius || 100);
+    return res.json({ success: true, arrived, distance_m: Math.round(dist), radius_m: radius, assignment: assign });
+  } catch (e) {
+    console.error('/api/outstation/check-arrival error', e.message || e);
+    res.status(500).json({ success: false, error: e.message || String(e) });
   }
 });
 

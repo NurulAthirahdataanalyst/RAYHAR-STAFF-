@@ -962,6 +962,25 @@ export default function Attendance() {
             } catch (e) {
               // non-fatal
             }
+
+            // If user has an active outstation assignment, check arrival status
+            try {
+              const checkRes = await fetch(`${API_BASE_URL}/api/outstation/check-arrival`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: employeeId, latitude: lat, longitude: lng })
+              });
+              const checkJson = await checkRes.json();
+              if (checkJson && checkJson.success) {
+                if (checkJson.arrived) {
+                  toast({ title: 'Arrived at Assignment', description: `You are within ${checkJson.radius_m}m of the assignment destination.`, variant: 'default' });
+                } else if (checkJson.distance_m != null) {
+                  toast({ title: 'Not Yet Arrived', description: `You are ${checkJson.distance_m}m away from the assignment destination (required ${checkJson.radius_m}m).`, variant: 'default' });
+                }
+              }
+            } catch (e) {
+              // ignore
+            }
           } else {
             throw new Error(result.error);
           }
