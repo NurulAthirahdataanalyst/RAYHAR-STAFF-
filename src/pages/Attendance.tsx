@@ -91,6 +91,8 @@ export default function Attendance() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [fetchingHistory, setFetchingHistory] = useState(false);
+  const [locationLastUpdated, setLocationLastUpdated] = useState<string | null>(null);
+  const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
 
   // Derived stats from historyLogs
   const [stats, setStats] = useState({
@@ -952,6 +954,20 @@ export default function Attendance() {
               }
               toast({ title: "Location Updated", description: desc });
             }
+
+            if (dist_meters !== undefined && !isNaN(dist_meters)) {
+              if (activeSession) {
+                setActiveSession((prev: any) => prev ? { ...prev, distance: dist_meters } : prev);
+                setHistoryLogs((prevLogs: any[]) => prevLogs.map(log =>
+                  (log.id === activeSession.id || log.attendance_id === activeSession.attendance_id)
+                    ? { ...log, distance: dist_meters }
+                    : log
+                ));
+              }
+            }
+            setLocationLastUpdated(new Date().toISOString());
+            setLocationAccuracy(acc);
+
             // Also update aggregated location endpoint so tracker picks up latest coordinates
             try {
               await fetch(`${API_BASE_URL}/api/employee-location-update`, {
@@ -1287,11 +1303,11 @@ export default function Attendance() {
                 <div className="space-y-2 text-xs text-foreground">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-muted-foreground">Last updated</span>
-                    <span className="font-bold">18 AUG 2026, 5:12 PM</span>
+                    <span className="font-bold">{locationLastUpdated ? formatFullDateTime(locationLastUpdated).toUpperCase() : "-"}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-muted-foreground">Accuracy</span>
-                    <span className="font-bold">±8 m</span>
+                    <span className="font-bold">{locationAccuracy ? `±${Math.round(locationAccuracy)} m` : "-"}</span>
                   </div>
                 </div>
 
