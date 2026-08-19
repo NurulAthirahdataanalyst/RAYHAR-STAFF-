@@ -1126,6 +1126,7 @@ async function saveAlert(alert) {
           type VARCHAR(128),
           user_id VARCHAR(64),
           payload JSON,
+          acknowledged BOOLEAN DEFAULT FALSE,
           created_at DATETIME
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
@@ -1553,11 +1554,35 @@ app.get('/api/employee-locations/stream', async (req, res) => {
 app.get('/api/alerts', async (req, res) => {
   try {
     const limit = parseInt(String(req.query.limit || '50'), 10) || 50;
-    const [rows] = await pool.query('SELECT id, type, user_id, payload, created_at FROM alerts ORDER BY created_at DESC LIMIT ?', [limit]);
+    // Optional: allow filtering unacknowledged only
+    const onlyUnacked = req.query.unacked === '1' || req.query.unacked === 'true';
+    let sql = 'SELECT id, type, user_id, payload, acknowledged, created_at FROM alerts';
+    if (onlyUnacked) sql += ' WHERE acknowledged = FALSE';
+    sql += ' ORDER BY created_at DESC LIMIT ?';
+    const [rows] = await pool.query(sql, [limit]);
     return res.json({ success: true, alerts: rows });
   } catch (e) {
     console.error('/api/alerts error', e.message || e);
     return res.json({ success: false, error: e.message || String(e) });
+  }
+});
+
+// Acknowledge alert (mark acknowledged=true)
+app.post('/api/alerts/:id/ack', async (req, res) => {
+  try {
+    const id = req.params.id;
+    // Basic RBAC: allow only admin roles
+    const userRole = (req.user && req.user.role) || req.headers['x-user-role'] || '';
+    const ALLOWED = ['hr_admin', 'managing_director', 'operation_manager', 'finance_manager', 'head_of_department', 'branch_leader'];
+    if (!ALLOWED.includes(String(userRole))) return res.status(403).json({ success: false, error: 'Forbidden' });
+
+    await pool.query('UPDATE alerts SET acknowledged = TRUE WHERE id = ?', [id]);
+    // return updated row
+    const [rows] = await pool.query('SELECT id, type, user_id, payload, acknowledged, created_at FROM alerts WHERE id = ?', [id]);
+    res.json({ success: true, alert: rows[0] });
+  } catch (e) {
+    console.error('/api/alerts/:id/ack error', e.message || e);
+    res.status(500).json({ success: false, error: e.message || String(e) });
   }
 });
 

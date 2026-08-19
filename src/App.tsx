@@ -50,6 +50,8 @@ import MyOutstation from "./pages/outstation/MyOutstation";
 import OutstationCalendar from "./pages/outstation/OutstationCalendar";
 import OutstationAnalytics from "./pages/outstation/OutstationAnalytics";
 import OutstationReports from "./pages/outstation/OutstationReports";
+import GPSLocationTracker from "./pages/GPSLocationTracker";
+import Alerts from "./pages/Alerts";
 
 const queryClient = new QueryClient();
 
@@ -87,6 +89,8 @@ function ProtectedRoutes() {
           <Route path="/branches" element={<Branches />} />
           <Route path="/branches/temporary-assignments" element={<TemporaryAssignments />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/gps-location-tracker" element={<GPSLocationTracker />} />
+          <Route path="/alerts" element={<Alerts />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/analytics" element={<EmployeeAnalytics />} />
           <Route path="/hr-analytics" element={<Navigate to="/hr-analytics/attendance" replace />} />

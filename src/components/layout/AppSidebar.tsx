@@ -312,6 +312,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
     },
     { title: "Where My Staff", icon: MapPinned, path: "/gps-location-tracker", roles: ALL_ROLES },
     { title: "GPS Location Tracker", icon: MapPinned, path: "/gps-location-tracker", roles: FULL_ADMIN_ROLES },
+    { title: "Alerts", icon: CircleDot, path: "/alerts", roles: FULL_ADMIN_ROLES },
     { title: "Settings", icon: Settings, path: "/settings", roles: ["hr_admin"] },
   ];
 
