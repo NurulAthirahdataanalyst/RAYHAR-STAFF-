@@ -291,14 +291,14 @@ export default function GPSLocationTracker() {
             style={{ width: "100%", height: "100%" }}
             mapStyle={{
               version: 8,
-              sources: {{
-                osm: {{
+              sources: {
+                osm: {
                   type: 'raster',
                   tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
                   tileSize: 256,
                   attribution: '&copy; OpenStreetMap Contributors'
-                }}
-              }},
+                }
+              },
               layers: [
                 {
                   id: 'osm',
