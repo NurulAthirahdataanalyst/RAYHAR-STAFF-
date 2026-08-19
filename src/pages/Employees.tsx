@@ -17,7 +17,8 @@ import {
   PhoneCall,
   Download,
   Printer,
-    MapPin
+    MapPin,
+    Trash2
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -427,6 +428,38 @@ export default function Employees() {
     setIsModalOpen(true);
   };
 
+  
+  const handleDeleteEmployee = async () => {
+    if (!deleteConfirmEmp) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/employees/status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: deleteConfirmEmp.id || deleteConfirmEmp.user_id,
+          status: "Deleted"
+        })
+      });
+
+      if (!response.ok) throw new Error("Failed to delete employee");
+
+      toast({
+        title: "Success",
+        description: "Staff record has been permanently deleted.",
+      });
+
+      await fetchEmployees();
+      setDeleteConfirmEmp(null);
+    } catch (error) {
+      console.error("Error deleting employee:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete employee. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleToggleStatus = async (e: React.MouseEvent, emp: any) => {
     e.stopPropagation();
     const currentStatus = emp.status || "Active";
@@ -671,9 +704,9 @@ export default function Employees() {
                           </TableCell>
                           <TableCell className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-2">
-                              <Badge variant={emp.status === "Active" ? "default" : "secondary"} className={`text-[10px] font-black px-3 ${emp.status === 'Active' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}>
-                                {emp.status}
-                              </Badge>
+                              <Badge className={`text-[10px] font-black px-3 ${emp.status === 'Active' ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : emp.status === 'Inactive' ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-rose-500 hover:bg-rose-600 text-white'}`}>
+                                  {emp.status === 'Deleted' ? 'Deleted Staff' : `${emp.status} Staff`}
+                                </Badge>
                               {role === "hr_admin" && (
                                 <Button
                                   variant="ghost"
@@ -687,8 +720,18 @@ export default function Employees() {
                                 >
                                   {emp.status === "Active" ? "Inactive" : "Re-activate"}
                                 </Button>
-                              )}
-                            </div>
+                                )}
+                                {role === "hr_admin" && emp.status !== "Deleted" && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => { e.stopPropagation(); setDeleteConfirmEmp(emp); }}
+                                    className="h-7 w-7 p-0 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-md"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </div>
                           </TableCell>
                         </TableRow>
                       ))
@@ -717,9 +760,9 @@ export default function Employees() {
                         <div className="flex items-center justify-between gap-2 mb-1">
                           <p className="font-black text-sm text-foreground truncate">{emp.name}</p>
                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                            <Badge className={`text-[9px] font-black h-5 shrink-0 ${emp.status === 'Active' ? 'bg-emerald-500' : 'bg-muted text-muted-foreground'}`}>
-                              {emp.status}
-                            </Badge>
+                            <Badge className={`text-[9px] font-black h-5 shrink-0 ${emp.status === 'Active' ? 'bg-emerald-500 text-white' : emp.status === 'Inactive' ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'}`}>
+                                {emp.status === 'Deleted' ? 'Deleted Staff' : `${emp.status} Staff`}
+                              </Badge>
                             {role === "hr_admin" && (
                               <Button
                                 variant="ghost"
@@ -733,8 +776,18 @@ export default function Employees() {
                               >
                                 {emp.status === "Active" ? "Inactive" : "Activate"}
                               </Button>
-                            )}
-                          </div>
+                                )}
+                                {role === "hr_admin" && emp.status !== "Deleted" && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => { e.stopPropagation(); setDeleteConfirmEmp(emp); }}
+                                    className="h-7 w-7 p-0 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-md"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                           <span className="truncate max-w-[100px]">
@@ -1597,6 +1650,34 @@ export default function Employees() {
               </>
             );
           })()}
+        </DialogContent>
+      </Dialog>
+
+      
+      {/* Delete Confirmation Modal */}
+      <Dialog open={!!deleteConfirmEmp} onOpenChange={(open) => !open && setDeleteConfirmEmp(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black text-rose-600">Delete Employee?</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm text-slate-700 dark:text-slate-300">
+              Are you sure you want to permanently delete <strong>{deleteConfirmEmp?.name}</strong> from <strong>{deleteConfirmEmp?.branch}</strong>?
+            </p>
+            <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-lg p-3">
+              <p className="text-xs text-rose-600 font-medium leading-relaxed">
+                ⚠️ This action is permanent and cannot be undone or recovered. All employee records associated with this account will be deleted.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirmEmp(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteEmployee} className="bg-rose-600 hover:bg-rose-700">
+              Delete Permanently
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
