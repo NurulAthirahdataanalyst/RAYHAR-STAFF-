@@ -87,6 +87,7 @@ export default function Employees() {
   const [analytics, setAnalytics] = useState<any>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [deleteConfirmEmp, setDeleteConfirmEmp] = useState<any>(null);
+  const [statusConfirmEmp, setStatusConfirmEmp] = useState<any>(null);
   const [analyticsDate, setAnalyticsDate] = useState<string>(new Date().toISOString().substring(0, 7));
 
   const fetchAnalytics = async (userId: string, dateStr = analyticsDate) => {
@@ -461,47 +462,42 @@ export default function Employees() {
     }
   };
 
-  const handleToggleStatus = async (e: React.MouseEvent, emp: any) => {
+    const handleToggleStatus = (e: React.MouseEvent, emp: any) => {
     e.stopPropagation();
-    const currentStatus = emp.status || "Active";
-    const nextStatus = currentStatus === "Active" ? "Inactive" : "Active";
-    
-    const confirmMessage = currentStatus === "Active" 
-      ? `Are you sure you want to mark ${emp.name} as Inactive?`
-      : `Are you sure you want to reactivate ${emp.name}?`;
-      
-    if (!window.confirm(confirmMessage)) return;
+    setStatusConfirmEmp(emp);
+  };
 
+  const confirmToggleStatus = async () => {
+    if (!statusConfirmEmp) return;
     try {
+      const currentStatus = statusConfirmEmp.status || "Active";
+      const nextStatus = currentStatus === "Active" ? "Inactive" : "Active";
+      
       const response = await fetch(`${API_BASE_URL}/api/employees/status`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: emp.id || emp.user_id,
+          user_id: statusConfirmEmp.id || statusConfirmEmp.user_id,
           status: nextStatus,
           changer_role: role
         })
       });
-      const data = await response.json();
-      if (response.ok && data.success) {
-        toast({
-          title: `Status Updated!`,
-          description: `Successfully marked ${emp.name} as ${nextStatus}.`
-        });
-        fetchEmployees();
-      } else {
-        toast({
-          title: "Update Failed",
-          description: data.error || "Failed to update status",
-          variant: "destructive"
-        });
-      }
-    } catch (err) {
-      console.error("Error toggling status:", err);
+
+      if (!response.ok) throw new Error("Failed to update status");
+
       toast({
-        title: "Connection Error",
-        description: "Could not connect to the server.",
-        variant: "destructive"
+        title: "Success",
+        description: `Staff record has been marked as ${nextStatus}.`,
+      });
+
+      await fetchEmployees();
+      setStatusConfirmEmp(null);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update employee status. Please try again.",
+        variant: "destructive",
       });
     }
   };
@@ -1655,6 +1651,43 @@ export default function Employees() {
       </Dialog>
 
       
+            {/* Status Confirmation Modal */}
+      <Dialog open={!!statusConfirmEmp} onOpenChange={(open) => !open && setStatusConfirmEmp(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className={`text-xl font-black ${statusConfirmEmp?.status === "Active" ? "text-amber-600" : "text-emerald-600"}`}>
+              {statusConfirmEmp?.status === "Active" ? "Inactive Employee?" : "Reactivate Employee?"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm text-slate-700 dark:text-slate-300">
+              {statusConfirmEmp?.status === "Active" 
+                ? <>Are you sure you want to mark <strong>{statusConfirmEmp?.name}</strong> as Inactive?</>
+                : <>Are you sure you want to reactivate <strong>{statusConfirmEmp?.name}</strong>?</>}
+            </p>
+            <div className={`border rounded-lg p-3 ${statusConfirmEmp?.status === "Active" ? "bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20" : "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20"}`}>
+              <p className={`text-xs font-medium leading-relaxed ${statusConfirmEmp?.status === "Active" ? "text-amber-600" : "text-emerald-600"}`}>
+                {statusConfirmEmp?.status === "Active" 
+                  ? "This action is temporary and can be reversed later. The employee's records will be retained." 
+                  : "This action will restore the employee's active status and grant them system access."}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStatusConfirmEmp(null)}>
+              Cancel
+            </Button>
+            <Button 
+              variant={statusConfirmEmp?.status === "Active" ? "destructive" : "default"} 
+              onClick={confirmToggleStatus} 
+              className={statusConfirmEmp?.status === "Active" ? "bg-amber-600 hover:bg-amber-700 text-white" : "bg-emerald-600 hover:bg-emerald-700 text-white"}
+            >
+              {statusConfirmEmp?.status === "Active" ? "Inactive" : "Reactivate"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Confirmation Modal */}
       <Dialog open={!!deleteConfirmEmp} onOpenChange={(open) => !open && setDeleteConfirmEmp(null)}>
         <DialogContent className="sm:max-w-[425px]">
