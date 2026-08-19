@@ -324,15 +324,6 @@ export default function GPSLocationTracker() {
                 >
                   {getMarkerHTML(l, selected === l.user_id)}
                 </Marker>
-
-                  
-                  {l.accuracy != null && (
-                    <Circle
-                      center={[l.lat as number, l.lng as number]}
-                      radius={Math.max(1, l.accuracy as number)}
-                      pathOptions={{ color: "#60a5fa", opacity: 0.25, fillOpacity: 0.08 }}
-                    />
-                  )}
                 </React.Fragment>
               ))}
           </Map>
