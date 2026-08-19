@@ -512,20 +512,20 @@ export default function OutstationReports() {
               <div className="px-6 py-5 space-y-5 overflow-y-auto flex-1">
                 {/* Trip Information */}
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-1.5">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white mb-3 flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5" /> Trip Information
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="col-span-2 bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase">Destination</p>
+                      <p className="text-[10px] text-black dark:text-white font-bold uppercase">Destination</p>
                       <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{viewFormEvent.destination}</p>
                     </div>
                     <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase">Event Name</p>
+                      <p className="text-[10px] text-black dark:text-white font-bold uppercase">Event Name</p>
                       <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{viewFormEvent.eventName}</p>
                     </div>
                     <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase">Status</p>
+                      <p className="text-[10px] text-black dark:text-white font-bold uppercase">Status</p>
                       <div className="mt-1">{statusBadge(viewFormEvent.status)}</div>
                     </div>
                   </div>
@@ -533,16 +533,16 @@ export default function OutstationReports() {
 
                 {/* Duration */}
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-1.5">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white mb-3 flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5" /> Duration
                   </p>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase">Start Date</p>
+                      <p className="text-[10px] text-black dark:text-white font-bold uppercase">Start Date</p>
                       <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{fmtDate(viewFormEvent.startDate)}</p>
                     </div>
                     <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase">End Date</p>
+                      <p className="text-[10px] text-black dark:text-white font-bold uppercase">End Date</p>
                       <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{fmtDate(viewFormEvent.endDate)}</p>
                     </div>
                     <div className="bg-[#7B0099]/5 rounded-xl p-3 border border-[#7B0099]/20">
@@ -554,7 +554,7 @@ export default function OutstationReports() {
 
                 {/* Employees Assigned */}
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-1.5">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white mb-3 flex items-center gap-1.5">
                     <Users className="w-3.5 h-3.5" /> Employees Assigned ({viewFormEvent.assignments.length})
                   </p>
                   <div className="space-y-2">
