@@ -106,44 +106,6 @@ export default function Attendance() {
     if (locationCoords !== null) sessionStorage.setItem('loc_coords', JSON.stringify(locationCoords));
   }, [locationLastUpdated, locationAccuracy, locationDistance, locationCoords]);
 
-  useEffect(() => {
-    if (activeSession && activeSession.clock_in_latitude && activeSession.clock_in_longitude) {
-      const clockInTime = activeSession.clock_in ? new Date(activeSession.clock_in).getTime() : 0;
-      const currentLocTime = locationLastUpdated ? new Date(locationLastUpdated).getTime() : 0;
-      
-      // If the active session's clock-in time is newer than our currently displayed location time,
-      // or if we have no location data currently, update the location status box!
-      if (!locationCoords || clockInTime > currentLocTime) {
-        setLocationCoords({ 
-          lat: Number(activeSession.clock_in_latitude), 
-          lng: Number(activeSession.clock_in_longitude) 
-        });
-        
-        if (activeSession.clock_in) {
-          setLocationLastUpdated(activeSession.clock_in);
-        }
-        
-        if (activeSession.clock_in_accuracy !== undefined && activeSession.clock_in_accuracy !== null) {
-          setLocationAccuracy(Number(activeSession.clock_in_accuracy));
-        }
-        
-        // Also compute initial distance if we have branch details
-        const branchCode = activeSession.location || selectedLocation || user?.branch || 'HQ';
-        const branchInfo = branches.find((b: any) => b.code === branchCode || b.name === branchCode);
-        if (branchInfo && branchInfo.latitude && branchInfo.longitude) {
-          const dist = haversineDistance(
-            Number(activeSession.clock_in_latitude), 
-            Number(activeSession.clock_in_longitude), 
-            parseFloat(branchInfo.latitude), 
-            parseFloat(branchInfo.longitude)
-          );
-          setLocationDistance(Math.round(dist));
-        }
-      }
-    } else if (!activeSession) {
-      // Clear location status when clocked out if preferred, or leave it. We'll leave it to show last known.
-    }
-  }, [activeSession, locationCoords, locationLastUpdated, branches, selectedLocation, user?.branch]);
 
   // Derived stats from historyLogs
   const [stats, setStats] = useState({
@@ -206,6 +168,43 @@ export default function Attendance() {
   const [attendanceMode, setAttendanceMode] = useState<"permanent" | "temporary" | "multi">("permanent");
 
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (activeSession && activeSession.clock_in_latitude && activeSession.clock_in_longitude) {
+      const clockInTime = activeSession.clock_in ? new Date(activeSession.clock_in).getTime() : 0;
+      const currentLocTime = locationLastUpdated ? new Date(locationLastUpdated).getTime() : 0;
+      
+      // If the active session's clock-in time is newer than our currently displayed location time,
+      // or if we have no location data currently, update the location status box!
+      if (!locationCoords || clockInTime > currentLocTime) {
+        setLocationCoords({ 
+          lat: Number(activeSession.clock_in_latitude), 
+          lng: Number(activeSession.clock_in_longitude) 
+        });
+        
+        if (activeSession.clock_in) {
+          setLocationLastUpdated(activeSession.clock_in);
+        }
+        
+        if (activeSession.clock_in_accuracy !== undefined && activeSession.clock_in_accuracy !== null) {
+          setLocationAccuracy(Number(activeSession.clock_in_accuracy));
+        }
+        
+        // Also compute initial distance if we have branch details
+        const branchCode = activeSession.location || selectedLocation || user?.branch || 'HQ';
+        const branchInfo = branches.find((b: any) => b.code === branchCode || b.name === branchCode);
+        if (branchInfo && branchInfo.latitude && branchInfo.longitude) {
+          const dist = haversineDistance(
+            Number(activeSession.clock_in_latitude), 
+            Number(activeSession.clock_in_longitude), 
+            parseFloat(branchInfo.latitude), 
+            parseFloat(branchInfo.longitude)
+          );
+          setLocationDistance(Math.round(dist));
+        }
+      }
+    }
+  }, [activeSession, locationCoords, locationLastUpdated, branches, selectedLocation, user?.branch]);
 
   // 1. Update time every second and calculate working hours
   useEffect(() => {
