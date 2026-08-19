@@ -4577,11 +4577,22 @@ app.post("/api/attendance", async (req, res) => {
     }
 
     const [result] = await pool.query(
-      `INSERT INTO attendances (user_id, clock_in, location, attendance_type, distance_meters) VALUES (?, NOW(), ?, ?, ?)`,
-        [user_id, finalLocation, finalType, distance || null]
+      `INSERT INTO attendances (user_id, clock_in, location, attendance_type, distance_meters, clock_in_latitude, clock_in_longitude, clock_in_accuracy) VALUES (?, NOW(), ?, ?, ?, ?, ?, ?)`,
+        [user_id, finalLocation, finalType, distance || null, latitude || null, longitude || null, accuracy || null]
     );
 
     const insertedId = result.insertId || result.rows?.[0]?.attendance_id; // Support both mysql/postgres result structures or fallback to a query later
+
+    if (latitude && longitude) {
+      try {
+        await pool.query(
+          `INSERT INTO employee_location_logs (employee_id, attendance_id, latitude, longitude, accuracy, location_type, recorded_at) VALUES (?, ?, ?, ?, ?, 'CLOCK_IN', NOW())`,
+          [user_id, insertedId || null, latitude, longitude, accuracy || null]
+        );
+      } catch (logErr) {
+        console.error('Failed to log initial clock_in location:', logErr);
+      }
+    }
 
     let rows = [];
     if (insertedId) {
