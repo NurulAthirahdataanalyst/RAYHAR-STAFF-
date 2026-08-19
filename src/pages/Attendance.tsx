@@ -906,6 +906,13 @@ export default function Attendance() {
         const acc = position.coords.accuracy;
         const employeeId = user?.user_id || user?.id;
 
+        let dist_meters: number | undefined = undefined;
+        const branchCode = activeSession?.location || selectedLocation || user?.branch || 'HQ';
+        const branchInfo = branches.find((b: any) => b.code === branchCode || b.name === branchCode);
+        if (branchInfo && branchInfo.latitude && branchInfo.longitude) {
+          dist_meters = Math.round(haversineDistance(lat, lng, parseFloat(branchInfo.latitude), parseFloat(branchInfo.longitude)));
+        }
+
         try {
           const response = await fetch(`${API_BASE_URL}/api/outstation/log-location`, {
             method: "POST",
@@ -915,7 +922,8 @@ export default function Attendance() {
               attendance_id: activeSession?.id || activeSession?.attendance_id,
               latitude: lat,
               longitude: lng,
-              accuracy: acc
+              accuracy: acc,
+              distance: dist_meters
             })
           });
           const result = await response.json();
