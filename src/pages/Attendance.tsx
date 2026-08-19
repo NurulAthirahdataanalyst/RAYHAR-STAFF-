@@ -1300,7 +1300,7 @@ export default function Attendance() {
                     type="button"
                     onClick={handleUpdateLocation}
                     disabled={outstationLocationLoading}
-                    className="mt-3 w-full bg-purple-800 hover:bg-purple-900 text-white rounded-full h-10 font-black text-[11px] uppercase tracking-widest border-b-[4px] border-purple-400 active:border-b-0 active:translate-y-[4px] transition-all"
+                    className="mt-3 w-full bg-[#7B0099] hover:bg-[#5f007d] text-white rounded-full h-10 font-black text-[11px] uppercase tracking-widest border-b-[4px] border-[#a300cc] active:border-b-0 active:translate-y-[4px] transition-all"
                   >
                     {outstationLocationLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <MapPin className="w-4 h-4 mr-2" />}
                     Update Location
