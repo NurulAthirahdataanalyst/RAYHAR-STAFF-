@@ -1111,6 +1111,36 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
 let sseClients = [];
 let liveStatsClients = [];
 let employeeLocationsClients = [];
+let alertsClients = [];
+
+async function saveAlert(alert) {
+  try {
+    // Try inserting into alerts table
+    await pool.query(`INSERT INTO alerts (type, user_id, payload, created_at) VALUES (?, ?, ?, ?)` , [alert.type || null, alert.userId || alert.user_id || null, JSON.stringify(alert), new Date()]);
+  } catch (e) {
+    // If table doesn't exist, create and retry
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS alerts (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          type VARCHAR(128),
+          user_id VARCHAR(64),
+          payload JSON,
+          created_at DATETIME
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+      await pool.query(`INSERT INTO alerts (type, user_id, payload, created_at) VALUES (?, ?, ?, ?)` , [alert.type || null, alert.userId || alert.user_id || null, JSON.stringify(alert), new Date()]);
+    } catch (e2) {
+      console.error('Failed to save alert', e2.message || e2);
+    }
+  }
+
+  // push to connected alert SSE clients
+  const payload = { type: alert.type || 'alert', timestamp: new Date().toISOString(), alert };
+  alertsClients.forEach(c => {
+    try { c.write(`data: ${JSON.stringify(payload)}\n\n`); } catch (e) {}
+  });
+}
 
 async function getEmployeeLocations(branch) {
   try {
@@ -1438,6 +1468,13 @@ function broadcastPresenceUpdate(payload = { type: 'refresh' }) {
       }
     })();
   }
+  // Also forward as stored alerts when payload signals arrival/breach
+  try {
+    if (payload && payload.type && (payload.type === 'outstation-arrival' || payload.type === 'outstation' || payload.type === 'outstation-arrival' || payload.type === 'location-update')) {
+      // persist the event as an alert
+      saveAlert(payload).catch(console.error);
+    }
+  } catch (e) { /* ignore */ }
   // Also refresh live stats clients
   if (liveStatsClients.length > 0) {
     const today = new Date().toISOString().split('T')[0];
@@ -1509,6 +1546,35 @@ app.get('/api/employee-locations/stream', async (req, res) => {
     clearInterval(interval);
     employeeLocationsClients = employeeLocationsClients.filter(c => c !== client);
     console.log(`📡 Employee-locations SSE client disconnected. Total: ${employeeLocationsClients.length}`);
+  });
+});
+
+// Alerts endpoints
+app.get('/api/alerts', async (req, res) => {
+  try {
+    const limit = parseInt(String(req.query.limit || '50'), 10) || 50;
+    const [rows] = await pool.query('SELECT id, type, user_id, payload, created_at FROM alerts ORDER BY created_at DESC LIMIT ?', [limit]);
+    return res.json({ success: true, alerts: rows });
+  } catch (e) {
+    console.error('/api/alerts error', e.message || e);
+    return res.json({ success: false, error: e.message || String(e) });
+  }
+});
+
+app.get('/api/alerts/stream', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.flushHeaders();
+
+  res.write(': connected\n\n');
+  alertsClients.push(res);
+  console.log(`🔔 Alerts SSE client connected. Total: ${alertsClients.length}`);
+
+  req.on('close', () => {
+    alertsClients = alertsClients.filter(c => c !== res);
+    console.log(`🔔 Alerts SSE client disconnected. Total: ${alertsClients.length}`);
   });
 });
 
