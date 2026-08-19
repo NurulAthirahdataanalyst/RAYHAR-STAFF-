@@ -224,11 +224,22 @@ export default function Attendance() {
       if (data.isOnLeave) {
         setIsOnLeave(true);
       }
-        if (data.isOutstation) {
-          setIsOutstationAssigned(true);
+      
+      try {
+        const outstationRes = await fetch(`${API_BASE_URL}/api/outstation?userId=${id}`);
+        if (outstationRes.ok) {
+            const outstations = await outstationRes.json();
+            const todayStr = new Date().toISOString().split('T')[0];
+            const isReallyActive = Array.isArray(outstations) && outstations.some((o: any) => 
+                o.start_date <= todayStr && o.end_date >= todayStr && o.status !== "Cancelled"
+            );
+            setIsOutstationAssigned(isReallyActive);
         } else {
-          setIsOutstationAssigned(false);
+            setIsOutstationAssigned(!!data.isOutstation);
         }
+      } catch (e) {
+        setIsOutstationAssigned(!!data.isOutstation);
+      }
 
       if (data.attendanceStatus) {
         setAttendanceStatus(data.attendanceStatus);
@@ -798,6 +809,11 @@ export default function Attendance() {
           return;
         }
 
+        if (isOutstationAssigned) {
+          performClockInOrOut(employeeId, "OUTSTATION", lat, lng, acc, undefined);
+          return;
+        }
+
         // It is Clock In
         let attendance_type = "BRANCH";
         if (attendanceMode === 'temporary') attendance_type = "Temporary Assignment";
@@ -826,16 +842,9 @@ export default function Attendance() {
             }
           }
           if (!withinAnyBranch) {
-            if (isOutstationAssigned) {
-              setPendingLocation({lat, lng, acc});
-              setOutstationPromptOpen(true);
-              setLoading(false);
-              return;
-            } else {
-              toast({ title: "Clock In Failed", description: `You are outside all your assigned branch locations. Closest distance: ${dist_meters}m`, variant: "destructive" });
-              setLoading(false);
-              return;
-            }
+            toast({ title: "Clock In Failed", description: `You are outside all your assigned branch locations. Closest distance: ${dist_meters}m`, variant: "destructive" });
+            setLoading(false);
+            return;
           }
         } else {
           // Single branch mode — check user's home branch only
@@ -847,16 +856,9 @@ export default function Attendance() {
             dist_meters = Math.round(haversineDistance(lat, lng, parseFloat(branchInfo.latitude), parseFloat(branchInfo.longitude)));
             
             if (dist_meters > radius) {
-              if (isOutstationAssigned) {
-                setPendingLocation({lat, lng, acc});
-                setOutstationPromptOpen(true);
-                setLoading(false);
-                return;
-              } else {
-                toast({ title: "Clock In Failed", description: `You are outside the branch radius (${radius}m). Distance: ${dist_meters}m`, variant: "destructive" });
-                setLoading(false);
-                return;
-              }
+              toast({ title: "Clock In Failed", description: `You are outside the branch radius (${radius}m). Distance: ${dist_meters}m`, variant: "destructive" });
+              setLoading(false);
+              return;
             }
           }
         }
