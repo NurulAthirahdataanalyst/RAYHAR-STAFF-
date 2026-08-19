@@ -101,7 +101,26 @@ export default function AttendanceReports() {
       if (workAssignData.success && Array.isArray(workAssignData.assignments)) {
         workAssignData.assignments.forEach((a: any) => {
           if (a.status === 'Active') {
-            tempMap[a.user_id] = a.temp_branch;
+            if (viewType === 'day') {
+              const reportDate = new Date(date).setHours(0,0,0,0);
+              const startDate = new Date(a.start_date).setHours(0,0,0,0);
+              const endDate = new Date(a.end_date).setHours(0,0,0,0);
+              if (reportDate >= startDate && reportDate <= endDate) {
+                tempMap[a.user_id] = a.temp_branch;
+              }
+            } else {
+              // For month view, just check if it overlaps with the month
+              // Or default to true if they just want it loosely for the month
+              const assignStart = new Date(a.start_date);
+              const assignEnd = new Date(a.end_date);
+              const reportMonthStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
+              const startMonthStr = `${assignStart.getFullYear()}-${String(assignStart.getMonth() + 1).padStart(2, '0')}`;
+              const endMonthStr = `${assignEnd.getFullYear()}-${String(assignEnd.getMonth() + 1).padStart(2, '0')}`;
+              
+              if (reportMonthStr >= startMonthStr && reportMonthStr <= endMonthStr) {
+                 tempMap[a.user_id] = a.temp_branch;
+              }
+            }
           }
         });
       }
@@ -109,7 +128,7 @@ export default function AttendanceReports() {
         const processedData = data.data.map((r: any) => ({
           ...r,
           status: r.status || "Unknown",
-          temp_branch: r.temp_branch || tempMap[r.user_id] || null
+          temp_branch: tempMap[r.user_id] || r.temp_branch || null
         }));
         setAttendanceData(processedData);
         setMonthlySummary(data.summary || null);

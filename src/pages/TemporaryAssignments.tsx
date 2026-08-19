@@ -211,7 +211,7 @@ const TemporaryAssignments = () => {
       <Card className="border-none shadow-xl shadow-slate-200/40 dark:bg-slate-900/50 backdrop-blur-xl">
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
           <div className="space-y-1">
-            <CardTitle className="text-xl">Assignment History</CardTitle>
+            <CardTitle className="text-xl">Temporary Assignment History</CardTitle>
             <CardDescription>A complete log of employee branch reassignments.</CardDescription>
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
