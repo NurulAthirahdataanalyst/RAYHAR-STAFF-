@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { API_BASE_URL } from "../config/api";
 import { RefreshCw, MapPin } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type Employee = {
   user_id: string;
@@ -279,7 +280,7 @@ export default function GPSLocationTracker() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="flex flex-col gap-4">
         <div className="h-[520px] bg-card rounded-lg overflow-hidden">
           <Map
             ref={mapRef}
@@ -289,43 +290,81 @@ export default function GPSLocationTracker() {
               zoom: 7
             }}
             style={{ width: "100%", height: "100%" }}
-            mapStyle={{
-              version: 8,
-              sources: {
-                osm: {
-                  type: 'raster',
-                  tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                  tileSize: 256,
-                  attribution: '&copy; OpenStreetMap Contributors'
-                }
-              },
-              layers: [
-                {
-                  id: 'osm',
-                  type: 'raster',
-                  source: 'osm',
-                  minzoom: 0,
-                  maxzoom: 22
-                }
-              ]
-            }}
+            mapStyle="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
           >
             <NavigationControl position="top-left" />
 
-            {Object.values(locations)
-              .filter((l) => l.lat != null && l.lng != null)
-              .map((l) => (
-                <React.Fragment key={l.user_id}>
-                  <Marker 
-                  longitude={l.lng as number} 
-                  latitude={l.lat as number} 
+            {Object.values(
+              Object.values(locations)
+                .filter((l) => l.lat != null && l.lng != null)
+                .reduce((acc, loc) => {
+                  const latNum = Number(loc.lat);
+                  const lngNum = Number(loc.lng);
+                  const key = `${latNum.toFixed(4)},${lngNum.toFixed(4)}`;
+                  if (!acc[key]) acc[key] = [];
+                  acc[key].push(loc);
+                  return acc;
+                }, {} as Record<string, EmpLocation[]>)
+            ).map((group, idx) => {
+              const first = group[0];
+              const isSelected = group.some((l) => selected === l.user_id);
+              const isOnline = first.lat && first.lng;
+              const statusColor = isSelected ? 'bg-amber-500' : (isOnline ? 'bg-emerald-500' : 'bg-rose-500');
+              
+              return (
+                <Marker 
+                  key={`group-${idx}`}
+                  longitude={first.lng as number} 
+                  latitude={first.lat as number} 
                   anchor="bottom"
-                  onClick={(e) => { e.originalEvent.stopPropagation(); focusOn(l.user_id); }}
+                  onClick={(e) => { 
+                    e.originalEvent.stopPropagation(); 
+                    if (group.length === 1) focusOn(first.user_id); 
+                  }}
+                  style={{ zIndex: isSelected ? 50 : 10 }}
                 >
-                  {getMarkerHTML(l, selected === l.user_id)}
+                  {group.length > 1 ? (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <div className="flex flex-col items-center justify-end w-full h-full group pb-1 cursor-pointer">
+                          <div className={`bg-card rounded-full shadow-lg p-1 pr-3 flex items-center gap-2 border ${isSelected ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-border'} transition-all hover:scale-105 z-10`}>
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground relative">
+                               +{group.length}
+                               <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ${statusColor} border-2 border-card`}></div>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold whitespace-nowrap text-foreground leading-none">
+                                {group.length} Employees Here
+                              </span>
+                              <span className="text-[10px] text-muted-foreground whitespace-nowrap mt-1 leading-none">
+                                Click to view list
+                              </span>
+                            </div>
+                          </div>
+                          <div className={`w-0.5 h-6 ${isSelected ? 'bg-amber-500' : 'bg-emerald-500/50'} z-0 -mt-1`}></div>
+                          <div className={`w-3 h-3 rounded-full ${statusColor} border-[2.5px] border-white shadow-sm shadow-black/20 z-10 -mt-1 relative`}></div>
+                        </div>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64 p-3 z-[100] mb-2" side="top" sideOffset={10}>
+                        <div className="space-y-2">
+                          <h4 className="font-bold text-sm border-b pb-1">Employees at this location</h4>
+                          <div className="max-h-48 overflow-y-auto space-y-2">
+                            {group.map(emp => (
+                              <div key={emp.user_id} className="flex flex-col cursor-pointer hover:bg-muted p-2 rounded border border-transparent hover:border-border transition-colors" onClick={() => focusOn(emp.user_id)}>
+                                <span className="font-semibold text-sm">{emp.full_name || emp.user_id}</span>
+                                <span className="text-xs text-muted-foreground">{emp.last_updated ? new Date(emp.last_updated).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  ) : (
+                    getMarkerHTML(first, isSelected)
+                  )}
                 </Marker>
-                </React.Fragment>
-              ))}
+              );
+            })}
           </Map>
         </div>
 
@@ -399,49 +438,24 @@ export default function GPSLocationTracker() {
                     zoom: 13
                   }}
                   style={{ width: "100%", height: "100%" }}
-                  mapStyle={{
-                    version: 8,
-                    sources: {
-                      osm: {
-                        type: 'raster',
-                        tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                        tileSize: 256
-                      },
-                      route: {
-                        type: 'geojson',
-                        data: {
-                          type: 'Feature',
-                          properties: {},
-                          geometry: {
-                            type: 'LineString',
-                            coordinates: history.map(h => [h.lng, h.lat])
-                          }
-                        }
-                      }
-                    },
-                    layers: [
-                      {
-                        id: 'osm',
-                        type: 'raster',
-                        source: 'osm'
-                      },
-                      {
-                        id: 'route',
-                        type: 'line',
-                        source: 'route',
-                        layout: {
-                          'line-join': 'round',
-                          'line-cap': 'round'
-                        },
-                        paint: {
-                          'line-color': '#7c3aed',
-                          'line-width': 4
-                        }
-                      }
-                    ]
-                  }}
+                  mapStyle="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
                 >
                   <NavigationControl position="top-left" />
+                  <Source id="route" type="geojson" data={{
+                    type: 'Feature',
+                    properties: {},
+                    geometry: {
+                      type: 'LineString',
+                      coordinates: history.map(h => [h.lng, h.lat])
+                    }
+                  }}>
+                    <Layer 
+                      id="route-line"
+                      type="line"
+                      layout={{ 'line-join': 'round', 'line-cap': 'round' }}
+                      paint={{ 'line-color': '#7c3aed', 'line-width': 4 }}
+                    />
+                  </Source>
                   {history[replayIndex] && (
                     <Marker longitude={history[replayIndex].lng} latitude={history[replayIndex].lat} color="red" />
                   )}
