@@ -340,6 +340,7 @@ export default function LeaveAnalytics() {
 
   // State to hold portal target
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
 
   useEffect(() => {
     // Locate the portal target in the PageHeader after mount

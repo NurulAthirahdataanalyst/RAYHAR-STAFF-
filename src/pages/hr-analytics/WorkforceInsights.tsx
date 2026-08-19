@@ -828,10 +828,7 @@ export default function WorkforceInsights() {
               return (
                 <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col h-fit ${cardHoverEffect}`}>
                 <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4 flex flex-row justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-slate-400" />
-                    <CardTitle className="text-[16px] font-semibold text-[#1A1F36] dark:text-gray-100">Branch Workforce Distribution</CardTitle>
-                  </div>
+                  <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Branch Workforce Distribution</CardTitle>
                   <Select value={selectedRegion} onValueChange={setSelectedRegion}>
                     <SelectTrigger className="w-[120px] h-7 text-[10px] font-bold border border-slate-300 dark:border-slate-700 bg-white dark:bg-card shadow-none focus:ring-0">
                       <SelectValue placeholder="All Regions" />
@@ -943,10 +940,7 @@ export default function WorkforceInsights() {
           <Card className={`rounded-lg shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col h-fit ${cardHoverEffect}`}>
             <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-slate-400" />
-                  <CardTitle className="text-[16px] font-semibold text-[#1A1F36] dark:text-gray-100">Temporary Branch Assignment</CardTitle>
-                </div>
+                <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Temporary Branch Assignment</CardTitle>
                 <Link to="/branches?tab=temporary" className="text-[11px] font-bold text-[#4f46e5] hover:text-[#4338ca] transition-colors flex items-center group/link">
                   View All Assignments
                   <ChevronRight className="w-3 h-3 ml-0.5 group-hover/link:translate-x-0.5 transition-transform" />
@@ -2202,7 +2196,6 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
     <div className="space-y-8">
        {/* PRIMARY SECTION */}
        <div>
-         <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">Primary</h2>
          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {/* 1. Attendance Rate */}
             <Card className="p-4 flex items-center shadow-md border border-indigo-200 dark:border-indigo-900/50 cursor-default bg-indigo-50 dark:bg-indigo-900/10 rounded-[12px] relative">
@@ -2306,9 +2299,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
            <div className="lg:col-span-2 flex flex-col gap-6">
             <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col relative overflow-hidden">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-bold text-slate-800 tracking-tight">Attendance Trend</h2>
-                </div>
+                <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Attendance Trend</CardTitle>
                 
                 {/* Weekly Navigator */}
                 <div className="flex items-center gap-1 sm:gap-2 self-end sm:self-auto">
@@ -2414,10 +2405,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
            
            <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-card flex flex-col hover:border-[#7B0099] hover:shadow-md transition-all duration-300">
               <div className="flex items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-3">
-                <div className="flex items-center gap-2">
-                  <CalendarDays className="w-4 h-4 text-[#7B0099]" />
-                  <h2 className="text-xl font-bold text-slate-800 tracking-tight">Leave Utilization Trend vs. Previous Month</h2>
-                </div>
+                <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Leave Utilization Trend vs. Previous Month</CardTitle>
               </div>
               <div className="h-[250px] w-full min-h-[250px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -2440,10 +2428,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
            <div className="lg:col-span-1 flex flex-col gap-6">
              <Card className="p-5 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
-               <div className="flex items-center gap-2">
-                 <FileCheck className="w-4 h-4 text-slate-400" />
-                 <h2 className="text-xl font-bold text-slate-800 tracking-tight">Monthly Comparison</h2>
-               </div>
+               <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Monthly Comparison</CardTitle>
              </div>
              <div className="overflow-x-auto flex-1">
                <table className="w-full text-sm text-left">
@@ -2508,7 +2493,6 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
 
        {/* SECONDARY SECTION */}
        <div>
-         <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">Workforce Analytics</h2>
          
          {/* Row 1: 2 Columns */}
          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
@@ -2735,10 +2719,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                </div>
              )}
              <div className="flex justify-between items-center mb-8 relative z-10 border-b border-slate-100 dark:border-slate-800 pb-3">
-               <div className="flex items-center gap-2">
-                 <Plane className="w-4 h-4 text-slate-400 transform -rotate-45" />
-                 <h3 className="text-[13px] font-bold text-[#1A1F36] dark:text-gray-100">Travel & Outstation Summary</h3>
-               </div>
+               <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Travel & Outstation Summary</CardTitle>
              </div>
              
              <div className="grid grid-cols-3 gap-2 mb-8">
@@ -2837,7 +2818,6 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
 
          {/* SUPPORTING SECTION */}
        <div>
-         <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">Notices</h2>
          <div className="grid grid-cols-1 gap-6">
            <Card className="p-4 shadow-sm border-l-4 border-l-[#7B0099] border-y !border-y-slate-600 border-r !border-r-slate-600 dark:!border-y-slate-500 dark:!border-r-slate-500 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">

@@ -38,10 +38,7 @@ export function MissingPunchCard({ employees, indicator }: MissingPunchCardProps
       <DialogTrigger asChild>
         <Card className="p-5 shadow-sm border border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10 cursor-pointer hover:border-red-300 dark:hover:border-red-800 transition-all duration-300">
           <div className="flex justify-between items-center mb-4 border-b border-red-100 dark:border-red-900/20 pb-3">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-500" />
-              <h2 className="text-xl font-bold text-red-900 dark:text-red-400 tracking-tight">Missing Punches</h2>
-            </div>
+            <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Missing Punches</CardTitle>
           </div>
           
           <div className="flex flex-col gap-1">
