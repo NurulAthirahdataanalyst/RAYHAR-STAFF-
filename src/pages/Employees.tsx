@@ -629,10 +629,10 @@ export default function Employees() {
                 <Table>
                   <TableHeader className="bg-muted/30">
                     <TableRow>
-                      <TableHead className="py-4 px-6 text-muted-foreground">Staff Member</TableHead>
-                      <TableHead className="py-4 px-6 text-muted-foreground">Position</TableHead>
-                      <TableHead className="py-4 px-6 text-muted-foreground">Branch</TableHead>
-                      <TableHead className="py-4 px-6 text-muted-foreground">Status</TableHead>
+                      <TableHead className="py-4 px-6">Staff Member</TableHead>
+                      <TableHead className="py-4 px-6">Position</TableHead>
+                      <TableHead className="py-4 px-6">Branch</TableHead>
+                      <TableHead className="py-4 px-6">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-border/50">

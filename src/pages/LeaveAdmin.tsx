@@ -533,13 +533,13 @@ export default function LeaveAdmin() {
               <Table>
                 <TableHeader className="bg-muted/20 border-b border-border/40">
                   <TableRow>
-                    <TableHead className="px-3 py-4 text-[13px] text-muted-foreground">Employee</TableHead>
-                    <TableHead className="px-3 py-4 text-[13px] text-muted-foreground">Leave Type</TableHead>
-                    <TableHead className="px-3 py-4 text-[13px] text-muted-foreground">From</TableHead>
-                    <TableHead className="px-3 py-4 text-[13px] text-muted-foreground">To</TableHead>
-                    <TableHead className="px-3 py-4 text-[13px] text-muted-foreground">Days</TableHead>
-                    <TableHead className="px-3 py-4 text-[13px] text-muted-foreground">Status</TableHead>
-                    {canApprove && <TableHead className="px-3 py-4 text-[13px] text-muted-foreground text-right">Actions</TableHead>}
+                    <TableHead className="px-3 py-4 text-[13px]">Employee</TableHead>
+                    <TableHead className="px-3 py-4 text-[13px]">Leave Type</TableHead>
+                    <TableHead className="px-3 py-4 text-[13px]">From</TableHead>
+                    <TableHead className="px-3 py-4 text-[13px]">To</TableHead>
+                    <TableHead className="px-3 py-4 text-[13px]">Days</TableHead>
+                    <TableHead className="px-3 py-4 text-[13px]">Status</TableHead>
+                    {canApprove && <TableHead className="px-3 py-4 text-[13px] text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-border/40">
