@@ -1,4 +1,4 @@
-﻿import { MonthPicker } from '@/components/shared/MonthPicker';
+import { MonthPicker } from '@/components/shared/MonthPicker';
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -825,11 +825,11 @@ export default function Employees() {
         </CardContent>
       </Card>
 
-      {/* Employee Details Modal */}
+      {/* Employee Details */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-6xl w-full overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] max-h-[90vh] p-0 gap-0 bg-slate-50 dark:bg-slate-900 print:hidden">
-          <DialogHeader className="p-4 pb-3 border-b bg-white dark:bg-slate-900 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
-            <DialogTitle className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Staff Profile & Analytics</DialogTitle>
+        <DialogContent className="max-w-6xl w-full overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] max-h-[90vh] p-0 gap-0 bg-[#FFFDF0] dark:bg-slate-900 print:hidden">
+          <DialogHeader className="p-4 pb-3 border-b bg-[#7B0099] dark:bg-slate-900 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
+            <DialogTitle className="text-xl font-black text-white dark:text-slate-100 tracking-tight">Staff Profile & Analytics</DialogTitle>
           </DialogHeader>
           
           <div className="p-4">
