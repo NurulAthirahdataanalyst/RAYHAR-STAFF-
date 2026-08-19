@@ -1167,11 +1167,11 @@ async function getEmployeeLocations(branch) {
         GROUP BY user_id
       ) m ON a.user_id = m.user_id AND a.clock_in = m.max_in
       LEFT JOIN (
-        SELECT user_id, latitude, longitude, accuracy, recorded_at
+        SELECT el1.employee_id, el1.latitude, el1.longitude, el1.accuracy, el1.recorded_at
         FROM employee_location_logs el1
-        WHERE DATE(recorded_at) = CURRENT_DATE
-          AND id = (SELECT MAX(id) FROM employee_location_logs el2 WHERE el2.user_id = el1.user_id AND DATE(recorded_at) = CURRENT_DATE)
-      ) el ON el.user_id = a.user_id
+        JOIN (SELECT employee_id, MAX(id) as max_id FROM employee_location_logs GROUP BY employee_id) el2
+          ON el1.id = el2.max_id
+      ) el ON el.employee_id = a.user_id
       LEFT JOIN profiles p ON p.user_id = a.user_id
       WHERE 1=1 ${branchFilter}
     `;
@@ -4294,7 +4294,7 @@ app.get("/api/employee-locations", async (req, res) => {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS employee_location_logs (
         id SERIAL PRIMARY KEY,
-        user_id VARCHAR(64),
+        employee_id VARCHAR(64),
         latitude DOUBLE PRECISION,
         longitude DOUBLE PRECISION,
         accuracy DOUBLE PRECISION,
@@ -4327,11 +4327,11 @@ app.get("/api/employee-locations", async (req, res) => {
         GROUP BY user_id
       ) m ON a.user_id = m.user_id AND a.clock_in = m.max_in
       LEFT JOIN (
-        SELECT user_id, latitude, longitude, accuracy, recorded_at
+        SELECT el1.employee_id, el1.latitude, el1.longitude, el1.accuracy, el1.recorded_at
         FROM employee_location_logs el1
-        WHERE DATE(recorded_at) = CURRENT_DATE
-          AND id = (SELECT MAX(id) FROM employee_location_logs el2 WHERE el2.user_id = el1.user_id AND DATE(recorded_at) = CURRENT_DATE)
-      ) el ON el.user_id = a.user_id
+        JOIN (SELECT employee_id, MAX(id) as max_id FROM employee_location_logs GROUP BY employee_id) el2
+          ON el1.id = el2.max_id
+      ) el ON el.employee_id = a.user_id
       LEFT JOIN profiles p ON p.user_id = a.user_id
       ${branchFilter}
     `;
@@ -4357,7 +4357,7 @@ app.post('/api/employee-location-update', async (req, res) => {
     // Insert into employee_location_logs (create table if not present in DB schema migration)
     try {
       await pool.query(
-        `INSERT INTO employee_location_logs (user_id, latitude, longitude, accuracy, recorded_at)
+        `INSERT INTO employee_location_logs (employee_id, latitude, longitude, accuracy, recorded_at)
          VALUES (?, ?, ?, ?, ?)`,
         [uid, latitude, longitude, accuracy || null, timestamp || new Date()]
       );
@@ -4368,7 +4368,7 @@ app.post('/api/employee-location-update', async (req, res) => {
         await pool.query(`
           CREATE TABLE IF NOT EXISTS employee_location_logs (
             id SERIAL PRIMARY KEY,
-            user_id VARCHAR(64),
+            employee_id VARCHAR(64),
             latitude DOUBLE PRECISION,
             longitude DOUBLE PRECISION,
             accuracy DOUBLE PRECISION,
@@ -4376,7 +4376,7 @@ app.post('/api/employee-location-update', async (req, res) => {
           );
         `);
         await pool.query(
-          `INSERT INTO employee_location_logs (user_id, latitude, longitude, accuracy, recorded_at)
+          `INSERT INTO employee_location_logs (employee_id, latitude, longitude, accuracy, recorded_at)
            VALUES (?, ?, ?, ?, ?)`,
           [uid, latitude, longitude, accuracy || null, timestamp || new Date()]
         );
@@ -4455,7 +4455,7 @@ app.get('/api/employee-location-history', async (req, res) => {
 
     // Prefer employee_location_logs if present
     const [rows] = await pool.query(
-      `SELECT latitude, longitude, accuracy, recorded_at as timestamp FROM employee_location_logs WHERE user_id = ? AND recorded_at BETWEEN ? AND ? ORDER BY recorded_at DESC LIMIT 100`,
+      `SELECT latitude, longitude, accuracy, recorded_at as timestamp FROM employee_location_logs WHERE employee_id = ? AND recorded_at BETWEEN ? AND ? ORDER BY recorded_at DESC LIMIT 100`,
       [String(userId), from, to]
     );
 
@@ -9556,7 +9556,7 @@ console.log("PORT FROM ENV:", process.env.PORT);
 pool.query(`
   CREATE TABLE IF NOT EXISTS employee_location_logs (
     id SERIAL PRIMARY KEY,
-    user_id VARCHAR(64),
+    employee_id VARCHAR(64),
     latitude DOUBLE PRECISION,
     longitude DOUBLE PRECISION,
     accuracy DOUBLE PRECISION,
