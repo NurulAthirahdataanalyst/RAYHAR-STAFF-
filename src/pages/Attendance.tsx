@@ -980,14 +980,20 @@ export default function Attendance() {
             setLocationLastUpdated(new Date().toISOString());
             setLocationAccuracy(acc);
             setLocationDistance(dist_meters ?? null);
-            setLocationCoords({lat: latitude, lng: longitude});
+            setLocationCoords({lat, lng});
 
             // Also update aggregated location endpoint so tracker picks up latest coordinates
             try {
               await fetch(`${API_BASE_URL}/api/employee-location-update`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: employeeId, latitude: lat, longitude: lng, accuracy: acc, timestamp: new Date().toISOString() })
+                body: JSON.stringify({
+                  user_id: employeeId,
+                  latitude: lat,
+                  longitude: lng,
+                  accuracy: acc,
+                  timestamp: new Date().toISOString()
+                })
               });
             } catch (e) {
               // non-fatal
