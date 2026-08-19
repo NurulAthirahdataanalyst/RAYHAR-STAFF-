@@ -38,7 +38,38 @@ export default function GPSLocationTracker() {
   useEffect(() => {
     void fetchData();
     const iv = setInterval(() => void fetchData(), 15000);
-    return () => clearInterval(iv);
+
+    // Subscribe to presence SSE stream for immediate refresh triggers
+    try {
+      const es = new EventSource(`${API_BASE_URL}/api/presence/stream`);
+      es.onmessage = (ev) => {
+        try {
+          const payload = JSON.parse(ev.data || "{}");
+          const triggerTypes = ["refresh", "clock-in", "clock-out", "employee-status-change", "leave-status", "outstation", "employee-status-change"];
+          if (!payload) return;
+          if (payload.type && triggerTypes.includes(payload.type)) {
+            void fetchData();
+          } else {
+            // generic refresh
+            void fetchData();
+          }
+        } catch (e) {
+          // ignore parse errors
+          void fetchData();
+        }
+      };
+      es.onerror = (e) => {
+        console.error('SSE connection error', e);
+        try { es.close(); } catch (e) {}
+      };
+
+      return () => {
+        clearInterval(iv);
+        try { es.close(); } catch (e) {}
+      };
+    } catch (e) {
+      return () => clearInterval(iv);
+    }
   }, []);
 
   const fetchData = async () => {
