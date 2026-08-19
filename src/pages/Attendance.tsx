@@ -1154,7 +1154,7 @@ export default function Attendance() {
                     </>
                   )}
                 </button>
-                  {activeSession && (activeSession.attendance_type === 'OUTSTATION' || activeSession.status === 'OUTSTATION' || attendanceStatus?.status === 'OUTSTATION' || (activeSession.location && activeSession.location !== 'HQ')) && (
+                  {activeSession && (
                     <div className="absolute -bottom-12 w-full flex justify-center">
                       <Button
                         type="button"
