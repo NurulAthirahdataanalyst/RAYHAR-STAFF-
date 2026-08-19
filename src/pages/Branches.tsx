@@ -47,6 +47,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "../config/api";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+let DefaultIcon = L.icon({
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 
 // Smart geocoding: tries multiple strategies for Malaysian addresses
@@ -91,13 +103,13 @@ async function smartGeocode(address: string): Promise<{lat: string, lon: string}
   return null;
 }
 
-function MapController({ center }: { center: [number, number] }) {
+function MapController({ lat, lng }: { lat: number, lng: number }) {
   const map = useMap();
   useEffect(() => {
-    if (center && !isNaN(center[0]) && !isNaN(center[1])) {
-      map.flyTo(center, map.getZoom(), { animate: true, duration: 1 });
+    if (!isNaN(lat) && !isNaN(lng)) {
+      map.flyTo([lat, lng], map.getZoom(), { animate: true, duration: 1 });
     }
-  }, [center, map]);
+  }, [lat, lng, map]);
   return null;
 }
 
@@ -1922,14 +1934,21 @@ export default function Branches() {
                   return (!isNaN(_lat) && !isNaN(_lng)) ? [_lat, _lng] : [4.2248, 103.4194];
                 })() as [number, number]}
                 zoom={16} 
+                maxZoom={22}
                 style={{ height: "100%", width: "100%" }}
               >
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                <MapController center={(() => {
+                <TileLayer 
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" 
+                  maxZoom={22}
+                  maxNativeZoom={19}
+                />
+                {(() => {
                   const _clat = parseFloat(String(editBranchData.latitude));
                   const _clng = parseFloat(String(editBranchData.longitude));
-                  return (!isNaN(_clat) && !isNaN(_clng)) ? [_clat, _clng] : [4.2248, 103.4194];
-                })() as [number, number]} />
+                  const lat = (!isNaN(_clat)) ? _clat : 4.2248;
+                  const lng = (!isNaN(_clng)) ? _clng : 103.4194;
+                  return <MapController lat={lat} lng={lng} />;
+                })()}
                 <LocationPicker setLocation={(lat, lng) => {
                   setEditBranchData({...editBranchData, latitude: lat.toString(), longitude: lng.toString()});
                   fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)

@@ -851,15 +851,30 @@ export default function Attendance() {
             const branchCode = selectedLocation || user?.branch || 'HQ';
             const branchInfo = branches.find((b: any) => b.code === branchCode || b.name === branchCode);
 
-            if (!branchInfo || !branchInfo.latitude || !branchInfo.longitude) {
+            if (!branchInfo || !branchInfo.latitude || !branchInfo.longitude || String(branchInfo.latitude).trim() === '' || String(branchInfo.longitude).trim() === '') {
               toast({ title: "Clock In Failed", description: "Your branch location coordinates are not configured in the system. Please contact HR.", variant: "destructive" });
               setLoading(false);
               return;
             }
 
             if (branchInfo && branchInfo.latitude && branchInfo.longitude) {
+            const latNum = parseFloat(branchInfo.latitude);
+            const lngNum = parseFloat(branchInfo.longitude);
             const radius = branchInfo.radius || 50;
-            dist_meters = Math.round(haversineDistance(lat, lng, parseFloat(branchInfo.latitude), parseFloat(branchInfo.longitude)));
+            
+            if (isNaN(latNum) || isNaN(lngNum)) {
+              toast({ title: "Clock In Failed", description: "Your branch location coordinates are invalid. Please contact HR.", variant: "destructive" });
+              setLoading(false);
+              return;
+            }
+
+            dist_meters = Math.round(haversineDistance(lat, lng, latNum, lngNum));
+            
+            if (isNaN(dist_meters)) {
+              toast({ title: "Clock In Failed", description: "Unable to calculate distance to branch. Please try again.", variant: "destructive" });
+              setLoading(false);
+              return;
+            }
             
             if (dist_meters > radius) {
               toast({ title: "Clock In Failed", description: `You are outside the branch radius (${radius}m). Distance: ${dist_meters}m`, variant: "destructive" });
@@ -928,7 +943,15 @@ export default function Attendance() {
           });
           const result = await response.json();
           if (result.success) {
-            toast({ title: "Location Updated", description: "Your current location has been securely logged." });
+            if (isOutstationAssigned) {
+              toast({ title: "Location Updated", description: "Your outstation location has been logged successfully." });
+            } else {
+              let desc = "Your location has been updated. Distance will be updated automatically.";
+              if (dist_meters !== undefined && !isNaN(dist_meters)) {
+                desc = `Your location has been updated. You are ${dist_meters}m from ${branchInfo?.name || branchCode}. Distance will be updated automatically.`;
+              }
+              toast({ title: "Location Updated", description: desc });
+            }
           } else {
             throw new Error(result.error);
           }
@@ -1229,7 +1252,7 @@ export default function Attendance() {
                     type="button"
                     onClick={handleUpdateLocation}
                     disabled={outstationLocationLoading}
-                    className="bg-purple-500 hover:bg-purple-600 text-white rounded-full h-10 px-6 font-black text-[11px] uppercase tracking-widest border-b-[4px] border-purple-800 active:border-b-0 active:translate-y-[4px] transition-all"
+                    className="bg-purple-800 hover:bg-purple-900 text-white rounded-full h-10 px-6 font-black text-[11px] uppercase tracking-widest border-b-[4px] border-purple-400 active:border-b-0 active:translate-y-[4px] transition-all"
                   >
                     {outstationLocationLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <MapPin className="w-4 h-4 mr-2" />}
                     Update My Location
