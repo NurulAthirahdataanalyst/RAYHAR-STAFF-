@@ -1155,10 +1155,10 @@ async function getEmployeeLocations(branch) {
     }
     const sql = `
       SELECT a.user_id, p.full_name, p.branch,
-             a.clock_in AS last_updated,
-             a.clock_in_latitude AS latitude,
-             a.clock_in_longitude AS longitude,
-             a.clock_in_accuracy AS accuracy
+             COALESCE(el.recorded_at, a.clock_in) AS last_updated,
+             COALESCE(el.latitude, a.clock_in_latitude) AS latitude,
+             COALESCE(el.longitude, a.clock_in_longitude) AS longitude,
+             COALESCE(el.accuracy, a.clock_in_accuracy) AS accuracy
       FROM attendances a
       JOIN (
         SELECT user_id, MAX(clock_in) AS max_in
@@ -1166,8 +1166,14 @@ async function getEmployeeLocations(branch) {
         WHERE DATE(clock_in) = CURRENT_DATE
         GROUP BY user_id
       ) m ON a.user_id = m.user_id AND a.clock_in = m.max_in
+      LEFT JOIN (
+        SELECT user_id, latitude, longitude, accuracy, recorded_at
+        FROM employee_location_logs el1
+        WHERE DATE(recorded_at) = CURRENT_DATE
+          AND id = (SELECT MAX(id) FROM employee_location_logs el2 WHERE el2.user_id = el1.user_id AND DATE(recorded_at) = CURRENT_DATE)
+      ) el ON el.user_id = a.user_id
       LEFT JOIN profiles p ON p.user_id = a.user_id
-      ${branchFilter}
+      WHERE 1=1 ${branchFilter}
     `;
     const [rows] = await pool.query(sql, params);
     return rows || [];
@@ -4284,10 +4290,22 @@ app.get("/api/attendance-status", async (req, res) => {
 // ===============================
 app.get("/api/employee-locations", async (req, res) => {
   try {
+    // Ensure table exists before querying so we don't crash
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS employee_location_logs (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR(64),
+        latitude DOUBLE PRECISION,
+        longitude DOUBLE PRECISION,
+        accuracy DOUBLE PRECISION,
+        recorded_at TIMESTAMP
+      );
+    `).catch(() => {});
+
     const { branch } = req.query || {};
 
     // Subquery selects latest clock_in per user for today
-    // Works on MySQL
+    // Works on MySQL and Postgres
     let params = [];
     let branchFilter = "";
     if (branch) {
@@ -4349,13 +4367,13 @@ app.post('/api/employee-location-update', async (req, res) => {
       try {
         await pool.query(`
           CREATE TABLE IF NOT EXISTS employee_location_logs (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+            id SERIAL PRIMARY KEY,
             user_id VARCHAR(64),
-            latitude DOUBLE,
-            longitude DOUBLE,
-            accuracy DOUBLE,
-            recorded_at DATETIME
-          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            latitude DOUBLE PRECISION,
+            longitude DOUBLE PRECISION,
+            accuracy DOUBLE PRECISION,
+            recorded_at TIMESTAMP
+          );
         `);
         await pool.query(
           `INSERT INTO employee_location_logs (user_id, latitude, longitude, accuracy, recorded_at)
@@ -9533,6 +9551,18 @@ const PORT = process.env.PORT || 8080;
 
 
 console.log("PORT FROM ENV:", process.env.PORT);
+
+// Ensure employee_location_logs exists
+pool.query(`
+  CREATE TABLE IF NOT EXISTS employee_location_logs (
+    id SERIAL PRIMARY KEY,
+    user_id VARCHAR(64),
+    latitude DOUBLE PRECISION,
+    longitude DOUBLE PRECISION,
+    accuracy DOUBLE PRECISION,
+    recorded_at TIMESTAMP
+  );
+`).catch(e => console.error('Table init error:', e));
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
