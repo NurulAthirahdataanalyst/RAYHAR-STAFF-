@@ -34,7 +34,7 @@ const createCustomIcon = (loc: EmpLocation, isSelected: boolean) => {
   const timeText = loc.last_updated ? new Date(loc.last_updated).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Unknown';
   
   const htmlString = `
-    <div class="relative flex flex-col items-center group -mt-[64px]">
+    <div class="flex flex-col items-center justify-end w-full h-full group pb-1">
       <div class="bg-card rounded-full shadow-lg p-1 pr-3 flex items-center gap-2 border ${isSelected ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-border'} transition-all hover:scale-105 z-10">
         <div class="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground relative">
            ${avatarText}
@@ -54,8 +54,8 @@ const createCustomIcon = (loc: EmpLocation, isSelected: boolean) => {
   return L.divIcon({
     className: 'bg-transparent border-none !bg-none',
     html: htmlString,
-    iconSize: [160, 80],
-    iconAnchor: [80, 80], // Bottom center
+    iconSize: [200, 100],
+    iconAnchor: [100, 100], // Bottom center
   });
 };
 
@@ -251,12 +251,7 @@ export default function GPSLocationTracker() {
     <>
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <div>
-          <h2 className="text-lg font-black">GPS Location Tracker</h2>
-          <p className="text-sm text-muted-foreground">Live staff GPS locations (based on today's clock-in).</p>
-        </div>
-
-        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
           <Input placeholder="Search Employee..." value={query} onChange={(e) => setQuery(e.target.value)} />
           <Select onValueChange={(v) => setBranchFilter(v)}>
             <SelectTrigger className="w-40">
