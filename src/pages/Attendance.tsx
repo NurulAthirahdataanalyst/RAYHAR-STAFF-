@@ -920,7 +920,7 @@ export default function Attendance() {
           });
           const result = await response.json();
           if (result.success) {
-            toast({ title: "Location Updated", description: "Your outstation location has been logged." });
+            toast({ title: "Location Updated", description: "Your current location has been securely logged." });
           } else {
             throw new Error(result.error);
           }
