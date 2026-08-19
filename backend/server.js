@@ -1127,6 +1127,8 @@ async function saveAlert(alert) {
           user_id VARCHAR(64),
           payload JSON,
           acknowledged BOOLEAN DEFAULT FALSE,
+          ack_by VARCHAR(64),
+          ack_at DATETIME,
           created_at DATETIME
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
@@ -1576,10 +1578,19 @@ app.post('/api/alerts/:id/ack', async (req, res) => {
     const ALLOWED = ['hr_admin', 'managing_director', 'operation_manager', 'finance_manager', 'head_of_department', 'branch_leader'];
     if (!ALLOWED.includes(String(userRole))) return res.status(403).json({ success: false, error: 'Forbidden' });
 
-    await pool.query('UPDATE alerts SET acknowledged = TRUE WHERE id = ?', [id]);
+    const ackBy = (req.user && (req.user.userId || req.user.user_id)) || req.headers['x-user-id'] || req.body.userId || null;
+    await pool.query('UPDATE alerts SET acknowledged = TRUE, ack_by = ?, ack_at = NOW() WHERE id = ?', [ackBy, id]);
     // return updated row
-    const [rows] = await pool.query('SELECT id, type, user_id, payload, acknowledged, created_at FROM alerts WHERE id = ?', [id]);
-    res.json({ success: true, alert: rows[0] });
+    const [rows] = await pool.query('SELECT id, type, user_id, payload, acknowledged, ack_by, ack_at, created_at FROM alerts WHERE id = ?', [id]);
+    const alertRow = rows[0];
+
+    // Broadcast ack update to SSE clients
+    const payload = { type: 'alert-ack', timestamp: new Date().toISOString(), alert: alertRow };
+    alertsClients.forEach(c => {
+      try { c.write(`data: ${JSON.stringify(payload)}\n\n`); } catch (e) {}
+    });
+
+    res.json({ success: true, alert: alertRow });
   } catch (e) {
     console.error('/api/alerts/:id/ack error', e.message || e);
     res.status(500).json({ success: false, error: e.message || String(e) });

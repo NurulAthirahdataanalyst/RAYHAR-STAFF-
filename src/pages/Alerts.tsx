@@ -16,7 +16,13 @@ export default function Alerts() {
       try {
         const payload = JSON.parse(ev.data || '{}');
         if (payload && payload.alert) {
-          setAlerts((s) => [payload.alert, ...s]);
+          setAlerts((prev) => {
+            const idx = prev.findIndex(a => a.id === payload.alert.id);
+            if (idx >= 0) {
+              const copy = [...prev]; copy[idx] = payload.alert; return copy;
+            }
+            return [payload.alert, ...prev];
+          });
         }
       } catch (e) { console.error(e); }
     };
