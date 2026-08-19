@@ -28,7 +28,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Plane,
-  MapPinned
+  MapPinned,
+  CircleDot
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRole } from "@/contexts/RoleContext";
