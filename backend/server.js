@@ -4082,6 +4082,51 @@ app.get("/api/attendance-status", async (req, res) => {
 });
 
 // ===============================
+// AGGREGATED EMPLOYEE LOCATIONS
+// Returns the latest clock-in location for each employee for today
+// Fields: user_id, full_name, branch, last_updated, latitude, longitude, accuracy
+// Optional query: branch
+// ===============================
+app.get("/api/employee-locations", async (req, res) => {
+  try {
+    const { branch } = req.query || {};
+
+    // Subquery selects latest clock_in per user for today
+    // Works on MySQL
+    let params = [];
+    let branchFilter = "";
+    if (branch) {
+      branchFilter = "WHERE p.branch = ?";
+      params.push(branch);
+    }
+
+    const sql = `
+      SELECT a.user_id, p.full_name, p.branch,
+             a.clock_in AS last_updated,
+             a.clock_in_latitude AS latitude,
+             a.clock_in_longitude AS longitude,
+             a.clock_in_accuracy AS accuracy
+      FROM attendances a
+      JOIN (
+        SELECT user_id, MAX(clock_in) AS max_in
+        FROM attendances
+        WHERE DATE(clock_in) = CURRENT_DATE
+        GROUP BY user_id
+      ) m ON a.user_id = m.user_id AND a.clock_in = m.max_in
+      LEFT JOIN profiles p ON p.user_id = a.user_id
+      ${branchFilter}
+    `;
+
+    const [rows] = await pool.query(sql, params);
+
+    res.json({ success: true, locations: rows });
+  } catch (err) {
+    console.error("/api/employee-locations error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ===============================
 // CLOCK IN
 // ===============================
 app.post("/api/attendance", async (req, res) => {

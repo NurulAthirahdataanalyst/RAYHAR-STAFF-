@@ -37,48 +37,37 @@ export default function GPSLocationTracker() {
 
   useEffect(() => {
     void fetchData();
+    const iv = setInterval(() => void fetchData(), 15000);
+    return () => clearInterval(iv);
   }, []);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const empRes = await fetch(`${API_BASE_URL}/api/employees`);
-      const empJson = await empRes.json();
-      const list: Employee[] = empJson.success ? empJson.employees : empJson || [];
-      setEmployees(list || []);
-
-      // For each employee, fetch attendance-status (contains today's active attendance record)
-      const statusPromises = (list || []).map(async (e) => {
-        try {
-          const sres = await fetch(`${API_BASE_URL}/api/attendance-status?empId=${encodeURIComponent(e.user_id)}`);
-          const sj = await sres.json();
-          const rec = sj.record || null;
-          const lat = rec?.clock_in_latitude ?? rec?.latitude ?? rec?.lat ?? rec?.clock_in_lat ?? null;
-          const lng = rec?.clock_in_longitude ?? rec?.longitude ?? rec?.lng ?? rec?.clock_in_lng ?? null;
-          const acc = rec?.clock_in_accuracy ?? rec?.accuracy ?? null;
-          const last = rec?.clock_in ?? null;
-          return {
-            user_id: e.user_id,
-            full_name: e.full_name,
-            branch: e.branch,
-            lat: lat !== undefined && lat !== null ? Number(lat) : null,
-            lng: lng !== undefined && lng !== null ? Number(lng) : null,
-            accuracy: acc !== undefined && acc !== null ? Number(acc) : null,
-            last_updated: last ? new Date(last).toISOString() : null,
-            locationName: rec?.location || null,
-          } as EmpLocation;
-        } catch (err) {
-          return {
-            user_id: e.user_id,
-            full_name: e.full_name,
-            branch: e.branch,
-          } as EmpLocation;
-        }
-      });
-
-      const statuses = await Promise.all(statusPromises);
+      // Use aggregated endpoint to fetch all locations at once
+      const res = await fetch(`${API_BASE_URL}/api/employee-locations`);
+      const j = await res.json();
+      const list: Employee[] = [];
       const locMap: Record<string, EmpLocation> = {};
-      statuses.forEach((s) => (locMap[s.user_id] = s));
+      if (j && j.success && Array.isArray(j.locations)) {
+        j.locations.forEach((r: any) => {
+          const userId = r.user_id || r.userId || r.id;
+          if (userId) {
+            locMap[userId] = {
+              user_id: userId,
+              full_name: r.full_name || r.fullName || null,
+              branch: r.branch || null,
+              lat: r.latitude != null ? Number(r.latitude) : null,
+              lng: r.longitude != null ? Number(r.longitude) : null,
+              accuracy: r.accuracy != null ? Number(r.accuracy) : null,
+              last_updated: r.last_updated ? new Date(r.last_updated).toISOString() : (r.lastUpdated ? new Date(r.lastUpdated).toISOString() : null),
+              locationName: r.location || null,
+            };
+            list.push({ user_id: userId, full_name: r.full_name || r.fullName || "", branch: r.branch || "" });
+          }
+        });
+      }
+      setEmployees(list);
       setLocations(locMap);
     } catch (err) {
       console.error(err);
