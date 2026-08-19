@@ -796,35 +796,35 @@ export default function OutstationDashboard() {
             {/* Alerts & Upcoming List */}
             <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex-1">
               <CardHeader className="px-5 py-4 border-b border-gray-50">
-                <CardTitle className="text-[16px] font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-orange-500" /> Alerts & Upcoming
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0 flex flex-col divide-y divide-gray-50">
                 <div className="p-5">
-                  <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">Departing Soon</h4>
-                  {loading ? <Skeleton className="h-10 w-full rounded" /> : upcoming.length === 0 ? <p className="text-[13px] text-gray-500 dark:text-gray-400">No upcoming departures</p> : upcoming.slice(0, 3).map((a, i) => (
+                  <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Departing Soon</h4>
+                  {loading ? <Skeleton className="h-10 w-full rounded" /> : upcoming.length === 0 ? <p className="text-[12px] text-gray-500 dark:text-gray-400">No upcoming departures</p> : upcoming.slice(0, 3).map((a, i) => (
                     <div key={i} className="flex items-center gap-3 mb-3 last:mb-0">
                       <div className="w-8 h-8 rounded-md bg-orange-50 flex items-center justify-center flex-shrink-0 border border-orange-100">
                         <Plane className="w-4 h-4 text-orange-600 transform rotate-45" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-bold text-gray-900 dark:text-gray-100 truncate">{a.full_name}</p>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{a.destination} • {formatShortDate(a.start_date)}</p>
+                        <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 truncate">{a.full_name}</p>
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">{a.destination} • {formatShortDate(a.start_date)}</p>
                       </div>
                     </div>
                   ))}
                 </div>
                 <div className="p-5">
-                  <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">Returning Today</h4>
-                  {loading ? <Skeleton className="h-10 w-full rounded" /> : returns.length === 0 ? <p className="text-[13px] text-gray-500 dark:text-gray-400">No returns expected today</p> : returns.slice(0, 3).map((a, i) => (
+                  <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Returning Today</h4>
+                  {loading ? <Skeleton className="h-10 w-full rounded" /> : returns.length === 0 ? <p className="text-[12px] text-gray-500 dark:text-gray-400">No returns expected today</p> : returns.slice(0, 3).map((a, i) => (
                     <div key={i} className="flex items-center gap-3 mb-3 last:mb-0">
                       <div className="w-8 h-8 rounded-md bg-blue-50 flex items-center justify-center flex-shrink-0 border border-blue-100">
                         <Plane className="w-4 h-4 text-blue-600 transform -rotate-45" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-bold text-gray-900 dark:text-gray-100 truncate">{a.full_name}</p>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">From {a.destination}</p>
+                        <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 truncate">{a.full_name}</p>
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">From {a.destination}</p>
                       </div>
                     </div>
                   ))}

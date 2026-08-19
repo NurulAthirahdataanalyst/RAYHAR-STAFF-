@@ -575,7 +575,78 @@ export default function OutstationReports() {
               </div>
 
               {/* Footer (Fixed) */}
-              <div className="px-6 pb-5 flex justify-end">
+              <div className="px-6 pb-5 flex justify-end gap-2">
+                <Button variant="outline" onClick={() => {
+                  if (!viewFormEvent) return;
+                  const printWindow = window.open("", "_blank");
+                  if (!printWindow) return;
+                  const html = `
+                    <html>
+                      <head>
+                        <title>Outstation Assignment - ${viewFormEvent.eventName}</title>
+                        <style>
+                          body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+                          h1 { color: #7B0099; font-size: 24px; margin-bottom: 5px; }
+                          h2 { font-size: 16px; margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+                          .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+                          .info-box { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+                          .label { font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
+                          .value { font-size: 14px; font-weight: bold; }
+                          table { w-full; border-collapse: collapse; margin-top: 10px; }
+                          th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; font-size: 12px; }
+                          th { font-weight: bold; color: #666; text-transform: uppercase; font-size: 10px; }
+                        </style>
+                      </head>
+                      <body>
+                        <h1>${viewFormEvent.eventName}</h1>
+                        <p style="color: #666; margin-top: 0;">Outstation Assignment Details</p>
+                        
+                        <h2>Trip Information</h2>
+                        <div class="info-grid">
+                          <div class="info-box" style="grid-column: span 2;">
+                            <div class="label">Destination</div>
+                            <div class="value">${viewFormEvent.destination}</div>
+                          </div>
+                          <div class="info-box">
+                            <div class="label">Status</div>
+                            <div class="value">${viewFormEvent.status}</div>
+                          </div>
+                          <div class="info-box">
+                            <div class="label">Total Days</div>
+                            <div class="value">${viewFormEvent.totalDays} Days (${fmtDate(viewFormEvent.startDate)} - ${fmtDate(viewFormEvent.endDate)})</div>
+                          </div>
+                        </div>
+
+                        <h2>Employees Assigned (${viewFormEvent.assignments.length})</h2>
+                        <table style="width: 100%;">
+                          <tr>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Branch</th>
+                            <th>Status</th>
+                          </tr>
+                          ${viewFormEvent.assignments.map(a => `
+                            <tr>
+                              <td style="font-weight: bold;">${a.full_name}</td>
+                              <td>${a.department || '-'}</td>
+                              <td>${a.branch || '-'}</td>
+                              <td>${a.status}</td>
+                            </tr>
+                          `).join('')}
+                        </table>
+                        
+                        <div style="margin-top: 40px; font-size: 10px; color: #999; text-align: center;">
+                          Generated from Rayhar Employee Portal
+                        </div>
+                      </body>
+                    </html>
+                  `;
+                  printWindow.document.write(html);
+                  printWindow.document.close();
+                  setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
+                }} className="rounded-xl font-black text-[11px] border-purple-200 text-purple-700 hover:bg-purple-50">
+                  Export to PDF
+                </Button>
                 <Button variant="outline" onClick={() => setViewFormEvent(null)} className="rounded-xl font-black text-[11px]">
                   Close
                 </Button>

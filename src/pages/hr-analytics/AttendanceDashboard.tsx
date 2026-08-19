@@ -1721,25 +1721,30 @@ export default function AttendanceDashboard() {
         
         {/* Branch Workforce Distribution */}
         <Card className="border border-gray-200 dark:border-slate-800/80 bg-white dark:bg-card rounded-xl shadow-sm overflow-hidden lg:col-span-6 flex flex-col h-fit">
-          <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-center justify-between gap-1">
-            <div className="flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-gray-700" />
-              <CardTitle className="text-[16px] font-semibold text-gray-900 dark:text-gray-100">Branch Workforce Distribution</CardTitle>
+          <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-gray-700" />
+                <CardTitle className="text-[16px] font-semibold text-gray-900 dark:text-gray-100">Branch Workforce Distribution</CardTitle>
+              </div>
+              <p className="text-[12px] text-gray-500 pl-7">Current workforce distribution across branches.</p>
             </div>
-            <Select value={liveRegion} onValueChange={setLiveRegion}>
-              <SelectTrigger className="w-[200px] h-8 text-[11px] font-bold border-gray-200 dark:border-slate-800 bg-white dark:bg-card shadow-none focus:ring-0">
-                <SelectValue placeholder="All Regions" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="text-[11px] font-bold">All Regions</SelectItem>
-                <SelectItem value="East Coast / East Malaysia" className="text-[11px] font-bold">East Coast / East Malaysia</SelectItem>
-                <SelectItem value="North Malaysia" className="text-[11px] font-bold">North Malaysia</SelectItem>
-                <SelectItem value="Central / West Coast" className="text-[11px] font-bold">Central / West Coast</SelectItem>
-                <SelectItem value="South Malaysia" className="text-[11px] font-bold">South Malaysia</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="flex items-center gap-3 flex-wrap">
-              <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
+            <div className="flex items-center gap-2 flex-wrap justify-end">
+              <Select value={liveRegion} onValueChange={setLiveRegion}>
+                <SelectTrigger className="w-[160px] h-8 text-[11px] font-bold border-gray-200 dark:border-slate-800 bg-white dark:bg-card shadow-none focus:ring-0">
+                  <SelectValue placeholder="All Regions" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-[11px] font-bold">All Regions</SelectItem>
+                  <SelectItem value="East Coast / East Malaysia" className="text-[11px] font-bold">East Coast / East Malaysia</SelectItem>
+                  <SelectItem value="North Malaysia" className="text-[11px] font-bold">North Malaysia</SelectItem>
+                  <SelectItem value="Central / West Coast" className="text-[11px] font-bold">Central / West Coast</SelectItem>
+                  <SelectItem value="South Malaysia" className="text-[11px] font-bold">South Malaysia</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="flex items-center gap-3">
+                <ExportDropdown onExportCSV={handleExport} onExportPDF={handleExportPDF} />
+              </div>
             </div>
           </CardHeader>
           <CardContent className="pt-6 px-6 pb-6 flex-1 flex flex-col justify-between">
