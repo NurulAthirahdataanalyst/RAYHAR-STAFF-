@@ -93,6 +93,7 @@ export default function Attendance() {
   const [fetchingHistory, setFetchingHistory] = useState(false);
   const [locationLastUpdated, setLocationLastUpdated] = useState<string | null>(null);
   const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
+  const [locationDistance, setLocationDistance] = useState<number | null>(null);
 
   // Derived stats from historyLogs
   const [stats, setStats] = useState({
@@ -967,6 +968,7 @@ export default function Attendance() {
             }
             setLocationLastUpdated(new Date().toISOString());
             setLocationAccuracy(acc);
+            setLocationDistance(dist_meters ?? null);
 
             // Also update aggregated location endpoint so tracker picks up latest coordinates
             try {
@@ -1306,8 +1308,8 @@ export default function Attendance() {
                     <span className="font-bold">{locationLastUpdated ? formatFullDateTime(locationLastUpdated).toUpperCase() : "-"}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-muted-foreground">Accuracy</span>
-                    <span className="font-bold">{locationAccuracy ? `±${Math.round(locationAccuracy)} m` : "-"}</span>
+                    <span className="font-semibold text-muted-foreground">Distance</span>
+                    <span className="font-bold">{locationDistance !== null ? `${Math.round(locationDistance)} m` : "-"}</span>
                   </div>
                 </div>
 
