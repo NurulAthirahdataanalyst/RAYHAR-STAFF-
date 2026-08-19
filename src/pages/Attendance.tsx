@@ -94,12 +94,17 @@ export default function Attendance() {
   const [locationLastUpdated, setLocationLastUpdated] = useState<string | null>(() => sessionStorage.getItem('loc_last_updated'));
   const [locationAccuracy, setLocationAccuracy] = useState<number | null>(() => { const a = sessionStorage.getItem('loc_accuracy'); return a ? Number(a) : null; });
   const [locationDistance, setLocationDistance] = useState<number | null>(() => { const d = sessionStorage.getItem('loc_distance'); return d ? Number(d) : null; });
+  const [locationCoords, setLocationCoords] = useState<{lat: number, lng: number} | null>(() => {
+    const c = sessionStorage.getItem('loc_coords');
+    return c ? JSON.parse(c) : null;
+  });
 
   useEffect(() => {
     if (locationLastUpdated) sessionStorage.setItem('loc_last_updated', locationLastUpdated);
     if (locationAccuracy !== null) sessionStorage.setItem('loc_accuracy', String(locationAccuracy));
     if (locationDistance !== null) sessionStorage.setItem('loc_distance', String(locationDistance));
-  }, [locationLastUpdated, locationAccuracy, locationDistance]);
+    if (locationCoords !== null) sessionStorage.setItem('loc_coords', JSON.stringify(locationCoords));
+  }, [locationLastUpdated, locationAccuracy, locationDistance, locationCoords]);
 
   // Derived stats from historyLogs
   const [stats, setStats] = useState({
@@ -975,6 +980,7 @@ export default function Attendance() {
             setLocationLastUpdated(new Date().toISOString());
             setLocationAccuracy(acc);
             setLocationDistance(dist_meters ?? null);
+            setLocationCoords({lat: latitude, lng: longitude});
 
             // Also update aggregated location endpoint so tracker picks up latest coordinates
             try {
@@ -1312,6 +1318,10 @@ export default function Attendance() {
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-muted-foreground">Last updated</span>
                     <span className="font-bold">{locationLastUpdated ? formatFullDateTime(locationLastUpdated).toUpperCase() : "-"}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-muted-foreground">Coordinates</span>
+                    <span className="font-bold font-mono text-[10px]">{locationCoords ? `${locationCoords.lat.toFixed(5)}, ${locationCoords.lng.toFixed(5)}` : "-"}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-muted-foreground">Distance</span>

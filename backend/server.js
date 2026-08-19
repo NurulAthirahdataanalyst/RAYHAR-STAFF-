@@ -4297,10 +4297,10 @@ app.get("/api/employee-locations", async (req, res) => {
 
     const sql = `
       SELECT a.user_id, p.full_name, p.branch,
-             a.clock_in AS last_updated,
-             a.clock_in_latitude AS latitude,
-             a.clock_in_longitude AS longitude,
-             a.clock_in_accuracy AS accuracy
+             COALESCE(el.recorded_at, a.clock_in) AS last_updated,
+             COALESCE(el.latitude, a.clock_in_latitude) AS latitude,
+             COALESCE(el.longitude, a.clock_in_longitude) AS longitude,
+             COALESCE(el.accuracy, a.clock_in_accuracy) AS accuracy
       FROM attendances a
       JOIN (
         SELECT user_id, MAX(clock_in) AS max_in
@@ -4308,6 +4308,12 @@ app.get("/api/employee-locations", async (req, res) => {
         WHERE DATE(clock_in) = CURRENT_DATE
         GROUP BY user_id
       ) m ON a.user_id = m.user_id AND a.clock_in = m.max_in
+      LEFT JOIN (
+        SELECT user_id, latitude, longitude, accuracy, recorded_at
+        FROM employee_location_logs el1
+        WHERE DATE(recorded_at) = CURRENT_DATE
+          AND id = (SELECT MAX(id) FROM employee_location_logs el2 WHERE el2.user_id = el1.user_id AND DATE(recorded_at) = CURRENT_DATE)
+      ) el ON el.user_id = a.user_id
       LEFT JOIN profiles p ON p.user_id = a.user_id
       ${branchFilter}
     `;
