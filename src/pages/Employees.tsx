@@ -16,7 +16,8 @@ import {
   X,
   PhoneCall,
   Download,
-  Printer
+  Printer,
+    MapPin
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
