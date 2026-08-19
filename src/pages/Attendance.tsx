@@ -1275,20 +1275,6 @@ export default function Attendance() {
                   </>
                 )}
               </div>
-              {activeSession && (
-                <div className="flex justify-center w-full mt-4">
-                  <Button
-                    type="button"
-                    onClick={handleUpdateLocation}
-                    disabled={outstationLocationLoading}
-                    className="bg-purple-800 hover:bg-purple-900 text-white rounded-full h-10 px-6 font-black text-[11px] uppercase tracking-widest border-b-[4px] border-purple-400 active:border-b-0 active:translate-y-[4px] transition-all"
-                  >
-                    {outstationLocationLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <MapPin className="w-4 h-4 mr-2" />}
-                    Update My Location
-                  </Button>
-                </div>
-              )}
-
               <div className="w-full mt-4 rounded-xl border border-border bg-muted/20 p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[9px] font-black uppercase tracking-[0.18em] text-muted-foreground">Location Status</span>
@@ -1309,14 +1295,17 @@ export default function Attendance() {
                   </div>
                 </div>
 
-                <Button
-                  type="button"
-                  onClick={handleUpdateLocation}
-                  className="mt-3 w-full bg-[#7B0099] hover:bg-[#5f007d] text-white rounded-lg h-9 text-[10px] font-black uppercase tracking-[0.12em]"
-                >
-                  <MapPin className="w-3.5 h-3.5 mr-2" />
-                  Update Location
-                </Button>
+                {activeSession && (
+                  <Button
+                    type="button"
+                    onClick={handleUpdateLocation}
+                    disabled={outstationLocationLoading}
+                    className="mt-3 w-full bg-purple-800 hover:bg-purple-900 text-white rounded-full h-10 font-black text-[11px] uppercase tracking-widest border-b-[4px] border-purple-400 active:border-b-0 active:translate-y-[4px] transition-all"
+                  >
+                    {outstationLocationLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <MapPin className="w-4 h-4 mr-2" />}
+                    Update Location
+                  </Button>
+                )}
               </div>
 
               {/* Bottom Details Row - table style */}
