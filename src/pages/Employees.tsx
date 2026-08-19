@@ -793,7 +793,7 @@ export default function Employees() {
                       disabled={currentPage === 1}
                       className="h-8 px-3 text-xs font-bold"
                     >
-                      Â«
+                      &laquo;
                     </Button>
                     <div className="flex items-center gap-1 overflow-x-auto max-w-[200px] sm:max-w-none">
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
@@ -815,7 +815,7 @@ export default function Employees() {
                       disabled={currentPage === totalPages}
                       className="h-8 px-3 text-xs font-bold"
                     >
-                      Â»
+                      &raquo;
                     </Button>
                   </div>
                 </div>
