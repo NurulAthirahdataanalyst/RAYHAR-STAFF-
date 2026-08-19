@@ -27,7 +27,8 @@ import {
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
-  Plane
+  Plane,
+  MapPinned
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRole } from "@/contexts/RoleContext";
@@ -187,6 +188,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "Department & Branch Reports", icon: Building2, path: "/reports/department", roles: HOD_BL_ROLES },
       ],
     },
+    { title: "GPS Location Tracker", icon: MapPinned, path: "/gps-location-tracker", roles: HOD_BL_ROLES },
   ];
 
 
@@ -308,6 +310,8 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         { title: "Department & Branch Reports", icon: Building2, path: "/reports/department", roles: FULL_ADMIN_ROLES },
       ]
     },
+    { title: "Where My Staff", icon: MapPinned, path: "/gps-location-tracker", roles: ALL_ROLES },
+    { title: "GPS Location Tracker", icon: MapPinned, path: "/gps-location-tracker", roles: FULL_ADMIN_ROLES },
     { title: "Settings", icon: Settings, path: "/settings", roles: ["hr_admin"] },
   ];
 
