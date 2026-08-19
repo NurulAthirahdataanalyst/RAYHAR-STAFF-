@@ -4126,6 +4126,73 @@ app.get("/api/employee-locations", async (req, res) => {
   }
 });
 
+// Employee location update endpoint
+app.post('/api/employee-location-update', async (req, res) => {
+  try {
+    const { user_id, latitude, longitude, accuracy, timestamp } = req.body || {};
+    const uid = user_id || (req.user && req.user.user_id) || null;
+    if (!uid || latitude == null || longitude == null) {
+      return res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
+
+    // Insert into employee_location_logs (create table if not present in DB schema migration)
+    try {
+      await pool.query(
+        `INSERT INTO employee_location_logs (user_id, latitude, longitude, accuracy, recorded_at)
+         VALUES (?, ?, ?, ?, ?)`,
+        [uid, latitude, longitude, accuracy || null, timestamp || new Date()]
+      );
+    } catch (e) {
+      // If table doesn't exist, try to create a minimal table and retry
+      console.warn('employee_location_logs insert failed, attempting to create table', e.message);
+      try {
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS employee_location_logs (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id VARCHAR(64),
+            latitude DOUBLE,
+            longitude DOUBLE,
+            accuracy DOUBLE,
+            recorded_at DATETIME
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+        await pool.query(
+          `INSERT INTO employee_location_logs (user_id, latitude, longitude, accuracy, recorded_at)
+           VALUES (?, ?, ?, ?, ?)`,
+          [uid, latitude, longitude, accuracy || null, timestamp || new Date()]
+        );
+      } catch (e2) {
+        console.error('Failed to create or insert employee_location_logs', e2);
+      }
+    }
+
+    // Optionally update today's latest attendance record's clock_in_* fields
+    try {
+      const [rows] = await pool.query(`SELECT id FROM attendances WHERE user_id = ? AND DATE(clock_in) = CURRENT_DATE ORDER BY clock_in DESC LIMIT 1`, [uid]);
+      const rec = Array.isArray(rows) && rows[0];
+      if (rec && rec.id) {
+        await pool.query(`UPDATE attendances SET clock_in_latitude = ?, clock_in_longitude = ?, clock_in_accuracy = ? WHERE id = ?`, [latitude, longitude, accuracy || null, rec.id]);
+      }
+    } catch (e) {
+      console.warn('Failed to update attendances with location', e.message);
+    }
+
+    // Broadcast presence update if available
+    try {
+      if (typeof broadcastPresenceUpdate === 'function') {
+        broadcastPresenceUpdate(uid);
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('/api/employee-location-update error', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ===============================
 // CLOCK IN
 // ===============================

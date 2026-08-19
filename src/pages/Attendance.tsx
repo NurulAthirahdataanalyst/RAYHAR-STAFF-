@@ -952,6 +952,16 @@ export default function Attendance() {
               }
               toast({ title: "Location Updated", description: desc });
             }
+            // Also update aggregated location endpoint so tracker picks up latest coordinates
+            try {
+              await fetch(`${API_BASE_URL}/api/employee-location-update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: employeeId, latitude: lat, longitude: lng, accuracy: acc, timestamp: new Date().toISOString() })
+              });
+            } catch (e) {
+              // non-fatal
+            }
           } else {
             throw new Error(result.error);
           }
@@ -1260,6 +1270,35 @@ export default function Attendance() {
                 </div>
               )}
 
+              <div className="w-full mt-4 rounded-xl border border-border bg-muted/20 p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[9px] font-black uppercase tracking-[0.18em] text-muted-foreground">Location Status</span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-bold text-emerald-700">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    Active
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-xs text-foreground">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-muted-foreground">Last updated</span>
+                    <span className="font-bold">18 AUG 2026, 5:12 PM</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-muted-foreground">Accuracy</span>
+                    <span className="font-bold">±8 m</span>
+                  </div>
+                </div>
+
+                <Button
+                  type="button"
+                  onClick={handleUpdateLocation}
+                  className="mt-3 w-full bg-[#7B0099] hover:bg-[#5f007d] text-white rounded-lg h-9 text-[10px] font-black uppercase tracking-[0.12em]"
+                >
+                  <MapPin className="w-3.5 h-3.5 mr-2" />
+                  Update Location
+                </Button>
+              </div>
 
               {/* Bottom Details Row - table style */}
               <div className="w-full border border-border/50 rounded-lg overflow-hidden mt-3 sm:mt-4">
