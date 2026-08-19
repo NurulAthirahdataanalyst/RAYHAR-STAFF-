@@ -342,7 +342,7 @@ export default function AttendanceDashboard() {
       if (data.success && Array.isArray(data.report)) {
         const enrichedReport = data.report.map((r: any) => ({
           ...r,
-          temp_branch: r.temp_branch || tempMap[r.user_id] || null
+          temp_branch: tempMap[r.user_id] || null
         }));
         setDailyAttendance(enrichedReport);
       }
@@ -356,7 +356,7 @@ export default function AttendanceDashboard() {
       }
       const enrichedAbsentees = combinedAbsentees.map((e: any) => ({
         ...e,
-        temp_branch: e.temp_branch || tempMap[e.user_id] || null
+        temp_branch: tempMap[e.user_id] || null
       }));
       setAbsentEmployees(enrichedAbsentees);
       

@@ -128,7 +128,7 @@ export default function AttendanceReports() {
         const processedData = data.data.map((r: any) => ({
           ...r,
           status: r.status || "Unknown",
-          temp_branch: tempMap[r.user_id] || r.temp_branch || null
+          temp_branch: tempMap[r.user_id] || null
         }));
         setAttendanceData(processedData);
         setMonthlySummary(data.summary || null);

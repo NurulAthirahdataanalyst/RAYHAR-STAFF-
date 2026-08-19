@@ -1199,7 +1199,7 @@ export default function Employees() {
                 </TabsContent>
 
                 <TabsContent value="temporary_branch" className="mt-0">
-                  <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div className="bg-[#FFFDF0] dark:bg-slate-800 p-6 rounded-2xl border border-yellow-200 dark:border-slate-700 shadow-sm">
                     <div className="mb-6">
                       <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
                         <MapPin className="w-5 h-5 text-indigo-500" />
@@ -1226,10 +1226,10 @@ export default function Employees() {
                         <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                           <Table>
                             <TableHeader>
-                              <TableRow className="bg-slate-50/50 dark:bg-slate-900/50">
-                                <TableHead className="font-bold text-slate-500 text-xs">Temporary Branch</TableHead>
-                                <TableHead className="font-bold text-slate-500 text-xs">Period</TableHead>
-                                <TableHead className="font-bold text-slate-500 text-xs">Status</TableHead>
+                              <TableRow className="bg-[#7B0099] hover:bg-[#7B0099]">
+                                <TableHead className="font-bold text-white text-xs">Temporary Branch</TableHead>
+                                <TableHead className="font-bold text-white text-xs">Period</TableHead>
+                                <TableHead className="font-bold text-white text-xs">Status</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
