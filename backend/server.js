@@ -1418,6 +1418,12 @@ function broadcastPresenceUpdate(payload = { type: 'refresh' }) {
   sseClients.forEach((client) => {
     client.write(`data: ${JSON.stringify(payload)}\n\n`);
   });
+  // Also forward the original payload to employee-locations stream clients (so they receive events)
+  if (employeeLocationsClients.length > 0) {
+    employeeLocationsClients.forEach((c) => {
+      try { c.write(`data: ${JSON.stringify(payload)}\n\n`); } catch (e) { /* ignore */ }
+    });
+  }
   // Also push full employee locations to any registered clients
   if (employeeLocationsClients.length > 0) {
     (async () => {
@@ -4264,13 +4270,44 @@ app.post('/api/employee-location-update', async (req, res) => {
       console.warn('Failed to update attendances with location', e.message);
     }
 
-    // Broadcast presence update if available
+    // Compute active outstation assignment and distance, then broadcast presence and arrival events
     try {
+      // find active assignment for today
+      const today = new Date().toISOString().split('T')[0];
+      const [assignRows] = await pool.query(`SELECT * FROM outstation_assignments WHERE user_id = ? AND status = 'Active' AND ? BETWEEN start_date AND COALESCE(end_date, ?) LIMIT 1`, [uid, today, '2099-12-31']);
+      let arrivalPayload = null;
+      if (assignRows && assignRows.length > 0) {
+        const assign = assignRows[0];
+        let targetLat = assign.latitude || null;
+        let targetLng = assign.longitude || null;
+        let radius = assign.radius || assign.allowed_radius || 100;
+        if ((!targetLat || !targetLng) && assign.branch) {
+          const [brows] = await pool.query('SELECT latitude, longitude FROM branches WHERE code = ? OR name = ? LIMIT 1', [assign.branch, assign.branch]);
+          if (brows && brows.length > 0) {
+            targetLat = brows[0].latitude;
+            targetLng = brows[0].longitude;
+          }
+        }
+        if (targetLat && targetLng) {
+          const toRad = (v) => v * Math.PI / 180;
+          const R = 6371e3;
+          const dLat = toRad(targetLat - latitude);
+          const dLon = toRad(targetLng - longitude);
+          const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(toRad(latitude)) * Math.cos(toRad(targetLat)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          const dist = R * c;
+          const arrived = dist <= (radius || 100);
+          arrivalPayload = { type: 'outstation-arrival', userId: uid, arrived: arrived, distance_m: Math.round(dist), radius_m: radius, assignmentId: assign.id };
+        }
+      }
+
       if (typeof broadcastPresenceUpdate === 'function') {
-        broadcastPresenceUpdate(uid);
+        if (arrivalPayload) broadcastPresenceUpdate(arrivalPayload);
+        else broadcastPresenceUpdate({ type: 'location-update', userId: uid });
       }
     } catch (e) {
-      // ignore
+      console.warn('Failed to compute/broadcast arrival status', e.message || e);
+      try { if (typeof broadcastPresenceUpdate === 'function') broadcastPresenceUpdate({ type: 'location-update', userId: uid }); } catch (e) {}
     }
 
     return res.json({ success: true });
