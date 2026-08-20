@@ -1481,7 +1481,7 @@ export default function Branches() {
         onOpenChange={(open) => !open && setViewLeaveStatus(null)}
       >
         <DialogContent className="max-w-2xl max-h-[90vh] border-none shadow-2xl rounded-[32px] p-0 overflow-hidden flex flex-col safe-area-bottom">
-          <div className="p-6 bg-gradient-to-br from-[#7B0099] to-[#a855f7] text-white">
+          <div className="p-6 bg-[#7B0099] text-white">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-3 text-white text-xl font-black tracking-tight">
                 <FileText className="h-6 w-6" />
@@ -1776,7 +1776,7 @@ export default function Branches() {
 
       <Dialog open={isEditBranchModalOpen} onOpenChange={setIsEditBranchModalOpen}>
         <DialogContent className="max-w-2xl p-0 border-none shadow-2xl rounded-3xl overflow-hidden">
-          <div className="bg-[#a855f7] p-6 text-white flex justify-between items-start">
+          <div className="bg-[#7B0099] p-6 text-white flex justify-between items-start">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-white/20 rounded-xl">
                 <Building2 className="w-6 h-6 text-white" />
