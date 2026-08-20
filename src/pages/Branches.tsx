@@ -48,7 +48,18 @@ import { API_BASE_URL } from "../config/api";
 import Map, { Marker as MapMarker, NavigationControl, useMap as useMapLibre } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-const MAPLIBRE_STYLE = "https://tiles.openfreemap.org/styles/liberty";
+const MAPLIBRE_STYLE = {
+  version: 8 as const,
+  sources: {
+    "osm": {
+      type: "raster" as const,
+      tiles: ["https://a.tile.openstreetmap.org/{z}/{x}/{y}.png", "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png", "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      tileSize: 256,
+      attribution: "&copy; OpenStreetMap contributors"
+    }
+  },
+  layers: [{ id: "osm-layer", type: "raster" as const, source: "osm", minzoom: 0, maxzoom: 19 }]
+};
 
 // Smart geocoding: tries multiple strategies for Malaysian addresses
 async function smartGeocode(address: string): Promise<{lat: string, lon: string} | null> {

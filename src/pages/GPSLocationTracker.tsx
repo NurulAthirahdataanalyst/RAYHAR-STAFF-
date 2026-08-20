@@ -342,7 +342,18 @@ export default function GPSLocationTracker() {
               zoom: 7
             }}
             style={{ width: "100%", height: "100%" }}
-            mapStyle="https://tiles.openfreemap.org/styles/liberty"
+            mapStyle={{
+              version: 8,
+              sources: {
+                "osm": {
+                  type: "raster",
+                  tiles: ["https://a.tile.openstreetmap.org/{z}/{x}/{y}.png", "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png", "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"],
+                  tileSize: 256,
+                  attribution: "&copy; OpenStreetMap contributors"
+                }
+              },
+              layers: [{ id: "osm-layer", type: "raster", source: "osm", minzoom: 0, maxzoom: 19 }]
+            }}
           >
             <NavigationControl position="top-left" />
 
@@ -489,7 +500,18 @@ export default function GPSLocationTracker() {
                     zoom: 13
                   }}
                   style={{ width: "100%", height: "100%" }}
-                  mapStyle="https://tiles.openfreemap.org/styles/liberty"
+                  mapStyle={{
+                    version: 8,
+                    sources: {
+                      "osm": {
+                        type: "raster",
+                        tiles: ["https://a.tile.openstreetmap.org/{z}/{x}/{y}.png", "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png", "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"],
+                        tileSize: 256,
+                        attribution: "&copy; OpenStreetMap contributors"
+                      }
+                    },
+                    layers: [{ id: "osm-layer", type: "raster", source: "osm", minzoom: 0, maxzoom: 19 }]
+                  }}
                 >
                   <NavigationControl position="top-left" />
                   <Source id="route" type="geojson" data={{
