@@ -28,8 +28,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Plane,
-  MapPinned,
-  CircleDot
+  MapPinned
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRole } from "@/contexts/RoleContext";
@@ -312,7 +311,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       ]
     },
     { title: "GPS Location Tracker", icon: MapPinned, path: "/gps-location-tracker", roles: ALL_ROLES },
-    { title: "Alerts", icon: CircleDot, path: "/alerts", roles: FULL_ADMIN_ROLES },
+
     { title: "Settings", icon: Settings, path: "/settings", roles: ["hr_admin"] },
   ];
 
