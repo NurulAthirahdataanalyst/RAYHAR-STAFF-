@@ -862,30 +862,27 @@ export default function Attendance() {
         if (attendanceMode === 'temporary') attendance_type = "Temporary Assignment";
         else if (attendanceMode === 'multi') attendance_type = "Multi-Location";
 
-        // Find branch coords — for multi-location users, check ALL allowed branches
+        // Find branch coords — check against the selected working location
         let dist_meters: number | undefined = undefined;
         let withinAnyBranch = false;
         let closestBranchCode: string | undefined = undefined;
 
         if (attendanceMode === 'multi' && allowedLocations.length > 0) {
-          // Check against every allowed branch — pass if within ANY one
-          for (const locCode of allowedLocations) {
-            const locInfo = branches.find((b: any) => b.code === locCode || b.name === locCode);
-            if (locInfo && locInfo.latitude && locInfo.longitude) {
-              const r = locInfo.radius || 50;
-              const d = Math.round(haversineDistance(lat, lng, parseFloat(locInfo.latitude), parseFloat(locInfo.longitude)));
-              if (d <= r) {
-                withinAnyBranch = true;
-                dist_meters = d;
-                closestBranchCode = locCode;
-                break;
-              }
-              // Track smallest distance for error message
-              if (dist_meters === undefined || d < dist_meters) dist_meters = d;
+          // Check ONLY against the branch the user selected from the dropdown
+          const locCode = selectedLocation || allowedLocations[0];
+          const locInfo = branches.find((b: any) => b.code === locCode || b.name === locCode);
+          if (locInfo && locInfo.latitude && locInfo.longitude) {
+            const r = locInfo.radius || 50;
+            const d = Math.round(haversineDistance(lat, lng, parseFloat(locInfo.latitude), parseFloat(locInfo.longitude)));
+            dist_meters = d;
+            if (d <= r) {
+              withinAnyBranch = true;
+              closestBranchCode = locCode;
             }
           }
+          
           if (!withinAnyBranch) {
-            toast({ title: "Clock In Failed", description: `You are outside all your assigned branch locations. Closest distance: ${dist_meters}m`, variant: "destructive" });
+            toast({ title: "Clock In Failed", description: `You are outside your selected branch location (${locCode}). Distance: ${dist_meters ?? '--'}m`, variant: "destructive" });
             setLoading(false);
             return;
           }
