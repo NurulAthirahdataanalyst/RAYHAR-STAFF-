@@ -110,6 +110,7 @@ export default function GPSLocationTracker() {
                   last_updated: r.last_updated ? new Date(r.last_updated).toISOString() : (r.lastUpdated ? new Date(r.lastUpdated).toISOString() : null),
                   locationName: r.location || null,
                   department: r.department || null,
+                  distance: r.distance != null ? Number(r.distance) : null,
                 };
                 list.push({ user_id: userId, full_name: r.full_name || r.fullName || "", branch: r.branch || "", department: r.department || "" });
               }
@@ -164,6 +165,7 @@ export default function GPSLocationTracker() {
               last_updated: r.last_updated ? new Date(r.last_updated).toISOString() : (r.lastUpdated ? new Date(r.lastUpdated).toISOString() : null),
               locationName: r.location || null,
               department: r.department || null,
+              distance: r.distance != null ? Number(r.distance) : null,
             };
             list.push({ user_id: userId, full_name: r.full_name || r.fullName || "", branch: r.branch || "", department: r.department || "" });
           }
