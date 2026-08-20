@@ -8,7 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { API_BASE_URL } from "../config/api";
 import { RefreshCw, MapPin } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-
+import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/contexts/RoleContext";
+import UpdateLocationButton from "@/components/UpdateLocationButton";
 type Employee = {
   user_id: string;
   full_name?: string;
@@ -53,6 +55,8 @@ const getMarkerHTML = (loc: EmpLocation, isSelected: boolean) => {
 };
 
 export default function GPSLocationTracker() {
+  const { user } = useAuth();
+  const { role } = useRole();
 
   const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371e3; // metres
@@ -103,8 +107,9 @@ export default function GPSLocationTracker() {
                   accuracy: r.accuracy != null ? Number(r.accuracy) : null,
                   last_updated: r.last_updated ? new Date(r.last_updated).toISOString() : (r.lastUpdated ? new Date(r.lastUpdated).toISOString() : null),
                   locationName: r.location || null,
+                  department: r.department || null,
                 };
-                list.push({ user_id: userId, full_name: r.full_name || r.fullName || "", branch: r.branch || "" });
+                list.push({ user_id: userId, full_name: r.full_name || r.fullName || "", branch: r.branch || "", department: r.department || "" });
               }
             });
             setEmployees(list);
@@ -156,13 +161,15 @@ export default function GPSLocationTracker() {
               accuracy: r.accuracy != null ? Number(r.accuracy) : null,
               last_updated: r.last_updated ? new Date(r.last_updated).toISOString() : (r.lastUpdated ? new Date(r.lastUpdated).toISOString() : null),
               locationName: r.location || null,
+              department: r.department || null,
             };
-            list.push({ user_id: userId, full_name: r.full_name || r.fullName || "", branch: r.branch || "" });
+            list.push({ user_id: userId, full_name: r.full_name || r.fullName || "", branch: r.branch || "", department: r.department || "" });
           }
         });
       }
       setEmployees(list);
       setLocations(locMap);
+
     } catch (err) {
       console.error(err);
     } finally {
@@ -170,17 +177,29 @@ export default function GPSLocationTracker() {
     }
   };
 
+  const visibleEmployees = useMemo(() => {
+    let list = employees;
+    if (role === 'employee' || role === 'branch_officer') {
+      list = list.filter(e => e.user_id === user?.user_id);
+    } else if (role === 'branch_leader') {
+      list = list.filter(e => (e.branch || '') === (user?.branch || ''));
+    } else if (role === 'head_of_department') {
+      list = list.filter(e => (e.department || '') === (user?.department || ''));
+    }
+    return list;
+  }, [employees, role, user]);
+
   const branches = useMemo(() => {
     const set = new Set<string>();
-    employees.forEach((e) => set.add(e.branch || "Unknown"));
+    visibleEmployees.forEach((e) => set.add(e.branch || "Unknown"));
     return ["All", ...Array.from(set).sort()];
-  }, [employees]);
+  }, [visibleEmployees]);
 
   const filtered = useMemo(() => {
-    return employees
+    return visibleEmployees
       .filter((e) => (branchFilter === "All" ? true : (e.branch || "") === branchFilter))
       .filter((e) => (query ? (e.full_name || "").toLowerCase().includes(query.toLowerCase()) : true));
-  }, [employees, branchFilter, query]);
+  }, [visibleEmployees, branchFilter, query]);
 
   const focusOn = (empId: string) => {
     const loc = locations[empId];
@@ -268,23 +287,29 @@ export default function GPSLocationTracker() {
   return (
     <>
       <div className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-          <Input placeholder="Search Employee..." value={query} onChange={(e) => setQuery(e.target.value)} />
-          <Select onValueChange={(v) => setBranchFilter(v)}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Branch" />
-            </SelectTrigger>
-            <SelectContent>
-              {branches.map((b) => (
-                <SelectItem key={b} value={b}>{b}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button onClick={() => void fetchData()}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
+          <div>
+            {/* Left side empty for title space, since page title is in AppLayout usually, but we keep this div to push filters right */}
+            <h2 className="text-xl font-bold md:hidden">Location Tracker</h2>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 ml-auto">
+            <Input placeholder="Search Employee..." value={query} onChange={(e) => setQuery(e.target.value)} className="w-auto" />
+            <Select onValueChange={(v) => setBranchFilter(v)}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Branch" />
+              </SelectTrigger>
+              <SelectContent>
+                {branches.map((b) => (
+                  <SelectItem key={b} value={b}>{b}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button onClick={() => void fetchData()}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+            {user?.user_id && <UpdateLocationButton userId={user.user_id} />}
+          </div>
         </div>
         {/* Alerts panel */}
         <div className="fixed top-20 right-6 z-50 w-80">
@@ -315,30 +340,7 @@ export default function GPSLocationTracker() {
               zoom: 7
             }}
             style={{ width: "100%", height: "100%" }}
-            mapStyle={{
-  version: 8,
-  sources: {
-    "osm": {
-      type: "raster",
-      tiles: [
-        "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      ],
-      tileSize: 256,
-      attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
-    }
-  },
-  layers: [
-    {
-      id: "osm-layer",
-      type: "raster",
-      source: "osm",
-      minzoom: 0,
-      maxzoom: 19
-    }
-  ]
-}}
+            mapStyle="https://tiles.openfreemap.org/styles/liberty"
           >
             <NavigationControl position="top-left" />
 
@@ -486,31 +488,7 @@ export default function GPSLocationTracker() {
                     zoom: 13
                   }}
                   style={{ width: "100%", height: "100%" }}
-                  mapStyle={{
-  version: 8,
-  sources: {
-    "carto-voyager": {
-      type: "raster",
-      tiles: [
-        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      ],
-      tileSize: 256,
-      attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors &copy; <a href=\"https://carto.com/attributions\">CARTO</a>"
-    }
-  },
-  layers: [
-    {
-      id: "carto-voyager-layer",
-      type: "raster",
-      source: "carto-voyager",
-      minzoom: 0,
-      maxzoom: 20
-    }
-  ]
-}}
+                  mapStyle="https://tiles.openfreemap.org/styles/liberty"
                 >
                   <NavigationControl position="top-left" />
                   <Source id="route" type="geojson" data={{
