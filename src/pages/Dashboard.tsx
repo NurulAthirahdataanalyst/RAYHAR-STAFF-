@@ -1731,7 +1731,16 @@ export default function Dashboard() {
                     start.setHours(0, 0, 0, 0);
                     end.setHours(23, 59, 59, 999);
                     const now = new Date();
-                    return now >= start && now <= end;
+                    const isActiveDate = now >= start && now <= end;
+                    if (!isActiveDate) return false;
+
+                    if (role === 'branch_leader') {
+                      return a.permanent_branch === userBranch || a.location === userBranch;
+                    } else if (role === 'head_of_department') {
+                      return a.department === userDepartment;
+                    }
+                    
+                    return true;
                   });
 
                   if (onDutyStaff.length > 0) {
