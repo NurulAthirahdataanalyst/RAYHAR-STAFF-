@@ -1158,7 +1158,8 @@ async function getEmployeeLocations(branch) {
              COALESCE(el.recorded_at, a.clock_in) AS last_updated,
              COALESCE(el.latitude, a.clock_in_latitude) AS latitude,
              COALESCE(el.longitude, a.clock_in_longitude) AS longitude,
-             COALESCE(el.accuracy, a.clock_in_accuracy) AS accuracy
+             COALESCE(el.accuracy, a.clock_in_accuracy) AS accuracy,
+             a.distance_meters AS distance
       FROM attendances a
       JOIN (
         SELECT user_id, MAX(clock_in) AS max_in
@@ -4318,7 +4319,8 @@ app.get("/api/employee-locations", async (req, res) => {
              COALESCE(el.recorded_at, a.clock_in) AS last_updated,
              COALESCE(el.latitude, a.clock_in_latitude) AS latitude,
              COALESCE(el.longitude, a.clock_in_longitude) AS longitude,
-             COALESCE(el.accuracy, a.clock_in_accuracy) AS accuracy
+             COALESCE(el.accuracy, a.clock_in_accuracy) AS accuracy,
+             a.distance_meters AS distance
       FROM attendances a
       JOIN (
         SELECT user_id, MAX(clock_in) AS max_in
@@ -4454,8 +4456,8 @@ app.get('/api/employee-location-history', async (req, res) => {
     const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
     // Prefer employee_location_logs if present
-    const [rows] = await pool.query(
-      `SELECT latitude, longitude, accuracy, recorded_at as timestamp FROM employee_location_logs WHERE employee_id = ? AND recorded_at BETWEEN ? AND ? ORDER BY recorded_at DESC LIMIT 100`,
+    const { rows } = await pool.query(
+      `SELECT latitude, longitude, accuracy, recorded_at as timestamp FROM employee_location_logs WHERE employee_id = $1 AND recorded_at BETWEEN $2 AND $3 ORDER BY recorded_at ASC LIMIT 500`,
       [String(userId), from, to]
     );
 
@@ -4464,8 +4466,8 @@ app.get('/api/employee-location-history', async (req, res) => {
     }
 
     // Fallback to attendances table
-    const [att] = await pool.query(
-      `SELECT user_id, clock_in, clock_in_latitude AS latitude, clock_in_longitude AS longitude, clock_in_accuracy AS accuracy FROM attendances WHERE user_id = ? AND clock_in BETWEEN ? AND ? ORDER BY clock_in DESC LIMIT 100`,
+    const { rows: att } = await pool.query(
+      `SELECT user_id, clock_in, clock_in_latitude AS latitude, clock_in_longitude AS longitude, clock_in_accuracy AS accuracy FROM attendances WHERE user_id = $1 AND clock_in BETWEEN $2 AND $3 ORDER BY clock_in ASC LIMIT 500`,
       [String(userId), from, to]
     );
     return res.json({ success: true, history: (att || []).map(a => ({ lat: a.latitude, lng: a.longitude, accuracy: a.accuracy, timestamp: a.clock_in })) });
@@ -4474,6 +4476,7 @@ app.get('/api/employee-location-history', async (req, res) => {
     res.status(500).json({ success: false, error: e.message || String(e) });
   }
 });
+
 
 // Outstation arrival/area check endpoint
 app.post('/api/outstation/check-arrival', async (req, res) => {
