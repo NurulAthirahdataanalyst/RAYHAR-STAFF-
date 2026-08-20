@@ -416,7 +416,7 @@ export default function GPSLocationTracker() {
                 {filtered.map((e) => {
                   const loc = locations[e.user_id];
                   return (
-                    <TableRow key={e.user_id} className="hover:bg-muted/50 cursor-pointer" onClick={() => focusOn(e.user_id)}>
+                    <TableRow key={e.user_id} className="hover:bg-muted/50">
                       <TableCell className="font-bold">{e.full_name || e.user_id}</TableCell>
                       <TableCell>{e.branch}</TableCell>
                       <TableCell>{statusDot(loc?.last_updated)} {loc?.lat && loc?.lng ? "Available" : "Offline"}</TableCell>
@@ -424,10 +424,10 @@ export default function GPSLocationTracker() {
                       <TableCell>{loc?.distance != null ? `${Math.round(loc.distance)}m` : "-"}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Button onClick={(e) => { e.stopPropagation(); focusOn(e.user_id); }} variant={selected === e.user_id ? "secondary" : "ghost"}>
+                          <Button onClick={() => focusOn(e.user_id)} variant={selected === e.user_id ? "secondary" : "ghost"}>
                             <MapPin className="w-4 h-4 mr-2" /> View
                           </Button>
-                          <Button onClick={(e) => { e.stopPropagation(); openHistory(e.user_id); }} variant="outline">History</Button>
+                          <Button onClick={() => openHistory(e.user_id)} variant="outline">History</Button>
                         </div>
                       </TableCell>
                     </TableRow>
