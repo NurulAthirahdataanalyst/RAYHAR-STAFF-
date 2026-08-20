@@ -1975,7 +1975,7 @@ export default function WorkforceInsights() {
         )}
         </>
         ) : (
-          <MonthViewDashboard data={data} clockInOut={clockInOut} absentList={absentList} tempAssignments={tempAssignments} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} liveLeaveTrend={liveLeaveTrend} month={month} year={year} day={day} liveWeeklyAttendanceTrend={liveWeeklyAttendanceTrend} trendWeekStart={trendWeekStart} setTrendWeekStart={setTrendWeekStart} />
+          <MonthViewDashboard data={data} clockInOut={clockInOut} absentList={absentList} tempAssignments={tempAssignments} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} liveLeaveTrend={liveLeaveTrend} month={month} year={year} day={day} liveWeeklyAttendanceTrend={liveWeeklyAttendanceTrend} trendWeekStart={trendWeekStart} setTrendWeekStart={setTrendWeekStart} onEmployeeClick={(id: string) => setSelectedStaffId(id)} />
         )}
   
       <StaffProfileDialog 
@@ -1986,7 +1986,7 @@ export default function WorkforceInsights() {
     </div>
   );
 }
-function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssignments, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts, liveLeaveTrend, month, year, day, liveWeeklyAttendanceTrend, trendWeekStart, setTrendWeekStart }: any) {
+function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssignments, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts, liveLeaveTrend, month, year, day, liveWeeklyAttendanceTrend, trendWeekStart, setTrendWeekStart, onEmployeeClick }: any) {
     const [selectedRegion, setSelectedRegion] = useState<string>('All Regions');
   const navigate = useNavigate();
   const topKpi = data.topKpi || {};
@@ -2327,12 +2327,11 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                 </div>
               </div>
               
-              {/* Summary and Legend */}
               <div className="flex justify-between items-center mb-6 pl-2">
                 <div className="flex gap-6 items-baseline">
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.present, 0) || 0}</span>
-                    <span className="text-xs font-bold text-slate-500">On-Time</span>
+                    <span className="text-xs font-bold text-slate-500">On Time</span>
                   </div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.late, 0) || 0}</span>
@@ -2348,8 +2347,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                   </div>
                 </div>
                   <div className="flex gap-4">
-                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#2D9B2B]"></div><span className="text-xs font-bold text-slate-600">Present</span></div>
-                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#FFD700]"></div><span className="text-xs font-bold text-slate-600">Late</span></div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#2D9B2B]"></div><span className="text-xs font-bold text-slate-600">Present (On Time)</span></div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#FFD700]"></div><span className="text-xs font-bold text-slate-600">Present (Late)</span></div>
                   <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#E12C2C]"></div><span className="text-xs font-bold text-slate-600">Absent</span></div>
                   <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#3B82F6]"></div><span className="text-xs font-bold text-slate-600">Leave</span></div>
                   <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#9ca3af]"></div><span className="text-xs font-bold text-slate-600">Weekend</span></div>
@@ -2376,8 +2375,8 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                           }}
                         />
                       
-                      <Bar dataKey="present" name="Present" stackId="a" fill="#2D9B2B" />
-                      <Bar dataKey="late" name="Late" stackId="a" fill="#FFD700" />
+                      <Bar dataKey="present" name="Present (On Time)" stackId="a" fill="#2D9B2B" />
+                      <Bar dataKey="late" name="Present (Late)" stackId="a" fill="#FFD700" />
                       <Bar dataKey="absent" name="Absent" stackId="a" fill="#E12C2C" />
                       <Bar dataKey="leave" name="Leave" stackId="a" fill="#3B82F6" />
                       <Bar dataKey="weekend" name="Weekend" stackId="a" fill="#9ca3af" radius={[4, 4, 0, 0]} />
@@ -2813,7 +2812,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
 
         {/* Row 3: Employees Requiring Attention */}
          <div className="w-full mb-6">
-           <EmployeesRequiringAttentionCard data={data.performance?.attentionEmployees || []} variant="grid" onEmployeeClick={(id) => setSelectedStaffId(id)} />
+           <EmployeesRequiringAttentionCard data={data.performance?.attentionEmployees || []} variant="grid" onEmployeeClick={(id: string) => onEmployeeClick?.(id)} />
          </div>
 
          {/* SUPPORTING SECTION */}
