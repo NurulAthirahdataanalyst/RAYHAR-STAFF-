@@ -361,7 +361,7 @@ export default function GPSLocationTracker() {
 
             {Object.values(
               Object.values(locations)
-                .filter((l) => l.lat != null && l.lng != null)
+                .filter((l) => l.lat != null && l.lng != null && filtered.some(f => f.user_id === l.user_id))
                 .reduce((acc, loc) => {
                   const latNum = Number(loc.lat);
                   const lngNum = Number(loc.lng);
