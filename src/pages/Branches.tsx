@@ -40,6 +40,7 @@ import {
   List,
   Plus,
   Search,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -1093,8 +1094,17 @@ export default function Branches() {
                     placeholder="Search branches..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 h-9 rounded-xl border-border/60 bg-muted/30 focus-visible:ring-[#7B0099]/30 text-xs font-medium"
+                    className="pl-9 pr-9 h-9 rounded-xl border-border/60 bg-muted/30 focus-visible:ring-[#7B0099]/30 text-xs font-medium"
                   />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label="Clear search"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
                 </div>
                 <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/40 shrink-0">
                   <Button
