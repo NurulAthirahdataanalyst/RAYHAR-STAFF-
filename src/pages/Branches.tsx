@@ -883,7 +883,7 @@ export default function Branches() {
 
                         <div className="mt-6 pt-6 border-t border-border/50 w-full space-y-3">
                           <div className="flex justify-between items-center text-xs">
-                            <span className="font-bold text-muted-foreground uppercase tracking-widest">
+                            <span className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest">
                               User ID
                             </span>
                             <span className="font-black text-foreground">
@@ -891,7 +891,7 @@ export default function Branches() {
                             </span>
                           </div>
                           <div className="flex justify-between items-center text-xs">
-                            <span className="font-bold text-muted-foreground uppercase tracking-widest">
+                            <span className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest">
                               Branch
                             </span>
                             <span className="font-black text-foreground">
@@ -899,7 +899,7 @@ export default function Branches() {
                             </span>
                           </div>
                           <div className="flex justify-between items-center text-xs">
-                            <span className="font-bold text-muted-foreground uppercase tracking-widest">
+                            <span className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest">
                               Department
                             </span>
                             <span className="font-black text-foreground">
@@ -907,7 +907,7 @@ export default function Branches() {
                             </span>
                           </div>
                           <div className="flex justify-between items-center text-xs">
-                            <span className="font-bold text-muted-foreground uppercase tracking-widest">
+                            <span className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest">
                               Status
                             </span>
                             <Badge
@@ -921,7 +921,7 @@ export default function Branches() {
 
                       {/* Right Column: Stats */}
                       <div className="space-y-4">
-                        <p className="text-xs font-black text-muted-foreground uppercase tracking-widest px-1">
+                        <p className="text-xs font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest px-1">
                           Performance & Leave
                         </p>
                         <div className="grid grid-cols-2 gap-3">
@@ -964,7 +964,7 @@ export default function Branches() {
                         </div>
 
                         <div className="space-y-2 mt-4">
-                          <p className="text-xs font-black text-muted-foreground uppercase tracking-widest px-1">
+                          <p className="text-xs font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest px-1">
                             Quick Links
                           </p>
                           <div className="grid grid-cols-1 gap-2">
@@ -1790,11 +1790,11 @@ export default function Branches() {
           <form onSubmit={handleEditBranch} className="p-8 space-y-6 bg-white dark:bg-card">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">BRANCH CODE</label>
+                <label className="text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH CODE</label>
                 <Input value={editBranchData.code || ""} readOnly disabled className="h-11 rounded-xl bg-muted/50 text-xs font-bold" />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">BRANCH NAME</label>
+                <label className="text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH NAME</label>
                 <Input 
                   value={editBranchData.name || ""} 
                   onChange={(e) => setEditBranchData({...editBranchData, name: e.target.value})} 
@@ -1804,7 +1804,7 @@ export default function Branches() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">BRANCH LOCATION / DISTRICT</label>
+              <label className="text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">BRANCH LOCATION / DISTRICT</label>
               <div className="flex gap-2">
                 <Input 
                   value={editBranchData.location || ""} 
@@ -1855,7 +1855,7 @@ export default function Branches() {
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">OPERATING ZONE</label>
+                <label className="text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">OPERATING ZONE</label>
                 <select 
                   className="w-full h-11 px-4 rounded-xl border border-input bg-transparent text-xs font-bold shadow-sm"
                   value={editBranchData.operating_zone || "ZONE_B"}
@@ -1866,7 +1866,7 @@ export default function Branches() {
                 </select>
               </div>
               <div className="space-y-1.5 cursor-pointer" onClick={() => setIsMapModalOpen(true)}>
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">COORDINATES</label>
+                <label className="text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">COORDINATES</label>
                 <div className="flex items-center gap-2 h-11 px-4 border border-input rounded-xl bg-muted/20 hover:bg-muted/40 transition-colors">
                   <MapPin className="w-4 h-4 text-[#7B0099]" />
                   <span className="text-xs font-bold text-muted-foreground">
@@ -1879,7 +1879,7 @@ export default function Branches() {
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Radius</label>
+                <label className="text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">Radius</label>
                 <span className="text-[10px] font-black text-muted-foreground">0m – 500m</span>
               </div>
               <div className="relative pt-6">
@@ -1997,7 +1997,7 @@ export default function Branches() {
                         .then(r => r.json())
                         .then(data => {
                           if (data && data.display_name) {
-                            setEditBranchData(prev => ({...prev, location: data.display_name}));
+                            setEditBranchData((prev: any) => ({...prev, location: data.display_name}));
                           }
                         }).catch(console.error);
                     }
