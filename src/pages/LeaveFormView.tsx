@@ -269,7 +269,7 @@ export default function LeaveFormView() {
                          tab.key === "pending" ? "text-amber-500 border-amber-500" :
                          tab.key === "approved" ? "text-emerald-500 border-emerald-500" :
                          "text-red-500 border-red-500")
-                      : "text-muted-foreground border-transparent hover:text-yellow-500 hover:border-yellow-500"
+                      : "text-muted-foreground border-slate-200 dark:border-slate-700 hover:text-yellow-500 hover:border-yellow-500"
                   }`}
                 >
                   {tab.label}
