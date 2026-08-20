@@ -4315,7 +4315,7 @@ app.get("/api/employee-locations", async (req, res) => {
     }
 
     const sql = `
-      SELECT a.user_id, p.full_name, p.branch,
+      SELECT a.user_id, p.full_name, p.branch, p.department,
              COALESCE(el.recorded_at, a.clock_in) AS last_updated,
              COALESCE(el.latitude, a.clock_in_latitude) AS latitude,
              COALESCE(el.longitude, a.clock_in_longitude) AS longitude,

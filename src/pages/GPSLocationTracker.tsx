@@ -464,7 +464,6 @@ export default function GPSLocationTracker() {
           </div>
         </div>
       </div>
-    </div>
     {historyFor && (
       <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4">
         <div className="w-full max-w-4xl bg-card rounded-lg p-4">
