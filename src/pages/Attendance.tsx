@@ -91,21 +91,12 @@ export default function Attendance() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [fetchingHistory, setFetchingHistory] = useState(false);
-  const [locationLastUpdated, setLocationLastUpdated] = useState<string | null>(() => sessionStorage.getItem('loc_last_updated'));
-  const [locationAccuracy, setLocationAccuracy] = useState<number | null>(() => { const a = sessionStorage.getItem('loc_accuracy'); return a ? Number(a) : null; });
-  const [locationDistance, setLocationDistance] = useState<number | null>(() => { const d = sessionStorage.getItem('loc_distance'); return d ? Number(d) : null; });
-  const [locationCoords, setLocationCoords] = useState<{lat: number, lng: number} | null>(() => {
-    const c = sessionStorage.getItem('loc_coords');
-    return c ? JSON.parse(c) : null;
-  });
+  const [locationLastUpdated, setLocationLastUpdated] = useState<string | null>(null);
+  const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
+  const [locationDistance, setLocationDistance] = useState<number | null>(null);
+  const [locationCoords, setLocationCoords] = useState<{lat: number, lng: number} | null>(null);
 
-  useEffect(() => {
-    if (locationLastUpdated) sessionStorage.setItem('loc_last_updated', locationLastUpdated);
-    if (locationAccuracy !== null) sessionStorage.setItem('loc_accuracy', String(locationAccuracy));
-    if (locationDistance !== null) sessionStorage.setItem('loc_distance', String(locationDistance));
-    if (locationCoords !== null) sessionStorage.setItem('loc_coords', JSON.stringify(locationCoords));
-  }, [locationLastUpdated, locationAccuracy, locationDistance, locationCoords]);
-
+  
 
   // Derived stats from historyLogs
   const [stats, setStats] = useState({
