@@ -366,7 +366,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             
             {/* Ruang Kerja Utama (70% - 90%) */}
             <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3 transition-all duration-500 ease-in-out w-full">
-              {location.pathname !== "/analytics" && location.pathname !== "/settings" && <PageHeader />}
+              {location.pathname !== "/" && location.pathname !== "/analytics" && location.pathname !== "/settings" && <PageHeader />}
               <div className="w-full">
                 {children}
               </div>
