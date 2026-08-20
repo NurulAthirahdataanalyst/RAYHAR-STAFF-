@@ -787,61 +787,133 @@ export default function Branches() {
             </Card>
           )}
 
-          {/* Temporary Staff Section */}
-          {!loading && temporaryStaff.filter((a: any) => a.temp_branch === selectedBranch?.code && a.status === 'Active').length > 0 && (
-            <div className="mt-8 mb-4">
-              <h3 className="text-sm font-black uppercase tracking-wider text-foreground mb-4">Temporary Staff On Duty</h3>
-              <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md rounded-[24px]">
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="bg-purple-500/10 text-purple-900 dark:text-purple-100 border-b border-purple-500/20">
-                          <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
-                            Personnel
-                          </th>
-                          <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
-                            Original Branch
-                          </th>
-                          <th className="text-left py-4 px-6 text-[10px] tracking-[0.2em] text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
-                            Assignment Period
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border/50">
-                        {temporaryStaff
-                          .filter((a: any) => a.temp_branch === selectedBranch?.code && a.status === 'Active')
-                          .map((assignment: any) => (
-                            <tr key={assignment.id} className="hover:bg-purple-500/5 transition-colors">
-                              <td className="py-4 px-6">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center text-[11px] font-black text-purple-700 dark:text-purple-300">
-                                    {assignment.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
-                                  </div>
-                                  <div className="min-w-0">
-                                    <p className="font-bold text-foreground">{assignment.name}</p>
-                                    <p className="text-[10px] text-muted-foreground truncate font-medium uppercase tracking-widest flex items-center gap-1">
-                                      <span className="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">TEMP</span>
-                                      {assignment.employee}
-                                    </p>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="py-4 px-6 font-medium text-muted-foreground text-xs">
-                                {assignment.primary_branch} • {assignment.department}
-                              </td>
-                              <td className="py-4 px-6 text-xs font-semibold text-foreground">
-                                {new Date(assignment.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} - {new Date(assignment.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                              </td>
-                            </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
+          {/* Temporary Staff Sections */}
+          {!loading && (
+            <div className="mt-8 mb-4 space-y-8">
+              {(() => {
+                const branchTempStaff = temporaryStaff.filter((a: any) => a.temp_branch === selectedBranch?.code);
+                
+                const onDutyStaff = branchTempStaff.filter((a: any) => {
+                  if (a.status !== 'Active') return false;
+                  const start = new Date(a.start_date);
+                  const end = new Date(a.end_date);
+                  start.setHours(0, 0, 0, 0);
+                  end.setHours(23, 59, 59, 999);
+                  const now = new Date();
+                  return now >= start && now <= end;
+                });
+
+                if (branchTempStaff.length === 0) return null;
+
+                return (
+                  <>
+                    {/* On Duty Section */}
+                    {onDutyStaff.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-black uppercase tracking-wider text-foreground mb-4">Temporary Staff On Duty</h3>
+                        <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md rounded-[24px]">
+                          <CardContent className="p-0">
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-sm">
+                                <thead>
+                                  <tr className="bg-purple-500/10 text-purple-900 dark:text-purple-100 border-b border-purple-500/20">
+                                    <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Personnel</th>
+                                    <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Original Branch</th>
+                                    <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assignment Period</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border/50">
+                                  {onDutyStaff.map((assignment: any) => (
+                                    <tr key={`duty-${assignment.id}`} className="hover:bg-purple-500/5 transition-colors">
+                                      <td className="py-4 px-6">
+                                        <div className="flex items-center gap-3">
+                                          <div className="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center text-[11px] font-black text-purple-700 dark:text-purple-300">
+                                            {assignment.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                          </div>
+                                          <div className="min-w-0">
+                                            <p className="font-bold text-foreground">{assignment.name}</p>
+                                            <p className="text-[10px] text-muted-foreground truncate font-medium uppercase tracking-widest flex items-center gap-1">
+                                              <span className="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">TEMP</span>
+                                              {assignment.employee}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </td>
+                                      <td className="py-4 px-6 font-medium text-muted-foreground text-xs">
+                                        {assignment.primary_branch} • {assignment.department}
+                                      </td>
+                                      <td className="py-4 px-6 text-xs font-semibold text-foreground">
+                                        {new Date(assignment.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} - {new Date(assignment.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )}
+
+                    {/* History Section */}
+                    <div>
+                      <h3 className="text-sm font-black uppercase tracking-wider text-foreground mb-4">History of Temporary Staff</h3>
+                      <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md rounded-[24px]">
+                        <CardContent className="p-0">
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="bg-slate-500/10 text-slate-900 dark:text-slate-100 border-b border-slate-500/20">
+                                  <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Personnel</th>
+                                  <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Original Branch</th>
+                                  <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Assignment Period</th>
+                                  <th className="text-left py-4 px-6 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-border/50">
+                                {branchTempStaff.map((assignment: any) => {
+                                  const isActive = onDutyStaff.some((a: any) => a.id === assignment.id);
+                                  return (
+                                    <tr key={`hist-${assignment.id}`} className="hover:bg-slate-500/5 transition-colors opacity-80">
+                                      <td className="py-4 px-6">
+                                        <div className="flex items-center gap-3">
+                                          <div className="w-9 h-9 rounded-xl bg-slate-500/20 flex items-center justify-center text-[11px] font-black text-slate-700 dark:text-slate-300">
+                                            {assignment.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                          </div>
+                                          <div className="min-w-0">
+                                            <p className="font-bold text-foreground">{assignment.name}</p>
+                                            <p className="text-[10px] text-muted-foreground truncate font-medium uppercase tracking-widest flex items-center gap-1">
+                                              {assignment.employee}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </td>
+                                      <td className="py-4 px-6 font-medium text-muted-foreground text-xs">
+                                        {assignment.primary_branch} • {assignment.department}
+                                      </td>
+                                      <td className="py-4 px-6 text-xs font-semibold text-foreground">
+                                        {new Date(assignment.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} - {new Date(assignment.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                      </td>
+                                      <td className="py-4 px-6 text-xs font-semibold">
+                                        <span className={`px-2 py-1 rounded-md text-[10px] uppercase tracking-widest font-black ${isActive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}>
+                                          {isActive ? 'On Duty' : assignment.status}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           )}
+
 
           <Dialog open={isStatsOpen} onOpenChange={setIsStatsOpen}>
             <DialogContent className="max-w-2xl w-full overflow-y-auto max-h-[90vh]">
