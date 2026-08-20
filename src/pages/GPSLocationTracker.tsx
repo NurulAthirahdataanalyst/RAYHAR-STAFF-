@@ -53,6 +53,22 @@ const getMarkerHTML = (loc: EmpLocation, isSelected: boolean) => {
 };
 
 export default function GPSLocationTracker() {
+
+  const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371e3; // metres
+    const p1 = lat1 * Math.PI/180;
+    const p2 = lat2 * Math.PI/180;
+    const dp = (lat2-lat1) * Math.PI/180;
+    const dl = (lon2-lon1) * Math.PI/180;
+
+    const a = Math.sin(dp/2) * Math.sin(dp/2) +
+              Math.cos(p1) * Math.cos(p2) *
+              Math.sin(dl/2) * Math.sin(dl/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    return R * c;
+  };
+
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [locations, setLocations] = useState<Record<string, EmpLocation>>({});
   const [loading, setLoading] = useState(false);
@@ -182,6 +198,14 @@ export default function GPSLocationTracker() {
   const [historyFor, setHistoryFor] = useState<string | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+
+  const [apiBranches, setApiBranches] = useState<any[]>([]);
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/branches`).then(r => r.json()).then(j => {
+      if (j.success && j.branches) setApiBranches(j.branches);
+    }).catch(() => {});
+  }, []);
+
 
   const openHistory = async (userId: string) => {
     setHistoryFor(userId);
