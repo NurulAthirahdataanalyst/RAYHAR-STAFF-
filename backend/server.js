@@ -2234,8 +2234,11 @@ async function getWorkforceLiveFeed(dateStr, role, branch, department, targetMon
       }
       
       if (status === 'Present') {
-        weeklyMap[dayName].present++;
-        if (lateSet.has(p.user_id)) weeklyMap[dayName].late++;
+        if (lateSet.has(p.user_id)) {
+          weeklyMap[dayName].late++;   // Present (Late) — only increments late
+        } else {
+          weeklyMap[dayName].present++; // Present (On Time) — only increments present
+        }
       } else if (status === 'Absent') {
         weeklyMap[dayName].absent++;
       } else if (status === 'Weekend') {
@@ -7095,9 +7098,10 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
       if (dateObj >= weekStartD && dateObj <= weekEndD) {
         if (!isOutstation && !isOnLeave) {
           const dayName = dayNames[dateObj.getDay()];
-          weeklyMap[dayName].present++;
           if (parseInt(att.is_late) === 1) {
-            weeklyMap[dayName].late++;
+            weeklyMap[dayName].late++;   // Present (Late) only
+          } else {
+            weeklyMap[dayName].present++; // Present (On Time) only
           }
         }
       }
@@ -7146,7 +7150,7 @@ app.get("/api/reports/workforce-insights", async (req, res) => {
     const weeklyAttendanceTrend = weeklyOrder.map(day => {
       const data = weeklyMap[day];
       const outstation = data.outstation || 0;
-      const absent = data.isFuture ? 0 : Math.max(0, data.expected - data.present - data.leave - outstation);
+      const absent = data.isFuture ? 0 : Math.max(0, data.expected - data.present - data.late - data.leave - outstation);
       return {
         name: day,
         present: data.present,
