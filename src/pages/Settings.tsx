@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Building2, UserPlus, Loader2, Plus, AlertCircle,
@@ -12,11 +13,29 @@ import { toast } from "sonner";
 import { useState, useEffect, useCallback } from "react";
 import { API_BASE_URL } from "../config/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
-import 'leaflet/dist/leaflet.css';
+import Map, { Marker as MapMarker, NavigationControl, useMap as useMapLibre } from 'react-map-gl/maplibre';
+import 'maplibre-gl/dist/maplibre-gl.css';
+
+const MAPLIBRE_STYLE = {
+  version: 8 as const,
+  sources: {
+    "osm": {
+      type: "raster" as const,
+      tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      tileSize: 256,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }
+  },
+  layers: [{
+    id: "osm-layer",
+    type: "raster" as const,
+    source: "osm",
+    minzoom: 0,
+    maxzoom: 19
+  }]
+};
 
 
-// Smart geocoding: tries multiple strategies for Malaysian addresses
 async function smartGeocode(address: string): Promise<{lat: string, lon: string} | null> {
   const trySearch = async (q: string) => {
     const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=my&limit=1&accept-language=en`);
@@ -58,24 +77,17 @@ async function smartGeocode(address: string): Promise<{lat: string, lon: string}
   return null;
 }
 
+
 function MapController({ center }: { center: [number, number] }) {
-  const map = useMap();
+  const { current: map } = useMapLibre();
   useEffect(() => {
-    if (center && !isNaN(center[0]) && !isNaN(center[1])) {
-      map.flyTo(center, map.getZoom(), { animate: true, duration: 1 });
+    if (map && center && !isNaN(center[0]) && !isNaN(center[1])) {
+      map.flyTo({ center: [center[1], center[0]], zoom: map.getZoom(), duration: 1000 });
     }
   }, [center, map]);
   return null;
 }
 
-function LocationPicker({ setLocation }: { setLocation: (lat: number, lng: number) => void }) {
-  useMapEvents({
-    click(e) {
-      setLocation(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
-}
 
 
 interface Branch {
@@ -908,7 +920,8 @@ export default function SettingsPage() {
                           smartGeocode(branchLocationInput).then(result => {
                             toast.dismiss();
                             if (result) {
-                              setNewBranchData(prev => ({...prev, latitude: result.lat, longitude: result.lon}));
+                              setBranchLat(result.lat);
+                              setBranchLng(result.lon);
                               toast.success("Coordinates found!");
                             } else {
                               toast.error("Could not find coordinates. Try entering just the town/city name.");
@@ -929,7 +942,8 @@ export default function SettingsPage() {
                           const result = await smartGeocode(branchLocationInput);
                           toast.dismiss();
                           if (result) {
-                            setNewBranchData(prev => ({...prev, latitude: result.lat, longitude: result.lon}));
+                            setBranchLat(result.lat);
+                            setBranchLng(result.lon);
                             toast.success("Coordinates found!");
                           } else {
                             toast.error("Could not find coordinates. Try entering just the town/city name.");
@@ -1015,13 +1029,17 @@ export default function SettingsPage() {
                     </DialogHeader>
                     <div className="grid grid-cols-1 md:grid-cols-3 h-[500px]">
                       <div className="md:col-span-2 relative h-full">
-                        <MapContainer 
-                          center={branchLat && branchLng ? [parseFloat(branchLat), parseFloat(branchLng)] : [4.2248, 103.4194]} 
-                          zoom={16} 
+                        <Map
+                          id="settings-coord-picker"
+                          initialViewState={{
+                            longitude: branchLng ? parseFloat(branchLng) : 103.4194,
+                            latitude: branchLat ? parseFloat(branchLat) : 4.2248,
+                            zoom: 16
+                          }}
                           style={{ height: "100%", width: "100%" }}
-                        >
-                          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                          <LocationPicker setLocation={(lat, lng) => {
+                          mapStyle={MAPLIBRE_STYLE}
+                          onClick={(e) => {
+                            const { lat, lng } = e.lngLat;
                             setBranchLat(lat.toString());
                             setBranchLng(lng.toString());
                             fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
@@ -1031,11 +1049,24 @@ export default function SettingsPage() {
                                   setBranchAddress(data.display_name);
                                 }
                               }).catch(console.error);
-                          }} />
-                          {branchLat && branchLng && (
-                            <Marker position={[parseFloat(branchLat), parseFloat(branchLng)]} />
+                          }}
+                        >
+                          <NavigationControl position="top-left" />
+                          {branchLat && branchLng && !isNaN(parseFloat(branchLat)) && !isNaN(parseFloat(branchLng)) && (
+                            <MapMarker longitude={parseFloat(branchLng)} latitude={parseFloat(branchLat)} anchor="bottom">
+                              <div style={{ width: 24, height: 36 }}>
+                                <svg viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24C24 5.373 18.627 0 12 0z" fill="#7B0099"/>
+                                  <circle cx="12" cy="12" r="5" fill="white"/>
+                                </svg>
+                              </div>
+                            </MapMarker>
                           )}
-                        </MapContainer>
+                          {branchLat && branchLng && !isNaN(parseFloat(branchLat)) && !isNaN(parseFloat(branchLng)) && (
+                            <MapController center={[parseFloat(branchLat), parseFloat(branchLng)]} />
+                          )}
+                        </Map>
+
                       </div>
                       <div className="p-6 bg-slate-50 dark:bg-slate-900 flex flex-col h-full overflow-y-auto">
                         <div className="space-y-4">

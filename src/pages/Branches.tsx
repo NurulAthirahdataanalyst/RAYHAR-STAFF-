@@ -1818,7 +1818,7 @@ export default function Branches() {
                       smartGeocode(addr).then(result => {
                         toast.dismiss();
                         if (result) {
-                          setEditBranchData(prev => ({...prev, latitude: result.lat, longitude: result.lon}));
+                          setEditBranchData((prev: any) => ({...prev, latitude: result.lat, longitude: result.lon}));
                           toast.success("Coordinates found!");
                         } else {
                           toast.error("Could not find coordinates. Try entering just the town/city name.");
@@ -1841,7 +1841,7 @@ export default function Branches() {
                       const result = await smartGeocode(addr);
                       toast.dismiss();
                       if (result) {
-                        setEditBranchData(prev => ({...prev, latitude: result.lat, longitude: result.lon}));
+                        setEditBranchData((prev: any) => ({...prev, latitude: result.lat, longitude: result.lon}));
                         toast.success("Coordinates found! Click 'Update Location' to view on map.");
                       } else {
                         toast.error("Could not find coordinates. Try entering just the town/city name.");
@@ -1942,7 +1942,7 @@ export default function Branches() {
                     .then(res => res.json())
                     .then(data => {
                       if(data && data.display_name) {
-                        setEditBranchData(prev => ({...prev, location: data.display_name}));
+                        setEditBranchData((prev: any) => ({...prev, location: data.display_name}));
                       }
                     }).catch(console.error);
                 }}
@@ -1992,7 +1992,7 @@ export default function Branches() {
                     const lng = parseFloat(String(editBranchData.longitude));
                     if (!isNaN(lat) && !isNaN(lng)) {
                       // Force re-render to trigger MapController flyTo
-                      setEditBranchData(prev => ({...prev, latitude: String(lat), longitude: String(lng)}));
+                      setEditBranchData((prev: any) => ({...prev, latitude: String(lat), longitude: String(lng)}));
                       fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
                         .then(r => r.json())
                         .then(data => {
