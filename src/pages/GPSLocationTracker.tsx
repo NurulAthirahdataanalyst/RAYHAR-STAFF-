@@ -27,6 +27,8 @@ type EmpLocation = {
   accuracy?: number | null;
   last_updated?: string | null; // ISO
   locationName?: string | null;
+  department?: string | null;
+  distance?: number | null;
 };
 
 const getMarkerHTML = (loc: EmpLocation, isSelected: boolean) => {
