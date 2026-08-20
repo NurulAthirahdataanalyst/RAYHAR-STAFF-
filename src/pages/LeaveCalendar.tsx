@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import ReactDOM from "react-dom";
 import { format, isSameDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isBefore, startOfDay } from "date-fns";
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent } from "@/components/ui/card";
@@ -227,8 +228,8 @@ export default function LeaveCalendar() {
           a.end_date === selectedEvent.end_date &&
           (a.status === filterStatus || filterStatus === "All" || (filterStatus === "Pending" && a.status.startsWith("Pending")))
         );
-        return (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedEvent(null)}>
+        return ReactDOM.createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedEvent(null)}>
             <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden max-w-sm w-full flex flex-col relative" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between bg-blue-500 text-white p-4">
                 <div className="flex items-center gap-3">
@@ -296,8 +297,7 @@ export default function LeaveCalendar() {
               )}
             </div>
           </div>
-        </div>
-        );
+        , document.body);
       })()}
     </div>
   );
