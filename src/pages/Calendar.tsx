@@ -1123,13 +1123,13 @@ export default function Calendar() {
                     <div 
                       key={i} 
                       onClick={handleDayClick}
-                      className={`p-1.5 flex flex-col transition-all cursor-pointer ${cellBg} ${!today && isCurrentMonth ? 'hover:bg-muted/30' : ''} hover:ring-2 hover:ring-inset hover:ring-[#7B0099]/40`}
+                      className={`p-1.5 flex flex-col min-h-0 transition-all cursor-pointer ${cellBg} ${!today && isCurrentMonth ? 'hover:bg-muted/30' : ''} hover:ring-2 hover:ring-inset hover:ring-[#7B0099]/40`}
                     >
                       <div className={`text-right mb-1.5 p-1 text-[12px] font-bold ${textCol}`}>
                         {format(day, 'd')}
                       </div>
                       
-                      <div className="flex-1 overflow-y-auto space-y-1.5 no-scrollbar px-0.5">
+                      <div className="flex-1 overflow-y-auto min-h-0 space-y-1.5 no-scrollbar px-0.5">
                         
                         {/* 1. Holidays */}
                         {dayHolidays.map((h, idx) => (
