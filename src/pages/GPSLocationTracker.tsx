@@ -170,7 +170,8 @@ export default function GPSLocationTracker() {
     const loc = locations[empId];
     if (!loc || loc.lat == null || loc.lng == null || !mapRef.current) return;
     try {
-      mapRef.current.setView([loc.lat, loc.lng], 16, { animate: true });
+      const mapObj = mapRef.current.getMap ? mapRef.current.getMap() : mapRef.current;
+      mapObj.flyTo({ center: [loc.lng, loc.lat], zoom: 16, duration: 1500 });
     } catch (err) {
       // ignore
     }
