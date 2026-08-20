@@ -31,6 +31,7 @@ import {
   CalendarDays,
   MapPin,
   Zap,
+  User,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +75,8 @@ export default function Dashboard() {
     }
     return false;
   });
+
+  const [temporaryStaff, setTemporaryStaff] = useState<any[]>([]);
 
   useEffect(() => {
     const handleSidebarChange = () => {
@@ -342,14 +345,27 @@ export default function Dashboard() {
     }
   }, [dashboardUserId, role, userBranch, userDepartment, selectedDate]);
 
+  const fetchTemporaryStaff = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
+      const data = await res.json();
+      if (data.success) {
+        setTemporaryStaff(data.assignments);
+      }
+    } catch (e) {
+      console.error("Failed to fetch temporary staff", e);
+    }
+  }, []);
+
   // Fetch data whenever selectedDate changes
   useEffect(() => {
     fetchDashboardData();
     fetchUpcomingOutstations();
-    if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "operation_manager", "head_of_department"].includes(role)) {
+    if (["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department"].includes(role)) {
       fetchWhoOutToday();
+      fetchTemporaryStaff();
     }
-  }, [selectedDate, fetchDashboardData, fetchUpcomingOutstations, fetchWhoOutToday, role]);
+  }, [selectedDate, fetchDashboardData, fetchUpcomingOutstations, fetchWhoOutToday, fetchTemporaryStaff, role]);
 
   // Initial local storage update + event listeners for real-time focus / custom updates
   useEffect(() => {
@@ -1691,6 +1707,73 @@ export default function Dashboard() {
               )}
             </CardContent>
           </Card>
+
+          {/* Temporary Staff */}
+          {["hr_admin", "branch_leader", "managing_director", "operation_manager", "head_of_department"].includes(role) && (
+            <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card mt-6">
+              <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 px-4 pt-4 flex flex-row items-center justify-between">
+                <div className="flex flex-col gap-0.5">
+                  <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest cursor-pointer hover:underline" onClick={() => navigate("/branches/temporary-assignments")}>
+                    Temporary Staff
+                  </CardTitle>
+                  <p className="text-[9px] text-slate-500 font-medium">Staff currently on temporary assignment</p>
+                </div>
+                <span onClick={() => navigate("/branches/temporary-assignments")} className="text-[10px] font-bold text-[#a01497] uppercase cursor-pointer hover:underline flex items-center gap-1">
+                  View All <ChevronRight className="w-3 h-3" />
+                </span>
+              </CardHeader>
+              <CardContent className="p-4 flex flex-col gap-3">
+                {(() => {
+                  const onDutyStaff = temporaryStaff.filter((a: any) => {
+                    if (a.status !== 'Active') return false;
+                    const start = new Date(a.start_date);
+                    const end = new Date(a.end_date);
+                    start.setHours(0, 0, 0, 0);
+                    end.setHours(23, 59, 59, 999);
+                    const now = new Date();
+                    return now >= start && now <= end;
+                  });
+
+                  if (onDutyStaff.length > 0) {
+                    return onDutyStaff.map((assignment: any, i: number) => (
+                      <div key={i} className="flex items-start gap-3 p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
+                        <div className="w-[3px] rounded-full self-stretch bg-[#a01497] mr-1" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{assignment.name}</p>
+                          </div>
+                          <p className="text-[10px] text-slate-500 font-medium ml-5 mb-2">{assignment.employee} • {assignment.primary_branch}</p>
+                          
+                          <div className="mt-2 space-y-1 ml-5">
+                            <p className="text-[10px] text-purple-600 dark:text-purple-400 font-bold uppercase tracking-widest">Temporary Assignment</p>
+                            <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 truncate">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {assignment.primary_branch} → {assignment.temp_branch}
+                            </p>
+                            <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
+                              <CalendarDays className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {new Date(assignment.start_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase()} - {new Date(assignment.end_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase()}
+                            </p>
+                            <div className="flex items-center gap-1.5 mt-2">
+                              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                              <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">Active</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ));
+                  } else {
+                    return (
+                      <div className="p-8 text-center flex flex-col items-center justify-center">
+                        <User className="w-8 h-8 text-slate-200 mb-2" />
+                        <p className="text-[12px] font-bold text-slate-500 uppercase tracking-widest">No Temporary Staff</p>
+                        <p className="text-[10px] text-slate-400 mt-1">No staff on active assignment</p>
+                      </div>
+                    );
+                  }
+                })()}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Monthly Attendance Score */}
           <Card className="border-none shadow-none rounded-md overflow-hidden bg-purple-800 text-white">
