@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { MapPin, Calendar, CheckCircle2, XCircle, Search, Loader2, Plus, Edit, Trash2 } from "lucide-react";
+import { MapPin, Calendar, CheckCircle2, XCircle, Search, Loader2, Plus, Edit, Trash2, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -63,7 +63,19 @@ const TemporaryAssignments = () => {
       const res = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
       const data = await res.json();
       if (data.success) {
-        setAssignments(data.assignments);
+        const todayStr = new Date().toISOString().split('T')[0];
+        const mapped = data.assignments.map((a: any) => {
+          let computed = a.status;
+          if (computed === 'Active') {
+            const start = a.start_date.split('T')[0];
+            const end = a.end_date ? a.end_date.split('T')[0] : '2099-12-31';
+            if (todayStr < start) computed = 'Upcoming';
+            else if (todayStr > end) computed = 'Completed';
+            else computed = 'Active';
+          }
+          return { ...a, computedStatus: computed };
+        });
+        setAssignments(mapped);
       }
     } catch (e) {
       console.error("Failed to fetch assignments", e);
@@ -166,15 +178,14 @@ const TemporaryAssignments = () => {
   const filteredAssignments = assignments.filter((a) => {
     const matchesSearch = a.name.toLowerCase().includes(search.toLowerCase()) || 
                           a.temp_branch.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "all" || a.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || a.computedStatus === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
 
-  const todayStr = new Date().toISOString().split('T')[0];
-  const activeCount = assignments.filter(a => a.status === 'Active' && a.start_date.split('T')[0] <= todayStr && (!a.end_date || a.end_date.split('T')[0] >= todayStr)).length;
-  const upcomingCount = assignments.filter(a => a.status === 'Active' && a.start_date.split('T')[0] > todayStr).length;
-  const completedCount = assignments.filter(a => a.status === 'Completed' || (a.status === 'Active' && a.end_date && a.end_date.split('T')[0] < todayStr)).length;
+  const activeCount = assignments.filter(a => a.computedStatus === 'Active').length;
+  const upcomingCount = assignments.filter(a => a.computedStatus === 'Upcoming').length;
+  const completedCount = assignments.filter(a => a.computedStatus === 'Completed').length;
 
   return (
 
@@ -302,16 +313,18 @@ const TemporaryAssignments = () => {
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant={assignment.status === "Active" ? "default" : assignment.status === "Completed" ? "secondary" : "destructive"}
+                        variant={assignment.computedStatus === "Active" ? "default" : assignment.computedStatus === "Completed" ? "secondary" : assignment.computedStatus === "Upcoming" ? "default" : "destructive"}
                         className={`
-                          ${assignment.status === "Active" ? "bg-emerald-500 hover:bg-emerald-600 text-white" : ""}
-                          ${assignment.status === "Completed" ? "bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:text-slate-300" : ""}
-                          ${assignment.status === "Cancelled" ? "bg-rose-500 hover:bg-rose-600 text-white" : ""}
+                          ${assignment.computedStatus === "Active" ? "bg-emerald-500 hover:bg-emerald-600 text-white" : ""}
+                          ${assignment.computedStatus === "Upcoming" ? "bg-amber-500 hover:bg-amber-600 text-white" : ""}
+                          ${assignment.computedStatus === "Completed" ? "bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:text-slate-300" : ""}
+                          ${assignment.computedStatus === "Cancelled" ? "bg-rose-500 hover:bg-rose-600 text-white" : ""}
                         `}
                       >
-                        {assignment.status === "Active" && <CheckCircle2 className="w-3 h-3 mr-1" />}
-                        {assignment.status === "Cancelled" && <XCircle className="w-3 h-3 mr-1" />}
-                        {assignment.status}
+                        {assignment.computedStatus === "Active" && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                        {assignment.computedStatus === "Upcoming" && <Clock className="w-3 h-3 mr-1" />}
+                        {assignment.computedStatus === "Cancelled" && <XCircle className="w-3 h-3 mr-1" />}
+                        {assignment.computedStatus}
                       </Badge>
                     </TableCell>
                     {isHRAdmin && (
@@ -497,14 +510,15 @@ const TemporaryAssignments = () => {
                     <p className="text-xs text-slate-500 font-medium">Status</p>
                     <div className="mt-1">
                       <Badge
-                        variant={selectedAssignment.status === "Active" ? "default" : selectedAssignment.status === "Completed" ? "secondary" : "destructive"}
+                        variant={selectedAssignment.computedStatus === "Active" ? "default" : selectedAssignment.computedStatus === "Completed" ? "secondary" : selectedAssignment.computedStatus === "Upcoming" ? "default" : "destructive"}
                         className={`
-                          ${selectedAssignment.status === "Active" ? "bg-emerald-500 hover:bg-emerald-600 text-white" : ""}
-                          ${selectedAssignment.status === "Completed" ? "bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:text-slate-300" : ""}
-                          ${selectedAssignment.status === "Cancelled" ? "bg-rose-500 hover:bg-rose-600 text-white" : ""}
+                          ${selectedAssignment.computedStatus === "Active" ? "bg-emerald-500 hover:bg-emerald-600 text-white" : ""}
+                          ${selectedAssignment.computedStatus === "Upcoming" ? "bg-amber-500 hover:bg-amber-600 text-white" : ""}
+                          ${selectedAssignment.computedStatus === "Completed" ? "bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:text-slate-300" : ""}
+                          ${selectedAssignment.computedStatus === "Cancelled" ? "bg-rose-500 hover:bg-rose-600 text-white" : ""}
                         `}
                       >
-                        {selectedAssignment.status}
+                        {selectedAssignment.computedStatus}
                       </Badge>
                     </div>
                   </div>
