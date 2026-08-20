@@ -1699,10 +1699,8 @@ export default function Dashboard() {
                   );
                 })
               ) : (
-                <div className="p-8 text-center flex flex-col items-center justify-center">
-                  <MapPin className="w-8 h-8 text-slate-200 mb-2" />
-                  <p className="text-[12px] font-bold text-slate-500 uppercase tracking-widest">Not Scheduled for Outstation</p>
-                  <p className="text-[10px] text-slate-400 mt-1">No upcoming trips</p>
+                <div className="p-6 text-center">
+                  <p className="text-[11px] text-slate-500 font-medium">No upcoming outstation.</p>
                 </div>
               )}
             </CardContent>
