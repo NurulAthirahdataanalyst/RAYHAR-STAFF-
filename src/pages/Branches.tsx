@@ -917,16 +917,19 @@ export default function Branches() {
 
 
           <Dialog open={isStatsOpen} onOpenChange={setIsStatsOpen}>
-            <DialogContent className="max-w-2xl w-full overflow-y-auto max-h-[90vh]">
-              <DialogHeader className="pb-4 border-b border-border/50">
-                <DialogTitle className="text-xl font-black text-foreground">
-                  Staff Profile
-                </DialogTitle>
-                <DialogDescription className="sr-only">
-                  View and analyze staff attendance and leave metrics.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="py-4 space-y-4">
+            <DialogContent className="max-w-2xl w-full overflow-hidden max-h-[90vh] p-0 flex flex-col">
+              <div className="p-6 bg-gradient-to-r from-[#7B0099] to-purple-500 text-white flex justify-between items-start shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-white/20 rounded-xl">
+                    <User className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-lg font-black uppercase tracking-tight m-0 text-white">STAFF PROFILE</DialogTitle>
+                    <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">VIEW AND ANALYZE STAFF METRICS</DialogDescription>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 overflow-y-auto space-y-4 flex-1">
                 {selectedEmployee ? (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1996,10 +1999,18 @@ export default function Branches() {
       </Dialog>
 
       <Dialog open={isMapModalOpen} onOpenChange={setIsMapModalOpen}>
-        <DialogContent className="max-w-4xl p-0 border-none shadow-2xl overflow-hidden rounded-[24px]">
-          <DialogHeader className="p-4 border-b">
-            <DialogTitle className="text-sm font-black uppercase tracking-wider">Update Branch Location</DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-4xl p-0 border-none shadow-2xl overflow-hidden rounded-[24px] flex flex-col">
+            <div className="p-6 bg-gradient-to-r from-[#7B0099] to-purple-500 text-white flex justify-between items-start shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-white/20 rounded-xl">
+                  <MapPin className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <DialogTitle className="text-lg font-black uppercase tracking-tight m-0 text-white">UPDATE BRANCH LOCATION</DialogTitle>
+                  <DialogDescription className="text-xs font-bold uppercase tracking-wider text-white/80 m-0 mt-1">UPDATE GPS COORDINATES AND ADDRESS</DialogDescription>
+                </div>
+              </div>
+            </div>
           <div className="grid grid-cols-1 md:grid-cols-3 h-[500px]">
             <div className="md:col-span-2 relative h-full">
               <Map
