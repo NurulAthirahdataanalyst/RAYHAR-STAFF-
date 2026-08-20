@@ -45,21 +45,27 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "../config/api";
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import Map, { Marker as MapMarker, NavigationControl, useMap as useMapLibre } from 'react-map-gl/maplibre';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
-let DefaultIcon = L.icon({
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-});
-L.Marker.prototype.options.icon = DefaultIcon;
-
+const MAPLIBRE_STYLE = {
+  version: 8 as const,
+  sources: {
+    "osm": {
+      type: "raster" as const,
+      tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      tileSize: 256,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }
+  },
+  layers: [{
+    id: "osm-layer",
+    type: "raster" as const,
+    source: "osm",
+    minzoom: 0,
+    maxzoom: 19
+  }]
+};
 
 // Smart geocoding: tries multiple strategies for Malaysian addresses
 async function smartGeocode(address: string): Promise<{lat: string, lon: string} | null> {
@@ -103,24 +109,17 @@ async function smartGeocode(address: string): Promise<{lat: string, lon: string}
   return null;
 }
 
+
 function MapController({ lat, lng }: { lat: number, lng: number }) {
-  const map = useMap();
+  const { current: map } = useMapLibre();
   useEffect(() => {
-    if (!isNaN(lat) && !isNaN(lng)) {
-      map.flyTo([lat, lng], map.getZoom(), { animate: true, duration: 1 });
+    if (map && !isNaN(lat) && !isNaN(lng)) {
+      map.flyTo({ center: [lng, lat], zoom: map.getZoom(), duration: 1000 });
     }
   }, [lat, lng, map]);
   return null;
 }
 
-function LocationPicker({ setLocation }: { setLocation: (lat: number, lng: number) => void }) {
-  useMapEvents({
-    click(e) {
-      setLocation(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
-}
 
 import { toast } from "sonner";
 import { useReactToPrint } from "react-to-print";
@@ -1927,29 +1926,17 @@ export default function Branches() {
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-3 h-[500px]">
             <div className="md:col-span-2 relative h-full">
-              <MapContainer 
-                center={(() => {
-                  const _lat = parseFloat(String(editBranchData.latitude));
-                  const _lng = parseFloat(String(editBranchData.longitude));
-                  return (!isNaN(_lat) && !isNaN(_lng)) ? [_lat, _lng] : [4.2248, 103.4194];
-                })() as [number, number]}
-                zoom={16} 
-                maxZoom={22}
+              <Map
+                id="branch-coord-picker"
+                initialViewState={{
+                  longitude: (() => { const v = parseFloat(String(editBranchData.longitude)); return !isNaN(v) ? v : 103.4194; })(),
+                  latitude: (() => { const v = parseFloat(String(editBranchData.latitude)); return !isNaN(v) ? v : 4.2248; })(),
+                  zoom: 16
+                }}
                 style={{ height: "100%", width: "100%" }}
-              >
-                <TileLayer 
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" 
-                  maxZoom={22}
-                  maxNativeZoom={19}
-                />
-                {(() => {
-                  const _clat = parseFloat(String(editBranchData.latitude));
-                  const _clng = parseFloat(String(editBranchData.longitude));
-                  const lat = (!isNaN(_clat)) ? _clat : 4.2248;
-                  const lng = (!isNaN(_clng)) ? _clng : 103.4194;
-                  return <MapController lat={lat} lng={lng} />;
-                })()}
-                <LocationPicker setLocation={(lat, lng) => {
+                mapStyle={MAPLIBRE_STYLE}
+                onClick={(e) => {
+                  const { lat, lng } = e.lngLat;
                   setEditBranchData({...editBranchData, latitude: lat.toString(), longitude: lng.toString()});
                   fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
                     .then(res => res.json())
@@ -1958,13 +1945,31 @@ export default function Branches() {
                         setEditBranchData(prev => ({...prev, location: data.display_name}));
                       }
                     }).catch(console.error);
-                }} />
+                }}
+              >
+                <NavigationControl position="top-left" />
                 {(() => {
-                  const _mlat = parseFloat(String(editBranchData.latitude));
-                  const _mlng = parseFloat(String(editBranchData.longitude));
-                  return (!isNaN(_mlat) && !isNaN(_mlng)) ? <Marker position={[_mlat, _mlng]} /> : null;
+                  const _lat = parseFloat(String(editBranchData.latitude));
+                  const _lng = parseFloat(String(editBranchData.longitude));
+                  return (!isNaN(_lat) && !isNaN(_lng)) ? (
+                    <MapMarker longitude={_lng} latitude={_lat} anchor="bottom">
+                      <div style={{ width: 24, height: 36 }}>
+                        <svg viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24C24 5.373 18.627 0 12 0z" fill="#7B0099"/>
+                          <circle cx="12" cy="12" r="5" fill="white"/>
+                        </svg>
+                      </div>
+                    </MapMarker>
+                  ) : null;
                 })()}
-              </MapContainer>
+                {(() => {
+                  const _lat = parseFloat(String(editBranchData.latitude));
+                  const _lng = parseFloat(String(editBranchData.longitude));
+                  if (!isNaN(_lat) && !isNaN(_lng)) return <MapController lat={_lat} lng={_lng} />;
+                  return null;
+                })()}
+              </Map>
+
             </div>
             <div className="p-6 bg-slate-50 dark:bg-slate-900 flex flex-col h-full overflow-y-auto">
               <div className="space-y-4">
