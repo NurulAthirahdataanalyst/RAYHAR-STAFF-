@@ -325,12 +325,12 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                                   by {history.approver_name || history.approver_id} ({formatApproverRole(history.approver_role, history.approver_department, history.approver_branch)})
                                 </span>
                               </div>
-                              <span className="text-[8px] font-black text-muted-foreground/50">
+                              <span className="text-[8px] font-black text-foreground/50">
                                 {new Date(history.created_at).toLocaleDateString('ms-MY')}
                               </span>
                             </div>
                             {history.remarks && (
-                              <p className="text-[10px] italic text-muted-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
+                              <p className="text-[10px] italic text-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
                                 "{history.remarks}"
                               </p>
                             )}

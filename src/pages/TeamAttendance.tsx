@@ -1,4 +1,4 @@
-﻿import { useRole } from "@/contexts/RoleContext";
+import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { API_BASE_URL } from "@/config/api";
@@ -250,7 +250,7 @@ export default function TeamAttendance() {
                 <Users className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Team Size</p>
+                <p className="text-sm font-medium text-foreground">Team Size</p>
                 <h3 className="text-3xl font-bold mt-1">{totalTeam}</h3>
               </div>
             </CardContent>
@@ -262,7 +262,7 @@ export default function TeamAttendance() {
                 <Clock className="w-6 h-6 text-green-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Present Today</p>
+                <p className="text-sm font-medium text-foreground">Present Today</p>
                 <h3 className="text-3xl font-bold mt-1 text-green-600 dark:text-green-400">{presentCount}</h3>
               </div>
             </CardContent>
@@ -274,7 +274,7 @@ export default function TeamAttendance() {
                 <Clock className="w-6 h-6 text-amber-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Late Today</p>
+                <p className="text-sm font-medium text-foreground">Late Today</p>
                 <h3 className="text-3xl font-bold mt-1 text-amber-600 dark:text-amber-400">{lateCount}</h3>
               </div>
             </CardContent>
@@ -286,7 +286,7 @@ export default function TeamAttendance() {
                 <AlertCircle className="w-6 h-6 text-red-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Absent</p>
+                <p className="text-sm font-medium text-foreground">Absent</p>
                 <h3 className="text-3xl font-bold mt-1 text-red-600 dark:text-red-400">{absentCount}</h3>
               </div>
             </CardContent>
@@ -314,13 +314,13 @@ export default function TeamAttendance() {
               <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
                 <button 
                   onClick={() => setDateViewMode('DAY')}
-                  className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${dateViewMode === 'DAY' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                  className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${dateViewMode === 'DAY' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
                 >
                   DAY
                 </button>
                 <button 
                   onClick={() => setDateViewMode('MONTH')}
-                  className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${dateViewMode === 'MONTH' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                  className={`h-7 px-4 text-[11px] font-bold tracking-widest rounded-md transition-all ${dateViewMode === 'MONTH' ? 'bg-[#7B0099] text-white shadow-sm' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
                 >
                   MONTH
                 </button>
@@ -334,7 +334,7 @@ export default function TeamAttendance() {
                     <Popover>
                       <PopoverTrigger asChild>
                         <button className="appearance-none flex items-center justify-center px-4 py-2 bg-white dark:bg-card border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] gap-2 hover:border-[#7B0099] hover:ring-1 hover:ring-[#7B0099] transition-all">
-                          {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                          {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-4 h-4 text-foreground" />
                         </button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-1" align="start">
@@ -365,7 +365,7 @@ export default function TeamAttendance() {
                     <button
                       key={status}
                       onClick={() => setStatusFilter(status)}
-                      className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === status ? 'bg-white dark:bg-card text-foreground shadow-sm ring-1 ring-[#7B0099]' : 'text-gray-500 hover:text-gray-900 dark:text-gray-100'}`}
+                      className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${statusFilter === status ? 'bg-white dark:bg-card text-foreground shadow-sm ring-1 ring-[#7B0099]' : 'text-foreground hover:text-gray-900 dark:text-gray-100'}`}
                     >
                       {status}
                     </button>
@@ -375,7 +375,7 @@ export default function TeamAttendance() {
                 {/* Search & Pagination */}
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Show</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Show</span>
                     <Select value={entriesPerPage.toString()} onValueChange={(val) => setEntriesPerPage(Number(val))}>
                       <SelectTrigger className="w-[70px] h-[34px] bg-white border-2 border-[#7B0099] rounded-xl text-black font-bold text-xs focus:ring-0">
                         <SelectValue />
@@ -412,7 +412,7 @@ export default function TeamAttendance() {
                     </div>
 
                   <div className="relative flex items-center">
-                    <Search className="w-4 h-4 absolute left-3 text-muted-foreground" />
+                    <Search className="w-4 h-4 absolute left-3 text-foreground" />
                     <Input
                       placeholder="Search Employee..."
                       className="pl-9 h-[34px] w-[200px] text-xs bg-white dark:bg-card"
@@ -443,7 +443,7 @@ export default function TeamAttendance() {
                 <TableBody>
                   {paginatedList.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-foreground">
                         No team members found.
                       </TableCell>
                     </TableRow>

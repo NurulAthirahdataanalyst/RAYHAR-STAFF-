@@ -23,8 +23,8 @@ function statusColor(status: string) {
     case "Active":    return { bg: "bg-pink-100 dark:bg-pink-500/20",  text: "text-pink-700 dark:text-pink-300",  border: "border-pink-200 dark:border-pink-500/30",  dot: "bg-pink-500"  };
     case "Upcoming":  return { bg: "bg-amber-100 dark:bg-amber-500/20", text: "text-amber-700 dark:text-amber-300", border: "border-amber-200 dark:border-amber-500/30", dot: "bg-amber-400" };
     case "Completed": return { bg: "bg-blue-100 dark:bg-blue-500/20",  text: "text-blue-700 dark:text-blue-300",  border: "border-blue-200 dark:border-blue-500/30",  dot: "bg-blue-400"  };
-    case "Cancelled": return { bg: "bg-gray-100 dark:bg-gray-500/20",  text: "text-gray-500 dark:text-gray-300",  border: "border-gray-200 dark:border-gray-500/30",  dot: "bg-gray-400"  };
-    default:          return { bg: "bg-gray-100 dark:bg-gray-500/20",  text: "text-gray-500 dark:text-gray-300",  border: "border-gray-200 dark:border-gray-500/30",  dot: "bg-gray-400"  };
+    case "Cancelled": return { bg: "bg-gray-100 dark:bg-gray-500/20",  text: "text-foreground dark:text-gray-300",  border: "border-gray-200 dark:border-gray-500/30",  dot: "bg-gray-400"  };
+    default:          return { bg: "bg-gray-100 dark:bg-gray-500/20",  text: "text-foreground dark:text-gray-300",  border: "border-gray-200 dark:border-gray-500/30",  dot: "bg-gray-400"  };
   }
 }
 
@@ -159,7 +159,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
               return (
                 <div key={status} className="flex items-center gap-1.5">
                   <div className={`w-2.5 h-2.5 rounded-sm ${c.dot}`} />
-                  <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400">{label}</span>
+                  <span className="text-[10px] font-bold text-foreground dark:text-foreground">{label}</span>
                 </div>
               );
             })}
@@ -192,10 +192,10 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                   textCol = "text-[#7B0099]";
                 } else if (!isCurrentMonth) {
                   cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
-                  textCol = "text-muted-foreground opacity-50";
+                  textCol = "text-foreground opacity-50";
                 } else if (isPast) {
                   cellBg = "bg-white dark:bg-card opacity-80";
-                  textCol = "text-gray-500 dark:text-gray-400";
+                  textCol = "text-foreground dark:text-foreground";
                 }
 
                 return (
@@ -221,7 +221,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                         );
                       })}
                       {evts.length > 2 && (
-                        <div className={`text-[9px] font-bold pl-1 ${today ? 'text-white/80' : 'text-gray-400'}`}>+{evts.length - 2} more</div>
+                        <div className={`text-[9px] font-bold pl-1 ${today ? 'text-white/80' : 'text-foreground'}`}>+{evts.length - 2} more</div>
                       )}
                     </div>
                   </div>
@@ -262,7 +262,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                 <div className="flex items-center gap-2.5">
                   <MapPin className="w-3.5 h-3.5 text-pink-400 shrink-0" />
                   <div>
-                    <p className="text-[9px] font-black uppercase text-gray-400">Destination</p>
+                    <p className="text-[9px] font-black uppercase text-foreground">Destination</p>
                     <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{selectedEvent.destination}</p>
                   </div>
                 </div>
@@ -270,7 +270,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                   <div className="flex items-center gap-2.5">
                     <Plane className="w-3.5 h-3.5 text-pink-400 shrink-0" />
                     <div>
-                      <p className="text-[9px] font-black uppercase text-gray-400">Purpose / Project</p>
+                      <p className="text-[9px] font-black uppercase text-foreground">Purpose / Project</p>
                       <p className="text-[12px] font-bold text-gray-700 dark:text-gray-200">{selectedEvent.purpose} {selectedEvent.project ? `· ${selectedEvent.project}` : ''}</p>
                     </div>
                   </div>
@@ -278,7 +278,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                 <div className="flex items-center gap-2.5">
                   <Calendar className="w-3.5 h-3.5 text-pink-400 shrink-0" />
                   <div>
-                    <p className="text-[9px] font-black uppercase text-gray-400">Duration</p>
+                    <p className="text-[9px] font-black uppercase text-foreground">Duration</p>
                     <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{fmtDate(selectedEvent.start_date)} → {fmtDate(selectedEvent.end_date)}</p>
                   </div>
                 </div>
@@ -286,7 +286,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                   <div className="flex items-center gap-2.5">
                     <Clock className="w-3.5 h-3.5 text-pink-400 shrink-0" />
                     <div>
-                      <p className="text-[9px] font-black uppercase text-gray-400">Assigned By</p>
+                      <p className="text-[9px] font-black uppercase text-foreground">Assigned By</p>
                       <p className="text-[12px] font-bold text-gray-700 dark:text-gray-200">{selectedEvent.assigned_by_name}</p>
                     </div>
                   </div>
@@ -305,7 +305,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
               </div>
 
               <div className="pt-4 border-t border-gray-100 dark:border-slate-800">
-                <p className="text-[10px] font-black uppercase text-gray-400 mb-3">Assigned Employees ({relatedAssignments.length})</p>
+                <p className="text-[10px] font-black uppercase text-foreground mb-3">Assigned Employees ({relatedAssignments.length})</p>
                 <div className="space-y-2">
                   {relatedAssignments.map((a: any) => (
                     <div key={a.id} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-colors ${a.id === selectedEvent.id ? 'border-pink-200 dark:border-pink-900/50 bg-pink-50/50 dark:bg-pink-900/10' : 'border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50'}`}>
@@ -314,7 +314,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100 truncate leading-tight">{a.full_name}</p>
-                        <p className="text-[10px] text-gray-400 truncate mt-0.5">{a.user_id || a.department}</p>
+                        <p className="text-[10px] text-foreground truncate mt-0.5">{a.user_id || a.department}</p>
                       </div>
                     </div>
                   ))}

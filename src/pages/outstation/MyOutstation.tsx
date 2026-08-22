@@ -158,15 +158,15 @@ export default function MyOutstation() {
             </div>
             <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-pink-100">
               <div>
-                <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Start</p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-foreground">Start</p>
                 <p className="text-[11px] font-bold text-gray-700 dark:text-gray-200 mt-0.5">{fmtDate(active.start_date)}</p>
               </div>
               <div>
-                <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">End</p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-foreground">End</p>
                 <p className="text-[11px] font-bold text-gray-700 dark:text-gray-200 mt-0.5">{fmtDate(active.end_date)}</p>
               </div>
               <div>
-                <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Assigned By</p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-foreground">Assigned By</p>
                 <p className="text-[11px] font-bold text-gray-700 dark:text-gray-200 mt-0.5">{active.assigned_by_name || "—"}</p>
               </div>
             </div>
@@ -211,7 +211,7 @@ export default function MyOutstation() {
                        s === "Active" ? "text-pink-500 border-pink-500" :
                        s === "Completed" ? "text-emerald-500 border-emerald-500" :
                        "text-red-500 border-red-500")
-                    : "text-muted-foreground border-transparent hover:text-yellow-500 hover:border-yellow-500"
+                    : "text-foreground border-transparent hover:text-yellow-500 hover:border-yellow-500"
                 }`}
               >
                 {s}
@@ -222,7 +222,7 @@ export default function MyOutstation() {
                          s === "Active" ? "bg-pink-500 text-white" :
                          s === "Completed" ? "bg-emerald-500 text-white" :
                          "bg-red-500 text-white")
-                      : "bg-muted-foreground/20 text-muted-foreground transition-colors group-hover:bg-yellow-500 group-hover:text-white"
+                      : "bg-muted-foreground/20 text-foreground transition-colors group-hover:bg-yellow-500 group-hover:text-white"
                   }`}>
                     {counts[s]}
                   </span>
@@ -240,7 +240,7 @@ export default function MyOutstation() {
         <div className="p-4 sm:p-6 border-b border-gray-100 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="relative flex-1 sm:max-w-xs">
-              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-foreground absolute left-3 top-1/2 -translate-y-1/2" />
               <Input
                 placeholder="Search destination..."
                 value={search}
@@ -252,13 +252,13 @@ export default function MyOutstation() {
             <div className="flex items-center gap-3">
               <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
                 <button 
-                  className={`h-7 px-3 text-[10px] font-black tracking-widest rounded-md transition-all ${viewMode === 'month' ? 'bg-white dark:bg-slate-800 text-[#7B0099] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  className={`h-7 px-3 text-[10px] font-black tracking-widest rounded-md transition-all ${viewMode === 'month' ? 'bg-white dark:bg-slate-800 text-[#7B0099] shadow-sm' : 'text-foreground hover:text-slate-700'}`}
                   onClick={() => setViewMode('month')}
                 >
                   MONTH
                 </button>
                 <button 
-                  className={`h-7 px-3 text-[10px] font-black tracking-widest rounded-md transition-all ${viewMode === 'year' ? 'bg-white dark:bg-slate-800 text-[#7B0099] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  className={`h-7 px-3 text-[10px] font-black tracking-widest rounded-md transition-all ${viewMode === 'year' ? 'bg-white dark:bg-slate-800 text-[#7B0099] shadow-sm' : 'text-foreground hover:text-slate-700'}`}
                   onClick={() => setViewMode('year')}
                 >
                   YEAR
@@ -286,19 +286,19 @@ export default function MyOutstation() {
           {loading ? (
             <div className="flex flex-col items-center justify-center p-12 gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Syncing Outstations...</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground animate-pulse">Syncing Outstations...</p>
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-12 gap-4 text-center">
               <div className="flex flex-col items-center gap-3">
                 <div className="w-20 h-20 rounded-[32px] bg-muted/30 flex items-center justify-center border-2 border-dashed border-border/50 group hover:border-[#7B0099]/30 transition-colors">
-                  <Plane className="h-10 w-10 text-muted-foreground/30 group-hover:text-[#7B0099]/30 transition-colors" />
+                  <Plane className="h-10 w-10 text-foreground/30 group-hover:text-[#7B0099]/30 transition-colors" />
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs font-black text-foreground uppercase tracking-widest">
                     No {tab} Outstations
                   </p>
-                  <p className="text-[10px] font-medium text-muted-foreground italic">
+                  <p className="text-[10px] font-medium text-foreground italic">
                     No assignments found for the selected criteria
                   </p>
                 </div>
@@ -314,16 +314,16 @@ export default function MyOutstation() {
                         <span className="font-black text-gray-800 dark:text-gray-100 text-[13px] uppercase">
                           &#9992;&#65039; {a.project || a.purpose || a.meeting_title ? `${a.project || a.purpose || a.meeting_title} - ` : ""}{a.destination}
                         </span>
-                        {a.client_company && <span className="text-[10px] font-bold text-gray-400">&bull; {a.client_company}</span>}
+                        {a.client_company && <span className="text-[10px] font-bold text-foreground">&bull; {a.client_company}</span>}
                       </div>
                       <div className="flex flex-wrap gap-3 sm:ml-5 items-center">
-                        <span className="text-[11px] text-gray-500 dark:text-gray-400 font-bold">{fmtDate(a.start_date)} &mdash; {fmtDate(a.end_date)}</span>
+                        <span className="text-[11px] text-foreground dark:text-foreground font-bold">{fmtDate(a.start_date)} &mdash; {fmtDate(a.end_date)}</span>
                         <span className="text-[11px] font-black text-pink-600 sm:ml-2">{diffDays(a.start_date, a.end_date)} day(s)</span>
                       </div>
                     </div>
                     <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
                       {statusBadge(a.status)}
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400">by {a.assigned_by_name || "HR"}</span>
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-foreground">by {a.assigned_by_name || "HR"}</span>
                     </div>
                   </div>
                 </div>

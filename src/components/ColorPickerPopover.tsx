@@ -266,12 +266,12 @@ export default function ColorPickerPopover({ color, onChange }: ColorPickerProps
           
           {/* Header Bar with Random & Close */}
           <div className="flex items-center justify-between px-1">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Color Palette</span>
+            <span className="text-[10px] font-black uppercase tracking-wider text-foreground">Color Palette</span>
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={handleRandomColor}
-                className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="p-1 text-foreground hover:text-slate-700 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 title="Random Color Generator"
               >
                 <Shuffle className="w-3.5 h-3.5" />
@@ -279,7 +279,7 @@ export default function ColorPickerPopover({ color, onChange }: ColorPickerProps
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="p-1 text-foreground hover:text-slate-700 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -326,7 +326,7 @@ export default function ColorPickerPopover({ color, onChange }: ColorPickerProps
           </div>
 
           {/* Format Selector Tabs (HEX, RGB, HSL, HSB) */}
-          <div className="grid grid-cols-4 gap-1 p-1 bg-slate-100 dark:bg-slate-800/60 rounded-xl text-[10px] font-extrabold text-slate-500">
+          <div className="grid grid-cols-4 gap-1 p-1 bg-slate-100 dark:bg-slate-800/60 rounded-xl text-[10px] font-extrabold text-foreground">
             {(['HEX', 'RGB', 'HSL', 'HSB'] as const).map(fmt => (
               <button
                 key={fmt}
@@ -355,7 +355,7 @@ export default function ColorPickerPopover({ color, onChange }: ColorPickerProps
             <div className="flex-1 flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-1.5 justify-between font-mono text-xs text-slate-800 dark:text-slate-200 font-bold border border-transparent focus-within:border-slate-300">
               {format === 'HEX' && (
                 <div className="flex items-center gap-1 w-full">
-                  <span className="text-slate-400">#</span>
+                  <span className="text-foreground">#</span>
                   <input
                     type="text"
                     maxLength={6}
@@ -369,7 +369,7 @@ export default function ColorPickerPopover({ color, onChange }: ColorPickerProps
                     }}
                     className="bg-transparent border-none outline-none w-full font-mono text-xs uppercase text-slate-800 dark:text-slate-200"
                   />
-                  <span className="text-[10px] text-slate-400 font-sans font-semibold">100%</span>
+                  <span className="text-[10px] text-foreground font-sans font-semibold">100%</span>
                 </div>
               )}
               {format === 'RGB' && (

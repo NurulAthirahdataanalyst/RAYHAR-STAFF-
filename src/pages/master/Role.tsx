@@ -167,7 +167,7 @@ export default function Role() {
             
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2 bg-white dark:bg-card border border-gray-200 dark:border-slate-800 rounded-md px-3 h-10 text-sm text-gray-600 shadow-sm">
-                <Calendar className="w-4 h-4 text-gray-400" />
+                <Calendar className="w-4 h-4 text-foreground" />
                 <span>06/16/2026 - 06/22/2026</span>
               </div>
               
@@ -196,7 +196,7 @@ export default function Role() {
 
           {/* Sub Filters */}
           <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-slate-800 bg-gray-50/30">
-            <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
+            <div className="flex items-center gap-2 text-sm text-foreground font-medium">
               <span>Row Per Page</span>
               <Select defaultValue="10">
                 <SelectTrigger className="w-[70px] bg-white dark:bg-card border-gray-200 dark:border-slate-800 h-9 shadow-sm">
@@ -212,7 +212,7 @@ export default function Role() {
             </div>
             
             <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground" />
               <Input 
                 placeholder="Search" 
                 className="pl-9 bg-white dark:bg-card border-gray-200 dark:border-slate-800 h-9 w-full sm:w-[250px] shadow-sm"
@@ -234,14 +234,14 @@ export default function Role() {
               <tbody className="divide-y divide-gray-50">
                 {loading ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={4} className="px-6 py-8 text-center text-foreground">
                       <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-[#7B0099]" />
                       Loading roles...
                     </td>
                   </tr>
                 ) : roles.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={4} className="px-6 py-8 text-center text-foreground">
                       No roles found.
                     </td>
                   </tr>
@@ -251,7 +251,7 @@ export default function Role() {
                       <td className="px-6 py-4 font-semibold text-gray-700">
                         {role.name === "Finance Manager" || role.name === "finance_manager" ? "Operation Manager" : role.name}
                       </td>
-                      <td className="px-6 py-4 text-gray-500 font-medium">
+                      <td className="px-6 py-4 text-foreground font-medium">
                         {new Date(role.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </td>
                       <td className="px-6 py-4">
@@ -268,7 +268,7 @@ export default function Role() {
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-1.5 text-gray-400 opacity-60 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-end gap-1.5 text-foreground opacity-60 group-hover:opacity-100 transition-opacity">
                           <button className="p-1.5 hover:text-gray-800 dark:text-gray-200 hover:bg-gray-100 rounded-md transition-colors">
                             <Shield className="w-4 h-4" />
                           </button>

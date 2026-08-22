@@ -255,7 +255,7 @@ export default function LeaveOverview() {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-xl sm:text-2xl font-black text-foreground group-hover:scale-105 transition-transform origin-left duration-500">{item.used}</span>
-                <span className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase">
+                <span className="text-[9px] sm:text-[10px] font-bold text-foreground uppercase">
                   {item.total ? `/ ${item.total} DAYS` : "USED"}
                 </span>
               </div>
@@ -273,7 +273,7 @@ export default function LeaveOverview() {
                   />
                 </div>
                 {item.total && (
-                  <p className="text-[7px] font-black text-muted-foreground text-right uppercase tracking-widest opacity-60">
+                  <p className="text-[7px] font-black text-foreground text-right uppercase tracking-widest opacity-60">
                     {item.total - item.used} Days Remaining
                   </p>
                 )}
@@ -313,8 +313,8 @@ export default function LeaveOverview() {
                   filteredLeaveRequests.map((req, i) => (
                     <TableRow key={i} className="hover:bg-[#7B0099]/5 transition-colors group">
                       <TableCell className="px-5 py-3.5 font-black text-[#7B0099] dark:text-purple-400">{leaveTypeLabels[req.type]}</TableCell>
-                      <TableCell className="px-5 py-3.5 text-muted-foreground font-bold">{req.from}</TableCell>
-                      <TableCell className="px-5 py-3.5 text-muted-foreground font-bold">{req.to}</TableCell>
+                      <TableCell className="px-5 py-3.5 text-foreground font-bold">{req.from}</TableCell>
+                      <TableCell className="px-5 py-3.5 text-foreground font-bold">{req.to}</TableCell>
                       <TableCell className="px-5 py-3.5 text-center font-black text-foreground">{req.days}</TableCell>
                       <TableCell className="px-5 py-3.5 text-center">
                         <Badge
@@ -332,7 +332,7 @@ export default function LeaveOverview() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="px-5 py-10 text-center text-xs font-black text-muted-foreground uppercase tracking-widest italic opacity-30">
+                    <TableCell colSpan={5} className="px-5 py-10 text-center text-xs font-black text-foreground uppercase tracking-widest italic opacity-30">
                       No leave applications found in registry
                     </TableCell>
                   </TableRow>
@@ -360,7 +360,7 @@ export default function LeaveOverview() {
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between bg-muted/20 p-2 rounded-xl">
-                    <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-tight">
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-foreground uppercase tracking-tight">
                       <span>{req.from}</span>
                       <span className="opacity-30">→</span>
                       <span>{req.to}</span>
@@ -370,7 +370,7 @@ export default function LeaveOverview() {
                 </div>
               ))
             ) : (
-              <div className="py-12 text-center text-xs font-black text-muted-foreground uppercase tracking-widest italic opacity-30 p-6">
+              <div className="py-12 text-center text-xs font-black text-foreground uppercase tracking-widest italic opacity-30 p-6">
                 No leave applications yet.
               </div>
             )}
@@ -401,7 +401,7 @@ export default function LeaveOverview() {
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-black text-foreground truncate">{fileName}</p>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
+                        <p className="text-[10px] font-bold text-foreground uppercase tracking-widest mt-0.5">
                           {leaveTypeLabels[req.type]} • {req.appliedAt.slice(0, 10)}
                         </p>
                       </div>
@@ -422,7 +422,7 @@ export default function LeaveOverview() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {approvalStatusIcon(req.status)}
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Workflow Progress</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-foreground opacity-60">Workflow Progress</span>
                       </div>
                       <span className="text-[10px] font-black text-[#7B0099] uppercase">{Math.round(approvalProgress(req.status))}%</span>
                     </div>
@@ -450,7 +450,7 @@ export default function LeaveOverview() {
                             <div className={`mx-auto w-1 h-1 rounded-full ${isActive ? 'bg-[#7B0099]' : 'bg-muted-foreground/30'}`} />
                             <p className={`text-[8px] font-black uppercase tracking-tighter ${
                               isRejectedAtStep ? 'text-rose-500' :
-                              isActive ? 'text-[#7B0099]' : 'text-muted-foreground opacity-40'
+                              isActive ? 'text-[#7B0099]' : 'text-foreground opacity-40'
                             }`}>
                               {step}
                             </p>
@@ -464,7 +464,7 @@ export default function LeaveOverview() {
             })
           ) : (
             <div className="py-12 text-center flex flex-col items-center gap-4 border-2 border-dashed border-border/50 rounded-[24px]">
-              <FileText className="h-10 w-10 text-muted-foreground/20" />
+              <FileText className="h-10 w-10 text-foreground/20" />
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-950 dark:text-slate-50">
                 No active approval requests
               </p>

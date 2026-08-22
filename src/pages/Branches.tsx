@@ -566,7 +566,7 @@ export default function Branches() {
               <Button
                 type="button"
                 variant="ghost"
-                className="mb-1 gap-2 px-0 text-muted-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target"
+                className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#7B0099] transition-colors touch-target"
                 onClick={() => setSelectedBranch(null)}
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -586,7 +586,7 @@ export default function Branches() {
                 </Badge>
                 <Button variant="outline" size="sm" onClick={openEditModal} className="h-8 text-xs font-bold ml-2">Edit Branch</Button>
               </div>
-              <p className="text-responsive-sm text-muted-foreground font-medium mt-1">
+              <p className="text-responsive-sm text-foreground font-medium mt-1">
                 Branch staff overview and analytics
               </p>
             </div>
@@ -594,7 +594,7 @@ export default function Branches() {
             {selectedBranch.operating_zone && (
               <div className="flex-shrink-0 bg-white dark:bg-card border-2 border-slate-200 dark:border-slate-700 rounded-xl p-3 shadow-md self-start">
                 <p className="mb-2"><span className="text-[10px] font-bold text-foreground uppercase tracking-wider">Operating Hours ({selectedBranch.operating_zone === 'ZONE_A' ? 'Zone A' : 'Zone B'})</span></p>
-                <div className="flex flex-wrap sm:flex-nowrap gap-4 sm:gap-6 text-[11px] text-muted-foreground">
+                <div className="flex flex-wrap sm:flex-nowrap gap-4 sm:gap-6 text-[11px] text-foreground">
                   {selectedBranch.operating_zone === 'ZONE_A' ? (
                     <>
                       <div className="space-y-1 border-l-2 border-[#7B0099] pl-2.5">
@@ -627,7 +627,7 @@ export default function Branches() {
           {loading ? (
             <div className="flex flex-col items-center justify-center p-20 gap-4 bg-card/60 backdrop-blur-md rounded-[32px] border border-border/50">
               <Loader2 className="h-10 w-10 animate-spin text-[#7B0099]" />
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground animate-pulse">
                 Syncing Branch Data...
               </p>
             </div>
@@ -681,7 +681,7 @@ export default function Branches() {
                                   <p className="font-bold text-foreground group-hover:text-[#7B0099] transition-colors">
                                     {employee.full_name}
                                   </p>
-                                  <p className="text-[10px] text-muted-foreground truncate font-medium uppercase tracking-widest">
+                                  <p className="text-[10px] text-foreground truncate font-medium uppercase tracking-widest">
                                     {employee.user_id}
                                   </p>
                                 </div>
@@ -690,7 +690,7 @@ export default function Branches() {
                             <td className="py-4 px-6 font-bold text-foreground text-xs uppercase">
                               {employee.annual_leave_balance} DAYS
                             </td>
-                            <td className="py-4 px-6 font-bold text-muted-foreground text-xs">
+                            <td className="py-4 px-6 font-bold text-foreground text-xs">
                               {employee.attendance_rate || 0}%
                             </td>
                             <td className="py-4 px-6">
@@ -718,7 +718,7 @@ export default function Branches() {
                         <tr>
                           <td
                             colSpan={4}
-                            className="py-12 text-center text-muted-foreground italic font-medium"
+                            className="py-12 text-center text-foreground italic font-medium"
                           >
                             No personnel found in this branch.
                           </td>
@@ -770,7 +770,7 @@ export default function Branches() {
                               {employee.today_status}
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-foreground uppercase tracking-wider">
                             <span>ID: {employee.user_id}</span>
                             <span className="opacity-30">•</span>
                             <span>Rate: {employee.attendance_rate || 0}%</span>
@@ -779,7 +779,7 @@ export default function Branches() {
                       </div>
                     ))
                   ) : (
-                    <div className="py-12 text-center text-muted-foreground italic font-medium p-6">
+                    <div className="py-12 text-center text-foreground italic font-medium p-6">
                       No personnel found.
                     </div>
                   )}
@@ -833,14 +833,14 @@ export default function Branches() {
                                           </div>
                                           <div className="min-w-0">
                                             <p className="font-bold text-foreground">{assignment.name}</p>
-                                            <p className="text-[10px] text-muted-foreground truncate font-medium uppercase tracking-widest flex items-center gap-1">
+                                            <p className="text-[10px] text-foreground truncate font-medium uppercase tracking-widest flex items-center gap-1">
                                               <span className="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">TEMP</span>
                                               {assignment.employee}
                                             </p>
                                           </div>
                                         </div>
                                       </td>
-                                      <td className="py-4 px-6 font-medium text-muted-foreground text-xs">
+                                      <td className="py-4 px-6 font-medium text-foreground text-xs">
                                         {assignment.primary_branch} • {assignment.department}
                                       </td>
                                       <td className="py-4 px-6 text-xs font-semibold text-foreground">
@@ -883,13 +883,13 @@ export default function Branches() {
                                           </div>
                                           <div className="min-w-0">
                                             <p className="font-bold text-foreground">{assignment.name}</p>
-                                            <p className="text-[10px] text-muted-foreground truncate font-medium uppercase tracking-widest flex items-center gap-1">
+                                            <p className="text-[10px] text-foreground truncate font-medium uppercase tracking-widest flex items-center gap-1">
                                               {assignment.employee}
                                             </p>
                                           </div>
                                         </div>
                                       </td>
-                                      <td className="py-4 px-6 font-medium text-muted-foreground text-xs">
+                                      <td className="py-4 px-6 font-medium text-foreground text-xs">
                                         {assignment.primary_branch} • {assignment.department}
                                       </td>
                                       <td className="py-4 px-6 text-xs font-semibold text-foreground">
@@ -1000,7 +1000,7 @@ export default function Branches() {
                             <p className="text-2xl font-black text-foreground">
                               {selectedEmployee.annual_leave_balance}
                             </p>
-                            <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                            <p className="text-[10px] font-black uppercase tracking-wider text-foreground">
                               Annual Left
                             </p>
                           </div>
@@ -1009,7 +1009,7 @@ export default function Branches() {
                             <p className="text-2xl font-black text-foreground">
                               {selectedEmployee.attendance_rate || 0}%
                             </p>
-                            <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                            <p className="text-[10px] font-black uppercase tracking-wider text-foreground">
                               Attendance
                             </p>
                           </div>
@@ -1018,7 +1018,7 @@ export default function Branches() {
                             <p className="text-2xl font-black text-foreground">
                               {selectedEmployee.pending_leaves}
                             </p>
-                            <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                            <p className="text-[10px] font-black uppercase tracking-wider text-foreground">
                               Pending
                             </p>
                           </div>
@@ -1027,7 +1027,7 @@ export default function Branches() {
                             <p className="text-2xl font-black text-foreground">
                               {selectedEmployee.mc_leaves || 0}
                             </p>
-                            <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                            <p className="text-[10px] font-black uppercase tracking-wider text-foreground">
                               Total MC
                             </p>
                           </div>
@@ -1066,7 +1066,7 @@ export default function Branches() {
                     </div>
                   </>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground opacity-40">
+                  <div className="flex flex-col items-center justify-center py-20 text-foreground opacity-40">
                     <Users className="w-16 h-16 mb-4" />
                     <p className="text-xs font-black uppercase tracking-widest">
                       Select staff to view
@@ -1092,7 +1092,7 @@ export default function Branches() {
                   </span>
                 </Badge>
                 <div className="relative w-48 sm:w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground" />
                   <Input
                     placeholder="Search branches..."
                     value={searchQuery}
@@ -1102,7 +1102,7 @@ export default function Branches() {
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery("")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground hover:text-foreground transition-colors"
                       aria-label="Clear search"
                     >
                       <X className="h-3 w-3" />
@@ -1117,7 +1117,7 @@ export default function Branches() {
                     className={`rounded-lg px-3 py-1.5 h-7 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
                       viewMode === "grid"
                         ? "bg-[#7B0099] text-white hover:bg-[#7B0099]/90 shadow-md"
-                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                        : "text-foreground hover:bg-muted/50 hover:text-foreground"
                     }`}
                   >
                     <LayoutGrid className="w-3.5 h-3.5" />
@@ -1130,7 +1130,7 @@ export default function Branches() {
                     className={`rounded-lg px-3 py-1.5 h-7 gap-1.5 text-xs font-black uppercase tracking-wider transition-all duration-200 touch-target ${
                       viewMode === "line"
                         ? "bg-[#7B0099] text-white hover:bg-[#7B0099]/90 shadow-md"
-                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                        : "text-foreground hover:bg-muted/50 hover:text-foreground"
                     }`}
                   >
                     <List className="w-3.5 h-3.5" />
@@ -1143,7 +1143,7 @@ export default function Branches() {
           {loadingBranches ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3 bg-card/60 backdrop-blur-md rounded-[32px] border border-border/50">
               <Loader2 className="h-10 w-10 animate-spin text-[#7B0099]" />
-              <p className="text-xs font-black uppercase tracking-widest text-muted-foreground animate-pulse">
+              <p className="text-xs font-black uppercase tracking-widest text-foreground animate-pulse">
                 Scanning Network...
               </p>
             </div>
@@ -1194,13 +1194,13 @@ export default function Branches() {
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-start gap-4 min-w-0">
                             <div className="w-12 h-12 rounded-[18px] bg-muted/50 flex items-center justify-center shrink-0 group-hover:bg-[#7B0099]/10 transition-colors">
-                              <Building2 className="w-6 h-6 text-muted-foreground group-hover:text-[#7B0099] transition-colors" />
+                              <Building2 className="w-6 h-6 text-foreground group-hover:text-[#7B0099] transition-colors" />
                             </div>
                             <div className="min-w-0">
                               <h3 className="font-black text-foreground text-lg leading-tight truncate group-hover:text-[#7B0099] transition-colors">
                                 {branch.name}
                               </h3>
-                              <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-widest truncate opacity-60">
+                              <div className="flex items-center gap-1.5 text-[10px] font-bold text-foreground mt-1 uppercase tracking-widest truncate opacity-60">
                                 <MapPin className="w-3 h-3 shrink-0" />
                                 {location}
                               </div>
@@ -1216,7 +1216,7 @@ export default function Branches() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="w-7 h-7 hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground"
+                              className="w-7 h-7 hover:bg-rose-500/10 hover:text-rose-500 text-foreground"
                               onClick={(e) =>
                                 handleDeleteBranch(e, branch.code)
                               }
@@ -1278,7 +1278,7 @@ export default function Branches() {
                           </div>
                         </div>
                         <div className="text-right min-w-0 ml-4">
-                          <p className="text-[9px] font-black text-muted-foreground uppercase leading-none opacity-40">
+                          <p className="text-[9px] font-black text-foreground uppercase leading-none opacity-40">
                             Leader
                           </p>
                           <p className="text-[10px] font-black text-foreground/80 mt-0.5 truncate">
@@ -1374,7 +1374,7 @@ export default function Branches() {
                                       {branch.code}
                                     </Badge>
                                   </p>
-                                  <p className="text-[10px] text-muted-foreground truncate uppercase tracking-widest">
+                                  <p className="text-[10px] text-foreground truncate uppercase tracking-widest">
                                     {location}
                                   </p>
                                 </div>
@@ -1389,7 +1389,7 @@ export default function Branches() {
                                   {presentToday}
                                 </Badge>
                               ) : (
-                                <span className="text-sm font-medium text-muted-foreground">
+                                <span className="text-sm font-medium text-foreground">
                                   0
                                 </span>
                               )}
@@ -1403,7 +1403,7 @@ export default function Branches() {
                                   {onLeave}
                                 </Badge>
                               ) : (
-                                <span className="text-sm font-medium text-muted-foreground">
+                                <span className="text-sm font-medium text-foreground">
                                   0
                                 </span>
                               )}
@@ -1417,7 +1417,7 @@ export default function Branches() {
                                   {outstation}
                                 </Badge>
                               ) : (
-                                <span className="text-sm font-medium text-muted-foreground">
+                                <span className="text-sm font-medium text-foreground">
                                   0
                                 </span>
                               )}
@@ -1431,7 +1431,7 @@ export default function Branches() {
                                   {absent}
                                 </Badge>
                               ) : (
-                                <span className="text-sm font-medium text-muted-foreground">
+                                <span className="text-sm font-medium text-foreground">
                                   0
                                 </span>
                               )}
@@ -1448,7 +1448,7 @@ export default function Branches() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <span className="text-sm italic text-muted-foreground truncate block max-w-[150px]">
+                              <span className="text-sm italic text-foreground truncate block max-w-[150px]">
                                 {leader}
                               </span>
                             </TableCell>
@@ -1459,7 +1459,7 @@ export default function Branches() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="w-8 h-8 shrink-0 hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="w-8 h-8 shrink-0 hover:bg-rose-500/10 hover:text-rose-500 text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
                                 onClick={(e) =>
                                   handleDeleteBranch(e, branch.code)
                                 }
@@ -1482,7 +1482,7 @@ export default function Branches() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-1 pt-2">
               {/* Rows per page */}
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Rows per page</span>
+                <span className="text-xs font-bold text-foreground uppercase tracking-wider">Rows per page</span>
                 <div className="flex items-center gap-1">
                   {[10, 15, 25, 50].map((size) => (
                     <button
@@ -1491,7 +1491,7 @@ export default function Branches() {
                       className={`h-7 min-w-[32px] px-2 rounded-md text-xs font-black transition-all duration-150 ${
                         pageSize === size
                           ? "bg-[#7B0099] text-white shadow"
-                          : "bg-muted/40 text-muted-foreground hover:bg-muted/70 hover:text-foreground border border-border/40"
+                          : "bg-muted/40 text-foreground hover:bg-muted/70 hover:text-foreground border border-border/40"
                       }`}
                     >
                       {size}
@@ -1502,7 +1502,7 @@ export default function Branches() {
 
               {/* Page info + nav */}
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-muted-foreground">
+                <span className="text-xs font-bold text-foreground">
                   {Math.min((currentPage - 1) * pageSize + 1, filteredBranches.length)}–{Math.min(currentPage * pageSize, filteredBranches.length)} of {filteredBranches.length}
                 </span>
                 <div className="flex items-center gap-1">
@@ -1524,7 +1524,7 @@ export default function Branches() {
                     }, [])
                     .map((item, idx) =>
                       item === "..." ? (
-                        <span key={`ellipsis-${idx}`} className="text-xs text-muted-foreground px-1">…</span>
+                        <span key={`ellipsis-${idx}`} className="text-xs text-foreground px-1">…</span>
                       ) : (
                         <button
                           key={item}
@@ -1532,7 +1532,7 @@ export default function Branches() {
                           className={`h-7 min-w-[28px] px-1.5 rounded-md text-xs font-black transition-all duration-150 ${
                             currentPage === item
                               ? "bg-[#7B0099] text-white shadow"
-                              : "bg-muted/40 text-muted-foreground hover:bg-muted/70 hover:text-foreground border border-border/40"
+                              : "bg-muted/40 text-foreground hover:bg-muted/70 hover:text-foreground border border-border/40"
                           }`}
                         >
                           {item}
@@ -1577,7 +1577,7 @@ export default function Branches() {
             {loadingLeaves ? (
               <div className="flex flex-col items-center justify-center p-12 gap-3">
                 <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                <p className="text-[10px] font-black uppercase tracking-widest text-foreground">
                   Fetching Forms...
                 </p>
               </div>
@@ -1787,7 +1787,7 @@ export default function Branches() {
                                 <span className="text-[8px] font-black text-slate-950 dark:text-slate-50 uppercase">
                                   Alamat
                                 </span>
-                                <p className="text-[10px] font-bold text-muted-foreground break-words">
+                                <p className="text-[10px] font-bold text-foreground break-words">
                                   {req.waris_alamat || "-"}
                                 </p>
                               </div>
@@ -1817,12 +1817,12 @@ export default function Branches() {
                                             by {history.approver_name || history.approver_id}
                                           </span>
                                         </div>
-                                        <span className="text-[8px] font-black text-muted-foreground/50">
+                                        <span className="text-[8px] font-black text-foreground/50">
                                           {new Date(history.created_at).toLocaleDateString('ms-MY')}
                                         </span>
                                       </div>
                                       {history.remarks && (
-                                        <p className="text-[10px] italic text-muted-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
+                                        <p className="text-[10px] italic text-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
                                           "{history.remarks}"
                                         </p>
                                       )}
@@ -1948,7 +1948,7 @@ export default function Branches() {
                 <label className="text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">COORDINATES</label>
                 <div className="flex items-center gap-2 h-11 px-4 border border-input rounded-xl bg-muted/20 hover:bg-muted/40 transition-colors">
                   <MapPin className="w-4 h-4 text-[#7B0099]" />
-                  <span className="text-xs font-bold text-muted-foreground">
+                  <span className="text-xs font-bold text-foreground">
                     {editBranchData.latitude && editBranchData.longitude 
                       ? `${editBranchData.latitude}, ${editBranchData.longitude}` 
                       : "Select from map"}
@@ -1959,7 +1959,7 @@ export default function Branches() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest">Radius</label>
-                <span className="text-[10px] font-black text-muted-foreground">0m – 500m</span>
+                <span className="text-[10px] font-black text-foreground">0m – 500m</span>
               </div>
               <div className="relative pt-6">
                 {/* Floating animated label */}
@@ -1985,8 +1985,8 @@ export default function Branches() {
                   }}
                 />
                 <div className="flex justify-between mt-1">
-                  <span className="text-[9px] text-muted-foreground font-bold">0m</span>
-                  <span className="text-[9px] text-muted-foreground font-bold">500m</span>
+                  <span className="text-[9px] text-foreground font-bold">0m</span>
+                  <span className="text-[9px] text-foreground font-bold">500m</span>
                 </div>
               </div>
             </div>
@@ -2061,7 +2061,7 @@ export default function Branches() {
             <div className="p-6 bg-slate-50 dark:bg-slate-900 flex flex-col h-full overflow-y-auto">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Manual Coordinates</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground">Manual Coordinates</label>
                   <Input 
                     value={editBranchData.latitude || ""} 
                     onChange={(e) => setEditBranchData({...editBranchData, latitude: e.target.value})}
@@ -2094,8 +2094,8 @@ export default function Branches() {
                 </div>
                 
                 <div className="space-y-2 pt-4">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Address / Display Name</label>
-                  <div className="p-4 bg-white dark:bg-card border rounded-xl shadow-sm text-xs text-muted-foreground leading-relaxed">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground">Address / Display Name</label>
+                  <div className="p-4 bg-white dark:bg-card border rounded-xl shadow-sm text-xs text-foreground leading-relaxed">
                     {editBranchData.location || "Select a location on the map"}
                   </div>
                 </div>

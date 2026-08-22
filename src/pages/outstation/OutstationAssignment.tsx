@@ -345,11 +345,11 @@ export default function OutstationAssignment() {
           <div className="flex items-center gap-3 flex-wrap">
           
             <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-gray-400" />
-              <span className="text-[11px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Filters</span>
+              <Filter className="w-4 h-4 text-foreground" />
+              <span className="text-[11px] font-black uppercase tracking-widest text-foreground dark:text-foreground">Filters</span>
             </div>
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
               <Input
                 placeholder="Search employee, destination…"
                 value={filterSearch}
@@ -386,7 +386,7 @@ export default function OutstationAssignment() {
                 Clear ×
               </Badge>
             )}
-            <span className="text-[10px] text-gray-400 font-bold">{filtered.length} records</span>
+            <span className="text-[10px] text-foreground font-bold">{filtered.length} records</span>
           
         </div>
       </CardHeader>
@@ -394,7 +394,7 @@ export default function OutstationAssignment() {
           {loading ? (
             <div className="h-48 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-400" /></div>
           ) : filtered.length === 0 ? (
-            <div className="h-48 flex flex-col items-center justify-center gap-2 text-slate-400">
+            <div className="h-48 flex flex-col items-center justify-center gap-2 text-foreground">
               <Plane className="w-10 h-10 opacity-20" />
               <p className="text-[10px] font-black uppercase tracking-widest">No assignments found</p>
             </div>
@@ -432,12 +432,12 @@ export default function OutstationAssignment() {
                         <div className="flex items-center gap-1 font-semibold text-gray-800 dark:text-gray-100 text-[12px]">
                           <MapPin className="w-3 h-3 text-pink-400 shrink-0" />{a.destination}
                         </div>
-                        {a.client_company && <div className="text-[10px] text-gray-400 ml-4">{a.client_company}</div>}
+                        {a.client_company && <div className="text-[10px] text-foreground ml-4">{a.client_company}</div>}
                       </TableCell>
-                      <TableCell className="text-gray-500 dark:text-gray-400 whitespace-nowrap text-[12px] px-2.5">{fmtDate(a.start_date)}</TableCell>
-                      <TableCell className="text-gray-500 dark:text-gray-400 whitespace-nowrap text-[12px] px-2.5">{fmtDate(a.end_date)}</TableCell>
+                      <TableCell className="text-foreground dark:text-foreground whitespace-nowrap text-[12px] px-2.5">{fmtDate(a.start_date)}</TableCell>
+                      <TableCell className="text-foreground dark:text-foreground whitespace-nowrap text-[12px] px-2.5">{fmtDate(a.end_date)}</TableCell>
                       <TableCell className="text-center font-black text-pink-600 text-[12px] px-2.5">{a.total_days != null ? Number(a.total_days) : "—"}</TableCell>
-                      <TableCell className="text-gray-500 dark:text-gray-400 text-[12px] font-medium px-2.5" title={a.assigned_by_name}>{formatName(a.assigned_by_name || "")}</TableCell>
+                      <TableCell className="text-foreground dark:text-foreground text-[12px] font-medium px-2.5" title={a.assigned_by_name}>{formatName(a.assigned_by_name || "")}</TableCell>
                       <TableCell className="px-2.5" onClick={(e) => e.stopPropagation()}>{statusBadge(a.status)}</TableCell>
                       <TableCell className="px-2.5" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-1">
@@ -477,7 +477,7 @@ export default function OutstationAssignment() {
           {/* Pagination Controls */}
           {!loading && filtered.length > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
-              <div className="flex items-center gap-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+              <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
                 <span>
                   Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filtered.length)} of {filtered.length} Entries
                 </span>
@@ -556,7 +556,7 @@ export default function OutstationAssignment() {
             {/* Employee Multi-Select (only for new) */}
             {!editTarget && (
               <div className="space-y-2">
-                <Label className="text-[11px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                <Label className="text-[11px] font-black uppercase tracking-widest text-foreground dark:text-foreground flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5" /> Select Employees <span className="text-red-500">*</span>
                 </Label>
 
@@ -575,14 +575,14 @@ export default function OutstationAssignment() {
 
                 {/* Search */}
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  <Search className="w-3.5 h-3.5 text-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
                   <Input placeholder="Search employees…" value={empSearch} onChange={e => setEmpSearch(e.target.value)} className="pl-8 h-8 text-xs" />
                 </div>
 
                 {/* Employee List */}
                 <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-slate-800 dark:border-gray-500/30 rounded-lg divide-y divide-gray-50">
                   {filteredEmps.length === 0 ? (
-                    <div className="py-4 text-center text-[10px] text-gray-400 font-bold uppercase">No employees found</div>
+                    <div className="py-4 text-center text-[10px] text-foreground font-bold uppercase">No employees found</div>
                   ) : (
                     filteredEmps.map(e => {
                       const isSelected = !!selectedEmps.find(s => s.user_id === e.user_id);
@@ -596,7 +596,7 @@ export default function OutstationAssignment() {
                             </div>
                             <div>
                               <p className="text-[11px] font-bold text-gray-800 dark:text-gray-100">{e.full_name}</p>
-                              <p className="text-[9px] text-gray-400">{e.department} · {e.branch}</p>
+                              <p className="text-[9px] text-foreground">{e.department} · {e.branch}</p>
                             </div>
                           </div>
                           {isSelected && <Badge className="bg-pink-100 dark:bg-pink-500/20 text-pink-600 border border-pink-200 dark:border-pink-500/30 text-[9px] font-bold">Selected</Badge>}
@@ -610,7 +610,7 @@ export default function OutstationAssignment() {
 
             {/* Trip Info */}
             <div className="space-y-3">
-              <Label className="text-[11px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+              <Label className="text-[11px] font-black uppercase tracking-widest text-foreground dark:text-foreground flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5" /> Trip Information
               </Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -637,7 +637,7 @@ export default function OutstationAssignment() {
                     onChange={e => setForm(f => ({ ...f, purpose: e.target.value }))}
                     placeholder="Purpose of travel…"
                     rows={2}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs ring-offset-background placeholder:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
                   />
                 </div>
               </div>
@@ -645,7 +645,7 @@ export default function OutstationAssignment() {
 
             {/* Duration */}
             <div className="space-y-3">
-              <Label className="text-[11px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+              <Label className="text-[11px] font-black uppercase tracking-widest text-foreground dark:text-foreground flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5" /> Duration
               </Label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -655,7 +655,7 @@ export default function OutstationAssignment() {
                     <PopoverTrigger asChild>
                       <button type="button" className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-ring">
                         {form.start_date ? new Date(form.start_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : "dd/mm/yyyy"}
-                        <CalendarDays className="w-3.5 h-3.5 text-gray-500 opacity-50" />
+                        <CalendarDays className="w-3.5 h-3.5 text-foreground opacity-50" />
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-card z-[9999]" align="start">
@@ -680,7 +680,7 @@ export default function OutstationAssignment() {
                     <PopoverTrigger asChild>
                       <button type="button" className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-ring">
                         {form.end_date ? new Date(form.end_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : "dd/mm/yyyy"}
-                        <CalendarDays className="w-3.5 h-3.5 text-gray-500 opacity-50" />
+                        <CalendarDays className="w-3.5 h-3.5 text-foreground opacity-50" />
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-card z-[9999]" align="start">
@@ -727,7 +727,7 @@ export default function OutstationAssignment() {
             <DialogTitle className="text-base font-black uppercase tracking-wide">
               Delete Outstation Assignment
             </DialogTitle>
-            <DialogDescription className="text-[12px] text-gray-500 mt-2">
+            <DialogDescription className="text-[12px] text-foreground mt-2">
               Are you sure you want to delete this outstation assignment?
               This action will permanently remove the assignment and cannot be undone.
             </DialogDescription>
@@ -827,7 +827,7 @@ export default function OutstationAssignment() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100 truncate">{viewFormAssignment.full_name}</p>
-                          <p className="text-[10px] text-gray-400">{viewFormAssignment.department || "—"} · {viewFormAssignment.branch || "—"}</p>
+                          <p className="text-[10px] text-foreground">{viewFormAssignment.department || "—"} · {viewFormAssignment.branch || "—"}</p>
                         </div>
                         {statusBadge(viewFormAssignment.status)}
                       </div>

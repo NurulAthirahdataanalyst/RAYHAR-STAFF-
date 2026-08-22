@@ -134,7 +134,7 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
 
         <div className="mt-4 flex items-end gap-3">
           <div>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+            <p className="text-[10px] font-bold text-foreground uppercase tracking-wider">
               Total Changes ({selectedMonthName})
             </p>
             <p className="text-4xl font-black text-foreground mt-0.5 leading-none">{totalThis}</p>
@@ -172,7 +172,7 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
 
       <CardContent className="p-0 flex-1">
         {recent.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+          <div className="flex flex-col items-center justify-center py-10 text-foreground">
             <History className="w-8 h-8 opacity-20 mb-2" />
             <p className="text-xs font-medium">No activity for {selectedMonthName}.</p>
             <p className="text-[10px] mt-0.5 text-center px-4">
@@ -196,19 +196,19 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
                         {badge.label}
                       </span>
                       <span className="text-xs font-bold text-foreground truncate">{log.employee_name}</span>
-                      <span className="text-[10px] text-muted-foreground truncate">{log.leave_type}</span>
+                      <span className="text-[10px] text-foreground truncate">{log.leave_type}</span>
                     </div>
                     <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                       <span className={`text-xs font-black ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
                         {isPositive ? '+' : ''}{log.adjustment} Days
                       </span>
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-[10px] text-foreground">
                         {formatRelativeDate(log.date, log.time)}
                       </span>
-                      <span className="text-[10px] text-muted-foreground">By {log.performed_by}</span>
+                      <span className="text-[10px] text-foreground">By {log.performed_by}</span>
                     </div>
                     {log.reason && (
-                      <p className="text-[10px] text-muted-foreground/70 mt-0.5 truncate">{log.reason}</p>
+                      <p className="text-[10px] text-foreground/70 mt-0.5 truncate">{log.reason}</p>
                     )}
                   </div>
                 </div>

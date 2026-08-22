@@ -571,7 +571,7 @@ export default function Employees() {
                     <Users className="w-5 h-5 text-green-500" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Employees</p>
+                    <p className="text-xs font-bold text-foreground uppercase tracking-wider">Total Employees</p>
                     <h3 className="text-2xl font-bold mt-0.5 text-green-600 dark:text-green-400 leading-none">
                       {filtered.length}
                     </h3>
@@ -589,7 +589,7 @@ export default function Employees() {
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-card/50 backdrop-blur-sm p-3 rounded-2xl border border-border/50">
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full sm:w-auto flex-1">
           <div className="relative w-full sm:max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground" />
             <Input
               placeholder="Search employees..."
               value={search}
@@ -650,7 +650,7 @@ export default function Employees() {
           {loading ? (
             <div className="flex flex-col items-center justify-center p-12 gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
-              <p className="text-xs font-bold text-muted-foreground animate-pulse uppercase tracking-widest">Loading Personnel...</p>
+              <p className="text-xs font-bold text-foreground animate-pulse uppercase tracking-widest">Loading Personnel...</p>
             </div>
           ) : (
             <>
@@ -680,16 +680,16 @@ export default function Employees() {
                               </div>
                               <div className="min-w-0">
                                 <p className="font-bold text-foreground group-hover:text-[#7B0099] transition-colors">{emp.name}</p>
-                                <p className="text-[10px] text-muted-foreground truncate font-medium">{emp.email}</p>
+                                <p className="text-[10px] text-foreground truncate font-medium">{emp.email}</p>
                               </div>
                             </div>
                           </TableCell>
                           <TableCell className="py-4 px-6">
-                            <span className="text-xs font-bold text-muted-foreground capitalize">
+                            <span className="text-xs font-bold text-foreground capitalize">
                               {emp.position === "Finance Manager" || emp.position === "finance_manager" ? "Operation Manager" : emp.position.replace(/_/g, ' ')}
                             </span>
                           </TableCell>
-                          <TableCell className="py-4 px-6 text-xs font-bold text-muted-foreground">
+                          <TableCell className="py-4 px-6 text-xs font-bold text-foreground">
                             <div className="flex flex-col gap-1 items-start">
                               <span>{emp.branch}</span>
                               {emp.tempBranch && (
@@ -723,7 +723,7 @@ export default function Employees() {
                                     variant="ghost"
                                     size="sm"
                                     onClick={(e) => { e.stopPropagation(); setDeleteConfirmEmp(emp); }}
-                                    className="h-7 w-7 p-0 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-md"
+                                    className="h-7 w-7 p-0 text-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-md"
                                   >
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
@@ -734,7 +734,7 @@ export default function Employees() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={4} className="py-12 text-center text-muted-foreground italic font-medium">No employees found matching your search.</TableCell>
+                        <TableCell colSpan={4} className="py-12 text-center text-foreground italic font-medium">No employees found matching your search.</TableCell>
                       </TableRow>
                     )}
                   </TableBody>
@@ -779,14 +779,14 @@ export default function Employees() {
                                     variant="ghost"
                                     size="sm"
                                     onClick={(e) => { e.stopPropagation(); setDeleteConfirmEmp(emp); }}
-                                    className="h-7 w-7 p-0 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-md"
+                                    className="h-7 w-7 p-0 text-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-md"
                                   >
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
                                 )}
                               </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-foreground uppercase tracking-wider">
                           <span className="truncate max-w-[100px]">
                             {emp.position === "Finance Manager" || emp.position === "finance_manager" ? "Operation Manager" : emp.position.replace(/_/g, ' ')}
                           </span>
@@ -805,14 +805,14 @@ export default function Employees() {
                     </div>
                   ))
                 ) : (
-                  <div className="py-12 text-center text-muted-foreground italic font-medium p-6">No employees found.</div>
+                  <div className="py-12 text-center text-foreground italic font-medium p-6">No employees found.</div>
                 )}
               </div>
 
               {/* Pagination Controls */}
               {filtered.length > 0 && (
                 <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-border/50 gap-4 bg-muted/10">
-                  <div className="flex items-center gap-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                  <div className="flex items-center gap-4 text-xs font-bold text-foreground uppercase tracking-widest">
                     <span>
                       Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filtered.length)} of {filtered.length} Entries
                     </span>
@@ -901,7 +901,7 @@ export default function Employees() {
                         {selectedEmployee.name.charAt(0)}
                       </div>
                       <h2 className="text-lg font-black text-slate-900 dark:text-slate-100 leading-tight mb-1">{selectedEmployee.name}</h2>
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">{selectedEmployee.email}</p>
+                      <p className="text-xs font-semibold text-foreground dark:text-foreground mb-3">{selectedEmployee.email}</p>
                       
                       <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-wider px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200">
                         {selectedEmployee.position === "Finance Manager" || selectedEmployee.position === "finance_manager" ? "Operation Manager" : selectedEmployee.position?.replace(/_/g, ' ')}
@@ -909,19 +909,19 @@ export default function Employees() {
                       
                       <div className="mt-5 w-full flex flex-col gap-2">
                         <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">User ID</span>
+                          <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">User ID</span>
                           <span className="text-xs font-black text-slate-700 dark:text-slate-200">{selectedEmployee.user_id}</span>
                         </div>
                         <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Branch</span>
+                          <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">Branch</span>
                           <span className="text-xs font-black text-slate-700 dark:text-slate-200">{selectedEmployee.branch}</span>
                         </div>
                         <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Department</span>
+                          <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">Department</span>
                           <span className="text-xs font-black text-slate-700 dark:text-slate-200 truncate max-w-[120px]">{selectedEmployee.department}</span>
                         </div>
                         <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</span>
+                          <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">Status</span>
                           <Badge className={`text-white font-black text-[9px] uppercase tracking-wider ${selectedEmployee.status === 'Active' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-rose-500 hover:bg-rose-600'}`}>
                             {selectedEmployee.status}
                           </Badge>
@@ -945,7 +945,7 @@ export default function Employees() {
                     </div>
 
                     {loadingAnalytics ? (
-                      <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm">
+                      <div className="flex flex-col items-center justify-center py-20 text-foreground bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm">
                         <Loader2 className="w-8 h-8 animate-spin mb-3 text-[#7B0099]" />
                         <p className="text-xs font-bold tracking-wide">Loading enterprise analytics...</p>
                       </div>
@@ -959,10 +959,10 @@ export default function Employees() {
                               <CardContent className="p-4">
                                 <div className="flex justify-between items-center mb-3">
                                   <div className="flex items-center gap-2">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Monthly Rate</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-foreground dark:text-foreground">Monthly Rate</p>
                                     <Tooltip>
                                       <TooltipTrigger>
-                                        <div className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-[8px] font-bold cursor-help hover:bg-slate-200 transition-colors">?</div>
+                                        <div className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-800 text-foreground flex items-center justify-center text-[8px] font-bold cursor-help hover:bg-slate-200 transition-colors">?</div>
                                       </TooltipTrigger>
                                       <TooltipContent className="max-w-[200px] p-2 text-[10px] leading-relaxed">
                                         <p className="font-bold mb-1 text-slate-800 dark:text-slate-200">Formula:</p>
@@ -988,7 +988,7 @@ export default function Employees() {
                                   }`}>
                                     {analytics.attendance.monthly.rate}
                                   </span>
-                                  <span className="text-sm font-bold text-slate-400">%</span>
+                                  <span className="text-sm font-bold text-foreground">%</span>
                                 </div>
                                 
                                 <div className="grid grid-cols-3 gap-2">
@@ -1002,7 +1002,7 @@ export default function Employees() {
                                   </div>
                                   <div className="bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800/60 rounded-lg p-2 text-center">
                                     <p className="text-lg font-black text-slate-600 dark:text-slate-300 leading-none mb-1">{analytics.attendance.monthly.absent}</p>
-                                    <p className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Absent</p>
+                                    <p className="text-[8px] font-bold text-foreground dark:text-foreground uppercase tracking-wider">Absent</p>
                                   </div>
                                 </div>
                               </CardContent>
@@ -1013,7 +1013,7 @@ export default function Employees() {
                               <CardContent className="p-4">
                                 <div className="flex justify-between items-center mb-3">
                                   <div className="flex items-center gap-2">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Yearly Rate</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-foreground dark:text-foreground">Yearly Rate</p>
                                   </div>
                                   <Badge variant="secondary" className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 border ${
                                     analytics.attendance.yearly.rate >= 95 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 
@@ -1033,7 +1033,7 @@ export default function Employees() {
                                   }`}>
                                     {analytics.attendance.yearly.rate}
                                   </span>
-                                  <span className="text-sm font-bold text-slate-400">%</span>
+                                  <span className="text-sm font-bold text-foreground">%</span>
                                 </div>
                                 
                                 <div className="grid grid-cols-3 gap-2">
@@ -1047,7 +1047,7 @@ export default function Employees() {
                                   </div>
                                   <div className="bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800/60 rounded-lg p-2 text-center">
                                     <p className="text-lg font-black text-slate-600 dark:text-slate-300 leading-none mb-1">{analytics.attendance.yearly.absent}</p>
-                                    <p className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Absent</p>
+                                    <p className="text-[8px] font-bold text-foreground dark:text-foreground uppercase tracking-wider">Absent</p>
                                   </div>
                                 </div>
                               </CardContent>
@@ -1068,11 +1068,11 @@ export default function Employees() {
                           
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                             <div className="rounded-xl border border-slate-200 dark:border-slate-800/60 p-3 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5">Total Entitled</p>
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1.5">Total Entitled</p>
                               <p className="text-2xl font-black text-slate-800 dark:text-slate-200 tracking-tighter">{analytics.leave.entitlement}</p>
                             </div>
                             <div className="rounded-xl border border-slate-200 dark:border-slate-800/60 p-3 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5">Approved Taken</p>
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1.5">Approved Taken</p>
                               <p className="text-2xl font-black text-slate-800 dark:text-slate-200 tracking-tighter">{analytics.leave.used}</p>
                             </div>
                             <div className="rounded-xl border-2 border-emerald-500/20 p-3 bg-emerald-50/30 shadow-sm flex flex-col justify-between">
@@ -1082,9 +1082,9 @@ export default function Employees() {
                             <div className="rounded-xl border border-slate-200 dark:border-slate-800/60 p-3 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
                               <Tooltip>
                                 <TooltipTrigger className="text-left w-full h-full flex flex-col justify-between">
-                                  <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5 flex items-center justify-between w-full">
+                                  <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1.5 flex items-center justify-between w-full">
                                     Utilization
-                                    <span className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[7px] text-slate-400">?</span>
+                                    <span className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[7px] text-foreground">?</span>
                                   </p>
                                   <p className={`text-2xl font-black tracking-tighter ${analytics.leave.utilizationRate >= 90 ? 'text-amber-500' : 'text-slate-800 dark:text-slate-200'}`}>
                                     {analytics.leave.utilizationRate}%
@@ -1129,18 +1129,18 @@ export default function Employees() {
                               onClick={() => setViewLeaveStatus("Rejected")}
                             >
                               <div className="flex justify-between items-center w-full mb-2">
-                                <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500 group-hover:scale-110 transition-transform">
+                                <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-foreground group-hover:scale-110 transition-transform">
                                   <X className="w-3 h-3" />
                                 </div>
-                                <span className="text-lg font-black text-slate-500">{analytics.leave.rejected}</span>
+                                <span className="text-lg font-black text-foreground">{analytics.leave.rejected}</span>
                               </div>
-                              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Rejected Requests</span>
+                              <span className="text-[9px] font-bold text-foreground uppercase tracking-widest">Rejected Requests</span>
                             </button>
                           </div>
                         </section>
                       </>
                     ) : (
-                      <div className="flex flex-col items-center justify-center py-32 text-slate-400 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm">
+                      <div className="flex flex-col items-center justify-center py-32 text-foreground bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm">
                         <Users className="w-12 h-12 opacity-20 mb-4" />
                         <p className="text-sm font-bold">Analytics unavailable.</p>
                       </div>
@@ -1172,7 +1172,7 @@ export default function Employees() {
                             
                             <div className="space-y-3">
                               <div>
-                                <Label className="text-xs font-bold text-slate-500 uppercase">Working Branch</Label>
+                                <Label className="text-xs font-bold text-foreground uppercase">Working Branch</Label>
                                 <Select value={tempAssignment.location} onValueChange={(val) => setTempAssignment({...tempAssignment, location: val})}>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select Branch" />
@@ -1187,17 +1187,17 @@ export default function Employees() {
 
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                  <Label className="text-xs font-bold text-slate-500 uppercase">Start Date</Label>
+                                  <Label className="text-xs font-bold text-foreground uppercase">Start Date</Label>
                                   <Input type="date" value={tempAssignment.start_date} onChange={(e) => setTempAssignment({...tempAssignment, start_date: e.target.value})} />
                                 </div>
                                 <div>
-                                  <Label className="text-xs font-bold text-slate-500 uppercase">End Date</Label>
+                                  <Label className="text-xs font-bold text-foreground uppercase">End Date</Label>
                                   <Input type="date" value={tempAssignment.end_date} onChange={(e) => setTempAssignment({...tempAssignment, end_date: e.target.value})} />
                                 </div>
                               </div>
                               
                               <div>
-                                <Label className="text-xs font-bold text-slate-500 uppercase">Status</Label>
+                                <Label className="text-xs font-bold text-foreground uppercase">Status</Label>
                                 <Select value={tempAssignment.status} onValueChange={(val) => setTempAssignment({...tempAssignment, status: val})}>
                                   <SelectTrigger>
                                     <SelectValue />
@@ -1223,7 +1223,7 @@ export default function Employees() {
                             <div className="flex justify-between items-center border-b pb-2">
                               <h3 className="font-bold text-lg">Allowed Branches</h3>
                             </div>
-                            <div className="text-xs text-muted-foreground mb-2">Select the branches this employee is permitted to clock into.</div>
+                            <div className="text-xs text-foreground mb-2">Select the branches this employee is permitted to clock into.</div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2">
                               {Object.entries(BRANCH_NAMES).map(([code, name]) => (
                                 <div key={code} className="flex items-center space-x-2 border p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-800">
@@ -1256,21 +1256,21 @@ export default function Employees() {
                         <MapPin className="w-5 h-5 text-indigo-500" />
                         Temporary Branch History
                       </h3>
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1">View this employee's previous temporary branch transfers.</p>
+                      <p className="text-xs font-semibold text-foreground dark:text-foreground mt-1">View this employee's previous temporary branch transfers.</p>
                     </div>
 
                     {tempAssignmentsHistory.length === 0 ? (
                       <div className="border border-slate-200 dark:border-slate-700 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center bg-slate-50/50 dark:bg-slate-900/50">
                         <div className="w-12 h-12 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center mb-3 shadow-sm">
-                          <MapPin className="w-5 h-5 text-slate-400" />
+                          <MapPin className="w-5 h-5 text-foreground" />
                         </div>
                         <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">No Temporary Transfer</h4>
-                        <p className="text-xs font-semibold text-slate-500 max-w-[250px]">This employee has no previous temporary branch transfer records.</p>
+                        <p className="text-xs font-semibold text-foreground max-w-[250px]">This employee has no previous temporary branch transfer records.</p>
                       </div>
                     ) : (
                       <div className="space-y-4">
                         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                          <span className="text-xs font-bold text-slate-500">Total Temporary Transfers</span>
+                          <span className="text-xs font-bold text-foreground">Total Temporary Transfers</span>
                           <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{tempAssignmentsHistory.length} Transfers</span>
                         </div>
                         
@@ -1292,7 +1292,7 @@ export default function Employees() {
                                       {assignment.temp_branch || assignment.location}
                                     </div>
                                   </TableCell>
-                                  <TableCell className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                  <TableCell className="text-xs font-semibold text-slate-600 dark:text-foreground">
                                     {assignment.start_date ? new Date(assignment.start_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }).toUpperCase() : '?'} – {assignment.end_date ? new Date(assignment.end_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }).toUpperCase() : '?'}
                                   </TableCell>
                                   <TableCell>
@@ -1311,7 +1311,7 @@ export default function Employees() {
                 </TabsContent>
               </Tabs>
             ) : (
-              <div className="py-20 text-center text-slate-500 dark:text-slate-400">
+              <div className="py-20 text-center text-foreground dark:text-foreground">
                 <p>Loading profile details...</p>
               </div>
             )}
@@ -1344,7 +1344,7 @@ export default function Employees() {
                 if (viewStatus === "pending") return status.includes("pending");
                 return status === viewStatus;
               }).length === 0 ? (
-                <p className="text-sm text-center text-muted-foreground p-4 italic">No {viewLeaveStatus?.toLowerCase()} leave records found for this staff member.</p>
+                <p className="text-sm text-center text-foreground p-4 italic">No {viewLeaveStatus?.toLowerCase()} leave records found for this staff member.</p>
               ) : (
                 <div className="border border-border/50 rounded-xl overflow-hidden">
                   <Table>
@@ -1597,12 +1597,12 @@ export default function Employees() {
                                       by {history.approver_name || history.approver_id}
                                     </span>
                                   </div>
-                                  <span className="text-[8px] font-black text-muted-foreground/50">
+                                  <span className="text-[8px] font-black text-foreground/50">
                                     {new Date(history.created_at).toLocaleDateString('ms-MY')}
                                   </span>
                                 </div>
                                 {history.remarks && (
-                                  <p className="text-[10px] italic text-muted-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
+                                  <p className="text-[10px] italic text-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
                                     "{history.remarks}"
                                   </p>
                                 )}

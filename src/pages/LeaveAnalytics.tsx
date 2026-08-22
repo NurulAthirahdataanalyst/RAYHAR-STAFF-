@@ -315,7 +315,7 @@ function StatCard({
                   </Badge>
                 )}
                 {sub && !loading && (
-                  <p className="text-[9px] font-bold text-muted-foreground/80 uppercase tracking-widest truncate">
+                  <p className="text-[9px] font-bold text-foreground/80 uppercase tracking-widest truncate">
                     {sub}
                   </p>
                 )}
@@ -1049,7 +1049,7 @@ export default function LeaveAnalytics() {
             className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
               viewType === "day"
                 ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
-                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                : "text-foreground hover:text-slate-700 hover:bg-slate-200/50"
             }`}
           >
             DAY
@@ -1062,7 +1062,7 @@ export default function LeaveAnalytics() {
             className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
               viewType === "month"
                 ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
-                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                : "text-foreground hover:text-slate-700 hover:bg-slate-200/50"
             }`}
           >
             MONTH
@@ -1075,7 +1075,7 @@ export default function LeaveAnalytics() {
             className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${
               viewType === "year"
                 ? "bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm"
-                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                : "text-foreground hover:text-slate-700 hover:bg-slate-200/50"
             }`}
           >
             YEAR
@@ -1089,7 +1089,7 @@ export default function LeaveAnalytics() {
               <Popover>
                 <PopoverTrigger asChild>
                   <button className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer tracking-widest h-10 gap-3 hover:border-[#7B0099]/40 min-w-[140px]">
-                    {new Date(selectedDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} <CalendarDays className="w-4 h-4 text-gray-400" />
+                    {new Date(selectedDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} <CalendarDays className="w-4 h-4 text-foreground" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-card z-50" align="start">
@@ -1160,7 +1160,7 @@ export default function LeaveAnalytics() {
             </div>
             <div>
               <p className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none mt-2">{k.val}</p>
-              <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mt-1 line-clamp-2 min-leading-tight">{k.label}</p>
+              <p className="text-[10px] font-semibold text-foreground dark:text-foreground uppercase tracking-wide mt-1 line-clamp-2 min-leading-tight">{k.label}</p>
               <p className="text-[9px] text-emerald-600 font-medium mt-1">{k.trend}</p>
             </div>
           </Card>
@@ -1270,12 +1270,12 @@ export default function LeaveAnalytics() {
           </div>
           <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg flex items-center justify-between">
             <div>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wide font-semibold">Top Growing Type</p>
+              <p className="text-[10px] text-foreground dark:text-foreground uppercase tracking-wide font-semibold">Top Growing Type</p>
               <p className="text-sm font-bold text-emerald-600">{typeDistribution[0]?.name || "N/A"}</p>
             </div>
             <div className="text-right">
               <p className="text-sm font-bold text-emerald-600">↑ 18%</p>
-              <p className="text-[9px] text-slate-400">vs last month</p>
+              <p className="text-[9px] text-foreground">vs last month</p>
             </div>
           </div>
         </Card>
@@ -1414,12 +1414,12 @@ export default function LeaveAnalytics() {
         {/* Leave Calendar */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Calendar <span className="text-[9px] font-normal text-slate-400">(This Month)</span></h3>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Leave Calendar <span className="text-[9px] font-normal text-foreground">(This Month)</span></h3>
           </div>
           <div className="flex-1 flex flex-col justify-center items-center border border-dashed border-slate-200 dark:border-slate-800 rounded-lg bg-slate-50 dark:bg-slate-900/50 min-h-[160px]">
-            <CalendarCheck className="w-6 h-6 text-slate-400 mb-2" />
-            <p className="text-xs font-bold text-slate-600 dark:text-slate-400">Calendar View Ready</p>
-            <p className="text-[10px] text-slate-400 text-center mt-1 px-4">Integrate with full calendar component.</p>
+            <CalendarCheck className="w-6 h-6 text-foreground mb-2" />
+            <p className="text-xs font-bold text-slate-600 dark:text-foreground">Calendar View Ready</p>
+            <p className="text-[10px] text-foreground text-center mt-1 px-4">Integrate with full calendar component.</p>
             <Button variant="outline" size="sm" className="mt-3 text-[10px] h-7" onClick={() => navigate("/leave/calendar")}>Go to Calendar</Button>
           </div>
         </Card>
@@ -1427,7 +1427,7 @@ export default function LeaveAnalytics() {
         {/* Upcoming */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Upcoming Approved Leave <span className="text-[9px] font-normal text-slate-400">(Forecast)</span></h3>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Upcoming Approved Leave <span className="text-[9px] font-normal text-foreground">(Forecast)</span></h3>
           </div>
           <div className="space-y-4 flex-1">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -1459,14 +1459,14 @@ export default function LeaveAnalytics() {
         {/* Approval Perf */}
         <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col w-full">
           <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Approval Performance <span className="text-[9px] font-normal text-slate-400">(Avg. Time)</span></h3>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Approval Performance <span className="text-[9px] font-normal text-foreground">(Avg. Time)</span></h3>
           </div>
           <div className="flex-1 flex flex-col justify-center items-center min-h-[160px]">
             <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
-              <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
+              <Loader2 className="w-5 h-5 text-foreground animate-spin" />
             </div>
-            <p className="text-xs font-bold text-slate-600 dark:text-slate-400">Coming Soon</p>
-            <p className="text-[10px] text-slate-400 text-center mt-1">Approval timestamp tracking is being implemented.</p>
+            <p className="text-xs font-bold text-slate-600 dark:text-foreground">Coming Soon</p>
+            <p className="text-[10px] text-foreground text-center mt-1">Approval timestamp tracking is being implemented.</p>
           </div>
         </Card>
 
@@ -1536,7 +1536,7 @@ export default function LeaveAnalytics() {
             ) : (
               <div className="flex items-start gap-2 p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
                 <div className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1.5 shrink-0" />
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">No leave data for this period. Try adjusting the year or month filter.</p>
+                <p className="text-xs text-slate-600 dark:text-foreground font-medium leading-relaxed">No leave data for this period. Try adjusting the year or month filter.</p>
               </div>
             )}
           </div>

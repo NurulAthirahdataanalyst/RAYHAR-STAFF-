@@ -19,7 +19,7 @@ function statusColor(status: string) {
   if (status === "Approved") return { bg: "bg-emerald-100 dark:bg-emerald-500/20", text: "text-emerald-700 dark:text-emerald-300", border: "border-emerald-200 dark:border-emerald-500/30", dot: "bg-emerald-500" };
   if (status === "Rejected") return { bg: "bg-rose-100 dark:bg-rose-500/20", text: "text-rose-700 dark:text-rose-300", border: "border-rose-200 dark:border-rose-500/30", dot: "bg-rose-500" };
   if (status.startsWith("Pending")) return { bg: "bg-amber-100 dark:bg-amber-500/20", text: "text-amber-700 dark:text-amber-300", border: "border-amber-200 dark:border-amber-500/30", dot: "bg-amber-400" };
-  return { bg: "bg-gray-100 dark:bg-gray-500/20", text: "text-gray-500 dark:text-gray-300", border: "border-gray-200 dark:border-gray-500/30", dot: "bg-gray-400" };
+  return { bg: "bg-gray-100 dark:bg-gray-500/20", text: "text-foreground dark:text-gray-300", border: "border-gray-200 dark:border-gray-500/30", dot: "bg-gray-400" };
 }
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -146,7 +146,7 @@ export default function LeaveCalendar() {
           return (
             <div key={status} className="flex items-center gap-1.5">
               <div className={`w-2.5 h-2.5 rounded-sm ${c.dot}`} />
-              <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400">{label}</span>
+              <span className="text-[10px] font-bold text-foreground dark:text-foreground">{label}</span>
             </div>
           );
         })}
@@ -181,10 +181,10 @@ export default function LeaveCalendar() {
                   textCol = "text-[#7B0099]";
                 } else if (!isCurrentMonth) {
                   cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
-                  textCol = "text-muted-foreground opacity-50";
+                  textCol = "text-foreground opacity-50";
                 } else if (isPast) {
                   cellBg = "bg-white dark:bg-card opacity-80";
-                  textCol = "text-gray-500 dark:text-gray-400";
+                  textCol = "text-foreground dark:text-foreground";
                 }
 
                 return (
@@ -210,7 +210,7 @@ export default function LeaveCalendar() {
                         );
                       })}
                       {evts.length > 3 && (
-                        <div className={`text-[9px] font-bold pl-1 ${today ? 'text-white/80' : 'text-gray-400'}`}>+{evts.length - 3} more</div>
+                        <div className={`text-[9px] font-bold pl-1 ${today ? 'text-white/80' : 'text-foreground'}`}>+{evts.length - 3} more</div>
                       )}
                     </div>
                   </div>
@@ -266,7 +266,7 @@ function LeaveDetailPopup({ selectedEvent, requests, filterStatus, onClose }: { 
             <div className="flex items-center gap-2.5">
               <User className="w-3.5 h-3.5 text-[#7B0099] shrink-0" />
               <div>
-                <p className="text-[9px] font-black uppercase text-gray-400">Employee</p>
+                <p className="text-[9px] font-black uppercase text-foreground">Employee</p>
                 <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{selectedEvent.full_name || selectedEvent.user_id}</p>
               </div>
             </div>
@@ -274,7 +274,7 @@ function LeaveDetailPopup({ selectedEvent, requests, filterStatus, onClose }: { 
             <div className="flex items-center gap-2.5">
               <Calendar className="w-3.5 h-3.5 text-[#7B0099] shrink-0" />
               <div>
-                <p className="text-[9px] font-black uppercase text-gray-400">Duration ({selectedEvent.days} {selectedEvent.days > 1 ? 'Days' : 'Day'})</p>
+                <p className="text-[9px] font-black uppercase text-foreground">Duration ({selectedEvent.days} {selectedEvent.days > 1 ? 'Days' : 'Day'})</p>
                 <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{fmtDate(selectedEvent.start_date)} → {fmtDate(selectedEvent.end_date)}</p>
               </div>
             </div>
@@ -298,7 +298,7 @@ function LeaveDetailPopup({ selectedEvent, requests, filterStatus, onClose }: { 
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100 truncate leading-tight">{a.full_name || a.user_id}</p>
-                      <p className="text-[10px] text-gray-400 truncate mt-0.5">{a.leave_type}</p>
+                      <p className="text-[10px] text-foreground truncate mt-0.5">{a.leave_type}</p>
                     </div>
                   </div>
                 ))}

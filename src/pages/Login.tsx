@@ -229,7 +229,7 @@ export default function Login() {
 
                       {showResetBox && (
                         <div className="pt-2 border-t border-[#7B0099]/10 animate-in fade-in slide-in-from-top-2 duration-300">
-                          <p className="text-[10px] text-slate-500 mb-2 font-medium">
+                          <p className="text-[10px] text-foreground mb-2 font-medium">
                             Enter your email to receive a secure password reset link.
                           </p>
                           <div className="flex gap-2">
@@ -260,7 +260,7 @@ export default function Login() {
 
 
                     {/* Secure Footer */}
-                    <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-400 font-extrabold uppercase tracking-wider pt-2 border-t border-slate-100 dark:border-slate-800/50">
+                    <div className="flex items-center justify-center gap-1.5 text-[10px] text-foreground font-extrabold uppercase tracking-wider pt-2 border-t border-slate-100 dark:border-slate-800/50">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
                       <span>Secure Password Login</span>
                     </div>
@@ -364,7 +364,7 @@ export default function Login() {
                   </Button>
 
                   {/* Centered Switch Link */}
-                  <div className="text-center text-xs text-slate-500 font-bold pt-2">
+                  <div className="text-center text-xs text-foreground font-bold pt-2">
                     Already have an account?{" "}
                     <button
                       type="button"

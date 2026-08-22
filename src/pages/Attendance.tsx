@@ -603,7 +603,7 @@ export default function Attendance() {
                   <CalendarDays className="w-4 h-4 text-violet-700" />
                 </div>
                 <div className="text-xl sm:text-2xl font-black text-foreground">{companyLeaveCount}</div>
-                <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Company Leave</div>
+                <div className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-widest mt-1">Company Leave</div>
               </div>
 
               <div className="bg-card dark:bg-card border border-border/40 shadow-sm rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
@@ -611,7 +611,7 @@ export default function Attendance() {
                   <FileText className="w-4 h-4 text-amber-700" />
                 </div>
                 <div className="text-xl sm:text-2xl font-black text-foreground">{approvedLeaveCount}</div>
-                <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Approved Leave KPI</div>
+                <div className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-widest mt-1">Approved Leave KPI</div>
               </div>
 
               <div className="bg-card dark:bg-card border border-border/40 shadow-sm rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
@@ -619,7 +619,7 @@ export default function Attendance() {
                   <Timer className="w-4 h-4 text-blue-600" />
                 </div>
                 <div className="text-xl sm:text-2xl font-black text-foreground">{totalWorkdays}</div>
-                <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Total Workdays (to date)</div>
+                <div className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-widest mt-1">Total Workdays (to date)</div>
               </div>
             </div>
           )}
@@ -1168,7 +1168,7 @@ export default function Attendance() {
       <div className="flex h-[60vh] sm:h-[80vh] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="animate-spin text-[#7B0099] w-10 h-10" />
-          <p className="text-muted-foreground font-medium animate-pulse text-sm">Initializing Attendance System...</p>
+          <p className="text-foreground font-medium animate-pulse text-sm">Initializing Attendance System...</p>
         </div>
       </div>
     );
@@ -1200,7 +1200,7 @@ export default function Attendance() {
                 <div className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground tracking-tight font-mono drop-shadow-sm">
                   {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
                 </div>
-                <div className="text-muted-foreground font-semibold text-[11px] sm:text-xs md:text-sm tracking-wide">
+                <div className="text-foreground font-semibold text-[11px] sm:text-xs md:text-sm tracking-wide">
                   {currentTime.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
                 </div>
               </div>
@@ -1315,9 +1315,9 @@ export default function Attendance() {
               {/* Single location display when NOT multi-mode */}
               {!activeSession && attendanceMode !== 'multi' && selectedLocation && (
                 <div className="w-full mb-3 flex items-center gap-2 bg-muted/30 px-3 py-2 rounded-xl border border-border/50">
-                  <MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                  <MapPin className="w-3.5 h-3.5 text-foreground flex-shrink-0" />
                   <div className="flex flex-col">
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Working Location</span>
+                    <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">Working Location</span>
                     <span className="text-xs font-bold text-foreground">{selectedLocation}</span>
                   </div>
                 </div>
@@ -1343,7 +1343,7 @@ export default function Attendance() {
               </div>
               <div className="w-full mt-4 rounded-xl border border-border bg-muted/20 p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[9px] font-black uppercase tracking-[0.18em] text-muted-foreground">Location Status</span>
+                  <span className="text-[9px] font-black uppercase tracking-[0.18em] text-foreground">Location Status</span>
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-bold text-emerald-700">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                     Active
@@ -1352,15 +1352,15 @@ export default function Attendance() {
 
                 <div className="space-y-2 text-xs text-foreground">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-muted-foreground">Last updated</span>
+                    <span className="font-semibold text-foreground">Last updated</span>
                     <span className="font-bold">{locationLastUpdated ? formatFullDateTime(locationLastUpdated).toUpperCase() : "-"}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-muted-foreground">Coordinates</span>
+                    <span className="font-semibold text-foreground">Coordinates</span>
                     <span className="font-bold font-mono text-[10px]">{locationCoords ? `${locationCoords.lat.toFixed(5)}, ${locationCoords.lng.toFixed(5)}` : "-"}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-muted-foreground">Distance</span>
+                    <span className="font-semibold text-foreground">Distance</span>
                     <span className="font-bold">{locationDistance !== null ? `${Math.round(locationDistance)} m` : "-"}</span>
                   </div>
                 </div>
@@ -1385,7 +1385,7 @@ export default function Attendance() {
                     <div className="w-7 h-7 rounded-full bg-purple-50 dark:bg-purple-950/30 text-[#7B0099] dark:text-purple-400 flex items-center justify-center">
                       <Clock className="w-3.5 h-3.5" />
                     </div>
-                    <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider text-center">Clock In</span>
+                    <span className="text-[9px] uppercase font-bold text-foreground tracking-wider text-center">Clock In</span>
                     <span className="text-[11px] sm:text-xs font-bold text-foreground tabular-nums">
                       {activeSession ? formatAttendanceTime(activeSession.clock_in) : "--:--"}
                     </span>
@@ -1395,7 +1395,7 @@ export default function Attendance() {
                     <div className="w-7 h-7 rounded-full bg-rose-50 dark:bg-rose-950/30 text-rose-500 dark:text-rose-400 flex items-center justify-center">
                       <Clock className="w-3.5 h-3.5" />
                     </div>
-                    <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider text-center">
+                    <span className="text-[9px] uppercase font-bold text-foreground tracking-wider text-center">
                       {activeSession ? "Est. Out" : "Clock Out"}
                     </span>
                     <span className="text-[11px] sm:text-xs font-bold text-foreground tabular-nums">
@@ -1407,7 +1407,7 @@ export default function Attendance() {
                     <div className="w-7 h-7 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-500 dark:text-emerald-400 flex items-center justify-center">
                       <Timer className="w-3.5 h-3.5" />
                     </div>
-                    <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider text-center">Working Hrs</span>
+                    <span className="text-[9px] uppercase font-bold text-foreground tracking-wider text-center">Working Hrs</span>
                     <span className="text-[11px] sm:text-xs font-bold text-foreground font-mono tabular-nums whitespace-nowrap">
                       {workingHrs}
                     </span>
@@ -1419,10 +1419,10 @@ export default function Attendance() {
           ) : (
             <div className="py-10 sm:py-16 space-y-3 text-center">
               <div className="w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
-                <Fingerprint className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground" />
+                <Fingerprint className="w-8 h-8 sm:w-10 sm:h-10 text-foreground" />
               </div>
-              <p className="text-lg sm:text-xl text-muted-foreground font-bold">Authentication Required</p>
-              <p className="text-muted-foreground text-sm">Please log in to your account to record attendance.</p>
+              <p className="text-lg sm:text-xl text-foreground font-bold">Authentication Required</p>
+              <p className="text-foreground text-sm">Please log in to your account to record attendance.</p>
             </div>
           )}
         </div>
@@ -1443,9 +1443,9 @@ export default function Attendance() {
                  <Clock className="w-4 h-4 text-[#7B0099] dark:text-purple-400" />
               </div>
               <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
-                {stats.totalHoursToday} <span className="text-xs text-muted-foreground">hrs</span>
+                {stats.totalHoursToday} <span className="text-xs text-foreground">hrs</span>
               </div>
-              <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">
+              <div className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-widest mt-1">
                 Total Today
               </div>
             </div>
@@ -1459,9 +1459,9 @@ export default function Attendance() {
                  <Timer className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
-                {stats.totalHoursWeek} <span className="text-xs text-muted-foreground">hrs</span>
+                {stats.totalHoursWeek} <span className="text-xs text-foreground">hrs</span>
               </div>
-              <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">
+              <div className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-widest mt-1">
                 Total This Week
               </div>
             </div>
@@ -1475,9 +1475,9 @@ export default function Attendance() {
                  <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
-                {stats.totalHoursMonth} <span className="text-xs text-muted-foreground">hrs</span>
+                {stats.totalHoursMonth} <span className="text-xs text-foreground">hrs</span>
               </div>
-              <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">
+              <div className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-widest mt-1">
                 Total This Month
               </div>
             </div>
@@ -1491,9 +1491,9 @@ export default function Attendance() {
                  <Fingerprint className="w-4 h-4 text-rose-600 dark:text-rose-400" />
               </div>
               <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
-                {stats.overtimeMonth} <span className="text-xs text-muted-foreground">hrs</span>
+                {stats.overtimeMonth} <span className="text-xs text-foreground">hrs</span>
               </div>
-              <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">
+              <div className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-widest mt-1">
                 OT This Month
               </div>
             </div>
@@ -1502,14 +1502,14 @@ export default function Attendance() {
 
           {/* Timeline Bar Card */}
           <div className="bg-card dark:bg-card border border-border shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl p-5 sm:p-6 flex flex-col relative overflow-hidden min-h-[220px]">
-            <h3 className="text-xs font-black text-muted-foreground/60 uppercase tracking-widest mb-6">
+            <h3 className="text-xs font-black text-foreground/60 uppercase tracking-widest mb-6">
               Monthly Attendance Breakdown
             </h3>
 
             {/* Stats Overview */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5">
+                <span className="text-[10px] uppercase font-bold text-foreground flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-purple-200"></span> Total Working
                 </span>
                 <span className="text-sm font-black font-mono">{stats.totalHoursMonth} hrs</span>
@@ -1610,7 +1610,7 @@ export default function Attendance() {
             </div>
             
             {/* Timeline Axis Markers */}
-            <div className="flex justify-between items-center text-[9px] font-bold text-muted-foreground mt-2 px-1">
+            <div className="flex justify-between items-center text-[9px] font-bold text-foreground mt-2 px-1">
                <span>Week 1</span>
                <span>Week 2</span>
                <span>Week 3</span>
@@ -1627,7 +1627,7 @@ export default function Attendance() {
           <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/50 bg-muted/20 pb-4">
             <div>
               <CardTitle className="text-lg font-bold">Employee Attendance</CardTitle>
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Detailed Log Records</p>
+              <p className="text-xs font-bold text-foreground uppercase tracking-widest mt-1">Detailed Log Records</p>
             </div>
             
             <div className="flex items-center gap-3 flex-wrap">
@@ -1637,7 +1637,7 @@ export default function Attendance() {
                   <Popover>
                     <PopoverTrigger asChild>
                       <button className="appearance-none flex items-center justify-center px-4 py-2 bg-muted/50 border border-border text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-[34px] gap-2 hover:bg-muted/80">
-                        {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                        {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-4 h-4 text-foreground" />
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-1" align="start">
@@ -1667,7 +1667,7 @@ export default function Attendance() {
                 <button
                   onClick={() => setViewMode("day")}
                   className={`px-4 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
-                    viewMode === "day" ? "bg-[#7B0099] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    viewMode === "day" ? "bg-[#7B0099] text-white shadow-sm" : "text-foreground hover:text-foreground"
                   }`}
                 >
                   Day
@@ -1675,7 +1675,7 @@ export default function Attendance() {
                 <button
                   onClick={() => setViewMode("month")}
                   className={`px-4 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
-                    viewMode === "month" ? "bg-[#7B0099] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    viewMode === "month" ? "bg-[#7B0099] text-white shadow-sm" : "text-foreground hover:text-foreground"
                   }`}
                 >
                   Month
@@ -1689,7 +1689,7 @@ export default function Attendance() {
                     key={status}
                     onClick={() => setStatusFilter(status)}
                     className={`px-3 py-1.5 text-[10px] font-black tracking-wider rounded-md transition-all uppercase ${
-                      statusFilter === status ? "bg-[#7B0099] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                      statusFilter === status ? "bg-[#7B0099] text-white shadow-sm" : "text-foreground hover:text-foreground"
                     }`}
                   >
                     {status}
@@ -1725,14 +1725,14 @@ export default function Attendance() {
                   <TableRow>
                     <TableCell colSpan={attendanceMode === 'multi' ? 8 : 7} className="py-12 text-center">
                       <Loader2 className="w-6 h-6 animate-spin text-[#7B0099] mx-auto mb-2" />
-                      <p className="text-sm font-medium text-muted-foreground">Loading Data...</p>
+                      <p className="text-sm font-medium text-foreground">Loading Data...</p>
                     </TableCell>
                   </TableRow>
                 ) : displayedLogs.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={attendanceMode === 'multi' ? 8 : 7} className="py-12 text-center">
                        <Clock className="w-8 h-8 opacity-20 mx-auto mb-2" />
-                       <p className="text-sm font-medium text-muted-foreground">No logs found</p>
+                       <p className="text-sm font-medium text-foreground">No logs found</p>
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -1740,7 +1740,7 @@ export default function Attendance() {
                     const logDate = new Date(log.date);
                     const dateStr = logDate.toLocaleString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' });
                     
-                    let statusBadge = "bg-muted/5 text-muted-foreground border-muted";
+                    let statusBadge = "bg-muted/5 text-foreground border-muted";
                     if (log.status === "Present") {
                       if (log.late !== "00:00" && log.late !== "--") {
                         statusBadge = "bg-rose-100/50 text-rose-700 border-rose-200/50 dark:bg-rose-900/20 dark:text-rose-400";
@@ -1754,9 +1754,9 @@ export default function Attendance() {
                     } else if (log.status === "Holiday") {
                       statusBadge = "bg-blue-100/50 text-blue-700 border-blue-200/50 dark:bg-blue-900/20 dark:text-blue-400";
                     } else if (log.status === "Weekend") {
-                      statusBadge = "bg-slate-100/50 text-slate-700 border-slate-200 dark:border-slate-800/50 dark:bg-slate-900/20 dark:text-slate-400";
+                      statusBadge = "bg-slate-100/50 text-slate-700 border-slate-200 dark:border-slate-800/50 dark:bg-slate-900/20 dark:text-foreground";
                     } else if (log.status === "N/A") {
-                      statusBadge = "bg-slate-100/50 text-slate-400 border-slate-200 dark:border-slate-800/50 dark:bg-slate-900/20 dark:text-slate-500";
+                      statusBadge = "bg-slate-100/50 text-foreground border-slate-200 dark:border-slate-800/50 dark:bg-slate-900/20 dark:text-foreground";
                     } else if (log.status === "Absent") {
                       statusBadge = "bg-red-100/50 text-red-700 border-red-200/50 dark:bg-red-900/20 dark:text-red-400";
                     }
@@ -1784,7 +1784,7 @@ export default function Attendance() {
                               <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-md border ${
                                 log.attendance_type === 'Multi-Location' && log.clock_in_location !== allowedLocations[0]
                                   ? 'bg-cyan-50 text-cyan-800 border-cyan-200 dark:bg-cyan-950/40 dark:text-cyan-300 dark:border-cyan-700'
-                                  : 'bg-muted/30 text-muted-foreground border-border'
+                                  : 'bg-muted/30 text-foreground border-border'
                               }`}>
                                 {log.clock_in_location}
                                 {log.attendance_type === 'Multi-Location' && log.clock_in_location !== allowedLocations[0] && (
@@ -1792,7 +1792,7 @@ export default function Attendance() {
                                 )}
                               </span>
                             ) : (
-                              <span className="text-muted-foreground text-[10px]">--</span>
+                              <span className="text-foreground text-[10px]">--</span>
                             )}
                           </TableCell>
                         )}
@@ -1808,7 +1808,7 @@ export default function Attendance() {
           {/* Pagination Controls */}
           {totalRows > pageSize && (
             <div className="flex items-center justify-between py-3 px-4 border-t border-border/50 bg-muted/10">
-              <div className="text-sm text-muted-foreground">Showing {(page-1)*pageSize + 1} - {Math.min(page*pageSize, totalRows)} of {totalRows}</div>
+              <div className="text-sm text-foreground">Showing {(page-1)*pageSize + 1} - {Math.min(page*pageSize, totalRows)} of {totalRows}</div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
@@ -1835,7 +1835,7 @@ export default function Attendance() {
             <DialogTitle>Outside Branch Area</DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-4">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-foreground">
               You're outside your assigned branch. Would you like to check in using Outstation Mode?
             </p>
             <div className="flex justify-end gap-2 pt-2">

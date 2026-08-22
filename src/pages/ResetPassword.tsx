@@ -89,7 +89,7 @@ export default function ResetPassword() {
         <Card className="border-white/40 shadow-2xl bg-white/80 backdrop-blur-xl rounded-[20px] sm:rounded-[30px] overflow-hidden">
           <CardHeader className="pb-2 bg-white/50 text-center">
             <h2 className="text-lg font-bold text-[#7B0099]">Create New Password</h2>
-            <p className="text-xs text-slate-500">Enter your new secure password below.</p>
+            <p className="text-xs text-foreground">Enter your new secure password below.</p>
           </CardHeader>
           
           <form onSubmit={handleResetPassword}>
@@ -140,13 +140,13 @@ export default function ResetPassword() {
                 <button
                   type="button"
                   onClick={() => navigate("/login")}
-                  className="text-xs text-slate-500 font-bold hover:text-[#7B0099] hover:underline transition-colors uppercase"
+                  className="text-xs text-foreground font-bold hover:text-[#7B0099] hover:underline transition-colors uppercase"
                 >
                   Back to Sign In
                 </button>
               </div>
 
-              <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-400 font-extrabold uppercase tracking-wider pt-2 border-t border-slate-100 dark:border-slate-800/50 w-full">
+              <div className="flex items-center justify-center gap-1.5 text-[10px] text-foreground font-extrabold uppercase tracking-wider pt-2 border-t border-slate-100 dark:border-slate-800/50 w-full">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
                 <span>Secure Password Setup</span>
               </div>

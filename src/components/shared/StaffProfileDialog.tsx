@@ -1,4 +1,4 @@
-﻿import { MonthPicker } from '@/components/shared/MonthPicker';
+import { MonthPicker } from '@/components/shared/MonthPicker';
 import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -579,7 +579,7 @@ export function StaffProfileDialog({
                         {selectedEmployee.name.charAt(0)}
                       </div>
                       <h2 className="text-lg font-black text-slate-900 dark:text-slate-100 leading-tight mb-1">{selectedEmployee.name}</h2>
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">{selectedEmployee.email}</p>
+                      <p className="text-xs font-semibold text-foreground dark:text-foreground mb-3">{selectedEmployee.email}</p>
                       
                       <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-wider px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200">
                         {selectedEmployee.position === "Finance Manager" || selectedEmployee.position === "finance_manager" ? "Operation Manager" : selectedEmployee.position?.replace(/_/g, ' ')}
@@ -587,19 +587,19 @@ export function StaffProfileDialog({
                       
                       <div className="mt-5 w-full flex flex-col gap-2">
                         <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">User ID</span>
+                          <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">User ID</span>
                           <span className="text-xs font-black text-slate-700 dark:text-slate-200">{selectedEmployee.user_id}</span>
                         </div>
                         <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Branch</span>
+                          <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">Branch</span>
                           <span className="text-xs font-black text-slate-700 dark:text-slate-200">{selectedEmployee.branch}</span>
                         </div>
                         <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Department</span>
+                          <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">Department</span>
                           <span className="text-xs font-black text-slate-700 dark:text-slate-200 truncate max-w-[120px]">{selectedEmployee.department}</span>
                         </div>
                         <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</span>
+                          <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">Status</span>
                           <Badge className={`text-white font-black text-[9px] uppercase tracking-wider ${selectedEmployee.status === 'Active' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-rose-500 hover:bg-rose-600'}`}>
                             {selectedEmployee.status}
                           </Badge>
@@ -623,7 +623,7 @@ export function StaffProfileDialog({
                     </div>
 
                     {loadingAnalytics ? (
-                      <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm">
+                      <div className="flex flex-col items-center justify-center py-20 text-foreground bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm">
                         <Loader2 className="w-8 h-8 animate-spin mb-3 text-[#7B0099]" />
                         <p className="text-xs font-bold tracking-wide">Loading enterprise analytics...</p>
                       </div>
@@ -637,14 +637,14 @@ export function StaffProfileDialog({
                               <CardContent className="p-4">
                                 <div className="flex justify-between items-center mb-3">
                                   <div className="flex items-center gap-2">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Monthly Rate</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-foreground dark:text-foreground">Monthly Rate</p>
                                     <Tooltip>
                                       <TooltipTrigger>
-                                        <div className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-[8px] font-bold cursor-help hover:bg-slate-200 transition-colors">?</div>
+                                        <div className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-800 text-foreground flex items-center justify-center text-[8px] font-bold cursor-help hover:bg-slate-200 transition-colors">?</div>
                                       </TooltipTrigger>
                                       <TooltipContent className="max-w-[200px] p-2 text-[10px] leading-relaxed">
                                         <p className="font-bold mb-1 text-slate-800 dark:text-slate-200">Formula:</p>
-                                        <p className="text-slate-600 dark:text-slate-300">(Present Days / Expected Working Days) Ã— 100</p>
+                                        <p className="text-slate-600 dark:text-slate-300">(Present Days / Expected Working Days) × 100</p>
                                       </TooltipContent>
                                     </Tooltip>
                                   </div>
@@ -666,7 +666,7 @@ export function StaffProfileDialog({
                                   }`}>
                                     {analytics.attendance.monthly.rate}
                                   </span>
-                                  <span className="text-sm font-bold text-slate-400">%</span>
+                                  <span className="text-sm font-bold text-foreground">%</span>
                                 </div>
                                 
                                 <div className="grid grid-cols-3 gap-2">
@@ -680,7 +680,7 @@ export function StaffProfileDialog({
                                   </div>
                                   <div className="bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800/60 rounded-lg p-2 text-center">
                                     <p className="text-lg font-black text-slate-600 dark:text-slate-300 leading-none mb-1">{analytics.attendance.monthly.absent}</p>
-                                    <p className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Absent</p>
+                                    <p className="text-[8px] font-bold text-foreground dark:text-foreground uppercase tracking-wider">Absent</p>
                                   </div>
                                 </div>
                               </CardContent>
@@ -691,7 +691,7 @@ export function StaffProfileDialog({
                               <CardContent className="p-4">
                                 <div className="flex justify-between items-center mb-3">
                                   <div className="flex items-center gap-2">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Yearly Rate</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-foreground dark:text-foreground">Yearly Rate</p>
                                   </div>
                                   <Badge variant="secondary" className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 border ${
                                     analytics.attendance.yearly.rate >= 95 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 
@@ -711,7 +711,7 @@ export function StaffProfileDialog({
                                   }`}>
                                     {analytics.attendance.yearly.rate}
                                   </span>
-                                  <span className="text-sm font-bold text-slate-400">%</span>
+                                  <span className="text-sm font-bold text-foreground">%</span>
                                 </div>
                                 
                                 <div className="grid grid-cols-3 gap-2">
@@ -725,7 +725,7 @@ export function StaffProfileDialog({
                                   </div>
                                   <div className="bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800/60 rounded-lg p-2 text-center">
                                     <p className="text-lg font-black text-slate-600 dark:text-slate-300 leading-none mb-1">{analytics.attendance.yearly.absent}</p>
-                                    <p className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Absent</p>
+                                    <p className="text-[8px] font-bold text-foreground dark:text-foreground uppercase tracking-wider">Absent</p>
                                   </div>
                                 </div>
                               </CardContent>
@@ -746,11 +746,11 @@ export function StaffProfileDialog({
                           
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                             <div className="rounded-xl border border-slate-200 dark:border-slate-800/60 p-3 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5">Total Entitled</p>
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1.5">Total Entitled</p>
                               <p className="text-2xl font-black text-slate-800 dark:text-slate-200 tracking-tighter">{analytics.leave.entitlement}</p>
                             </div>
                             <div className="rounded-xl border border-slate-200 dark:border-slate-800/60 p-3 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5">Approved Taken</p>
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1.5">Approved Taken</p>
                               <p className="text-2xl font-black text-slate-800 dark:text-slate-200 tracking-tighter">{analytics.leave.used}</p>
                             </div>
                             <div className="rounded-xl border-2 border-emerald-500/20 p-3 bg-emerald-50/30 shadow-sm flex flex-col justify-between">
@@ -760,16 +760,16 @@ export function StaffProfileDialog({
                             <div className="rounded-xl border border-slate-200 dark:border-slate-800/60 p-3 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
                               <Tooltip>
                                 <TooltipTrigger className="text-left w-full h-full flex flex-col justify-between">
-                                  <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5 flex items-center justify-between w-full">
+                                  <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1.5 flex items-center justify-between w-full">
                                     Utilization
-                                    <span className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[7px] text-slate-400">?</span>
+                                    <span className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[7px] text-foreground">?</span>
                                   </p>
                                   <p className={`text-2xl font-black tracking-tighter ${analytics.leave.utilizationRate >= 90 ? 'text-amber-500' : 'text-slate-800 dark:text-slate-200'}`}>
                                     {analytics.leave.utilizationRate}%
                                   </p>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p className="text-xs">Formula: (Approved Leave / Total Entitled) Ã— 100</p>
+                                  <p className="text-xs">Formula: (Approved Leave / Total Entitled) × 100</p>
                                 </TooltipContent>
                               </Tooltip>
                             </div>
@@ -807,18 +807,18 @@ export function StaffProfileDialog({
                               onClick={() => setViewLeaveStatus("Rejected")}
                             >
                               <div className="flex justify-between items-center w-full mb-2">
-                                <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500 group-hover:scale-110 transition-transform">
+                                <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-foreground group-hover:scale-110 transition-transform">
                                   <X className="w-3 h-3" />
                                 </div>
-                                <span className="text-lg font-black text-slate-500">{analytics.leave.rejected}</span>
+                                <span className="text-lg font-black text-foreground">{analytics.leave.rejected}</span>
                               </div>
-                              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Rejected Requests</span>
+                              <span className="text-[9px] font-bold text-foreground uppercase tracking-widest">Rejected Requests</span>
                             </button>
                           </div>
                         </section>
                       </>
                     ) : (
-                      <div className="flex flex-col items-center justify-center py-32 text-slate-400 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm">
+                      <div className="flex flex-col items-center justify-center py-32 text-foreground bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-800/60 dark:border-slate-700 shadow-sm">
                         <Users className="w-12 h-12 opacity-20 mb-4" />
                         <p className="text-sm font-bold">Analytics unavailable.</p>
                       </div>
@@ -850,7 +850,7 @@ export function StaffProfileDialog({
                             
                             <div className="space-y-3">
                               <div>
-                                <Label className="text-xs font-bold text-slate-500 uppercase">Working Branch</Label>
+                                <Label className="text-xs font-bold text-foreground uppercase">Working Branch</Label>
                                 <Select value={tempAssignment.location} onValueChange={(val) => setTempAssignment({...tempAssignment, location: val})}>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select Branch" />
@@ -865,17 +865,17 @@ export function StaffProfileDialog({
 
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                  <Label className="text-xs font-bold text-slate-500 uppercase">Start Date</Label>
+                                  <Label className="text-xs font-bold text-foreground uppercase">Start Date</Label>
                                   <Input type="date" value={tempAssignment.start_date} onChange={(e) => setTempAssignment({...tempAssignment, start_date: e.target.value})} />
                                 </div>
                                 <div>
-                                  <Label className="text-xs font-bold text-slate-500 uppercase">End Date</Label>
+                                  <Label className="text-xs font-bold text-foreground uppercase">End Date</Label>
                                   <Input type="date" value={tempAssignment.end_date} onChange={(e) => setTempAssignment({...tempAssignment, end_date: e.target.value})} />
                                 </div>
                               </div>
                               
                               <div>
-                                <Label className="text-xs font-bold text-slate-500 uppercase">Status</Label>
+                                <Label className="text-xs font-bold text-foreground uppercase">Status</Label>
                                 <Select value={tempAssignment.status} onValueChange={(val) => setTempAssignment({...tempAssignment, status: val})}>
                                   <SelectTrigger>
                                     <SelectValue />
@@ -894,14 +894,14 @@ export function StaffProfileDialog({
                         </Card>
                       </div>
 
-                      {/* Allowed Branches â€” HR Admin only */}
+                      {/* Allowed Branches — HR Admin only */}
                       {role === "hr_admin" && (
                         <Card>
                           <CardContent className="p-4 space-y-4">
                             <div className="flex justify-between items-center border-b pb-2">
                               <h3 className="font-bold text-lg">Allowed Branches</h3>
                             </div>
-                            <div className="text-xs text-muted-foreground mb-2">Select the branches this employee is permitted to clock into.</div>
+                            <div className="text-xs text-foreground mb-2">Select the branches this employee is permitted to clock into.</div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2">
                               {Object.entries(BRANCH_NAMES).map(([code, name]) => (
                                 <div key={code} className="flex items-center space-x-2 border p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-800">
@@ -928,7 +928,7 @@ export function StaffProfileDialog({
                 </TabsContent>
               </Tabs>
             ) : (
-              <div className="py-20 text-center text-slate-500 dark:text-slate-400">
+              <div className="py-20 text-center text-foreground dark:text-foreground">
                 <p>Loading profile details...</p>
               </div>
             )}
@@ -961,7 +961,7 @@ export function StaffProfileDialog({
                 if (viewStatus === "pending") return status.includes("pending");
                 return status === viewStatus;
               }).length === 0 ? (
-                <p className="text-sm text-center text-muted-foreground p-4 italic">No {viewLeaveStatus?.toLowerCase()} leave records found for this staff member.</p>
+                <p className="text-sm text-center text-foreground p-4 italic">No {viewLeaveStatus?.toLowerCase()} leave records found for this staff member.</p>
               ) : (
                 <div className="border border-border/50 rounded-xl overflow-hidden">
                   <Table>
@@ -1033,7 +1033,7 @@ export function StaffProfileDialog({
                       Leave Application Detail
                     </DialogTitle>
                     <DialogDescription className="text-white/80 font-bold uppercase text-[10px] tracking-widest">
-                      HR Approval Registry â€¢ ID: {req.leave_id}
+                      HR Approval Registry • ID: {req.leave_id}
                     </DialogDescription>
                   </DialogHeader>
                 </div>
@@ -1141,7 +1141,7 @@ export function StaffProfileDialog({
                         <div>
                           <p className="uppercase font-black text-rose-600 opacity-60">Tandatangan</p>
                           <p className="font-black mt-0.5 text-rose-700">
-                            {req.cuti_tanpa_gaji_signature ? "âœ“ DISAHKAN" : "TIADA PENGESAHAN"}
+                            {req.cuti_tanpa_gaji_signature ? "✓ DISAHKAN" : "TIADA PENGESAHAN"}
                           </p>
                         </div>
                       </div>
@@ -1214,12 +1214,12 @@ export function StaffProfileDialog({
                                       by {history.approver_name || history.approver_id}
                                     </span>
                                   </div>
-                                  <span className="text-[8px] font-black text-muted-foreground/50">
+                                  <span className="text-[8px] font-black text-foreground/50">
                                     {new Date(history.created_at).toLocaleDateString('ms-MY')}
                                   </span>
                                 </div>
                                 {history.remarks && (
-                                  <p className="text-[10px] italic text-muted-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
+                                  <p className="text-[10px] italic text-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
                                     "{history.remarks}"
                                   </p>
                                 )}

@@ -261,7 +261,7 @@ export default function OutstationAnalytics() {
               </div>
             </div>
             <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
-              <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+              <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
                 Total outstation events created
               </p>
             </div>
@@ -284,7 +284,7 @@ export default function OutstationAnalytics() {
               </div>
             </div>
             <div className="mt-3 pt-2.5 border-t border-emerald-200/80 dark:border-emerald-800/60">
-              <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+              <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
                 Unique team members currently away
               </p>
             </div>
@@ -307,7 +307,7 @@ export default function OutstationAnalytics() {
               </div>
             </div>
             <div className="mt-3 pt-2.5 border-t border-blue-200/80 dark:border-blue-800/60">
-              <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+              <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
                 Distinct cities or sites visited
               </p>
             </div>
@@ -330,7 +330,7 @@ export default function OutstationAnalytics() {
               </div>
             </div>
             <div className="mt-3 pt-2.5 border-t border-orange-200/80 dark:border-orange-800/60">
-              <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+              <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
                 Events currently in progress
               </p>
             </div>
@@ -353,7 +353,7 @@ export default function OutstationAnalytics() {
               </div>
             </div>
             <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
-              <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+              <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
                 Events finished in scope
               </p>
             </div>
@@ -370,12 +370,12 @@ export default function OutstationAnalytics() {
             <CardHeader className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex flex-row flex-wrap items-center justify-between gap-4">
               <div>
                 <CardTitle className="text-lg font-bold text-slate-900 dark:text-slate-100">Monthly Outstation Tracker</CardTitle>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Track total outstation events and completions by month</p>
+                <p className="text-xs text-foreground dark:text-foreground mt-0.5">Track total outstation events and completions by month</p>
               </div>
 
               {/* Month Filter Selector */}
               <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-slate-400" />
+                <Filter className="w-4 h-4 text-foreground" />
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
@@ -447,7 +447,7 @@ export default function OutstationAnalytics() {
             </CardHeader>
             <CardContent className="p-4 flex-1 flex flex-col justify-center items-center">
               {statusData.length === 0 ? (
-                <div className="py-5 text-center text-slate-500 text-xs">No status data available.</div>
+                <div className="py-5 text-center text-foreground text-xs">No status data available.</div>
               ) : (
                 <div className="relative w-full flex items-center justify-center">
                   <ResponsiveContainer width="100%" height={180}>
@@ -462,7 +462,7 @@ export default function OutstationAnalytics() {
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <span className="text-2xl font-black text-slate-900 dark:text-slate-100">{totalStatusEvents}</span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-foreground">Total</span>
                   </div>
                 </div>
               )}
@@ -490,7 +490,7 @@ export default function OutstationAnalytics() {
           </CardHeader>
           <CardContent className="p-4 space-y-3">
             {destinationData.length === 0 ? (
-              <div className="py-4 text-center text-slate-500 text-xs">No destinations available.</div>
+              <div className="py-4 text-center text-foreground text-xs">No destinations available.</div>
             ) : (
               destinationData.map((item, index) => (
                 <div key={index} className="flex items-center justify-between gap-3 text-xs">
@@ -512,15 +512,15 @@ export default function OutstationAnalytics() {
           </CardHeader>
           <CardContent className="p-4 grid gap-3">
             <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 text-xs flex justify-between items-center">
-              <div className="text-slate-500 dark:text-slate-400 font-medium">Departures today</div>
+              <div className="text-foreground dark:text-foreground font-medium">Departures today</div>
               <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{stats.todayDepartures || 0}</div>
             </div>
             <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 text-xs flex justify-between items-center">
-              <div className="text-slate-500 dark:text-slate-400 font-medium">Returns today</div>
+              <div className="text-foreground dark:text-foreground font-medium">Returns today</div>
               <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{stats.todayReturns || 0}</div>
             </div>
             <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 text-xs flex justify-between items-center">
-              <div className="text-slate-500 dark:text-slate-400 font-medium">Upcoming assignments</div>
+              <div className="text-foreground dark:text-foreground font-medium">Upcoming assignments</div>
               <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{upcomingCount}</div>
             </div>
           </CardContent>
@@ -539,11 +539,11 @@ export default function OutstationAnalytics() {
               {loading ? (
                 <div className="p-6 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-[#7B0099]" /></div>
               ) : recentAssignments.length === 0 ? (
-                <div className="p-6 text-center text-slate-500 text-xs">No recent outstations found.</div>
+                <div className="p-6 text-center text-foreground text-xs">No recent outstations found.</div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
-                    <thead className="bg-slate-50/80 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                    <thead className="bg-slate-50/80 dark:bg-slate-800/60 text-foreground dark:text-foreground text-[11px] font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
                       <tr>
                         <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
                         <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Destination</th>
@@ -559,9 +559,9 @@ export default function OutstationAnalytics() {
                           <td className="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100">{item.full_name || item.user_id}</td>
                           <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{item.destination || "-"}</td>
                           <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{item.purpose || item.project || "-"}</td>
-                          <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{formatShortDate(item.start_date)} - {formatShortDate(item.end_date)}</td>
+                          <td className="px-4 py-3 text-slate-600 dark:text-foreground">{formatShortDate(item.start_date)} - {formatShortDate(item.end_date)}</td>
                           <td className="px-4 py-3">{statusBadge(item.status || "Unknown")}</td>
-                          <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{item.total_days ? `${item.total_days} days` : "-"}</td>
+                          <td className="px-4 py-3 text-slate-600 dark:text-foreground">{item.total_days ? `${item.total_days} days` : "-"}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -580,17 +580,17 @@ export default function OutstationAnalytics() {
             </CardHeader>
             <CardContent className="p-4 space-y-3">
               {upcomingGroups.length === 0 ? (
-                <div className="py-8 text-center text-slate-500 text-xs">No upcoming assignments.</div>
+                <div className="py-8 text-center text-foreground text-xs">No upcoming assignments.</div>
               ) : upcomingGroups.map((group, idx) => (
                 <div key={idx} className="rounded-xl border border-slate-100 dark:border-slate-800 p-3.5 bg-slate-50/50 dark:bg-slate-900/50">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs font-bold text-slate-900 dark:text-slate-100">{group.destination || "Unknown"}</p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{group.purpose}</p>
+                      <p className="text-[11px] text-foreground dark:text-foreground mt-0.5">{group.purpose}</p>
                     </div>
                     <span className="text-2xl font-black text-slate-800 dark:text-slate-200">{group.count}</span>
                   </div>
-                  <p className="mt-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Starting {formatShortDate(group.start_date)}</p>
+                  <p className="mt-2 text-[10px] font-semibold text-foreground uppercase tracking-wider">Starting {formatShortDate(group.start_date)}</p>
                 </div>
               ))}
             </CardContent>

@@ -47,11 +47,11 @@ export default function StatCard({
       <div onClick={onClick} className={`rounded-md p-4 flex items-start justify-between h-full min-h-[130px] ${currentStyle} ${clickableStyle}`}>
         <div className="min-w-0 flex flex-col">
           <div className="min-h-[28px] mb-3">
-            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-normal break-words leading-tight">{title}</p>
+            <p className="text-[10px] font-bold text-foreground dark:text-foreground uppercase tracking-widest whitespace-normal break-words leading-tight">{title}</p>
           </div>
           <div>
             <p className="text-[28px] font-black text-slate-800 dark:text-slate-100 tracking-tight leading-tight whitespace-pre-wrap break-words">{value}</p>
-            {subtitle && <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-medium font-mono truncate">{subtitle}</p>}
+            {subtitle && <p className="text-[10px] text-foreground dark:text-foreground mt-1 font-medium font-mono truncate">{subtitle}</p>}
           </div>
         </div>
         <div className="relative w-14 h-14 flex items-center justify-center shrink-0 ml-2">
@@ -118,7 +118,7 @@ export default function StatCard({
               </span>
             )}
             {subtitle && (
-              <p className="text-[10px] font-medium font-mono text-slate-500 truncate">{subtitle}</p>
+              <p className="text-[10px] font-medium font-mono text-foreground truncate">{subtitle}</p>
             )}
           </div>
         )}
@@ -136,7 +136,7 @@ export default function StatCard({
       <div className="flex items-start justify-between gap-2 mb-3 min-h-[28px]">
         <p className={`text-[10px] font-bold uppercase tracking-widest break-words leading-snug w-[75%] ${
           variant === 'maroon' ? 'text-rose-700 dark:text-rose-300' : 
-          variant === 'warning' ? 'text-amber-700 dark:text-amber-300' : 'text-slate-500 dark:text-slate-400'
+          variant === 'warning' ? 'text-amber-700 dark:text-amber-300' : 'text-foreground dark:text-foreground'
         }`}>
           {title}
         </p>
@@ -147,7 +147,7 @@ export default function StatCard({
             variant === 'warning' ? 'text-amber-600 dark:text-amber-400' : 
             variant === 'purple' ? 'text-[#7B0099] dark:text-indigo-400' : 
             variant === 'success' ? 'text-[#7B0099] dark:text-indigo-400' :
-            'text-slate-600 dark:text-slate-400'
+            'text-slate-600 dark:text-foreground'
           }`} />
         </div>
       </div>
@@ -172,7 +172,7 @@ export default function StatCard({
             {subtitle && (
               <p className={`text-[10px] font-medium font-mono truncate ${
                 variant === 'maroon' ? 'text-rose-500 dark:text-rose-400' : 
-                variant === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'
+                variant === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-foreground dark:text-foreground'
               }`}>
                 {subtitle}
               </p>

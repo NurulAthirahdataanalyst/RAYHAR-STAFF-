@@ -54,7 +54,7 @@ export function MonthPicker({ monthYear, onSelectMonthYear, className }: MonthPi
           }
         >
           <span className="font-black text-foreground uppercase tracking-widest">{displayString}</span>
-          <CalendarDays className="w-4 h-4 text-muted-foreground opacity-80" />
+          <CalendarDays className="w-4 h-4 text-foreground opacity-80" />
         </button>
       </PopoverTrigger>
       <PopoverContent

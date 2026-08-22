@@ -42,13 +42,13 @@ const getMarkerHTML = (loc: EmpLocation, isSelected: boolean) => {
   return (
     <div className="flex flex-col items-center justify-end w-full h-full group pb-1 cursor-pointer">
       <div className={`bg-card rounded-full shadow-lg p-1 pr-3 flex items-center gap-2 border ${isSelected ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-border'} transition-all hover:scale-105 z-10`}>
-        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground relative">
+        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-foreground relative">
            {avatarText}
            <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ${statusColor} border-2 border-card`}></div>
         </div>
         <div className="flex flex-col">
           <span className="text-xs font-bold whitespace-nowrap text-foreground leading-none">{loc.full_name || loc.user_id}</span>
-          <span className="text-[10px] text-muted-foreground whitespace-nowrap mt-1 leading-none">Updated {timeText}</span>
+          <span className="text-[10px] text-foreground whitespace-nowrap mt-1 leading-none">Updated {timeText}</span>
         </div>
       </div>
       <div className={`w-0.5 h-6 ${isSelected ? 'bg-amber-500' : 'bg-emerald-500/50'} z-0 -mt-1`}></div>
@@ -394,7 +394,7 @@ export default function GPSLocationTracker() {
                       <PopoverTrigger asChild>
                         <div className="flex flex-col items-center justify-end w-full h-full group pb-1 cursor-pointer">
                           <div className={`bg-card rounded-full shadow-lg p-1 pr-3 flex items-center gap-2 border ${isSelected ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-border'} transition-all hover:scale-105 z-10`}>
-                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground relative">
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-foreground relative">
                                +{group.length}
                                <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ${statusColor} border-2 border-card`}></div>
                             </div>
@@ -402,7 +402,7 @@ export default function GPSLocationTracker() {
                               <span className="text-xs font-bold whitespace-nowrap text-foreground leading-none">
                                 {group.length} Employees Here
                               </span>
-                              <span className="text-[10px] text-muted-foreground whitespace-nowrap mt-1 leading-none">
+                              <span className="text-[10px] text-foreground whitespace-nowrap mt-1 leading-none">
                                 Click to view list
                               </span>
                             </div>
@@ -418,7 +418,7 @@ export default function GPSLocationTracker() {
                             {group.map(emp => (
                               <div key={emp.user_id} className="flex flex-col cursor-pointer hover:bg-muted p-2 rounded border border-transparent hover:border-border transition-colors" onClick={() => focusOn(emp.user_id)}>
                                 <span className="font-semibold text-sm">{emp.full_name || emp.user_id}</span>
-                                <span className="text-xs text-muted-foreground">{emp.last_updated ? new Date(emp.last_updated).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
+                                <span className="text-xs text-foreground">{emp.last_updated ? new Date(emp.last_updated).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
                               </div>
                             ))}
                           </div>
@@ -438,7 +438,7 @@ export default function GPSLocationTracker() {
             <div className="mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-sm font-black">Employee List</h3>
-                <p className="text-xs text-muted-foreground">Showing {filtered.length} employees</p>
+                <p className="text-xs text-foreground">Showing {filtered.length} employees</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Input
@@ -534,7 +534,7 @@ export default function GPSLocationTracker() {
               {historyLoading ? (
                 <div className="p-6 text-center">Loading...</div>
               ) : history.length === 0 ? (
-                <div className="p-6 text-center text-muted-foreground">No history found</div>
+                <div className="p-6 text-center text-foreground">No history found</div>
               ) : (
                 <Map
                   initialViewState={{
@@ -594,15 +594,15 @@ export default function GPSLocationTracker() {
 
               <div className="text-sm">
                 <div>Point {Math.min(history.length, Math.max(0, replayIndex + 1))} / {history.length}</div>
-                <div className="text-xs text-muted-foreground mt-2">Current: {history[replayIndex] ? new Date(history[replayIndex].timestamp).toLocaleString() : '-'}</div>
-                <div className="text-xs text-muted-foreground">Coordinates: {history[replayIndex] ? `${history[replayIndex].lat}, ${history[replayIndex].lng}` : '-'}</div>
-                <div className="text-xs text-muted-foreground">Accuracy: {history[replayIndex]?.accuracy ?? '—'}</div>
+                <div className="text-xs text-foreground mt-2">Current: {history[replayIndex] ? new Date(history[replayIndex].timestamp).toLocaleString() : '-'}</div>
+                <div className="text-xs text-foreground">Coordinates: {history[replayIndex] ? `${history[replayIndex].lat}, ${history[replayIndex].lng}` : '-'}</div>
+                <div className="text-xs text-foreground">Accuracy: {history[replayIndex]?.accuracy ?? '—'}</div>
               </div>
 
               <div className="max-h-64 overflow-auto border border-border rounded p-2">
                 <table className="w-full table-auto text-sm">
                   <thead>
-                    <tr className="text-left text-xs text-muted-foreground">
+                    <tr className="text-left text-xs text-foreground">
                       <th className="p-1">Time</th>
                       <th className="p-1">Coords</th>
                     </tr>

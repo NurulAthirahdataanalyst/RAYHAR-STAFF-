@@ -36,7 +36,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
     <div className="flex items-center justify-between pt-2 px-1 border-t border-border/40 mt-3 w-full">
       <button
         onClick={handleClear}
-        className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors py-1 px-2.5 rounded hover:bg-muted cursor-pointer bg-transparent border-none"
+        className="text-xs font-semibold text-foreground hover:text-foreground transition-colors py-1 px-2.5 rounded hover:bg-muted cursor-pointer bg-transparent border-none"
         type="button"
       >
         Clear
@@ -69,7 +69,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse space-y-1",
         head_row: "flex w-full justify-between",
-        head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+        head_cell: "text-foreground rounded-md w-9 font-normal text-[0.8rem]",
         row: "flex w-full justify-between mt-2",
         cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(buttonVariants({ variant: "ghost" }), "h-9 w-9 p-0 font-normal aria-selected:opacity-100"),
@@ -78,8 +78,8 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
           "bg-[#7B0099] text-white hover:bg-[#5e0080] hover:text-white focus:bg-[#7B0099] focus:text-white rounded-md",
         day_today: "bg-[#FFFE00] text-[#7B0099] font-bold rounded-md",
         day_outside:
-          "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
-        day_disabled: "text-muted-foreground opacity-50",
+          "day-outside text-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-foreground aria-selected:opacity-30",
+        day_disabled: "text-foreground opacity-50",
         day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
         day_hidden: "invisible",
         ...classNames,

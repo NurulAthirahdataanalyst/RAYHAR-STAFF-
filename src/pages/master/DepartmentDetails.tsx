@@ -112,14 +112,14 @@ export default function DepartmentDetails() {
             <Building2 className="w-6 h-6 text-primary" />
             {deptName}
           </h1>
-          <p className="text-sm text-muted-foreground font-medium">Manage department details and personnel</p>
+          <p className="text-sm text-foreground font-medium">Manage department details and personnel</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="rounded-[25px] border-border/50 shadow-sm bg-card/50 backdrop-blur-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Total Staff</CardTitle>
+            <CardTitle className="text-sm font-bold text-foreground uppercase tracking-wider">Total Staff</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4">
@@ -128,7 +128,7 @@ export default function DepartmentDetails() {
               </div>
               <div>
                 <span className="text-3xl font-black">{employees.length}</span>
-                <p className="text-xs text-muted-foreground font-medium mt-1">Registered members</p>
+                <p className="text-xs text-foreground font-medium mt-1">Registered members</p>
               </div>
             </div>
           </CardContent>
@@ -136,7 +136,7 @@ export default function DepartmentDetails() {
 
         <Card className="rounded-[25px] border-border/50 shadow-sm bg-card/50 backdrop-blur-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Active Staff</CardTitle>
+            <CardTitle className="text-sm font-bold text-foreground uppercase tracking-wider">Active Staff</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4">
@@ -145,7 +145,7 @@ export default function DepartmentDetails() {
               </div>
               <div>
                 <span className="text-3xl font-black">{activeStaff.length}</span>
-                <p className="text-xs text-muted-foreground font-medium mt-1">Currently active</p>
+                <p className="text-xs text-foreground font-medium mt-1">Currently active</p>
               </div>
             </div>
           </CardContent>
@@ -163,7 +163,7 @@ export default function DepartmentDetails() {
             {currentHod ? (
               <div className="mb-4">
                 <span className="text-xl font-black text-foreground">{currentHod.full_name}</span>
-                <p className="text-xs font-bold text-muted-foreground mt-1 uppercase tracking-widest">{currentHod.user_id}</p>
+                <p className="text-xs font-bold text-foreground mt-1 uppercase tracking-widest">{currentHod.user_id}</p>
               </div>
             ) : (
               <div className="mb-4 flex items-center gap-2 text-amber-600">
@@ -190,7 +190,7 @@ export default function DepartmentDetails() {
                 </DialogHeader>
                 <div className="py-6 space-y-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Select New HOD</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-foreground">Select New HOD</label>
                     <Select value={selectedNewHod} onValueChange={setSelectedNewHod}>
                       <SelectTrigger className="w-full h-12 rounded-xl">
                         <SelectValue placeholder="Choose a staff member" />
@@ -249,7 +249,7 @@ export default function DepartmentDetails() {
                         </div>
                         <div>
                           <div className="font-bold text-foreground">{emp.full_name}</div>
-                          <div className="text-xs text-muted-foreground">{emp.email}</div>
+                          <div className="text-xs text-foreground">{emp.email}</div>
                         </div>
                       </div>
                     </td>
@@ -283,7 +283,7 @@ export default function DepartmentDetails() {
                 ))}
                 {employees.length === 0 && !loading && (
                   <tr>
-                    <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
+                    <td colSpan={4} className="px-6 py-8 text-center text-foreground">
                       No staff members found in this department.
                     </td>
                   </tr>

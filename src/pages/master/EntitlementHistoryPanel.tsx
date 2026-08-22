@@ -110,12 +110,12 @@ function DetailDrawer({ log, onClose }: { log: EntitlementHistoryLog; onClose: (
         {/* Drawer header */}
         <div className="flex items-center justify-between p-5 border-b border-border/50 bg-muted/30">
           <div>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Leave Entitlement Record</p>
+            <p className="text-[10px] font-bold text-foreground uppercase tracking-wider">Leave Entitlement Record</p>
             <p className="text-xs font-black text-foreground mt-0.5">{log.history_id}</p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors text-foreground hover:text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -136,9 +136,9 @@ function DetailDrawer({ log, onClose }: { log: EntitlementHistoryLog; onClose: (
           {/* Balance flow */}
           <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-border/50">
             <div className="text-center flex-1">
-              <p className="text-[10px] text-muted-foreground font-semibold uppercase">Previous</p>
+              <p className="text-[10px] text-foreground font-semibold uppercase">Previous</p>
               <p className="text-xl font-black text-slate-700">{log.previous_balance}</p>
-              <p className="text-[9px] text-muted-foreground">Days</p>
+              <p className="text-[9px] text-foreground">Days</p>
             </div>
             <div className="text-center px-2">
               <p className={`text-lg font-black ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -146,9 +146,9 @@ function DetailDrawer({ log, onClose }: { log: EntitlementHistoryLog; onClose: (
               </p>
             </div>
             <div className="text-center flex-1">
-              <p className="text-[10px] text-muted-foreground font-semibold uppercase">New Balance</p>
+              <p className="text-[10px] text-foreground font-semibold uppercase">New Balance</p>
               <p className="text-xl font-black text-foreground">{log.new_balance}</p>
-              <p className="text-[9px] text-muted-foreground">Days</p>
+              <p className="text-[9px] text-foreground">Days</p>
             </div>
           </div>
 
@@ -170,13 +170,13 @@ function DetailDrawer({ log, onClose }: { log: EntitlementHistoryLog; onClose: (
             { label: 'Date',           value: `${log.date}  ${log.time}` },
           ].map(({ label, value }) => (
             <div key={label} className="flex flex-col gap-0.5 border-b border-border/30 pb-3">
-              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{label}</p>
+              <p className="text-[10px] text-foreground font-bold uppercase tracking-wider">{label}</p>
               <p className="text-sm font-semibold text-foreground break-all">{value}</p>
             </div>
           ))}
         </div>
 
-        <div className="p-4 border-t border-border/50 bg-muted/10 text-[10px] text-muted-foreground text-center">
+        <div className="p-4 border-t border-border/50 bg-muted/10 text-[10px] text-foreground text-center">
           ⚠ This audit record is immutable and cannot be edited or deleted.
         </div>
       </div>
@@ -318,7 +318,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
           {/* Search + Filter toggle bar */}
           <div className="p-4 border-b border-border/40 bg-muted/5 flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-foreground" />
               <Input
                 placeholder="Search by employee, reason, history ID, or reference ID..."
                 value={search} onChange={e => setSearch(e.target.value)}
@@ -326,7 +326,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
               />
               {search && (
                 <button onClick={() => setSearch('')}
-                  className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground">
+                  className="absolute right-2.5 top-2.5 text-foreground hover:text-foreground">
                   <X className="w-4 h-4" />
                 </button>
               )}
@@ -359,10 +359,10 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
           {/* Custom date range */}
           {dateRange === 'custom' && (
             <div className="px-4 py-3 border-b border-border/40 bg-blue-50/30 flex items-center gap-3 flex-wrap">
-              <Label className="text-xs font-bold text-muted-foreground">From</Label>
+              <Label className="text-xs font-bold text-foreground">From</Label>
               <Input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
                 className="h-8 text-xs w-36 bg-white" />
-              <Label className="text-xs font-bold text-muted-foreground">To</Label>
+              <Label className="text-xs font-bold text-foreground">To</Label>
               <Input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)}
                 className="h-8 text-xs w-36 bg-white" />
             </div>
@@ -380,7 +380,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                 { label: 'Performed By', value: filterBy,   set: setFilterBy,       options: performers },
               ].map(f => (
                 <div key={f.label} className="space-y-1">
-                  <Label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{f.label}</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-wider text-foreground">{f.label}</Label>
                   <Select value={f.value} onValueChange={f.set}>
                     <SelectTrigger className="h-8 text-xs bg-white dark:bg-card">
                       <SelectValue placeholder={`All ${f.label}s`} />
@@ -409,7 +409,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                   <Icon className={`w-4 h-4 ${s.color} shrink-0`} />
                   <div>
                     <p className={`text-lg font-black leading-none ${s.color}`}>{s.val}</p>
-                    <p className="text-[10px] text-muted-foreground font-medium mt-0.5">{s.label}</p>
+                    <p className="text-[10px] text-foreground font-medium mt-0.5">{s.label}</p>
                   </div>
                 </div>
               );
@@ -419,7 +419,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
           {/* Timeline */}
           <div className="overflow-y-auto max-h-[560px]">
             {grouped.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+              <div className="flex flex-col items-center justify-center py-16 text-foreground">
                 <History className="w-10 h-10 opacity-20 mb-3" />
                 <p className="text-sm font-medium">No records found.</p>
                 <p className="text-xs mt-1">Try changing filters or search terms.</p>
@@ -431,7 +431,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                     {/* Date separator */}
                     <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-2 bg-muted/80 backdrop-blur-sm border-b border-border/30">
                       <div className="h-px flex-1 bg-border/50" />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-foreground whitespace-nowrap">
                         {dateLabel}
                       </span>
                       <div className="h-px flex-1 bg-border/50" />
@@ -449,7 +449,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                         >
                           {/* Left: time + dot */}
                           <div className="flex flex-col items-center gap-1 w-16 shrink-0">
-                            <span className="text-[10px] text-muted-foreground font-mono leading-none">{log.time || '--:--'}</span>
+                            <span className="text-[10px] text-foreground font-mono leading-none">{log.time || '--:--'}</span>
                             <div className={`w-2.5 h-2.5 rounded-full border-2 border-white ${badge.dot} shadow-sm`} />
                           </div>
 
@@ -460,14 +460,14 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                                 {badge.label}
                               </span>
                               <span className="text-sm font-bold text-foreground">{log.employee_name}</span>
-                              <span className="text-xs text-muted-foreground">{log.leave_type}</span>
+                              <span className="text-xs text-foreground">{log.leave_type}</span>
                             </div>
-                            <p className="text-[10px] text-muted-foreground line-clamp-1">
+                            <p className="text-[10px] text-foreground line-clamp-1">
                               {log.reason || log.action}
                             </p>
                             <div className="flex items-center gap-2 mt-1 flex-wrap">
-                              <span className="text-[10px] text-muted-foreground/70">By {log.performed_by}</span>
-                              <span className="text-[10px] text-muted-foreground/50">{log.history_id}</span>
+                              <span className="text-[10px] text-foreground/70">By {log.performed_by}</span>
+                              <span className="text-[10px] text-foreground/50">{log.history_id}</span>
                             </div>
                           </div>
 
@@ -476,10 +476,10 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                             <span className={`text-sm font-black ${isPos ? 'text-emerald-600' : 'text-rose-600'}`}>
                               {isPos ? '+' : ''}{log.adjustment} Days
                             </span>
-                            <span className="text-[10px] text-muted-foreground">
+                            <span className="text-[10px] text-foreground">
                               {log.previous_balance} → {log.new_balance}
                             </span>
-                            <Eye className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-[#7B0099] transition-colors" />
+                            <Eye className="w-3.5 h-3.5 text-foreground/40 group-hover:text-[#7B0099] transition-colors" />
                           </div>
                         </div>
                       );
@@ -492,7 +492,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
 
           {/* Footer */}
           {filtered.length > 0 && (
-            <div className="px-5 py-3 border-t border-border/40 bg-muted/5 flex items-center justify-between text-[10px] text-muted-foreground">
+            <div className="px-5 py-3 border-t border-border/40 bg-muted/5 flex items-center justify-between text-[10px] text-foreground">
               <span>Showing <b className="text-foreground">{filtered.length}</b> of <b className="text-foreground">{logs.length}</b> records</span>
               <span className="italic">⚠ Audit records are read-only and cannot be modified.</span>
             </div>

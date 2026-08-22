@@ -119,7 +119,7 @@ export default function DepartmentReports() {
       <PageActions>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Branch:</span>
+            <span className="text-xs font-semibold text-foreground uppercase tracking-wider">Branch:</span>
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
               <SelectTrigger className="w-[140px] h-9 bg-white dark:bg-slate-950">
                 <SelectValue placeholder="All Branches" />
@@ -135,7 +135,7 @@ export default function DepartmentReports() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Dept:</span>
+            <span className="text-xs font-semibold text-foreground uppercase tracking-wider">Dept:</span>
             <Select value={selectedDept} onValueChange={setSelectedDept}>
               <SelectTrigger className="w-[160px] h-9 bg-white dark:bg-slate-950">
                 <SelectValue placeholder="All Departments" />
@@ -163,7 +163,7 @@ export default function DepartmentReports() {
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                   <Building2 className="w-4 h-4 text-primary" />
                 </div>
-                <p className="text-xs font-medium text-muted-foreground">Total Department</p>
+                <p className="text-xs font-medium text-foreground">Total Department</p>
               </div>
               <h3 className="text-2xl font-bold">{new Set(deptArray.filter(d => d.branch === 'HQ').map(d => d.department)).size}</h3>
             </CardContent>
@@ -175,7 +175,7 @@ export default function DepartmentReports() {
                 <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
                   <Building2 className="w-4 h-4 text-blue-500" />
                 </div>
-                <p className="text-xs font-medium text-muted-foreground">Total Branch</p>
+                <p className="text-xs font-medium text-foreground">Total Branch</p>
               </div>
               <h3 className="text-2xl font-bold">{new Set(deptArray.filter(d => d.branch !== 'HQ').map(d => d.branch)).size}</h3>
             </CardContent>
@@ -187,7 +187,7 @@ export default function DepartmentReports() {
                 <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
                   <Users className="w-4 h-4 text-green-500" />
                 </div>
-                <p className="text-xs font-medium text-muted-foreground">Total Employees <br/>(Dept &amp; Branch)</p>
+                <p className="text-xs font-medium text-foreground">Total Employees <br/>(Dept &amp; Branch)</p>
               </div>
               <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {filteredEmployees.length}
@@ -201,7 +201,7 @@ export default function DepartmentReports() {
                 <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
                   <Users className="w-4 h-4 text-purple-500" />
                 </div>
-                <p className="text-xs font-medium text-muted-foreground">Total Employees <br/>(Department)</p>
+                <p className="text-xs font-medium text-foreground">Total Employees <br/>(Department)</p>
               </div>
               <h3 className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                 {deptArray.filter(d => d.branch === 'HQ').reduce((sum, item) => sum + item.headcount, 0)}
@@ -215,7 +215,7 @@ export default function DepartmentReports() {
                 <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
                   <Users className="w-4 h-4 text-orange-500" />
                 </div>
-                <p className="text-xs font-medium text-muted-foreground">Total Employees <br/>(All Branch)</p>
+                <p className="text-xs font-medium text-foreground">Total Employees <br/>(All Branch)</p>
               </div>
               <h3 className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                 {deptArray.filter(d => d.branch !== 'HQ').reduce((sum, item) => sum + item.headcount, 0)}
@@ -248,7 +248,7 @@ export default function DepartmentReports() {
                     <TableBody>
                       {hqList.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={3} className="text-center py-8 text-foreground">
                             No departments found.
                           </TableCell>
                         </TableRow>
@@ -290,7 +290,7 @@ export default function DepartmentReports() {
                     <TableBody>
                       {branchList.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={3} className="text-center py-8 text-foreground">
                             No branches found.
                           </TableCell>
                         </TableRow>

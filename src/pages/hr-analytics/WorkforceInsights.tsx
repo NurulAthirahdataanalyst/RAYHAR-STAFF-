@@ -372,7 +372,7 @@ export default function WorkforceInsights() {
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">Error: {error}. The backend may still be deploying.</div>;
-  if (!data) return <div className="min-h-screen flex items-center justify-center text-slate-500">No data available</div>;
+  if (!data) return <div className="min-h-screen flex items-center justify-center text-foreground">No data available</div>;
 
   const onTimeCount = Math.max(0, data.teamAvailability.present - data.teamAvailability.late);
   const donutData = [
@@ -449,7 +449,7 @@ export default function WorkforceInsights() {
                     <PopoverTrigger asChild>
                       <button className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 gap-3 hover:border-slate-400 min-w-[140px]">
                         <span>{displayDate}</span>
-                        <CalendarIcon className="w-4 h-4 text-slate-500" />
+                        <CalendarIcon className="w-4 h-4 text-foreground" />
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-1" align="end">
@@ -478,13 +478,13 @@ export default function WorkforceInsights() {
 
               <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
                 <button 
-                  className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${viewMode === 'day' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                  className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${viewMode === 'day' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
                   onClick={() => setViewMode('day')}
                 >
                   DAY
                 </button>
                 <button 
-                  className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                  className={`h-7 px-4 text-[11px] font-black tracking-widest rounded-md transition-all ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#7B0099] ring-1 ring-[#7B0099] shadow-sm' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
                   onClick={() => setViewMode('month')}
                 >
                   MONTH
@@ -519,7 +519,7 @@ export default function WorkforceInsights() {
                 <p className="text-[11px] font-extrabold text-emerald-700 uppercase tracking-wider mb-2 mt-2">Present Today</p>
                 <div className="flex flex-col items-center justify-center mt-2">
                   <h3 className="text-5xl font-black text-slate-800 leading-none tracking-tight">{feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present}</h3>
-                  <p className="text-[12px] font-semibold text-slate-500 mt-1">Employees</p>
+                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
                 </div>
               </div>
               <div className="mt-4">
@@ -532,7 +532,7 @@ export default function WorkforceInsights() {
                     <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, ((feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) / (data.topKpi.activeEmployees || 1)) * 100)}%` }}></div>
                   </div>
                   <div className="text-[12px] font-extrabold text-slate-800 whitespace-nowrap">
-                     {feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present} <span className="text-slate-400 font-bold">/ {data.topKpi.activeEmployees}</span>
+                     {feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present} <span className="text-foreground font-bold">/ {data.topKpi.activeEmployees}</span>
                   </div>
                 </div>
               </div>
@@ -562,11 +562,11 @@ export default function WorkforceInsights() {
                 <p className="text-[11px] font-extrabold text-orange-600 uppercase tracking-wider mb-2">Late Arrival</p>
                 <div className="flex flex-col items-start mt-1">
                   <h3 className="text-4xl font-black text-slate-800 leading-none">{feedConnected && lateList.length > 0 ? lateList.length : data.teamAvailability.late}</h3>
-                  <p className="text-[12px] font-semibold text-slate-500 mt-1">Employees</p>
+                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
                 </div>
               </div>
               <div className="mt-2">
-                <p className="text-[11px] font-bold text-slate-500 mb-3">Highest: <span className="text-orange-500">{highestLateTime}</span></p>
+                <p className="text-[11px] font-bold text-foreground mb-3">Highest: <span className="text-orange-500">{highestLateTime}</span></p>
               </div>
             </Card>
             );})()}
@@ -580,7 +580,7 @@ export default function WorkforceInsights() {
                 <p className="text-[11px] font-extrabold text-purple-600 uppercase tracking-wider mb-2">On Leave Today</p>
                 <div className="flex flex-col items-start mt-1">
                   <h3 className="text-4xl font-black text-slate-800 leading-none">{data.topKpi.onLeaveToday}</h3>
-                  <p className="text-[12px] font-semibold text-slate-500 mt-1">Employees</p>
+                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
                 </div>
               </div>
                 <div className="flex items-center gap-1.5 flex-nowrap overflow-hidden">
@@ -599,7 +599,7 @@ export default function WorkforceInsights() {
                 <p className="text-[11px] font-extrabold text-red-500 uppercase tracking-wider mb-2">Absent Today</p>
                 <div className="flex flex-col items-start mt-1">
                   <h3 className="text-4xl font-black text-slate-800 leading-none">{feedConnected && absentList.length > 0 ? absentList.filter(a => (a as any).status === 'absent').length : data.teamAvailability.absent}</h3>
-                  <p className="text-[12px] font-semibold text-slate-500 mt-1">Employees</p>
+                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
                 </div>
               </div>
               <div className="mt-2">
@@ -623,7 +623,7 @@ export default function WorkforceInsights() {
                       ? missingPunchYesterdayLive 
                       : (data.topKpi?.missingPunchYesterday || 0)}
                   </h3>
-                  <p className="text-[12px] font-semibold text-slate-500 mt-1">Employees</p>
+                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
                 </div>
               </div>
               <div className="mt-2">
@@ -643,7 +643,7 @@ export default function WorkforceInsights() {
                 <p className="text-[11px] font-extrabold text-blue-500 uppercase tracking-wider mb-2">Outstation</p>
                 <div className="flex flex-col items-start mt-1">
                   <h3 className="text-4xl font-black text-slate-800 leading-none">{activeOutstationList.length > 0 ? activeOutstationList.length : (data.topKpi.outstationToday || 0)}</h3>
-                  <p className="text-[12px] font-semibold text-slate-500 mt-1">Employees</p>
+                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
                 </div>
               </div>
               <div className="mt-2">
@@ -666,7 +666,7 @@ export default function WorkforceInsights() {
                 <div className="flex items-baseline gap-2 mt-1">
                   <h3 className="text-4xl font-black text-slate-800 leading-none">{data.topKpi.attendanceRate}%</h3>
                 </div>
-                <p className="text-[11px] font-bold text-slate-500 mt-1">Target 95%</p>
+                <p className="text-[11px] font-bold text-foreground mt-1">Target 95%</p>
               </div>
               <div className="mt-1 flex flex-col items-start w-full relative">
                 <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-0.5"><TrendingUp className="w-3 h-3" /> 2% vs Yesterday</p>
@@ -682,7 +682,7 @@ export default function WorkforceInsights() {
                 <p className="text-[11px] font-extrabold text-emerald-600 uppercase tracking-wider mb-2">Active Workforce</p>
                 <div className="flex items-baseline gap-2 mt-1">
                   <h3 className="text-4xl font-black text-slate-800 leading-none">
-                    {data.topKpi.activeEmployees} <span className="text-[18px] font-bold text-slate-400">/ {data.topKpi.totalHeadcount}</span>
+                    {data.topKpi.activeEmployees} <span className="text-[18px] font-bold text-foreground">/ {data.topKpi.totalHeadcount}</span>
                   </h3>
                 </div>
                 <p className="text-[12px] font-semibold text-emerald-600 mt-1">Active</p>
@@ -702,14 +702,14 @@ export default function WorkforceInsights() {
             <Card className={`col-span-1 xl:col-span-1 rounded-xl shadow-sm border border-slate-200 bg-white dark:bg-card p-5 flex flex-col \${cardHoverEffect}`}>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Employee Attendance Rates</span>
-                <span className="text-[10px] bg-slate-50 dark:bg-slate-900/50 border border-slate-150 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 font-semibold shrink-0">
+                <span className="text-[10px] bg-slate-50 dark:bg-slate-900/50 border border-slate-150 px-2 py-0.5 rounded text-foreground flex items-center gap-1 font-semibold shrink-0">
                   This Month <ChevronDown className="w-3 h-3" />
                 </span>
               </div>
               
               <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2" style={{ maxHeight: '210px' }}>
                 {(data.performance?.allAttendance || []).length === 0 ? (
-                  <div className="flex items-center justify-center h-20 text-slate-400 text-[11px] font-bold">No data</div>
+                  <div className="flex items-center justify-center h-20 text-foreground text-[11px] font-bold">No data</div>
                 ) : (
                   (data.performance?.allAttendance || []).map((emp: any, idx: number) => {
                     const rate = Number(emp.attendanceRate ?? 0);
@@ -737,7 +737,7 @@ export default function WorkforceInsights() {
 
               <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 shrink-0">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#7B0099]"></div>
-                <span className="text-[9px] font-bold text-slate-400">
+                <span className="text-[9px] font-bold text-foreground">
                   Showing all staff in your {role === 'branch_leader' ? 'branch' : 'department'}
                 </span>
               </div>
@@ -763,7 +763,7 @@ export default function WorkforceInsights() {
                 
                 <div className="flex flex-col flex-1 mt-2">
                   <div className="flex justify-between items-end mb-2">
-                     <span className="text-[11px] font-semibold text-slate-500">Total Employee</span>
+                     <span className="text-[11px] font-semibold text-foreground">Total Employee</span>
                      <span className="text-3xl font-black text-slate-800 dark:text-slate-200">{totalEmployees > 0 ? totalEmployees : (data.topKpi?.totalHeadcount || 218)}</span>
                   </div>
                   
@@ -777,14 +777,14 @@ export default function WorkforceInsights() {
                     <div className="flex flex-col border-r border-slate-100 dark:border-slate-800">
                       <div className="flex items-center gap-1.5 mb-2">
                          <div className="w-2 h-2 rounded-full bg-[#f59e0b]" />
-                         <span className="text-[10px] font-bold text-slate-500">HQ ({(hqPct || 37.6).toFixed(1)}%)</span>
+                         <span className="text-[10px] font-bold text-foreground">HQ ({(hqPct || 37.6).toFixed(1)}%)</span>
                       </div>
                       <span className="text-2xl font-black text-slate-800 dark:text-slate-200">{hqCount > 0 ? hqCount : 82}</span>
                     </div>
                     <div className="flex flex-col pl-2">
                       <div className="flex items-center gap-1.5 mb-2">
                          <div className="w-2 h-2 rounded-full bg-[#0f766e]" />
-                         <span className="text-[10px] font-bold text-slate-500">Branch ({(branchPct || 62.4).toFixed(1)}%)</span>
+                         <span className="text-[10px] font-bold text-foreground">Branch ({(branchPct || 62.4).toFixed(1)}%)</span>
                       </div>
                       <span className="text-2xl font-black text-slate-800 dark:text-slate-200">{branchCount > 0 ? branchCount : 136}</span>
                     </div>
@@ -799,7 +799,7 @@ export default function WorkforceInsights() {
                           </div>
                           <div className="flex flex-col">
                              <span className="text-[14px] font-bold text-slate-800 dark:text-slate-200">{topPerformerCount > 0 ? topPerformerCount : 27} Employees</span>
-                             <span className="text-[11px] font-semibold text-slate-500">Attendance Rate: <span className="text-emerald-500 font-bold">100%</span></span>
+                             <span className="text-[11px] font-semibold text-foreground">Attendance Rate: <span className="text-emerald-500 font-bold">100%</span></span>
                           </div>
                        </div>
                     </div>
@@ -880,7 +880,7 @@ export default function WorkforceInsights() {
                             <div className="flex justify-between items-end">
                               <div className="flex flex-col">
                                 <span className="text-[11px] font-bold text-[#1A1F36] dark:text-gray-200">{branch.name}</span>
-                                <span className="text-[9px] text-slate-400">{branch.count} Employees</span>
+                                <span className="text-[9px] text-foreground">{branch.count} Employees</span>
                               </div>
                               <span className={`text-[10px] font-black ${branch.realRate >= 95 ? 'text-emerald-500' : 'text-rose-500'}`}>{branch.realRate}%</span>
                             </div>
@@ -918,13 +918,13 @@ export default function WorkforceInsights() {
                       })}
                     </TooltipProvider>
                     {filteredBranches.length === 0 && (
-                      <div className="text-center text-slate-400 text-xs py-10 font-medium">No branches found in this region.</div>
+                      <div className="text-center text-foreground text-xs py-10 font-medium">No branches found in this region.</div>
                     )}
                   </div>
                   <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                      <span className="text-[10px] font-semibold text-slate-400">Showing all {filteredBranches.length} locations</span>
+                      <span className="text-[10px] font-semibold text-foreground">Showing all {filteredBranches.length} locations</span>
                     </div>
                     <Link to="/branches" className="text-[11px] font-bold text-[#4f46e5] hover:text-[#4338ca] transition-colors flex items-center group/link">
                       View all
@@ -977,7 +977,7 @@ export default function WorkforceInsights() {
                           <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Active</span>
                         </div>
                         <span className="text-3xl font-black text-slate-800 dark:text-slate-100">{active}</span>
-                        <span className="text-[11px] text-slate-500 mt-1 font-medium">Currently Active</span>
+                        <span className="text-[11px] text-foreground mt-1 font-medium">Currently Active</span>
                       </div>
                       <div className="flex flex-col p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900/50">
                         <div className="flex items-center gap-2 mb-2">
@@ -985,7 +985,7 @@ export default function WorkforceInsights() {
                           <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Completed</span>
                         </div>
                         <span className="text-3xl font-black text-slate-800 dark:text-slate-100">{completed}</span>
-                        <span className="text-[11px] text-slate-500 mt-1 font-medium">Past Assignments</span>
+                        <span className="text-[11px] text-foreground mt-1 font-medium">Past Assignments</span>
                       </div>
                       <div className="flex flex-col p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900/50">
                         <div className="flex items-center gap-2 mb-2">
@@ -993,7 +993,7 @@ export default function WorkforceInsights() {
                           <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Upcoming</span>
                         </div>
                         <span className="text-3xl font-black text-slate-800 dark:text-slate-100">{upcoming}</span>
-                        <span className="text-[11px] text-slate-500 mt-1 font-medium">Starts Soon</span>
+                        <span className="text-[11px] text-foreground mt-1 font-medium">Starts Soon</span>
                       </div>
                     </div>
                   );
@@ -1055,11 +1055,11 @@ export default function WorkforceInsights() {
                           <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                             <td className="py-3 pr-4">
                               <div className="text-xs font-bold text-slate-900 dark:text-slate-100">{empName}</div>
-                              {empRoleBranch && <div className="text-[10px] text-slate-500 font-medium mt-0.5">{empRoleBranch}</div>}
+                              {empRoleBranch && <div className="text-[10px] text-foreground font-medium mt-0.5">{empRoleBranch}</div>}
                             </td>
-                            <td className="py-3 pr-4 text-xs text-slate-500 font-medium">{origBranchName}</td>
+                            <td className="py-3 pr-4 text-xs text-foreground font-medium">{origBranchName}</td>
                             <td className="py-3 pr-4 text-xs font-semibold text-slate-800 dark:text-slate-200">{tempBranchName}</td>
-                            <td className="py-3 pr-4 text-xs text-slate-500 font-medium">{durationText}</td>
+                            <td className="py-3 pr-4 text-xs text-foreground font-medium">{durationText}</td>
                             <td className="py-3">
                               <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wide ${sColor}`}>
                                 <span className={`w-1.5 h-1.5 rounded-full ${sDot}`}></span>
@@ -1071,7 +1071,7 @@ export default function WorkforceInsights() {
                       })}
                       {tempAssignments.length === 0 && (
                         <tr>
-                          <td colSpan={5} className="py-8 text-center text-xs text-slate-500">
+                          <td colSpan={5} className="py-8 text-center text-xs text-foreground">
                             No temporary assignments found.
                           </td>
                         </tr>
@@ -1124,10 +1124,10 @@ export default function WorkforceInsights() {
                         <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Clock-In/Out</h3>
                         {feedConnected
                           ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
-                          : <span className="text-[8px] text-slate-400 font-bold uppercase">Connecting…</span>}
-                        {scopeLabel && <span className="text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded truncate max-w-[100px]">{scopeLabel}</span>}
+                          : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
+                        {scopeLabel && <span className="text-[9px] font-bold text-foreground bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded truncate max-w-[100px]">{scopeLabel}</span>}
                       </div>
-                      <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-slate-500 flex items-center gap-1">
+                      <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
                         <CalendarDays className="w-3 h-3" /> {displayDate}
                       </span>
                     </div>
@@ -1140,7 +1140,7 @@ export default function WorkforceInsights() {
                         </div>
                       )}
                       {displayClockIns.length === 0 && feedConnected && (
-                        <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                        <div className="flex flex-col items-center justify-center py-8 text-foreground">
                           <Clock className="w-6 h-6 opacity-40 mb-1" />
                           <p className="text-[10px] font-semibold">No clock-ins yet today</p>
                         </div>
@@ -1158,11 +1158,11 @@ export default function WorkforceInsights() {
                                   <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
                                 )}
                               </div>
-                              <p className="text-[10px] text-slate-400 font-medium">{emp.department && emp.department !== '—' ? emp.department : emp.branch}</p>
+                              <p className="text-[10px] text-foreground font-medium">{emp.department && emp.department !== '—' ? emp.department : emp.branch}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
-                            <Clock className="w-3.5 h-3.5 text-slate-400" />
+                            <Clock className="w-3.5 h-3.5 text-foreground" />
                             <span
                               style={emp.is_late ? { backgroundColor: '#ffbf00' } : undefined}
                               className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded text-white ${!emp.is_late ? 'bg-emerald-500' : ''}`}
@@ -1190,9 +1190,9 @@ export default function WorkforceInsights() {
                         <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Absent / Leave / Outstation</h3>
                         {feedConnected
                           ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
-                          : <span className="text-[8px] text-slate-400 font-bold uppercase">Connecting…</span>}
+                          : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
                       </div>
-                      <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-slate-500 flex items-center gap-1">
+                      <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
                         <CalendarDays className="w-3 h-3" /> {displayDate}
                       </span>
                     </div>
@@ -1205,7 +1205,7 @@ export default function WorkforceInsights() {
                         </div>
                       )}
                       {displayAbsent.length === 0 && feedConnected && (
-                        <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                        <div className="flex flex-col items-center justify-center py-8 text-foreground">
                           <CheckCircle2 className="w-6 h-6 text-emerald-500 opacity-60 mb-1" />
                           <p className="text-[10px] font-semibold">No absentees today!</p>
                         </div>
@@ -1218,7 +1218,7 @@ export default function WorkforceInsights() {
                             </div>
                             <div>
                               <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
-                              <p className="text-[10px] text-slate-400 font-medium">{emp.department && emp.department !== '—' ? emp.department : emp.branch}</p>
+                              <p className="text-[10px] text-foreground font-medium">{emp.department && emp.department !== '—' ? emp.department : emp.branch}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
@@ -1267,7 +1267,7 @@ export default function WorkforceInsights() {
               <div className="flex flex-row items-start justify-between">
                 <div>
                   <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Team Availability</CardTitle>
-                  <CardDescription className="text-xs text-slate-500 mt-0.5">Real-time status for the current shift</CardDescription>
+                  <CardDescription className="text-xs text-foreground mt-0.5">Real-time status for the current shift</CardDescription>
                 </div>
                 <span className="bg-indigo-100 text-indigo-700 text-[10px] font-semibold px-2 py-0.5 rounded-md">Live</span>
               </div>
@@ -1299,14 +1299,14 @@ export default function WorkforceInsights() {
                 {/* Center KPI Overlay */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <span className="text-2xl font-bold text-slate-800 dark:text-slate-200 tracking-tight leading-none">{availabilityRate}%</span>
-                  <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Current Rate</span>
+                  <span className="text-[9px] font-semibold text-foreground uppercase tracking-wider mt-0.5">Current Rate</span>
                 </div>
               </div>
 
               {/* Text Summary */}
               <div className="text-center mb-4">
                 <h3 className="text-lg font-bold text-indigo-600 leading-tight">{availableToday} Available Today</h3>
-                <p className="text-[11px] text-slate-500 mt-0.5">
+                <p className="text-[11px] text-foreground mt-0.5">
                   {availableToday === totalTeam ? "All team members are accounted for." : `${totalTeam - availableToday} team members are not available.`}
                 </p>
               </div>
@@ -1317,7 +1317,7 @@ export default function WorkforceInsights() {
                   <div key={entry.name} className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border ${index === 0 ? 'bg-indigo-50/70 border-indigo-100' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800'} transition-colors`}>
                     <div className="flex items-center gap-1 mb-1">
                       <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider truncate">{entry.name}</span>
+                      <span className="text-[10px] font-bold text-foreground uppercase tracking-wider truncate">{entry.name}</span>
                     </div>
                     <span className="text-lg font-bold text-slate-800 dark:text-slate-200 leading-none">{entry.value}</span>
                   </div>
@@ -1367,12 +1367,12 @@ export default function WorkforceInsights() {
                     </div>
                     <div>
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#7B0099] transition-colors">Pending Requests</p>
-                      <p className="text-xs text-slate-500 font-medium">Awaiting Approval</p>
+                      <p className="text-xs text-foreground font-medium">Awaiting Approval</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.pendingApproval}</span>
-                    <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-[#7B0099] group-hover:translate-x-1 transition-all duration-300" />
+                    <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#7B0099] group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
 
@@ -1386,12 +1386,12 @@ export default function WorkforceInsights() {
                     </div>
                     <div>
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#7B0099] transition-colors">Approved Leave</p>
-                      <p className="text-xs text-slate-500 font-medium">This Month</p>
+                      <p className="text-xs text-foreground font-medium">This Month</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.approvedThisMonth}</span>
-                    <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-[#7B0099] group-hover:translate-x-1 transition-all duration-300" />
+                    <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#7B0099] group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
 
@@ -1405,12 +1405,12 @@ export default function WorkforceInsights() {
                     </div>
                     <div>
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#7B0099] transition-colors">Staff on Leave</p>
-                      <p className="text-xs text-slate-500 font-medium">Out of Office (Today)</p>
+                      <p className="text-xs text-foreground font-medium">Out of Office (Today)</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-2xl font-bold text-slate-700">{data.leaveMonitoring.staffOnLeaveToday}</span>
-                    <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-[#7B0099] group-hover:translate-x-1 transition-all duration-300" />
+                    <ChevronRight className="w-5 h-5 text-foreground group-hover:text-[#7B0099] group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
               </div>
@@ -1425,7 +1425,7 @@ export default function WorkforceInsights() {
             <CardContent className="p-5 grid grid-cols-1 md:grid-cols-2 gap-6">
               
               <div>
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Top Attendance Performers
                 </h4>
                 <div className="space-y-3">
@@ -1440,13 +1440,13 @@ export default function WorkforceInsights() {
                       <span className="text-sm font-bold text-emerald-600">{emp.attendanceRate}%</span>
                     </div>
                   )) : (
-                    <p className="text-sm text-slate-500">No attendance records found.</p>
+                    <p className="text-sm text-foreground">No attendance records found.</p>
                   )}
                 </div>
               </div>
 
               <div>
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-red-500" /> Highest Late Arrivals
                 </h4>
                 <div className="space-y-3">
@@ -1460,11 +1460,11 @@ export default function WorkforceInsights() {
                       </div>
                       <div className="flex items-center gap-1">
                         <span className="text-sm font-bold text-red-600">{emp.lateCount}</span>
-                        <span className="text-xs text-slate-500">lates</span>
+                        <span className="text-xs text-foreground">lates</span>
                       </div>
                     </div>
                   )) : (
-                    <p className="text-sm text-slate-500">No late arrivals recorded.</p>
+                    <p className="text-sm text-foreground">No late arrivals recorded.</p>
                   )}
                 </div>
               </div>
@@ -1486,9 +1486,9 @@ export default function WorkforceInsights() {
                 <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Clock-In/Out</h3>
                 {feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white dark:bg-card animate-pulse" />LIVE</span>
-                  : <span className="text-[8px] text-slate-400 font-bold uppercase">Connectingâ€¦</span>}
+                  : <span className="text-[8px] text-foreground font-bold uppercase">Connectingâ€¦</span>}
               </div>
-              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border border-slate-300 dark:border-slate-700 rounded text-slate-500 flex items-center gap-1">
+              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border border-slate-300 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
                 <CalendarDays className="w-3 h-3" /> {displayDate}
               </span>
             </div>
@@ -1516,7 +1516,7 @@ export default function WorkforceInsights() {
                     </div>
                   )}
                   {displayClockIns.length === 0 && feedConnected && (
-                    <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                    <div className="flex flex-col items-center justify-center py-8 text-foreground">
                       <Clock className="w-6 h-6 opacity-40 mb-1" />
                       <p className="text-[10px] font-semibold">No clock-ins yet today</p>
                     </div>
@@ -1534,11 +1534,11 @@ export default function WorkforceInsights() {
                               <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
                             )}
                           </div>
-                          <p className="text-[10px] text-slate-400 font-medium">{emp.department && emp.department !== '—' && emp.department !== '-' ? emp.department : emp.branch}</p>
+                          <p className="text-[10px] text-foreground font-medium">{emp.department && emp.department !== '—' && emp.department !== '-' ? emp.department : emp.branch}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                        <Clock className="w-3.5 h-3.5 text-foreground" />
                         <span 
                           style={emp.is_late ? { backgroundColor: '#ffbf00' } : undefined}
                           className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded text-white ${!emp.is_late ? 'bg-emerald-500' : ''}`}
@@ -1568,9 +1568,9 @@ export default function WorkforceInsights() {
                 <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Late</h3>
                 {feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white dark:bg-card animate-pulse" />LIVE</span>
-                  : <span className="text-[8px] text-slate-400 font-bold uppercase">Connectingâ€¦</span>}
+                  : <span className="text-[8px] text-foreground font-bold uppercase">Connectingâ€¦</span>}
               </div>
-              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border border-slate-300 dark:border-slate-700 rounded text-slate-500 flex items-center gap-1">
+              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border border-slate-300 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
                 <CalendarDays className="w-3 h-3" /> {displayDate}
               </span>
             </div>
@@ -1583,7 +1583,7 @@ export default function WorkforceInsights() {
                 </div>
               )}
               {lateList.length === 0 && feedConnected && (
-                <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                <div className="flex flex-col items-center justify-center py-8 text-foreground">
                   <CheckCircle2 className="w-6 h-6 text-emerald-500 opacity-60 mb-1" />
                   <p className="text-[10px] font-semibold">No late arrivals today!</p>
                 </div>
@@ -1601,11 +1601,11 @@ export default function WorkforceInsights() {
                           {Math.floor(emp.late_minutes / 60)} H {(emp.late_minutes % 60).toString().padStart(2, '0')} Min
                         </span>
                       </div>
-                      <p className="text-[10px] text-slate-400 font-medium">{emp.department !== 'â€”' ? emp.department : emp.branch}</p>
+                      <p className="text-[10px] text-foreground font-medium">{emp.department !== 'â€”' ? emp.department : emp.branch}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <Clock className="w-3.5 h-3.5 text-slate-400" />
+                    <Clock className="w-3.5 h-3.5 text-foreground" />
                     <span 
                       style={{ backgroundColor: '#ffbf00' }}
                       className="whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded text-white"
@@ -1633,9 +1633,9 @@ export default function WorkforceInsights() {
                 <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Absent / Leave / Outstation</h3>
                 {feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white dark:bg-card animate-pulse" />LIVE</span>
-                  : <span className="text-[8px] text-slate-400 font-bold uppercase">Connectingâ€¦</span>}
+                  : <span className="text-[8px] text-foreground font-bold uppercase">Connectingâ€¦</span>}
               </div>
-              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border border-slate-300 dark:border-slate-700 rounded text-slate-500 flex items-center gap-1">
+              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border border-slate-300 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
                 <CalendarDays className="w-3 h-3" /> {displayDate}
               </span>
             </div>
@@ -1648,7 +1648,7 @@ export default function WorkforceInsights() {
                 </div>
               )}
               {absentList.length === 0 && feedConnected && (
-                <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                <div className="flex flex-col items-center justify-center py-8 text-foreground">
                   <CheckCircle2 className="w-6 h-6 text-emerald-500 opacity-60 mb-1" />
                   <p className="text-[10px] font-semibold">No absentees today!</p>
                 </div>
@@ -1663,7 +1663,7 @@ export default function WorkforceInsights() {
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
                       </div>
-                      <p className="text-[10px] text-slate-400 font-medium">{emp.department !== 'â€”' ? emp.department : emp.branch}</p>
+                      <p className="text-[10px] text-foreground font-medium">{emp.department !== 'â€”' ? emp.department : emp.branch}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
@@ -1714,7 +1714,7 @@ export default function WorkforceInsights() {
                     <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Active Outstation</h3>
                     {feedConnected
                       ? <span className="flex items-center gap-1 bg-pink-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white dark:bg-card animate-pulse" />LIVE</span>
-                      : <span className="text-[8px] text-slate-400 font-bold uppercase">Connecting…</span>}
+                      : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
                   </div>
                   <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-150 rounded text-slate-505 flex items-center gap-1 cursor-pointer hover:underline" onClick={() => navigate("/outstation")}>
                     <CalendarDays className="w-3 h-3" /> {displayDate}
@@ -1729,7 +1729,7 @@ export default function WorkforceInsights() {
                     </div>
                   )}
                   {activeOutstationList.length === 0 && feedConnected && (
-                    <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                    <div className="flex flex-col items-center justify-center py-8 text-foreground">
                       <Plane className="w-6 h-6 opacity-40 mb-1" />
                       <p className="text-[10px] font-semibold">No active outstations today.</p>
                     </div>
@@ -1761,21 +1761,21 @@ export default function WorkforceInsights() {
                             <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{item.title}</p>
                             <div className="mt-1 space-y-0.5">
                               {dateDisplay && (
-                                <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                                  <CalendarDays className="w-3 h-3 text-slate-400 shrink-0" /> {dateDisplay}
+                                <p className="text-[10px] text-foreground font-medium flex items-center gap-1">
+                                  <CalendarDays className="w-3 h-3 text-foreground shrink-0" /> {dateDisplay}
                                 </p>
                               )}
-                              <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                                <Clock className="w-3 h-3 text-slate-400 shrink-0" /> {days} Day{days === 1 ? '' : 's'} Total
+                              <p className="text-[10px] text-foreground font-medium flex items-center gap-1">
+                                <Clock className="w-3 h-3 text-foreground shrink-0" /> {days} Day{days === 1 ? '' : 's'} Total
                               </p>
                               {item.destination && item.title !== item.destination && (
-                                <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                                  <MapPin className="w-3 h-3 text-slate-400 shrink-0" /> {item.destination}
+                                <p className="text-[10px] text-foreground font-medium flex items-center gap-1">
+                                  <MapPin className="w-3 h-3 text-foreground shrink-0" /> {item.destination}
                                 </p>
                               )}
                               {item.title === item.destination && (
-                                <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                                  <MapPin className="w-3 h-3 text-slate-400 shrink-0" /> {item.destination}
+                                <p className="text-[10px] text-foreground font-medium flex items-center gap-1">
+                                  <MapPin className="w-3 h-3 text-foreground shrink-0" /> {item.destination}
                                 </p>
                               )}
                             </div>
@@ -1827,7 +1827,7 @@ export default function WorkforceInsights() {
                 </div>
               )}
               {pendingApprovalsList.length === 0 && feedConnected ? (
-                <div className="h-full flex flex-col items-center justify-center text-center p-8 text-slate-400">
+                <div className="h-full flex flex-col items-center justify-center text-center p-8 text-foreground">
                   <CheckCircle2 className="w-8 h-8 text-emerald-500 opacity-60 mb-2" />
                   <p className="text-xs font-bold uppercase tracking-wider">All caught up!</p>
                   <p className="text-[10px] mt-0.5">No pending approvals remaining.</p>
@@ -1843,10 +1843,10 @@ export default function WorkforceInsights() {
                         </div>
                         <div>
                           <p className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">{item.name}</p>
-                          <p className="text-[10px] text-slate-500 font-medium mt-1 flex items-center gap-1.5">
-                            <CalendarDays className="w-3 h-3 text-slate-400" /> {item.dates} <span className="text-slate-300">|</span> <span className="text-[#ff5b37] font-semibold">{item.days}</span>
+                          <p className="text-[10px] text-foreground font-medium mt-1 flex items-center gap-1.5">
+                            <CalendarDays className="w-3 h-3 text-foreground" /> {item.dates} <span className="text-slate-300">|</span> <span className="text-[#ff5b37] font-semibold">{item.days}</span>
                           </p>
-                          <p className="text-[10px] text-slate-400 font-medium mt-0.5">Reason: {item.reason}</p>
+                          <p className="text-[10px] text-foreground font-medium mt-0.5">Reason: {item.reason}</p>
                         </div>
                       </div>
                       
@@ -1897,7 +1897,7 @@ export default function WorkforceInsights() {
                 </div>
               )}
               {upcomingOutstationList.length === 0 && feedConnected && (
-                <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                <div className="flex flex-col items-center justify-center py-8 text-foreground">
                   <Plane className="w-6 h-6 opacity-40 mb-1" />
                   <p className="text-[10px] font-semibold">No upcoming outstations today!</p>
                 </div>
@@ -1927,21 +1927,21 @@ export default function WorkforceInsights() {
                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{item.title}</p>
                         <div className="mt-1 space-y-0.5">
                           {dateDisplay && (
-                            <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                              <CalendarDays className="w-3 h-3 text-slate-400 shrink-0" /> {dateDisplay}
+                            <p className="text-[10px] text-foreground font-medium flex items-center gap-1">
+                              <CalendarDays className="w-3 h-3 text-foreground shrink-0" /> {dateDisplay}
                             </p>
                           )}
-                          <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-slate-400 shrink-0" /> {item.time}
+                          <p className="text-[10px] text-foreground font-medium flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-foreground shrink-0" /> {item.time}
                           </p>
                           {item.destination && item.title !== item.destination && (
-                            <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                              <MapPin className="w-3 h-3 text-slate-400 shrink-0" /> {item.destination}
+                            <p className="text-[10px] text-foreground font-medium flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-foreground shrink-0" /> {item.destination}
                             </p>
                           )}
                           {item.title === item.destination && (
-                            <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                              <MapPin className="w-3 h-3 text-slate-400 shrink-0" /> {item.destination}
+                            <p className="text-[10px] text-foreground font-medium flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-foreground shrink-0" /> {item.destination}
                             </p>
                           )}
                         </div>
@@ -2204,9 +2204,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                  <CheckCircle2 className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
-                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Attendance Rate</p>
+                 <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Attendance Rate</p>
                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{((liveMonthlyComp || monthlyComp).attendance?.current) || topKpi.attendanceRate || 0}%</h3>
-                 <p className="text-[10px] text-slate-400 font-medium">Monthly Average</p>
+                 <p className="text-[10px] text-foreground font-medium">Monthly Average</p>
                </div>
             </Card>
 
@@ -2216,9 +2216,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                  <UserCheck className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
-                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Total Present</p>
+                 <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Total Present</p>
                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{(feedConnected && clockInOut?.length > 0 ? clockInOut.length : data?.teamAvailability?.present) || 0}</h3>
-                 <p className="text-[10px] text-slate-400 font-medium">Employees</p>
+                 <p className="text-[10px] text-foreground font-medium">Employees</p>
                </div>
             </Card>
 
@@ -2228,9 +2228,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                  <XCircle className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
-                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Total Absenteeism</p>
+                 <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Total Absenteeism</p>
                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{((liveMonthlyComp || monthlyComp).absences?.current) || data?.performance?.totalAbsenteeism || 0}</h3>
-                 <p className="text-[10px] text-slate-400 font-medium">Absent Days</p>
+                 <p className="text-[10px] text-foreground font-medium">Absent Days</p>
                </div>
             </Card>
 
@@ -2240,9 +2240,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                  <Clock className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
-                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Late Attendance</p>
+                 <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Late Attendance</p>
                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{((liveMonthlyComp || monthlyComp).lateArrivals?.current) || data?.performance?.lateAttendance || 0}</h3>
-                 <p className="text-[10px] text-slate-400 font-medium">Late Records</p>
+                 <p className="text-[10px] text-foreground font-medium">Late Records</p>
                </div>
             </Card>
 
@@ -2252,9 +2252,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                  <TrendingUp className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
-                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Avg Working Hrs</p>
+                 <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Avg Working Hrs</p>
                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{data?.performance?.avgWorkingHours || "0"} Hrs</h3>
-                 <p className="text-[10px] text-slate-400 font-medium">Monthly Average</p>
+                 <p className="text-[10px] text-foreground font-medium">Monthly Average</p>
                </div>
             </Card>
 
@@ -2264,9 +2264,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                  <CalendarDays className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
-                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Leave Utilization</p>
+                 <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Leave Utilization</p>
                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{leaveUtil || 0}%</h3>
-                 <p className="text-[10px] text-slate-400 font-medium">Leave Used</p>
+                 <p className="text-[10px] text-foreground font-medium">Leave Used</p>
                </div>
             </Card>
 
@@ -2276,9 +2276,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                  <Award className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
-                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Perfect Attend.</p>
+                 <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Perfect Attend.</p>
                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{data?.performance?.perfectAttendance || 0}</h3>
-                 <p className="text-[10px] text-slate-400 font-medium">Employees</p>
+                 <p className="text-[10px] text-foreground font-medium">Employees</p>
                </div>
             </Card>
 
@@ -2288,9 +2288,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                  <AlertTriangle className="w-5 h-5" />
                </div>
                <div className="flex flex-col">
-                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Attendance Risk</p>
+                 <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Attendance Risk</p>
                  <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{data?.performance?.attendanceRisk || 0}</h3>
-                 <p className="text-[10px] text-slate-400 font-medium">Need Attention</p>
+                 <p className="text-[10px] text-foreground font-medium">Need Attention</p>
                </div>
             </Card>
          </div>
@@ -2314,7 +2314,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                       </Button>
                     )}
                     <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800" onClick={() => setTrendWeekStart(subDays(trendWeekStart, 7))}>
-                    <ChevronLeft className="w-4 h-4 text-slate-500" />
+                    <ChevronLeft className="w-4 h-4 text-foreground" />
                   </Button>
                   <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 dark:border-slate-700 dark:bg-slate-800/50 rounded-full shadow-sm">
                     <span className="text-xs sm:text-sm font-black text-[#7B0099] whitespace-nowrap">
@@ -2322,7 +2322,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                     </span>
                   </div>
                   <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800" onClick={() => setTrendWeekStart(addDays(trendWeekStart, 7))}>
-                    <ChevronRight className="w-4 h-4 text-slate-500" />
+                    <ChevronRight className="w-4 h-4 text-foreground" />
                   </Button>
                 </div>
               </div>
@@ -2331,19 +2331,19 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                 <div className="flex gap-6 items-baseline">
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.present, 0) || 0}</span>
-                    <span className="text-xs font-bold text-slate-500">On Time</span>
+                    <span className="text-xs font-bold text-foreground">On Time</span>
                   </div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.late, 0) || 0}</span>
-                    <span className="text-xs font-bold text-slate-500">Late</span>
+                    <span className="text-xs font-bold text-foreground">Late</span>
                   </div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.absent, 0) || 0}</span>
-                    <span className="text-xs font-bold text-slate-500">Absent</span>
+                    <span className="text-xs font-bold text-foreground">Absent</span>
                   </div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + (item.leave || 0), 0) || 0}</span>
-                    <span className="text-xs font-bold text-slate-500">Leave</span>
+                    <span className="text-xs font-bold text-foreground">Leave</span>
                   </div>
                 </div>
                   <div className="flex gap-4">
@@ -2387,15 +2387,15 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                 {/* Metric Boxes */}
                 <div className="flex flex-col justify-between w-full lg:w-[200px] gap-3">
                   <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-800/50 h-full">
-                    <p className="text-xs text-slate-500 font-bold mb-1">Max Working Hours</p>
+                    <p className="text-xs text-foreground font-bold mb-1">Max Working Hours</p>
                     <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">8.4 hrs</h3>
                   </div>
                   <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-800/50 h-full">
-                    <p className="text-xs text-slate-500 font-bold mb-1">Missed Punches</p>
+                    <p className="text-xs text-foreground font-bold mb-1">Missed Punches</p>
                     <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{data?.performance?.missingPunchEmployees?.reduce((sum: number, emp: any) => sum + emp.missingPunches, 0) || 0}</h3>
                   </div>
                   <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-800/50 h-full">
-                    <p className="text-xs text-slate-500 font-bold mb-1">Weekly Avg</p>
+                    <p className="text-xs text-foreground font-bold mb-1">Weekly Avg</p>
                     <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{topKpi.attendanceRate || 0}%</h3>
                   </div>
                 </div>
@@ -2431,7 +2431,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              </div>
              <div className="overflow-x-auto flex-1">
                <table className="w-full text-sm text-left">
-                 <thead className="text-xs text-slate-500 bg-slate-50/50 uppercase">
+                 <thead className="text-xs text-foreground bg-slate-50/50 uppercase">
                    <tr className="border-b border-slate-200 dark:border-slate-700">
                      <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Metric</th>
                      <th className="px-4 py-3 text-right border-l border-slate-200 dark:border-slate-700 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">This Month {feedConnected && <span className="ml-1 text-[8px] bg-red-500 text-white px-1 rounded animate-pulse">LIVE</span>}</th>
@@ -2461,9 +2461,9 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                        <tr key={idx} className="hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
                          <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-200">{row.label}</td>
                          <td className="px-4 py-3 text-slate-600 font-semibold text-right border-l border-slate-200 dark:border-slate-700">{row.cur}</td>
-                         <td className="px-4 py-3 text-slate-500 text-right">{row.prev}</td>
+                         <td className="px-4 py-3 text-foreground text-right">{row.prev}</td>
                          <td className="px-4 py-3 text-right">
-                           {isNeutral ? <span className="text-slate-400 font-bold inline-block">-</span> : 
+                           {isNeutral ? <span className="text-foreground font-bold inline-block">-</span> : 
                             <span className={`inline-flex items-center gap-1 font-bold text-[11px] ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
                               {row.diff > 0 ? '↑' : '↓'} {diffFormatted}{row.label.includes('Rate') ? '%' : ''}
                             </span>}
@@ -2475,7 +2475,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                </table>
              </div>
              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-               <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
+               <button className="text-xs font-bold text-foreground hover:text-[#7B0099] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
              </div>
              </Card>
              
@@ -2499,10 +2499,10 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
            <Card className="lg:col-span-5 p-4 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
-                 <Building2 className="w-4 h-4 text-slate-400" />
+                 <Building2 className="w-4 h-4 text-foreground" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">Department Workforce Distribution</h3>
                </div>
-               <div className="text-[10px] font-bold border border border-slate-300 dark:border-slate-700 rounded px-2 py-1 flex items-center gap-1 text-slate-500 cursor-pointer hover:bg-slate-50 dark:bg-slate-900/50">
+               <div className="text-[10px] font-bold border border border-slate-300 dark:border-slate-700 rounded px-2 py-1 flex items-center gap-1 text-foreground cursor-pointer hover:bg-slate-50 dark:bg-slate-900/50">
                  This Month <ChevronDown className="w-3 h-3" />
                </div>
              </div>
@@ -2514,7 +2514,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                      <div className="flex justify-between items-end">
                        <div className="flex flex-col">
                          <span className="text-[11px] font-bold text-[#1A1F36] dark:text-gray-200">{dept.name}</span>
-                         <span className="text-[9px] text-slate-400">{dept.count} Employees</span>
+                         <span className="text-[9px] text-foreground">{dept.count} Employees</span>
                        </div>
                        <span className={`text-[10px] font-black ${dept.attendanceRate >= 95 ? 'text-emerald-500' : 'text-amber-500'}`}>{dept.attendanceRate}%</span>
                      </div>
@@ -2527,11 +2527,11 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              </div>
              
              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-               <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1.5">
+               <p className="text-[10px] font-semibold text-foreground flex items-center gap-1.5">
                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF5722]"></span>
                  HQ operations represent {(departmentMetrics.reduce((sum:number,d:any)=>sum+d.value,0)/topKpi.totalHeadcount*100 || 0).toFixed(0)}% of workforce
                </p>
-               <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">View All <ChevronRight className="w-3 h-3" /></button>
+               <button className="text-xs font-bold text-foreground hover:text-[#7B0099] transition-colors flex items-center gap-1">View All <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
 
@@ -2539,7 +2539,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
            <Card className="lg:col-span-7 p-4 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col bg-white dark:bg-card">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
-                 <MapPin className="w-4 h-4 text-slate-400" />
+                 <MapPin className="w-4 h-4 text-foreground" />
                  <h3 className="text-sm font-bold text-[#1A1F36] dark:text-gray-100">Branch Workforce Distribution</h3>
                </div>
                <Select value={selectedRegion} onValueChange={setSelectedRegion}>
@@ -2570,7 +2570,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                               {FULL_BRANCH_NAMES[branch.branch] || branch.branch}
                             </span>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className="text-[9px] font-semibold text-slate-500 flex items-center gap-1">
+                              <span className="text-[9px] font-semibold text-foreground flex items-center gap-1">
                                 👥 {branch.permanentStaffCount} Staff
                               </span>
                               {branch.temporaryIn > 0 && (
@@ -2604,7 +2604,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                             <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">
                               {FULL_BRANCH_NAMES[branch.branch] || branch.branch}
                             </p>
-                            <div className="flex flex-col gap-1.5 text-[9px] text-slate-600 dark:text-slate-400 mb-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                            <div className="flex flex-col gap-1.5 text-[9px] text-slate-600 dark:text-foreground mb-2 border-b border-slate-100 dark:border-slate-800 pb-2">
                               <p className="flex justify-between items-center gap-4">
                                 <span>Permanent Staff:</span> 
                                 <span className="font-semibold text-slate-700 dark:text-slate-300">{branch.permanentStaffCount}</span>
@@ -2622,7 +2622,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                                 <span className="font-bold text-slate-900 dark:text-slate-100">{branch.totalEmployees}</span>
                               </p>
                             </div>
-                            <div className="flex flex-col gap-1 text-[9px] text-slate-600 dark:text-slate-400">
+                            <div className="flex flex-col gap-1 text-[9px] text-slate-600 dark:text-foreground">
                               <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></div>Present (On Time):</span> <span className="font-bold text-emerald-600">{branch.presentOnTime}</span></p>
                               {branch.tempPresent > 0 && <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-amber-700"></div>Temporary Present:</span> <span className="font-bold text-amber-700">{branch.tempPresent}</span></p>}
                               <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></div>Late:</span> <span className="font-bold text-amber-600">{branch.presentLate + branch.tempLate}</span></p>
@@ -2638,16 +2638,16 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                   })}
                </TooltipProvider>
                {liveBranchRanking.length === 0 && (
-                 <div className="text-center text-slate-400 text-xs py-10 font-medium">No branches found in this region.</div>
+                 <div className="text-center text-foreground text-xs py-10 font-medium">No branches found in this region.</div>
                )}
              </div>
 
               <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1.5">
+                <p className="text-[10px] font-semibold text-foreground flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                   Showing {liveBranchRanking.length} locations
                 </p>
-                <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">See All <ChevronRight className="w-3 h-3" /></button>
+                <button className="text-xs font-bold text-foreground hover:text-[#7B0099] transition-colors flex items-center gap-1">See All <ChevronRight className="w-3 h-3" /></button>
               </div>
             </Card>
           </div>
@@ -2658,7 +2658,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
            <Card className="p-4 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
-                 <FileText className="w-4 h-4 text-slate-400" />
+                 <FileText className="w-4 h-4 text-foreground" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">Leave Distribution</h3>
                </div>
              </div>
@@ -2684,7 +2684,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                    </ResponsiveContainer>
                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                      <span className="text-lg font-black text-slate-800 dark:text-slate-200 leading-none">{totalLeaveCount || 0}</span>
-                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total</span>
+                     <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">Total</span>
                    </div>
                  </div>
                  <div className="flex-1 pl-4 space-y-2">
@@ -2700,13 +2700,13 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                  </div>
                </div>
              ) : (
-               <div className="flex items-center justify-center flex-1 h-[140px] text-slate-400 text-xs italic bg-slate-50/50 rounded-lg border border-slate-300 dark:border-slate-700 border-dashed">
+               <div className="flex items-center justify-center flex-1 h-[140px] text-foreground text-xs italic bg-slate-50/50 rounded-lg border border-slate-300 dark:border-slate-700 border-dashed">
                  No Leave Request History Available
                </div>
              )}
 
              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-               <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">View Details <ChevronRight className="w-3 h-3" /></button>
+               <button className="text-xs font-bold text-foreground hover:text-[#7B0099] transition-colors flex items-center gap-1">View Details <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
 
@@ -2731,25 +2731,25 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                    <>
                      <div className="flex flex-col items-center justify-center py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
                        <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{completed}</span>
-                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Completed</span>
+                       <span className="text-[10px] font-bold text-foreground uppercase tracking-widest text-center">Completed</span>
                      </div>
                      <div className="flex flex-col items-center justify-center py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
                        <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{upcoming}</span>
-                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Upcoming</span>
+                       <span className="text-[10px] font-bold text-foreground uppercase tracking-widest text-center">Upcoming</span>
                      </div>
                      <div className="flex flex-col items-center justify-center py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
                        <span className="text-[32px] font-black text-[#1E293B] dark:text-white leading-none mb-2">{cancelled}</span>
-                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Cancelled</span>
+                       <span className="text-[10px] font-bold text-foreground uppercase tracking-widest text-center">Cancelled</span>
                      </div>
                    </>
                  );
                })()}
              </div>
              
-             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Popular Routes</p>
+             <p className="text-[10px] font-bold text-foreground uppercase tracking-widest mb-4">Popular Routes</p>
              <div className="space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-1 mb-2">
                {((outstationSummary?.popularRoutes || data.outstationAnalytics?.popularRoutes || [])).length === 0 ? (
-                 <div className="flex flex-col items-center justify-center h-full text-slate-400 py-4">
+                 <div className="flex flex-col items-center justify-center h-full text-foreground py-4">
                    <Plane className="w-6 h-6 opacity-30 mb-2" />
                    <p className="text-[9px] font-bold uppercase tracking-widest">No Routes Recorded</p>
                  </div>
@@ -2770,7 +2770,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              </div>
 
              <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end items-center">
-               <button onClick={() => navigate('/outstation/reports')} className="text-[11px] font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">Explore <ChevronRight className="w-3 h-3" /></button>
+               <button onClick={() => navigate('/outstation/reports')} className="text-[11px] font-bold text-foreground hover:text-[#7B0099] transition-colors flex items-center gap-1">Explore <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
 
@@ -2778,7 +2778,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
            <Card className="p-4 shadow-sm border border-slate-300 dark:border-slate-700 hover:border-[#7B0099] hover:shadow-md transition-all duration-300 flex flex-col">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
-                 <Users className="w-4 h-4 text-slate-400" />
+                 <Users className="w-4 h-4 text-foreground" />
                  <h3 className="text-sm font-bold text-[#1A1F36]">Workforce Movement</h3>
                </div>
              </div>
@@ -2796,7 +2796,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                </div>
                <div className="flex flex-col justify-center items-center py-2 bg-[#F8FAFC] rounded-xl border border border-slate-300 dark:border-slate-700 text-center">
                  <span className="text-xl font-black text-slate-700 mb-0.5">{movement.transferred || 0}</span>
-                 <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Transferred</p>
+                 <p className="text-[9px] font-bold text-foreground uppercase tracking-wider">Transferred</p>
                </div>
                <div className="flex flex-col justify-center items-center py-2 bg-[#F3E8FF] rounded-xl border border-purple-200 text-center">
                  <span className="text-xl font-black text-purple-700 mb-0.5">{movement.promotions || 0}</span>
@@ -2804,7 +2804,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                </div>
              </div>
              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-               <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
+               <button className="text-xs font-bold text-foreground hover:text-[#7B0099] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
           </div>
@@ -2835,7 +2835,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
                {(liveHrAlerts || hrAlerts || []).map((alert: any, i: number) => {
                  let bgColor = 'bg-slate-50 dark:bg-slate-900/50';
                  let borderColor = 'border border-slate-300 dark:border-slate-700';
-                 let iconColor = 'text-slate-500';
+                 let iconColor = 'text-foreground';
                  let titleColor = 'text-slate-800 dark:text-slate-200';
                  
                  if (alert.type === 'critical') {
@@ -2866,7 +2866,7 @@ function MonthViewDashboard({ data, clockInOut, lateList, absentList, tempAssign
              </div>
 
              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-               <button className="text-xs font-bold text-slate-500 hover:text-[#7B0099] transition-colors flex items-center gap-1">See All <ChevronRight className="w-3 h-3" /></button>
+               <button className="text-xs font-bold text-foreground hover:text-[#7B0099] transition-colors flex items-center gap-1">See All <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
          </div>

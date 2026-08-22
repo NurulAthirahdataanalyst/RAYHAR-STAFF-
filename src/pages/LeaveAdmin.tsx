@@ -445,7 +445,7 @@ export default function LeaveAdmin() {
               <div className="absolute -right-[20px] top-0 bottom-0 w-[40px] bg-card transform skew-x-[-20deg]" />
             </div>
             <div className="flex-1 flex flex-col justify-center items-end pr-3 sm:pr-5 relative z-10 min-w-0">
-              <div className="text-[12px] sm:text-[13px] font-medium text-muted-foreground text-right leading-tight break-words">{stat.title}</div>
+              <div className="text-[12px] sm:text-[13px] font-medium text-foreground text-right leading-tight break-words">{stat.title}</div>
               <div className="text-2xl sm:text-3xl font-bold mt-0.5 tracking-tight">{stat.count}</div>
             </div>
           </div>
@@ -526,7 +526,7 @@ export default function LeaveAdmin() {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground animate-pulse">Loading Leaves...</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-foreground animate-pulse">Loading Leaves...</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -568,7 +568,7 @@ export default function LeaveAdmin() {
                               >
                                 {req.employee}
                               </span>
-                              <span className="text-[11px] text-muted-foreground mt-0.5">{req.branch}</span>
+                              <span className="text-[11px] text-foreground mt-0.5">{req.branch}</span>
                             </div>
                           </div>
                         </TableCell>
@@ -578,10 +578,10 @@ export default function LeaveAdmin() {
                             {req.reason && <Info className="w-3.5 h-3.5 text-slate-950 dark:text-slate-50" />}
                           </span>
                         </TableCell>
-                        <TableCell className="px-3 py-3.5 text-[12px] font-medium text-muted-foreground">
+                        <TableCell className="px-3 py-3.5 text-[12px] font-medium text-foreground">
                           {req.from}
                         </TableCell>
-                        <TableCell className="px-3 py-3.5 text-[12px] font-medium text-muted-foreground">
+                        <TableCell className="px-3 py-3.5 text-[12px] font-medium text-foreground">
                           {req.to}
                         </TableCell>
                         <TableCell className="px-3 py-3.5">
@@ -634,7 +634,7 @@ export default function LeaveAdmin() {
                                 </Button>
                               </div>
                             ) : (
-                              <span className="text-[11px] text-muted-foreground/60 font-medium italic">No Action</span>
+                              <span className="text-[11px] text-foreground/60 font-medium italic">No Action</span>
                             )}
                           </TableCell>
                         )}
@@ -642,7 +642,7 @@ export default function LeaveAdmin() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={canApprove ? 7 : 6} className="h-32 text-center text-muted-foreground">
+                      <TableCell colSpan={canApprove ? 7 : 6} className="h-32 text-center text-foreground">
                         No leave requests found.
                       </TableCell>
                     </TableRow>
@@ -653,7 +653,7 @@ export default function LeaveAdmin() {
           )}
           {!loading && totalPages > 1 && (
             <div className="flex items-center justify-between px-6 py-4 border-t border-border/40 bg-muted/10">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-foreground">
                 Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredRequests.length)} of {filteredRequests.length} entries
               </span>
               <div className="flex gap-2">
@@ -712,7 +712,7 @@ export default function LeaveAdmin() {
           </div>
           <div className="p-4 space-y-4">
             <div className="space-y-2">
-              <label htmlFor="remarks" className="text-[10px] font-black uppercase text-muted-foreground tracking-widest px-1">Remarks / Comments (Optional)</label>
+              <label htmlFor="remarks" className="text-[10px] font-black uppercase text-foreground tracking-widest px-1">Remarks / Comments (Optional)</label>
               <textarea
                 id="remarks"
                 value={remarks}

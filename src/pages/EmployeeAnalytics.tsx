@@ -213,7 +213,7 @@ function MetricCard({ label, value, sub, icon: Icon, accent, trend }: {
         )}
       </div>
       <div>
-        <div className="text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground mb-1.5">{label}</div>
+        <div className="text-[9px] font-black uppercase tracking-[0.1em] text-foreground mb-1.5">{label}</div>
         <div className="text-2xl sm:text-3xl font-black text-foreground leading-none tracking-tight">{value}</div>
       </div>
     </div>
@@ -417,7 +417,7 @@ export default function EmployeeAnalytics() {
             <h1 className="text-responsive-xl font-black text-foreground tracking-tight uppercase">
               Performance Insights
             </h1>
-            <p className="text-responsive-sm text-muted-foreground font-medium italic">
+            <p className="text-responsive-sm text-foreground font-medium italic">
               Employee Attendance Analytics · {MONTHS.find(m => m.value === selectedMonth)?.label} {selectedYear}
             </p>
           </div>
@@ -464,7 +464,7 @@ export default function EmployeeAnalytics() {
         <>
           <div className="flex items-center gap-3 pt-2">
             <div className="h-px flex-1 bg-border/50" />
-            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/50">Team Performance</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-foreground/50">Team Performance</span>
             <div className="h-px flex-1 bg-border/50" />
           </div>
 
@@ -483,10 +483,10 @@ export default function EmployeeAnalytics() {
               {loadingTeam ? (
                 <div className="flex items-center justify-center p-16 gap-3">
                   <Loader2 className="animate-spin text-[#7B0099] w-7 h-7" />
-                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest animate-pulse">Calculating metrics…</span>
+                  <span className="text-[10px] font-black text-foreground uppercase tracking-widest animate-pulse">Calculating metrics…</span>
                 </div>
               ) : teamMetrics.length === 0 ? (
-                <div className="py-16 text-center text-[10px] font-black text-muted-foreground/30 uppercase tracking-widest">
+                <div className="py-16 text-center text-[10px] font-black text-foreground/30 uppercase tracking-widest">
                   No team data available for this period
                 </div>
               ) : (
@@ -512,19 +512,19 @@ export default function EmployeeAnalytics() {
                               absoluteRank === 1 ? "bg-amber-500 text-white" :
                               absoluteRank === 2 ? "bg-slate-400 text-white" :
                               absoluteRank === 3 ? "bg-orange-600 text-white" :
-                              "bg-muted text-muted-foreground"
+                              "bg-muted text-foreground"
                             }`}>{absoluteRank}</div>
 
                             {/* Name */}
                             <div className="flex-1 min-w-0">
                                 <p className="font-black text-sm text-foreground truncate">{m.name}</p>
-                                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{m.branch} · {m.department || "—"}</p>
+                                <p className="text-[9px] font-bold text-foreground uppercase tracking-wider">{m.branch} · {m.department || "—"}</p>
                             </div>
 
                             {/* Score bars */}
                             <div className="hidden sm:flex items-center gap-4">
                               <div className="flex flex-col items-end gap-0.5">
-                                <span className="text-[8px] font-black text-muted-foreground uppercase">Punctuality</span>
+                                <span className="text-[8px] font-black text-foreground uppercase">Punctuality</span>
                                 <div className="flex items-center gap-1.5">
                                   <div className="w-24 h-1.5 rounded-full bg-muted/40 overflow-hidden">
                                     <div className="h-full rounded-full bg-[#7B0099] transition-all"
@@ -534,7 +534,7 @@ export default function EmployeeAnalytics() {
                                 </div>
                               </div>
                               <div className="flex flex-col items-end gap-0.5">
-                                <span className="text-[8px] font-black text-muted-foreground uppercase">OT Hrs</span>
+                                <span className="text-[8px] font-black text-foreground uppercase">OT Hrs</span>
                                 <span className="text-[11px] font-black text-amber-600">{m.overtimeHours}h</span>
                               </div>
                             </div>
@@ -542,7 +542,7 @@ export default function EmployeeAnalytics() {
                             <Badge className={`text-[8px] font-black px-2 py-0.5 ${cfg.color} border-none flex items-center gap-1`}>
                               <BadgeIcon className="w-2.5 h-2.5" />{cfg.label}
                             </Badge>
-                            <ChevronRight className={`w-4 h-4 text-muted-foreground/40 transition-transform ${isSelected ? "rotate-90 text-[#7B0099]" : ""}`} />
+                            <ChevronRight className={`w-4 h-4 text-foreground/40 transition-transform ${isSelected ? "rotate-90 text-[#7B0099]" : ""}`} />
                           </div>
 
                           {/* Expanded detail */}
@@ -559,7 +559,7 @@ export default function EmployeeAnalytics() {
                                 { label: "Leave Taken",   value: `${m.leaveCount}`,             color: "text-[#7B0099]"    },
                               ].map(s => (
                                 <div key={s.label} className="bg-muted/20 p-3 rounded-2xl">
-                                  <p className="text-[8px] font-black text-muted-foreground uppercase opacity-60">{s.label}</p>
+                                  <p className="text-[8px] font-black text-foreground uppercase opacity-60">{s.label}</p>
                                   <p className={`text-sm font-black mt-0.5 ${s.color}`}>{s.value}</p>
                                 </div>
                               ))}
@@ -573,7 +573,7 @@ export default function EmployeeAnalytics() {
                   {/* Pagination Controls */}
                   {teamMetrics.length > 0 && (
                     <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-border/50 gap-4 bg-muted/10">
-                      <div className="flex items-center gap-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                      <div className="flex items-center gap-4 text-[10px] font-black text-foreground uppercase tracking-widest">
                         <span>
                           Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, teamMetrics.length)} of {teamMetrics.length} Entries
                         </span>
@@ -703,7 +703,7 @@ export default function EmployeeAnalytics() {
                     <Loader2 className="animate-spin text-[#7B0099] opacity-40 w-7 h-7" />
                   </div>
                 ) : deptOvertimeData.length === 0 ? (
-                  <div className="h-[220px] flex items-center justify-center text-[10px] font-black text-muted-foreground/30 uppercase tracking-widest">
+                  <div className="h-[220px] flex items-center justify-center text-[10px] font-black text-foreground/30 uppercase tracking-widest">
                     No overtime data
                   </div>
                 ) : (
@@ -728,12 +728,12 @@ export default function EmployeeAnalytics() {
 
                     {/* Average OT Hours List */}
                     <div className="mt-3 space-y-2">
-                      <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">
+                      <p className="text-[8px] font-black text-foreground uppercase tracking-[0.2em] opacity-60">
                         Average OT Hours
                       </p>
                       {deptOvertimeData.map(d => (
                         <div key={d.dept} className="flex items-center justify-between gap-2">
-                          <span className="text-[10px] font-bold text-muted-foreground truncate">{d.dept}</span>
+                          <span className="text-[10px] font-bold text-foreground truncate">{d.dept}</span>
                           <span className="text-[10px] font-black text-amber-600">{d.avgOvertime.toFixed(1)}h avg</span>
                         </div>
                       ))}
@@ -749,7 +749,7 @@ export default function EmployeeAnalytics() {
             <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[24px] group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 shadow-[0_8px_30px_rgba(0,0,0,0.03)]">
               <CardContent className="p-5">
                 <div className="flex flex-wrap items-center gap-4 sm:gap-8">
-                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">Team Summary:</span>
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-foreground">Team Summary:</span>
                   {[
                     { label: "Total Employees", value: teamMetrics.length, color: "bg-[#7B0099] text-white" },
                     { label: "Champions",  value: teamMetrics.filter(m => m.badge === "CHAMPION").length,  color: "bg-amber-500 text-white"  },
@@ -759,7 +759,7 @@ export default function EmployeeAnalytics() {
                   ].map(s => (
                     <div key={s.label} className="flex items-center gap-2">
                       <Badge className={`${s.color} font-black text-[10px] px-3 py-1 rounded-md`}>{s.value}</Badge>
-                      <span className="text-[10px] font-black text-muted-foreground uppercase">{s.label}</span>
+                      <span className="text-[10px] font-black text-foreground uppercase">{s.label}</span>
                     </div>
                   ))}
                   <div className="ml-auto flex items-center gap-1.5 text-[9px] font-black text-[#7B0099] uppercase tracking-wider bg-[#7B0099]/10 px-3 py-1.5 rounded-xl font-bold">

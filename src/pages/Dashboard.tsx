@@ -536,7 +536,7 @@ export default function Dashboard() {
     return (
       <div className="flex flex-col h-[80vh] items-center justify-center space-y-4">
         <Loader2 className="animate-spin text-[#a01497] w-12 h-12" />
-        <p className="text-muted-foreground animate-pulse font-medium">
+        <p className="text-foreground animate-pulse font-medium">
           Loading your workspace...
         </p>
       </div>
@@ -583,7 +583,7 @@ export default function Dashboard() {
           <h1 className="text-responsive-2xl font-black tracking-tight text-foreground truncate">
             {getGreeting()}, {rawName}!
           </h1>
-          <p className="text-muted-foreground font-medium mt-1 flex items-center gap-2 text-responsive-sm">
+          <p className="text-foreground font-medium mt-1 flex items-center gap-2 text-responsive-sm">
             {selectedDate.toLocaleDateString("en-US", {
               weekday: "long",
               month: "long",
@@ -630,7 +630,7 @@ export default function Dashboard() {
               variant="ghost"
               size="sm"
               onClick={() => setSelectedDate(new Date())}
-              className="text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground h-10 px-3.5 rounded-xl border border-dashed border-slate-200 dark:border-slate-800"
+              className="text-[10px] font-black uppercase tracking-wider text-foreground hover:text-foreground h-10 px-3.5 rounded-xl border border-dashed border-slate-200 dark:border-slate-800"
             >
               Reset
             </Button>
@@ -641,13 +641,13 @@ export default function Dashboard() {
       {showEmptyState ? (
         <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-[20px] p-12 flex flex-col items-center justify-center text-center gap-4 bg-white dark:bg-card">
           <div className="p-4 rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-            <CalendarOff className="w-8 h-8 text-slate-400 animate-pulse" />
+            <CalendarOff className="w-8 h-8 text-foreground animate-pulse" />
           </div>
           <div className="space-y-1">
             <h3 className="text-sm font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest">
               No Records Available
             </h3>
-            <p className="text-xs text-slate-500 max-w-md">
+            <p className="text-xs text-foreground max-w-md">
               No attendance records are available for the selected date ({format(selectedDate, "dd MMMM yyyy")}).
             </p>
           </div>
@@ -715,7 +715,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-slate-200/80 dark:border-slate-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 truncate">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground truncate">
                     {todayStatusSubtitle}
                   </p>
                 </div>
@@ -738,7 +738,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-blue-200/80 dark:border-blue-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
                     Monthly Average
                   </p>
                 </div>
@@ -761,7 +761,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
                     Annual Leave
                   </p>
                 </div>
@@ -784,7 +784,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-amber-200/80 dark:border-amber-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
                     Leave Requests
                   </p>
                 </div>
@@ -863,7 +863,7 @@ export default function Dashboard() {
                         (stats.restDayToday ?? 0) > 0 ? (
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-slate-700 dark:text-slate-300">{stats.restDayToday}</span>
-                            <span className="text-[10px] text-slate-500 font-medium tracking-wide">— On Rest Day</span>
+                            <span className="text-[10px] text-foreground font-medium tracking-wide">— On Rest Day</span>
                           </div>
                         ) : undefined
                       }
@@ -978,7 +978,7 @@ export default function Dashboard() {
                       <CardContent className="p-4 sm:p-5 flex flex-col justify-between h-full flex-grow relative z-10">
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between">
-                            <p className="text-[10px] sm:text-[11px] font-black text-muted-foreground uppercase tracking-widest truncate">Company Leave</p>
+                            <p className="text-[10px] sm:text-[11px] font-black text-foreground uppercase tracking-widest truncate">Company Leave</p>
                             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#a01497]/10 flex items-center justify-center shrink-0">
                               <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#a01497]" />
                             </div>
@@ -1056,7 +1056,7 @@ export default function Dashboard() {
                     (stats.restDayToday ?? 0) > 0 ? (
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-slate-700 dark:text-slate-300">{stats.restDayToday}</span>
-                        <span className="text-[10px] text-slate-500 font-medium tracking-wide">— On Rest Day</span>
+                        <span className="text-[10px] text-foreground font-medium tracking-wide">— On Rest Day</span>
                       </div>
                     ) : undefined
                   }
@@ -1085,12 +1085,12 @@ export default function Dashboard() {
                 <CardTitle className="text-base font-black text-slate-800 dark:text-slate-100 tracking-tight uppercase">
                   Attendance Comparison
                 </CardTitle>
-                <p className="text-[10px] font-bold text-slate-500 mt-0.5">
+                <p className="text-[10px] font-bold text-foreground mt-0.5">
                   See how today compares to a normal working day
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-4 text-[10px] font-bold text-slate-500">
+            <div className="flex items-center gap-4 text-[10px] font-bold text-foreground">
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-[#a01497]"></div>
                 Today ({new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})
@@ -1128,16 +1128,16 @@ export default function Dashboard() {
                         <Users className="w-3.5 h-3.5" />
                       </div>
                       <span className="text-[10px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest">Total Employees</span>
-                      <Info className="w-3 h-3 text-slate-400 ml-auto" />
+                      <Info className="w-3 h-3 text-foreground ml-auto" />
                     </div>
                     <div className="flex justify-between items-end mb-4 flex-1 px-2">
                       <div className="flex flex-col items-center">
                         <span className="text-xl font-black text-[#a01497]">{todayTotal}</span>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
+                        <span className="text-[9px] font-bold text-foreground uppercase mt-0.5">Today</span>
                       </div>
                       <div className="flex flex-col items-center">
                         <span className="text-xl font-black text-slate-800 dark:text-slate-100">{typicalTotal}</span>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
+                        <span className="text-[9px] font-bold text-foreground uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
                     <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200 dark:border-slate-800">
@@ -1154,16 +1154,16 @@ export default function Dashboard() {
                         <CheckCircle2 className="w-3.5 h-3.5" />
                       </div>
                       <span className="text-[10px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest">Present <span className="hidden lg:inline">(Clocked In)</span></span>
-                      <Info className="w-3 h-3 text-slate-400 ml-auto shrink-0" />
+                      <Info className="w-3 h-3 text-foreground ml-auto shrink-0" />
                     </div>
                     <div className="flex justify-between items-end mb-4 flex-1 px-2">
                       <div className="flex flex-col items-center">
                         <span className="text-xl font-black text-[#a01497]">{todayPresent}</span>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
+                        <span className="text-[9px] font-bold text-foreground uppercase mt-0.5">Today</span>
                       </div>
                       <div className="flex flex-col items-center">
                         <span className="text-xl font-black text-slate-800 dark:text-slate-100">{typicalPresent}</span>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
+                        <span className="text-[9px] font-bold text-foreground uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
                     <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200 dark:border-slate-800">
@@ -1185,16 +1185,16 @@ export default function Dashboard() {
                         <Users className="w-3.5 h-3.5" />
                       </div>
                       <span className="text-[10px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest leading-tight">Affected By<br/>Company Leave</span>
-                      <Info className="w-3 h-3 text-slate-400 ml-auto shrink-0" />
+                      <Info className="w-3 h-3 text-foreground ml-auto shrink-0" />
                     </div>
                     <div className="flex justify-between items-end mb-4 flex-1 px-2">
                       <div className="flex flex-col items-center">
                         <span className="text-xl font-black text-[#a01497]">{todayAffected}</span>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
+                        <span className="text-[9px] font-bold text-foreground uppercase mt-0.5">Today</span>
                       </div>
                       <div className="flex flex-col items-center">
                         <span className="text-xl font-black text-slate-800 dark:text-slate-100">{typicalAffected}</span>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
+                        <span className="text-[9px] font-bold text-foreground uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
                     <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200 dark:border-slate-800">
@@ -1216,16 +1216,16 @@ export default function Dashboard() {
                         <BarChart className="w-3.5 h-3.5" />
                       </div>
                       <span className="text-[10px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest">Attendance Rate</span>
-                      <Info className="w-3 h-3 text-slate-400 ml-auto" />
+                      <Info className="w-3 h-3 text-foreground ml-auto" />
                     </div>
                     <div className="flex justify-between items-end mb-4 flex-1 px-2">
                       <div className="flex flex-col items-center">
                         <span className="text-xl font-black text-[#a01497]">{todayAttendanceRate.toFixed(1)}%</span>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
+                        <span className="text-[9px] font-bold text-foreground uppercase mt-0.5">Today</span>
                       </div>
                       <div className="flex flex-col items-center">
                         <span className="text-xl font-black text-slate-800 dark:text-slate-100">{typicalAttendanceRate.toFixed(1)}%</span>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
+                        <span className="text-[9px] font-bold text-foreground uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
                     <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200 dark:border-slate-800">
@@ -1247,16 +1247,16 @@ export default function Dashboard() {
                         <Clock className="w-3.5 h-3.5" />
                       </div>
                       <span className="text-[10px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest">Late Arrivals</span>
-                      <Info className="w-3 h-3 text-slate-400 ml-auto" />
+                      <Info className="w-3 h-3 text-foreground ml-auto" />
                     </div>
                     <div className="flex justify-between items-end mb-4 flex-1 px-2">
                       <div className="flex flex-col items-center">
                         <span className="text-xl font-black text-[#a01497]">{todayLate}</span>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Today</span>
+                        <span className="text-[9px] font-bold text-foreground uppercase mt-0.5">Today</span>
                       </div>
                       <div className="flex flex-col items-center">
                         <span className="text-xl font-black text-slate-800 dark:text-slate-100">{typicalLate}</span>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Normal</span>
+                        <span className="text-[9px] font-bold text-foreground uppercase mt-0.5">Normal</span>
                       </div>
                     </div>
                     <div className="h-16 flex items-end justify-center gap-8 mt-auto px-4 border-b border-slate-200 dark:border-slate-800">
@@ -1303,7 +1303,7 @@ export default function Dashboard() {
                       <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                         Who's Out Today
                       </CardTitle>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="text-xs text-foreground mt-0.5">
                         {whoOutToday.length} employee{whoOutToday.length !== 1 ? "s" : ""} currently on leave / outstation
                       </p>
                     </div>
@@ -1363,7 +1363,7 @@ export default function Dashboard() {
                               <p className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-tight truncate">
                                 {emp.full_name}
                               </p>
-                              <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                              <p className="text-[11px] text-foreground mt-0.5 truncate">
                                 {emp.leave_type} • {endLabel}
                               </p>
                               <div className="flex items-center justify-between mt-2">
@@ -1384,7 +1384,7 @@ export default function Dashboard() {
                   <div className="py-6 text-center flex flex-col items-center justify-center gap-2">
                     <CheckCircle2 className="w-6 h-6 text-emerald-500" />
                     <p className="text-sm font-bold text-slate-700">All Hands on Deck!</p>
-                    <p className="text-xs text-slate-500">No employees are on leave today.</p>
+                    <p className="text-xs text-foreground">No employees are on leave today.</p>
                   </div>
                 )}
               </CardContent>
@@ -1403,7 +1403,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center gap-3">
                   {lastUpdated && (
-                    <span className="text-xs italic text-slate-500">Updated a few seconds ago</span>
+                    <span className="text-xs italic text-foreground">Updated a few seconds ago</span>
                   )}
                   <div className="border border-slate-200 dark:border-slate-800 rounded px-2 py-1 text-[10px] font-bold text-slate-600">
                     Last 10 Events
@@ -1425,7 +1425,7 @@ export default function Dashboard() {
                     className={`pb-2 text-sm font-bold transition-all duration-200 border-b-2 ${
                       activeTab === tab.key
                         ? "border-[#a01497] text-[#a01497]"
-                        : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-100"
+                        : "border-transparent text-foreground hover:text-slate-800 dark:text-slate-100"
                     }`}
                   >
                     {tab.label}
@@ -1474,14 +1474,14 @@ export default function Dashboard() {
                   return (
                     <div className="py-8 text-center flex flex-col items-center justify-center gap-2">
                       <Activity className="w-6 h-6 text-slate-300" />
-                      <p className="text-xs text-slate-500 font-medium">No activity found.</p>
+                      <p className="text-xs text-foreground font-medium">No activity found.</p>
                     </div>
                   );
                 }
 
                 return (
                   <div className="w-full text-left border-t border-slate-100 dark:border-slate-800">
-                    <div className="grid grid-cols-12 px-4 py-2 bg-slate-50 dark:bg-slate-900/50 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
+                    <div className="grid grid-cols-12 px-4 py-2 bg-slate-50 dark:bg-slate-900/50 text-[10px] font-bold text-foreground uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
                       <div className="col-span-2">Type</div>
                       <div className="col-span-2">Timestamp</div>
                       <div className="col-span-6">Description</div>
@@ -1500,7 +1500,7 @@ export default function Dashboard() {
                         Note: "text-slate-600 border-slate-200 dark:border-slate-800",
                         Assigned: "text-pink-700 border-pink-200 bg-pink-50/50",
                       };
-                      const badgeCls = badgeColor[item.badge] || "text-slate-500 border-slate-200 dark:border-slate-800";
+                      const badgeCls = badgeColor[item.badge] || "text-foreground border-slate-200 dark:border-slate-800";
                       
                       const typeIcon: Record<string, string> = {
                         attendance: "text-[#a01497]",
@@ -1516,7 +1516,7 @@ export default function Dashboard() {
                           className="grid grid-cols-12 px-4 py-3 border-b border-slate-50 items-center hover:bg-slate-50 dark:bg-slate-900/50 transition-colors"
                         >
                           <div className="col-span-2 flex items-center gap-2 text-xs font-bold text-slate-700 capitalize">
-                            <div className={`w-1.5 h-1.5 rounded-full bg-current ${typeIcon[item.type] || 'text-slate-400'}`}></div>
+                            <div className={`w-1.5 h-1.5 rounded-full bg-current ${typeIcon[item.type] || 'text-foreground'}`}></div>
                             {item.type}
                           </div>
                           <div className="col-span-2 text-[11px] text-slate-600">
@@ -1524,7 +1524,7 @@ export default function Dashboard() {
                           </div>
                           <div className="col-span-6 text-[11px] text-slate-800 dark:text-slate-100 pr-4 break-words leading-normal">
                             <span className="font-bold">{item.actor}</span> {item.action} {item.target && item.target}
-                            {item.context && <span className="block text-slate-500 mt-0.5 break-words font-normal leading-normal">{item.context}</span>}
+                            {item.context && <span className="block text-foreground mt-0.5 break-words font-normal leading-normal">{item.context}</span>}
                           </div>
                           <div className="col-span-2 text-right">
                             <span className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase rounded border ${badgeCls}`}>
@@ -1604,20 +1604,20 @@ export default function Dashboard() {
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate uppercase">{g.title}</p>
                         <div className="mt-1 space-y-1">
-                          <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
-                            <CalendarDays className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {new Date(g.start_date).toLocaleDateString("en-MY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })} - {new Date(g.end_date).toLocaleDateString("en-MY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })}
+                          <p className="text-[11px] text-foreground font-medium flex items-center gap-1.5">
+                            <CalendarDays className="w-3.5 h-3.5 text-foreground shrink-0" /> {new Date(g.start_date).toLocaleDateString("en-MY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })} - {new Date(g.end_date).toLocaleDateString("en-MY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })}
                           </p>
-                          <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {days} Day{days === 1 ? '' : 's'} Total
+                          <p className="text-[11px] text-foreground font-medium flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-foreground shrink-0" /> {days} Day{days === 1 ? '' : 's'} Total
                           </p>
                           {g.destination && g.title !== g.destination && (
-                            <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 truncate">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {g.destination}
+                            <p className="text-[11px] text-foreground font-medium flex items-center gap-1.5 truncate">
+                              <MapPin className="w-3.5 h-3.5 text-foreground shrink-0" /> {g.destination}
                             </p>
                           )}
                           {g.title === g.destination && (
-                            <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 truncate">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {g.destination}
+                            <p className="text-[11px] text-foreground font-medium flex items-center gap-1.5 truncate">
+                              <MapPin className="w-3.5 h-3.5 text-foreground shrink-0" /> {g.destination}
                             </p>
                           )}
                         </div>
@@ -1646,7 +1646,7 @@ export default function Dashboard() {
                 })
               ) : (
                 <div className="p-6 text-center">
-                  <p className="text-[11px] text-slate-500 font-medium">No active outstation today.</p>
+                  <p className="text-[11px] text-foreground font-medium">No active outstation today.</p>
                 </div>
               )}
             </CardContent>
@@ -1674,20 +1674,20 @@ export default function Dashboard() {
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate uppercase">{g.title}</p>
                         <div className="mt-1 space-y-1">
-                          <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
-                            <CalendarDays className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {new Date(g.start_date).toLocaleDateString("en-MY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })} - {new Date(g.end_date).toLocaleDateString("en-MY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })}
+                          <p className="text-[11px] text-foreground font-medium flex items-center gap-1.5">
+                            <CalendarDays className="w-3.5 h-3.5 text-foreground shrink-0" /> {new Date(g.start_date).toLocaleDateString("en-MY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })} - {new Date(g.end_date).toLocaleDateString("en-MY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })}
                           </p>
-                          <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {Math.max(1, Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)))} Day{Math.max(1, Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24))) === 1 ? '' : 's'} Total
+                          <p className="text-[11px] text-foreground font-medium flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-foreground shrink-0" /> {Math.max(1, Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)))} Day{Math.max(1, Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24))) === 1 ? '' : 's'} Total
                           </p>
                           {g.destination && g.title !== g.destination && (
-                            <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 truncate">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {g.destination}
+                            <p className="text-[11px] text-foreground font-medium flex items-center gap-1.5 truncate">
+                              <MapPin className="w-3.5 h-3.5 text-foreground shrink-0" /> {g.destination}
                             </p>
                           )}
                           {g.title === g.destination && (
-                            <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 truncate">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {g.destination}
+                            <p className="text-[11px] text-foreground font-medium flex items-center gap-1.5 truncate">
+                              <MapPin className="w-3.5 h-3.5 text-foreground shrink-0" /> {g.destination}
                             </p>
                           )}
                         </div>
@@ -1716,7 +1716,7 @@ export default function Dashboard() {
                 })
               ) : (
                 <div className="p-6 text-center">
-                  <p className="text-[11px] text-slate-500 font-medium">No upcoming outstation.</p>
+                  <p className="text-[11px] text-foreground font-medium">No upcoming outstation.</p>
                 </div>
               )}
             </CardContent>
@@ -1730,7 +1730,7 @@ export default function Dashboard() {
                   <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest cursor-pointer hover:underline" onClick={() => navigate("/branches/temporary-assignments")}>
                     Temporary Staff
                   </CardTitle>
-                  <p className="text-[9px] text-slate-500 font-medium">Staff currently on temporary assignment</p>
+                  <p className="text-[9px] text-foreground font-medium">Staff currently on temporary assignment</p>
                 </div>
                 <span onClick={() => navigate("/branches/temporary-assignments")} className="text-[10px] font-bold text-[#a01497] uppercase cursor-pointer hover:underline flex items-center gap-1">
                   View All <ChevronRight className="w-3 h-3" />
@@ -1763,18 +1763,18 @@ export default function Dashboard() {
                         <div className="w-[3px] rounded-full self-stretch bg-[#a01497] mr-1" />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <User className="w-3.5 h-3.5 text-foreground shrink-0" />
                             <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{assignment.name}</p>
                           </div>
-                          <p className="text-[10px] text-slate-500 font-medium ml-5 mb-2">{assignment.employee} • {assignment.primary_branch}</p>
+                          <p className="text-[10px] text-foreground font-medium ml-5 mb-2">{assignment.employee} • {assignment.primary_branch}</p>
                           
                           <div className="mt-2 space-y-1 ml-5">
                             <p className="text-[10px] text-purple-600 dark:text-purple-400 font-bold uppercase tracking-widest">Temporary Assignment</p>
-                            <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 truncate">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {assignment.primary_branch} → {assignment.temp_branch}
+                            <p className="text-[11px] text-foreground font-medium flex items-center gap-1.5 truncate">
+                              <MapPin className="w-3.5 h-3.5 text-foreground shrink-0" /> {assignment.primary_branch} → {assignment.temp_branch}
                             </p>
-                            <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
-                              <CalendarDays className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {new Date(assignment.start_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase()} - {new Date(assignment.end_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase()}
+                            <p className="text-[11px] text-foreground font-medium flex items-center gap-1.5">
+                              <CalendarDays className="w-3.5 h-3.5 text-foreground shrink-0" /> {new Date(assignment.start_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase()} - {new Date(assignment.end_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase()}
                             </p>
                             <div className="flex items-center gap-1.5 mt-2">
                               <div className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -1788,8 +1788,8 @@ export default function Dashboard() {
                     return (
                       <div className="p-8 text-center flex flex-col items-center justify-center">
                         <User className="w-8 h-8 text-slate-200 mb-2" />
-                        <p className="text-[12px] font-bold text-slate-500 uppercase tracking-widest">No Temporary Staff</p>
-                        <p className="text-[10px] text-slate-400 mt-1">No staff on active assignment</p>
+                        <p className="text-[12px] font-bold text-foreground uppercase tracking-widest">No Temporary Staff</p>
+                        <p className="text-[10px] text-foreground mt-1">No staff on active assignment</p>
                       </div>
                     );
                   }
@@ -1819,7 +1819,7 @@ export default function Dashboard() {
           {/* Server Status */}
           <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card">
             <CardContent className="p-4 flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">
                 Server Status
               </span>
               <div className="flex items-center gap-1.5">

@@ -153,7 +153,7 @@ export default function TeamLeaveRequests() {
                 <CalendarClock className="w-6 h-6 text-orange-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Pending Requests</p>
+                <p className="text-sm font-medium text-foreground">Pending Requests</p>
                 <h3 className="text-3xl font-bold mt-1 text-orange-600 dark:text-orange-400">{pendingCount}</h3>
               </div>
             </CardContent>
@@ -165,7 +165,7 @@ export default function TeamLeaveRequests() {
                 <CalendarClock className="w-6 h-6 text-green-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Approved Leaves</p>
+                <p className="text-sm font-medium text-foreground">Approved Leaves</p>
                 <h3 className="text-3xl font-bold mt-1 text-green-600 dark:text-green-400">{approvedCount}</h3>
               </div>
             </CardContent>
@@ -177,7 +177,7 @@ export default function TeamLeaveRequests() {
                 <CalendarX2 className="w-6 h-6 text-red-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Rejected Leaves</p>
+                <p className="text-sm font-medium text-foreground">Rejected Leaves</p>
                 <h3 className="text-3xl font-bold mt-1 text-red-600 dark:text-red-400">{rejectedCount}</h3>
               </div>
             </CardContent>
@@ -189,7 +189,7 @@ export default function TeamLeaveRequests() {
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <CardTitle className="text-lg">Team Leave Requests Log</CardTitle>
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground" />
               <Input
                 placeholder="Search employee..."
                 className="pl-8"
@@ -214,7 +214,7 @@ export default function TeamLeaveRequests() {
                 <TableBody>
                   {filteredList.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-8 text-foreground">
                         No team leave requests found.
                       </TableCell>
                     </TableRow>
@@ -227,7 +227,7 @@ export default function TeamLeaveRequests() {
                       >
                         <TableCell className="font-medium">
                           <div>{req.employee}</div>
-                          <div className="text-xs text-muted-foreground">{req.user_id}</div>
+                          <div className="text-xs text-foreground">{req.user_id}</div>
                         </TableCell>
                         <TableCell>{req.type}</TableCell>
                         <TableCell>{req.from}</TableCell>
@@ -456,12 +456,12 @@ export default function TeamLeaveRequests() {
                                     by {history.approver_name || history.approver_id} ({formatApproverRole(history.approver_role, history.approver_department, history.approver_branch)})
                                   </span>
                                 </div>
-                                <span className="text-[8px] font-black text-muted-foreground/50">
+                                <span className="text-[8px] font-black text-foreground/50">
                                   {new Date(history.created_at).toLocaleDateString('ms-MY')}
                                 </span>
                               </div>
                               {history.remarks && (
-                                <p className="text-[10px] italic text-muted-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
+                                <p className="text-[10px] italic text-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
                                   "{history.remarks}"
                                 </p>
                               )}

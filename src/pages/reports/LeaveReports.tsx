@@ -116,7 +116,7 @@ export default function LeaveReports() {
               className={`text-[11px] font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] ${
                 viewType === "day"
                   ? "text-[#7B0099] border-[#7B0099]"
-                  : "text-gray-500 hover:text-yellow-500 border-transparent hover:border-yellow-500"
+                  : "text-foreground hover:text-yellow-500 border-transparent hover:border-yellow-500"
               }`}
             >
               DAY
@@ -126,7 +126,7 @@ export default function LeaveReports() {
               className={`text-[11px] font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] ${
                 viewType === "month"
                   ? "text-[#7B0099] border-[#7B0099]"
-                  : "text-gray-500 hover:text-yellow-500 border-transparent hover:border-yellow-500"
+                  : "text-foreground hover:text-yellow-500 border-transparent hover:border-yellow-500"
               }`}
             >
               MONTH
@@ -136,7 +136,7 @@ export default function LeaveReports() {
               className={`text-[11px] font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] ${
                 viewType === "year"
                   ? "text-[#7B0099] border-[#7B0099]"
-                  : "text-gray-500 hover:text-yellow-500 border-transparent hover:border-yellow-500"
+                  : "text-foreground hover:text-yellow-500 border-transparent hover:border-yellow-500"
               }`}
             >
               YEAR
@@ -175,7 +175,7 @@ export default function LeaveReports() {
                 <FileText className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Requests</p>
+                <p className="text-sm font-medium text-foreground">Total Requests</p>
                 <h3 className="text-3xl font-bold mt-1">{filteredList.length}</h3>
               </div>
             </CardContent>
@@ -187,7 +187,7 @@ export default function LeaveReports() {
                 <CalendarDays className="w-6 h-6 text-green-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Approved</p>
+                <p className="text-sm font-medium text-foreground">Approved</p>
                 <h3 className="text-3xl font-bold mt-1 text-green-600 dark:text-green-400">
                   {filteredList.filter(a => a.status === 'Approved').length}
                 </h3>
@@ -201,7 +201,7 @@ export default function LeaveReports() {
                 <CalendarDays className="w-6 h-6 text-orange-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Leave Days</p>
+                <p className="text-sm font-medium text-foreground">Total Leave Days</p>
                 <h3 className="text-3xl font-bold mt-1 text-orange-600 dark:text-orange-400">
                   {filteredList.filter(a => a.status === 'Approved').reduce((acc, curr) => acc + Number(curr.days || 0), 0)}
                 </h3>
@@ -214,7 +214,7 @@ export default function LeaveReports() {
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <CardTitle className="text-lg">Leave Utilisation Log</CardTitle>
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground" />
               <Input
                 placeholder="Search name, ID, or branch..."
                 className="pl-8"
@@ -245,7 +245,7 @@ export default function LeaveReports() {
                   <TableBody>
                     {filteredList.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={7} className="text-center py-8 text-foreground">
                           No leave records found for this {viewType}.
                         </TableCell>
                       </TableRow>

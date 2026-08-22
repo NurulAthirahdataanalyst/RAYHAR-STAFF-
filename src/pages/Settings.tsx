@@ -512,7 +512,7 @@ export default function SettingsPage() {
     return (
       <div className="flex flex-col h-[60vh] items-center justify-center space-y-4">
         <Loader2 className="animate-spin text-[#7B0099] w-10 h-10 opacity-60" />
-        <p className="text-muted-foreground animate-pulse text-xs font-black uppercase tracking-widest">
+        <p className="text-foreground animate-pulse text-xs font-black uppercase tracking-widest">
           Syncing Portal Configs...
         </p>
       </div>
@@ -525,7 +525,7 @@ export default function SettingsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-foreground uppercase tracking-tight">Portal Configurations</h1>
-          <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold opacity-70 mt-1">
+          <p className="text-xs text-foreground uppercase tracking-wider font-semibold opacity-70 mt-1">
             Configure global branches, staff roles, and check-in parameters
           </p>
         </div>
@@ -581,7 +581,7 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <h3 className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">Core Operations</h3>
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">Manage alerts, scheduling triggers, and timing boundaries</p>
+                    <p className="text-[10px] font-bold text-foreground uppercase tracking-wider opacity-60">Manage alerts, scheduling triggers, and timing boundaries</p>
                   </div>
                 </div>
                 {hasUnsavedChanges && (
@@ -600,7 +600,7 @@ export default function SettingsPage() {
                     </div>
                     <div>
                       <span className="text-[10px] font-black text-foreground uppercase tracking-wider block">Real-time Notification Alerts</span>
-                      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5 max-w-sm sm:max-w-md normal-case leading-relaxed">
+                      <p className="text-[8px] font-bold text-foreground uppercase tracking-widest mt-0.5 max-w-sm sm:max-w-md normal-case leading-relaxed">
                         Enables WebSocket-driven instantaneous alerts across all admin client instances. Recommended for high-volume environments.
                       </p>
                       <div className="flex items-center gap-1.5 mt-1">
@@ -628,7 +628,7 @@ export default function SettingsPage() {
                     </div>
                     <div>
                       <span className="text-[10px] font-black text-foreground uppercase tracking-wider block">Automated Report Scheduling</span>
-                      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5 max-w-sm sm:max-w-md normal-case leading-relaxed">
+                      <p className="text-[8px] font-bold text-foreground uppercase tracking-widest mt-0.5 max-w-sm sm:max-w-md normal-case leading-relaxed">
                         Distribute comprehensive analytics PDF and CSV reports to designated department heads automatically based on defined cycle.
                       </p>
                     </div>
@@ -670,7 +670,7 @@ export default function SettingsPage() {
                     </div>
                     <div>
                       <span className="text-[10px] font-black text-foreground uppercase tracking-wider block">Late Arrivals Window</span>
-                      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5 max-w-sm sm:max-w-md normal-case leading-relaxed">
+                      <p className="text-[8px] font-bold text-foreground uppercase tracking-widest mt-0.5 max-w-sm sm:max-w-md normal-case leading-relaxed">
                         The grace period duration before a transaction or staff check-in is flagged as 'Delayed' in the global monitor.
                       </p>
                     </div>
@@ -691,7 +691,7 @@ export default function SettingsPage() {
                         <SelectItem value="10:00 AM" className="text-[9px] font-black uppercase">10:00 AM</SelectItem>
                       </SelectContent>
                     </Select>
-                    <span className="text-[10px] font-black text-muted-foreground uppercase">Minutes</span>
+                    <span className="text-[10px] font-black text-foreground uppercase">Minutes</span>
                   </div>
                 </div>
               </div>
@@ -707,14 +707,14 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">Onboard New Staff</h3>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">Add a new employee and configure system authorization role</p>
+                  <p className="text-[10px] font-bold text-foreground uppercase tracking-wider opacity-60">Add a new employee and configure system authorization role</p>
                 </div>
               </div>
 
               <form onSubmit={handleAddStaff} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5 md:col-span-2">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Full Name</label>
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Full Name</label>
                     <input
                       type="text"
                       placeholder="Enter employee's full name"
@@ -724,7 +724,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Email Address</label>
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Email Address</label>
                     <input
                       type="email"
                       placeholder="e.g. staff@gmail.com"
@@ -734,7 +734,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Password</label>
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Password</label>
                     <input
                       type="password"
                       placeholder="Minimum 6 characters"
@@ -744,7 +744,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Office Branch</label>
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Office Branch</label>
                     <Select 
                       value={staffBranch} 
                       onValueChange={(val) => {
@@ -767,7 +767,7 @@ export default function SettingsPage() {
                   
                   {staffBranch === "HQ" && (
                     <div className="space-y-1.5 animate-in fade-in duration-300">
-                      <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Department</label>
+                      <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Department</label>
                       <Select value={staffDept} onValueChange={setStaffDept}>
                         <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
                           <SelectValue placeholder="Select Dept" />
@@ -782,7 +782,7 @@ export default function SettingsPage() {
                   )}
 
                   <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">System Authorization Role</label>
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest">System Authorization Role</label>
                     <Select value={staffRole} onValueChange={setStaffRole}>
                       <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
                         <SelectValue placeholder="Role" />
@@ -800,7 +800,7 @@ export default function SettingsPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Employment Status</label>
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Employment Status</label>
                     <Select value={staffStatus} onValueChange={setStaffStatus}>
                       <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
                         <SelectValue placeholder="Status" />
@@ -859,7 +859,7 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <h3 className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">Branch Registration</h3>
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">Insert a new regional branch office into the database</p>
+                    <p className="text-[10px] font-bold text-foreground uppercase tracking-wider opacity-60">Insert a new regional branch office into the database</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 self-start sm:self-auto">
@@ -883,7 +883,7 @@ export default function SettingsPage() {
               <form onSubmit={handleAddBranch} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-1.5 col-span-1">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Branch Code</label>
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Code</label>
                     <input
                       type="text"
                       placeholder="e.g. AOR "
@@ -893,7 +893,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div className="space-y-1.5 col-span-1 md:col-span-2">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Branch Name</label>
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Name</label>
                     <input
                       type="text"
                       placeholder="e.g. ALOR SETAR "
@@ -905,7 +905,7 @@ export default function SettingsPage() {
                 </div>
                 
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Branch Location / District</label>
+                  <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Location / District</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -972,14 +972,14 @@ export default function SettingsPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Coordinates</label>
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Coordinates</label>
                     <div className="flex gap-2">
                       <input
                         type="text"
                         readOnly
                         placeholder="Lat, Lng"
                         value={branchLat && branchLng ? `${branchLat}, ${branchLng}` : ""}
-                        className="w-full h-11 px-4 bg-background/30 border border-border/80 rounded-xl text-xs font-bold outline-none cursor-not-allowed text-muted-foreground"
+                        className="w-full h-11 px-4 bg-background/30 border border-border/80 rounded-xl text-xs font-bold outline-none cursor-not-allowed text-foreground"
                       />
                       <Button type="button" onClick={() => setIsMapModalOpen(true)} className="h-11 bg-[#7B0099] text-white hover:bg-[#7B0099]/90 rounded-xl px-4 shrink-0 text-xs font-bold">
                         <MapPin className="w-4 h-4 mr-2" /> Select
@@ -988,8 +988,8 @@ export default function SettingsPage() {
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Radius</label>
-                      <span className="text-[9px] font-black text-muted-foreground">0m – 500m</span>
+                      <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Radius</label>
+                      <span className="text-[9px] font-black text-foreground">0m – 500m</span>
                     </div>
                     <div className="relative pt-6">
                       {/* Floating animated label */}
@@ -1015,8 +1015,8 @@ export default function SettingsPage() {
                         }}
                       />
                       <div className="flex justify-between mt-1">
-                        <span className="text-[9px] text-muted-foreground font-bold">0m</span>
-                        <span className="text-[9px] text-muted-foreground font-bold">500m</span>
+                        <span className="text-[9px] text-foreground font-bold">0m</span>
+                        <span className="text-[9px] text-foreground font-bold">500m</span>
                       </div>
                     </div>
                   </div>
@@ -1071,7 +1071,7 @@ export default function SettingsPage() {
                       <div className="p-6 bg-slate-50 dark:bg-slate-900 flex flex-col h-full overflow-y-auto">
                         <div className="space-y-4">
                           <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Manual Coordinates</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-foreground">Manual Coordinates</label>
                             <Input 
                               value={branchLat || ""} 
                               onChange={(e) => setBranchLat(e.target.value)}
@@ -1090,8 +1090,8 @@ export default function SettingsPage() {
                           </div>
                           
                           <div className="space-y-2 pt-4">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Address / Display Name</label>
-                            <div className="p-4 bg-white dark:bg-card border rounded-xl shadow-sm text-xs text-muted-foreground leading-relaxed">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-foreground">Address / Display Name</label>
+                            <div className="p-4 bg-white dark:bg-card border rounded-xl shadow-sm text-xs text-foreground leading-relaxed">
                               {branchAddress || "Select a location on the map"}
                             </div>
                           </div>
@@ -1151,14 +1151,14 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">Department Registration</h3>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">Initialize a new organizational unit within the enterprise hierarchy</p>
+                  <p className="text-[10px] font-bold text-foreground uppercase tracking-wider opacity-60">Initialize a new organizational unit within the enterprise hierarchy</p>
                 </div>
               </div>
 
               <form onSubmit={handleAddDepartment} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-1.5 col-span-1 md:col-span-2">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Department Name</label>
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Department Name</label>
                     <input
                       type="text"
                       placeholder="e.g. Strategic Planning"
@@ -1168,7 +1168,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div className="space-y-1.5 col-span-1">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Dept Code</label>
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Dept Code</label>
                     <input
                       type="text"
                       placeholder="e.g. E.G. STR-PLAN-001"
@@ -1181,7 +1181,7 @@ export default function SettingsPage() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Department Head / Manager</label>
+                    <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Department Head / Manager</label>
                     <input
                       type="text"
                       placeholder="Search employee name..."

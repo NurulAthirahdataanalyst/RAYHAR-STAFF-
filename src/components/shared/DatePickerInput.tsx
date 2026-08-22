@@ -26,13 +26,13 @@ export function DatePickerInput({ value, onChange, placeholder = "Select date", 
           disabled={disabled}
           className={cn(
             "appearance-none flex w-full items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-foreground text-[11px] sm:text-xs font-black rounded-2xl shadow-sm outline-none cursor-pointer uppercase tracking-widest h-12 sm:h-14 gap-3 hover:border-[#7B0099]/40",
-            !date && "text-muted-foreground",
+            !date && "text-foreground",
             disabled && "opacity-50 cursor-not-allowed",
             className
           )}
         >
           <span>{date ? format(date, "dd/MM/yyyy") : placeholder}</span>
-          <CalendarIcon className="w-4 h-4 text-muted-foreground opacity-80" />
+          <CalendarIcon className="w-4 h-4 text-foreground opacity-80" />
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-card z-50" align="start">

@@ -269,7 +269,7 @@ export default function LeaveFormView() {
                          tab.key === "pending" ? "text-amber-500 border-amber-500" :
                          tab.key === "approved" ? "text-emerald-500 border-emerald-500" :
                          "text-red-500 border-red-500")
-                      : "text-muted-foreground border-slate-200 dark:border-slate-700 hover:text-yellow-500 hover:border-yellow-500"
+                      : "text-foreground border-slate-200 dark:border-slate-700 hover:text-yellow-500 hover:border-yellow-500"
                   }`}
                 >
                   {tab.label}
@@ -280,7 +280,7 @@ export default function LeaveFormView() {
                            tab.key === "pending" ? "bg-amber-500 text-white" :
                            tab.key === "approved" ? "bg-emerald-500 text-white" :
                            "bg-red-500 text-white")
-                        : "bg-muted-foreground/20 text-muted-foreground transition-colors group-hover:bg-yellow-500 group-hover:text-white"
+                        : "bg-muted-foreground/20 text-foreground transition-colors group-hover:bg-yellow-500 group-hover:text-white"
                     }`}>
                       {tab.count}
                     </span>
@@ -305,7 +305,7 @@ export default function LeaveFormView() {
           {loading ? (
             <div className="flex flex-col items-center justify-center p-12 gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-[#7B0099]" />
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Syncing History...</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground animate-pulse">Syncing History...</p>
             </div>
           ) : filteredForms.length > 0 ? (
             <>
@@ -332,11 +332,11 @@ export default function LeaveFormView() {
                         <TableCell className="px-6 py-4">
                           <div className="flex flex-col">
                             <span className="font-black text-[#7B0099] dark:text-purple-400">{leaveTypeLabels[form.type]}</span>
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">{form.appliedAt.slice(0, 10)}</span>
+                            <span className="text-[10px] font-bold text-foreground uppercase tracking-widest mt-0.5">{form.appliedAt.slice(0, 10)}</span>
                           </div>
                         </TableCell>
-                        <TableCell className="px-6 py-4 text-muted-foreground font-bold">{form.from}</TableCell>
-                        <TableCell className="px-6 py-4 text-muted-foreground font-bold">{form.to}</TableCell>
+                        <TableCell className="px-6 py-4 text-foreground font-bold">{form.from}</TableCell>
+                        <TableCell className="px-6 py-4 text-foreground font-bold">{form.to}</TableCell>
                         <TableCell className="px-6 py-4 text-center font-black text-foreground">{form.days}</TableCell>
                         <TableCell className="px-6 py-4 text-center">
                           <Badge
@@ -351,7 +351,7 @@ export default function LeaveFormView() {
                           </Badge>
                         </TableCell>
                         <TableCell className="px-6 py-4 text-right">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-[#7B0099] hover:bg-[#7B0099]/10">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-foreground hover:text-[#7B0099] hover:bg-[#7B0099]/10">
                             <Eye className="w-4 h-4" />
                           </Button>
                         </TableCell>
@@ -378,10 +378,10 @@ export default function LeaveFormView() {
                           <p className="text-sm font-black text-foreground truncate group-hover:text-[#7B0099] transition-colors">
                             {leaveTypeLabels[form.type]}
                           </p>
-                          <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                          <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-foreground uppercase tracking-widest">
                             <span>{form.appliedAt.slice(0, 10)}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground mt-1 bg-muted/40 w-fit px-2 py-0.5 rounded-lg">
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-foreground mt-1 bg-muted/40 w-fit px-2 py-0.5 rounded-lg">
                             <span className="flex items-center gap-1">
                               <Calendar className="w-3 h-3 opacity-50" />
                               {form.from} → {form.to}
@@ -413,13 +413,13 @@ export default function LeaveFormView() {
           ) : (
             <div className="py-20 text-center flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-500">
               <div className="w-20 h-20 rounded-[32px] bg-muted/30 flex items-center justify-center border-2 border-dashed border-border/50 group hover:border-[#7B0099]/30 transition-colors">
-                <FileText className="h-10 w-10 text-muted-foreground/30 group-hover:text-[#7B0099]/30 transition-colors" />
+                <FileText className="h-10 w-10 text-foreground/30 group-hover:text-[#7B0099]/30 transition-colors" />
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-black text-foreground uppercase tracking-widest">
                   {activeTab === "pending" ? "No Pending Applications" : activeTab === "approved" ? "No Approved Applications" : activeTab === "rejected" ? "No Rejected Applications" : "No Leave Registry Found"}
                 </p>
-                <p className="text-[10px] font-medium text-muted-foreground italic">
+                <p className="text-[10px] font-medium text-foreground italic">
                   {activeTab === "pending" ? "All your applications have been processed" : activeTab === "approved" ? "No applications approved yet" : activeTab === "rejected" ? "No applications rejected" : "You haven't submitted any leave applications yet"}
                 </p>
               </div>
@@ -633,12 +633,12 @@ export default function LeaveFormView() {
                                     by {history.approver_name || history.approver_id} ({formatApproverRole(history.approver_role, history.approver_department, history.approver_branch)})
                                   </span>
                                 </div>
-                                <span className="text-[8px] font-black text-muted-foreground/50">
+                                <span className="text-[8px] font-black text-foreground/50">
                                   {new Date(history.created_at).toLocaleDateString('ms-MY')}
                                 </span>
                               </div>
                               {history.remarks && (
-                                <p className="text-[10px] italic text-muted-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
+                                <p className="text-[10px] italic text-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg mt-1">
                                   "{history.remarks}"
                                 </p>
                               )}

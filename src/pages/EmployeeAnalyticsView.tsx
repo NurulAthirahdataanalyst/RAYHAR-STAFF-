@@ -778,7 +778,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           <CardContent className="p-4 relative z-10 flex flex-col h-full">
             <div className="flex items-center gap-1.5 mb-2">
               <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099] shadow-sm"></div>
-              <span className="text-[11px] font-bold text-muted-foreground capitalize">Attendance Rate</span>
+              <span className="text-[11px] font-bold text-foreground capitalize">Attendance Rate</span>
             </div>
             <div className="flex items-baseline gap-2 mb-1 mt-1">
               <span className="text-3xl font-black text-foreground">{attendanceRate}%</span>
@@ -792,11 +792,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                   </span>
                 </div>
               ) : (
-                <span className="text-[10px] text-muted-foreground">--</span>
+                <span className="text-[10px] text-foreground">--</span>
               )}
             </div>
             <div className="mt-auto pt-3 border-t border-border/40">
-              <p className="text-[10px] font-bold text-muted-foreground text-center">
+              <p className="text-[10px] font-bold text-foreground text-center">
                 {attendanceRate >= 95 ? "Excellent" : attendanceRate >= 85 ? "Good" : "Needs Attention"}
               </p>
             </div>
@@ -811,14 +811,14 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           <CardContent className="p-4 relative z-10 flex flex-col h-full">
             <div className="flex items-center gap-1.5 mb-2">
               <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm"></div>
-              <span className="text-[11px] font-bold text-muted-foreground capitalize">Late Arrivals</span>
+              <span className="text-[11px] font-bold text-foreground capitalize">Late Arrivals</span>
             </div>
             <div className="flex items-baseline gap-1 mb-1 mt-1">
               <span className="text-3xl font-black text-foreground">{lateArrivals}</span>
             </div>
-            <div className="text-[10px] font-medium text-muted-foreground mb-4 h-4">Days Late</div>
+            <div className="text-[10px] font-medium text-foreground mb-4 h-4">Days Late</div>
             <div className="mt-auto pt-3 border-t border-border/40">
-              <p className="text-[10px] font-bold text-muted-foreground text-center">
+              <p className="text-[10px] font-bold text-foreground text-center">
                 {lateArrivals === 0 ? "Perfect Record" : "Needs Attention"}
               </p>
             </div>
@@ -833,14 +833,14 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           <CardContent className="p-4 relative z-10 flex flex-col h-full">
             <div className="flex items-center gap-1.5 mb-2">
               <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm"></div>
-              <span className="text-[11px] font-bold text-muted-foreground capitalize">Absent Days</span>
+              <span className="text-[11px] font-bold text-foreground capitalize">Absent Days</span>
             </div>
             <div className="flex items-baseline gap-1 mb-1 mt-1">
               <span className="text-3xl font-black text-foreground">{absentDays}</span>
             </div>
-            <div className="text-[10px] font-medium text-muted-foreground mb-4 h-4">Total Absences</div>
+            <div className="text-[10px] font-medium text-foreground mb-4 h-4">Total Absences</div>
             <div className="mt-auto pt-3 border-t border-border/40">
-              <p className="text-[10px] font-bold text-muted-foreground text-center">
+              <p className="text-[10px] font-bold text-foreground text-center">
                 {absentDays === 0 ? "Perfect Record" : "Needs Attention"}
               </p>
             </div>
@@ -855,15 +855,15 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           <CardContent className="p-4 relative z-10 flex flex-col h-full">
             <div className="flex items-center gap-1.5 mb-2">
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"></div>
-              <span className="text-[11px] font-bold text-muted-foreground capitalize">Leave Balance</span>
+              <span className="text-[11px] font-bold text-foreground capitalize">Leave Balance</span>
             </div>
             <div className="flex items-baseline gap-1 mb-1 mt-1">
               <span className="text-3xl font-black text-foreground">{leaveBalanceRemaining}</span>
-              <span className="text-sm font-bold text-muted-foreground">/ {totalEntitlement}</span>
+              <span className="text-sm font-bold text-foreground">/ {totalEntitlement}</span>
             </div>
-            <div className="text-[10px] font-medium text-muted-foreground mb-4 h-4">Remaining</div>
+            <div className="text-[10px] font-medium text-foreground mb-4 h-4">Remaining</div>
             <div className="mt-auto pt-3 border-t border-border/40">
-              <p className="text-[10px] font-bold text-muted-foreground text-center">
+              <p className="text-[10px] font-bold text-foreground text-center">
                 {leaveBalanceRemaining === totalEntitlement ? "Full Entitlement" : leaveBalanceRemaining === 0 ? "Exhausted" : "Available"}
               </p>
             </div>
@@ -878,14 +878,14 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           <CardContent className="p-4 relative z-10 flex flex-col h-full">
             <div className="flex items-center gap-1.5 mb-2">
               <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm"></div>
-              <span className="text-[11px] font-bold text-muted-foreground capitalize">Outstation Requests</span>
+              <span className="text-[11px] font-bold text-foreground capitalize">Outstation Requests</span>
             </div>
             <div className="flex items-baseline gap-1 mb-1 mt-1">
               <span className="text-3xl font-black text-foreground">{monthOutstationsCount}</span>
             </div>
-            <div className="text-[10px] font-medium text-muted-foreground mb-4 h-4">Requests</div>
+            <div className="text-[10px] font-medium text-foreground mb-4 h-4">Requests</div>
             <div className="mt-auto pt-3 border-t border-border/40">
-              <p className="text-[10px] font-bold text-muted-foreground text-center">
+              <p className="text-[10px] font-bold text-foreground text-center">
                 {monthOutstationsCount === 0 ? "No Travel Plans" : "Active Requests"}
               </p>
             </div>
@@ -900,14 +900,14 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           <CardContent className="p-4 relative z-10 flex flex-col h-full">
             <div className="flex items-center gap-1.5 mb-2">
               <div className="w-2.5 h-2.5 rounded-full bg-fuchsia-500 shadow-sm"></div>
-              <span className="text-[11px] font-bold text-muted-foreground capitalize">Top Leave</span>
+              <span className="text-[11px] font-bold text-foreground capitalize">Top Leave</span>
             </div>
             <div className="flex items-baseline gap-1 mb-1 mt-1 h-[36px] overflow-hidden">
               <span className="text-2xl font-black text-foreground leading-none truncate max-w-full" title={topLeave.name}>{topLeave.name}</span>
             </div>
-            <div className="text-[10px] font-medium text-muted-foreground mb-4 h-4">Most used</div>
+            <div className="text-[10px] font-medium text-foreground mb-4 h-4">Most used</div>
             <div className="mt-auto pt-3 border-t border-border/40">
-              <p className="text-[10px] font-bold text-muted-foreground text-center">
+              <p className="text-[10px] font-bold text-foreground text-center">
                 {topLeave.name === 'None' ? "No Leave Taken Yet" : "Frequent Leave"}
               </p>
             </div>
@@ -927,11 +927,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               {/* Summary mini cards */}
               <div className="grid grid-cols-2 gap-2.5 mb-3.5">
                 <div className="p-2.5 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">WORKING DAYS</span>
+                  <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">WORKING DAYS</span>
                   <span className="text-sm font-black text-foreground mt-0.5">{totalWorkingDaysPassed} Days</span>
                 </div>
                 <div className="p-2.5 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">PUNCTUALITY</span>
+                  <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">PUNCTUALITY</span>
                   <span className="text-sm font-black text-foreground mt-0.5">
                     {presentDays > 0 ? Math.round(((presentDays - lateArrivals) / presentDays) * 100) : 100}%
                   </span>
@@ -948,7 +948,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                   { label: "Absent", value: absentDays, color: "bg-rose-500" }
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-muted-foreground w-14 shrink-0">{item.label}</span>
+                    <span className="text-xs font-bold text-foreground w-14 shrink-0">{item.label}</span>
                     <div className="flex-1 h-2 bg-muted/40 rounded-full overflow-hidden">
                       <div 
                         className={`h-full rounded-full ${item.color} transition-all duration-1000`} 
@@ -957,14 +957,14 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                     </div>
                     <div className="w-16 text-right shrink-0">
                       <span className="text-xs font-black">{item.value}</span>
-                      <span className="text-[10px] text-muted-foreground ml-1">({daysInMonth > 0 ? Math.round((item.value / daysInMonth) * 100) : 0}%)</span>
+                      <span className="text-[10px] text-foreground ml-1">({daysInMonth > 0 ? Math.round((item.value / daysInMonth) * 100) : 0}%)</span>
                     </div>
                   </div>
                 ))}
               </div>
 
               {/* Axis marks at the bottom of the bars */}
-              <div className="mt-3 flex justify-between px-[64px] text-[10px] font-bold text-muted-foreground/50">
+              <div className="mt-3 flex justify-between px-[64px] text-[10px] font-bold text-foreground/50">
                 <span>0</span>
                 <span>10</span>
                 <span>20</span>
@@ -982,19 +982,19 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             {/* Summary mini cards */}
             <div className="grid grid-cols-2 gap-2.5 mb-3.5">
               <div className="p-2.5 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
-                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">APPROVED LEAVES</span>
+                <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">APPROVED LEAVES</span>
                 <span className="text-sm font-black text-foreground mt-0.5">{mLeaves.length} {mLeaves.length === 1 ? 'Request' : 'Requests'}</span>
               </div>
               <div className="p-2.5 bg-slate-50 dark:bg-slate-900/50 border border-border/20 rounded-2xl flex flex-col">
-                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">REMAINING BALANCE</span>
+                <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">REMAINING BALANCE</span>
                 <span className="text-sm font-black text-foreground mt-0.5">{leaveBalanceRemaining} Days</span>
               </div>
             </div>
 
             {monthPieData.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50 my-auto">
-                <Briefcase className="w-10 h-10 mb-2 text-muted-foreground" />
-                <p className="text-sm font-bold text-muted-foreground">{month === "all" ? "No leaves applied this year" : "No leaves applied this month"}</p>
+                <Briefcase className="w-10 h-10 mb-2 text-foreground" />
+                <p className="text-sm font-bold text-foreground">{month === "all" ? "No leaves applied this year" : "No leaves applied this month"}</p>
               </div>
             ) : (
               <div className="flex-1 flex items-center justify-center my-auto">
@@ -1024,7 +1024,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                       <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
                       <div className="flex flex-col">
                         <span className="text-[11px] font-bold text-foreground">{d.name}</span>
-                        <span className="text-[10px] font-medium text-muted-foreground">{d.value} {d.value === 1 ? 'Request' : 'Requests'}</span>
+                        <span className="text-[10px] font-medium text-foreground">{d.value} {d.value === 1 ? 'Request' : 'Requests'}</span>
                       </div>
                     </div>
                   ))}
@@ -1043,11 +1043,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
              
              {month === "all" ? (
                <div className="flex-1 flex flex-col items-center justify-center text-center py-10">
-                 <CalendarCheck2 className="w-12 h-12 text-muted-foreground mb-3 opacity-50" />
-                 <p className="text-xs font-bold text-muted-foreground max-w-[200px]">
+                 <CalendarCheck2 className="w-12 h-12 text-foreground mb-3 opacity-50" />
+                 <p className="text-xs font-bold text-foreground max-w-[200px]">
                    Daily calendar view is not available for all months combined.
                  </p>
-                 <p className="text-[10px] text-muted-foreground/60 mt-1 max-w-[220px]">
+                 <p className="text-[10px] text-foreground/60 mt-1 max-w-[220px]">
                    Please select a specific month from the dropdown at the top to view the daily attendance grid.
                  </p>
                </div>
@@ -1057,7 +1057,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                     {(isZoneB 
                       ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
                       : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).map((day, i) => (
-                       <div key={i} className="text-[9px] font-black text-muted-foreground uppercase">{day}</div>
+                       <div key={i} className="text-[9px] font-black text-foreground uppercase">{day}</div>
                     ))}
                  </div>
                  
@@ -1075,7 +1075,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                       let status = cell.isCurrent ? heatmapData[cell.day] : null;
                       
                       let bgColor = "bg-transparent";
-                      let textColor = cell.isCurrent ? "text-foreground" : "text-muted-foreground/30";
+                      let textColor = cell.isCurrent ? "text-foreground" : "text-foreground/30";
                       
                       if (cell.isCurrent) {
                         if (status === 'Present (On Time)') bgColor = "bg-emerald-500 text-white";
@@ -1100,13 +1100,13 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                  </div>
                  
                  <div className="flex flex-wrap items-center justify-center gap-3 mt-auto pt-4 border-t border-border/40">
-                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /><span className="text-[9px] font-bold text-muted-foreground">Present (On Time)</span></div>
-                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-amber-400" /><span className="text-[9px] font-bold text-muted-foreground">Present (Late)</span></div>
-                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-pink-500" /><span className="text-[9px] font-bold text-muted-foreground">Outstation</span></div>
-                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-blue-500" /><span className="text-[9px] font-bold text-muted-foreground">Approved Leave</span></div>
-                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-purple-500" /><span className="text-[9px] font-bold text-muted-foreground">Company Leave</span></div>
-                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-rose-500" /><span className="text-[9px] font-bold text-muted-foreground">Absent</span></div>
-                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-muted/30" /><span className="text-[9px] font-bold text-muted-foreground">Weekend</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /><span className="text-[9px] font-bold text-foreground">Present (On Time)</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-amber-400" /><span className="text-[9px] font-bold text-foreground">Present (Late)</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-pink-500" /><span className="text-[9px] font-bold text-foreground">Outstation</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-blue-500" /><span className="text-[9px] font-bold text-foreground">Approved Leave</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-purple-500" /><span className="text-[9px] font-bold text-foreground">Company Leave</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-rose-500" /><span className="text-[9px] font-bold text-foreground">Absent</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-muted/30" /><span className="text-[9px] font-bold text-foreground">Weekend</span></div>
                  </div>
                </>
              )}
@@ -1127,36 +1127,36 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
                 <p className="text-3xl font-black text-foreground">{todayClockIn}</p>
-                <p className="text-xs font-bold text-muted-foreground">Today's Clock In</p>
+                <p className="text-xs font-bold text-foreground">Today's Clock In</p>
               </div>
               <div className="text-right">
                 <p className="text-3xl font-black text-foreground">{avgFmt}</p>
-                <p className="text-xs font-bold text-muted-foreground">Average Clock In</p>
+                <p className="text-xs font-bold text-foreground">Average Clock In</p>
               </div>
             </div>
             
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
                <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-2.5 text-center">
-                 <p className="text-[9px] font-bold text-muted-foreground mb-1">On Time</p>
+                 <p className="text-[9px] font-bold text-foreground mb-1">On Time</p>
                  <p className="text-sm font-black text-emerald-600">{onTimePercentage}%</p>
                  <p className="text-[8px] text-emerald-600/70 font-bold">↑ {attendanceRate > 0 ? "Good" : "-"}</p>
                </div>
                <div className="bg-rose-500/5 border border-rose-500/10 rounded-xl p-2.5 text-center">
-                 <p className="text-[9px] font-bold text-muted-foreground mb-1">Late Arrivals</p>
+                 <p className="text-[9px] font-bold text-foreground mb-1">Late Arrivals</p>
                  <p className="text-sm font-black text-rose-600">{lateArrivals}</p>
                  <p className="text-[8px] text-rose-600/70 font-bold">↓ {lateArrivals > 0 ? "Needs Focus" : "-"}</p>
                </div>
                <div className="bg-muted/20 border border-border/50 rounded-xl p-2.5 text-center flex flex-col justify-center">
-                 <p className="text-[9px] font-bold text-muted-foreground mb-1">Earliest</p>
+                 <p className="text-[9px] font-bold text-foreground mb-1">Earliest</p>
                  <p className="text-[11px] font-black">{formatTime(earliest)}</p>
                </div>
                <div className="bg-muted/20 border border-border/50 rounded-xl p-2.5 text-center flex flex-col justify-center">
-                 <p className="text-[9px] font-bold text-muted-foreground mb-1">Latest</p>
+                 <p className="text-[9px] font-bold text-foreground mb-1">Latest</p>
                  <p className="text-[11px] font-black">{formatTime(latest)}</p>
                </div>
             </div>
             
-            <div className="mt-auto text-[10px] font-bold text-muted-foreground">
+            <div className="mt-auto text-[10px] font-bold text-foreground">
               Most common clock-in time: <span className="text-foreground">{mostCommonTime}</span>
             </div>
           </CardContent>
@@ -1169,8 +1169,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             
             {trendData.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50">
-                <Flame className="w-10 h-10 mb-2 text-muted-foreground" />
-                <p className="text-sm font-bold text-muted-foreground">No data points yet</p>
+                <Flame className="w-10 h-10 mb-2 text-foreground" />
+                <p className="text-sm font-bold text-foreground">No data points yet</p>
               </div>
             ) : (
               <div className="h-[180px] w-full flex-1">
@@ -1236,7 +1236,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <span className="text-2xl font-black text-foreground leading-none">{overallScore}</span>
-                    <span className="text-[9px] font-bold text-muted-foreground">/ 100</span>
+                    <span className="text-[9px] font-bold text-foreground">/ 100</span>
                   </div>
                 </div>
                 <div className="mt-1">
@@ -1256,9 +1256,9 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                   <div key={i} className="flex items-center justify-between group">
                     <div className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full ${item.color}`} />
-                      <span className="text-[10px] font-bold text-muted-foreground group-hover:text-foreground transition-colors">{item.label}</span>
+                      <span className="text-[10px] font-bold text-foreground group-hover:text-foreground transition-colors">{item.label}</span>
                     </div>
-                    <span className="text-[10px] font-black text-foreground">{item.score} <span className="text-muted-foreground font-medium">/ {item.total}</span></span>
+                    <span className="text-[10px] font-black text-foreground">{item.score} <span className="text-foreground font-medium">/ {item.total}</span></span>
                   </div>
                 ))}
               </div>
@@ -1284,10 +1284,10 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-bold text-foreground">{event.title}</p>
-                      <p className="text-xs text-muted-foreground font-medium">{event.date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</p>
+                      <p className="text-xs text-foreground font-medium">{event.date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</p>
                     </div>
                     <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-muted rounded-md text-muted-foreground">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-muted rounded-md text-foreground">
                         {event.label}
                       </span>
                     </div>
@@ -1295,7 +1295,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 ))
               ) : (
                 <div className="text-center p-6 bg-muted/20 rounded-xl border border-border/50">
-                  <p className="text-sm font-bold text-muted-foreground">No upcoming events scheduled</p>
+                  <p className="text-sm font-bold text-foreground">No upcoming events scheduled</p>
                 </div>
               )}
             </div>

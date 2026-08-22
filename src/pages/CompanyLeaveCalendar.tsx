@@ -195,15 +195,15 @@ const CompanyLeaveCalendar = () => {
       <Card>
         <CardContent className="pt-6">
           {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading leaves...</div>
+            <div className="text-center py-8 text-foreground">Loading leaves...</div>
           ) : leaves.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg border-gray-200 dark:border-gray-800">
+            <div className="text-center py-8 text-foreground border-2 border-dashed rounded-lg border-gray-200 dark:border-gray-800">
               No company leaves found. {isHR && "Click 'Add Company Leave' to create one."}
             </div>
           ) : (
             <div className="relative overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
+                <thead className="text-xs text-foreground uppercase bg-muted/50">
                   <tr>
                     <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Leave Name</th>
                     <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Date Range</th>
@@ -218,7 +218,7 @@ const CompanyLeaveCalendar = () => {
                   {leaves.map((leave) => (
                     <tr key={leave.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
                       <td className="px-4 py-3 font-medium">{leave.leave_name}</td>
-                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                      <td className="px-4 py-3 text-foreground whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <CalendarIcon className="w-3.5 h-3.5" />
                           {new Date(leave.start_date).toLocaleDateString()} 
@@ -239,7 +239,7 @@ const CompanyLeaveCalendar = () => {
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded text-xs ${leave.status === 'Active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:text-gray-200 dark:bg-gray-800 dark:text-gray-400'}`}>
+                        <span className={`px-2 py-1 rounded text-xs ${leave.status === 'Active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:text-gray-200 dark:bg-gray-800 dark:text-foreground'}`}>
                           {leave.status}
                         </span>
                       </td>
@@ -358,7 +358,7 @@ const CompanyLeaveCalendar = () => {
               <div className="grid gap-2">
                 <Label>Select Branches</Label>
                 <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground" />
                   <Input 
                     value={branchSearch} 
                     onChange={(e) => setBranchSearch(e.target.value)} 
@@ -390,7 +390,7 @@ const CompanyLeaveCalendar = () => {
                     })
                   }
                   {branchesList.length > 0 && branchesList.filter(b => (b.code + " " + b.name).toLowerCase().includes(branchSearch.toLowerCase())).length === 0 && (
-                    <div className="text-sm text-gray-500 text-center py-4">No branches found</div>
+                    <div className="text-sm text-foreground text-center py-4">No branches found</div>
                   )}
                 </div>
                 <div className="flex flex-wrap gap-1 mt-1">
@@ -407,7 +407,7 @@ const CompanyLeaveCalendar = () => {
               <div className="grid gap-2">
                 <Label>Select Departments</Label>
                 <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground" />
                   <Input 
                     value={deptSearch} 
                     onChange={(e) => setDeptSearch(e.target.value)} 
@@ -440,7 +440,7 @@ const CompanyLeaveCalendar = () => {
                     })
                   }
                   {departmentsList.length > 0 && departmentsList.filter(d => (d.name || d.department_name || d).toLowerCase().includes(deptSearch.toLowerCase())).length === 0 && (
-                    <div className="text-sm text-gray-500 text-center py-4">No departments found</div>
+                    <div className="text-sm text-foreground text-center py-4">No departments found</div>
                   )}
                 </div>
                 <div className="flex flex-wrap gap-1 mt-1">

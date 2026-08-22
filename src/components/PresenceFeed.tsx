@@ -311,7 +311,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
 
     return { 
       icon: AlertCircle, 
-      color: "text-slate-400", 
+      color: "text-foreground", 
       bg: "bg-slate-50 dark:bg-slate-900/20 border-slate-100 dark:border-slate-800/20", 
       dot: "bg-slate-400",
       label: "Absent" 
@@ -359,7 +359,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
           {loading && activities.length === 0 ? (
             <Loader2 className="w-5 h-5 animate-spin text-[#7B0099]" />
           ) : filtered.length === 0 ? (
-            <span className="text-[10px] text-muted-foreground">Empty</span>
+            <span className="text-[10px] text-foreground">Empty</span>
           ) : (
             filtered.map((emp) => {
               const statusConf = getStatusConfig(emp.today_status, emp.today_clock_in);
@@ -458,7 +458,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
           </Popover>
         </CardTitle>
         <div className="relative mt-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/60" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/60" />
           <Input
             placeholder="Filter activity..."
             value={search}
@@ -474,7 +474,7 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
             <Loader2 className="w-6 h-6 animate-spin text-[#7B0099]" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center p-8 text-xs text-muted-foreground font-medium">
+          <div className="text-center p-8 text-xs text-foreground font-medium">
             No activity found.
           </div>
         ) : (
@@ -503,10 +503,10 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
                           <p className="text-sm font-black text-foreground truncate">
                             {emp.assigned_by_name} ({formatRole(emp.assigned_by_role)})
                           </p>
-                          <span className="text-[10px] font-bold text-muted-foreground/60 shrink-0">{activityTime}</span>
+                          <span className="text-[10px] font-bold text-foreground/60 shrink-0">{activityTime}</span>
                         </div>
                         
-                        <div className="text-xs font-bold text-muted-foreground/80 mt-1">
+                        <div className="text-xs font-bold text-foreground/80 mt-1">
                           assigned an outstation to <span className="text-foreground font-black">{emp.full_name}</span>
                         </div>
 
@@ -524,14 +524,14 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm font-black text-foreground truncate">{emp.full_name}</p>
                           {emp.today_status !== "Absent" && emp.today_status !== "On Leave" && (
-                            <span className="text-[10px] font-bold text-muted-foreground/60 shrink-0">{activityTime}</span>
+                            <span className="text-[10px] font-bold text-foreground/60 shrink-0">{activityTime}</span>
                           )}
                         </div>
                         
                         <div className="flex items-center justify-between mt-1">
                           <div className="flex items-center gap-1.5">
                             <span className={`w-1.5 h-1.5 rounded-full ${statusConf.dot}`}></span>
-                            <span className="text-xs font-bold text-muted-foreground/80">{statusConf.label}</span>
+                            <span className="text-xs font-bold text-foreground/80">{statusConf.label}</span>
                           </div>
                           
                           {emp.is_leave_submission && (

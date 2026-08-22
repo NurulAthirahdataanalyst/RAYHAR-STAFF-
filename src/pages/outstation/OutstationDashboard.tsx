@@ -259,14 +259,14 @@ export default function OutstationDashboard() {
 
     return {
       active: startedThisWeek > 0 ? `↑ +${startedThisWeek} this week` : `- 0 this week`,
-      activeColor: startedThisWeek > 0 ? "text-green-600" : "text-gray-400",
+      activeColor: startedThisWeek > 0 ? "text-green-600" : "text-foreground",
       upcoming: departingToday > 0 ? `↑ +${departingToday} today` : `- 0 today`,
-      upcomingColor: departingToday > 0 ? "text-orange-600" : "text-gray-400",
+      upcomingColor: departingToday > 0 ? "text-orange-600" : "text-foreground",
       total: monthDiff > 0 ? `↑ +${monthDiff}% vs last month` : (monthDiff < 0 ? `↓ ${monthDiff}% vs last month` : `- 0% vs last month`),
-      totalColor: monthDiff > 0 ? "text-purple-600" : (monthDiff < 0 ? "text-red-500" : "text-gray-400"),
+      totalColor: monthDiff > 0 ? "text-purple-600" : (monthDiff < 0 ? "text-red-500" : "text-foreground"),
       completionValue: `${rate}%`,
       completionTrend: rateDiff > 0 ? `↑ +${rateDiff}% vs last month` : (rateDiff < 0 ? `↓ ${rateDiff}% vs last month` : `- 0% vs last month`),
-      completionColor: rateDiff > 0 ? "text-green-600" : (rateDiff < 0 ? "text-red-500" : "text-gray-400")
+      completionColor: rateDiff > 0 ? "text-green-600" : (rateDiff < 0 ? "text-red-500" : "text-foreground")
     };
   }, [assignments, completedCount, cancelledCount]);
 
@@ -391,7 +391,7 @@ export default function OutstationDashboard() {
                   )}
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground whitespace-nowrap">
                     {completedEventsCount} Completed
                   </p>
                 </div>
@@ -418,7 +418,7 @@ export default function OutstationDashboard() {
                   )}
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-emerald-200/80 dark:border-emerald-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground whitespace-nowrap">
                     Currently Away
                   </p>
                 </div>
@@ -445,7 +445,7 @@ export default function OutstationDashboard() {
                   )}
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-orange-200/80 dark:border-orange-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground whitespace-nowrap">
                     Starts Today
                   </p>
                 </div>
@@ -472,7 +472,7 @@ export default function OutstationDashboard() {
                   )}
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-blue-200/80 dark:border-blue-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground whitespace-nowrap">
                     Expected Back
                   </p>
                 </div>
@@ -499,7 +499,7 @@ export default function OutstationDashboard() {
                   )}
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground whitespace-nowrap">
                     Next 7 Days
                   </p>
                 </div>
@@ -526,7 +526,7 @@ export default function OutstationDashboard() {
                   )}
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-amber-200/80 dark:border-amber-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground whitespace-nowrap">
                     Across Upcoming Trips
                   </p>
                 </div>
@@ -545,7 +545,7 @@ export default function OutstationDashboard() {
               <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
               <div>
                 <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Active Outstations</CardTitle>
-                <p className="text-[13px] text-gray-500 dark:text-gray-400 font-medium mt-0.5">Real-time status of employees currently on assignment</p>
+                <p className="text-[13px] text-foreground dark:text-foreground font-medium mt-0.5">Real-time status of employees currently on assignment</p>
               </div>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="icon" className="h-9 w-9 border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-300 rounded-[8px]">
@@ -562,12 +562,12 @@ export default function OutstationDashboard() {
                   {[1,2,3,4].map(n => <Skeleton key={n} className="h-12 w-full rounded-[8px]" />)}
                 </div>
               ) : activeNow.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full py-16 text-gray-400 text-center px-4">
+                <div className="flex flex-col items-center justify-center h-full py-16 text-foreground text-center px-4">
                   <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-slate-900/50 flex items-center justify-center mb-4 border border-gray-100 dark:border-slate-800">
                     <CheckCircle className="w-8 h-8 text-green-500" />
                   </div>
                   <h3 className="text-[16px] font-bold text-gray-800 dark:text-gray-100 mb-1">No Active Outstations</h3>
-                  <p className="text-[13px] text-gray-500 dark:text-gray-400 max-w-sm mb-6">Everyone is currently at their assigned workplace. There are no ongoing travels.</p>
+                  <p className="text-[13px] text-foreground dark:text-foreground max-w-sm mb-6">Everyone is currently at their assigned workplace. There are no ongoing travels.</p>
                   <Button variant="outline" className="border-gray-300 shadow-sm" onClick={() => navigate("/outstation/assignment")}>View Assignments</Button>
                 </div>
               ) : (
@@ -594,7 +594,7 @@ export default function OutstationDashboard() {
                               </div>
                               <div>
                                   <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">{g.project || g.destination}</p>
-                                  <p className="text-[10px] text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5 whitespace-nowrap"><MapPin className="w-3 h-3 text-gray-400" /> {g.destination}</p>
+                                  <p className="text-[10px] text-foreground dark:text-foreground flex items-center gap-1 mt-0.5 whitespace-nowrap"><MapPin className="w-3 h-3 text-foreground" /> {g.destination}</p>
                                 </div>
                             </div>
                           </td>
@@ -609,13 +609,13 @@ export default function OutstationDashboard() {
                                 {g.employees.length} Employee{g.employees.length !== 1 ? 's' : ''}
                               </p>
                               {g.employees.length === 1 && (
-                                <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">{g.employees[0].user_id || "EMP-8821"}</p>
+                                <p className="text-[10px] text-foreground dark:text-foreground font-medium">{g.employees[0].user_id || "EMP-8821"}</p>
                               )}
                             </div>
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-start gap-2">
-                              <Calendar className="w-3.5 h-3.5 text-gray-400 mt-0.5" />
+                              <Calendar className="w-3.5 h-3.5 text-foreground mt-0.5" />
                               <div>
                                 <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-200">{formatShortDate(g.start_date)} - {formatShortDate(g.end_date)}</p>
                                 <p className="text-[10px] font-medium text-purple-600">
@@ -712,7 +712,7 @@ export default function OutstationDashboard() {
                                               </div>
                                               <div className="flex-1 min-w-0">
                                                 <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100 truncate">{emp.full_name}</p>
-                                                <p className="text-[10px] text-gray-400">{emp.user_id}</p>
+                                                <p className="text-[10px] text-foreground">{emp.user_id}</p>
                                               </div>
                                             </div>
                                           ))}
@@ -799,7 +799,7 @@ export default function OutstationDashboard() {
                   </tbody>
                 </table>
                 <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-card">
-                  <span className="text-[12px] text-gray-500 dark:text-gray-400 font-medium">Showing {activeNowGrouped.length > 0 ? 1 : 0}-{activeNowGrouped.length} of {activeNowGrouped.length} Active Outstations</span>
+                  <span className="text-[12px] text-foreground dark:text-foreground font-medium">Showing {activeNowGrouped.length > 0 ? 1 : 0}-{activeNowGrouped.length} of {activeNowGrouped.length} Active Outstations</span>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" className="h-8 text-[12px] font-medium border-gray-200 dark:border-slate-800">Previous</Button>
                     <Button variant="outline" size="sm" className="h-8 text-[12px] font-medium border-gray-200 dark:border-slate-800">Next</Button>
@@ -815,7 +815,7 @@ export default function OutstationDashboard() {
               <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
                 <div>
                   <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Upcoming Outstations</CardTitle>
-                  <p className="text-[13px] text-gray-500 dark:text-gray-400 font-medium mt-0.5">Scheduled travels and assignments</p>
+                  <p className="text-[13px] text-foreground dark:text-foreground font-medium mt-0.5">Scheduled travels and assignments</p>
                 </div>
               </CardHeader>
               <CardContent className="p-0 flex-1 overflow-x-auto">
@@ -824,12 +824,12 @@ export default function OutstationDashboard() {
                     {[1,2,3,4].map(n => <Skeleton key={n} className="h-12 w-full rounded-[8px]" />)}
                   </div>
                 ) : upcomingGrouped.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full py-16 text-gray-400 text-center px-4">
+                  <div className="flex flex-col items-center justify-center h-full py-16 text-foreground text-center px-4">
                     <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-slate-900/50 flex items-center justify-center mb-4 border border-gray-100 dark:border-slate-800">
                       <Calendar className="w-8 h-8 text-orange-500" />
                     </div>
                     <h3 className="text-[16px] font-bold text-gray-800 dark:text-gray-100 mb-1">No Upcoming Outstations</h3>
-                    <p className="text-[13px] text-gray-500 dark:text-gray-400 max-w-sm mb-6">There are no scheduled travels.</p>
+                    <p className="text-[13px] text-foreground dark:text-foreground max-w-sm mb-6">There are no scheduled travels.</p>
                   </div>
                 ) : (
                   <>
@@ -855,7 +855,7 @@ export default function OutstationDashboard() {
                                 </div>
                                 <div>
                                   <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">{g.project || g.destination}</p>
-                                  <p className="text-[10px] text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5 whitespace-nowrap"><MapPin className="w-3 h-3 text-gray-400" /> {g.destination}</p>
+                                  <p className="text-[10px] text-foreground dark:text-foreground flex items-center gap-1 mt-0.5 whitespace-nowrap"><MapPin className="w-3 h-3 text-foreground" /> {g.destination}</p>
                                 </div>
                               </div>
                             </td>
@@ -870,13 +870,13 @@ export default function OutstationDashboard() {
                                   {g.employees.length} Employee{g.employees.length !== 1 ? 's' : ''}
                                 </p>
                                 {g.employees.length === 1 && (
-                                  <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">{g.employees[0].user_id || "EMP-8821"}</p>
+                                  <p className="text-[10px] text-foreground dark:text-foreground font-medium">{g.employees[0].user_id || "EMP-8821"}</p>
                                 )}
                               </div>
                             </td>
                             <td className="px-4 py-3">
                               <div className="flex items-start gap-2">
-                                <Calendar className="w-3.5 h-3.5 text-gray-400 mt-0.5" />
+                                <Calendar className="w-3.5 h-3.5 text-foreground mt-0.5" />
                                 <div>
                                   <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-200">{formatShortDate(g.start_date)} - {formatShortDate(g.end_date)}</p>
                                   <p className="text-[10px] font-medium text-orange-600">
@@ -973,7 +973,7 @@ export default function OutstationDashboard() {
                                               </div>
                                               <div className="flex-1 min-w-0">
                                                 <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100 truncate">{emp.full_name}</p>
-                                                <p className="text-[10px] text-gray-400">{emp.user_id}</p>
+                                                <p className="text-[10px] text-foreground">{emp.user_id}</p>
                                               </div>
                                             </div>
                                           ))}
@@ -1060,7 +1060,7 @@ export default function OutstationDashboard() {
                     </tbody>
                   </table>
                   <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-card">
-                    <span className="text-[12px] text-gray-500 dark:text-gray-400 font-medium">Showing {upcomingGrouped.length > 0 ? 1 : 0}-{upcomingGrouped.length} of {upcomingGrouped.length} Upcoming Outstations</span>
+                    <span className="text-[12px] text-foreground dark:text-foreground font-medium">Showing {upcomingGrouped.length > 0 ? 1 : 0}-{upcomingGrouped.length} of {upcomingGrouped.length} Upcoming Outstations</span>
                   </div>
                   </>
                 )}
@@ -1080,29 +1080,29 @@ export default function OutstationDashboard() {
               </CardHeader>
               <CardContent className="p-0 flex flex-col divide-y divide-gray-50">
                 <div className="p-5">
-                  <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Departing Soon</h4>
-                  {loading ? <Skeleton className="h-10 w-full rounded" /> : upcoming.length === 0 ? <p className="text-[12px] text-gray-500 dark:text-gray-400">No upcoming departures</p> : upcoming.slice(0, 3).map((a, i) => (
+                  <h4 className="text-[10px] font-bold text-foreground uppercase tracking-widest mb-3">Departing Soon</h4>
+                  {loading ? <Skeleton className="h-10 w-full rounded" /> : upcoming.length === 0 ? <p className="text-[12px] text-foreground dark:text-foreground">No upcoming departures</p> : upcoming.slice(0, 3).map((a, i) => (
                     <div key={i} className="flex items-center gap-3 mb-3 last:mb-0">
                       <div className="w-8 h-8 rounded-md bg-orange-50 flex items-center justify-center flex-shrink-0 border border-orange-100">
                         <Plane className="w-4 h-4 text-orange-600 transform rotate-45" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 truncate">{a.full_name}</p>
-                        <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">{a.destination} • {formatShortDate(a.start_date)}</p>
+                        <p className="text-[10px] text-foreground dark:text-foreground truncate">{a.destination} • {formatShortDate(a.start_date)}</p>
                       </div>
                     </div>
                   ))}
                 </div>
                 <div className="p-5">
-                  <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Returning Today</h4>
-                  {loading ? <Skeleton className="h-10 w-full rounded" /> : returns.length === 0 ? <p className="text-[12px] text-gray-500 dark:text-gray-400">No returns expected today</p> : returns.slice(0, 3).map((a, i) => (
+                  <h4 className="text-[10px] font-bold text-foreground uppercase tracking-widest mb-3">Returning Today</h4>
+                  {loading ? <Skeleton className="h-10 w-full rounded" /> : returns.length === 0 ? <p className="text-[12px] text-foreground dark:text-foreground">No returns expected today</p> : returns.slice(0, 3).map((a, i) => (
                     <div key={i} className="flex items-center gap-3 mb-3 last:mb-0">
                       <div className="w-8 h-8 rounded-md bg-blue-50 flex items-center justify-center flex-shrink-0 border border-blue-100">
                         <Plane className="w-4 h-4 text-blue-600 transform -rotate-45" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 truncate">{a.full_name}</p>
-                        <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">From {a.destination}</p>
+                        <p className="text-[10px] text-foreground dark:text-foreground truncate">From {a.destination}</p>
                       </div>
                     </div>
                   ))}

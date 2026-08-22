@@ -661,14 +661,14 @@ export default function Calendar() {
                   nav_button_next: "absolute right-1",
                   table: "w-full border-collapse space-y-1",
                   head_row: "flex w-full justify-between mb-2",
-                  head_cell: "text-muted-foreground rounded-md w-9 font-bold text-[11px] uppercase",
+                  head_cell: "text-foreground rounded-md w-9 font-bold text-[11px] uppercase",
                   row: "flex w-full mt-2 justify-between",
                   cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-[#FFFE00]/10 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
                   day: "h-9 w-9 p-0 font-medium aria-selected:opacity-100 hover:bg-muted rounded-md transition-all",
                   day_selected: "bg-[#FFFE00] text-[#7B0099] border-2 border-[#7B0099] hover:bg-[#E6E500] hover:text-[#7B0099] focus:bg-[#FFFE00] focus:text-[#7B0099]",
                   day_today: "bg-[#7B0099]/10 text-[#7B0099] font-bold",
-                  day_outside: "text-muted-foreground opacity-50",
-                  day_disabled: "text-muted-foreground opacity-50",
+                  day_outside: "text-foreground opacity-50",
+                  day_disabled: "text-foreground opacity-50",
                   day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
                   day_hidden: "invisible",
                 }}
@@ -699,7 +699,7 @@ export default function Calendar() {
                   <Plus className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground mb-4">Click to filter, or add an event to calendar</p>
+              <p className="text-xs text-foreground mb-4">Click to filter, or add an event to calendar</p>
               <div className="space-y-3">
                 {!deletedDefaultCategories.includes('note') && (
                   <div 
@@ -861,7 +861,7 @@ export default function Calendar() {
                           e.stopPropagation();
                           setCategoryToDelete(cat);
                         }}
-                        className={`p-1 rounded transition-all ${activeFilter === cat.id ? 'text-muted-foreground hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/10' : 'opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/10'}`}
+                        className={`p-1 rounded transition-all ${activeFilter === cat.id ? 'text-foreground hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/10' : 'opacity-0 group-hover:opacity-100 text-foreground hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/10'}`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -873,7 +873,7 @@ export default function Calendar() {
               {isAddCategoryOpen && (
                 <div className="mt-4 p-5 bg-card rounded-2xl border border-border/70 space-y-5 animate-in fade-in zoom-in-95 duration-200 shadow-md">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Category Name</label>
+                    <label className="text-[10px] font-black text-foreground uppercase tracking-wider">Category Name</label>
                     <input
                       type="text"
                       placeholder="e.g. Project Launch"
@@ -888,8 +888,8 @@ export default function Calendar() {
                     {/* Preset Colours */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Preset Colours</label>
-                        <span className="text-[10px] font-bold text-slate-400">8 Swatches</span>
+                        <label className="text-[10px] font-black text-foreground uppercase tracking-wider">Preset Colours</label>
+                        <span className="text-[10px] font-bold text-foreground">8 Swatches</span>
                       </div>
                       <div className="flex flex-wrap gap-2 items-center">
                         {Object.entries(CATEGORY_COLORS).map(([colorKey, colorMeta]) => {
@@ -911,7 +911,7 @@ export default function Calendar() {
 
                     {/* Custom & Random Colour */}
                     <div className="space-y-2 pt-3 border-t border-border/60">
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Custom & Random Colour</label>
+                      <label className="text-[10px] font-black text-foreground uppercase tracking-wider">Custom & Random Colour</label>
                       <div className="flex items-center gap-3">
                         <ColorPickerPopover
                           color={newCategoryColor.startsWith('#') ? newCategoryColor : (CATEGORY_COLORS[newCategoryColor]?.hex || '#7B0099')}
@@ -966,9 +966,9 @@ export default function Calendar() {
                               style={{ backgroundColor: activeHex }} 
                             />
                             <div className="flex flex-wrap items-center gap-2.5 font-mono font-bold text-foreground text-[10px]">
-                              <div><span className="text-muted-foreground font-sans text-[10px]">HEX:</span> {activeHex}</div>
-                              <div><span className="text-muted-foreground font-sans text-[10px]">RGB:</span> {r}, {g}, {b}</div>
-                              <div><span className="text-muted-foreground font-sans text-[10px]">HSV:</span> {hDeg}°, {sPct}%, {vPct}%</div>
+                              <div><span className="text-foreground font-sans text-[10px]">HEX:</span> {activeHex}</div>
+                              <div><span className="text-foreground font-sans text-[10px]">RGB:</span> {r}, {g}, {b}</div>
+                              <div><span className="text-foreground font-sans text-[10px]">HSV:</span> {hDeg}°, {sPct}%, {vPct}%</div>
                             </div>
                           </div>
                         </div>
@@ -981,7 +981,7 @@ export default function Calendar() {
                     <button 
                       type="button"
                       onClick={() => setIsAddCategoryOpen(false)} 
-                      className="px-4 py-2 text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground rounded-xl transition-colors cursor-pointer"
+                      className="px-4 py-2 text-xs font-bold text-foreground hover:bg-muted hover:text-foreground rounded-xl transition-colors cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -1041,11 +1041,11 @@ export default function Calendar() {
             <div className="flex items-center bg-muted/40 rounded-lg p-1 border border-border/50 w-full justify-center sm:w-auto">
               <button 
                 onClick={() => setViewMode('month')}
-                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#7B0099] border-2 border-[#7B0099]' : 'text-muted-foreground hover:text-foreground'}`}>Month</button>
+                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#7B0099] border-2 border-[#7B0099]' : 'text-foreground hover:text-foreground'}`}>Month</button>
               <button 
                 onClick={() => setViewMode('week')}
-                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'week' ? 'bg-[#FFFE00] text-[#7B0099] border-2 border-[#7B0099]' : 'text-muted-foreground hover:text-foreground'}`}>Week</button>
-              <button className="px-5 py-1.5 rounded-md text-muted-foreground hover:text-foreground text-sm font-bold transition-colors">Day</button>
+                className={`px-5 py-1.5 rounded-md text-sm font-bold shadow-sm transition-colors ${viewMode === 'week' ? 'bg-[#FFFE00] text-[#7B0099] border-2 border-[#7B0099]' : 'text-foreground hover:text-foreground'}`}>Week</button>
+              <button className="px-5 py-1.5 rounded-md text-foreground hover:text-foreground text-sm font-bold transition-colors">Day</button>
             </div>
           </div>
           
@@ -1099,10 +1099,10 @@ export default function Calendar() {
                     textCol = "text-[#7B0099]";
                   } else if (!isCurrentMonth) {
                     cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
-                    textCol = "text-muted-foreground opacity-50";
+                    textCol = "text-foreground opacity-50";
                   } else if (isPast) {
                     cellBg = "bg-white dark:bg-card opacity-80";
-                    textCol = "text-gray-500 dark:text-gray-400";
+                    textCol = "text-foreground dark:text-foreground";
                   }
 
                   const handleDayClick = () => {
@@ -1252,7 +1252,7 @@ export default function Calendar() {
               
               {/* All-Day Events Row */}
               <div className="flex border-b border-border/60 bg-muted/10 shrink-0 min-h-[40px]">
-                <div className="w-16 flex-shrink-0 border-r border-border/60 p-2 text-[10px] font-semibold text-muted-foreground text-center flex flex-col justify-center">
+                <div className="w-16 flex-shrink-0 border-r border-border/60 p-2 text-[10px] font-semibold text-foreground text-center flex flex-col justify-center">
                   All Day
                 </div>
                 <div className="flex-1 grid grid-cols-7 divide-x divide-border/60">
@@ -1368,7 +1368,7 @@ export default function Calendar() {
                     {Array.from({ length: 24 }).map((_, i) => (
                       <div key={i} className="h-[60px] relative border-b border-border/30">
                         {i > 0 && (
-                          <span className="absolute -top-2.5 right-2 text-[10px] font-semibold text-muted-foreground">
+                          <span className="absolute -top-2.5 right-2 text-[10px] font-semibold text-foreground">
                             {format(new Date().setHours(i, 0, 0, 0), 'HH:mm')}
                           </span>
                         )}
@@ -1496,7 +1496,7 @@ export default function Calendar() {
               <h3 className="font-bold text-lg text-foreground">Add New Event</h3>
               <button 
                 onClick={() => setIsAddEventModalOpen(false)} 
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-muted-foreground transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-foreground transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1504,7 +1504,7 @@ export default function Calendar() {
             
             <form onSubmit={handleAddEvent} className="p-5 space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Event Name</label>
+                <label className="text-xs font-bold text-foreground uppercase tracking-wider">Event Name</label>
                 <input
                   type="text"
                   required
@@ -1528,7 +1528,7 @@ export default function Calendar() {
 
               <div className="space-y-3">
                 <div className="flex items-center gap-4">
-                  <label className="w-16 text-xs font-bold text-muted-foreground uppercase tracking-wider">Starts</label>
+                  <label className="w-16 text-xs font-bold text-foreground uppercase tracking-wider">Starts</label>
                   <div className="flex-1 flex gap-2">
                     <div className="relative flex-1">
                       <input
@@ -1553,7 +1553,7 @@ export default function Calendar() {
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <label className="w-16 text-xs font-bold text-muted-foreground uppercase tracking-wider">Ends</label>
+                  <label className="w-16 text-xs font-bold text-foreground uppercase tracking-wider">Ends</label>
                   <div className="flex-1 flex gap-2">
                     <div className="relative flex-1">
                       <input
@@ -1579,9 +1579,9 @@ export default function Calendar() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Event Location</label>
+                <label className="text-xs font-bold text-foreground uppercase tracking-wider">Event Location</label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground" />
                   <input
                     type="text"
                     className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-[#FFFE00] focus:ring-1 focus:ring-[#FFFE00] transition-all"
@@ -1593,7 +1593,7 @@ export default function Calendar() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Descriptions</label>
+                <label className="text-xs font-bold text-foreground uppercase tracking-wider">Descriptions</label>
                 <textarea
                   className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-[#FFFE00] focus:ring-1 focus:ring-[#FFFE00] transition-all min-h-[100px] resize-none"
                   value={eventDescription}
@@ -1745,7 +1745,7 @@ export default function Calendar() {
                 </div>
                 <button 
                   onClick={() => setSelectedEvent(null)} 
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-foreground transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1760,7 +1760,7 @@ export default function Calendar() {
                   <div className="flex gap-4 pb-4">
                     <CalendarIcon className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
                     <div className="flex flex-col">
-                      <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Date</span>
+                      <span className="text-[11px] text-foreground font-bold uppercase tracking-wider mb-0.5">Date</span>
                       <span className="text-[15px] text-slate-900 dark:text-slate-100 font-semibold">{finalDateDisplay}</span>
                     </div>
                   </div>
@@ -1770,9 +1770,9 @@ export default function Calendar() {
                     <div className="flex gap-4 pb-4">
                       <Clock className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
                       <div className="flex flex-col">
-                        <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Time</span>
+                        <span className="text-[11px] text-foreground font-bold uppercase tracking-wider mb-0.5">Time</span>
                         <span className="text-[15px] text-slate-900 dark:text-slate-100 font-semibold">{finalTimeDisplay}</span>
-                        {durationDisplay && <span className="text-[13px] text-slate-500 font-medium mt-0.5">({durationDisplay})</span>}
+                        {durationDisplay && <span className="text-[13px] text-foreground font-medium mt-0.5">({durationDisplay})</span>}
                       </div>
                     </div>
                   )}
@@ -1782,7 +1782,7 @@ export default function Calendar() {
                     <div className="flex gap-4 pb-4">
                       <MapPin className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
                       <div className="flex flex-col">
-                        <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Location</span>
+                        <span className="text-[11px] text-foreground font-bold uppercase tracking-wider mb-0.5">Location</span>
                         <div className="text-[15px] text-slate-900 dark:text-slate-100 font-semibold">{renderLocation(modalLocation)}</div>
                       </div>
                     </div>
@@ -1793,7 +1793,7 @@ export default function Calendar() {
                     <div className="flex gap-4 pb-4">
                       <FileText className="w-[18px] h-[18px] mt-0.5 text-[#7B0099]" strokeWidth={2} />
                       <div className="flex flex-col">
-                        <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Description</span>
+                        <span className="text-[11px] text-foreground font-bold uppercase tracking-wider mb-0.5">Description</span>
                         <span className="text-[15px] text-slate-800 dark:text-slate-200 font-medium whitespace-pre-wrap leading-relaxed">{modalDescription}</span>
                       </div>
                     </div>
@@ -1835,7 +1835,7 @@ export default function Calendar() {
                 <Trash2 className="w-6 h-6 text-red-600" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">Delete Category?</h3>
-              <p className="text-sm text-slate-500 mb-6">
+              <p className="text-sm text-foreground mb-6">
                 Are you sure you want to delete <span className="font-bold text-slate-700">"{categoryToDelete.name}"</span>? Any existing events assigned to this category will be changed to "Notes".
               </p>
               <div className="flex gap-3 justify-end">
@@ -1907,7 +1907,7 @@ export default function Calendar() {
                   <CalendarIcon className="w-4 h-4 text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Date</p>
+                  <p className="text-xs text-foreground font-medium uppercase tracking-wide">Date</p>
                   {(() => {
                     const start = selectedCompanyLeave.start_date?.split('T')[0];
                     const end = selectedCompanyLeave.end_date?.split('T')[0];
@@ -1935,7 +1935,7 @@ export default function Calendar() {
                   <span className="text-purple-600 text-sm">👥</span>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Applies To</p>
+                  <p className="text-xs text-foreground font-medium uppercase tracking-wide">Applies To</p>
                   <p className="font-semibold text-foreground capitalize">
                     {selectedCompanyLeave.applies_to === 'all' ? 'All Staff' :
                      selectedCompanyLeave.applies_to === 'branch' ? `Branch: ${selectedCompanyLeave.branch_id}` :
@@ -1950,7 +1950,7 @@ export default function Calendar() {
                   <span className="text-purple-600 text-sm">💰</span>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Leave Pay</p>
+                  <p className="text-xs text-foreground font-medium uppercase tracking-wide">Leave Pay</p>
                   <span className={`inline-flex items-center gap-1 text-sm font-semibold px-2.5 py-0.5 rounded-full ${selectedCompanyLeave.is_paid ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
                     {selectedCompanyLeave.is_paid ? '✓ Paid Leave' : '✗ Unpaid Leave'}
                   </span>
@@ -2006,7 +2006,7 @@ export default function Calendar() {
               <div className="flex items-start gap-3">
                 <CalendarIcon className="w-4 h-4 text-emerald-600 mt-1" />
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Duration</p>
+                  <p className="text-xs text-foreground font-medium uppercase tracking-wide">Duration</p>
                   <p className="font-semibold text-foreground">{startStr} → {endStr} <span className="ml-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">Total day: {totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
                 </div>
               </div>
@@ -2014,7 +2014,7 @@ export default function Calendar() {
                 <div className="flex items-start gap-3">
                   <FileText className="w-4 h-4 text-emerald-600 mt-1" />
                   <div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Reason</p>
+                    <p className="text-xs text-foreground font-medium uppercase tracking-wide">Reason</p>
                     <p className="font-semibold text-foreground">{selectedLeave.reason}</p>
                   </div>
                 </div>
@@ -2057,7 +2057,7 @@ export default function Calendar() {
               <div className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 text-pink-600 mt-1" />
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Destination</p>
+                  <p className="text-xs text-foreground font-medium uppercase tracking-wide">Destination</p>
                   <p className="font-semibold text-foreground uppercase">{selectedOutstation.destination}</p>
                 </div>
               </div>
@@ -2065,7 +2065,7 @@ export default function Calendar() {
                 <div className="flex items-start gap-3">
                   <Plane className="w-4 h-4 text-pink-600 mt-1" />
                   <div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Project / Purpose</p>
+                    <p className="text-xs text-foreground font-medium uppercase tracking-wide">Project / Purpose</p>
                     <p className="font-semibold text-foreground">{selectedOutstation.project ? selectedOutstation.project : selectedOutstation.purpose} {selectedOutstation.project && selectedOutstation.purpose ? `(${selectedOutstation.purpose})` : ''}</p>
                   </div>
                 </div>
@@ -2073,7 +2073,7 @@ export default function Calendar() {
               <div className="flex items-start gap-3">
                 <CalendarIcon className="w-4 h-4 text-pink-600 mt-1" />
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Duration</p>
+                  <p className="text-xs text-foreground font-medium uppercase tracking-wide">Duration</p>
                   <p className="font-semibold text-foreground">{startStr} — {endStr} <span className="ml-2 text-xs font-bold text-pink-600 dark:text-pink-400">Total day: {totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
                 </div>
               </div>
@@ -2124,7 +2124,7 @@ export default function Calendar() {
               <div className="flex items-center justify-between pt-2">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-purple-600" />
-                  <span className="text-sm font-semibold text-muted-foreground">Working Hours:</span>
+                  <span className="text-sm font-semibold text-foreground">Working Hours:</span>
                 </div>
                 <span className="text-sm font-extrabold text-foreground bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full">
                   {getWorkingHours(selectedAttendance.clock_in, selectedAttendance.clock_out) || '-'}
@@ -2178,7 +2178,7 @@ export default function Calendar() {
               {/* Body */}
               <div className="overflow-y-auto flex-1 px-6 py-5 space-y-4">
                 {!hasContent && (
-                  <div className="flex flex-col items-center justify-center py-10 text-muted-foreground gap-2">
+                  <div className="flex flex-col items-center justify-center py-10 text-foreground gap-2">
                     <CalendarIcon className="w-10 h-10 opacity-30" />
                     <p className="text-sm font-semibold">No activity recorded for this day</p>
                   </div>
@@ -2288,14 +2288,14 @@ export default function Calendar() {
                                 <div className="flex items-center gap-2">
                                   <div className="w-2 h-2 rounded-full bg-green-500" />
                                   <div>
-                                    <p className="text-[10px] text-muted-foreground uppercase font-semibold">Clock In</p>
+                                    <p className="text-[10px] text-foreground uppercase font-semibold">Clock In</p>
                                     <p className="text-sm font-bold text-foreground">{inStr}</p>
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <div className={`w-2 h-2 rounded-full ${outStr ? 'bg-red-400' : 'bg-gray-300'}`} />
                                   <div>
-                                    <p className="text-[10px] text-muted-foreground uppercase font-semibold">Clock Out</p>
+                                    <p className="text-[10px] text-foreground uppercase font-semibold">Clock Out</p>
                                     <p className="text-sm font-bold text-foreground">{outStr || '—'}</p>
                                   </div>
                                 </div>
@@ -2347,7 +2347,7 @@ export default function Calendar() {
                             <div className={`w-1 self-stretch ${barColor} flex-shrink-0`} style={barStyle} />
                             <div className="px-3 py-2.5">
                               <p className={`font-semibold text-sm ${textClass}`} style={textStyle}>{title}</p>
-                              <p className="text-xs text-muted-foreground capitalize mt-0.5">{isReminder ? 'Reminder' : isMeeting ? 'Meeting' : customCat?.name || 'Note'}</p>
+                              <p className="text-xs text-foreground capitalize mt-0.5">{isReminder ? 'Reminder' : isMeeting ? 'Meeting' : customCat?.name || 'Note'}</p>
                             </div>
                           </div>
                         );

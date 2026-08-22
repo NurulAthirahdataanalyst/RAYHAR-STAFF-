@@ -131,7 +131,7 @@ export default function Department() {
         <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md">
           <CardContent className="p-12 flex flex-col items-center justify-center gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <p className="text-xs font-bold text-muted-foreground animate-pulse uppercase tracking-widest">
+            <p className="text-xs font-bold text-foreground animate-pulse uppercase tracking-widest">
               Loading Departments...
             </p>
           </CardContent>
@@ -145,7 +145,7 @@ export default function Department() {
                   <Building2 className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Departments</p>
+                  <p className="text-sm font-medium text-foreground">Total Departments</p>
                   <h3 className="text-3xl font-bold mt-1">{departments.length}</h3>
                 </div>
               </CardContent>
@@ -157,7 +157,7 @@ export default function Department() {
                   <Users className="w-6 h-6 text-green-500" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Employees</p>
+                  <p className="text-sm font-medium text-foreground">Total Employees</p>
                   <h3 className="text-3xl font-bold mt-1 text-green-600 dark:text-green-400">
                     {employees.length}
                   </h3>
@@ -170,7 +170,7 @@ export default function Department() {
             <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-border/50 bg-muted/20 pb-4">
               <CardTitle className="text-lg font-bold">Department Statistics</CardTitle>
               <div className="relative w-full sm:w-64">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground" />
                 <Input
                   placeholder="Search department..."
                   className="pl-8 bg-background"
@@ -194,9 +194,9 @@ export default function Department() {
                   <TableBody>
                     {filteredList.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                        <TableCell colSpan={5} className="text-center py-12 text-foreground">
                           <div className="flex flex-col items-center gap-2">
-                            <Building2 className="w-8 h-8 text-muted-foreground/50" />
+                            <Building2 className="w-8 h-8 text-foreground/50" />
                             <p>No department records found.</p>
                           </div>
                         </TableCell>
@@ -226,7 +226,7 @@ export default function Department() {
                                 ))}
                               </div>
                             ) : (
-                              <span className="text-sm italic text-muted-foreground">Not assigned</span>
+                              <span className="text-sm italic text-foreground">Not assigned</span>
                             )}
                           </TableCell>
                           <TableCell className="text-center font-bold">
@@ -242,7 +242,7 @@ export default function Department() {
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="w-8 h-8 shrink-0 hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="w-8 h-8 shrink-0 hover:bg-rose-500/10 hover:text-rose-500 text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
                                 onClick={(e) => handleDeleteDepartment(e, req.department)}
                               >
                                 <Trash2 className="w-4 h-4" />

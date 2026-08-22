@@ -235,7 +235,7 @@ export default function AttendanceReports() {
               className={`text-[11px] font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] ${
                 viewType === "day"
                   ? "text-[#7B0099] border-[#7B0099]"
-                  : "text-gray-500 hover:text-yellow-500 border-transparent hover:border-yellow-500"
+                  : "text-foreground hover:text-yellow-500 border-transparent hover:border-yellow-500"
               }`}
             >
               DAY
@@ -245,7 +245,7 @@ export default function AttendanceReports() {
               className={`text-[11px] font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] ${
                 viewType === "month"
                   ? "text-[#7B0099] border-[#7B0099]"
-                  : "text-gray-500 hover:text-yellow-500 border-transparent hover:border-yellow-500"
+                  : "text-foreground hover:text-yellow-500 border-transparent hover:border-yellow-500"
               }`}
             >
               MONTH
@@ -255,7 +255,7 @@ export default function AttendanceReports() {
               className={`text-[11px] font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] ${
                 viewType === "year"
                   ? "text-[#7B0099] border-[#7B0099]"
-                  : "text-gray-500 hover:text-yellow-500 border-transparent hover:border-yellow-500"
+                  : "text-foreground hover:text-yellow-500 border-transparent hover:border-yellow-500"
               }`}
             >
               YEAR
@@ -315,7 +315,7 @@ export default function AttendanceReports() {
                 <Users className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Employees</p>
+                <p className="text-sm font-medium text-foreground">Total Employees</p>
                 <h3 className="text-2xl font-bold mt-1">{totalEmployees}</h3>
               </div>
             </CardContent>
@@ -329,7 +329,7 @@ export default function AttendanceReports() {
                 <CheckCircle className="w-6 h-6 text-green-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Present</p>
+                <p className="text-sm font-medium text-foreground">Present</p>
                 <h3 className="text-2xl font-bold mt-1 text-green-600 dark:text-green-400">{presentCount}</h3>
               </div>
             </CardContent>
@@ -343,7 +343,7 @@ export default function AttendanceReports() {
                 <Clock className="w-6 h-6 text-yellow-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Late</p>
+                <p className="text-sm font-medium text-foreground">Late</p>
                 <h3 className="text-2xl font-bold mt-1 text-yellow-600 dark:text-yellow-400">{lateCount}</h3>
               </div>
             </CardContent>
@@ -357,7 +357,7 @@ export default function AttendanceReports() {
                 <Briefcase className="w-6 h-6 text-blue-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Outstation</p>
+                <p className="text-sm font-medium text-foreground">Outstation</p>
                 <h3 className="text-2xl font-bold mt-1 text-blue-600 dark:text-blue-400">{outstationCount}</h3>
               </div>
             </CardContent>
@@ -371,7 +371,7 @@ export default function AttendanceReports() {
                 <CalendarOff className="w-6 h-6 text-purple-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Leave</p>
+                <p className="text-sm font-medium text-foreground">Leave</p>
                 <h3 className="text-2xl font-bold mt-1 text-purple-600 dark:text-purple-400">{leaveCount}</h3>
               </div>
             </CardContent>
@@ -385,7 +385,7 @@ export default function AttendanceReports() {
                 <AlertCircle className="w-6 h-6 text-orange-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Missing Clock-Out</p>
+                <p className="text-sm font-medium text-foreground">Missing Clock-Out</p>
                 <h3 className="text-2xl font-bold mt-1 text-orange-600 dark:text-orange-400">{missingClockOutCount}</h3>
               </div>
             </CardContent>
@@ -399,7 +399,7 @@ export default function AttendanceReports() {
                 <XCircle className="w-6 h-6 text-red-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Absent</p>
+                <p className="text-sm font-medium text-foreground">Absent</p>
                 <h3 className="text-2xl font-bold mt-1 text-red-600 dark:text-red-400">{absentCount}</h3>
               </div>
             </CardContent>
@@ -410,7 +410,7 @@ export default function AttendanceReports() {
                 <Percent className="w-6 h-6 text-teal-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Attendance Compliance</p>
+                <p className="text-sm font-medium text-foreground">Attendance Compliance</p>
                 <h3 className="text-2xl font-bold mt-1 text-teal-600 dark:text-teal-400">{attendanceRate}%</h3>
               </div>
             </CardContent>
@@ -424,7 +424,7 @@ export default function AttendanceReports() {
               {viewType === "day" ? "Daily Attendance Log" : "Monthly Attendance Log"}
             </CardTitle>
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground" />
               <Input
                 placeholder="Search name, ID, or branch..."
                 className="pl-8 pr-8 h-10"
@@ -434,7 +434,7 @@ export default function AttendanceReports() {
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-2.5 top-2.5 text-foreground hover:text-foreground transition-colors"
                   type="button"
                   aria-label="Clear search"
                 >
@@ -466,7 +466,7 @@ export default function AttendanceReports() {
                   <TableBody>
                     {pagedList.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={viewType === "month" ? 8 : 7} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={viewType === "month" ? 8 : 7} className="text-center py-8 text-foreground">
                           No attendance records found for this {viewType}.
                         </TableCell>
                       </TableRow>

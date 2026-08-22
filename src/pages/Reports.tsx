@@ -697,24 +697,24 @@ export default function Reports() {
               <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] lg:col-span-2 p-4 space-y-4 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
                 <div>
                   <h3 className="text-base sm:text-lg font-black text-foreground uppercase tracking-tight">Configure Analytical Report</h3>
-                  <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider opacity-60">Generate targeted PDF/CSV datasets compiled directly from live database logs</p>
+                  <p className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-wider opacity-60">Generate targeted PDF/CSV datasets compiled directly from live database logs</p>
                 </div>
 
                   {/* 1. Report Type Selection */}
                   <div className="space-y-2">
-                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">1. Report Type Selection</span>
+                    <span className="text-[10px] font-black text-foreground uppercase tracking-widest">1. Report Type Selection</span>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                       <button
                         onClick={() => setGeneratorType("trends")}
                         className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                           generatorType === "trends"
                             ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground"
-                            : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                            : "border-border/40 bg-white/40 dark:bg-card/20 text-foreground hover:bg-muted/40 hover:text-foreground"
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                            generatorType === "trends" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-muted-foreground"
+                            generatorType === "trends" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-foreground"
                           }`}>
                             <Clock className="w-5 h-5" />
                           </div>
@@ -729,12 +729,12 @@ export default function Reports() {
                         className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                           generatorType === "leave"
                             ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground"
-                            : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                            : "border-border/40 bg-white/40 dark:bg-card/20 text-foreground hover:bg-muted/40 hover:text-foreground"
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                            generatorType === "leave" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-muted-foreground"
+                            generatorType === "leave" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-foreground"
                           }`}>
                             <PieChart className="w-5 h-5" />
                           </div>
@@ -749,12 +749,12 @@ export default function Reports() {
                         className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                           generatorType === "outstation"
                             ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground"
-                            : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                            : "border-border/40 bg-white/40 dark:bg-card/20 text-foreground hover:bg-muted/40 hover:text-foreground"
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                            generatorType === "outstation" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-muted-foreground"
+                            generatorType === "outstation" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-foreground"
                           }`}>
                             <Briefcase className="w-5 h-5" />
                           </div>
@@ -769,12 +769,12 @@ export default function Reports() {
                         className={`p-4 rounded-xl border-2 text-left flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                           generatorType === "company_leave"
                             ? "border-[#7B0099] bg-[#7B0099]/5 text-foreground"
-                            : "border-border/40 bg-white/40 dark:bg-card/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                            : "border-border/40 bg-white/40 dark:bg-card/20 text-foreground hover:bg-muted/40 hover:text-foreground"
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                            generatorType === "company_leave" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-muted-foreground"
+                            generatorType === "company_leave" ? "bg-[#7B0099]/15 text-[#7B0099]" : "bg-muted dark:bg-slate-800 text-foreground"
                           }`}>
                             <Building2 className="w-5 h-5" />
                           </div>
@@ -788,7 +788,7 @@ export default function Reports() {
 
                   {/* 2. Scope Select */}
                   <div className="space-y-2">
-                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">2. Scope Selection</span>
+                    <span className="text-[10px] font-black text-foreground uppercase tracking-widest">2. Scope Selection</span>
                     {(() => {
                       const isEmployee = role === 'employee';
                       const isBranchLeader = role === 'branch_leader';
@@ -801,7 +801,7 @@ export default function Reports() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {showBranchFilter && (
                             <div className="space-y-1.5">
-                              <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Branch Location</label>
+                              <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Branch Location</label>
                               <Select value={generatorBranch} onValueChange={setGeneratorBranch}>
                                 <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
                                   <SelectValue placeholder="All Branches" />
@@ -818,7 +818,7 @@ export default function Reports() {
 
                           {showDeptFilter && (
                             <div className="space-y-1.5">
-                              <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Department</label>
+                              <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Department</label>
                               <Select value={generatorDept} onValueChange={setGeneratorDept}>
                                 <SelectTrigger className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl border-border bg-background/30">
                                   <SelectValue placeholder="All Departments" />
@@ -834,7 +834,7 @@ export default function Reports() {
                           )}
 
                           <div className="space-y-1.5">
-                            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Month (YYYY-MM)</label>
+                            <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Month (YYYY-MM)</label>
                             <MonthPicker
                               monthYear={selectedMonth === 'all' ? `${selectedYear}-all` : `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
                               onSelectMonthYear={(val) => {
@@ -847,7 +847,7 @@ export default function Reports() {
                           </div>
 
                           <div className="space-y-1.5">
-                            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Year (YYYY)</label>
+                            <label className="text-[9px] font-black text-foreground uppercase tracking-widest">Year (YYYY)</label>
                             <YearPopover
                               year={selectedYear}
                               onSelectYear={setSelectedYear}
@@ -861,14 +861,14 @@ export default function Reports() {
 
               {/* 3. Export Format */}
               <div className="space-y-2">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">3. Export Format</span>
+                <span className="text-[10px] font-black text-foreground uppercase tracking-widest">3. Export Format</span>
                 <div className="grid grid-cols-3 gap-3">
                   <button
                     onClick={() => setGeneratorFormat("csv")}
                     className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                       generatorFormat === "csv"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-[#7B0099] font-black"
-                        : "border-border/50 bg-background/20 text-muted-foreground font-semibold hover:bg-muted/40 hover:text-foreground"
+                        : "border-border/50 bg-background/20 text-foreground font-semibold hover:bg-muted/40 hover:text-foreground"
                     }`}
                   >
                     <Download className="w-4 h-4" />
@@ -879,7 +879,7 @@ export default function Reports() {
                     className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                       generatorFormat === "excel"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-[#7B0099] font-black"
-                        : "border-border/50 bg-background/20 text-muted-foreground font-semibold hover:bg-muted/40 hover:text-foreground"
+                        : "border-border/50 bg-background/20 text-foreground font-semibold hover:bg-muted/40 hover:text-foreground"
                     }`}
                   >
                     <FileBarChart className="w-4 h-4" />
@@ -890,7 +890,7 @@ export default function Reports() {
                     className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                       generatorFormat === "pdf"
                         ? "border-[#7B0099] bg-[#7B0099]/5 text-[#7B0099] font-black"
-                        : "border-border/50 bg-background/20 text-muted-foreground font-semibold hover:bg-muted/40 hover:text-foreground"
+                        : "border-border/50 bg-background/20 text-foreground font-semibold hover:bg-muted/40 hover:text-foreground"
                     }`}
                   >
                     <FileBarChart className="w-4 h-4" />
@@ -904,12 +904,12 @@ export default function Reports() {
             <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-4 flex flex-col gap-4 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
               <div>
                 <h4 className="text-xs font-black text-foreground uppercase tracking-widest">Synthesis Preview</h4>
-                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider opacity-60 mt-0.5">Real-time compilation preview</p>
+                <p className="text-[9px] font-bold text-foreground uppercase tracking-wider opacity-60 mt-0.5">Real-time compilation preview</p>
               </div>
 
               {/* Counter Display */}
               <div className="bg-muted/30 border border-border/30 rounded-2xl p-5 text-center flex flex-col gap-1 items-center justify-center select-none shadow-inner">
-                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Live Compiled Dataset</span>
+                <span className="text-[9px] font-black text-foreground uppercase tracking-widest">Live Compiled Dataset</span>
                 <span className="text-3xl font-black text-[#7B0099] font-mono mt-1">
                   {previewCount.toLocaleString()} Records
                 </span>
@@ -921,7 +921,7 @@ export default function Reports() {
 
               {/* Distribution Heatmap Mini Grid */}
               <div className="space-y-2">
-                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Active Scope Preview</span>
+                <span className="text-[9px] font-black text-foreground uppercase tracking-widest">Active Scope Preview</span>
                 <div className="grid grid-cols-6 gap-1 bg-background/20 border border-border/30 rounded-xl p-2.5">
                   {Array.from({ length: 24 }).map((_, i) => {
                     const fill = i % 3 === 0 ? 'bg-[#7B0099]/20' : i % 3 === 1 ? 'bg-[#7B0099]/60' : 'bg-[#7B0099]';

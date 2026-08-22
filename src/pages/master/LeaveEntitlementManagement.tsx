@@ -177,7 +177,7 @@ export default function LeaveEntitlementManagement() {
                         <h3 className="mt-6 text-lg font-black text-foreground group-hover:text-[#7B0099] transition-colors">
                           {annualModule.title}
                         </h3>
-                        <p className="mt-3 text-xs sm:text-sm leading-relaxed text-muted-foreground">
+                        <p className="mt-3 text-xs sm:text-sm leading-relaxed text-foreground">
                           {annualModule.description}
                         </p>
                       </div>
@@ -199,7 +199,7 @@ export default function LeaveEntitlementManagement() {
                         <h3 className="mt-4 text-lg font-black text-foreground group-hover:text-blue-600 transition-colors">
                           {replacementModule.title}
                         </h3>
-                        <p className="mt-2 text-xs sm:text-sm leading-relaxed text-muted-foreground">
+                        <p className="mt-2 text-xs sm:text-sm leading-relaxed text-foreground">
                           {replacementModule.description}
                         </p>
                       </div>
@@ -227,11 +227,11 @@ export default function LeaveEntitlementManagement() {
                           <h3 className="mt-4 text-sm font-black text-foreground group-hover:text-[#7B0099] transition-colors">
                             {module.title}
                           </h3>
-                          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                          <p className="mt-2 text-xs leading-relaxed text-foreground">
                             {module.description}
                           </p>
                         </div>
-                        <div className="mt-4 pt-3 border-t border-border/30 text-xs text-muted-foreground/80 font-bold group-hover:text-[#7B0099] transition-colors">
+                        <div className="mt-4 pt-3 border-t border-border/30 text-xs text-foreground/80 font-bold group-hover:text-[#7B0099] transition-colors">
                           Manage module &rarr;
                         </div>
                       </div>
@@ -399,7 +399,7 @@ function EmployeeSearchSelector({
   return (
     <div className="relative w-full" ref={containerRef}>
       <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground" />
         <Input
           placeholder={placeholder}
           value={selectedEmployee ? selectedEmployee.full_name : search}
@@ -418,7 +418,7 @@ function EmployeeSearchSelector({
               setSearch("");
               setOpen(true);
             }}
-            className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
+            className="absolute right-2.5 top-2.5 text-foreground hover:text-foreground"
             type="button"
           >
             <X className="h-4 w-4" />
@@ -428,7 +428,7 @@ function EmployeeSearchSelector({
       {open && !selectedEmployee && (
         <div className="absolute z-50 w-full mt-1 bg-popover text-popover-foreground border rounded-md shadow-lg max-h-60 overflow-y-auto">
           {filtered.length === 0 ? (
-            <div className="p-2 text-xs text-muted-foreground">No employees found</div>
+            <div className="p-2 text-xs text-foreground">No employees found</div>
           ) : (
             filtered.map((emp) => (
               <div
@@ -442,9 +442,9 @@ function EmployeeSearchSelector({
               >
                 <div>
                   <span className="font-bold">{emp.full_name}</span>
-                  <span className="text-muted-foreground ml-2">({emp.user_id})</span>
+                  <span className="text-foreground ml-2">({emp.user_id})</span>
                 </div>
-                <span className="text-[10px] text-muted-foreground">{emp.branch}</span>
+                <span className="text-[10px] text-foreground">{emp.branch}</span>
               </div>
             ))
           )}
@@ -638,7 +638,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
           // MODE 1: BASE ENTITLEMENT ALLOCATION
           <>
             <div>
-              <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Allocation Config</h4>
+              <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Allocation Config</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold">Leave Year</Label>
@@ -660,7 +660,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
             </div>
 
             <div>
-              <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Employee Filter</h4>
+              <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Employee Filter</h4>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold">Branch</Label>
@@ -693,7 +693,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
 
             <div>
               <div className="flex justify-between items-center mb-3">
-                <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Matching Employees ({filtered.length})</h4>
+                <h4 className="text-xs font-black uppercase tracking-wider text-foreground">Matching Employees ({filtered.length})</h4>
               </div>
               <div className="border rounded-md max-h-60 overflow-y-auto bg-white dark:bg-card">
                 <Table>
@@ -730,7 +730,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
           // MODE 2: OT TO REPLACEMENT LEAVE ALLOCATION
           <div className="space-y-4 max-w-2xl mx-auto border p-4 rounded-xl bg-muted/5">
             <div>
-              <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Employee</h4>
+              <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Employee</h4>
               <EmployeeSearchSelector
                 employees={employees}
                 selectedEmployee={selectedEmp}
@@ -742,7 +742,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
             {selectedEmp && (
               <>
                 <div>
-                  <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Approved Overtime Records</h4>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Approved Overtime Records</h4>
                   <div className="border rounded-md bg-white dark:bg-card text-xs divide-y">
                     {mockOTs.map((ot) => {
                       const isChecked = selectedOTs.includes(ot.id);
@@ -763,7 +763,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                             />
                             <div>
                               <div className="font-bold">{ot.date}</div>
-                              <div className="text-[10px] text-muted-foreground mt-0.5">{ot.description}</div>
+                              <div className="text-[10px] text-foreground mt-0.5">{ot.description}</div>
                             </div>
                           </div>
                           <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-200">
@@ -800,13 +800,13 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
 
                 <div className="bg-amber-50 border border-amber-200 p-3.5 rounded-lg flex items-center justify-between text-xs dark:bg-slate-900 dark:border-slate-800 mt-2">
                   <div>
-                    <span className="text-muted-foreground block font-medium">Conversion Summary</span>
+                    <span className="text-foreground block font-medium">Conversion Summary</span>
                     <span className="font-bold text-amber-800 dark:text-amber-400">
                       {totalSelectedOTHours} Selected Hours / {otHoursLimit}h Rate
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-muted-foreground block font-medium">Replacement Days Granted</span>
+                    <span className="text-foreground block font-medium">Replacement Days Granted</span>
                     <span className="font-black text-sm text-amber-600">+{allocatedDays} Days</span>
                   </div>
                 </div>
@@ -945,7 +945,7 @@ function CarryForwardLeaveForm({
       </CardHeader>
       <CardContent className="space-y-6 pt-2">
         <div>
-          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Carry Forward Configuration</h4>
+          <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Carry Forward Configuration</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Leave Type</Label>
@@ -991,7 +991,7 @@ function CarryForwardLeaveForm({
         </div>
 
         <div>
-          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Employee Selection</h4>
+          <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Employee Selection</h4>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Department</Label>
@@ -1025,7 +1025,7 @@ function CarryForwardLeaveForm({
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Search Employee</Label>
               <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground" />
                 <Input placeholder="Enter ID or Name..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 bg-white dark:bg-card h-9 text-xs" />
               </div>
             </div>
@@ -1033,7 +1033,7 @@ function CarryForwardLeaveForm({
         </div>
 
         <div>
-          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Eligible Employees</h4>
+          <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Eligible Employees</h4>
           <div className="border rounded-md max-h-80 overflow-y-auto bg-white dark:bg-card">
             <Table className="text-xs">
               <TableHeader className="bg-muted/30">
@@ -1074,7 +1074,7 @@ function CarryForwardLeaveForm({
                       </TableCell>
                       <TableCell>
                         <div className="font-bold">{emp.full_name}</div>
-                        <div className="text-[10px] text-muted-foreground">{emp.user_id} • {emp.branch}</div>
+                        <div className="text-[10px] text-foreground">{emp.user_id} • {emp.branch}</div>
                       </TableCell>
                       <TableCell>{emp.department || "--"}</TableCell>
                       <TableCell className="text-center font-bold">{unused}d</TableCell>
@@ -1090,7 +1090,7 @@ function CarryForwardLeaveForm({
         </div>
 
         <div className="flex justify-between items-center border-t pt-4">
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs text-foreground">
             Selected: <span className="font-bold text-emerald-600">{selectedEmployees.length}</span> / {filtered.length} employees
           </div>
           <div className="flex gap-3">
@@ -1185,7 +1185,7 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
       </CardHeader>
       <CardContent className="space-y-6 pt-2">
         <div>
-          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Employee Information</h4>
+          <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Employee Information</h4>
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Search Employee</Label>
@@ -1199,15 +1199,15 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
             {selectedEmp && (
               <div className="grid grid-cols-3 gap-4 bg-muted/20 p-3 rounded-lg border border-border/50 text-xs">
                 <div>
-                  <span className="text-muted-foreground block">Current Balance</span>
+                  <span className="text-foreground block">Current Balance</span>
                   <span className="font-bold text-foreground text-sm">14 Days</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block">Department</span>
+                  <span className="text-foreground block">Department</span>
                   <span className="font-bold text-foreground">{selectedEmp.department || "-"}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block">Branch</span>
+                  <span className="text-foreground block">Branch</span>
                   <span className="font-bold text-foreground">{selectedEmp.branch || "-"}</span>
                 </div>
               </div>
@@ -1216,7 +1216,7 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
         </div>
 
         <div>
-          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 border-b pb-1">Allocation Details</h4>
+          <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Allocation Details</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Leave Type</Label>
@@ -1233,7 +1233,7 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Additional Days</Label>
               <div className="flex items-center border rounded-md px-3 bg-white dark:bg-card h-9">
-                <span className="text-xs font-bold text-muted-foreground mr-2">+</span>
+                <span className="text-xs font-bold text-foreground mr-2">+</span>
                 <input
                   type="number"
                   value={addDays}
@@ -1484,15 +1484,15 @@ function ManualLeaveAdjustmentForm({
           {/* Employee Info */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="space-y-1.5 border border-border/50 rounded-md p-2 bg-muted/10">
-              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Employee ID</Label>
+              <Label className="text-[10px] uppercase font-bold text-foreground">Employee ID</Label>
               <div className="text-xs font-bold">{selectedEmp?.user_id || "—"}</div>
             </div>
             <div className="space-y-1.5 border border-border/50 rounded-md p-2 bg-muted/10">
-              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Department</Label>
+              <Label className="text-[10px] uppercase font-bold text-foreground">Department</Label>
               <div className="text-xs font-bold">{selectedEmp?.department || "—"}</div>
             </div>
             <div className="space-y-1.5 border border-border/50 rounded-md p-2 bg-muted/10 md:col-span-1 col-span-2">
-              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Branch</Label>
+              <Label className="text-[10px] uppercase font-bold text-foreground">Branch</Label>
               <div className="text-xs font-bold">{selectedEmp?.branch || "—"}</div>
             </div>
           </div>
@@ -1544,7 +1544,7 @@ function ManualLeaveAdjustmentForm({
             <Label className="text-xs font-bold flex items-center">Adjustment Amount <span className="text-red-500 ml-1">*</span></Label>
             <div className="relative">
               <Input type="number" value={adjDays} onChange={(e) => setAdjDays(Number(e.target.value))} className="bg-white dark:bg-card h-9 text-xs pr-12 font-bold" min={1} />
-              <span className="absolute right-3 top-2.5 text-xs text-muted-foreground font-medium">Days</span>
+              <span className="absolute right-3 top-2.5 text-xs text-foreground font-medium">Days</span>
             </div>
           </div>
 
@@ -1588,18 +1588,18 @@ function ManualLeaveAdjustmentForm({
         {/* Balances summary */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-lg border border-border/50">
           <div className="space-y-2">
-            <h5 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Current Leave Balance</h5>
+            <h5 className="font-bold text-xs uppercase tracking-wider text-foreground">Current Leave Balance</h5>
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Annual Entitlement</span>
+                <span className="text-foreground">Annual Entitlement</span>
                 <span className="font-medium">{selectedEmp ? `${entitlement} Days` : "-"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Current Adjustments</span>
+                <span className="text-foreground">Current Adjustments</span>
                 <span className="font-medium">{selectedEmp ? `${currentAdjustments > 0 ? '+' : ''}${currentAdjustments} Days` : "-"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Approved Leave Taken</span>
+                <span className="text-foreground">Approved Leave Taken</span>
                 <span className="font-medium">{selectedEmp ? `${approvedLeaveTaken} Days` : "-"}</span>
               </div>
               <div className="border-t border-border/60 my-1 pt-1 flex justify-between font-bold text-[#7B0099] dark:text-purple-400">
@@ -1610,11 +1610,11 @@ function ManualLeaveAdjustmentForm({
           </div>
 
           <div className="space-y-2">
-            <h5 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">After Adjustment</h5>
+            <h5 className="font-bold text-xs uppercase tracking-wider text-foreground">After Adjustment</h5>
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Adjustment</span>
-                <span className={`font-bold ${!selectedEmp ? 'text-muted-foreground' : (adjValue > 0 ? 'text-emerald-600' : 'text-rose-600')}`}>
+                <span className="text-foreground">Adjustment</span>
+                <span className={`font-bold ${!selectedEmp ? 'text-foreground' : (adjValue > 0 ? 'text-emerald-600' : 'text-rose-600')}`}>
                   {selectedEmp ? `${adjValue > 0 ? '+' : ''}${adjValue} Days` : "-"}
                 </span>
               </div>
@@ -1633,7 +1633,7 @@ function ManualLeaveAdjustmentForm({
           <Label className="text-xs font-bold">Attachment (Optional)</Label>
           <div className="border-2 border-dashed border-border/60 rounded-lg p-4 flex flex-col items-center justify-center bg-muted/5 hover:bg-muted/10 transition-colors cursor-pointer">
             <div className="text-xs font-bold text-amber-600 mb-1">Upload Supporting Document</div>
-            <div className="text-[10px] text-muted-foreground text-center">
+            <div className="text-[10px] text-foreground text-center">
               Examples:<br/>
               • Approval Letter<br/>
               • Reward Letter<br/>
@@ -1645,7 +1645,7 @@ function ManualLeaveAdjustmentForm({
         <div className="border-t border-border/50" />
 
         {/* Meta */}
-        <div className="flex justify-between text-[11px] text-muted-foreground font-medium">
+        <div className="flex justify-between text-[11px] text-foreground font-medium">
           <div>
             <div className="mb-0.5">Adjusted By</div>
             <div className="font-bold text-foreground">HR Admin (Auto)</div>
@@ -1743,11 +1743,11 @@ function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
           {selectedEmp && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="space-y-1.5 border border-border/50 rounded-md p-2 bg-muted/10">
-                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Employee ID</Label>
+                <Label className="text-[10px] uppercase font-bold text-foreground">Employee ID</Label>
                 <div className="text-xs font-bold">{selectedEmp.user_id}</div>
               </div>
               <div className="space-y-1.5 border border-border/50 rounded-md p-2 bg-muted/10 md:col-span-2">
-                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Department</Label>
+                <Label className="text-[10px] uppercase font-bold text-foreground">Department</Label>
                 <div className="text-xs font-bold">{selectedEmp.department || "IT Department"}</div>
               </div>
             </div>
@@ -1775,7 +1775,7 @@ function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
                 <Label className="text-xs font-bold flex items-center">Credit Amount <span className="text-red-500 ml-1">*</span></Label>
                 <div className="relative">
                   <Input type="number" value={adjDays} onChange={(e) => setAdjDays(Number(e.target.value))} className="bg-white dark:bg-card h-9 text-xs pr-12 font-bold" min={1} />
-                  <span className="absolute right-3 top-2.5 text-xs text-muted-foreground font-medium">Days</span>
+                  <span className="absolute right-3 top-2.5 text-xs text-foreground font-medium">Days</span>
                 </div>
               </div>
               <div className="space-y-1.5">
@@ -1880,11 +1880,11 @@ function MaternityLeaveForm({ employees, onCancel }: any) {
           {selectedEmp && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="space-y-1.5 border border-border/50 rounded-md p-2 bg-muted/10">
-                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Employee ID</Label>
+                <Label className="text-[10px] uppercase font-bold text-foreground">Employee ID</Label>
                 <div className="text-xs font-bold">{selectedEmp.user_id}</div>
               </div>
               <div className="space-y-1.5 border border-border/50 rounded-md p-2 bg-muted/10 md:col-span-2">
-                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Department</Label>
+                <Label className="text-[10px] uppercase font-bold text-foreground">Department</Label>
                 <div className="text-xs font-bold">{selectedEmp.department || "IT Department"}</div>
               </div>
             </div>
@@ -1917,7 +1917,7 @@ function MaternityLeaveForm({ employees, onCancel }: any) {
               <Label className="text-xs font-bold flex items-center">Medical Certificate / Proof <span className="text-red-500 ml-1">*</span></Label>
               <div className="border-2 border-dashed border-border/60 rounded-lg p-4 flex flex-col items-center justify-center bg-muted/5 hover:bg-muted/10 transition-colors cursor-pointer">
                 <div className="text-xs font-bold text-pink-600 mb-1">Upload Medical Document</div>
-                <div className="text-[10px] text-muted-foreground">PDF, JPG, PNG up to 5MB</div>
+                <div className="text-[10px] text-foreground">PDF, JPG, PNG up to 5MB</div>
               </div>
             </div>
 
@@ -2012,7 +2012,7 @@ function ReplacementLeaveValidationForm({ employees, onCancel }: { employees: an
         {loading ? (
           <div className="p-10 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
         ) : data.length === 0 ? (
-          <div className="p-10 text-center text-muted-foreground text-sm font-bold">No replacement leaves found.</div>
+          <div className="p-10 text-center text-foreground text-sm font-bold">No replacement leaves found.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">

@@ -1110,7 +1110,7 @@ export default function AttendanceDashboard() {
                 : (liveStats.total || 1);
               const card6 = liveStats.hasCompanyLeave
                 ? { label: "Company Leave", val: `${liveStats.total > 0 ? Math.round(((liveStats.companyLeave || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.companyLeave || 0} / ${liveStats.total} Employees`, color: "text-indigo-600", bg: "bg-indigo-50", icon: <Building2 className="w-5 h-5"/>, trend: "—" }
-                : { label: "Weekend", val: `${liveStats.total > 0 ? Math.round(((liveStats.weekend || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.weekend || 0} / ${liveStats.total} Employees`, color: "text-slate-500", bg: "bg-slate-100", icon: <CalendarDays className="w-5 h-5"/>, trend: "—" };
+                : { label: "Weekend", val: `${liveStats.total > 0 ? Math.round(((liveStats.weekend || 0) / liveStats.total) * 100) : 0}%`, sub: `${liveStats.weekend || 0} / ${liveStats.total} Employees`, color: "text-foreground", bg: "bg-slate-100", icon: <CalendarDays className="w-5 h-5"/>, trend: "—" };
               return [
                 { label: "Present Today", val: `${denom > 0 ? Math.round((liveStats.present / denom) * 100) : 0}%`, sub: `${liveStats.present} / ${denom} Employees`, color: "text-[#7B0099]", bg: "bg-[#7B0099]/10", icon: <CheckCircle2 className="w-5 h-5"/>, trend: "↑ 5% vs Yesterday" },
                 { label: "On Time", val: `${denom > 0 ? Math.round(((liveStats.present - liveStats.late) / denom) * 100) : 0}%`, sub: `${Math.max(0, liveStats.present - liveStats.late)} / ${denom} Employees`, color: "text-emerald-600", bg: "bg-emerald-50", icon: <Clock className="w-5 h-5"/>, trend: "—" },
@@ -1137,9 +1137,9 @@ export default function AttendanceDashboard() {
                 </div>
                 <div className="flex-1 flex flex-col justify-end">
                   <p className="text-2xl font-black text-slate-800 dark:text-gray-100 leading-none mt-2">{k.val}</p>
-                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mt-1 line-clamp-1">{k.label}</p>
+                  <p className="text-[10px] font-semibold text-foreground uppercase tracking-wide mt-1 line-clamp-1">{k.label}</p>
                   <div className="flex flex-col mt-1 space-y-1 mb-2">
-                    <p className={`text-[9px] font-medium ${k.trend.includes('↑') ? 'text-emerald-600' : 'text-slate-400'}`}>{k.trend}</p>
+                    <p className={`text-[9px] font-medium ${k.trend.includes('↑') ? 'text-emerald-600' : 'text-foreground'}`}>{k.trend}</p>
                     <p className="text-[10px] text-slate-700 font-bold whitespace-nowrap">{k.sub}</p>
                   </div>
                   {/* Pill-shaped Progress Bar */}
@@ -1160,9 +1160,9 @@ export default function AttendanceDashboard() {
         <div className="p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <h2 className="text-base font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
-              <Filter className="w-4 h-4 text-gray-500" /> Analytics Filters
+              <Filter className="w-4 h-4 text-foreground" /> Analytics Filters
             </h2>
-            <p className="text-[10px] text-gray-400 font-medium ml-6 mt-0.5 uppercase tracking-widest">
+            <p className="text-[10px] text-foreground font-medium ml-6 mt-0.5 uppercase tracking-widest">
               {filteredDailyAttendance.length} Records Found
             </p>
           </div>
@@ -1170,13 +1170,13 @@ export default function AttendanceDashboard() {
             <div className="flex flex-wrap items-center gap-3">
               {/* Search Filter */}
               <div className="relative w-full sm:w-[220px]">
-                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-foreground" />
                 <input 
                   type="text"
                   placeholder="Search Employee..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full h-9 pl-9 pr-3 text-[11px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#7B0099] focus:border-[#7B0099] transition-all"
+                  className="w-full h-9 pl-9 pr-3 text-[11px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-gray-700 dark:text-gray-300 placeholder:text-foreground focus:outline-none focus:ring-1 focus:ring-[#7B0099] focus:border-[#7B0099] transition-all"
                 />
               </div>
 
@@ -1185,7 +1185,7 @@ export default function AttendanceDashboard() {
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer tracking-widest h-10 gap-3 hover:border-[#7B0099]/40 min-w-[140px]">
-                      {new Date(selectedDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} <CalendarDays className="w-4 h-4 text-gray-400" />
+                      {new Date(selectedDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} <CalendarDays className="w-4 h-4 text-foreground" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-card z-50" align="start">
@@ -1260,7 +1260,7 @@ export default function AttendanceDashboard() {
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold text-gray-800 dark:text-gray-200">Admin Attendance</h2>
-              <span title="Absent employees are shown in the 'Employee Absenteeism' table to avoid duplication" className="text-xs text-gray-400">(Absentees listed separately)</span>
+              <span title="Absent employees are shown in the 'Employee Absenteeism' table to avoid duplication" className="text-xs text-foreground">(Absentees listed separately)</span>
             </div>
             
             <div className="flex flex-wrap items-center gap-3 mt-1">
@@ -1281,14 +1281,14 @@ export default function AttendanceDashboard() {
                 <span className="text-[13px] font-black text-purple-700">{Object.keys(activeTempUsers).length}</span>
               </div>
               <div className="bg-slate-50/80 border border-slate-200 px-3 py-1.5 rounded-md flex items-center gap-2">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Multi Location</span>
+                <span className="text-[10px] font-bold text-foreground uppercase tracking-wider">Multi Location</span>
                 <span className="text-[13px] font-black text-slate-700">{multiLocationUsers.length}</span>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] text-gray-500">Row Per Page</span>
+              <span className="text-[11px] text-foreground">Row Per Page</span>
               <Select value={limit} onValueChange={setLimit}>
                 <SelectTrigger className="w-[60px] h-7 text-[11px] font-semibold rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm">
                   <SelectValue placeholder="10" />
@@ -1307,12 +1307,12 @@ export default function AttendanceDashboard() {
           {loadingDaily ? (
             <div className="flex flex-col items-center justify-center p-20 gap-4">
               <Loader2 className="h-8 w-8 animate-spin text-[#7B0099] opacity-40" />
-              <p className="text-xs font-medium text-gray-500 animate-pulse">Syncing logs...</p>
+              <p className="text-xs font-medium text-foreground animate-pulse">Syncing logs...</p>
             </div>
           ) : (
             <div className="relative overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50/80 text-gray-500 uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800">
+                <thead className="bg-gray-50/80 text-foreground uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800">
                   <tr>
                     <th className="px-4 py-2 w-4 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">
                       <input type="checkbox" className="rounded border-gray-300 text-[#7B0099] focus:ring-[#7B0099]" />
@@ -1410,7 +1410,7 @@ export default function AttendanceDashboard() {
                                     </span>
                                   ) }
                                 </div>
-                                <span className="text-[10px] text-gray-400 capitalize">{((record as any).role || "").replace(/_/g, ' ')} • {record.branch}{record.branch === "HQ" && record.department ? `, • ${record.department}` : ""}</span>
+                                <span className="text-[10px] text-foreground capitalize">{((record as any).role || "").replace(/_/g, ' ')} • {record.branch}{record.branch === "HQ" && record.department ? `, • ${record.department}` : ""}</span>
                               </div>
                             </div>
                           </td>
@@ -1437,14 +1437,14 @@ export default function AttendanceDashboard() {
                           </td>
                           <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{formatAttendanceTime(record.clock_in)}</td>
                           <td className="px-4 py-2 text-[11px] text-gray-600 font-medium">{record.clock_out ? formatAttendanceTime(record.clock_out) : "--:--"}</td>
-                          <td className="px-4 py-2 text-[11px] text-gray-500 font-medium">{lateMinStr}</td>
+                          <td className="px-4 py-2 text-[11px] text-foreground font-medium">{lateMinStr}</td>
                           <td className="px-4 py-2">
                             <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold ${isGoodHrs ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                               {workHrsStr === '--' ? '0 H 00 Min' : `${workHrsStr.split('h ')[0]} H ${workHrsStr.split('h ')[1].replace('m', '').padStart(2, '0')} Min`}
                             </span>
                           </td>
                           <td className="px-4 py-2 text-right">
-                            <button className="text-gray-400 hover:text-gray-600 p-1">
+                            <button className="text-foreground hover:text-gray-600 p-1">
                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
                               </svg>
@@ -1455,7 +1455,7 @@ export default function AttendanceDashboard() {
                     })
                   ) : (
                     <tr>
-                      <td colSpan={8} className="px-4 py-10 text-center text-xs font-bold text-gray-400 uppercase tracking-wider italic">
+                      <td colSpan={8} className="px-4 py-10 text-center text-xs font-bold text-foreground uppercase tracking-wider italic">
                         No logs registered on this date
                       </td>
                     </tr>
@@ -1467,7 +1467,7 @@ export default function AttendanceDashboard() {
           
           {filteredDailyAttendance.length > parseInt(limit) && !loadingDaily && (
             <div className="flex justify-between items-center px-4 py-3 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50">
-              <span className="text-[11px] text-gray-500">
+              <span className="text-[11px] text-foreground">
                 Showing {((currentPage - 1) * parseInt(limit)) + 1} to {Math.min(currentPage * parseInt(limit), filteredDailyAttendance.length)} of {filteredDailyAttendance.length} entries
               </span>
               <div className="flex items-center gap-1.5">
@@ -1518,7 +1518,7 @@ export default function AttendanceDashboard() {
           
           <div className="flex items-center gap-3 mt-3 sm:mt-0">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] text-gray-500">Row Per Page</span>
+              <span className="text-[11px] text-foreground">Row Per Page</span>
               <Select value={absentLimit} onValueChange={setAbsentLimit}>
                 <SelectTrigger className="w-[60px] h-7 text-[11px] font-semibold rounded-md border-gray-200 dark:border-slate-800 bg-white dark:bg-card text-gray-700 shadow-sm">
                   <SelectValue placeholder="10" />
@@ -1532,7 +1532,7 @@ export default function AttendanceDashboard() {
             </div>
 
             <div className="relative w-full sm:w-[220px]">
-              <Search className="absolute left-3 top-2 h-3 w-3 text-gray-400" />
+              <Search className="absolute left-3 top-2 h-3 w-3 text-foreground" />
               <input 
                 type="text"
                 placeholder="Search..."
@@ -1548,12 +1548,12 @@ export default function AttendanceDashboard() {
           {loadingAbsent ? (
             <div className="flex flex-col items-center justify-center p-12 gap-4">
               <Loader2 className="h-6 w-6 animate-spin text-[#7B0099] opacity-40" />
-              <p className="text-xs font-medium text-gray-500 animate-pulse">Checking absent employees...</p>
+              <p className="text-xs font-medium text-foreground animate-pulse">Checking absent employees...</p>
             </div>
           ) : (
             <div className="relative overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50/80 text-gray-500 uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800">
+                <thead className="bg-gray-50/80 text-foreground uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800">
                   <tr>
                     <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
                     <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Branch</th>
@@ -1582,7 +1582,7 @@ export default function AttendanceDashboard() {
                             </div>
                             <div>
                               <span className="font-semibold text-gray-800 dark:text-gray-200 block text-xs">{emp.full_name}</span>
-                              <span className="text-[10px] text-gray-400 mt-0.5 block">{emp.user_id}</span>
+                              <span className="text-[10px] text-foreground mt-0.5 block">{emp.user_id}</span>
                             </div>
                           </div>
                         </td>
@@ -1619,7 +1619,7 @@ export default function AttendanceDashboard() {
                     })
                   ) : (
                     <tr>
-                      <td colSpan={5} className="px-4 py-10 text-center text-xs font-bold text-gray-400 uppercase tracking-wider italic">
+                      <td colSpan={5} className="px-4 py-10 text-center text-xs font-bold text-foreground uppercase tracking-wider italic">
                         All hands on deck! No employees are absent today.
                       </td>
                     </tr>
@@ -1644,7 +1644,7 @@ export default function AttendanceDashboard() {
           <CardContent className="p-0">
             <div className="relative overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar">
               <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50/80 dark:bg-slate-900 text-gray-500 dark:text-gray-400 uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800 sticky top-0">
+                <thead className="bg-gray-50/80 dark:bg-slate-900 text-foreground dark:text-foreground uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800 sticky top-0">
                   <tr>
                     <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
                     <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Branch</th>
@@ -1656,14 +1656,14 @@ export default function AttendanceDashboard() {
                       <tr key={emp.user_id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors">
                         <td className="px-4 py-2">
                           <span className="font-semibold text-gray-800 dark:text-gray-200 block text-xs">{emp.full_name}</span>
-                          <span className="text-[10px] text-gray-400 mt-0.5 block">{emp.user_id}</span>
+                          <span className="text-[10px] text-foreground mt-0.5 block">{emp.user_id}</span>
                         </td>
-                        <td className="px-4 py-2 text-[11px] text-gray-600 dark:text-gray-400 font-medium">{emp.branch || "HQ"}</td>
+                        <td className="px-4 py-2 text-[11px] text-gray-600 dark:text-foreground font-medium">{emp.branch || "HQ"}</td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={2} className="px-4 py-8 text-center text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider italic">
+                      <td colSpan={2} className="px-4 py-8 text-center text-[10px] font-bold text-foreground dark:text-foreground uppercase tracking-wider italic">
                         No Zone A employees on rest day.
                       </td>
                     </tr>
@@ -1685,7 +1685,7 @@ export default function AttendanceDashboard() {
           <CardContent className="p-0">
             <div className="relative overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar">
               <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50/80 dark:bg-slate-900 text-gray-500 dark:text-gray-400 uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800 sticky top-0">
+                <thead className="bg-gray-50/80 dark:bg-slate-900 text-foreground dark:text-foreground uppercase text-[9px] font-bold tracking-wider border-b border-gray-100 dark:border-slate-800 sticky top-0">
                   <tr>
                     <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
                     <th className="px-4 py-2 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Branch</th>
@@ -1697,14 +1697,14 @@ export default function AttendanceDashboard() {
                       <tr key={emp.user_id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors">
                         <td className="px-4 py-2">
                           <span className="font-semibold text-gray-800 dark:text-gray-200 block text-xs">{emp.full_name}</span>
-                          <span className="text-[10px] text-gray-400 mt-0.5 block">{emp.user_id}</span>
+                          <span className="text-[10px] text-foreground mt-0.5 block">{emp.user_id}</span>
                         </td>
-                        <td className="px-4 py-2 text-[11px] text-gray-600 dark:text-gray-400 font-medium">{emp.branch || "HQ"}</td>
+                        <td className="px-4 py-2 text-[11px] text-gray-600 dark:text-foreground font-medium">{emp.branch || "HQ"}</td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={2} className="px-4 py-8 text-center text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider italic">
+                      <td colSpan={2} className="px-4 py-8 text-center text-[10px] font-bold text-foreground dark:text-foreground uppercase tracking-wider italic">
                         No Zone B employees on rest day.
                       </td>
                     </tr>
@@ -1751,7 +1751,7 @@ export default function AttendanceDashboard() {
                         <div className="flex flex-col">
                           <span className="text-[11px] font-bold text-[#1A1F36]">{FULL_BRANCH_NAMES[branch.branch] || branch.branch}</span>
                           <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="text-[9px] font-semibold text-slate-500 flex items-center gap-1">
+                            <span className="text-[9px] font-semibold text-foreground flex items-center gap-1">
                               👥 {branch.permanentStaffCount} Staff
                             </span>
                             {branch.temporaryIn > 0 && (
@@ -1762,7 +1762,7 @@ export default function AttendanceDashboard() {
                           </div>
                         </div>
                         {branch.isWeekend ? (
-                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">Weekend</span>
+                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-foreground border border-slate-200 dark:border-slate-700">Weekend</span>
                         ) : (
                           <span className={`text-[10px] font-black ${branch.rate >= 90 ? 'text-emerald-500' : branch.rate >= 75 ? 'text-amber-500' : 'text-red-500'}`}>{branch.rate}%</span>
                         )}
@@ -1799,7 +1799,7 @@ export default function AttendanceDashboard() {
                             {branch.isWeekend ? (
                               <>
                                 <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>Weekend / Rest Day:</span> <span className="font-bold text-slate-600">{branch.totalEmployees}</span></p>
-                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-slate-400">0</span></p>
+                                <p className="flex justify-between items-center gap-4"><span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>Absent:</span> <span className="font-bold text-foreground">0</span></p>
                               </>
                             ) : (
                               <>
@@ -1820,15 +1820,15 @@ export default function AttendanceDashboard() {
                 })}
               </TooltipProvider>
               {liveBranchRanking.length === 0 && (
-                <div className="text-center text-slate-400 text-xs py-10 font-medium">No branches found in this region.</div>
+                <div className="text-center text-foreground text-xs py-10 font-medium">No branches found in this region.</div>
               )}
             </div>
             <div className="mt-4 pt-3 border-t border-gray-100 dark:border-slate-800 flex justify-between items-center">
-              <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-2">
+              <p className="text-[10px] font-semibold text-foreground flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                 Showing {liveBranchRanking.length} locations
                 {liveBranchRanking.filter((b: any) => b.isWeekend).length > 0 && (
-                  <span className="ml-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+                  <span className="ml-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-foreground border border-slate-200 dark:border-slate-700">
                     {liveBranchRanking.filter((b: any) => b.isWeekend).length} on Weekend
                   </span>
                 )}
@@ -1853,27 +1853,27 @@ export default function AttendanceDashboard() {
             {/* KPI micro-header */}
             <div className="grid grid-cols-6 gap-3 mb-6">
               <div className="flex flex-col items-center justify-center py-3 px-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
-                <span className="text-[10px] font-bold text-slate-500 uppercase text-center tracking-tight leading-tight mb-1">Total<br/>Employees</span>
+                <span className="text-[10px] font-bold text-foreground uppercase text-center tracking-tight leading-tight mb-1">Total<br/>Employees</span>
                 <span className="text-[20px] font-black text-slate-800 dark:text-slate-100">{liveStats.total || 0}</span>
               </div>
               <div className="flex flex-col items-center justify-center py-3 px-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
-                <span className="text-[10px] font-bold text-slate-500 uppercase text-center tracking-tight leading-tight mb-1">Total<br/>Present</span>
+                <span className="text-[10px] font-bold text-foreground uppercase text-center tracking-tight leading-tight mb-1">Total<br/>Present</span>
                 <span className="text-[20px] font-black text-slate-800 dark:text-slate-100">{liveStats.present || 0}</span>
               </div>
               <div className="flex flex-col items-center justify-center py-3 px-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
-                <span className="text-[10px] font-bold text-slate-500 uppercase text-center tracking-tight leading-tight mb-1">Present<br/>(On Time)</span>
+                <span className="text-[10px] font-bold text-foreground uppercase text-center tracking-tight leading-tight mb-1">Present<br/>(On Time)</span>
                 <span className="text-[20px] font-black text-slate-800 dark:text-slate-100">{Math.max(0, (liveStats.present || 0) - (liveStats.late || 0))}</span>
               </div>
               <div className="flex flex-col items-center justify-center py-3 px-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
-                <span className="text-[10px] font-bold text-slate-500 uppercase text-center tracking-tight leading-tight mb-1">Present<br/>(Late)</span>
+                <span className="text-[10px] font-bold text-foreground uppercase text-center tracking-tight leading-tight mb-1">Present<br/>(Late)</span>
                 <span className="text-[20px] font-black text-slate-800 dark:text-slate-100">{liveStats.late || 0}</span>
               </div>
               <div className="flex flex-col items-center justify-center py-3 px-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
-                <span className="text-[10px] font-bold text-slate-500 uppercase text-center tracking-tight leading-tight mb-1">Absent<br/>&nbsp;</span>
+                <span className="text-[10px] font-bold text-foreground uppercase text-center tracking-tight leading-tight mb-1">Absent<br/>&nbsp;</span>
                 <span className="text-[20px] font-black text-slate-800 dark:text-slate-100">{liveStats.absent || 0}</span>
               </div>
               <div className="flex flex-col items-center justify-center py-3 px-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 transition-colors hover:border-purple-200 dark:hover:border-purple-900/50">
-                <span className="text-[10px] font-bold text-slate-500 uppercase text-center tracking-tight leading-tight mb-1">Outstation<br/>&nbsp;</span>
+                <span className="text-[10px] font-bold text-foreground uppercase text-center tracking-tight leading-tight mb-1">Outstation<br/>&nbsp;</span>
                 <span className="text-[20px] font-black text-slate-800 dark:text-slate-100">{liveStats.outstation || 0}</span>
               </div>
             </div>
@@ -1885,7 +1885,7 @@ export default function AttendanceDashboard() {
               {(liveStats.weekend || 0) > 0 && (
                 <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2.5">
                   <span className="w-2 h-2 rounded-full bg-slate-400 flex-shrink-0"></span>
-                  <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+                  <p className="text-[11px] font-semibold text-slate-600 dark:text-foreground">
                     <span className="font-black text-slate-800 dark:text-slate-200">{liveStats.weekend}</span> employees are on a <span className="font-black text-slate-800 dark:text-slate-200">Weekend / Rest Day</span> today.
                   </p>
                 </div>
@@ -1933,7 +1933,7 @@ export default function AttendanceDashboard() {
                     <span className="text-[28px] font-black text-gray-900 dark:text-gray-100 leading-none">
                       {hoveredSlice ? hoveredSlice.value : Math.max(0, (liveStats.present || 0) - (liveStats.late || 0))}
                     </span>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 mt-1 text-center max-w-[110px] truncate">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-foreground mt-1 text-center max-w-[110px] truncate">
                       {hoveredSlice ? hoveredSlice.name : "PRESENT (ON TIME)"}
                     </span>
                   </div>
@@ -1963,7 +1963,7 @@ export default function AttendanceDashboard() {
                         <span className="text-[13px] font-black text-gray-900 dark:text-gray-100">
                           {entry.value}
                         </span>
-                        <span className="text-[11px] font-bold text-gray-400 min-w-[32px] text-right">
+                        <span className="text-[11px] font-bold text-foreground min-w-[32px] text-right">
                           ({liveStats.total > 0 ? Math.round((entry.value / liveStats.total) * 100) : 0}%)
                         </span>
                       </div>

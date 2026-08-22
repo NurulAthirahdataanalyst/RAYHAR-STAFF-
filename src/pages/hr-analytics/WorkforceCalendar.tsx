@@ -231,7 +231,7 @@ export default function WorkforceCalendar() {
             <CardContent className="p-4 flex items-center gap-3">
               <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${kpi.dot}`} />
               <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-wider text-gray-400 leading-tight">{kpi.label}</p>
+                <p className="text-[10px] font-black uppercase tracking-wider text-foreground leading-tight">{kpi.label}</p>
                 <p className="text-2xl font-black text-gray-800 dark:text-gray-100 leading-tight">{kpi.value}</p>
               </div>
             </CardContent>
@@ -283,12 +283,12 @@ export default function WorkforceCalendar() {
                 </Select>
               </>
             )}
-            <button onClick={fetchData} title="Refresh" className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors text-gray-500 hover:text-gray-800">
+            <button onClick={fetchData} title="Refresh" className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors text-foreground hover:text-gray-800">
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
             <div className="flex items-center gap-1 text-[10px] font-bold">
-              {connected ? <Wifi className="w-3 h-3 text-emerald-500" /> : <WifiOff className="w-3 h-3 text-gray-400" />}
-              <span className={connected ? "text-emerald-600" : "text-gray-400"}>{connected ? "Live" : "Offline"}</span>
+              {connected ? <Wifi className="w-3 h-3 text-emerald-500" /> : <WifiOff className="w-3 h-3 text-foreground" />}
+              <span className={connected ? "text-emerald-600" : "text-foreground"}>{connected ? "Live" : "Offline"}</span>
             </div>
           </div>
         </CardContent>
@@ -309,7 +309,7 @@ export default function WorkforceCalendar() {
           return (
             <div key={key} className="flex items-center gap-1.5">
               <div className={`w-2.5 h-2.5 rounded-sm ${c.dot}`} />
-              <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400">{label}</span>
+              <span className="text-[10px] font-bold text-foreground dark:text-foreground">{label}</span>
             </div>
           );
         })}
@@ -344,10 +344,10 @@ export default function WorkforceCalendar() {
                   textCol = "text-[#7B0099]";
                 } else if (!isCurrentMonth) {
                   cellBg = "bg-slate-50/50 dark:bg-slate-900/50";
-                  textCol = "text-muted-foreground opacity-50";
+                  textCol = "text-foreground opacity-50";
                 } else if (isPast) {
                   cellBg = "bg-white dark:bg-card opacity-80";
-                  textCol = "text-gray-500 dark:text-gray-400";
+                  textCol = "text-foreground dark:text-foreground";
                 }
 
                 return (
@@ -375,7 +375,7 @@ export default function WorkforceCalendar() {
                         );
                       })}
                       {evts.length > 4 && (
-                        <div className={`text-[9px] font-bold pl-1 ${today ? 'text-[#7B0099]' : 'text-gray-400'}`}>
+                        <div className={`text-[9px] font-bold pl-1 ${today ? 'text-[#7B0099]' : 'text-foreground'}`}>
                           +{evts.length - 4} more
                         </div>
                       )}
@@ -413,7 +413,7 @@ export default function WorkforceCalendar() {
                 <div className="p-6 overflow-y-auto space-y-6">
                   {/* Attendance Section */}
                   <div>
-                    <h4 className="text-xs font-black uppercase text-gray-500 mb-3 flex items-center gap-2">
+                    <h4 className="text-xs font-black uppercase text-foreground mb-3 flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
                       Attendance
                     </h4>
@@ -434,7 +434,7 @@ export default function WorkforceCalendar() {
                                   {e.name}
                                 </div>
                               ))}
-                              {typeEvts.length === 0 && <div className="text-xs text-gray-400 italic">None</div>}
+                              {typeEvts.length === 0 && <div className="text-xs text-foreground italic">None</div>}
                             </div>
                           </div>
                         );
@@ -445,7 +445,7 @@ export default function WorkforceCalendar() {
                   {/* Leaves & Outstation Section */}
                   {leaveEvts.length > 0 && (
                     <div>
-                      <h4 className="text-xs font-black uppercase text-gray-500 mb-3 flex items-center gap-2">
+                      <h4 className="text-xs font-black uppercase text-foreground mb-3 flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
                         Leaves & Outstation
                       </h4>
@@ -528,7 +528,7 @@ export default function WorkforceCalendar() {
                       <div>
                         <p className="text-[9px] font-black uppercase text-foreground">Employee</p>
                         <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{selectedEvent.employee}</p>
-                        {selectedEvent.branch && <p className="text-[10px] text-gray-400">{selectedEvent.branch}{selectedEvent.department ? ` · ${selectedEvent.department}` : ''}</p>}
+                        {selectedEvent.branch && <p className="text-[10px] text-foreground">{selectedEvent.branch}{selectedEvent.department ? ` · ${selectedEvent.department}` : ''}</p>}
                       </div>
                     </div>
                   )}
@@ -540,7 +540,7 @@ export default function WorkforceCalendar() {
                         <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">
                           {selectedEvent.destination}
                           {selectedEvent.source === "outstation" && selectedEvent.name && selectedEvent.name !== selectedEvent.destination && (
-                            <span className="text-slate-400 dark:text-slate-500 font-normal text-[11px] ml-2">
+                            <span className="text-foreground dark:text-foreground font-normal text-[11px] ml-2">
                               ({selectedEvent.name})
                             </span>
                           )}
@@ -569,7 +569,7 @@ export default function WorkforceCalendar() {
                 {/* Others on leave same period */}
                 {dayEvts.length > 1 && (
                   <div className="pt-4 border-t border-gray-100 dark:border-slate-800">
-                    <p className="text-[10px] font-black uppercase text-gray-400 mb-3 flex items-center gap-2">
+                    <p className="text-[10px] font-black uppercase text-foreground mb-3 flex items-center gap-2">
                       <Users className="w-3.5 h-3.5" />
                       All on {fmtDate(dateStr)} ({dayEvts.length})
                     </p>
@@ -594,7 +594,7 @@ export default function WorkforceCalendar() {
                                     {" → "}
                                     {e.destination}
                                     {e.source === "outstation" && e.name && e.name !== e.destination && (
-                                      <span className="text-[9px] text-gray-400 font-normal ml-1">
+                                      <span className="text-[9px] text-foreground font-normal ml-1">
                                         ({e.name})
                                       </span>
                                     )}
@@ -621,7 +621,7 @@ export default function WorkforceCalendar() {
 
       {/* Last refresh timestamp */}
       {lastRefresh && (
-        <p className="text-[10px] text-gray-400 text-right font-medium px-1">
+        <p className="text-[10px] text-foreground text-right font-medium px-1">
           Last updated: {lastRefresh.toLocaleTimeString("en-MY", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
         </p>
       )}

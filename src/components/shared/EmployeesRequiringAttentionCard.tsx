@@ -78,7 +78,7 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
             </div>
             <div>
               <h2 className="text-xl font-bold text-slate-800 tracking-tight">Employees Requiring Attention</h2>
-              <p className="text-sm text-slate-500 font-medium">Low leave balance / High leave utilization</p>
+              <p className="text-sm text-foreground font-medium">Low leave balance / High leave utilization</p>
             </div>
           </div>
           <div className="bg-red-50 px-4 py-2 rounded-xl flex items-center gap-2">
@@ -88,13 +88,13 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
         </div>
 
         {data.length === 0 ? (
-          <div className="py-8 text-center text-slate-500 font-medium text-sm border-t border-slate-100 mt-2 pt-8">
+          <div className="py-8 text-center text-foreground font-medium text-sm border-t border-slate-100 mt-2 pt-8">
             All employees have healthy leave balances.
           </div>
         ) : variant === 'compact' ? (
           <>
             {/* Table Header for Compact */}
-            <div className="grid grid-cols-12 gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-2">
+            <div className="grid grid-cols-12 gap-4 text-[10px] font-bold text-foreground uppercase tracking-wider mb-2 px-2">
               <div className="col-span-4">Employee</div>
               <div className="col-span-3">Department • Branch</div>
               <div className="col-span-3">Leave Taken / Entitlement</div>
@@ -120,7 +120,7 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
                         </div>
                         <div className="min-w-0">
                           <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight truncate">{emp.name}</h3>
-                          <p className="text-xs text-slate-500 font-medium mt-0.5 truncate">{emp.role}</p>
+                          <p className="text-xs text-foreground font-medium mt-0.5 truncate">{emp.role}</p>
                         </div>
                       </div>
 
@@ -130,8 +130,8 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
                           <Briefcase className={`w-4 h-4 flex-shrink-0 ${iconColor}`} />
                           <span className="truncate">{emp.dept}</span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium pl-[22px]">
-                          <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-slate-400" />
+                        <div className="flex items-center gap-1.5 text-foreground text-xs font-medium pl-[22px]">
+                          <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-foreground" />
                           <span className="truncate">{emp.branch}</span>
                         </div>
                       </div>
@@ -141,7 +141,7 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
                         <div className="flex justify-between items-baseline mb-1.5">
                           <div>
                             <span className={`text-base font-black ${takenColor}`}>{emp.taken}</span>
-                            <span className="text-xs font-semibold text-slate-500"> / {emp.total} days</span>
+                            <span className="text-xs font-semibold text-foreground"> / {emp.total} days</span>
                           </div>
                           <span className="text-xs font-bold text-slate-800">{percent}%</span>
                         </div>
@@ -188,7 +188,7 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
                       </div>
                       <div className="min-w-0">
                         <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight truncate">{emp.name}</h3>
-                        <p className="text-xs text-slate-500 font-medium truncate">{emp.role}</p>
+                        <p className="text-xs text-foreground font-medium truncate">{emp.role}</p>
                       </div>
                     </div>
                     <div className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-xl flex-shrink-0 ${badgeColor}`}>
@@ -202,8 +202,8 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
                       <Briefcase className={`w-3.5 h-3.5 flex-shrink-0 ${iconColor}`} />
                       <span className="truncate">{emp.dept}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-slate-500 text-[11px] font-medium pl-5">
-                      <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-slate-400" />
+                    <div className="flex items-center gap-1.5 text-foreground text-[11px] font-medium pl-5">
+                      <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-foreground" />
                       <span className="truncate">{emp.branch}</span>
                     </div>
                   </div>
@@ -212,7 +212,7 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
                     <div className="flex justify-between items-baseline mb-1.5">
                       <div>
                         <span className={`text-sm font-black ${takenColor}`}>{emp.taken}</span>
-                        <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Taken of {emp.total}</span>
+                        <span className="text-[10px] font-semibold text-foreground uppercase tracking-wider ml-1">Taken of {emp.total}</span>
                       </div>
                       <span className="text-xs font-bold text-slate-800">{percent}%</span>
                     </div>
@@ -234,7 +234,7 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
             </div>
             <div>
               <p className="text-sm font-bold text-slate-800">Monitor leave balance to ensure smooth workforce planning.</p>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">Employees with low balance may need support or reallocation.</p>
+              <p className="text-xs text-foreground font-medium mt-0.5">Employees with low balance may need support or reallocation.</p>
             </div>
           </div>
           <button 

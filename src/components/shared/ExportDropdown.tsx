@@ -19,7 +19,7 @@ export function ExportDropdown({ onExportCSV, onExportPDF, className = "" }: Exp
       <DropdownMenuTrigger asChild>
         <Button 
           variant="outline" 
-          className={`h-9 flex items-center gap-2 px-3.5 py-2 border-border/80 shadow-sm font-medium text-xs text-muted-foreground hover:text-foreground bg-background hover:bg-muted/40 transition-colors ${className}`}
+          className={`h-9 flex items-center gap-2 px-3.5 py-2 border-border/80 shadow-sm font-medium text-xs text-foreground hover:text-foreground bg-background hover:bg-muted/40 transition-colors ${className}`}
         >
           <Download className="w-3.5 h-3.5" />
           <span>Export</span>

@@ -53,7 +53,7 @@ export class ErrorBoundary extends Component<Props, State> {
               
               <div>
                 <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Component Stack Trace:</h3>
-                <pre className="text-xs bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 p-3 rounded border border-slate-200 dark:border-slate-800 whitespace-pre-wrap break-all">
+                <pre className="text-xs bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-foreground p-3 rounded border border-slate-200 dark:border-slate-800 whitespace-pre-wrap break-all">
                   {this.state.errorInfo?.componentStack}
                 </pre>
               </div>

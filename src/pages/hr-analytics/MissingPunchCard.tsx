@@ -42,7 +42,7 @@ export function MissingPunchCard({ employees, indicator }: MissingPunchCardProps
           </div>
           
           <div className="flex flex-col gap-1">
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Total Number of Missing Punches</p>
+            <p className="text-sm text-foreground dark:text-foreground font-medium">Total Number of Missing Punches</p>
             <div className="flex items-end gap-3 mt-1">
               <h2 className="text-4xl font-black text-red-600 dark:text-red-500">{employees.length.toString().padStart(2, '0')}</h2>
               <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-bold rounded mb-1">Critical</span>
@@ -86,14 +86,14 @@ export function MissingPunchCard({ employees, indicator }: MissingPunchCardProps
               Missing Punch Details
             </DialogTitle>
           </div>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-foreground">
             Employees who have frequently missed their clock out records.
           </p>
         </DialogHeader>
 
         <div className="p-6">
           <div className="relative mb-4">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground" />
             <Input
               placeholder="Search by name or department..."
               value={searchTerm}
@@ -106,7 +106,7 @@ export function MissingPunchCard({ employees, indicator }: MissingPunchCardProps
             {filteredEmployees.length === 0 ? (
               <div className="py-12 flex flex-col items-center justify-center text-center">
                 <FileText className="w-12 h-12 text-slate-200 dark:text-slate-700 mb-3" />
-                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">No records found</p>
+                <p className="text-sm font-semibold text-foreground dark:text-foreground">No records found</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -118,7 +118,7 @@ export function MissingPunchCard({ employees, indicator }: MissingPunchCardProps
                       </div>
                       <div>
                         <p className="text-sm font-bold text-black dark:text-white">{emp.name}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <p className="text-xs text-foreground dark:text-foreground">
                           {emp.department} {emp.branch ? `• ${emp.branch}` : ''}
                         </p>
                       </div>
@@ -127,7 +127,7 @@ export function MissingPunchCard({ employees, indicator }: MissingPunchCardProps
                       <div className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/30">
                         {emp.missingPunches} Times
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1">
+                      <p className="text-[11px] text-foreground mt-1">
                         Last: {emp.lastOccurrence ? new Date(emp.lastOccurrence).toLocaleDateString("en-MY", { day: "2-digit", month: "short", year: "numeric" }) : "-"}
                       </p>
                     </div>

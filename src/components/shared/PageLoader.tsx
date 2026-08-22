@@ -50,7 +50,7 @@ export function PageLoader() {
           <p className="text-[11px] font-black uppercase tracking-[0.25em] text-[#7B0099] dark:text-[#a855f7] animate-pulse">
             Loading
           </p>
-          <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-50">
+          <p className="text-[8px] font-black uppercase tracking-widest text-foreground opacity-50">
             Rayhar Portal
           </p>
         </div>

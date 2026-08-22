@@ -246,46 +246,46 @@ export default function OutstationReports() {
           {!selectedEventName ? (
             <>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Total Events</p>
+                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Total Events</p>
                 <p className="text-3xl font-black text-gray-800 dark:text-gray-100 mt-2">{totalEventsCount}</p>
               </div>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Total Days</p>
+                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Total Days</p>
                 <p className="text-3xl font-black text-pink-600 mt-2">{totalDaysCount}</p>
               </div>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Active Now</p>
+                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Active Now</p>
                 <p className="text-3xl font-black text-pink-600 mt-2">{activeEventsCount}</p>
               </div>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Upcoming Events</p>
+                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Upcoming Events</p>
                 <p className="text-3xl font-black text-amber-500 mt-2">{upcomingEventsCount}</p>
               </div>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Completed Events</p>
+                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Completed Events</p>
                 <p className="text-3xl font-black text-blue-600 mt-2">{completedEventsCount}</p>
               </div>
             </>
           ) : (
             <>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Event Name</p>
+                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Event Name</p>
                 <p className="text-xl font-black text-gray-800 dark:text-gray-100 mt-2 line-clamp-3 leading-tight" title={selectedEvent!.eventName}>{selectedEvent!.eventName}</p>
               </div>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Total Staff</p>
+                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Total Staff</p>
                 <p className="text-3xl font-black text-gray-800 dark:text-gray-100 mt-2">{selectedEvent!.assignments.length}</p>
               </div>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Total Days</p>
+                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Total Days</p>
                 <p className="text-3xl font-black text-pink-600 mt-2">{selectedEvent!.totalDays}</p>
               </div>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Status</p>
+                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Status</p>
                 <div className="mt-2">{statusBadge(selectedEvent!.status)}</div>
               </div>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
-                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500">Destination</p>
+                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Destination</p>
                 <p className="text-xl font-bold text-gray-700 dark:text-gray-300 mt-2 line-clamp-3 leading-tight" title={selectedEvent!.destination}>{selectedEvent!.destination}</p>
               </div>
             </>
@@ -321,7 +321,7 @@ export default function OutstationReports() {
                   className={`text-sm font-medium pb-2 -mb-[13px] transition-colors border-b-[3px] ${
                     viewType === "month"
                       ? "text-[#7B0099] border-[#7B0099]"
-                      : "text-gray-500 hover:text-yellow-500 border-transparent hover:border-yellow-500"
+                      : "text-foreground hover:text-yellow-500 border-transparent hover:border-yellow-500"
                   }`}
                 >
                   Month View
@@ -331,7 +331,7 @@ export default function OutstationReports() {
                   className={`text-sm font-medium pb-2 -mb-[13px] transition-colors border-b-[3px] ${
                     viewType === "year"
                       ? "text-yellow-500 border-yellow-500"
-                      : "text-gray-500 hover:text-yellow-500 border-transparent hover:border-yellow-500"
+                      : "text-foreground hover:text-yellow-500 border-transparent hover:border-yellow-500"
                   }`}
                 >
                   Year View
@@ -361,7 +361,7 @@ export default function OutstationReports() {
                     />
                   )}
                   <div className="relative">
-                    <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                    <Search className="w-3.5 h-3.5 text-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
                     <Input placeholder="Search event..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-44 bg-gray-50" />
                   </div>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -393,7 +393,7 @@ export default function OutstationReports() {
                     </SelectContent>
                   </Select>
                   <div className="relative">
-                    <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                    <Search className="w-3.5 h-3.5 text-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
                     <Input placeholder="Search employee..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)} className="pl-8 h-8 text-xs w-44 bg-gray-50" />
                   </div>
                 </>
@@ -405,7 +405,7 @@ export default function OutstationReports() {
           {loading ? (
             <div className="h-48 flex items-center justify-center"><Loader2 className="animate-spin w-7 h-7 text-pink-400" /></div>
           ) : (!selectedEventName && filteredEvents.length === 0) || (selectedEventName && filteredAssignments.length === 0) ? (
-            <div className="h-48 flex flex-col items-center justify-center gap-2 text-slate-400">
+            <div className="h-48 flex flex-col items-center justify-center gap-2 text-foreground">
               <Plane className="w-10 h-10 opacity-20" />
               <p className="text-[10px] font-black uppercase tracking-widest">No records found</p>
             </div>
@@ -565,7 +565,7 @@ export default function OutstationReports() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100 truncate">{a.full_name}</p>
-                          <p className="text-[10px] text-gray-400">{a.department || "—"} · {a.branch || "—"}</p>
+                          <p className="text-[10px] text-foreground">{a.department || "—"} · {a.branch || "—"}</p>
                         </div>
                         {statusBadge(a.status)}
                       </div>

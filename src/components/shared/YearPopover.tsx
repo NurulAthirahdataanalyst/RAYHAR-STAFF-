@@ -34,7 +34,7 @@ export function YearPopover({ year, onSelectYear, className }: YearPopoverProps)
           }
         >
           <span className="font-black text-foreground uppercase tracking-widest">{year || currentYear}</span>
-          <Calendar className="w-4 h-4 text-muted-foreground opacity-80" />
+          <Calendar className="w-4 h-4 text-foreground opacity-80" />
         </button>
       </PopoverTrigger>
       <PopoverContent

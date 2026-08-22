@@ -203,7 +203,7 @@ export default function MasterOverview() {
       <PageActions>
         <div className="flex items-center gap-3">
           {lastSynced && (
-            <span className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-wider bg-muted/40 p-2 rounded-xl border border-border/50">
+            <span className="text-[10px] font-black text-foreground/60 uppercase tracking-wider bg-muted/40 p-2 rounded-xl border border-border/50">
               Synced: {lastSynced.toLocaleTimeString("en-US")}
             </span>
           )}
@@ -223,7 +223,7 @@ export default function MasterOverview() {
         <Card className="border-none shadow-sm overflow-hidden bg-card/60 backdrop-blur-md rounded-[28px]">
           <CardContent className="p-24 flex flex-col items-center justify-center gap-4">
             <Loader2 className="w-10 h-10 animate-spin text-[#7B0099]" />
-            <p className="text-xs font-black text-muted-foreground animate-pulse uppercase tracking-[0.25em]">Syncing Core Master Directory...</p>
+            <p className="text-xs font-black text-foreground animate-pulse uppercase tracking-[0.25em]">Syncing Core Master Directory...</p>
           </CardContent>
         </Card>
       ) : (
@@ -336,7 +336,7 @@ export default function MasterOverview() {
                     </div>
                     <div>
                       <CardTitle className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">Departments Directory</CardTitle>
-                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Corporate structural nodes and allocation</CardDescription>
+                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground opacity-60">Corporate structural nodes and allocation</CardDescription>
                     </div>
                   </div>
                   <Badge variant="outline" className="font-black text-[10px] px-3.5 py-1 text-blue-600 border-none bg-blue-500/10">
@@ -346,7 +346,7 @@ export default function MasterOverview() {
                 <CardContent className="pt-6 space-y-4">
                   {/* Department Density List */}
                   <div className="space-y-3.5">
-                    <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Department Allocation Density</h4>
+                    <h4 className="text-[10px] font-black text-foreground uppercase tracking-widest">Department Allocation Density</h4>
                     <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1">
                       {departmentStats.slice(0, 4).map((d) => {
                         const pct = totalUsers > 0 ? Math.round((d.count / totalUsers) * 100) : 0;
@@ -354,7 +354,7 @@ export default function MasterOverview() {
                           <div key={d.name} className="space-y-1">
                             <div className="flex justify-between text-xs">
                               <span className="font-black text-foreground">{d.name}</span>
-                              <span className="font-black text-muted-foreground">{d.count} Staff ({pct}%)</span>
+                              <span className="font-black text-foreground">{d.count} Staff ({pct}%)</span>
                             </div>
                             <div className="h-2 w-full rounded-full bg-muted/40 overflow-hidden">
                               <div className="h-full bg-blue-500 rounded-full" style={{ width: `${pct}%` }} />
@@ -387,7 +387,7 @@ export default function MasterOverview() {
                     </div>
                     <div>
                       <CardTitle className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">System User Directory</CardTitle>
-                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Credentials & active security profiles</CardDescription>
+                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground opacity-60">Credentials & active security profiles</CardDescription>
                     </div>
                   </div>
                   <Badge variant="outline" className="font-black text-[10px] px-3.5 py-1 text-[#7B0099] border-none bg-purple-500/10">
@@ -397,7 +397,7 @@ export default function MasterOverview() {
                 <CardContent className="pt-6 space-y-4">
                   {/* Access Levels distribution */}
                   <div className="space-y-3.5">
-                    <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Provisioned Role Mappings</h4>
+                    <h4 className="text-[10px] font-black text-foreground uppercase tracking-widest">Provisioned Role Mappings</h4>
                     <div className="grid grid-cols-2 gap-3">
                       {[
                         { label: "Admin licenses", value: roleCounts.hr_admin, icon: Key, color: "text-purple-600" },
@@ -407,7 +407,7 @@ export default function MasterOverview() {
                       ].map((item) => (
                         <div key={item.label} className="bg-muted/30 border border-border/40 p-3 rounded-xl flex items-center justify-between">
                           <div>
-                            <p className="text-[8px] font-black text-muted-foreground uppercase tracking-wider">{item.label}</p>
+                            <p className="text-[8px] font-black text-foreground uppercase tracking-wider">{item.label}</p>
                             <p className="text-lg font-black text-foreground leading-none mt-1">{item.value}</p>
                           </div>
                           <div className={`w-8 h-8 rounded-lg bg-white dark:bg-black/20 flex items-center justify-center ${item.color}`}>
@@ -440,7 +440,7 @@ export default function MasterOverview() {
                     </div>
                     <div>
                       <CardTitle className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">Branches Directory</CardTitle>
-                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Regional network configuration</CardDescription>
+                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground opacity-60">Regional network configuration</CardDescription>
                     </div>
                   </div>
                   <Badge variant="outline" className="font-black text-[10px] px-3.5 py-1 text-pink-600 border-none bg-pink-500/10">
@@ -450,7 +450,7 @@ export default function MasterOverview() {
                 <CardContent className="pt-6 space-y-4">
                   {/* Branch Density List */}
                   <div className="space-y-3.5">
-                    <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Branch Allocation Density</h4>
+                    <h4 className="text-[10px] font-black text-foreground uppercase tracking-widest">Branch Allocation Density</h4>
                     <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1">
                       {Object.entries(branchCounts).sort((a: any, b: any) => b[1] - a[1]).slice(0, 4).map(([branchName, count]: [string, any]) => {
                         const pct = totalUsers > 0 ? Math.round((count / totalUsers) * 100) : 0;
@@ -458,7 +458,7 @@ export default function MasterOverview() {
                           <div key={branchName} className="space-y-1">
                             <div className="flex justify-between text-xs">
                               <span className="font-black text-foreground">{branchName}</span>
-                              <span className="font-black text-muted-foreground">{count} Staff ({pct}%)</span>
+                              <span className="font-black text-foreground">{count} Staff ({pct}%)</span>
                             </div>
                             <div className="h-2 w-full rounded-full bg-muted/40 overflow-hidden">
                               <div className="h-full bg-pink-500 rounded-full" style={{ width: `${pct}%` }} />
@@ -505,7 +505,7 @@ export default function MasterOverview() {
                     <div key={log.name} className="p-4 bg-emerald-500/5 dark:bg-emerald-500/10 hover:bg-emerald-500/10 rounded-2xl border border-emerald-500/10 transition-all flex flex-col justify-between gap-3 h-full">
                       <div>
                         <h4 className="text-xs font-black text-foreground uppercase tracking-wide">{log.name}</h4>
-                        <p className="text-[10px] font-semibold text-muted-foreground uppercase mt-1 leading-normal">{log.desc}</p>
+                        <p className="text-[10px] font-semibold text-foreground uppercase mt-1 leading-normal">{log.desc}</p>
                       </div>
                       <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 mt-2">
                         <CheckCircle2 className="w-3.5 h-3.5" />
@@ -527,7 +527,7 @@ export default function MasterOverview() {
                     </div>
                     <div>
                       <CardTitle className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight">Attendance Assignment</CardTitle>
-                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Temporary Branch Assignment</CardDescription>
+                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-foreground opacity-60">Temporary Branch Assignment</CardDescription>
                     </div>
                   </div>
                   <Badge variant="outline" className="font-black text-[10px] px-3.5 py-1 text-amber-700 dark:text-[#ffff00] border-none bg-[#ffff00]/20 shrink-0">
@@ -536,7 +536,7 @@ export default function MasterOverview() {
                 </CardHeader>
                 <CardContent className="pt-6 flex-1 flex flex-col px-6">
                   <div className="flex justify-between items-center mb-4">
-                    <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Current Active Assignments</h4>
+                    <h4 className="text-[10px] font-black text-foreground uppercase tracking-widest">Current Active Assignments</h4>
                     <Button variant="outline" size="sm" className="h-7 px-3 text-[10px] uppercase font-black bg-[#ffff00]/10 hover:bg-[#ffff00]/20 text-amber-700 dark:text-[#ffff00] border-[#ffff00]/30" onClick={() => setShowAssignModal(true)}>
                       + Assign
                     </Button>
@@ -544,22 +544,22 @@ export default function MasterOverview() {
                   
                   <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin max-h-[160px]">
                     {activeAssignments.length === 0 ? (
-                      <div className="text-center py-6 text-xs text-muted-foreground font-semibold">No active assignments</div>
+                      <div className="text-center py-6 text-xs text-foreground font-semibold">No active assignments</div>
                     ) : (
                       activeAssignments.map((a, i) => (
                         <div key={i} className="flex flex-col gap-1.5 pb-3 border-b border-border/40 last:border-0 relative">
                           <div className="flex justify-between items-center">
                             <div className="flex items-center gap-2">
-                              <Users className="w-3.5 h-3.5 text-slate-400" />
+                              <Users className="w-3.5 h-3.5 text-foreground" />
                               <span className="text-xs font-black truncate max-w-[120px]">{a.name}</span>
                             </div>
-                            <div className="flex items-center gap-1.5 text-[10px] font-black tracking-widest text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
+                            <div className="flex items-center gap-1.5 text-[10px] font-black tracking-widest text-foreground bg-muted/50 px-2 py-1 rounded-md">
                               <span>{a.primary_branch}</span>
                               <span>→</span>
                               <span className="text-amber-600 dark:text-[#ffff00]">{a.temp_branch}</span>
                             </div>
                           </div>
-                          <div className="text-[10px] text-muted-foreground pl-[22px] font-bold tracking-widest uppercase">
+                          <div className="text-[10px] text-foreground pl-[22px] font-bold tracking-widest uppercase">
                             {a.start_date ? new Date(a.start_date).toLocaleDateString('en-GB', {day: '2-digit', month: 'short'}) : 'Start'} - {a.end_date ? new Date(a.end_date).toLocaleDateString('en-GB', {day: '2-digit', month: 'short'}) : 'Until Further Notice'}
                           </div>
                         </div>
@@ -592,7 +592,7 @@ export default function MasterOverview() {
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div>
-              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Employee</Label>
+              <Label className="text-xs font-bold uppercase tracking-widest text-foreground">Employee</Label>
               <Select value={assignForm.user_id} onValueChange={(val) => setAssignForm({...assignForm, user_id: val})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Employee" />
@@ -605,7 +605,7 @@ export default function MasterOverview() {
               </Select>
             </div>
             <div>
-              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Target Branch</Label>
+              <Label className="text-xs font-bold uppercase tracking-widest text-foreground">Target Branch</Label>
               <Select value={assignForm.location} onValueChange={(val) => setAssignForm({...assignForm, location: val})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Branch" />
@@ -619,11 +619,11 @@ export default function MasterOverview() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Start Date</Label>
+                <Label className="text-xs font-bold uppercase tracking-widest text-foreground">Start Date</Label>
                 <Input type="date" value={assignForm.start_date} onChange={e => setAssignForm({...assignForm, start_date: e.target.value})} />
               </div>
               <div>
-                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">End Date</Label>
+                <Label className="text-xs font-bold uppercase tracking-widest text-foreground">End Date</Label>
                 <Input type="date" value={assignForm.end_date} onChange={e => setAssignForm({...assignForm, end_date: e.target.value})} />
               </div>
             </div>

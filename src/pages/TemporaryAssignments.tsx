@@ -209,15 +209,15 @@ const TemporaryAssignments = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-md p-4 flex flex-col justify-between">
-          <div className="text-sm font-semibold text-slate-500">Active Assignments</div>
+          <div className="text-sm font-semibold text-foreground">Active Assignments</div>
           <div className="text-3xl font-black text-[#a01497] mt-2">{activeCount}</div>
         </div>
         <div className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-md p-4 flex flex-col justify-between">
-          <div className="text-sm font-semibold text-slate-500">Upcoming Assignments</div>
+          <div className="text-sm font-semibold text-foreground">Upcoming Assignments</div>
           <div className="text-3xl font-black text-amber-600 mt-2">{upcomingCount}</div>
         </div>
         <div className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-md p-4 flex flex-col justify-between">
-          <div className="text-sm font-semibold text-slate-500">Completed Assignments</div>
+          <div className="text-sm font-semibold text-foreground">Completed Assignments</div>
           <div className="text-3xl font-black text-emerald-600 mt-2">{completedCount}</div>
         </div>
       </div>
@@ -230,7 +230,7 @@ const TemporaryAssignments = () => {
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground" />
               <Input
                 placeholder="Search employee or branch..."
                 className="pl-9"
@@ -266,13 +266,13 @@ const TemporaryAssignments = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={isHRAdmin ? 5 : 4} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={isHRAdmin ? 5 : 4} className="text-center py-10 text-foreground">
                     Loading assignments...
                   </TableCell>
                 </TableRow>
               ) : filteredAssignments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={isHRAdmin ? 5 : 4} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={isHRAdmin ? 5 : 4} className="text-center py-10 text-foreground">
                     No assignments found.
                   </TableCell>
                 </TableRow>
@@ -288,7 +288,7 @@ const TemporaryAssignments = () => {
                   >
                     <TableCell>
                       <div className="font-bold">{assignment.name}</div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-xs text-foreground">
                         {assignment.primary_branch === 'HQ' 
                           ? `HQ • ${assignment.department}` 
                           : `${(assignment.role === "finance_manager" || assignment.role === "Finance Manager" || assignment.role === "operation_manager" ? "Operation Manager" : assignment.role === "hr_admin" ? "HR Admin" : assignment.role.replace(/_/g, ' ')).toUpperCase()} • ${assignment.primary_branch}`}
@@ -307,7 +307,7 @@ const TemporaryAssignments = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 text-sm">
-                        <Calendar className="w-4 h-4 text-slate-400" />
+                        <Calendar className="w-4 h-4 text-foreground" />
                         <span>
                           {format(new Date(assignment.start_date), "MMM d, yyyy")} -{" "}
                           {assignment.end_date ? format(new Date(assignment.end_date), "MMM d, yyyy") : "Ongoing"}
@@ -333,10 +333,10 @@ const TemporaryAssignments = () => {
                     {isHRAdmin && (
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={(e) => handleEditClick(e, assignment)} className="h-8 w-8 text-slate-500 hover:text-[#a01497]">
+                          <Button variant="ghost" size="icon" onClick={(e) => handleEditClick(e, assignment)} className="h-8 w-8 text-foreground hover:text-[#a01497]">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={(e) => handleDeleteClick(e, assignment)} className="h-8 w-8 text-slate-500 hover:text-red-600">
+                          <Button variant="ghost" size="icon" onClick={(e) => handleDeleteClick(e, assignment)} className="h-8 w-8 text-foreground hover:text-red-600">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -359,7 +359,7 @@ const TemporaryAssignments = () => {
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div>
-              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Employee</Label>
+              <Label className="text-xs font-bold uppercase tracking-widest text-foreground">Employee</Label>
               <Select value={assignForm.user_id} onValueChange={(val) => { setAssignForm({...assignForm, user_id: val}); setEmployeeSearch(""); }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Employee" />
@@ -367,16 +367,16 @@ const TemporaryAssignments = () => {
                 <SelectContent className="max-h-[280px]">
                   {/* Search input inside dropdown */}
                   <div className="flex items-center border-b px-2 py-1.5 gap-1.5 sticky top-0 bg-white dark:bg-slate-950 z-10">
-                    <Search className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                    <Search className="w-3.5 h-3.5 text-foreground flex-shrink-0" />
                     <input
-                      className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
+                      className="flex-1 text-sm bg-transparent outline-none placeholder:text-foreground"
                       placeholder="Search name..."
                       value={employeeSearch}
                       onChange={(e) => setEmployeeSearch(e.target.value)}
                       onKeyDown={(e) => e.stopPropagation()}
                     />
                     {employeeSearch && (
-                      <button onClick={() => setEmployeeSearch("")} className="text-muted-foreground hover:text-foreground">
+                      <button onClick={() => setEmployeeSearch("")} className="text-foreground hover:text-foreground">
                         <X className="w-3.5 h-3.5" />
                       </button>
                     )}
@@ -388,7 +388,7 @@ const TemporaryAssignments = () => {
                       !employeeSearch || e.full_name.toLowerCase().includes(employeeSearch.toLowerCase())
                     );
                     if (filtered.length === 0) {
-                      return <div className="px-3 py-4 text-sm text-muted-foreground text-center">No employees found</div>;
+                      return <div className="px-3 py-4 text-sm text-foreground text-center">No employees found</div>;
                     }
                     return filtered.map(e => {
                       const isActiveOutstation = assignments.some(a =>
@@ -413,7 +413,7 @@ const TemporaryAssignments = () => {
               </Select>
             </div>
             <div>
-              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Target Branch</Label>
+              <Label className="text-xs font-bold uppercase tracking-widest text-foreground">Target Branch</Label>
               <Select value={assignForm.location} onValueChange={(val) => setAssignForm({...assignForm, location: val})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Branch" />
@@ -427,11 +427,11 @@ const TemporaryAssignments = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 block">Start Date</Label>
+                <Label className="text-xs font-bold uppercase tracking-widest text-foreground mb-2 block">Start Date</Label>
                 <DatePickerInput value={assignForm.start_date} onChange={(val) => setAssignForm({...assignForm, start_date: val})} />
               </div>
               <div>
-                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 block">End Date</Label>
+                <Label className="text-xs font-bold uppercase tracking-widest text-foreground mb-2 block">End Date</Label>
                 <DatePickerInput value={assignForm.end_date} onChange={(val) => setAssignForm({...assignForm, end_date: val})} />
               </div>
             </div>
@@ -466,23 +466,23 @@ const TemporaryAssignments = () => {
                 <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-3">Employee Information</h3>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                   <div>
-                    <p className="text-xs text-slate-500 font-medium">Employee Name</p>
+                    <p className="text-xs text-foreground font-medium">Employee Name</p>
                     <p className="text-sm font-semibold text-slate-800">{selectedAssignment.name}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 font-medium">Employee ID</p>
+                    <p className="text-xs text-foreground font-medium">Employee ID</p>
                     <p className="text-sm font-semibold text-slate-800">{selectedAssignment.user_id}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 font-medium">Branch</p>
+                    <p className="text-xs text-foreground font-medium">Branch</p>
                     <p className="text-sm font-semibold text-slate-800">{(selectedAssignment as any).primary_branch || 'HQ'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 font-medium">Department</p>
+                    <p className="text-xs text-foreground font-medium">Department</p>
                     <p className="text-sm font-semibold text-slate-800">{selectedAssignment.department}</p>
                   </div>
                   <div className="col-span-2">
-                    <p className="text-xs text-slate-500 font-medium">Position</p>
+                    <p className="text-xs text-foreground font-medium">Position</p>
                     <p className="text-sm font-semibold text-slate-800">{(selectedAssignment.role === "finance_manager" || selectedAssignment.role === "Finance Manager" || selectedAssignment.role === "operation_manager" ? "Operation Manager" : selectedAssignment.role === "hr_admin" ? "HR Admin" : selectedAssignment.role.replace(/_/g, ' ')).toUpperCase()}</p>
                   </div>
                 </div>
@@ -493,23 +493,23 @@ const TemporaryAssignments = () => {
                 <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-3">Assignment Information</h3>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                   <div className="col-span-2">
-                    <p className="text-xs text-slate-500 font-medium">Assignment Title</p>
+                    <p className="text-xs text-foreground font-medium">Assignment Title</p>
                     <p className="text-sm font-semibold text-slate-800">Temporary Branch Reassignment</p>
                   </div>
                   <div className="col-span-2">
-                    <p className="text-xs text-slate-500 font-medium">Assignment Location</p>
+                    <p className="text-xs text-foreground font-medium">Assignment Location</p>
                     <p className="text-sm font-semibold text-slate-800">{selectedAssignment.temp_branch}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 font-medium">Start Date</p>
+                    <p className="text-xs text-foreground font-medium">Start Date</p>
                     <p className="text-sm font-semibold text-slate-800">{format(new Date(selectedAssignment.start_date), "dd/MM/yyyy")}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 font-medium">End Date</p>
+                    <p className="text-xs text-foreground font-medium">End Date</p>
                     <p className="text-sm font-semibold text-slate-800">{selectedAssignment.end_date ? format(new Date(selectedAssignment.end_date), "dd/MM/yyyy") : "Ongoing"}</p>
                   </div>
                   <div className="col-span-2">
-                    <p className="text-xs text-slate-500 font-medium">Duration</p>
+                    <p className="text-xs text-foreground font-medium">Duration</p>
                     <p className="text-sm font-semibold text-slate-800">
                       {selectedAssignment.end_date 
                         ? `${Math.ceil((new Date(selectedAssignment.end_date).getTime() - new Date(selectedAssignment.start_date).getTime()) / (1000 * 3600 * 24))} Days`
@@ -524,13 +524,13 @@ const TemporaryAssignments = () => {
                 <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-3">Purpose & Details</h3>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-xs text-slate-500 font-medium mb-1">Reason for Assignment</p>
+                    <p className="text-xs text-foreground font-medium mb-1">Reason for Assignment</p>
                     <div className="p-3 bg-slate-50 rounded border border-slate-100 text-sm text-slate-600">
                       Not provided
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 font-medium mb-1">Remarks</p>
+                    <p className="text-xs text-foreground font-medium mb-1">Remarks</p>
                     <div className="p-3 bg-slate-50 rounded border border-slate-100 text-sm text-slate-600 min-h-[60px]">
                       Not provided
                     </div>
@@ -543,15 +543,15 @@ const TemporaryAssignments = () => {
                 <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-3">Approval Information</h3>
                 <div className="grid grid-cols-3 gap-x-4 gap-y-3">
                   <div>
-                    <p className="text-xs text-slate-500 font-medium">Assigned By</p>
+                    <p className="text-xs text-foreground font-medium">Assigned By</p>
                     <p className="text-sm font-semibold text-slate-800">HR Admin</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 font-medium">Date</p>
+                    <p className="text-xs text-foreground font-medium">Date</p>
                     <p className="text-sm font-semibold text-slate-800">{format(new Date(selectedAssignment.start_date), "dd/MM/yyyy")}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 font-medium">Status</p>
+                    <p className="text-xs text-foreground font-medium">Status</p>
                     <div className="mt-1">
                       <Badge
                         variant={selectedAssignment.computedStatus === "Active" ? "default" : selectedAssignment.computedStatus === "Completed" ? "secondary" : selectedAssignment.computedStatus === "Upcoming" ? "default" : "destructive"}
