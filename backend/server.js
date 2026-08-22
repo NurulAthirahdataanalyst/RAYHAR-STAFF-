@@ -3234,7 +3234,7 @@ app.post("/api/leave-requests", upload.single("lampiranMc"), async (req, res) =>
           `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS ic_number VARCHAR(20)`
         );
         await pool.query(
-          `UPDATE profiles SET ic_number = ? WHERE user_id = ? AND (ic_number IS NULL OR ic_number = '')`,
+          `UPDATE profiles SET ic_number = ? WHERE user_id = ?`,
           [no_kad_pengenalan.toString().trim(), user_id]
         );
       } catch (icErr) {
