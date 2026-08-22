@@ -405,7 +405,7 @@ export default function LeaveManagement() {
               <p className="text-xs sm:text-sm font-medium text-muted-foreground italic">Pastikan anda mematuhi polisi syarikat sebelum memohon.</p>
             </div>
 
-            <div className="text-left bg-muted/30 p-4 sm:p-5 rounded-[24px] border border-border/50 max-w-sm mx-auto">
+            <div className="text-left bg-muted/30 p-4 sm:p-5 rounded-[24px] border border-border/50 max-w-xl mx-auto w-fit">
               <ul className="space-y-4 text-[11px] sm:text-xs font-bold text-foreground/70 uppercase tracking-widest">
                 <li className="flex items-start gap-3">
                   <span className="bg-[#7B0099] text-white text-[9px] rounded-full w-5 h-5 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">1</span>
