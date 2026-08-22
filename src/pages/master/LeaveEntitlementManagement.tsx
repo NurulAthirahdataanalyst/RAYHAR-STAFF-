@@ -40,6 +40,11 @@ import EntitlementActivityCard from "./EntitlementActivityCard";
 import EntitlementHistoryPanel from "./EntitlementHistoryPanel";
 import { YearPopover } from "@/components/shared/YearPopover";
 
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarWidget } from "@/components/ui/calendar";
+import { CalendarDays } from "lucide-react";
+
+
 const modules = [
   {
     title: "Annual Leave Allocation",
@@ -468,6 +473,33 @@ function EmployeeSearchSelector({
 /* ==========================================================
    1. ANNUAL LEAVE ALLOCATION FORM (COMPANION SUB-FORM)
    ========================================================== */
+
+function CustomDatePicker({ value, onChange, placeholder, disabled }: { value: string, onChange: (val: string) => void, placeholder?: string, disabled?: boolean }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button type="button" disabled={disabled} className="appearance-none flex items-center justify-between w-full px-3 h-9 bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider hover:border-[#7B0099]/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          <span className="font-bold text-foreground">
+            {value ? new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : (placeholder || "Select Date")}
+          </span>
+          <CalendarDays className="w-3.5 h-3.5 text-foreground opacity-70" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-1" align="start">
+        <CalendarWidget
+          mode="single"
+          selected={value ? new Date(value) : undefined}
+          onSelect={(d) => {
+            if (d) onChange(new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0]);
+          }}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+
 function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employees: any[]; onCancel: () => void; onRefresh?: () => void; }) {
   const [allocMode, setAllocMode] = useState<"base" | "ot">("base");
 
@@ -653,15 +685,12 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold">Leave Year</Label>
-                  <Select value={leaveYear} onValueChange={setLeaveYear}>
-                    <SelectTrigger className="bg-white dark:bg-card">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="2026">2026</SelectItem>
-                      <SelectItem value="2027">2027</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <YearPopover 
+                      year={leaveYear} 
+                      onSelectYear={(y) => setLeaveYear(y || new Date().getFullYear().toString())}
+                      minYear={new Date().getFullYear()}
+                      className="w-full h-8 px-3 appearance-none flex items-center justify-between bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider"
+                    />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold">Base Entitlement (Days)</Label>
@@ -982,13 +1011,12 @@ function CarryForwardLeaveForm({
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Leave Year</Label>
-              <Select value={leaveYear} onValueChange={setLeaveYear}>
-                <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="2026">2026</SelectItem>
-                  <SelectItem value="2025">2025</SelectItem>
-                </SelectContent>
-              </Select>
+              <YearPopover 
+                  year={leaveYear} 
+                  onSelectYear={(y) => setLeaveYear(y || new Date().getFullYear().toString())}
+                  minYear={new Date().getFullYear()}
+                  className="w-full h-9 px-3 appearance-none flex items-center justify-between bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider"
+                />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Carry Forward To</Label>
@@ -1006,7 +1034,7 @@ function CarryForwardLeaveForm({
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Expiry Date</Label>
-              <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="bg-white dark:bg-card h-9 text-xs" />
+              <CustomDatePicker value={expiryDate} onChange={setExpiryDate} placeholder="Expiry Date" />
             </div>
           </div>
         </div>
@@ -1265,11 +1293,11 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Effective Date</Label>
-              <Input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} className="bg-white dark:bg-card h-9 text-xs" />
+              <CustomDatePicker value={effectiveDate} onChange={setEffectiveDate} placeholder="Effective Date" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Expiry Date</Label>
-              <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="bg-white dark:bg-card h-9 text-xs" />
+              <CustomDatePicker value={expiryDate} onChange={setExpiryDate} placeholder="Expiry Date" />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label className="text-xs font-bold">Reason Category</Label>
@@ -1571,7 +1599,7 @@ function ManualLeaveAdjustmentForm({
 
           <div className="space-y-1.5">
             <Label className="text-xs font-bold flex items-center">Effective Date <span className="text-red-500 ml-1">*</span></Label>
-            <Input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} className="bg-white dark:bg-card h-9 text-xs" />
+            <CustomDatePicker value={effectiveDate} onChange={setEffectiveDate} placeholder="Effective Date" />
           </div>
 
           <div className="space-y-1.5 md:col-span-2">
@@ -1801,7 +1829,7 @@ function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold flex items-center">Effective Date <span className="text-red-500 ml-1">*</span></Label>
-                <Input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} className="bg-white dark:bg-card h-9 text-xs" />
+                <CustomDatePicker value={effectiveDate} onChange={setEffectiveDate} placeholder="Effective Date" />
               </div>
               <div className="space-y-1.5 md:col-span-2">
                 <Label className="text-xs font-bold">Reason Details & Comments</Label>
@@ -1918,7 +1946,7 @@ function MaternityLeaveForm({ employees, onCancel }: any) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold">Expected Delivery Date (EDD)</Label>
-                <Input type="date" value={edd} onChange={(e) => setEdd(e.target.value)} className="bg-white dark:bg-card h-9 text-xs" />
+                <CustomDatePicker value={edd} onChange={setEdd} placeholder="EDD" />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold">Total Entitlement (Days) <span className="text-red-500 ml-1">*</span></Label>
@@ -1926,11 +1954,11 @@ function MaternityLeaveForm({ employees, onCancel }: any) {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold">Leave Start Date <span className="text-red-500 ml-1">*</span></Label>
-                <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-white dark:bg-card h-9 text-xs" />
+                <CustomDatePicker value={startDate} onChange={setStartDate} placeholder="Start Date" />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold">Leave End Date</Label>
-                <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="bg-muted/50 h-9 text-xs font-bold text-pink-600" readOnly />
+                <CustomDatePicker value={endDate} onChange={setEndDate} placeholder="End Date" disabled={true} />
               </div>
             </div>
             

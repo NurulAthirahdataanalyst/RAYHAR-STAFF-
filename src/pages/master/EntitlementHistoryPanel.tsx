@@ -205,6 +205,37 @@ function groupByDate(logs: EntitlementHistoryLog[]): Array<{ dateLabel: string; 
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
+
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarWidget } from "@/components/ui/calendar";
+import { CalendarDays } from "lucide-react";
+
+function CustomDatePicker({ value, onChange, placeholder, disabled, className }: { value: string, onChange: (val: string) => void, placeholder?: string, disabled?: boolean, className?: string }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button type="button" disabled={disabled} className={`appearance-none flex items-center justify-between px-3 h-8 bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider hover:border-blue-500/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className || "w-36"}`}>
+          <span className="font-bold text-foreground">
+            {value ? new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : (placeholder || "Select Date")}
+          </span>
+          <CalendarDays className="w-3.5 h-3.5 text-foreground opacity-70" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-1" align="start">
+        <CalendarWidget
+          mode="single"
+          selected={value ? new Date(value) : undefined}
+          onSelect={(d) => {
+            if (d) onChange(new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0]);
+          }}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+
 export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => void }) {
   const [logs, setLogs]           = useState<EntitlementHistoryLog[]>([]);
   const [search, setSearch]       = useState('');
@@ -360,11 +391,9 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
           {dateRange === 'custom' && (
             <div className="px-4 py-3 border-b border-border/40 bg-blue-50/30 flex items-center gap-3 flex-wrap">
               <Label className="text-xs font-bold text-foreground">From</Label>
-              <Input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
-                className="h-8 text-xs w-36 bg-white" />
+              <CustomDatePicker value={customFrom} onChange={setCustomFrom} placeholder="From" className="w-[140px]" />
               <Label className="text-xs font-bold text-foreground">To</Label>
-              <Input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)}
-                className="h-8 text-xs w-36 bg-white" />
+              <CustomDatePicker value={customTo} onChange={setCustomTo} placeholder="To" className="w-[140px]" />
             </div>
           )}
 
