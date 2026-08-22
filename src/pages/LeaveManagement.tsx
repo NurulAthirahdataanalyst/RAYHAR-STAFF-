@@ -402,11 +402,11 @@ export default function LeaveManagement() {
             </div>
             <div className="space-y-2">
               <h3 className="text-xl sm:text-2xl font-black text-foreground uppercase tracking-tight">Sila Baca Arahan</h3>
-              <p className="text-xs sm:text-sm font-medium text-muted-foreground italic">Pastikan anda mematuhi polisi syarikat sebelum memohon.</p>
+              <p className="text-xs sm:text-sm font-medium text-foreground italic">Pastikan anda mematuhi polisi syarikat sebelum memohon.</p>
             </div>
 
             <div className="text-left bg-muted/30 p-4 sm:p-5 rounded-[24px] border border-border/50 max-w-xl mx-auto w-fit">
-              <ul className="space-y-4 text-[11px] sm:text-xs font-bold text-foreground/70 uppercase tracking-widest">
+              <ul className="space-y-4 text-[11px] sm:text-xs font-bold text-foreground uppercase tracking-widest">
                 <li className="flex items-start gap-3">
                   <span className="bg-[#7B0099] text-white text-[9px] rounded-full w-5 h-5 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">1</span>
                   <span>Mohon sekurang-kurangnya <strong className="text-[#7B0099]">7 HARI</strong> awal.</span>
@@ -417,6 +417,10 @@ export default function LeaveManagement() {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="bg-[#7B0099] text-white text-[9px] rounded-full w-5 h-5 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">3</span>
+                  <span>Pastikan borang diisi dengan lengkap sebelum permohonan dihantar.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="bg-[#7B0099] text-white text-[9px] rounded-full w-5 h-5 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">4</span>
                   <span>Lampiran hanya diperlukan untuk <strong className="text-[#7B0099]">SICK LEAVE</strong>.</span>
                 </li>
               </ul>
