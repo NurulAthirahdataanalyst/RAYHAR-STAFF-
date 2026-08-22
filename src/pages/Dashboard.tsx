@@ -850,7 +850,7 @@ export default function Dashboard() {
                       value={String(stats.outstationToday ?? 0)}
                       subtitle={`${stats.upcomingOutstation ?? 0} Upcoming`}
                       variant="purple"
-                      onClick={() => navigate("/outstation")}
+                      onClick={() => navigate("/outstation/my?tab=active")}
                     />
                     <StatCard
                       icon={(stats.absentToday ?? 0) > 0 ? AlertTriangle : CheckCircle2}
@@ -1574,7 +1574,7 @@ export default function Dashboard() {
                   <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Apply Leave</span>
                 </div>
                 {["hr_admin", "managing_director", "operation_manager", "head_of_department", "branch_leader"].includes(role) && (
-                  <div onClick={() => navigate("/outstation")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200 col-span-2">
+                  <div onClick={() => navigate("/outstation/my?tab=active")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200 col-span-2">
                     <MapPin className="w-6 h-6 text-[#a01497] mb-2" />
                     <span className="text-[10px] font-bold text-slate-600 uppercase text-center">Outstation</span>
                   </div>
@@ -1586,7 +1586,7 @@ export default function Dashboard() {
           {/* Active Outstation */}
           <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card mb-6">
             <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 px-4 pt-4 flex flex-row items-center justify-between">
-              <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest cursor-pointer hover:underline" onClick={() => navigate("/outstation")}>
+              <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest cursor-pointer hover:underline" onClick={() => navigate("/outstation/my?tab=active")}>
                 Active Outstation
               </CardTitle>
             </CardHeader>
@@ -1599,7 +1599,7 @@ export default function Dashboard() {
                   const days = Math.max(1, Math.ceil((new Date(g.end_date).getTime() - new Date(g.start_date).getTime()) / (1000 * 3600 * 24)));
 
                   return (
-                    <div key={i} onClick={() => navigate("/outstation")} className="flex items-start gap-3 p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer">
+                    <div key={i} onClick={() => navigate("/outstation/my?tab=active")} className="flex items-start gap-3 p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer">
                       <div className="w-[3px] rounded-full self-stretch bg-[#ff5b37] mr-1" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate uppercase">{g.title}</p>
@@ -1655,7 +1655,7 @@ export default function Dashboard() {
           {/* Upcoming Outstation */}
           <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-md overflow-hidden bg-white dark:bg-card">
             <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 px-4 pt-4 flex flex-row items-center justify-between">
-              <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest cursor-pointer hover:underline" onClick={() => navigate("/outstation")}>
+              <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest cursor-pointer hover:underline" onClick={() => navigate("/outstation/my?tab=upcoming")}>
                 Upcoming Outstation
               </CardTitle>
               <span onClick={() => navigate("/outstation/calendar")} className="text-[10px] font-bold text-[#a01497] uppercase cursor-pointer hover:underline">
@@ -1669,7 +1669,7 @@ export default function Dashboard() {
                   const extraCount = Math.max(0, g.employees.length - 3);
 
                   return (
-                    <div key={i} onClick={() => navigate("/outstation")} className="flex items-start gap-3 p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer">
+                    <div key={i} onClick={() => navigate("/outstation/my?tab=upcoming")} className="flex items-start gap-3 p-4 border border-slate-200 dark:border-slate-800 rounded-md hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors cursor-pointer">
                       <div className="w-[3px] rounded-full self-stretch bg-[#0088cc] mr-1" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate uppercase">{g.title}</p>
@@ -1843,3 +1843,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
+
