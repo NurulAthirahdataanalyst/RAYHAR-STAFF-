@@ -353,7 +353,8 @@ export default function WorkforceCalendar() {
                 return (
                   <div
                     key={idx}
-                    className={`min-h-[100px] border-b border-border/40 p-1.5 transition-colors ${cellBg} ${!today && isCurrentMonth ? 'hover:bg-muted/30' : ''}`}
+                    onClick={() => setSelectedDay(day)}
+                    className={`min-h-[100px] border-b border-border/40 p-1.5 transition-colors cursor-pointer ${cellBg} ${!today && isCurrentMonth ? 'hover:bg-muted/30' : ''}`}
                   >
                     <div className={`w-full text-right text-[12px] font-bold mb-1.5 px-1 ${textCol}`}>
                       {format(day, 'd')}
@@ -364,7 +365,7 @@ export default function WorkforceCalendar() {
                         return (
                           <div
                             key={e.id}
-                            onClick={() => setSelectedEventInfo({event: e, date: format(day, 'yyyy-MM-dd')})}
+                            onClick={(ev) => { ev.stopPropagation(); setSelectedEventInfo({event: e, date: format(day, 'yyyy-MM-dd')}); }}
                             className={`px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer flex items-center gap-1 ${c.bg} ${c.text} truncate border ${c.border} hover:opacity-80 transition-opacity`}
                             title={`${e.employee} - ${e.type}`}
                           >
@@ -374,12 +375,9 @@ export default function WorkforceCalendar() {
                         );
                       })}
                       {evts.length > 4 && (
-                        <button
-                          onClick={() => setSelectedEventInfo({event: evts[0], date: format(day, 'yyyy-MM-dd')})}
-                          className={`text-[9px] font-bold pl-1 hover:brightness-75 transition-colors ${today ? 'text-white/80' : 'text-gray-400'}`}
-                        >
+                        <div className={`text-[9px] font-bold pl-1 ${today ? 'text-[#7B0099]' : 'text-gray-400'}`}>
                           +{evts.length - 4} more
-                        </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -511,7 +509,9 @@ export default function WorkforceCalendar() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-white/80 mb-0.5">{title}</p>
-                    <h3 className="font-black text-white truncate">{selectedEvent.name || selectedEvent.type}</h3>
+                    <h3 className="font-black text-white truncate">
+                      {selectedEvent.source !== "company_leave" && selectedEvent.employee ? selectedEvent.employee : (selectedEvent.name || selectedEvent.type)}
+                    </h3>
                   </div>
                 </div>
                 <button onClick={() => setSelectedEventInfo(null)} className="p-1.5 rounded-lg hover:bg-white/20 text-white/80 hover:text-white transition-colors">
@@ -526,7 +526,7 @@ export default function WorkforceCalendar() {
                     <div className="flex items-center gap-2.5">
                       <User className="w-3.5 h-3.5 text-[#7B0099] shrink-0" />
                       <div>
-                        <p className="text-[9px] font-black uppercase text-gray-400">Employee</p>
+                        <p className="text-[9px] font-black uppercase text-foreground">Employee</p>
                         <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{selectedEvent.employee}</p>
                         {selectedEvent.branch && <p className="text-[10px] text-gray-400">{selectedEvent.branch}{selectedEvent.department ? ` · ${selectedEvent.department}` : ''}</p>}
                       </div>
@@ -536,7 +536,7 @@ export default function WorkforceCalendar() {
                     <div className="flex items-center gap-2.5">
                       <MapPin className="w-3.5 h-3.5 text-[#7B0099] shrink-0" />
                       <div>
-                        <p className="text-[9px] font-black uppercase text-gray-400">Destination</p>
+                        <p className="text-[9px] font-black uppercase text-foreground">Destination</p>
                         <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">
                           {selectedEvent.destination}
                           {selectedEvent.source === "outstation" && selectedEvent.name && selectedEvent.name !== selectedEvent.destination && (
@@ -551,7 +551,7 @@ export default function WorkforceCalendar() {
                   <div className="flex items-center gap-2.5">
                     <Calendar className="w-3.5 h-3.5 text-[#7B0099] shrink-0" />
                     <div>
-                      <p className="text-[9px] font-black uppercase text-gray-400">
+                      <p className="text-[9px] font-black uppercase text-foreground">
                         Duration{selectedEvent.days ? ` (${selectedEvent.days} ${Number(selectedEvent.days) === 1 ? 'Day' : 'Days'})` : ''}
                       </p>
                       <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{fmtDate(selectedEvent.start_date)} → {fmtDate(selectedEvent.end_date)}</p>
