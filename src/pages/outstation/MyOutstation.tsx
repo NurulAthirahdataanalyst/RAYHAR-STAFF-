@@ -88,14 +88,39 @@ export default function MyOutstation() {
     void fetch_();
   }, [userId]);
 
+  const baseFiltered = assignments.filter(a => {
+    if (search) {
+      const q = search.toLowerCase();
+      if (!a.destination.toLowerCase().includes(q) && 
+          !a.purpose?.toLowerCase().includes(q) && 
+          !a.project?.toLowerCase().includes(q) &&
+          !a.meeting_title?.toLowerCase().includes(q)) return false;
+    }
+
+    const startDate = new Date(a.start_date);
+    const endDate = new Date(a.end_date);
+    const selY = parseInt(selectedYear);
+    const selM = parseInt(selectedMonth);
+
+    if (viewMode === 'year') {
+      if (startDate.getFullYear() !== selY && endDate.getFullYear() !== selY) return false;
+    } else {
+      const start = startDate.getFullYear() * 12 + startDate.getMonth();
+      const end = endDate.getFullYear() * 12 + endDate.getMonth();
+      const sel = selY * 12 + (selM - 1);
+      if (sel < start || sel > end) return false;
+    }
+    return true;
+  });
+
   const counts = {
-    Upcoming: assignments.filter(a => a.status === "Upcoming").length,
-    Active: assignments.filter(a => a.status === "Active").length,
-    Completed: assignments.filter(a => a.status === "Completed").length,
-    Cancelled: assignments.filter(a => a.status === "Cancelled").length,
+    Upcoming: baseFiltered.filter(a => a.status === "Upcoming").length,
+    Active: baseFiltered.filter(a => a.status === "Active").length,
+    Completed: baseFiltered.filter(a => a.status === "Completed").length,
+    Cancelled: baseFiltered.filter(a => a.status === "Cancelled").length,
   };
 
-  const filtered = assignments.filter(a => a.status === tab);
+  const filtered = baseFiltered.filter(a => a.status === tab);
   const active = assignments.find(a => a.status === "Active");
   const nextUpcoming = assignments.filter(a => a.status === "Upcoming").sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())[0];
 

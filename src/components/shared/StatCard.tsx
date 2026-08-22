@@ -16,12 +16,12 @@ interface StatCardProps {
 
 const variantStyles = {
   default: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 hover:border-purple-300 transition-colors hover:bg-slate-50 dark:bg-slate-900/50",
-  maroon: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 hover:border-purple-300 transition-colors hover:bg-slate-50 dark:bg-slate-900/50",
-  gold: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 hover:border-purple-300 transition-colors hover:bg-slate-50 dark:bg-slate-900/50",
-  success: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 hover:border-purple-300 transition-colors hover:bg-slate-50 dark:bg-slate-900/50",
+  maroon: "bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/60 text-slate-800 dark:text-slate-100 hover:border-rose-300 transition-colors hover:bg-rose-100 dark:hover:bg-rose-900/50",
+  gold: "bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 text-slate-800 dark:text-slate-100 hover:border-amber-300 transition-colors hover:bg-amber-100 dark:hover:bg-amber-900/50",
+  success: "bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60 text-slate-800 dark:text-slate-100 hover:border-emerald-300 transition-colors hover:bg-emerald-100 dark:hover:bg-emerald-900/50",
   gauge: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 hover:border-purple-300 transition-colors hover:bg-slate-50 dark:bg-slate-900/50",
-  warning: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 hover:border-purple-300 transition-colors hover:bg-slate-50 dark:bg-slate-900/50",
-  purple: "bg-white dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 hover:border-purple-300 transition-colors hover:bg-slate-50 dark:bg-slate-900/50",
+  warning: "bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 text-slate-800 dark:text-slate-100 hover:border-amber-300 transition-colors hover:bg-amber-100 dark:hover:bg-amber-900/50",
+  purple: "bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900/60 text-slate-800 dark:text-slate-100 hover:border-purple-300 transition-colors hover:bg-purple-100 dark:hover:bg-purple-900/50",
 };
 
 export default function StatCard({ 

@@ -672,25 +672,41 @@ export default function Dashboard() {
                 }
               }}
               className={`rounded-2xl shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] group relative overflow-hidden flex flex-col justify-between cursor-pointer ${
-                isPresent 
+                safeTodayStatus.includes("Present (On Time)") 
                   ? "border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/60 dark:bg-emerald-950/30" 
+                  : safeTodayStatus.includes("Present (Late)")
+                  ? "border border-amber-200 dark:border-amber-900/60 bg-amber-50/60 dark:bg-amber-950/30"
+                  : isCompanyLeave 
+                  ? "border border-purple-200 dark:border-purple-900/60 bg-purple-50/60 dark:bg-purple-950/30" 
+                  : isOnLeave
+                  ? "border border-blue-200 dark:border-blue-900/60 bg-blue-50/60 dark:bg-blue-950/30"
+                  : displayStatus.includes("Outstation")
+                  ? "border border-pink-200 dark:border-pink-900/60 bg-pink-50/60 dark:bg-pink-950/30"
                   : isClockedOut 
                   ? "border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40" 
-                  : (isOnLeave || isCompanyLeave) 
-                  ? "border border-purple-200 dark:border-purple-900/60 bg-purple-50/60 dark:bg-purple-950/30" 
                   : "border border-rose-200 dark:border-rose-900/60 bg-rose-50/60 dark:bg-rose-950/30"
               }`}
             >
               <div className="absolute -right-3 -top-3 opacity-15 dark:opacity-25 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-6 group-hover:-translate-y-1.5 pointer-events-none">
                 <Clock className={`w-24 h-24 ${
-                  isPresent ? "text-emerald-600" : isClockedOut ? "text-slate-600" : (isOnLeave || isCompanyLeave) ? "text-purple-600" : "text-rose-600"
+                  safeTodayStatus.includes("Present (On Time)") ? "text-emerald-600" :
+                  safeTodayStatus.includes("Present (Late)") ? "text-amber-600" :
+                  isCompanyLeave ? "text-purple-600" :
+                  isOnLeave ? "text-blue-600" :
+                  displayStatus.includes("Outstation") ? "text-pink-600" :
+                  isClockedOut ? "text-slate-600" : "text-rose-600"
                 }`} />
               </div>
               <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
                     <div className={`w-2.5 h-2.5 rounded-full shadow-xs ${
-                      isPresent ? "bg-emerald-500" : isClockedOut ? "bg-slate-500" : (isOnLeave || isCompanyLeave) ? "bg-purple-500" : "bg-rose-500"
+                      safeTodayStatus.includes("Present (On Time)") ? "bg-emerald-500" :
+                      safeTodayStatus.includes("Present (Late)") ? "bg-amber-500" :
+                      isCompanyLeave ? "bg-purple-500" :
+                      isOnLeave ? "bg-blue-500" :
+                      displayStatus.includes("Outstation") ? "bg-pink-500" :
+                      isClockedOut ? "bg-slate-500" : "bg-rose-500"
                     }`}></div>
                     <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Today's Status</span>
                   </div>
@@ -841,7 +857,7 @@ export default function Dashboard() {
                       title="Absent"
                       value={String(stats.absentToday ?? 0)}
                       subtitle={(stats.absentToday ?? 0) > 0 ? "Not Clocked In" : "All Present"}
-                      variant={(stats.absentToday ?? 0) > 0 ? "maroon" : "default"}
+                      variant="maroon"
                       onClick={() => navigate("/hr-analytics/attendance#employee-absenteeism")}
                       footer={
                         (stats.restDayToday ?? 0) > 0 ? (
@@ -871,7 +887,7 @@ export default function Dashboard() {
                       title="Late Arrivals"
                       value={String(stats.lateArrivals ?? 0)}
                       subtitle={(stats.lateArrivals ?? 0) > 0 ? "Action Required" : "All On Time"}
-                      variant={(stats.lateArrivals ?? 0) > 0 ? "warning" : "default"}
+                      variant="warning"
                     />
                   </>
                 ) : (
@@ -1034,7 +1050,7 @@ export default function Dashboard() {
                   title="Absent"
                   value={String(stats.absentToday ?? 0)}
                   subtitle={(stats.absentToday ?? 0) > 0 ? "Not Clocked In" : "All Present"}
-                  variant={(stats.absentToday ?? 0) > 0 ? "maroon" : "default"}
+                  variant="maroon"
                   onClick={() => navigate("/hr-analytics/attendance#employee-absenteeism")}
                   footer={
                     (stats.restDayToday ?? 0) > 0 ? (
@@ -1050,7 +1066,7 @@ export default function Dashboard() {
                   title="Late Arrivals"
                   value={String(stats.lateArrivals ?? 0)}
                   subtitle={(stats.lateArrivals ?? 0) > 0 ? "Action Required" : "All On Time"}
-                  variant={(stats.lateArrivals ?? 0) > 0 ? "warning" : "default"}
+                  variant="warning"
                 />
               </>
             )}

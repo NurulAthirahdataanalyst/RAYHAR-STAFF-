@@ -31,7 +31,7 @@ export default function PageHeader({ title, description, icon }: PageHeaderProps
           <div>
             <h1 className="text-2xl font-black text-foreground uppercase tracking-tight">{displayTitle}</h1>
             {displaySubtitle && (
-              <p className="text-xs sm:text-sm text-muted-foreground italic mt-0.5">
+              <p className="text-xs sm:text-sm text-foreground italic mt-0.5">
                 {displaySubtitle}
               </p>
             )}
