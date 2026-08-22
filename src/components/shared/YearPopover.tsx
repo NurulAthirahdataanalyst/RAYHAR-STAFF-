@@ -6,9 +6,11 @@ interface YearPopoverProps {
   year: string;
   onSelectYear: (year: string) => void;
   className?: string;
+  minYear?: number;
+  excludeYear?: string;
 }
 
-export function YearPopover({ year, onSelectYear, className }: YearPopoverProps) {
+export function YearPopover({ year, onSelectYear, className, minYear, excludeYear }: YearPopoverProps) {
   const [open, setOpen] = useState(false);
   const currentYear = new Date().getFullYear();
   const activeYearNum = parseInt(year) || currentYear;
@@ -69,17 +71,23 @@ export function YearPopover({ year, onSelectYear, className }: YearPopoverProps)
               const isSelected = y.toString() === year || (!year && y === currentYear);
               const isCurrent = y === currentYear;
               const isOutsideDecade = y < baseDecade || y > baseDecade + 9;
+              const isDisabled = (minYear !== undefined && y < minYear) || (excludeYear !== undefined && y.toString() === excludeYear);
               
               return (
                 <button
                   key={y}
                   type="button"
+                  disabled={isDisabled}
                   onClick={() => {
-                    onSelectYear(y.toString());
-                    // setOpen(false);
+                    if (!isDisabled) {
+                      onSelectYear(y.toString());
+                      // setOpen(false);
+                    }
                   }}
                   className={`py-2 px-1 text-xs font-bold rounded-lg transition-all text-center ${
-                    isSelected && isCurrent
+                    isDisabled
+                      ? "opacity-30 cursor-not-allowed bg-transparent text-slate-400"
+                      : isSelected && isCurrent
                       ? "bg-[#FFB800] text-black shadow-sm"
                       : isSelected
                       ? "bg-[#7B0099] text-white shadow-sm"

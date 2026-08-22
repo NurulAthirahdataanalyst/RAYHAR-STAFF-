@@ -38,6 +38,7 @@ import { toast, useToast } from "@/hooks/use-toast";
 import { buildHistoryLog, appendHistoryLog } from "@/lib/entitlementHistory";
 import EntitlementActivityCard from "./EntitlementActivityCard";
 import EntitlementHistoryPanel from "./EntitlementHistoryPanel";
+import { YearPopover } from "@/components/shared/YearPopover";
 
 const modules = [
   {
@@ -868,6 +869,10 @@ function CarryForwardLeaveForm({
     const fMatch = !filterEligible || eligible === parseInt(filterEligible);
     
     return bMatch && dMatch && sMatch && fMatch;
+  }).sort((a, b) => {
+    const aSelected = selectedEmployees.includes(a.user_id) ? 1 : 0;
+    const bSelected = selectedEmployees.includes(b.user_id) ? 1 : 0;
+    return bSelected - aSelected;
   });
 
   const uniqueBranches = ["All", ...new Set(employees.map(e => e.branch).filter(Boolean))];
