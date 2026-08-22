@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Plane, Download, Search, MapPin, ArrowLeft, FileText, Calendar, Users, Clock } from "lucide-react";
+import { Loader2, Plane, Download, Search, MapPin, ArrowLeft, FileText, Calendar, Users, Clock, CalendarDays, Activity, CheckCircle2 } from "lucide-react";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { YearPopover } from "@/components/shared/YearPopover";
 import PageHeader from "@/components/layout/PageHeader";
