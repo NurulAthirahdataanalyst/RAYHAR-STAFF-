@@ -34,7 +34,9 @@ export default function NotificationBell() {
         const readCompanyLeaves = JSON.parse(localStorage.getItem('readCompanyLeaves') || '[]');
         const deletedCompanyLeaves = JSON.parse(localStorage.getItem('deletedCompanyLeaves') || '[]');
         
-        const mapped = data.notifications
+        const hrNotifs = JSON.parse(localStorage.getItem('hrNotifications') || '[]').filter((n: any) => n.user_id === user.user_id);
+        const allNotifs = [...data.notifications, ...hrNotifs].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        const mapped = allNotifs
           .filter((n: any) => !(typeof n.id === 'string' && n.id.startsWith('cl-') && deletedCompanyLeaves.includes(n.id)))
           .map((n: any) => {
             if (typeof n.id === 'string' && n.id.startsWith('cl-') && readCompanyLeaves.includes(n.id)) {
@@ -68,8 +70,24 @@ export default function NotificationBell() {
 
   const markAsRead = async (id: number | string) => {
     try {
-      if (typeof id === 'string' && id.startsWith('cl-')) {
-        const readList = JSON.parse(localStorage.getItem('readCompanyLeaves') || '[]');
+      if (typeof id === 'string' && id.startsWith('hr-notif-')) {
+        const allHr = JSON.parse(localStorage.getItem('hrNotifications') || '[]');
+        const updated = allHr.map((n: any) => n.id === id ? { ...n, is_read: true } : n);
+        localStorage.setItem('hrNotifications', JSON.stringify(updated));
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+        setUnreadCount(prev => Math.max(0, prev - 1));
+        return;
+      }
+      if (typeof id === 'string' && id.startsWith('hr-notif-')) {
+        const allHr = JSON.parse(localStorage.getItem('hrNotifications') || '[]');
+        const updated = allHr.filter((n: any) => n.id !== id);
+        localStorage.setItem('hrNotifications', JSON.stringify(updated));
+      } else if (typeof id === 'string' && id.startsWith('cl-')) {
+        const allHr = JSON.parse(localStorage.getItem('hrNotifications') || '[]');
+      const updatedHr = allHr.map((n: any) => n.user_id === user.user_id ? { ...n, is_read: true } : n);
+      localStorage.setItem('hrNotifications', JSON.stringify(updatedHr));
+
+      const readList = JSON.parse(localStorage.getItem('readCompanyLeaves') || '[]');
         if (!readList.includes(id)) {
           readList.push(id);
           localStorage.setItem('readCompanyLeaves', JSON.stringify(readList));

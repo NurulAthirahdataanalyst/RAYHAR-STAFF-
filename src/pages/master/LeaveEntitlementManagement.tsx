@@ -1,4 +1,24 @@
 import { useState, useEffect, useRef } from "react";
+
+// HR Notification Helper (Mocking DB insertion via localStorage)
+const createHRNotification = (userId: string, title: string, message: string) => {
+  try {
+    const existing = JSON.parse(localStorage.getItem('hrNotifications') || '[]');
+    existing.push({
+      id: 'hr-notif-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9),
+      user_id: userId,
+      title,
+      message,
+      type: 'leave_adjustment',
+      is_read: false,
+      created_at: new Date().toISOString()
+    });
+    localStorage.setItem('hrNotifications', JSON.stringify(existing));
+    window.dispatchEvent(new Event('storage'));
+  } catch (e) {
+    console.error("Failed to create HR notification", e);
+  }
+};
 import {
   Award,
   BadgePlus,
@@ -623,6 +643,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
       source_module: 'Annual Leave Allocation',
     }));
 
+      createHRNotification(selectedEmp.user_id, "Replacement Leave Awarded", `You are qualified for Replacement Leave! HR Admin has converted ${totalSelectedOTHours} OT hours into ${allocatedDays} days of ${targetLeaveType}.`);
     toast({
       title: "OT Conversion Successful",
       description: `Allocated +${allocatedDays} days of ${targetLeaveType} to ${selectedEmp.full_name} for ${totalSelectedOTHours} hours of Overtime.`,
@@ -1479,6 +1500,7 @@ function ManualLeaveAdjustmentForm({
       const newEntitlement = currentBase + adjValue;
       (() => {})();
 
+      createHRNotification(selectedEmp.user_id, adjValue >= 0 ? "Leave Added" : "Leave Deducted", `HR Admin has ${adjValue >= 0 ? 'added' : 'deducted'} ${Math.abs(adjValue)} days ${adjValue >= 0 ? 'to' : 'from'} your ${leaveType}.`);
       toast({
         title: "Leave balance updated successfully.",
         description: (
