@@ -1159,7 +1159,8 @@ async function getEmployeeLocations(branch) {
              COALESCE(el.latitude, a.clock_in_latitude) AS latitude,
              COALESCE(el.longitude, a.clock_in_longitude) AS longitude,
              COALESCE(el.accuracy, a.clock_in_accuracy) AS accuracy,
-             a.distance_meters AS distance
+             a.distance_meters AS distance,
+             CASE WHEN oa.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_outstation
       FROM attendances a
       JOIN (
         SELECT user_id, MAX(clock_in) AS max_in
@@ -1174,6 +1175,9 @@ async function getEmployeeLocations(branch) {
           ON el1.id = el2.max_id
       ) el ON el.employee_id = a.user_id
       LEFT JOIN profiles p ON p.user_id = a.user_id
+      LEFT JOIN outstation_assignments oa ON oa.user_id = a.user_id 
+           AND oa.status != 'Cancelled' 
+           AND CURRENT_DATE BETWEEN (oa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (oa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date
       WHERE 1=1 ${branchFilter}
     `;
     const [rows] = await pool.query(sql, params);

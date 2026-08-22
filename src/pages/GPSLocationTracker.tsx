@@ -10,6 +10,7 @@ import { RefreshCw, MapPin } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
+import { useToast } from "@/hooks/use-toast";
 
 type Employee = {
   user_id: string;
@@ -29,6 +30,7 @@ type EmpLocation = {
   locationName?: string | null;
   department?: string | null;
   distance?: number | null;
+  is_outstation?: boolean;
 };
 
 const getMarkerHTML = (loc: EmpLocation, isSelected: boolean) => {
@@ -59,6 +61,7 @@ const getMarkerHTML = (loc: EmpLocation, isSelected: boolean) => {
 export default function GPSLocationTracker() {
   const { user } = useAuth();
   const { role } = useRole();
+  const { toast } = useToast();
 
   const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371e3; // metres
@@ -111,6 +114,7 @@ export default function GPSLocationTracker() {
                   locationName: r.location || null,
                   department: r.department || null,
                   distance: r.distance != null ? Number(r.distance) : null,
+                  is_outstation: !!r.is_outstation,
                 };
                 list.push({ user_id: userId, full_name: r.full_name || r.fullName || "", branch: r.branch || "", department: r.department || "" });
               }
@@ -143,7 +147,7 @@ export default function GPSLocationTracker() {
     }
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (showToast = false) => {
     setLoading(true);
     try {
       // Use aggregated endpoint to fetch all locations at once
@@ -166,6 +170,7 @@ export default function GPSLocationTracker() {
               locationName: r.location || null,
               department: r.department || null,
               distance: r.distance != null ? Number(r.distance) : null,
+              is_outstation: !!r.is_outstation,
             };
             list.push({ user_id: userId, full_name: r.full_name || r.fullName || "", branch: r.branch || "", department: r.department || "" });
           }
@@ -174,6 +179,9 @@ export default function GPSLocationTracker() {
       setEmployees(list);
       setLocations(locMap);
 
+      if (showToast) {
+        toast({ title: "Location Updated", description: "Locations for all users have been updated successfully." });
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -308,7 +316,7 @@ export default function GPSLocationTracker() {
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={() => void fetchData()}>
+            <Button onClick={() => void fetchData(true)}>
               <RefreshCw className="w-4 h-4 mr-2" />
               Update Location
             </Button>
@@ -441,7 +449,16 @@ export default function GPSLocationTracker() {
                     <TableRow key={e.user_id} className="hover:bg-muted/50">
                       <TableCell className="font-bold">{e.full_name || e.user_id}</TableCell>
                       <TableCell>{e.branch}</TableCell>
-                      <TableCell>{statusDot(loc?.last_updated)} {loc?.lat && loc?.lng ? "Available" : "Offline"}</TableCell>
+                      <TableCell>
+                        {loc?.is_outstation ? (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 dark:bg-pink-500/20 dark:text-pink-300 text-xs font-bold border border-pink-200 dark:border-pink-500/30">
+                            <div className="w-1.5 h-1.5 rounded-full bg-pink-500" />
+                            Outstation
+                          </span>
+                        ) : (
+                          <>{statusDot(loc?.last_updated)} {loc?.lat && loc?.lng ? "Available" : "Offline"}</>
+                        )}
+                      </TableCell>
                       <TableCell>{loc?.last_updated ? new Date(loc.last_updated).toLocaleString() : "-"}</TableCell>
                       <TableCell>{loc?.distance != null ? `${Math.round(loc.distance)}m` : "-"}</TableCell>
                       <TableCell>
