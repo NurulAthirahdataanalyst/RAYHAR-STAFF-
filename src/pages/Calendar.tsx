@@ -1060,7 +1060,7 @@ export default function Calendar() {
                 ))}
               </div>
               
-              <div className="flex-1 grid grid-cols-7 bg-border/60 gap-px auto-rows-fr">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 bg-border/60"><div className="grid grid-cols-7 gap-px auto-rows-[minmax(120px,auto)]">
                 {calendarDays.map((day, i) => {
                   const isCurrentMonth = isSameMonth(day, selectedDate);
                   const dayStr = format(day, 'yyyy-MM-dd');
@@ -1234,9 +1234,10 @@ export default function Calendar() {
                   );
                 })}
               </div>
-            </>
-          ) : (
-            <div className="flex flex-col flex-1 bg-white dark:bg-card overflow-hidden">
+              </div>
+              </>
+            ) : (
+              <div className="flex flex-col flex-1 bg-white dark:bg-card overflow-hidden">
               {/* Week Header */}
               <div className="flex border-b border-border/60 bg-[#7B0099] text-white">
                 <div className="w-16 flex-shrink-0 border-r border-white/20" />
@@ -2351,4 +2352,5 @@ export default function Calendar() {
     </div>
   );
 }
+
 
