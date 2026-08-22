@@ -18,6 +18,19 @@ export default {
         body: ['var(--font-body)'],
       },
       colors: {
+        pink: {
+          50: '#fdf1f9',
+          100: '#fce5f4',
+          200: '#fabbe8',
+          300: '#f885d5',
+          400: '#f75bbf',
+          500: '#f746b9',
+          600: '#db2094',
+          700: '#bd1378',
+          800: '#9d1463',
+          900: '#831655',
+          950: '#510731',
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -127,3 +140,4 @@ export default {
   },
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;
+

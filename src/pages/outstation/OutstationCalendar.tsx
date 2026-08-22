@@ -11,7 +11,7 @@ import { Loader2, ChevronLeft, ChevronRight, MapPin, CalendarDays, Users, Plane,
 import PageActions from "@/components/layout/PageActions";
 import { API_BASE_URL } from "../../config/api";
 
-const PINK = "#EC4899";
+const PINK = "#f746b9";
 
 function fmtDate(d: string) {
   if (!d) return "—";
@@ -328,6 +328,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
     </div>
   );
 }
+
 
 
 

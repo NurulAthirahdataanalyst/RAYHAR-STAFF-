@@ -16,7 +16,7 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { API_BASE_URL } from "../../config/api";
 
-const PINK = "#EC4899";
+const PINK = "#f746b9";
 
 function fmtDate(d: string) {
   if (!d) return "—";
@@ -513,3 +513,4 @@ export default function MyOutstation() {
     </div>
   );
 }
+

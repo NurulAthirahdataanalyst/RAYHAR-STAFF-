@@ -1422,7 +1422,7 @@ export default function AttendanceDashboard() {
                                   attStatus === 'Present (Late)' ? 'bg-amber-500' : 
                                   attStatus === 'Company Leave' ? 'bg-purple-500' :
                                   attStatus === 'Approved Leave' ? 'bg-blue-500' :
-                                  attStatus === 'Outstation' ? 'bg-[#EC4899] animate-pulse' :
+                                  attStatus === 'Outstation' ? 'bg-[#f746b9] animate-pulse' :
                                   attStatus === 'Weekend' ? 'bg-gray-500' :
                                   'bg-red-500'
                                 }`} />
@@ -1594,7 +1594,7 @@ export default function AttendanceDashboard() {
                         <td className="px-4 py-2">
                           {displayStatus === 'Outstation' ? (
                             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-pink-50 text-pink-700 border border-pink-200 shadow-sm">
-                              <span className="w-1 h-1 rounded-full mr-1 bg-[#EC4899] animate-pulse" />
+                              <span className="w-1 h-1 rounded-full mr-1 bg-[#f746b9] animate-pulse" />
                               Outstation
                             </span>
                           ) : displayStatus === 'Company Leave' ? (
@@ -1900,7 +1900,7 @@ export default function AttendanceDashboard() {
                         data={[
                           { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
                           { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
-                          { name: 'Outstation', value: liveStats.outstation || 0, color: '#EC4899' },
+                          { name: 'Outstation', value: liveStats.outstation || 0, color: '#f746b9' },
                           { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
                           { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
                           { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
@@ -1919,7 +1919,7 @@ export default function AttendanceDashboard() {
                         {[
                           { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
                           { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
-                          { name: 'Outstation', value: liveStats.outstation || 0, color: '#EC4899' },
+                          { name: 'Outstation', value: liveStats.outstation || 0, color: '#f746b9' },
                           { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
                           { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
                           { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
@@ -1944,7 +1944,7 @@ export default function AttendanceDashboard() {
                   {[
                     { name: 'Present (On Time)', value: Math.max(0, (liveStats.present || 0) - (liveStats.late || 0)), color: '#16A34A' },
                     { name: 'Present (Late)', value: liveStats.late || 0, color: '#EAB308' },
-                    { name: 'Outstation', value: liveStats.outstation || 0, color: '#EC4899' },
+                    { name: 'Outstation', value: liveStats.outstation || 0, color: '#f746b9' },
                     { name: 'Approved Leave', value: liveStats.onLeave || 0, color: '#3B82F6' },
                     { name: 'Company Leave', value: liveStats.companyLeave || 0, color: '#8B5CF6' },
                     { name: 'Absent', value: liveStats.absent || 0, color: '#DC2626' },
@@ -2003,3 +2003,4 @@ export default function AttendanceDashboard() {
     </div>
   );
 }
+
