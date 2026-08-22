@@ -208,7 +208,7 @@ function groupByDate(logs: EntitlementHistoryLog[]): Array<{ dateLabel: string; 
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarWidget } from "@/components/ui/calendar";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays } from "lucide-react";`nimport { format } from "date-fns";
 
 function CustomDatePicker({ value, onChange, placeholder, disabled, className }: { value: string, onChange: (val: string) => void, placeholder?: string, disabled?: boolean, className?: string }) {
   return (
@@ -216,7 +216,7 @@ function CustomDatePicker({ value, onChange, placeholder, disabled, className }:
       <PopoverTrigger asChild>
         <button type="button" disabled={disabled} className={`appearance-none flex items-center justify-between px-3 h-8 bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider hover:border-blue-500/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className || "w-36"}`}>
           <span className="font-bold text-foreground">
-            {value ? new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : (placeholder || "Select Date")}
+            {value ? format(new Date(value), "dd MMM yyyy").toUpperCase() : (placeholder || "Select Date")}
           </span>
           <CalendarDays className="w-3.5 h-3.5 text-foreground opacity-70" />
         </button>
@@ -389,7 +389,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
 
           {/* Custom date range */}
           {dateRange === 'custom' && (
-            <div className="px-4 py-3 border-b border-border/40 bg-blue-50/30 flex items-center gap-3 flex-wrap">
+            <div className="px-4 py-3 border-b border-border/40 bg-blue-50/30 flex items-center justify-end gap-3 flex-wrap">
               <Label className="text-xs font-bold text-foreground">From</Label>
               <CustomDatePicker value={customFrom} onChange={setCustomFrom} placeholder="From" className="w-[140px]" />
               <Label className="text-xs font-bold text-foreground">To</Label>
