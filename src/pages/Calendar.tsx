@@ -2286,14 +2286,14 @@ export default function Calendar() {
                               </div>
                               <div className="grid grid-cols-2 gap-2">
                                 <div className="flex items-center gap-2">
-                                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                                  
                                   <div>
                                     <p className="text-[10px] text-foreground uppercase font-semibold">Clock In</p>
                                     <p className="text-sm font-bold text-foreground">{inStr}</p>
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <div className={`w-2 h-2 rounded-full ${outStr ? 'bg-red-400' : 'bg-gray-300'}`} />
+                                  
                                   <div>
                                     <p className="text-[10px] text-foreground uppercase font-semibold">Clock Out</p>
                                     <p className="text-sm font-bold text-foreground">{outStr || '—'}</p>
@@ -2374,5 +2374,6 @@ export default function Calendar() {
     </div>
   );
 }
+
 
 
