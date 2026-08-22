@@ -218,7 +218,7 @@ export default function MyOutstation() {
               <button
                 key={s}
                 onClick={() => { setTab(s); setSearchParams({ tab: s.toLowerCase() }); }}
-                className={`text-sm font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] whitespace-nowrap ${
+                className={`text-sm font-black uppercase tracking-widest pb-3 translate-y-[1px] transition-colors border-b-[3px] whitespace-nowrap ${
                   tab === s 
                     ? (s === "Upcoming" ? "text-amber-500 border-amber-500" :
                        s === "Active" ? "text-pink-500 border-pink-500" :
@@ -513,4 +513,7 @@ export default function MyOutstation() {
     </div>
   );
 }
+
+
+
 

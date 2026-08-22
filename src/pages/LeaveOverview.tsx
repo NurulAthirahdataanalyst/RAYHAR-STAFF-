@@ -60,7 +60,9 @@ const approvalProgress = (status: string) => {
     case "Rejected": return 100;
     case "Pending HOD": return 25;
     case "Pending Branch Leader": return 25;
-    case "Pending Finance": return 50;
+    case "Pending Operation": return 50;
+      case "Pending Operation Manager": return 50;
+      case "Pending Finance": return 50;
     case "Pending MD": return 75;
     default: return 25;
   }
@@ -273,8 +275,8 @@ export default function LeaveOverview() {
                   />
                 </div>
                 {item.total && (
-                  <p className="text-[7px] font-black text-foreground text-right uppercase tracking-widest opacity-60">
-                    {item.total - item.used} Days Remaining
+                  <p className="text-[7px] font-black text-foreground text-right uppercase tracking-widest">
+                    {item.total - item.used} DAYS REMAINING
                   </p>
                 )}
               </div>
@@ -439,7 +441,7 @@ export default function LeaveOverview() {
                     </div>
 
                     <div className="grid grid-cols-4 gap-1 px-1">
-                      {["Submit", "HOD", "Finance", "MD"].map((step, idx) => {
+                      {["Submit", "HOD", "Operation", "MD"].map((step, idx) => {
                         const progress = approvalProgress(req.status);
                         const thresholds = [0, 25, 50, 75];
                         const isActive = progress >= thresholds[idx];
@@ -475,3 +477,4 @@ export default function LeaveOverview() {
     </div>
   );
 }
+

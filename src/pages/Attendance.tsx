@@ -1502,7 +1502,7 @@ export default function Attendance() {
 
           {/* Timeline Bar Card */}
           <div className="bg-card dark:bg-card border border-border shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl p-5 sm:p-6 flex flex-col relative overflow-hidden min-h-[220px]">
-            <h3 className="text-xs font-black text-foreground/60 uppercase tracking-widest mb-6">
+            <h3 className="text-xs font-black text-foreground uppercase tracking-widest mb-6">
               Monthly Attendance Breakdown
             </h3>
 
@@ -1850,5 +1850,6 @@ export default function Attendance() {
     </div>
   );
 }
+
 
 
