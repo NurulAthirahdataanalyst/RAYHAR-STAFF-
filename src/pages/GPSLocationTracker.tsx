@@ -83,6 +83,7 @@ export default function GPSLocationTracker() {
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
   const [branchFilter, setBranchFilter] = useState<string>("All");
+  const [statusFilter, setStatusFilter] = useState<string>("All");
   const mapRef = useRef<any | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -210,8 +211,19 @@ export default function GPSLocationTracker() {
   const filtered = useMemo(() => {
     return visibleEmployees
       .filter((e) => (branchFilter === "All" ? true : (e.branch || "") === branchFilter))
-      .filter((e) => (query ? (e.full_name || "").toLowerCase().includes(query.toLowerCase()) : true));
-  }, [visibleEmployees, branchFilter, query]);
+      .filter((e) => (query ? (e.full_name || "").toLowerCase().includes(query.toLowerCase()) : true))
+      .filter((e) => {
+        if (statusFilter === "All") return true;
+        const loc = locations[e.user_id];
+        if (statusFilter === "Outstation") {
+          return loc?.is_outstation;
+        }
+        const isAvail = !!(loc?.lat && loc?.lng && !loc?.is_outstation);
+        if (statusFilter === "Available") return isAvail;
+        if (statusFilter === "Unavailable") return !isAvail && !loc?.is_outstation;
+        return true;
+      });
+  }, [visibleEmployees, branchFilter, query, statusFilter, locations]);
 
   const focusOn = (empId: string) => {
     const loc = locations[empId];
@@ -422,15 +434,46 @@ export default function GPSLocationTracker() {
           </Map>
         </div>
 
-        <div>
-          <div className="mb-3 flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-black">Employee List</h3>
-              <p className="text-xs text-muted-foreground">Showing {filtered.length} employees</p>
+          <div>
+            <div className="mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-black">Employee List</h3>
+                <p className="text-xs text-muted-foreground">Showing {filtered.length} employees</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Input
+                  placeholder="Search by name..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="w-48 h-8 text-xs"
+                />
+                {branches.length > 1 && (
+                  <Select value={branchFilter} onValueChange={setBranchFilter}>
+                    <SelectTrigger className="w-32 h-8 text-xs">
+                      <SelectValue placeholder="Branch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {branches.map((b) => (
+                        <SelectItem key={b} value={b} className="text-xs">{b === "All" ? "All Branches" : b}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-32 h-8 text-xs">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All" className="text-xs">All Status</SelectItem>
+                    <SelectItem value="Available" className="text-xs">Available</SelectItem>
+                    <SelectItem value="Unavailable" className="text-xs">Unavailable</SelectItem>
+                    <SelectItem value="Outstation" className="text-xs">Outstation</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
 
-          <div className="overflow-auto max-h-[480px] border rounded-lg">
+            <div className="overflow-auto max-h-[480px] border rounded-lg">
             <Table>
               <TableHeader>
                 <TableRow>
