@@ -988,7 +988,7 @@ export default function Attendance() {
             } else {
               let desc = "Your location has been updated.";
               if (dist_meters !== undefined && !isNaN(dist_meters)) {
-                const formatDist = (d: number) => d >= 1000 ? `${(d/1000).toFixed(1)} km` : `${d} m`;
+                const formatDist = (d: number) => d >= 1000 ? `${(d/1000).toFixed(1)} km` : `${d}m`;
                 const oldDistStr = locationDistance !== null ? formatDist(locationDistance) : "unknown distance";
                 const newDistStr = formatDist(dist_meters);
                 desc = `Your current location changed from ${oldDistStr} to ${newDistStr} from ${branchInfo?.name || branchCode}.`;
