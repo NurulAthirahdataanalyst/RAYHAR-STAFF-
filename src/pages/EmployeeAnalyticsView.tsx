@@ -760,7 +760,29 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     if (lateArrivals > 0) list.push(`⚠️ You have ${lateArrivals} late arrival${lateArrivals > 1 ? 's' : ''} this month.`);
     if (streak >= 10) list.push(`🎉 Perfect attendance streak of ${streak} days.`);
     if (leaveBalanceRemaining > 0) list.push(`📌 You have ${leaveBalanceRemaining} leave days remaining.`);
-    if (profile?.total_adjustment > 0) list.push(`🎁 HR adjusted your leave by +${profile.total_adjustment} days.`);
+    
+      try {
+        const historyData = localStorage.getItem('leave_entitlement_history_v2');
+        if (historyData) {
+          const logs = JSON.parse(historyData);
+          const userLogs = logs.filter((l: any) => l.employee_id === userId);
+          const validActionTypes = ['Manual Adjustment', 'Additional Allocation', 'Additional', 'Deduction', 'Special', 'Special Leave', 'OT Conversion'];
+          const recentAdj = userLogs
+            .filter((l: any) => (validActionTypes.includes(l.action_type) || l.adjustment !== 0) && !['Initial Allocation', 'Carry Forward'].includes(l.action_type))
+            .sort((a: any, b: any) => new Date(b.created_at || b.timestamp || b.date).getTime() - new Date(a.created_at || a.timestamp || a.date).getTime())[0];
+
+          if (recentAdj && recentAdj.adjustment !== 0) {
+            const absAdj = Math.abs(recentAdj.adjustment);
+            if (recentAdj.adjustment > 0) {
+              list.push(`➕ HR added ${absAdj} day${absAdj > 1 ? 's' : ''} of ${recentAdj.leave_type}. The current balance is now ${recentAdj.new_balance} days.`);
+            } else {
+              list.push(`➖ HR deducted ${absAdj} day${absAdj > 1 ? 's' : ''} of ${recentAdj.leave_type}. The current balance after deducted is now ${recentAdj.new_balance} days.`);
+            }
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
     if (monthOutstationsCount > 0) list.push(`🚗 You have ${monthOutstationsCount} outstation request${monthOutstationsCount > 1 ? 's' : ''}.`);
     if (list.length === 0) list.push("Keep up the good work!");
     return list;
