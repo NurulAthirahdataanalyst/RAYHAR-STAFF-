@@ -359,30 +359,65 @@ export default function WorkforceCalendar() {
                     <div className={`w-full text-right text-[12px] font-bold mb-1.5 px-1 ${textCol}`}>
                       {format(day, 'd')}
                     </div>
-                    <div className="space-y-0.5">
-                      {evts.slice(0, 4).map(e => {
-                        const c = getEventColor(e);
+                    <div className="space-y-1 mt-1">
+                      {(() => {
+                        const summary: Record<string, { count: number, c: any }> = {};
+                        evts.forEach(e => {
+                          let key = e.type;
+                          if (e.source === "leave") key = "Leave";
+                          else if (e.source === "outstation") key = "Outstation";
+                          else if (e.source === "company_leave") key = "Company Leave";
+                          else if (e.type === "Present (On Time)") key = "Present (On Time)";
+                          else if (e.type === "Present (Late)") key = "Present (Late)";
+                          else if (e.type === "Absent") key = "Absent";
+                          else if (e.type === "Rest/Wknd") key = "Rest/Wknd";
+                          
+                          if (!summary[key]) {
+                            summary[key] = { count: 0, c: getEventColor(e) };
+                            if (key === "Leave") summary[key].c = EVENT_COLORS["__default__"];
+                          }
+                          summary[key].count++;
+                        });
+                        
+                        const sortedKeys = Object.keys(summary).sort((a, b) => {
+                           const pA = getEventPriority({ source: summary[a].c.label === "Company Leave" ? "company_leave" : summary[a].c.label === "Outstation" ? "outstation" : "leave" } as any);
+                           const pB = getEventPriority({ source: summary[b].c.label === "Company Leave" ? "company_leave" : summary[b].c.label === "Outstation" ? "outstation" : "leave" } as any);
+                           return pA - pB;
+                        });
+                        
                         return (
-                          <div
-                            key={e.id}
-                            onClick={(ev) => { ev.stopPropagation(); setSelectedEventInfo({event: e, date: format(day, 'yyyy-MM-dd')}); }}
-                            className={`px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer flex items-center gap-1 ${c.bg} ${c.text} truncate border ${c.border} hover:opacity-80 transition-opacity`}
-                            title={`${e.employee} - ${e.type}`}
-                          >
-                            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />
-                            <span className="truncate">{e.source === "company_leave" ? `🏢 ${e.name || e.type}` : e.employee?.split(" ")[0]}</span>
-                          </div>
+                          <>
+                            {sortedKeys.map(key => {
+                              const { count, c } = summary[key];
+                              const displayLabel = key === "Present (On Time)" ? "Present" : key === "Present (Late)" ? "Late" : key;
+                              
+                              if (key === "Company Leave") {
+                                return (
+                                  <div key={key} className={`px-1.5 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 ${c.bg} ${c.text} border ${c.border}`}>
+                                     <span className="truncate">{evts.find(e => e.source === "company_leave")?.name || "Company Leave"}</span>
+                                  </div>
+                                );
+                              }
+
+                              return (
+                                <div key={key} className={`px-1.5 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 ${c.bg} ${c.text} border ${c.border}`}>
+                                  <span className="truncate">{count} {displayLabel}</span>
+                                </div>
+                              );
+                            })}
+                            {evts.length === 0 && (day.getDay() === 0 || day.getDay() === 6) && (
+                              <div className="px-1.5 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">
+                                <span className="truncate">Rest/Wknd</span>
+                              </div>
+                            )}
+                          </>
                         );
-                      })}
-                      {evts.length > 4 && (
-                        <div className={`text-[9px] font-bold pl-1 ${today ? 'text-[#7B0099]' : 'text-foreground'}`}>
-                          +{evts.length - 4} more
-                        </div>
-                      )}
+                      })()}
                     </div>
                   </div>
                 );
               })}
+
             </div>
           </>
         )}
@@ -628,3 +663,4 @@ export default function WorkforceCalendar() {
     </div>
   );
 }
+

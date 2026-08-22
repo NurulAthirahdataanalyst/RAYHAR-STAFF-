@@ -697,7 +697,7 @@ export default function Reports() {
               <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] lg:col-span-2 p-4 space-y-4 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
                 <div>
                   <h3 className="text-base sm:text-lg font-black text-foreground uppercase tracking-tight">Configure Analytical Report</h3>
-                  <p className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-wider opacity-60">Generate targeted PDF/CSV datasets compiled directly from live database logs</p>
+                  <p className="text-[10px] sm:text-xs font-bold text-foreground uppercase tracking-wider">Generate targeted PDF/CSV datasets compiled directly from live database logs</p>
                 </div>
 
                   {/* 1. Report Type Selection */}
@@ -721,7 +721,7 @@ export default function Reports() {
                           <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Attendance Trends</span>
                         </div>
                         <hr className="border-border/50 my-2.5 w-full" />
-                        <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Clock-in, late check audits, and raw timelines</span>
+                        <span className="text-[10px] font-medium leading-normal text-foreground dark:text-slate-300">Clock-in, late check audits, and raw timelines</span>
                       </button>
 
                       <button
@@ -741,7 +741,7 @@ export default function Reports() {
                           <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Leave Utilization</span>
                         </div>
                         <hr className="border-border/50 my-2.5 w-full" />
-                        <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Department utilization rates and absence charts</span>
+                        <span className="text-[10px] font-medium leading-normal text-foreground dark:text-slate-300">Department utilization rates and absence charts</span>
                       </button>
 
                       <button
@@ -761,7 +761,7 @@ export default function Reports() {
                           <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Outstation Assignment</span>
                         </div>
                         <hr className="border-border/50 my-2.5 w-full" />
-                        <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Official business travel and assignment activities</span>
+                        <span className="text-[10px] font-medium leading-normal text-foreground dark:text-slate-300">Official business travel and assignment activities</span>
                       </button>
 
                       <button
@@ -781,7 +781,7 @@ export default function Reports() {
                           <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Company Leave Calendar</span>
                         </div>
                         <hr className="border-border/50 my-2.5 w-full" />
-                        <span className="text-[10px] font-medium opacity-80 leading-normal text-slate-600 dark:text-slate-300">Corporate holidays and organization-wide leave schedule</span>
+                        <span className="text-[10px] font-medium leading-normal text-foreground dark:text-slate-300">Corporate holidays and organization-wide leave schedule</span>
                       </button>
                     </div>
                   </div>
@@ -904,7 +904,7 @@ export default function Reports() {
             <Card className="border-none shadow-sm bg-card/60 backdrop-blur-md rounded-[28px] overflow-hidden p-4 flex flex-col gap-4 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
               <div>
                 <h4 className="text-xs font-black text-foreground uppercase tracking-widest">Synthesis Preview</h4>
-                <p className="text-[9px] font-bold text-foreground uppercase tracking-wider opacity-60 mt-0.5">Real-time compilation preview</p>
+                <p className="text-[9px] font-bold text-foreground uppercase tracking-wider mt-0.5">Real-time compilation preview</p>
               </div>
 
               {/* Counter Display */}
