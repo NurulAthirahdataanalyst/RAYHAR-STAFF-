@@ -330,7 +330,7 @@ export default function GPSLocationTracker() {
             </Select>
             <Button onClick={() => void fetchData(true)}>
               <RefreshCw className="w-4 h-4 mr-2" />
-              Update Location
+              Refresh Map
             </Button>
           </div>
         </div>

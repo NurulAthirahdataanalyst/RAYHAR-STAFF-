@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { MapPin, Calendar, CheckCircle2, XCircle, Search, Loader2, Plus, Edit, Trash2, Clock } from "lucide-react";
+import { MapPin, Calendar, CheckCircle2, XCircle, Search, Loader2, Plus, Edit, Trash2, Clock, X } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -49,6 +49,7 @@ const TemporaryAssignments = () => {
   const [submittingAssign, setSubmittingAssign] = useState(false);
   const [employees, setEmployees] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
+  const [employeeSearch, setEmployeeSearch] = useState("");
   
   const [editId, setEditId] = useState<number | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -359,14 +360,55 @@ const TemporaryAssignments = () => {
           <div className="space-y-4 pt-4">
             <div>
               <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Employee</Label>
-              <Select value={assignForm.user_id} onValueChange={(val) => setAssignForm({...assignForm, user_id: val})}>
+              <Select value={assignForm.user_id} onValueChange={(val) => { setAssignForm({...assignForm, user_id: val}); setEmployeeSearch(""); }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Employee" />
                 </SelectTrigger>
-                <SelectContent className="max-h-[200px]">
-                  {employees.map(e => (
-                    <SelectItem key={e.user_id} value={e.user_id}>{e.full_name} ({e.branch})</SelectItem>
-                  ))}
+                <SelectContent className="max-h-[280px]">
+                  {/* Search input inside dropdown */}
+                  <div className="flex items-center border-b px-2 py-1.5 gap-1.5 sticky top-0 bg-white dark:bg-slate-950 z-10">
+                    <Search className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                    <input
+                      className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
+                      placeholder="Search name..."
+                      value={employeeSearch}
+                      onChange={(e) => setEmployeeSearch(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    />
+                    {employeeSearch && (
+                      <button onClick={() => setEmployeeSearch("")} className="text-muted-foreground hover:text-foreground">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  {/* Filtered employee list */}
+                  {(() => {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const filtered = employees.filter(e =>
+                      !employeeSearch || e.full_name.toLowerCase().includes(employeeSearch.toLowerCase())
+                    );
+                    if (filtered.length === 0) {
+                      return <div className="px-3 py-4 text-sm text-muted-foreground text-center">No employees found</div>;
+                    }
+                    return filtered.map(e => {
+                      const isActiveOutstation = assignments.some(a =>
+                        String(a.user_id) === String(e.user_id) &&
+                        a.computedStatus === 'Active'
+                      );
+                      return (
+                        <SelectItem key={e.user_id} value={e.user_id}>
+                          <span className="flex items-center gap-2 flex-wrap">
+                            <span>{e.full_name} ({e.branch})</span>
+                            {isActiveOutstation && (
+                              <span className="inline-flex items-center text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-300 px-1.5 py-0.5 rounded-full leading-none">
+                                ⚡ Active Outstation
+                              </span>
+                            )}
+                          </span>
+                        </SelectItem>
+                      );
+                    });
+                  })()}
                 </SelectContent>
               </Select>
             </div>

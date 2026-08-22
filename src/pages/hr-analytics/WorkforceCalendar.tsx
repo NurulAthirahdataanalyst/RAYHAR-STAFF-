@@ -14,6 +14,9 @@ import { API_BASE_URL } from "@/config/api";
 
 // ── Color Config ──────────────────────────────────────────────────────────────
 const EVENT_COLORS: Record<string, { bg: string; text: string; border: string; dot: string; label: string }> = {
+  "Present (On Time)":   { bg: "bg-emerald-100 dark:bg-emerald-500/20", text: "text-emerald-700 dark:text-emerald-300", border: "border-emerald-200 dark:border-emerald-500/30", dot: "bg-emerald-500", label: "Present" },
+  "Present (Late)":      { bg: "bg-amber-100 dark:bg-amber-500/20", text: "text-amber-700 dark:text-amber-300", border: "border-amber-200 dark:border-amber-500/30", dot: "bg-amber-500", label: "Late" },
+  "Absent":              { bg: "bg-red-100 dark:bg-red-500/20", text: "text-red-700 dark:text-red-300", border: "border-red-200 dark:border-red-500/30", dot: "bg-red-500", label: "Absent" },
   "Annual Leave":        { bg: "bg-emerald-100 dark:bg-emerald-500/20", text: "text-emerald-700 dark:text-emerald-300", border: "border-emerald-200 dark:border-emerald-500/30", dot: "bg-emerald-500",  label: "Annual Leave" },
   "Annual/Emergency Leave": { bg: "bg-emerald-100 dark:bg-emerald-500/20", text: "text-emerald-700 dark:text-emerald-300", border: "border-emerald-200 dark:border-emerald-500/30", dot: "bg-emerald-500", label: "Annual Leave" },
   "Sick Leave":          { bg: "bg-red-100 dark:bg-red-500/20",     text: "text-red-700 dark:text-red-300",     border: "border-red-200 dark:border-red-500/30",     dot: "bg-red-500",     label: "Sick Leave" },
@@ -87,6 +90,7 @@ export default function WorkforceCalendar() {
   const [events, setEvents] = useState<WorkforceEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEventInfo, setSelectedEventInfo] = useState<{event: WorkforceEvent, date: string} | null>(null);
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [filterType, setFilterType] = useState("All Types");
   const [filterBranch, setFilterBranch] = useState("__ALL__");
   const [filterDept, setFilterDept] = useState("__ALL__");
@@ -106,7 +110,7 @@ export default function WorkforceCalendar() {
     if (!isMounted.current) return;
     setLoading(true);
     try {
-      const params = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "" });
+      const params = new URLSearchParams({ role, branch: userBranch || "", department: userDepartment || "", month: String(viewMonth + 1), year: String(viewYear) });
       const res = await fetch(`${API_BASE_URL}/api/workforce-calendar?${params}`);
       const data = await res.json();
       if (data.success && isMounted.current) {
@@ -386,7 +390,99 @@ export default function WorkforceCalendar() {
         )}
       </Card>
 
-      {/* Detail Popup */}
+      
+        {/* Daily Summary Popup */}
+        {selectedDay && (() => {
+          const dayStr = format(selectedDay, 'yyyy-MM-dd');
+          const dayEvts = getEventsForDay(selectedDay);
+          const attEvts = dayEvts.filter(e => ["Present (On Time)", "Present (Late)", "Absent"].includes(e.type));
+          const leaveEvts = dayEvts.filter(e => !["Present (On Time)", "Present (Late)", "Absent"].includes(e.type));
+
+          return createPortal(
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedDay(null)}>
+              <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden max-w-2xl w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+                {/* Header */}
+                <div className="flex items-center justify-between bg-[#7B0099] text-white p-4">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="w-5 h-5 opacity-80" />
+                    <h3 className="font-black text-white truncate">{format(selectedDay, 'EEEE, MMMM do yyyy')}</h3>
+                  </div>
+                  <button onClick={() => setSelectedDay(null)} className="p-1.5 rounded-lg hover:bg-white/20 text-white/80 hover:text-white transition-colors">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="p-6 overflow-y-auto space-y-6">
+                  {/* Attendance Section */}
+                  <div>
+                    <h4 className="text-xs font-black uppercase text-gray-500 mb-3 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                      Attendance
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {["Present (On Time)", "Present (Late)", "Absent"].map(type => {
+                        const typeEvts = attEvts.filter(e => e.type === type);
+                        const c = EVENT_COLORS[type];
+                        if (!c) return null;
+                        return (
+                          <div key={type} className={`border rounded-xl p-3 ${c.bg} ${c.border}`}>
+                            <div className="flex justify-between items-center mb-2">
+                              <span className={`text-[10px] font-black uppercase ${c.text}`}>{c.label}</span>
+                              <Badge className={`${c.dot} text-white border-0`}>{typeEvts.length}</Badge>
+                            </div>
+                            <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
+                              {typeEvts.map(e => (
+                                <div key={e.id} className="text-xs font-medium text-gray-800 dark:text-gray-200">
+                                  {e.name}
+                                </div>
+                              ))}
+                              {typeEvts.length === 0 && <div className="text-xs text-gray-400 italic">None</div>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Leaves & Outstation Section */}
+                  {leaveEvts.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-black uppercase text-gray-500 mb-3 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                        Leaves & Outstation
+                      </h4>
+                      <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                        {leaveEvts.map(e => {
+                          const ec = getEventColor(e);
+                          return (
+                            <div key={e.id} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50">
+                              <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${ec.dot}`} />
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-bold text-gray-800 dark:text-gray-100 truncate">
+                                  {e.source === "company_leave" ? (e.name || e.type) : e.name}
+                                </p>
+                                <p className={`text-xs truncate ${ec.text}`}>
+                                  {e.type}
+                                  {e.destination ? ` - ${e.destination}` : ""}
+                                </p>
+                              </div>
+                              {e.branch && e.source !== "company_leave" && (
+                                <Badge variant="outline" className="text-[9px] font-bold px-2 py-0.5 shrink-0">{e.branch}</Badge>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>,
+            document.body
+          );
+        })()}
+
+{/* Detail Popup */}
       {selectedEventInfo && (() => {
         const { event: selectedEvent, date: dateStr } = selectedEventInfo;
         const dayEvts = events.filter(e => {

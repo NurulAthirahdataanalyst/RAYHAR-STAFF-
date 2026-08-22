@@ -218,13 +218,13 @@ export default function NotificationBell() {
                     )}
                   </div>
                   <div className="flex-1 pr-6 relative">
-                    <h4 className={`text-xs font-bold mb-1 ${!notif.is_read ? 'text-white' : 'text-white/70'}`}>
+                    <h4 className={`text-sm font-bold mb-1 text-white`}>
                       {notif.title.replace(/Pending Finance(?: Manager)?/g, "Pending Operation Manager")}
                     </h4>
-                    <p className={`text-[11px] leading-relaxed ${!notif.is_read ? 'text-white/90' : 'text-white/70'}`}>
+                    <p className={`text-sm leading-relaxed text-white`}>
                       {notif.message.replace(/Pending Finance(?: Manager)?/g, "Pending Operation Manager")}
                     </p>
-                    <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest mt-2 block">
+                    <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-2 block">
                       {new Date(notif.created_at).toLocaleString(undefined, {
                         month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                       })}

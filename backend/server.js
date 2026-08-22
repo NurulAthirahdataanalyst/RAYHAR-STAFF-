@@ -9056,7 +9056,7 @@ function broadcastWorkforceCalendarUpdate(payload = { type: 'refresh' }) {
 }
 
 // Helper to compute workforce calendar data for a given role/branch/dept
-async function getWorkforceCalendarData(role, branch, department) {
+async function getWorkforceCalendarData(role, branch, department, month, year) {
   const params = [];
   let leaveWhere = '';
   let outstationWhere = 'WHERE 1=1';
@@ -9070,10 +9070,8 @@ async function getWorkforceCalendarData(role, branch, department) {
     params.push(department);
     outstationWhere = `WHERE oa.department = $${params.length}`;
   } else if (role === 'head_of_department' && !department) {
-    // Safety: HOD without dept sees nothing
     return [];
   }
-  // hr_admin, managing_director, finance_manager → see all
 
   const events = [];
 
@@ -9091,105 +9089,23 @@ async function getWorkforceCalendarData(role, branch, department) {
       leaveParamsCopy
     );
     for (const r of leaveRows) {
-      let isParsed = false;
-      if ((r.leave_type === 'Replacement Leave' || r.leave_type === 'Cuti Ganti') && r.reason && r.reason.includes('[CUTI_GANTI_DATA:')) {
-        try {
-          const jsonStr = r.reason.substring(r.reason.indexOf('[CUTI_GANTI_DATA:') + 17, r.reason.lastIndexOf(']]') + 1);
-          const data = JSON.parse(jsonStr);
-          for (const cg of data) {
-            if (cg.tarikhCuti) {
-              events.push({
-                id: `leave-${r.id}-${cg.tarikhCuti}`,
-                source: 'leave',
-                employee: r.full_name || r.user_id,
-                user_id: r.user_id,
-                branch: r.branch,
-                department: r.department,
-                type: r.leave_type || 'Leave',
-                start_date: cg.tarikhCuti,
-                end_date: cg.tarikhCuti,
-                status: r.status,
-                days: 1,
-              });
-              isParsed = true;
-            }
-          }
-        } catch (e) { console.error('Error parsing CUTI_GANTI_DATA for calendar:', e.message); }
-      }
-      
-      if (!isParsed) {
-        events.push({
-          id: `leave-${r.id}`,
-          source: 'leave',
-          employee: r.full_name || r.user_id,
-          user_id: r.user_id,
-          branch: r.branch,
-          department: r.department,
-          type: r.leave_type || 'Leave',
-          start_date: r.start_date ? new Date(r.start_date).toISOString().split('T')[0] : null,
-          end_date: r.end_date ? new Date(r.end_date).toISOString().split('T')[0] : null,
-          status: r.status,
-          days: r.days,
-        });
-      }
-    }
-    // Also include pending leaves
-    const [pendingRows] = await pool.query(
-      `SELECT lr.leave_id AS id, lr.user_id, p.full_name, p.branch, p.department,
-              lr.leave_type, lr.start_date, lr.end_date, lr.days, lr.status, lr.reason
-       FROM leave_requests lr
-       JOIN profiles p ON p.user_id = lr.user_id
-       WHERE lr.status LIKE 'Pending%'
-       ${leaveWhere}
-       ORDER BY lr.start_date DESC`,
-      [...params]
-    );
-    for (const r of pendingRows) {
-      let isParsed = false;
-      if ((r.leave_type === 'Replacement Leave' || r.leave_type === 'Cuti Ganti') && r.reason && r.reason.includes('[CUTI_GANTI_DATA:')) {
-        try {
-          const jsonStr = r.reason.substring(r.reason.indexOf('[CUTI_GANTI_DATA:') + 17, r.reason.lastIndexOf(']]') + 1);
-          const data = JSON.parse(jsonStr);
-          for (const cg of data) {
-            if (cg.tarikhCuti) {
-              events.push({
-                id: `leave-pending-${r.id}-${cg.tarikhCuti}`,
-                source: 'leave',
-                employee: r.full_name || r.user_id,
-                user_id: r.user_id,
-                branch: r.branch,
-                department: r.department,
-                type: r.leave_type || 'Leave',
-                start_date: cg.tarikhCuti,
-                end_date: cg.tarikhCuti,
-                status: r.status,
-                days: 1,
-              });
-              isParsed = true;
-            }
-          }
-        } catch (e) { console.error('Error parsing CUTI_GANTI_DATA for calendar:', e.message); }
-      }
-      
-      if (!isParsed) {
-        events.push({
-          id: `leave-pending-${r.id}`,
-          source: 'leave',
-          employee: r.full_name || r.user_id,
-          user_id: r.user_id,
-          branch: r.branch,
-          department: r.department,
-          type: r.leave_type || 'Leave',
-          start_date: r.start_date ? new Date(r.start_date).toISOString().split('T')[0] : null,
-          end_date: r.end_date ? new Date(r.end_date).toISOString().split('T')[0] : null,
-          status: r.status,
-          days: r.days,
-        });
-      }
+      events.push({
+        id: `leave-${r.id}`,
+        user_id: r.user_id,
+        name: r.full_name,
+        type: r.leave_type,
+        source: 'leave',
+        start_date: r.start_date,
+        end_date: r.end_date,
+        start_time: null,
+        end_time: null,
+        status: r.status,
+        days: r.days,
+      });
     }
   } catch (e) { console.error('workforce-calendar leave fetch error:', e); }
 
-  // 2. Outstation (Active + Upcoming)
+  // 2. Outstation
   try {
     const outstationParamsCopy = [...params];
     const [outstationRows] = await pool.query(
@@ -9202,40 +9118,24 @@ async function getWorkforceCalendarData(role, branch, department) {
       outstationParamsCopy
     );
     for (const r of outstationRows) {
-      // compute live status
-      const today = new Date().toISOString().split('T')[0];
-      const start = new Date(r.start_date).toISOString().split('T')[0];
-      const end = new Date(r.end_date).toISOString().split('T')[0];
-      let computedStatus = r.status;
-      if (r.status !== 'Cancelled') {
-        if (today < start) computedStatus = 'Upcoming';
-        else if (today >= start && today <= end) computedStatus = 'Active';
-        else computedStatus = 'Completed';
-      }
-      if (computedStatus === 'Cancelled') continue;
       events.push({
         id: `outstation-${r.id}`,
-        source: 'outstation',
-        employee: r.full_name || r.user_id,
         user_id: r.user_id,
-        branch: r.branch,
-        department: r.department,
+        name: r.full_name,
         type: 'Outstation',
-        name: r.project || r.meeting_title || r.purpose || 'Outstation',
+        source: 'outstation',
+        start_date: r.start_date,
+        end_date: r.end_date,
+        start_time: null,
+        end_time: null,
+        status: r.status,
         destination: r.destination,
-        purpose: r.purpose,
-        project: r.project,
-        meeting_title: r.meeting_title,
-        client_company: r.client_company,
-        start_date: start,
-        end_date: end,
-        status: computedStatus,
         days: null,
       });
     }
   } catch (e) { console.error('workforce-calendar outstation fetch error:', e); }
 
-  // 3. Company leaves (Active status)
+  // 3. Company leaves
   try {
     const [companyRows] = await pool.query(
       `SELECT id, leave_name, leave_type, start_date, end_date, applies_to, branch_id, department_id, status
@@ -9244,41 +9144,150 @@ async function getWorkforceCalendarData(role, branch, department) {
        ORDER BY start_date DESC`
     );
     for (const r of companyRows) {
-      // Filter company leaves based on role scope
-      if (role === 'branch_leader' && branch && r.applies_to === 'branch') {
-        const branchList = (r.branch_id || '').split(',').map(s => s.trim());
-        if (!branchList.includes(branch)) continue;
-      }
-      if (role === 'head_of_department' && department && r.applies_to === 'department') {
-        const deptList = (r.department_id || '').split(',').map(s => s.trim());
-        if (!deptList.includes(department)) continue;
-      }
       events.push({
         id: `company-${r.id}`,
-        source: 'company_leave',
-        employee: 'All Staff',
         user_id: null,
-        branch: r.branch_id || 'All',
-        department: r.department_id || 'All',
-        type: r.leave_type || 'Company Leave',
         name: r.leave_name,
-        start_date: r.start_date ? new Date(r.start_date).toISOString().split('T')[0] : null,
-        end_date: r.end_date ? new Date(r.end_date).toISOString().split('T')[0] : null,
-        status: 'Active',
+        type: r.leave_type,
+        source: 'company_leave',
+        start_date: r.start_date,
+        end_date: r.end_date,
+        start_time: null,
+        end_time: null,
+        status: r.status,
         applies_to: r.applies_to,
         days: null,
       });
     }
   } catch (e) { console.error('workforce-calendar company_leave fetch error:', e); }
 
+  // 4. Attendance & Absents (Only if month & year are provided to prevent massive queries)
+  try {
+    if (month && year) {
+      const lateTimeStr = typeof getLateThresholdTime === 'function' ? getLateThresholdTime() : '09:00:00';
+      const attParams = [lateTimeStr, month, year];
+      let attWhere = '';
+      if (role === 'branch_leader' && branch) {
+        attWhere = `AND p.branch = $4`;
+        attParams.push(branch);
+      } else if (role === 'head_of_department' && department) {
+        attWhere = `AND p.department = $4`;
+        attParams.push(department);
+      }
+
+      // Present
+      const [attRows] = await pool.query(
+        `SELECT a.user_id, p.full_name, a.clock_in, a.clock_out,
+                CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > $1::time 
+                THEN 'Present (Late)' ELSE 'Present (On Time)' END as att_status
+         FROM attendances a
+         JOIN profiles p ON p.user_id = a.user_id
+         WHERE EXTRACT(MONTH FROM a.clock_in) = $2 
+           AND EXTRACT(YEAR FROM a.clock_in) = $3
+           AND p.status = 'Active'
+           ${attWhere}`,
+        attParams
+      );
+      for (const r of attRows) {
+        events.push({
+          id: `att-${r.user_id}-${new Date(r.clock_in).getTime()}`,
+          user_id: r.user_id,
+          name: r.full_name,
+          type: r.att_status,
+          source: 'attendance',
+          start_date: r.clock_in,
+          end_date: r.clock_in,
+          status: r.att_status,
+          clock_in: r.clock_in,
+          clock_out: r.clock_out
+        });
+      }
+
+      // Absent (for past days in the month)
+      const now = new Date();
+      const klNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" }));
+      
+      const reqYear = parseInt(year);
+      const reqMonth = parseInt(month) - 1; // 0-indexed
+      let lastDayToCheck = new Date(reqYear, reqMonth + 1, 0).getDate();
+      
+      // If requested month is current month, only check up to today
+      if (reqYear === klNow.getFullYear() && reqMonth === klNow.getMonth()) {
+         lastDayToCheck = klNow.getDate();
+      } else if (reqYear > klNow.getFullYear() || (reqYear === klNow.getFullYear() && reqMonth > klNow.getMonth())) {
+         lastDayToCheck = 0; // Future month, no absents
+      }
+
+      if (lastDayToCheck > 0) {
+        // Build Sets for fast lookup
+        const companyHolidays = new Set();
+        events.filter(e => e.source === 'company_leave').forEach(e => {
+            const start = new Date(e.start_date);
+            const end = new Date(e.end_date);
+            for(let d = new Date(start); d <= end; d.setDate(d.getDate()+1)) {
+               companyHolidays.add(d.toISOString().split('T')[0]);
+            }
+        });
+
+        // Map: user_id -> set of YYYY-MM-DD they are covered (leave, outstation, present)
+        const userCoverage = {};
+
+        events.filter(e => e.source !== 'company_leave').forEach(e => {
+           if (!userCoverage[e.user_id]) userCoverage[e.user_id] = new Set();
+           const start = new Date(e.start_date);
+           const end = new Date(e.end_date || e.start_date);
+           for(let d = new Date(start); d <= end; d.setDate(d.getDate()+1)) {
+              userCoverage[e.user_id].add(d.toISOString().split('T')[0]);
+           }
+        });
+
+        // Get active employees for the scope
+        const empParams = [];
+        let empWhere = '';
+        if (role === 'branch_leader' && branch) {
+          empWhere = `AND branch = $1`;
+          empParams.push(branch);
+        } else if (role === 'head_of_department' && department) {
+          empWhere = `AND department = $1`;
+          empParams.push(department);
+        }
+        const [empRows] = await pool.query(`SELECT user_id, full_name FROM profiles WHERE status = 'Active' ${empWhere}`, empParams);
+
+        for (let day = 1; day <= lastDayToCheck; day++) {
+           const d = new Date(Date.UTC(reqYear, reqMonth, day));
+           const dayOfWeek = d.getUTCDay();
+           if (dayOfWeek === 0 || dayOfWeek === 6) continue; // Skip weekend
+           
+           const dateStr = d.toISOString().split('T')[0];
+           if (companyHolidays.has(dateStr)) continue; // Skip company holiday
+
+           for (const emp of empRows) {
+              if (!userCoverage[emp.user_id] || !userCoverage[emp.user_id].has(dateStr)) {
+                 events.push({
+                   id: `absent-${emp.user_id}-${dateStr}`,
+                   user_id: emp.user_id,
+                   name: emp.full_name,
+                   type: 'Absent',
+                   source: 'attendance',
+                   start_date: d,
+                   end_date: d,
+                   status: 'Absent'
+                 });
+              }
+           }
+        }
+      }
+    }
+  } catch (e) { console.error('workforce-calendar attendance/absent fetch error:', e); }
+
   return events;
 }
 
 // GET /api/workforce-calendar — consolidated workforce availability
 app.get('/api/workforce-calendar', async (req, res) => {
-  try {
-    const { role, branch, department } = req.query;
-    const events = await getWorkforceCalendarData(role, branch, department);
+    try {
+      const { role, branch, department, month, year } = req.query;
+      const events = await getWorkforceCalendarData(role, branch, department, month, year);
     res.json({ success: true, events });
   } catch (err) {
     console.error('GET /api/workforce-calendar error:', err);

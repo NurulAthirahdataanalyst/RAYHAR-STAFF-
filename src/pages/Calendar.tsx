@@ -280,11 +280,14 @@ export default function Calendar() {
       }
 
       // Fetch assigned outstations (only personal data for Work Calendar)
-      const outRes = await fetch(`${API_BASE_URL}/api/outstation?user_id=${currentUserId}`);
+      // Pass role=employee so backend filters strictly by user_id
+      const outRes = await fetch(`${API_BASE_URL}/api/outstation?user_id=${currentUserId}&role=employee`);
       const outData = await outRes.json();
       if (outData.success && outData.assignments) {
+        // Use String() comparison to avoid number vs string type mismatch
         const userOuts = outData.assignments.filter((a: any) => 
-          a.status !== 'Cancelled'
+          a.status !== 'Cancelled' && 
+          (String(a.user_id) === String(currentUserId) || String(a.userId) === String(currentUserId))
         );
         setOutstations(userOuts);
       }
@@ -2177,12 +2180,14 @@ export default function Calendar() {
                 {ds.holidays.length > 0 && (
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white mb-2">🏖️ Public Holiday</p>
-                    {ds.holidays.map((h, i) => (
-                      <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                        <div className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
-                        <p className="font-semibold text-red-700 dark:text-red-300 text-sm">{h.name}</p>
-                      </div>
-                    ))}
+                    <div className="flex flex-col gap-2">
+                      {ds.holidays.map((h, i) => (
+                        <div key={i} className="flex items-center rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 overflow-hidden">
+                          <div className="w-1 self-stretch bg-red-500 flex-shrink-0" />
+                          <p className="font-semibold text-red-700 dark:text-red-300 text-sm px-3 py-2.5">{h.name}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -2190,15 +2195,17 @@ export default function Calendar() {
                 {ds.companyLeaves.length > 0 && (
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white mb-2">🟣 Company Leave</p>
-                    {ds.companyLeaves.map((cl, i) => (
-                      <div key={i} className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
-                        <div className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0 mt-1.5" />
-                        <div>
-                          <p className="font-semibold text-purple-700 dark:text-purple-300 text-sm">{cl.leave_name}</p>
-                          <p className="text-xs text-purple-500 dark:text-purple-400">{cl.leave_type} · {fmtDate(cl.start_date)} – {fmtDate(cl.end_date)}</p>
+                    <div className="flex flex-col gap-2">
+                      {ds.companyLeaves.map((cl, i) => (
+                        <div key={i} className="flex items-start rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 overflow-hidden">
+                          <div className="w-1 self-stretch bg-purple-500 flex-shrink-0" />
+                          <div className="px-3 py-2.5">
+                            <p className="font-semibold text-purple-700 dark:text-purple-300 text-sm">{cl.leave_name}</p>
+                            <p className="text-xs text-purple-500 dark:text-purple-400">{cl.leave_type} · {fmtDate(cl.start_date)} – {fmtDate(cl.end_date)}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -2206,20 +2213,22 @@ export default function Calendar() {
                 {ds.approvedLeaves.length > 0 && (
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white mb-2">✅ Approved Leave</p>
-                    {ds.approvedLeaves.map((l, i) => {
-                      const info = getLeaveTypeInfo(l.leave_type);
-                      const totalDays = getTotalDays(l.start_date?.slice(0,10) || '', l.end_date?.slice(0,10) || '');
-                      return (
-                        <div key={i} className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-                          <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0 mt-1.5" />
-                          <div className="flex-1">
-                            <p className="font-semibold text-emerald-700 dark:text-emerald-300 text-sm">{info.fullTitle}</p>
-                            {l.reason && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">Reason: {l.reason}</p>}
-                            <p className="text-xs text-emerald-500 mt-0.5">{fmtDate(l.start_date)} → {fmtDate(l.end_date)} · <span className="font-bold">{totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
+                    <div className="flex flex-col gap-2">
+                      {ds.approvedLeaves.map((l, i) => {
+                        const info = getLeaveTypeInfo(l.leave_type);
+                        const totalDays = getTotalDays(l.start_date?.slice(0,10) || '', l.end_date?.slice(0,10) || '');
+                        return (
+                          <div key={i} className="flex items-start rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 overflow-hidden">
+                            <div className="w-1 self-stretch bg-emerald-500 flex-shrink-0" />
+                            <div className="flex-1 px-3 py-2.5">
+                              <p className="font-semibold text-emerald-700 dark:text-emerald-300 text-sm">{info.fullTitle}</p>
+                              {l.reason && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">Reason: {l.reason}</p>}
+                              <p className="text-xs text-emerald-500 mt-0.5">{fmtDate(l.start_date)} → {fmtDate(l.end_date)} · <span className="font-bold">{totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
@@ -2227,22 +2236,24 @@ export default function Calendar() {
                 {ds.outstations.length > 0 && (
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white mb-2">✈️ Outstation</p>
-                    {ds.outstations.map((o, i) => {
-                      const totalDays = getTotalDays(o.start_date?.slice(0,10) || '', o.end_date?.slice(0,10) || '');
-                      return (
-                        <div key={i} className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-pink-50 dark:bg-pink-900/20 border border-pink-200 dark:border-pink-800">
-                          <div className="w-2 h-2 rounded-full bg-pink-500 flex-shrink-0 mt-1.5" />
-                          <div className="flex-1">
-                            <p className="font-semibold text-pink-700 dark:text-pink-300 text-sm uppercase">{o.project || o.purpose || o.destination}</p>
-                            <p className="text-xs text-pink-600 dark:text-pink-400 mt-0.5">📍 {o.destination}</p>
-                            {(o.project || o.purpose) && (
-                              <p className="text-xs text-pink-500 mt-0.5">{o.project ? `Project: ${o.project}` : ''}{o.project && o.purpose ? ' · ' : ''}{o.purpose ? `Purpose: ${o.purpose}` : ''}</p>
-                            )}
-                            <p className="text-xs text-pink-500 mt-0.5">{fmtDate(o.start_date)} — {fmtDate(o.end_date)} · <span className="font-bold">{totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
+                    <div className="flex flex-col gap-2">
+                      {ds.outstations.map((o, i) => {
+                        const totalDays = getTotalDays(o.start_date?.slice(0,10) || '', o.end_date?.slice(0,10) || '');
+                        return (
+                          <div key={i} className="flex items-start rounded-xl bg-pink-50 dark:bg-pink-900/20 border border-pink-200 dark:border-pink-800 overflow-hidden">
+                            <div className="w-1 self-stretch bg-pink-500 flex-shrink-0" />
+                            <div className="flex-1 px-3 py-2.5">
+                              <p className="font-semibold text-pink-700 dark:text-pink-300 text-sm uppercase">{o.project || o.purpose || o.destination}</p>
+                              <p className="text-xs text-pink-600 dark:text-pink-400 mt-0.5">📍 {o.destination}</p>
+                              {(o.project || o.purpose) && (
+                                <p className="text-xs text-pink-500 mt-0.5">{o.project ? `Project: ${o.project}` : ''}{o.project && o.purpose ? ' · ' : ''}{o.purpose ? `Purpose: ${o.purpose}` : ''}</p>
+                              )}
+                              <p className="text-xs text-pink-500 mt-0.5">{fmtDate(o.start_date)} — {fmtDate(o.end_date)} · <span className="font-bold">{totalDays} day{totalDays > 1 ? 's' : ''}</span></p>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
@@ -2250,37 +2261,42 @@ export default function Calendar() {
                 {ds.attendance.length > 0 && (
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white mb-2">🟢 Attendance</p>
-                    {ds.attendance.map((a, i) => {
-                      const inStr = formatTime12(a.clock_in);
-                      const outStr = a.clock_out ? formatTime12(a.clock_out) : null;
-                      const workingHrs = getWorkingHours(a.clock_in, a.clock_out);
-                      return (
-                        <div key={i} className="px-3 py-2.5 rounded-xl bg-[#7B0099]/5 dark:bg-purple-900/20 border border-[#7B0099]/20 dark:border-purple-800 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-[#7B0099] dark:text-purple-300 uppercase tracking-wide">🟢 Present</span>
-                            {workingHrs && (
-                              <span className="text-xs font-bold bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full">⏱ {workingHrs}</span>
-                            )}
-                          </div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-green-500" />
-                              <div>
-                                <p className="text-[10px] text-muted-foreground uppercase font-semibold">Clock In</p>
-                                <p className="text-sm font-bold text-foreground">{inStr}</p>
+                    <div className="flex flex-col gap-2">
+                      {ds.attendance.map((a, i) => {
+                        const inStr = formatTime12(a.clock_in);
+                        const outStr = a.clock_out ? formatTime12(a.clock_out) : null;
+                        const workingHrs = getWorkingHours(a.clock_in, a.clock_out);
+                        return (
+                          <div key={i} className="flex items-stretch rounded-xl bg-[#7B0099]/5 dark:bg-purple-900/20 border border-[#7B0099]/20 dark:border-purple-800 overflow-hidden">
+                            <div className="w-1 self-stretch bg-[#7B0099] flex-shrink-0" />
+                            <div className="flex-1 px-3 py-2.5 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-[#7B0099] dark:text-purple-300 uppercase tracking-wide">🟢 Present</span>
+                                {workingHrs && (
+                                  <span className="text-xs font-bold bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full">⏱ {workingHrs}</span>
+                                )}
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                                  <div>
+                                    <p className="text-[10px] text-muted-foreground uppercase font-semibold">Clock In</p>
+                                    <p className="text-sm font-bold text-foreground">{inStr}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-2 h-2 rounded-full ${outStr ? 'bg-red-400' : 'bg-gray-300'}`} />
+                                  <div>
+                                    <p className="text-[10px] text-muted-foreground uppercase font-semibold">Clock Out</p>
+                                    <p className="text-sm font-bold text-foreground">{outStr || '—'}</p>
+                                  </div>
+                                </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <div className={`w-2 h-2 rounded-full ${outStr ? 'bg-red-400' : 'bg-gray-300'}`} />
-                              <div>
-                                <p className="text-[10px] text-muted-foreground uppercase font-semibold">Clock Out</p>
-                                <p className="text-sm font-bold text-foreground">{outStr || '—'}</p>
-                              </div>
-                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
@@ -2288,45 +2304,47 @@ export default function Calendar() {
                 {ds.notes.length > 0 && (
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white mb-2">📝 Personal Events</p>
-                    {ds.notes.map((note, i) => {
-                      const isReminder = note.type === 'reminder';
-                      const isMeeting = note.type === 'meeting';
-                      const customCat = customCategories.find(c => c.id === note.type);
-                      const title = note.note_text.split('\n')[0];
-                      let dotColor = 'bg-blue-500';
-                      let dotStyle: React.CSSProperties | undefined = undefined;
-                      let bgClass = 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800';
-                      let bgStyle: React.CSSProperties | undefined = undefined;
-                      let textClass = 'text-blue-700 dark:text-blue-300';
-                      let textStyle: React.CSSProperties | undefined = undefined;
-                      
-                      if (isReminder) { dotColor = 'bg-yellow-500'; bgClass = 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'; textClass = 'text-yellow-700 dark:text-yellow-300'; }
-                      if (isMeeting) { dotColor = 'bg-green-500'; bgClass = 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'; textClass = 'text-green-700 dark:text-green-300'; }
-                      if (customCat) {
-                        if (customCat.color.startsWith('#')) {
-                          const hex = customCat.color;
-                          dotColor = '';
-                          dotStyle = { backgroundColor: hex };
-                          bgClass = 'border';
-                          bgStyle = { backgroundColor: `${hex}15`, borderColor: `${hex}40` };
-                          textClass = '';
-                          textStyle = { color: hex };
-                        } else {
-                          dotColor = customCat.color;
-                          bgClass = `${customCat.color}/10 border-${customCat.color.replace('bg-', '')}/30`;
-                          textClass = `text-foreground`;
+                    <div className="flex flex-col gap-2">
+                      {ds.notes.map((note, i) => {
+                        const isReminder = note.type === 'reminder';
+                        const isMeeting = note.type === 'meeting';
+                        const customCat = customCategories.find(c => c.id === note.type);
+                        const title = note.note_text.split('\n')[0];
+                        let barColor = 'bg-blue-500';
+                        let barStyle: React.CSSProperties | undefined = undefined;
+                        let bgClass = 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800';
+                        let bgStyle: React.CSSProperties | undefined = undefined;
+                        let textClass = 'text-blue-700 dark:text-blue-300';
+                        let textStyle: React.CSSProperties | undefined = undefined;
+                        
+                        if (isReminder) { barColor = 'bg-yellow-500'; bgClass = 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'; textClass = 'text-yellow-700 dark:text-yellow-300'; }
+                        if (isMeeting) { barColor = 'bg-green-500'; bgClass = 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'; textClass = 'text-green-700 dark:text-green-300'; }
+                        if (customCat) {
+                          if (customCat.color.startsWith('#')) {
+                            const hex = customCat.color;
+                            barColor = '';
+                            barStyle = { backgroundColor: hex };
+                            bgClass = 'border';
+                            bgStyle = { backgroundColor: `${hex}15`, borderColor: `${hex}40` };
+                            textClass = '';
+                            textStyle = { color: hex };
+                          } else {
+                            barColor = customCat.color;
+                            bgClass = `${customCat.color}/10 border-${customCat.color.replace('bg-', '')}/30`;
+                            textClass = `text-foreground`;
+                          }
                         }
-                      }
-                      return (
-                        <div key={i} className={`flex items-start gap-3 px-3 py-2.5 rounded-xl border ${bgClass}`} style={bgStyle}>
-                          <div className={`w-2 h-2 rounded-full ${dotColor} flex-shrink-0 mt-1.5`} style={dotStyle} />
-                          <div>
-                            <p className={`font-semibold text-sm ${textClass}`} style={textStyle}>{title}</p>
-                            <p className="text-xs text-muted-foreground capitalize mt-0.5">{isReminder ? 'Reminder' : isMeeting ? 'Meeting' : customCat?.name || 'Note'}</p>
+                        return (
+                          <div key={i} className={`flex items-start rounded-xl border ${bgClass} overflow-hidden`} style={bgStyle}>
+                            <div className={`w-1 self-stretch ${barColor} flex-shrink-0`} style={barStyle} />
+                            <div className="px-3 py-2.5">
+                              <p className={`font-semibold text-sm ${textClass}`} style={textStyle}>{title}</p>
+                              <p className="text-xs text-muted-foreground capitalize mt-0.5">{isReminder ? 'Reminder' : isMeeting ? 'Meeting' : customCat?.name || 'Note'}</p>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
