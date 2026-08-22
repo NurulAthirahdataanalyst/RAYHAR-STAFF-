@@ -10,7 +10,7 @@ import { RefreshCw, MapPin } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
-import UpdateLocationButton from "@/components/UpdateLocationButton";
+
 type Employee = {
   user_id: string;
   full_name?: string;
@@ -310,9 +310,8 @@ export default function GPSLocationTracker() {
             </Select>
             <Button onClick={() => void fetchData()}>
               <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
+              Update Location
             </Button>
-            {user?.user_id && <UpdateLocationButton userId={user.user_id} />}
           </div>
         </div>
         {/* Alerts panel */}
@@ -583,3 +582,4 @@ export default function GPSLocationTracker() {
     </>
   );
 }
+
