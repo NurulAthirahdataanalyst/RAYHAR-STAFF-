@@ -153,7 +153,7 @@ export default function LeaveEntitlementManagement() {
         // DASHBOARD VIEW
         <>
           <Card className="overflow-hidden border-border/60 bg-card/77 backdrop-blur-sm">
-            <CardHeader className="border-b border-border/50 bg-muted/20">
+            <CardHeader className="border-b border-border/50 bg-muted/20 rounded-t-xl">
               <CardTitle className="flex items-center gap-2 text-lg font-black">
                 <Layers3 className="w-5 h-5 text-[#7B0099]" />
                 Module Scope
@@ -248,7 +248,7 @@ export default function LeaveEntitlementManagement() {
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
             <Card className="xl:col-span-2 border-border/60 bg-card/77 backdrop-blur-sm">
-              <CardHeader className="border-b border-border/50 bg-muted/20">
+              <CardHeader className="border-b border-border/50 bg-muted/20 rounded-t-xl">
                 <CardTitle className="flex items-center gap-2 text-lg font-black">
                   <Award className="w-5 h-5 text-emerald-600" />
                   Recommended HR Workflow
@@ -279,7 +279,7 @@ export default function LeaveEntitlementManagement() {
             </Card>
 
             <Card className="border-border/60 bg-card/77 backdrop-blur-sm">
-              <CardHeader className="border-b border-border/50 bg-muted/20">
+              <CardHeader className="border-b border-border/50 bg-muted/20 rounded-t-xl">
                 <CardTitle className="flex items-center gap-2 text-lg font-black">
                   <CircleAlert className="w-5 h-5 text-amber-600" />
                   Audit Notes
@@ -601,7 +601,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
 
   return (
     <Card className="border-border/60 bg-card/75 shadow-lg">
-      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20">
+      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20 rounded-t-xl">
         <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-sky-500/10 hover:text-sky-600 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Button>
@@ -942,7 +942,7 @@ function CarryForwardLeaveForm({
 
   return (
     <Card className="border-border/60 bg-card/75 shadow-lg">
-      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20">
+      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20 rounded-t-xl">
         <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-emerald-500/10 hover:text-emerald-600 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Button>
@@ -1182,7 +1182,7 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
 
   return (
     <Card className="border-border/60 bg-card/75 shadow-lg max-w-2xl mx-auto">
-      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20">
+      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 mb-4 bg-muted/20 rounded-t-xl">
         <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-violet-500/10 hover:text-violet-600 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Button>
@@ -1465,8 +1465,8 @@ function ManualLeaveAdjustmentForm({
   };
 
   return (
-    <Card className="border-border/60 bg-white dark:bg-card shadow-lg max-w-2xl mx-auto rounded-xl overflow-hidden">
-      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 bg-slate-50 dark:bg-slate-900/50">
+    <Card className="border-border/60 bg-white dark:bg-card shadow-lg max-w-2xl mx-auto rounded-xl overflow-visible">
+      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 bg-slate-50 dark:bg-slate-900/50 rounded-t-xl">
         <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-amber-500/10 hover:text-amber-600 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Button>
@@ -1731,8 +1731,8 @@ function SpecialLeaveCreditsForm({ employees, onCancel }: any) {
   };
 
   return (
-    <Card className="border-border/60 bg-white dark:bg-card shadow-lg max-w-2xl mx-auto rounded-xl overflow-hidden">
-      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 bg-rose-50/50 dark:bg-rose-950/20">
+    <Card className="border-border/60 bg-white dark:bg-card shadow-lg max-w-2xl mx-auto rounded-xl overflow-visible">
+      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 bg-rose-50/50 dark:bg-rose-950/20 rounded-t-xl">
         <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-rose-500/10 hover:text-rose-600 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Button>
@@ -1868,8 +1868,8 @@ function MaternityLeaveForm({ employees, onCancel }: any) {
   };
 
   return (
-    <Card className="border-border/60 bg-white dark:bg-card shadow-lg max-w-2xl mx-auto rounded-xl overflow-hidden">
-      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 bg-pink-50/50 dark:bg-pink-950/20">
+    <Card className="border-border/60 bg-white dark:bg-card shadow-lg max-w-2xl mx-auto rounded-xl overflow-visible">
+      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 bg-pink-50/50 dark:bg-pink-950/20 rounded-t-xl">
         <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-pink-500/10 hover:text-pink-600 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Button>
@@ -2000,8 +2000,8 @@ function ReplacementLeaveValidationForm({ employees, onCancel }: { employees: an
   };
 
   return (
-    <Card className="border-border/60 bg-white dark:bg-card shadow-lg max-w-4xl mx-auto rounded-xl overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0 border-b pb-4 bg-blue-50/50 dark:bg-blue-950/20">
+    <Card className="border-border/60 bg-white dark:bg-card shadow-lg max-w-4xl mx-auto rounded-xl overflow-visible">
+      <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0 border-b pb-4 bg-blue-50/50 dark:bg-blue-950/20 rounded-t-xl">
         <div className="flex flex-row items-center gap-3">
           <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-blue-500/10 hover:text-blue-600 transition-colors">
             <ArrowLeft className="w-4 h-4" />
