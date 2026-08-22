@@ -375,7 +375,6 @@ function EmployeeSearchSelector({
   placeholder?: string;
 }) {
   const [search, setSearch] = useState("");
-    const [filterEligible, setFilterEligible] = useState("");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -487,16 +486,11 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
   const allocatedDays = Number((totalSelectedOTHours / otHoursLimit).toFixed(1));
 
   const filtered = employees.filter((e) => {
-      const bMatch = selectedBranch === "All" || e.branch === selectedBranch;
-      const dMatch = selectedDept === "All" || e.department === selectedDept;
-      const sMatch = !search || e.full_name?.toLowerCase().includes(search.toLowerCase()) || e.user_id?.toLowerCase().includes(search.toLowerCase());
-      
-      const unused = leaveType === "Annual & Emergency Leave" ? (e.annual_leave_balance || 0) : (leaveType === "Replacement Leave" ? (e.replacement_leave_balance || 0) : (e.medical_leave_balance || 0));
-      const eligible = Math.min(unused, maxCarry);
-      const fMatch = !filterEligible || eligible === parseInt(filterEligible);
-      
-      return bMatch && dMatch && sMatch && fMatch;
-    });
+    const bMatch = selectedBranch === "All" || e.branch === selectedBranch;
+    const dMatch = selectedDept === "All" || e.department === selectedDept;
+    const sMatch = !search || e.full_name?.toLowerCase().includes(search.toLowerCase()) || e.user_id?.toLowerCase().includes(search.toLowerCase());
+    return bMatch && dMatch && sMatch;
+  });
 
   const uniqueBranches = ["All", ...new Set(employees.map(e => e.branch).filter(Boolean))];
   const uniqueDepts = ["All", ...new Set(employees.map(e => e.department).filter(Boolean))];
@@ -859,6 +853,7 @@ function CarryForwardLeaveForm({
   const [selectedDept, setSelectedDept] = useState("All");
   const [empType, setEmpType] = useState("Permanent");
   const [search, setSearch] = useState("");
+  const [filterEligible, setFilterEligible] = useState("");
 
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
 
@@ -867,7 +862,12 @@ function CarryForwardLeaveForm({
     const bMatch = selectedBranch === "All" || e.branch === selectedBranch;
     const dMatch = selectedDept === "All" || e.department === selectedDept;
     const sMatch = !search || e.full_name?.toLowerCase().includes(search.toLowerCase()) || e.user_id?.toLowerCase().includes(search.toLowerCase());
-    return bMatch && dMatch && sMatch;
+    
+    const unused = leaveType === "Annual & Emergency Leave" ? (e.annual_leave_balance || 0) : (leaveType === "Replacement Leave" ? (e.replacement_leave_balance || 0) : (e.medical_leave_balance || 0));
+    const eligible = Math.min(unused, maxCarry);
+    const fMatch = !filterEligible || eligible === parseInt(filterEligible);
+    
+    return bMatch && dMatch && sMatch && fMatch;
   });
 
   const uniqueBranches = ["All", ...new Set(employees.map(e => e.branch).filter(Boolean))];
