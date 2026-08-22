@@ -20,7 +20,7 @@ const EVENT_COLORS: Record<string, { bg: string; text: string; border: string; d
   "Sick Leave (MC)":     { bg: "bg-red-100 dark:bg-red-500/20",     text: "text-red-700 dark:text-red-300",     border: "border-red-200 dark:border-red-500/30",     dot: "bg-red-500",     label: "Sick Leave" },
   "Cuti Sakit":          { bg: "bg-red-100 dark:bg-red-500/20",     text: "text-red-700 dark:text-red-300",     border: "border-red-200 dark:border-red-500/30",     dot: "bg-red-500",     label: "Sick Leave" },
   "Emergency Leave":     { bg: "bg-orange-100 dark:bg-orange-500/20", text: "text-orange-700 dark:text-orange-300", border: "border-orange-200 dark:border-orange-500/30", dot: "bg-orange-500", label: "Emergency Leave" },
-  "Outstation":          { bg: "bg-blue-100 dark:bg-blue-500/20",   text: "text-blue-700 dark:text-blue-300",   border: "border-blue-200 dark:border-blue-500/30",   dot: "bg-blue-500",   label: "Outstation" },
+  "Outstation":          { bg: "bg-pink-100 dark:bg-pink-500/20",   text: "text-pink-700 dark:text-pink-300",   border: "border-pink-200 dark:border-pink-500/30",   dot: "bg-pink-500",   label: "Outstation" },
   "Company Leave":       { bg: "bg-purple-100 dark:bg-purple-500/20", text: "text-purple-700 dark:text-purple-300", border: "border-purple-200 dark:border-purple-500/30", dot: "bg-purple-500", label: "Company Leave" },
   "Public Holiday":      { bg: "bg-purple-100 dark:bg-purple-500/20", text: "text-purple-700 dark:text-purple-300", border: "border-purple-200 dark:border-purple-500/30", dot: "bg-purple-500", label: "Company Leave" },
   "Company Holiday":     { bg: "bg-purple-100 dark:bg-purple-500/20", text: "text-purple-700 dark:text-purple-300", border: "border-purple-200 dark:border-purple-500/30", dot: "bg-purple-500", label: "Company Leave" },
@@ -219,7 +219,7 @@ export default function WorkforceCalendar() {
           { label: "Annual Leave", value: kpiAnnual, dot: "bg-emerald-500", border: "border-l-emerald-500", icon: Calendar },
           { label: "Sick Leave", value: kpiSick, dot: "bg-red-500", border: "border-l-red-500", icon: Activity },
           { label: "Emergency Leave", value: kpiEmergency, dot: "bg-orange-500", border: "border-l-orange-500", icon: AlertCircle },
-          { label: "Outstation", value: kpiOutstation, dot: "bg-blue-500", border: "border-l-blue-500", icon: Plane },
+          { label: "Outstation", value: kpiOutstation, dot: "bg-pink-500", border: "border-l-pink-500", icon: Plane },
           { label: "Company Leave", value: kpiCompany, dot: "bg-purple-500", border: "border-l-purple-500", icon: Building2 },
           { label: "Pending", value: kpiPending, dot: "bg-amber-400", border: "border-l-amber-400", icon: FileText },
         ].map(kpi => (

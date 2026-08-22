@@ -270,24 +270,20 @@ export default function Calendar() {
       const attData = await attRes.json();
       if (attData.success) setAttendance(attData.history);
 
-      // Fetch approved leave requests (all for HR, personal for others)
-      const leaveRes = await fetch(`${API_BASE_URL}/api/leave-requests${isHR ? '' : `?userId=${currentUserId}`}`);
+      // Fetch approved leave requests (only personal data for Work Calendar)
+      const leaveRes = await fetch(`${API_BASE_URL}/api/leave-requests?userId=${currentUserId}`);
       const leaveData = await leaveRes.json();
       if (leaveData.success) {
         const raw = leaveData.requests || leaveData.leaveRequests || [];
-        const userApproved = raw.filter((r: any) =>
-          (isHR || r.user_id === currentUserId || r.userId === currentUserId || (user?.id && r.user_id === user.id)) &&
-          (r.status === 'Approved' || r.status === 'approved')
-        );
+        const userApproved = raw.filter((r: any) => r.status === 'Approved');
         setLeaveRequests(userApproved);
       }
 
-      // Fetch assigned outstations (all for HR, personal for others)
-      const outRes = await fetch(`${API_BASE_URL}/api/outstation${isHR ? '' : `?user_id=${currentUserId}`}`);
+      // Fetch assigned outstations (only personal data for Work Calendar)
+      const outRes = await fetch(`${API_BASE_URL}/api/outstation?user_id=${currentUserId}`);
       const outData = await outRes.json();
       if (outData.success && outData.assignments) {
-        const userOuts = outData.assignments.filter((a: any) =>
-          (isHR || a.user_id === currentUserId || a.userId === currentUserId || (user?.id && a.user_id === user.id)) &&
+        const userOuts = outData.assignments.filter((a: any) => 
           a.status !== 'Cancelled'
         );
         setOutstations(userOuts);
