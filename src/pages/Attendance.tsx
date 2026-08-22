@@ -269,12 +269,13 @@ export default function Attendance() {
       }
       
       try {
-        const outstationRes = await fetch(`${API_BASE_URL}/api/outstation?userId=${id}`);
+        const outstationRes = await fetch(`${API_BASE_URL}/api/outstation?role=employee&user_id=${id}`);
         if (outstationRes.ok) {
-            const outstations = await outstationRes.json();
+            const resData = await outstationRes.json();
+            const outstations = resData.assignments;
             const todayStr = new Date().toISOString().split('T')[0];
             const isReallyActive = Array.isArray(outstations) && outstations.some((o: any) => 
-                o.start_date <= todayStr && o.end_date >= todayStr && o.status !== "Cancelled"
+                o.start_date.substring(0,10) <= todayStr && (o.end_date ? o.end_date.substring(0,10) >= todayStr : true) && o.status !== "Cancelled"
             );
             setIsOutstationAssigned(isReallyActive);
         } else {
