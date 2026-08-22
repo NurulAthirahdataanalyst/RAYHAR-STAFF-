@@ -289,7 +289,7 @@ function LeaveDetailPopup({ selectedEvent, requests, filterStatus, onClose }: { 
 
           {relatedLeaves.length > 1 && (
             <div className="pt-4 border-t border-gray-100 dark:border-slate-800">
-              <p className="text-[10px] font-black uppercase text-gray-400 mb-3">Other Employees on Leave ({relatedLeaves.length - 1})</p>
+              <p className="text-[10px] font-black uppercase text-black dark:text-white mb-3">Other Employees on Leave ({relatedLeaves.length - 1})</p>
               <div className="space-y-2">
                 {relatedLeaves.filter(a => a.leave_id !== selectedEvent.leave_id).map((a) => (
                   <div key={a.leave_id} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-colors border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50`}>

@@ -2180,7 +2180,7 @@ export default function Calendar() {
                 {/* Holidays */}
                 {ds.holidays.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">🏖️ Public Holiday</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white mb-2">🏖️ Public Holiday</p>
                     {ds.holidays.map((h, i) => (
                       <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                         <div className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
@@ -2193,7 +2193,7 @@ export default function Calendar() {
                 {/* Company Leave */}
                 {ds.companyLeaves.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">🟣 Company Leave</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white mb-2">🟣 Company Leave</p>
                     {ds.companyLeaves.map((cl, i) => (
                       <div key={i} className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
                         <div className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0 mt-1.5" />
@@ -2209,7 +2209,7 @@ export default function Calendar() {
                 {/* Approved Leave */}
                 {ds.approvedLeaves.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">✅ Approved Leave</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white mb-2">✅ Approved Leave</p>
                     {ds.approvedLeaves.map((l, i) => {
                       const info = getLeaveTypeInfo(l.leave_type);
                       const totalDays = getTotalDays(l.start_date?.slice(0,10) || '', l.end_date?.slice(0,10) || '');
@@ -2230,7 +2230,7 @@ export default function Calendar() {
                 {/* Outstation */}
                 {ds.outstations.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">✈️ Outstation</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white mb-2">✈️ Outstation</p>
                     {ds.outstations.map((o, i) => {
                       const totalDays = getTotalDays(o.start_date?.slice(0,10) || '', o.end_date?.slice(0,10) || '');
                       return (
@@ -2253,7 +2253,7 @@ export default function Calendar() {
                 {/* Attendance */}
                 {ds.attendance.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">🟢 Attendance</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white mb-2">🟢 Attendance</p>
                     {ds.attendance.map((a, i) => {
                       const inStr = formatTime12(a.clock_in);
                       const outStr = a.clock_out ? formatTime12(a.clock_out) : null;
@@ -2291,7 +2291,7 @@ export default function Calendar() {
                 {/* Personal Notes / Events */}
                 {ds.notes.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">📝 Personal Events</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white mb-2">📝 Personal Events</p>
                     {ds.notes.map((note, i) => {
                       const isReminder = note.type === 'reminder';
                       const isMeeting = note.type === 'meeting';
