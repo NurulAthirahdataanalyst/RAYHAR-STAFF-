@@ -375,6 +375,7 @@ function EmployeeSearchSelector({
   placeholder?: string;
 }) {
   const [search, setSearch] = useState("");
+    const [filterEligible, setFilterEligible] = useState("");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -486,11 +487,16 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
   const allocatedDays = Number((totalSelectedOTHours / otHoursLimit).toFixed(1));
 
   const filtered = employees.filter((e) => {
-    const bMatch = selectedBranch === "All" || e.branch === selectedBranch;
-    const dMatch = selectedDept === "All" || e.department === selectedDept;
-    const sMatch = !search || e.full_name?.toLowerCase().includes(search.toLowerCase()) || e.user_id?.toLowerCase().includes(search.toLowerCase());
-    return bMatch && dMatch && sMatch;
-  });
+      const bMatch = selectedBranch === "All" || e.branch === selectedBranch;
+      const dMatch = selectedDept === "All" || e.department === selectedDept;
+      const sMatch = !search || e.full_name?.toLowerCase().includes(search.toLowerCase()) || e.user_id?.toLowerCase().includes(search.toLowerCase());
+      
+      const unused = leaveType === "Annual & Emergency Leave" ? (e.annual_leave_balance || 0) : (leaveType === "Replacement Leave" ? (e.replacement_leave_balance || 0) : (e.medical_leave_balance || 0));
+      const eligible = Math.min(unused, maxCarry);
+      const fMatch = !filterEligible || eligible === parseInt(filterEligible);
+      
+      return bMatch && dMatch && sMatch && fMatch;
+    });
 
   const uniqueBranches = ["All", ...new Set(employees.map(e => e.branch).filter(Boolean))];
   const uniqueDepts = ["All", ...new Set(employees.map(e => e.department).filter(Boolean))];
@@ -992,7 +998,7 @@ function CarryForwardLeaveForm({
 
         <div>
           <h4 className="text-xs font-black uppercase tracking-wider text-foreground mb-3 border-b pb-1">Employee Selection</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Department</Label>
               <Select value={selectedDept} onValueChange={setSelectedDept}>
