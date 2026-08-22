@@ -2102,14 +2102,22 @@ export default function Calendar() {
               </div>
             </div>
             <div className="px-6 py-5 space-y-4">
-              <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Clock In</p>
-                  <p className="text-base font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{formatTime12(selectedAttendance.clock_in)}</p>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Clock In Card */}
+                <div className="flex items-stretch rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 overflow-hidden">
+                  <div className="w-1.5 self-stretch bg-emerald-500 flex-shrink-0" />
+                  <div className="px-4 py-3 flex-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Clock In</p>
+                    <p className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 leading-tight">{formatTime12(selectedAttendance.clock_in)}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Clock Out</p>
-                  <p className="text-base font-extrabold text-purple-600 dark:text-purple-400 mt-1">{selectedAttendance.clock_out ? formatTime12(selectedAttendance.clock_out) : '-'}</p>
+                {/* Clock Out Card */}
+                <div className="flex items-stretch rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 overflow-hidden">
+                  <div className="w-1.5 self-stretch bg-purple-500 flex-shrink-0" />
+                  <div className="px-4 py-3 flex-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-400">Clock Out</p>
+                    <p className="text-xl font-extrabold text-purple-600 dark:text-purple-400 mt-1 leading-tight">{selectedAttendance.clock_out ? formatTime12(selectedAttendance.clock_out) : '—'}</p>
+                  </div>
                 </div>
               </div>
 
