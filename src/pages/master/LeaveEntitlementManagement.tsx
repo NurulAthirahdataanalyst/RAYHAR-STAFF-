@@ -31,7 +31,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useRole } from "@/contexts/RoleContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
 import { toast, useToast } from "@/hooks/use-toast";
 
@@ -93,7 +93,17 @@ const modules = [
 
 export default function LeaveEntitlementManagement() {
   const { role, loading: roleLoading } = useRole();
-  const [activeModule, setActiveModule] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawModule = searchParams.get("module");
+  const activeModule = rawModule ? rawModule.replace(/-/g, ' ') : null;
+
+  const setActiveModule = (moduleName: string | null) => {
+    if (moduleName) {
+      setSearchParams({ module: moduleName.replace(/ /g, '-') });
+    } else {
+      setSearchParams({});
+    }
+  };
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 

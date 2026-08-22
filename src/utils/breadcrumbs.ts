@@ -3,7 +3,7 @@ export interface BreadcrumbSegment {
   path?: string;
 }
 
-export function getBreadcrumbs(pathname: string): BreadcrumbSegment[] {
+export function getBreadcrumbs(pathname: string, search?: string): BreadcrumbSegment[] {
   const home: BreadcrumbSegment = { label: "HOME", path: "/" };
 
   if (pathname === "/") return [home, { label: "DASHBOARD" }];
@@ -37,7 +37,21 @@ export function getBreadcrumbs(pathname: string): BreadcrumbSegment[] {
   // Leave Administration Pages
   if (pathname === "/leave/admin") return [home, { label: "LEAVE ADMINISTRATION", path: "/leave/admin" }, { label: "LEAVE APPROVALS" }];
   if (pathname === "/leave/calendar") return [home, { label: "LEAVE ADMINISTRATION", path: "/leave/admin" }, { label: "LEAVE CALENDAR" }];
-  if (pathname === "/leave/entitlement") return [home, { label: "LEAVE ADMINISTRATION", path: "/leave/admin" }, { label: "LEAVE ENTITLEMENT MANAGEMENT" }];
+  if (pathname === "/leave/entitlement") {
+    if (search) {
+      const params = new URLSearchParams(search);
+      const module = params.get("module");
+      if (module) {
+        return [
+          home, 
+          { label: "LEAVE ADMINISTRATION", path: "/leave/admin" }, 
+          { label: "LEAVE ENTITLEMENT MANAGEMENT", path: "/leave/entitlement" },
+          { label: module.toUpperCase().replace(/-/g, ' ') }
+        ];
+      }
+    }
+    return [home, { label: "LEAVE ADMINISTRATION", path: "/leave/admin" }, { label: "LEAVE ENTITLEMENT MANAGEMENT" }];
+  }
 
   // Employee Management Pages
   if (pathname === "/master") return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "MASTER HUB CONTROL" }];

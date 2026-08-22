@@ -220,7 +220,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center justify-between relative z-10 w-full">
             <div className="flex-1">
               <div className="flex items-center text-xs uppercase font-black text-white pl-2">
-                {getBreadcrumbs(location.pathname).map((crumb, index, arr) => (
+                {getBreadcrumbs(location.pathname, location.search).map((crumb, index, arr) => (
                   <div key={index} className="flex items-center">
                     {index === 0 && <Home className="w-3.5 h-3.5 mr-1.5 -mt-0.5" />}
                     {crumb.path ? (
