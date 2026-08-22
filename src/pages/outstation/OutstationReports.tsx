@@ -17,7 +17,7 @@ const OUTSTATION_ROLES = ["hr_admin", "managing_director", "operation_manager", 
 
 function fmtDate(d: string) {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString("en-MY", { day: "2-digit", month: "short", year: "numeric" });
+  return new Date(d).toLocaleDateString("en-MY", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase();
 }
 
 function diffDays(s: string, e: string) {
@@ -29,7 +29,7 @@ function statusBadge(status: string) {
     case "Active":    return <Badge className="bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-500/30 font-bold text-[10px] whitespace-nowrap">🟣 Active</Badge>;
     case "Upcoming":  return <Badge className="bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 font-bold text-[10px] whitespace-nowrap">🟡 Upcoming</Badge>;
     case "Completed": return <Badge className="bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 font-bold text-[10px] whitespace-nowrap">🔵 Completed</Badge>;
-    case "Cancelled": return <Badge className="bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-500/30 font-bold text-[10px] whitespace-nowrap">⬜ Cancelled</Badge>;
+    case "Cancelled": return <Badge className="bg-gray-100 dark:bg-gray-500/20 text-foreground dark:text-gray-300 border border-gray-200 dark:border-gray-500/30 font-bold text-[10px] whitespace-nowrap">⬜ Cancelled</Badge>;
     default:          return <Badge variant="outline" className="whitespace-nowrap">{status}</Badge>;
   }
 }
@@ -247,7 +247,7 @@ export default function OutstationReports() {
             <>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
                 <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Total Events</p>
-                <p className="text-3xl font-black text-gray-800 dark:text-gray-100 mt-2">{totalEventsCount}</p>
+                <p className="text-3xl font-black text-foreground dark:text-gray-100 mt-2">{totalEventsCount}</p>
               </div>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
                 <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Total Days</p>
@@ -270,11 +270,11 @@ export default function OutstationReports() {
             <>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
                 <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Event Name</p>
-                <p className="text-xl font-black text-gray-800 dark:text-gray-100 mt-2 line-clamp-3 leading-tight" title={selectedEvent!.eventName}>{selectedEvent!.eventName}</p>
+                <p className="text-xl font-black text-foreground dark:text-gray-100 mt-2 line-clamp-3 leading-tight" title={selectedEvent!.eventName}>{selectedEvent!.eventName}</p>
               </div>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
                 <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Total Staff</p>
-                <p className="text-3xl font-black text-gray-800 dark:text-gray-100 mt-2">{selectedEvent!.assignments.length}</p>
+                <p className="text-3xl font-black text-foreground dark:text-gray-100 mt-2">{selectedEvent!.assignments.length}</p>
               </div>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
                 <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Total Days</p>
@@ -286,7 +286,7 @@ export default function OutstationReports() {
               </div>
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-md p-4 flex flex-col justify-between hover:border-purple-300 hover:bg-slate-50 dark:bg-slate-900/50 transition-colors">
                 <p className="text-[11px] font-black uppercase tracking-widest text-foreground">Destination</p>
-                <p className="text-xl font-bold text-gray-700 dark:text-gray-300 mt-2 line-clamp-3 leading-tight" title={selectedEvent!.destination}>{selectedEvent!.destination}</p>
+                <p className="text-xl font-bold text-foreground dark:text-gray-300 mt-2 line-clamp-3 leading-tight" title={selectedEvent!.destination}>{selectedEvent!.destination}</p>
               </div>
             </>
           )}
@@ -351,13 +351,13 @@ export default function OutstationReports() {
                     <MonthPicker
                       monthYear={selectedMonthYear}
                       onSelectMonthYear={setSelectedMonthYear}
-                      className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-[#7B0099]/40"
+                      className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-card border border-slate-200 dark:border-slate-800 text-foreground dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-[#7B0099]/40"
                     />
                   ) : (
                     <YearPopover
                       year={selectedYear}
                       onSelectYear={setSelectedYear}
-                      className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-card border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-yellow-500/40"
+                      className="appearance-none flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-card border border-slate-200 dark:border-slate-800 text-foreground dark:text-slate-100 text-xs font-black rounded-md shadow-sm outline-none cursor-pointer h-8 gap-2 hover:border-yellow-500/40"
                     />
                   )}
                   <div className="relative">
@@ -416,11 +416,11 @@ export default function OutstationReports() {
                   <tr className="border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card">
                     {selectedEventName ? (
                       ["Employee","Department","Branch","Destination","Start","End","Days","Status","Assigned By"].map(h => (
-                        <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">{h}</th>
+                        <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">{h}</th>
                       ))
                     ) : (
                       ["Event Name","Destination","Start Date","End Date","Days","Status","Participants","Actions"].map(h => (
-                        <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">{h}</th>
+                        <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">{h}</th>
                       ))
                     )}
                   </tr>
@@ -433,18 +433,18 @@ export default function OutstationReports() {
                         onClick={() => setSelectedEventName(e.eventName)}
                         className="border-b border-gray-50 dark:border-slate-800 hover:bg-pink-50/30 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
                       >
-                        <td className="px-4 py-3 font-bold text-gray-900 dark:text-gray-100 max-w-[220px] truncate">{e.eventName}</td>
+                        <td className="px-4 py-3 font-bold text-foreground dark:text-gray-100 max-w-[220px] truncate">{e.eventName}</td>
                         <td className="px-4 py-3">
-                          <div className="flex items-center gap-1 font-semibold text-gray-900 dark:text-gray-100">
+                          <div className="flex items-center gap-1 font-semibold text-foreground dark:text-gray-100">
                             <MapPin className="w-3 h-3 text-pink-400 shrink-0" />{e.destination}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium whitespace-nowrap">{fmtDate(e.startDate)}</td>
-                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium whitespace-nowrap">{fmtDate(e.endDate)}</td>
+                        <td className="px-4 py-3 text-foreground dark:text-gray-100 font-medium whitespace-nowrap">{fmtDate(e.startDate)}</td>
+                        <td className="px-4 py-3 text-foreground dark:text-gray-100 font-medium whitespace-nowrap">{fmtDate(e.endDate)}</td>
                         <td className="px-4 py-3 text-center font-black text-pink-600">{e.totalDays}</td>
                         <td className="px-4 py-3">{statusBadge(e.status)}</td>
                         <td className="px-4 py-3">
-                          <Badge variant="outline" className="text-gray-800 dark:text-slate-300 font-semibold">{e.assignments.length} Staff</Badge>
+                          <Badge variant="outline" className="text-foreground dark:text-slate-300 font-semibold">{e.assignments.length} Staff</Badge>
                         </td>
                         <td className="px-4 py-3" onClick={(ev) => ev.stopPropagation()}>
                           <Button
@@ -466,17 +466,17 @@ export default function OutstationReports() {
                             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center text-[9px] font-black text-pink-800 shrink-0">
                               {(a.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0,2).toUpperCase()}
                             </div>
-                            <span className="font-semibold text-gray-900 dark:text-gray-100">{a.full_name}</span>
+                            <span className="font-semibold text-foreground dark:text-gray-100">{a.full_name}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium">{a.department || "—"}</td>
-                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium">{a.branch || "—"}</td>
-                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium">{a.destination}</td>
-                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium whitespace-nowrap">{fmtDate(a.start_date)}</td>
-                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium whitespace-nowrap">{fmtDate(a.end_date)}</td>
+                        <td className="px-4 py-3 text-foreground dark:text-gray-100 font-medium">{a.department || "—"}</td>
+                        <td className="px-4 py-3 text-foreground dark:text-gray-100 font-medium">{a.branch || "—"}</td>
+                        <td className="px-4 py-3 text-foreground dark:text-gray-100 font-medium">{a.destination}</td>
+                        <td className="px-4 py-3 text-foreground dark:text-gray-100 font-medium whitespace-nowrap">{fmtDate(a.start_date)}</td>
+                        <td className="px-4 py-3 text-foreground dark:text-gray-100 font-medium whitespace-nowrap">{fmtDate(a.end_date)}</td>
                         <td className="px-4 py-3 text-center font-black text-pink-600">{diffDays(a.start_date, a.end_date)}</td>
                         <td className="px-4 py-3">{statusBadge(a.status)}</td>
-                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium">{a.assigned_by_name || "—"}</td>
+                        <td className="px-4 py-3 text-foreground dark:text-gray-100 font-medium">{a.assigned_by_name || "—"}</td>
                       </tr>
                     ))
                   )}
@@ -518,11 +518,11 @@ export default function OutstationReports() {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="col-span-2 bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                       <p className="text-[10px] text-black dark:text-white font-bold uppercase">Destination</p>
-                      <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{viewFormEvent.destination}</p>
+                      <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{viewFormEvent.destination}</p>
                     </div>
                     <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                       <p className="text-[10px] text-black dark:text-white font-bold uppercase">Event Name</p>
-                      <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{viewFormEvent.eventName}</p>
+                      <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{viewFormEvent.eventName}</p>
                     </div>
                     <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                       <p className="text-[10px] text-black dark:text-white font-bold uppercase">Status</p>
@@ -539,11 +539,11 @@ export default function OutstationReports() {
                   <div className="grid grid-cols-3 gap-3">
                     <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                       <p className="text-[10px] text-black dark:text-white font-bold uppercase">Start Date</p>
-                      <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{fmtDate(viewFormEvent.startDate)}</p>
+                      <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{fmtDate(viewFormEvent.startDate)}</p>
                     </div>
                     <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                       <p className="text-[10px] text-black dark:text-white font-bold uppercase">End Date</p>
-                      <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{fmtDate(viewFormEvent.endDate)}</p>
+                      <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{fmtDate(viewFormEvent.endDate)}</p>
                     </div>
                     <div className="bg-[#7B0099]/5 rounded-xl p-3 border border-[#7B0099]/20">
                       <p className="text-[10px] text-[#7B0099] font-bold uppercase">Total Days</p>
@@ -564,7 +564,7 @@ export default function OutstationReports() {
                           {(a.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100 truncate">{a.full_name}</p>
+                          <p className="text-[12px] font-bold text-foreground dark:text-gray-100 truncate">{a.full_name}</p>
                           <p className="text-[10px] text-foreground">{a.department || "—"} · {a.branch || "—"}</p>
                         </div>
                         {statusBadge(a.status)}
@@ -658,3 +658,5 @@ export default function OutstationReports() {
     </div>
   );
 }
+
+

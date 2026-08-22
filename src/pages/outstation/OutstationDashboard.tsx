@@ -380,7 +380,7 @@ export default function OutstationDashboard() {
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099] shadow-xs"></div>
-                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
+                    <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
                   </div>
                   {loading ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
@@ -391,7 +391,7 @@ export default function OutstationDashboard() {
                   )}
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground whitespace-nowrap">
+                  <p className="text-[10px] font-semibold text-foreground dark:text-foreground whitespace-nowrap">
                     {completedEventsCount} Completed
                   </p>
                 </div>
@@ -407,7 +407,7 @@ export default function OutstationDashboard() {
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></div>
-                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Active Outstation</span>
+                    <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Active Outstation</span>
                   </div>
                   {loading ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
@@ -418,7 +418,7 @@ export default function OutstationDashboard() {
                   )}
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-emerald-200/80 dark:border-emerald-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground whitespace-nowrap">
+                  <p className="text-[10px] font-semibold text-foreground dark:text-foreground whitespace-nowrap">
                     Currently Away
                   </p>
                 </div>
@@ -434,7 +434,7 @@ export default function OutstationDashboard() {
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-xs"></div>
-                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Departing Today</span>
+                    <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Departing Today</span>
                   </div>
                   {loading ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
@@ -445,7 +445,7 @@ export default function OutstationDashboard() {
                   )}
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-orange-200/80 dark:border-orange-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground whitespace-nowrap">
+                  <p className="text-[10px] font-semibold text-foreground dark:text-foreground whitespace-nowrap">
                     Starts Today
                   </p>
                 </div>
@@ -461,7 +461,7 @@ export default function OutstationDashboard() {
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs"></div>
-                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Returning Today</span>
+                    <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Returning Today</span>
                   </div>
                   {loading ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
@@ -472,7 +472,7 @@ export default function OutstationDashboard() {
                   )}
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-blue-200/80 dark:border-blue-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground whitespace-nowrap">
+                  <p className="text-[10px] font-semibold text-foreground dark:text-foreground whitespace-nowrap">
                     Expected Back
                   </p>
                 </div>
@@ -488,7 +488,7 @@ export default function OutstationDashboard() {
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-xs"></div>
-                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Upcoming Events</span>
+                    <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Upcoming Events</span>
                   </div>
                   {loading ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
@@ -499,7 +499,7 @@ export default function OutstationDashboard() {
                   )}
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground whitespace-nowrap">
+                  <p className="text-[10px] font-semibold text-foreground dark:text-foreground whitespace-nowrap">
                     Next 7 Days
                   </p>
                 </div>
@@ -515,7 +515,7 @@ export default function OutstationDashboard() {
                 <div>
                   <div className="flex items-center gap-1.5 mb-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs"></div>
-                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Employees Scheduled</span>
+                    <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Employees Scheduled</span>
                   </div>
                   {loading ? (
                     <Skeleton className="h-[36px] w-16 my-2" />
@@ -526,7 +526,7 @@ export default function OutstationDashboard() {
                   )}
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-amber-200/80 dark:border-amber-800/60">
-                  <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground whitespace-nowrap">
+                  <p className="text-[10px] font-semibold text-foreground dark:text-foreground whitespace-nowrap">
                     Across Upcoming Trips
                   </p>
                 </div>
@@ -544,14 +544,14 @@ export default function OutstationDashboard() {
             <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex flex-col">
               <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
               <div>
-                <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Active Outstations</CardTitle>
+                <CardTitle className="text-base font-bold text-foreground dark:text-slate-200">Active Outstations</CardTitle>
                 <p className="text-[13px] text-foreground dark:text-foreground font-medium mt-0.5">Real-time status of employees currently on assignment</p>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" className="h-9 w-9 border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-300 rounded-[8px]">
+                <Button variant="outline" size="icon" className="h-9 w-9 border-gray-200 dark:border-slate-800 text-foreground dark:text-gray-300 rounded-[8px]">
                   <Filter className="w-4 h-4" />
                 </Button>
-                <Button variant="outline" size="icon" className="h-9 w-9 border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-300 rounded-[8px]">
+                <Button variant="outline" size="icon" className="h-9 w-9 border-gray-200 dark:border-slate-800 text-foreground dark:text-gray-300 rounded-[8px]">
                   <MoreHorizontal className="w-4 h-4" />
                 </Button>
               </div>
@@ -566,7 +566,7 @@ export default function OutstationDashboard() {
                   <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-slate-900/50 flex items-center justify-center mb-4 border border-gray-100 dark:border-slate-800">
                     <CheckCircle className="w-8 h-8 text-green-500" />
                   </div>
-                  <h3 className="text-[16px] font-bold text-gray-800 dark:text-gray-100 mb-1">No Active Outstations</h3>
+                  <h3 className="text-[16px] font-bold text-foreground dark:text-gray-100 mb-1">No Active Outstations</h3>
                   <p className="text-[13px] text-foreground dark:text-foreground max-w-sm mb-6">Everyone is currently at their assigned workplace. There are no ongoing travels.</p>
                   <Button variant="outline" className="border-gray-300 shadow-sm" onClick={() => navigate("/outstation/assignment")}>View Assignments</Button>
                 </div>
@@ -575,11 +575,11 @@ export default function OutstationDashboard() {
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-gray-50/80 sticky top-0 z-0">
                     <tr>
-                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Event Name</th>
-                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
-                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
-                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Duration</th>
-                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-right text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Actions</th>
+                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Event Name</th>
+                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
+                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
+                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Duration</th>
+                      <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-right text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -593,7 +593,7 @@ export default function OutstationDashboard() {
                                 <MapPin className="w-4 h-4 text-purple-600" />
                               </div>
                               <div>
-                                  <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">{g.project || g.destination}</p>
+                                  <p className="text-[12px] font-bold text-foreground dark:text-gray-100 uppercase tracking-wide">{g.project || g.destination}</p>
                                   <p className="text-[10px] text-foreground dark:text-foreground flex items-center gap-1 mt-0.5 whitespace-nowrap"><MapPin className="w-3 h-3 text-foreground" /> {g.destination}</p>
                                 </div>
                             </div>
@@ -605,7 +605,7 @@ export default function OutstationDashboard() {
                           </td>
                           <td className="px-4 py-3">
                             <div>
-                              <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100">
+                              <p className="text-[12px] font-bold text-foreground dark:text-gray-100">
                                 {g.employees.length} Employee{g.employees.length !== 1 ? 's' : ''}
                               </p>
                               {g.employees.length === 1 && (
@@ -617,7 +617,7 @@ export default function OutstationDashboard() {
                             <div className="flex items-start gap-2">
                               <Calendar className="w-3.5 h-3.5 text-foreground mt-0.5" />
                               <div>
-                                <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-200">{formatShortDate(g.start_date)} - {formatShortDate(g.end_date)}</p>
+                                <p className="text-[11px] font-semibold text-foreground dark:text-gray-200">{formatShortDate(g.start_date)} - {formatShortDate(g.end_date)}</p>
                                 <p className="text-[10px] font-medium text-purple-600">
                                   {totalDays} {totalDays === 1 ? 'Day' : 'Days'} Total
                                 </p>
@@ -659,11 +659,11 @@ export default function OutstationDashboard() {
                                         <div className="grid grid-cols-2 gap-3">
                                           <div className="col-span-2 bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                                             <p className="text-[10px] text-black dark:text-white font-bold uppercase">Destination</p>
-                                            <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{g.destination}</p>
+                                            <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{g.destination}</p>
                                           </div>
                                           <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                                             <p className="text-[10px] text-black dark:text-white font-bold uppercase">Event Name</p>
-                                            <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{g.project || g.purpose || "Outstation Trip"}</p>
+                                            <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{g.project || g.purpose || "Outstation Trip"}</p>
                                           </div>
                                           <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                                             <p className="text-[10px] text-black dark:text-white font-bold uppercase">Status</p>
@@ -684,11 +684,11 @@ export default function OutstationDashboard() {
                                         <div className="grid grid-cols-3 gap-3">
                                           <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                                             <p className="text-[10px] text-black dark:text-white font-bold uppercase">Start Date</p>
-                                            <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{formatShortDate(g.start_date)}</p>
+                                            <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{formatShortDate(g.start_date)}</p>
                                           </div>
                                           <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                                             <p className="text-[10px] text-black dark:text-white font-bold uppercase">End Date</p>
-                                            <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{formatShortDate(g.end_date)}</p>
+                                            <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{formatShortDate(g.end_date)}</p>
                                           </div>
                                           <div className="bg-[#7B0099]/5 rounded-xl p-3 border border-[#7B0099]/20">
                                             <p className="text-[10px] text-[#7B0099] font-bold uppercase">Total Days</p>
@@ -711,7 +711,7 @@ export default function OutstationDashboard() {
                                                 {(emp.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                                               </div>
                                               <div className="flex-1 min-w-0">
-                                                <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100 truncate">{emp.full_name}</p>
+                                                <p className="text-[12px] font-bold text-foreground dark:text-gray-100 truncate">{emp.full_name}</p>
                                                 <p className="text-[10px] text-foreground">{emp.user_id}</p>
                                               </div>
                                             </div>
@@ -814,7 +814,7 @@ export default function OutstationDashboard() {
             <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex flex-col">
               <CardHeader className="px-6 py-5 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-card flex flex-row flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
                 <div>
-                  <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Upcoming Outstations</CardTitle>
+                  <CardTitle className="text-base font-bold text-foreground dark:text-slate-200">Upcoming Outstations</CardTitle>
                   <p className="text-[13px] text-foreground dark:text-foreground font-medium mt-0.5">Scheduled travels and assignments</p>
                 </div>
               </CardHeader>
@@ -828,7 +828,7 @@ export default function OutstationDashboard() {
                     <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-slate-900/50 flex items-center justify-center mb-4 border border-gray-100 dark:border-slate-800">
                       <Calendar className="w-8 h-8 text-orange-500" />
                     </div>
-                    <h3 className="text-[16px] font-bold text-gray-800 dark:text-gray-100 mb-1">No Upcoming Outstations</h3>
+                    <h3 className="text-[16px] font-bold text-foreground dark:text-gray-100 mb-1">No Upcoming Outstations</h3>
                     <p className="text-[13px] text-foreground dark:text-foreground max-w-sm mb-6">There are no scheduled travels.</p>
                   </div>
                 ) : (
@@ -836,11 +836,11 @@ export default function OutstationDashboard() {
                   <table className="w-full text-left border-collapse">
                     <thead className="bg-gray-50/80 sticky top-0 z-0">
                       <tr>
-                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Event Name</th>
-                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
-                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
-                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Duration</th>
-                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-right text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Actions</th>
+                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Event Name</th>
+                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
+                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
+                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Duration</th>
+                        <th className="px-4 py-3 text-[11px] dark: border-b border-gray-100 dark:border-slate-800 text-right text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -854,7 +854,7 @@ export default function OutstationDashboard() {
                                   <MapPin className="w-4 h-4 text-orange-600" />
                                 </div>
                                 <div>
-                                  <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">{g.project || g.destination}</p>
+                                  <p className="text-[12px] font-bold text-foreground dark:text-gray-100 uppercase tracking-wide">{g.project || g.destination}</p>
                                   <p className="text-[10px] text-foreground dark:text-foreground flex items-center gap-1 mt-0.5 whitespace-nowrap"><MapPin className="w-3 h-3 text-foreground" /> {g.destination}</p>
                                 </div>
                               </div>
@@ -866,7 +866,7 @@ export default function OutstationDashboard() {
                             </td>
                             <td className="px-4 py-3">
                               <div>
-                                <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100">
+                                <p className="text-[12px] font-bold text-foreground dark:text-gray-100">
                                   {g.employees.length} Employee{g.employees.length !== 1 ? 's' : ''}
                                 </p>
                                 {g.employees.length === 1 && (
@@ -878,7 +878,7 @@ export default function OutstationDashboard() {
                               <div className="flex items-start gap-2">
                                 <Calendar className="w-3.5 h-3.5 text-foreground mt-0.5" />
                                 <div>
-                                  <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-200">{formatShortDate(g.start_date)} - {formatShortDate(g.end_date)}</p>
+                                  <p className="text-[11px] font-semibold text-foreground dark:text-gray-200">{formatShortDate(g.start_date)} - {formatShortDate(g.end_date)}</p>
                                   <p className="text-[10px] font-medium text-orange-600">
                                     {totalDays} {totalDays === 1 ? 'Day' : 'Days'} Total
                                   </p>
@@ -920,11 +920,11 @@ export default function OutstationDashboard() {
                                         <div className="grid grid-cols-2 gap-3">
                                           <div className="col-span-2 bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                                             <p className="text-[10px] text-black dark:text-white font-bold uppercase">Destination</p>
-                                            <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{g.destination}</p>
+                                            <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{g.destination}</p>
                                           </div>
                                           <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                                             <p className="text-[10px] text-black dark:text-white font-bold uppercase">Event Name</p>
-                                            <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{g.project || g.purpose || "Outstation Trip"}</p>
+                                            <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{g.project || g.purpose || "Outstation Trip"}</p>
                                           </div>
                                           <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                                             <p className="text-[10px] text-black dark:text-white font-bold uppercase">Status</p>
@@ -945,11 +945,11 @@ export default function OutstationDashboard() {
                                         <div className="grid grid-cols-3 gap-3">
                                           <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                                             <p className="text-[10px] text-black dark:text-white font-bold uppercase">Start Date</p>
-                                            <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{formatShortDate(g.start_date)}</p>
+                                            <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{formatShortDate(g.start_date)}</p>
                                           </div>
                                           <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                                             <p className="text-[10px] text-black dark:text-white font-bold uppercase">End Date</p>
-                                            <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{formatShortDate(g.end_date)}</p>
+                                            <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{formatShortDate(g.end_date)}</p>
                                           </div>
                                           <div className="bg-[#7B0099]/5 rounded-xl p-3 border border-[#7B0099]/20">
                                             <p className="text-[10px] text-[#7B0099] font-bold uppercase">Total Days</p>
@@ -972,7 +972,7 @@ export default function OutstationDashboard() {
                                                 {(emp.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                                               </div>
                                               <div className="flex-1 min-w-0">
-                                                <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100 truncate">{emp.full_name}</p>
+                                                <p className="text-[12px] font-bold text-foreground dark:text-gray-100 truncate">{emp.full_name}</p>
                                                 <p className="text-[10px] text-foreground">{emp.user_id}</p>
                                               </div>
                                             </div>
@@ -1074,7 +1074,7 @@ export default function OutstationDashboard() {
             {/* Alerts & Upcoming List */}
             <Card className="border-0 shadow-sm rounded-[16px] bg-white dark:bg-card overflow-hidden flex-1">
               <CardHeader className="px-5 py-4 border-b border-gray-50">
-                <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                <CardTitle className="text-base font-bold text-foreground dark:text-slate-200 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-orange-500" /> Alerts & Upcoming
                 </CardTitle>
               </CardHeader>
@@ -1087,7 +1087,7 @@ export default function OutstationDashboard() {
                         <Plane className="w-4 h-4 text-orange-600 transform rotate-45" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 truncate">{a.full_name}</p>
+                        <p className="text-[12px] font-bold text-foreground dark:text-gray-100 truncate">{a.full_name}</p>
                         <p className="text-[10px] text-foreground dark:text-foreground truncate">{a.destination} • {formatShortDate(a.start_date)}</p>
                       </div>
                     </div>
@@ -1101,7 +1101,7 @@ export default function OutstationDashboard() {
                         <Plane className="w-4 h-4 text-blue-600 transform -rotate-45" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-bold text-gray-900 dark:text-gray-100 truncate">{a.full_name}</p>
+                        <p className="text-[12px] font-bold text-foreground dark:text-gray-100 truncate">{a.full_name}</p>
                         <p className="text-[10px] text-foreground dark:text-foreground truncate">From {a.destination}</p>
                       </div>
                     </div>
@@ -1114,7 +1114,7 @@ export default function OutstationDashboard() {
             <Card className="border border-slate-200 dark:border-slate-800 shadow-none rounded-[16px] bg-white dark:bg-card overflow-hidden">
               <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center gap-2">
                 <Zap className="w-4 h-4 text-[#7B0099]" />
-                <CardTitle className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest">
+                <CardTitle className="text-[11px] font-bold text-foreground dark:text-slate-100 uppercase tracking-widest">
                   Quick Actions
                 </CardTitle>
               </CardHeader>
@@ -1122,19 +1122,19 @@ export default function OutstationDashboard() {
                 <div className="grid grid-cols-2 gap-3">
                   <div onClick={() => navigate("/outstation/assignment")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
                     <Plane className="w-6 h-6 text-[#7B0099] mb-2" />
-                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase text-center">New Assignment</span>
+                    <span className="text-[10px] font-bold text-foreground dark:text-slate-300 uppercase text-center">New Assignment</span>
                   </div>
                   <div onClick={() => navigate("/outstation/calendar")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
                     <Calendar className="w-6 h-6 text-[#7B0099] mb-2" />
-                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase text-center">Calendar View</span>
+                    <span className="text-[10px] font-bold text-foreground dark:text-slate-300 uppercase text-center">Calendar View</span>
                   </div>
                   <div onClick={() => navigate("/outstation/analytics")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
                     <Activity className="w-6 h-6 text-[#7B0099] mb-2" />
-                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase text-center">Analytics</span>
+                    <span className="text-[10px] font-bold text-foreground dark:text-slate-300 uppercase text-center">Analytics</span>
                   </div>
                   <div onClick={() => navigate("/outstation/reports")} className="cursor-pointer flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 hover:bg-purple-50/50 dark:hover:bg-slate-900/50 transition-all duration-200">
                     <Map className="w-6 h-6 text-[#7B0099] mb-2" />
-                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase text-center">Reports</span>
+                    <span className="text-[10px] font-bold text-foreground dark:text-slate-300 uppercase text-center">Reports</span>
                   </div>
                 </div>
               </CardContent>
@@ -1148,4 +1148,6 @@ export default function OutstationDashboard() {
     </div>
   );
 }
+
+
 

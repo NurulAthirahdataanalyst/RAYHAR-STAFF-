@@ -15,7 +15,7 @@ const PINK = "#EC4899";
 
 function fmtDate(d: string) {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString("en-MY", { day: "2-digit", month: "short", year: "numeric" });
+  return new Date(d).toLocaleDateString("en-MY", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase();
 }
 
 function statusColor(status: string) {
@@ -131,7 +131,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
             <div className="flex items-center gap-3">
               <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
-              <h2 className="text-base font-black text-gray-800 dark:text-gray-100 min-w-[180px] text-center">{MONTHS[viewMonth]} {viewYear}</h2>
+              <h2 className="text-base font-black text-foreground dark:text-gray-100 min-w-[180px] text-center">{MONTHS[viewMonth]} {viewYear}</h2>
               <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors"><ChevronRight className="w-4 h-4" /></button>
               <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { setViewMonth(today.getMonth()); setViewYear(today.getFullYear()); }}>Today</Button>
             </div>
@@ -263,7 +263,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                   <MapPin className="w-3.5 h-3.5 text-pink-400 shrink-0" />
                   <div>
                     <p className="text-[9px] font-black uppercase text-foreground">Destination</p>
-                    <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{selectedEvent.destination}</p>
+                    <p className="text-[12px] font-bold text-foreground dark:text-gray-100">{selectedEvent.destination}</p>
                   </div>
                 </div>
                 {selectedEvent.purpose && (
@@ -271,7 +271,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                     <Plane className="w-3.5 h-3.5 text-pink-400 shrink-0" />
                     <div>
                       <p className="text-[9px] font-black uppercase text-foreground">Purpose / Project</p>
-                      <p className="text-[12px] font-bold text-gray-700 dark:text-gray-200">{selectedEvent.purpose} {selectedEvent.project ? `· ${selectedEvent.project}` : ''}</p>
+                      <p className="text-[12px] font-bold text-foreground dark:text-gray-200">{selectedEvent.purpose} {selectedEvent.project ? `· ${selectedEvent.project}` : ''}</p>
                     </div>
                   </div>
                 )}
@@ -279,7 +279,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                   <Calendar className="w-3.5 h-3.5 text-pink-400 shrink-0" />
                   <div>
                     <p className="text-[9px] font-black uppercase text-foreground">Duration</p>
-                    <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{fmtDate(selectedEvent.start_date)} → {fmtDate(selectedEvent.end_date)}</p>
+                    <p className="text-[12px] font-bold text-foreground dark:text-gray-100">{fmtDate(selectedEvent.start_date)} → {fmtDate(selectedEvent.end_date)}</p>
                   </div>
                 </div>
                 {selectedEvent.assigned_by_name && (
@@ -287,7 +287,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                     <Clock className="w-3.5 h-3.5 text-pink-400 shrink-0" />
                     <div>
                       <p className="text-[9px] font-black uppercase text-foreground">Assigned By</p>
-                      <p className="text-[12px] font-bold text-gray-700 dark:text-gray-200">{selectedEvent.assigned_by_name}</p>
+                      <p className="text-[12px] font-bold text-foreground dark:text-gray-200">{selectedEvent.assigned_by_name}</p>
                     </div>
                   </div>
                 )}
@@ -313,7 +313,7 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
                         {a.full_name?.split(' ').map((n:string)=>n[0]).join('').substring(0,2).toUpperCase()}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100 truncate leading-tight">{a.full_name}</p>
+                        <p className="text-[12px] font-bold text-foreground dark:text-gray-100 truncate leading-tight">{a.full_name}</p>
                         <p className="text-[10px] text-foreground truncate mt-0.5">{a.user_id || a.department}</p>
                       </div>
                     </div>
@@ -328,4 +328,6 @@ export default function OutstationCalendar({ onlyMine = false }: { onlyMine?: bo
     </div>
   );
 }
+
+
 

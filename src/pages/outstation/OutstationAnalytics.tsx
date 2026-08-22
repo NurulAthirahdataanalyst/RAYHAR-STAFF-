@@ -33,7 +33,7 @@ const MONTH_SHORT = [
 
 function formatShortDate(dStr: string) {
   if (!dStr) return "—";
-  return new Date(dStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return new Date(dStr).toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase();
 }
 
 function statusBadge(status: string) {
@@ -254,14 +254,14 @@ export default function OutstationAnalytics() {
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-[#7B0099] shadow-xs"></div>
-                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
+                <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Total Outstation</span>
               </div>
               <div className="my-1">
                 <span className="text-3xl font-black text-[#7B0099] dark:text-purple-300 leading-none">{totalEventsCount}</span>
               </div>
             </div>
             <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
-              <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
+              <p className="text-[10px] font-semibold text-foreground dark:text-foreground">
                 Total outstation events created
               </p>
             </div>
@@ -277,14 +277,14 @@ export default function OutstationAnalytics() {
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></div>
-                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Staff on Outstation</span>
+                <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Staff on Outstation</span>
               </div>
               <div className="my-1">
                 <span className="text-3xl font-black text-emerald-700 dark:text-emerald-300 leading-none">{activeStaffCount}</span>
               </div>
             </div>
             <div className="mt-3 pt-2.5 border-t border-emerald-200/80 dark:border-emerald-800/60">
-              <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
+              <p className="text-[10px] font-semibold text-foreground dark:text-foreground">
                 Unique team members currently away
               </p>
             </div>
@@ -300,14 +300,14 @@ export default function OutstationAnalytics() {
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs"></div>
-                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Destinations</span>
+                <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Destinations</span>
               </div>
               <div className="my-1">
                 <span className="text-3xl font-black text-blue-700 dark:text-blue-300 leading-none">{totalDestinations}</span>
               </div>
             </div>
             <div className="mt-3 pt-2.5 border-t border-blue-200/80 dark:border-blue-800/60">
-              <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
+              <p className="text-[10px] font-semibold text-foreground dark:text-foreground">
                 Distinct cities or sites visited
               </p>
             </div>
@@ -323,14 +323,14 @@ export default function OutstationAnalytics() {
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-xs"></div>
-                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Ongoing</span>
+                <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Ongoing</span>
               </div>
               <div className="my-1">
                 <span className="text-3xl font-black text-orange-700 dark:text-orange-300 leading-none">{activeCount}</span>
               </div>
             </div>
             <div className="mt-3 pt-2.5 border-t border-orange-200/80 dark:border-orange-800/60">
-              <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
+              <p className="text-[10px] font-semibold text-foreground dark:text-foreground">
                 Events currently in progress
               </p>
             </div>
@@ -346,14 +346,14 @@ export default function OutstationAnalytics() {
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-xs"></div>
-                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Completed</span>
+                <span className="text-[11px] font-extrabold text-foreground dark:text-slate-200 uppercase tracking-wider whitespace-nowrap">Completed</span>
               </div>
               <div className="my-1">
                 <span className="text-3xl font-black text-purple-700 dark:text-purple-300 leading-none">{completedCount}</span>
               </div>
             </div>
             <div className="mt-3 pt-2.5 border-t border-purple-200/80 dark:border-purple-800/60">
-              <p className="text-[10px] font-semibold text-slate-600 dark:text-foreground">
+              <p className="text-[10px] font-semibold text-foreground dark:text-foreground">
                 Events finished in scope
               </p>
             </div>
@@ -369,7 +369,7 @@ export default function OutstationAnalytics() {
           <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
             <CardHeader className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex flex-row flex-wrap items-center justify-between gap-4">
               <div>
-                <CardTitle className="text-lg font-bold text-slate-900 dark:text-slate-100">Monthly Outstation Tracker</CardTitle>
+                <CardTitle className="text-lg font-bold text-foreground dark:text-slate-100">Monthly Outstation Tracker</CardTitle>
                 <p className="text-xs text-foreground dark:text-foreground mt-0.5">Track total outstation events and completions by month</p>
               </div>
 
@@ -379,7 +379,7 @@ export default function OutstationAnalytics() {
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="h-9 px-3 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#7B0099] cursor-pointer shadow-xs"
+                  className="h-9 px-3 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-foreground dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#7B0099] cursor-pointer shadow-xs"
                 >
                   <option value="all">All Months (Jan - Dec)</option>
                   {MONTH_NAMES.map((name, idx) => (
@@ -443,7 +443,7 @@ export default function OutstationAnalytics() {
         <div className="lg:col-span-4 flex flex-col">
           <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card h-full flex flex-col justify-between">
             <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-              <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">Outstation Status</CardTitle>
+              <CardTitle className="text-base font-bold text-foreground dark:text-slate-100">Outstation Status</CardTitle>
             </CardHeader>
             <CardContent className="p-4 flex-1 flex flex-col justify-center items-center">
               {statusData.length === 0 ? (
@@ -461,17 +461,17 @@ export default function OutstationAnalytics() {
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-2xl font-black text-slate-900 dark:text-slate-100">{totalStatusEvents}</span>
+                    <span className="text-2xl font-black text-foreground dark:text-slate-100">{totalStatusEvents}</span>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-foreground">Total</span>
                   </div>
                 </div>
               )}
-              <div className="w-full mt-4 grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300 border-t border-slate-100 dark:border-slate-800 pt-3">
+              <div className="w-full mt-4 grid grid-cols-2 gap-2 text-xs text-foreground dark:text-slate-300 border-t border-slate-100 dark:border-slate-800 pt-3">
                 {statusData.map(item => (
                   <div key={item.status} className="flex items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[item.status] || STATUS_COLORS.Unknown }} />
                     <span className="font-medium">{item.status}</span>
-                    <strong className="ml-auto text-slate-900 dark:text-slate-100">{item.value}</strong>
+                    <strong className="ml-auto text-foreground dark:text-slate-100">{item.value}</strong>
                   </div>
                 ))}
               </div>
@@ -486,7 +486,7 @@ export default function OutstationAnalytics() {
         {/* Top Destinations */}
         <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
           <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-            <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">Top Destinations</CardTitle>
+            <CardTitle className="text-base font-bold text-foreground dark:text-slate-100">Top Destinations</CardTitle>
           </CardHeader>
           <CardContent className="p-4 space-y-3">
             {destinationData.length === 0 ? (
@@ -494,11 +494,11 @@ export default function OutstationAnalytics() {
             ) : (
               destinationData.map((item, index) => (
                 <div key={index} className="flex items-center justify-between gap-3 text-xs">
-                  <div className="w-32 font-medium text-slate-700 dark:text-slate-300 truncate">{item.destination}</div>
+                  <div className="w-32 font-medium text-foreground dark:text-slate-300 truncate">{item.destination}</div>
                   <div className="flex-1 bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
                     <div className="h-2.5 rounded-full bg-[#7B0099]" style={{ width: `${Math.min(100, (item.count / (destinationData[0]?.count || 1)) * 100)}%` }} />
                   </div>
-                  <div className="w-12 text-right font-bold text-slate-700 dark:text-slate-300">{item.count} {item.count === 1 ? 'Trip' : 'Trips'}</div>
+                  <div className="w-12 text-right font-bold text-foreground dark:text-slate-300">{item.count} {item.count === 1 ? 'Trip' : 'Trips'}</div>
                 </div>
               ))
             )}
@@ -508,20 +508,20 @@ export default function OutstationAnalytics() {
         {/* Quick Summary */}
         <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
           <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-            <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">Quick Summary</CardTitle>
+            <CardTitle className="text-base font-bold text-foreground dark:text-slate-100">Quick Summary</CardTitle>
           </CardHeader>
           <CardContent className="p-4 grid gap-3">
             <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 text-xs flex justify-between items-center">
               <div className="text-foreground dark:text-foreground font-medium">Departures today</div>
-              <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{stats.todayDepartures || 0}</div>
+              <div className="text-lg font-bold text-foreground dark:text-slate-100">{stats.todayDepartures || 0}</div>
             </div>
             <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 text-xs flex justify-between items-center">
               <div className="text-foreground dark:text-foreground font-medium">Returns today</div>
-              <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{stats.todayReturns || 0}</div>
+              <div className="text-lg font-bold text-foreground dark:text-slate-100">{stats.todayReturns || 0}</div>
             </div>
             <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3 text-xs flex justify-between items-center">
               <div className="text-foreground dark:text-foreground font-medium">Upcoming assignments</div>
-              <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{upcomingCount}</div>
+              <div className="text-lg font-bold text-foreground dark:text-slate-100">{upcomingCount}</div>
             </div>
           </CardContent>
         </Card>
@@ -533,7 +533,7 @@ export default function OutstationAnalytics() {
         <div className="lg:col-span-8">
           <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
             <CardHeader className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-              <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">Recent Outstation</CardTitle>
+              <CardTitle className="text-base font-bold text-foreground dark:text-slate-100">Recent Outstation</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               {loading ? (
@@ -545,23 +545,23 @@ export default function OutstationAnalytics() {
                   <table className="w-full text-left border-collapse">
                     <thead className="bg-slate-50/80 dark:bg-slate-800/60 text-foreground dark:text-foreground text-[11px] font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
                       <tr>
-                        <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
-                        <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Destination</th>
-                        <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Purpose</th>
-                        <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Period</th>
-                        <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
-                        <th className="px-4 py-3 text-[10px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Duration</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Employee</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Destination</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Purpose</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Period</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Status</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-foreground dark:text-slate-100 uppercase tracking-widest whitespace-nowrap">Duration</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
                       {recentAssignments.map((item, index) => (
                         <tr key={index} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                          <td className="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100">{item.full_name || item.user_id}</td>
-                          <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{item.destination || "-"}</td>
-                          <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{item.purpose || item.project || "-"}</td>
-                          <td className="px-4 py-3 text-slate-600 dark:text-foreground">{formatShortDate(item.start_date)} - {formatShortDate(item.end_date)}</td>
+                          <td className="px-4 py-3 font-semibold text-foreground dark:text-slate-100">{item.full_name || item.user_id}</td>
+                          <td className="px-4 py-3 text-foreground dark:text-slate-300">{item.destination || "-"}</td>
+                          <td className="px-4 py-3 text-foreground dark:text-slate-300">{item.purpose || item.project || "-"}</td>
+                          <td className="px-4 py-3 text-foreground dark:text-foreground">{formatShortDate(item.start_date)} - {formatShortDate(item.end_date)}</td>
                           <td className="px-4 py-3">{statusBadge(item.status || "Unknown")}</td>
-                          <td className="px-4 py-3 text-slate-600 dark:text-foreground">{item.total_days ? `${item.total_days} days` : "-"}</td>
+                          <td className="px-4 py-3 text-foreground dark:text-foreground">{item.total_days ? `${item.total_days} days` : "-"}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -576,7 +576,7 @@ export default function OutstationAnalytics() {
         <div className="lg:col-span-4">
           <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-[16px] bg-white dark:bg-card">
             <CardHeader className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-              <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">Upcoming Outstation</CardTitle>
+              <CardTitle className="text-base font-bold text-foreground dark:text-slate-100">Upcoming Outstation</CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-3">
               {upcomingGroups.length === 0 ? (
@@ -585,10 +585,10 @@ export default function OutstationAnalytics() {
                 <div key={idx} className="rounded-xl border border-slate-100 dark:border-slate-800 p-3.5 bg-slate-50/50 dark:bg-slate-900/50">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">{group.destination || "Unknown"}</p>
+                      <p className="text-xs font-bold text-foreground dark:text-slate-100">{group.destination || "Unknown"}</p>
                       <p className="text-[11px] text-foreground dark:text-foreground mt-0.5">{group.purpose}</p>
                     </div>
-                    <span className="text-2xl font-black text-slate-800 dark:text-slate-200">{group.count}</span>
+                    <span className="text-2xl font-black text-foreground dark:text-slate-200">{group.count}</span>
                   </div>
                   <p className="mt-2 text-[10px] font-semibold text-foreground uppercase tracking-wider">Starting {formatShortDate(group.start_date)}</p>
                 </div>
@@ -601,3 +601,5 @@ export default function OutstationAnalytics() {
     </div>
   );
 }
+
+

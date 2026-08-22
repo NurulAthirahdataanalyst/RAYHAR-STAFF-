@@ -900,25 +900,25 @@ export default function Employees() {
                       <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7B0099] to-indigo-600 flex items-center justify-center text-white text-3xl font-black shadow-md shadow-[#7B0099]/20 mb-3 border-4 border-white">
                         {selectedEmployee.name.charAt(0)}
                       </div>
-                      <h2 className="text-lg font-black text-slate-900 dark:text-slate-100 leading-tight mb-1">{selectedEmployee.name}</h2>
+                      <h2 className="text-lg font-black text-foreground dark:text-slate-100 leading-tight mb-1">{selectedEmployee.name}</h2>
                       <p className="text-xs font-semibold text-foreground dark:text-foreground mb-3">{selectedEmployee.email}</p>
                       
-                      <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-wider px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200">
+                      <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-wider px-3 py-1 bg-slate-100 dark:bg-slate-800 text-foreground dark:text-slate-200 hover:bg-slate-200">
                         {selectedEmployee.position === "Finance Manager" || selectedEmployee.position === "finance_manager" ? "Operation Manager" : selectedEmployee.position?.replace(/_/g, ' ')}
                       </Badge>
                       
                       <div className="mt-5 w-full flex flex-col gap-2">
                         <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
                           <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">User ID</span>
-                          <span className="text-xs font-black text-slate-700 dark:text-slate-200">{selectedEmployee.user_id}</span>
+                          <span className="text-xs font-black text-foreground dark:text-slate-200">{selectedEmployee.user_id}</span>
                         </div>
                         <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
                           <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">Branch</span>
-                          <span className="text-xs font-black text-slate-700 dark:text-slate-200">{selectedEmployee.branch}</span>
+                          <span className="text-xs font-black text-foreground dark:text-slate-200">{selectedEmployee.branch}</span>
                         </div>
                         <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
                           <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">Department</span>
-                          <span className="text-xs font-black text-slate-700 dark:text-slate-200 truncate max-w-[120px]">{selectedEmployee.department}</span>
+                          <span className="text-xs font-black text-foreground dark:text-slate-200 truncate max-w-[120px]">{selectedEmployee.department}</span>
                         </div>
                         <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
                           <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">Status</span>
@@ -937,7 +937,7 @@ export default function Employees() {
                         <div className="p-1 bg-blue-50 text-blue-600 rounded">
                           <TrendingUp className="h-3 w-3" />
                         </div>
-                        <h3 className="text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">Attendance Performance</h3>
+                        <h3 className="text-xs font-black text-foreground dark:text-slate-100 uppercase tracking-wider">Attendance Performance</h3>
                       </div>
                       <div className="flex items-center gap-2">
                         <MonthPicker monthYear={analyticsDate} onSelectMonthYear={setAnalyticsDate} className="h-8 px-3 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full cursor-pointer hover:bg-slate-50 transition-colors focus:outline-none focus:ring-1 focus:ring-[#7B0099]" />
@@ -965,8 +965,8 @@ export default function Employees() {
                                         <div className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-800 text-foreground flex items-center justify-center text-[8px] font-bold cursor-help hover:bg-slate-200 transition-colors">?</div>
                                       </TooltipTrigger>
                                       <TooltipContent className="max-w-[200px] p-2 text-[10px] leading-relaxed">
-                                        <p className="font-bold mb-1 text-slate-800 dark:text-slate-200">Formula:</p>
-                                        <p className="text-slate-600 dark:text-slate-300">(Present Days / Expected Working Days) Ã— 100</p>
+                                        <p className="font-bold mb-1 text-foreground dark:text-slate-200">Formula:</p>
+                                        <p className="text-foreground dark:text-slate-300">(Present Days / Expected Working Days) Ã— 100</p>
                                       </TooltipContent>
                                     </Tooltip>
                                   </div>
@@ -974,7 +974,7 @@ export default function Employees() {
                                     analytics.attendance.monthly.rate >= 95 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 
                                     analytics.attendance.monthly.rate >= 85 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 
                                     analytics.attendance.monthly.rate >= 70 ? 'text-amber-700 bg-amber-50 border-amber-200' : 
-                                    'text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-800'
+                                    'text-foreground dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-800'
                                   }`}>
                                     {analytics.attendance.monthly.rate >= 95 ? 'Excellent' : analytics.attendance.monthly.rate >= 85 ? 'Good' : analytics.attendance.monthly.rate >= 70 ? 'Warning' : 'Review'}
                                   </Badge>
@@ -984,7 +984,7 @@ export default function Employees() {
                                   <span className={`text-3xl font-black tracking-tighter ${
                                     analytics.attendance.monthly.rate >= 85 ? 'text-emerald-600' : 
                                     analytics.attendance.monthly.rate >= 70 ? 'text-amber-500' : 
-                                    analytics.attendance.monthly.rate === 0 ? 'text-slate-300' : 'text-slate-700 dark:text-slate-200'
+                                    analytics.attendance.monthly.rate === 0 ? 'text-slate-300' : 'text-foreground dark:text-slate-200'
                                   }`}>
                                     {analytics.attendance.monthly.rate}
                                   </span>
@@ -1001,7 +1001,7 @@ export default function Employees() {
                                     <p className="text-[8px] font-bold text-amber-600/70 uppercase tracking-wider">Late</p>
                                   </div>
                                   <div className="bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800/60 rounded-lg p-2 text-center">
-                                    <p className="text-lg font-black text-slate-600 dark:text-slate-300 leading-none mb-1">{analytics.attendance.monthly.absent}</p>
+                                    <p className="text-lg font-black text-foreground dark:text-slate-300 leading-none mb-1">{analytics.attendance.monthly.absent}</p>
                                     <p className="text-[8px] font-bold text-foreground dark:text-foreground uppercase tracking-wider">Absent</p>
                                   </div>
                                 </div>
@@ -1019,7 +1019,7 @@ export default function Employees() {
                                     analytics.attendance.yearly.rate >= 95 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 
                                     analytics.attendance.yearly.rate >= 85 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 
                                     analytics.attendance.yearly.rate >= 70 ? 'text-amber-700 bg-amber-50 border-amber-200' : 
-                                    'text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-800'
+                                    'text-foreground dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-800'
                                   }`}>
                                     {analytics.attendance.yearly.rate >= 95 ? 'Excellent' : analytics.attendance.yearly.rate >= 85 ? 'Good' : analytics.attendance.yearly.rate >= 70 ? 'Warning' : 'Review'}
                                   </Badge>
@@ -1029,7 +1029,7 @@ export default function Employees() {
                                   <span className={`text-3xl font-black tracking-tighter ${
                                     analytics.attendance.yearly.rate >= 85 ? 'text-emerald-600' : 
                                     analytics.attendance.yearly.rate >= 70 ? 'text-amber-500' : 
-                                    analytics.attendance.yearly.rate === 0 ? 'text-slate-300' : 'text-slate-700 dark:text-slate-200'
+                                    analytics.attendance.yearly.rate === 0 ? 'text-slate-300' : 'text-foreground dark:text-slate-200'
                                   }`}>
                                     {analytics.attendance.yearly.rate}
                                   </span>
@@ -1046,7 +1046,7 @@ export default function Employees() {
                                     <p className="text-[8px] font-bold text-amber-600/70 uppercase tracking-wider">Late</p>
                                   </div>
                                   <div className="bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800/60 rounded-lg p-2 text-center">
-                                    <p className="text-lg font-black text-slate-600 dark:text-slate-300 leading-none mb-1">{analytics.attendance.yearly.absent}</p>
+                                    <p className="text-lg font-black text-foreground dark:text-slate-300 leading-none mb-1">{analytics.attendance.yearly.absent}</p>
                                     <p className="text-[8px] font-bold text-foreground dark:text-foreground uppercase tracking-wider">Absent</p>
                                   </div>
                                 </div>
@@ -1062,18 +1062,18 @@ export default function Employees() {
                               <div className="p-1 bg-purple-50 text-purple-600 rounded">
                                 <Briefcase className="h-3 w-3" />
                               </div>
-                              <h3 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Leave Utilization</h3>
+                              <h3 className="text-xs font-black text-foreground dark:text-slate-200 uppercase tracking-wider">Leave Utilization</h3>
                             </div>
                           </div>
                           
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                             <div className="rounded-xl border border-slate-200 dark:border-slate-800/60 p-3 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
                               <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1.5">Total Entitled</p>
-                              <p className="text-2xl font-black text-slate-800 dark:text-slate-200 tracking-tighter">{analytics.leave.entitlement}</p>
+                              <p className="text-2xl font-black text-foreground dark:text-slate-200 tracking-tighter">{analytics.leave.entitlement}</p>
                             </div>
                             <div className="rounded-xl border border-slate-200 dark:border-slate-800/60 p-3 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
                               <p className="text-[9px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1.5">Approved Taken</p>
-                              <p className="text-2xl font-black text-slate-800 dark:text-slate-200 tracking-tighter">{analytics.leave.used}</p>
+                              <p className="text-2xl font-black text-foreground dark:text-slate-200 tracking-tighter">{analytics.leave.used}</p>
                             </div>
                             <div className="rounded-xl border-2 border-emerald-500/20 p-3 bg-emerald-50/30 shadow-sm flex flex-col justify-between">
                               <p className="text-[9px] font-bold uppercase tracking-widest text-emerald-600 mb-1.5">Remaining Balance</p>
@@ -1086,7 +1086,7 @@ export default function Employees() {
                                     Utilization
                                     <span className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[7px] text-foreground">?</span>
                                   </p>
-                                  <p className={`text-2xl font-black tracking-tighter ${analytics.leave.utilizationRate >= 90 ? 'text-amber-500' : 'text-slate-800 dark:text-slate-200'}`}>
+                                  <p className={`text-2xl font-black tracking-tighter ${analytics.leave.utilizationRate >= 90 ? 'text-amber-500' : 'text-foreground dark:text-slate-200'}`}>
                                     {analytics.leave.utilizationRate}%
                                   </p>
                                 </TooltipTrigger>
@@ -1252,7 +1252,7 @@ export default function Employees() {
                 <TabsContent value="temporary_branch" className="mt-0">
                     <div className="bg-[#FFFDF0] dark:bg-slate-800 p-6 rounded-2xl border border-yellow-200 dark:border-slate-700 shadow-sm">
                     <div className="mb-6">
-                      <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                      <h3 className="text-lg font-black text-foreground dark:text-slate-100 flex items-center gap-2">
                         <MapPin className="w-5 h-5 text-indigo-500" />
                         Temporary Branch History
                       </h3>
@@ -1264,7 +1264,7 @@ export default function Employees() {
                         <div className="w-12 h-12 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center mb-3 shadow-sm">
                           <MapPin className="w-5 h-5 text-foreground" />
                         </div>
-                        <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">No Temporary Transfer</h4>
+                        <h4 className="text-sm font-bold text-foreground dark:text-slate-200 mb-1">No Temporary Transfer</h4>
                         <p className="text-xs font-semibold text-foreground max-w-[250px]">This employee has no previous temporary branch transfer records.</p>
                       </div>
                     ) : (
@@ -1286,17 +1286,17 @@ export default function Employees() {
                             <TableBody>
                               {tempAssignmentsHistory.map((assignment, idx) => (
                                 <TableRow key={idx}>
-                                  <TableCell className="font-bold text-sm text-slate-800 dark:text-slate-200">
+                                  <TableCell className="font-bold text-sm text-foreground dark:text-slate-200">
                                     <div className="flex items-center gap-2">
                                       <MapPin className="w-3.5 h-3.5 text-indigo-400" />
                                       {assignment.temp_branch || assignment.location}
                                     </div>
                                   </TableCell>
-                                  <TableCell className="text-xs font-semibold text-slate-600 dark:text-foreground">
+                                  <TableCell className="text-xs font-semibold text-foreground dark:text-foreground">
                                     {assignment.start_date ? new Date(assignment.start_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }).toUpperCase() : '?'} – {assignment.end_date ? new Date(assignment.end_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }).toUpperCase() : '?'}
                                   </TableCell>
                                   <TableCell>
-                                    <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full ${assignment.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
+                                    <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full ${assignment.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-foreground'}`}>
                                       {assignment.status}
                                     </span>
                                   </TableCell>
@@ -1660,7 +1660,7 @@ export default function Employees() {
             </DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-4">
-            <p className="text-sm text-slate-700 dark:text-slate-300">
+            <p className="text-sm text-foreground dark:text-slate-300">
               {statusConfirmEmp?.status === "Active" 
                 ? <>Are you sure you want to mark <strong>{statusConfirmEmp?.name}</strong> as Inactive?</>
                 : <>Are you sure you want to reactivate <strong>{statusConfirmEmp?.name}</strong>?</>}
@@ -1695,7 +1695,7 @@ export default function Employees() {
             <DialogTitle className="text-xl font-black text-rose-600">Delete Employee?</DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-4">
-            <p className="text-sm text-slate-700 dark:text-slate-300">
+            <p className="text-sm text-foreground dark:text-slate-300">
               Are you sure you want to permanently delete <strong>{deleteConfirmEmp?.name}</strong> from <strong>{deleteConfirmEmp?.branch}</strong>?
             </p>
             <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-lg p-3">
@@ -1811,6 +1811,7 @@ export default function Employees() {
     </div>
   );
 }
+
 
 
 

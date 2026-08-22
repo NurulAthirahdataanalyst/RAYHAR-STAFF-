@@ -18,7 +18,7 @@ const PINK = "#EC4899";
 
 function fmtDate(d: string) {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString("en-MY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" });
+  return new Date(d).toLocaleDateString("en-MY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" }).toUpperCase();
 }
 
 function diffDays(start: string, end: string) {
@@ -39,7 +39,7 @@ function statusBadge(status: string) {
     case "Active":    return <Badge className="bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-500/30 font-bold">🟣 Active</Badge>;
     case "Upcoming":  return <Badge className="bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 font-bold">🟡 Upcoming</Badge>;
     case "Completed": return <Badge className="bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 font-bold">🔵 Completed</Badge>;
-    case "Cancelled": return <Badge className="bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-800 dark:border-gray-500/30 font-bold">⬜ Cancelled</Badge>;
+    case "Cancelled": return <Badge className="bg-gray-100 dark:bg-gray-500/20 text-foreground dark:text-gray-300 border border-gray-200 dark:border-slate-800 dark:border-gray-500/30 font-bold">⬜ Cancelled</Badge>;
     default:          return <Badge variant="outline">{status}</Badge>;
   }
 }
@@ -140,7 +140,7 @@ export default function MyOutstation() {
                 </div>
                 <div>
                    <p className="text-[10px] font-black uppercase tracking-widest text-pink-400 mb-0.5">Currently On Outstation</p>
-                  <h3 className="text-lg font-black text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                  <h3 className="text-lg font-black text-foreground dark:text-gray-100 flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-pink-500 shrink-0" />
                     {active.purpose
                       ? <>{active.purpose} <span className="text-pink-400 font-bold">·</span> {active.destination}</>
@@ -159,15 +159,15 @@ export default function MyOutstation() {
             <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-pink-100">
               <div>
                 <p className="text-[9px] font-black uppercase tracking-widest text-foreground">Start</p>
-                <p className="text-[11px] font-bold text-gray-700 dark:text-gray-200 mt-0.5">{fmtDate(active.start_date)}</p>
+                <p className="text-[11px] font-bold text-foreground dark:text-gray-200 mt-0.5">{fmtDate(active.start_date)}</p>
               </div>
               <div>
                 <p className="text-[9px] font-black uppercase tracking-widest text-foreground">End</p>
-                <p className="text-[11px] font-bold text-gray-700 dark:text-gray-200 mt-0.5">{fmtDate(active.end_date)}</p>
+                <p className="text-[11px] font-bold text-foreground dark:text-gray-200 mt-0.5">{fmtDate(active.end_date)}</p>
               </div>
               <div>
                 <p className="text-[9px] font-black uppercase tracking-widest text-foreground">Assigned By</p>
-                <p className="text-[11px] font-bold text-gray-700 dark:text-gray-200 mt-0.5">{active.assigned_by_name || "—"}</p>
+                <p className="text-[11px] font-bold text-foreground dark:text-gray-200 mt-0.5">{active.assigned_by_name || "—"}</p>
               </div>
             </div>
           </CardContent>
@@ -183,7 +183,7 @@ export default function MyOutstation() {
             </div>
             <div className="flex-1">
               <p className="text-[10px] font-black uppercase tracking-widest text-amber-500">Upcoming Trip</p>
-              <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5 flex items-center gap-1.5">
+              <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5 flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-amber-500" /> {nextUpcoming.destination}
               </p>
               <p className="text-[11px] text-amber-600 font-bold mt-0.5">{fmtDate(nextUpcoming.start_date)} → {fmtDate(nextUpcoming.end_date)}</p>
@@ -252,13 +252,13 @@ export default function MyOutstation() {
             <div className="flex items-center gap-3">
               <div className="flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-lg p-1 border border-slate-300 dark:border-slate-700">
                 <button 
-                  className={`h-7 px-3 text-[10px] font-black tracking-widest rounded-md transition-all ${viewMode === 'month' ? 'bg-white dark:bg-slate-800 text-[#7B0099] shadow-sm' : 'text-foreground hover:text-slate-700'}`}
+                  className={`h-7 px-3 text-[10px] font-black tracking-widest rounded-md transition-all ${viewMode === 'month' ? 'bg-white dark:bg-slate-800 text-[#7B0099] shadow-sm' : 'text-foreground hover:text-foreground'}`}
                   onClick={() => setViewMode('month')}
                 >
                   MONTH
                 </button>
                 <button 
-                  className={`h-7 px-3 text-[10px] font-black tracking-widest rounded-md transition-all ${viewMode === 'year' ? 'bg-white dark:bg-slate-800 text-[#7B0099] shadow-sm' : 'text-foreground hover:text-slate-700'}`}
+                  className={`h-7 px-3 text-[10px] font-black tracking-widest rounded-md transition-all ${viewMode === 'year' ? 'bg-white dark:bg-slate-800 text-[#7B0099] shadow-sm' : 'text-foreground hover:text-foreground'}`}
                   onClick={() => setViewMode('year')}
                 >
                   YEAR
@@ -273,10 +273,10 @@ export default function MyOutstation() {
                     setSelectedYear(y);
                     setSelectedMonth(parseInt(m).toString());
                   }}
-                  className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]"
+                  className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-foreground dark:text-slate-100 bg-white dark:bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]"
                 />
               ) : (
-                <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 bg-white dark:bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
+                <YearPopover year={selectedYear} onSelectYear={setSelectedYear} className="flex items-center justify-between h-9 px-3 text-[10px] font-black uppercase tracking-widest text-foreground dark:text-slate-100 bg-white dark:bg-card border border-slate-200 dark:border-slate-700 rounded-md shadow-sm min-w-[140px]" />
               )}
             </div>
           </div>
@@ -311,7 +311,7 @@ export default function MyOutstation() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-black text-gray-800 dark:text-gray-100 text-[13px] uppercase">
+                        <span className="font-black text-foreground dark:text-gray-100 text-[13px] uppercase">
                           &#9992;&#65039; {a.project || a.purpose || a.meeting_title ? `${a.project || a.purpose || a.meeting_title} - ` : ""}{a.destination}
                         </span>
                         {a.client_company && <span className="text-[10px] font-bold text-foreground">&bull; {a.client_company}</span>}
@@ -336,3 +336,5 @@ export default function MyOutstation() {
     </div>
   );
 }
+
+

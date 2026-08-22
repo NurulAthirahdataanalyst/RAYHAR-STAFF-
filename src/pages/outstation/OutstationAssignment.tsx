@@ -35,7 +35,7 @@ function formatName(fullName: string) {
 
 function fmtDate(d: string) {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString("en-MY", { day: "2-digit", month: "short", year: "numeric" });
+  return new Date(d).toLocaleDateString("en-MY", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase();
 }
 
 function statusBadge(status: string) {
@@ -43,7 +43,7 @@ function statusBadge(status: string) {
     case "Active":    return <Badge className="bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-500/30 font-bold text-[10px] whitespace-nowrap">🟣 Active</Badge>;
     case "Upcoming":  return <Badge className="bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 font-bold text-[10px] whitespace-nowrap">🟡 Upcoming</Badge>;
     case "Completed": return <Badge className="bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 font-bold text-[10px] whitespace-nowrap">🔵 Completed</Badge>;
-    case "Cancelled": return <Badge className="bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-800 dark:border-gray-500/30 font-bold text-[10px] whitespace-nowrap">⬜ Cancelled</Badge>;
+    case "Cancelled": return <Badge className="bg-gray-100 dark:bg-gray-500/20 text-foreground dark:text-gray-300 border border-gray-200 dark:border-slate-800 dark:border-gray-500/30 font-bold text-[10px] whitespace-nowrap">⬜ Cancelled</Badge>;
     default:          return <Badge variant="outline" className="whitespace-nowrap">{status}</Badge>;
   }
 }
@@ -368,7 +368,7 @@ export default function OutstationAssignment() {
                   setFilterMonthYear(`${currentDate.getFullYear()}-all`);
                 }
               }}
-              className="appearance-none flex items-center justify-between px-3 py-1.5 h-8 bg-gray-50 dark:bg-card border border-gray-200 dark:border-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 text-[11px] font-bold rounded shadow-sm outline-none cursor-pointer uppercase tracking-widest gap-2"
+              className="appearance-none flex items-center justify-between px-3 py-1.5 h-8 bg-gray-50 dark:bg-card border border-gray-200 dark:border-slate-800 text-foreground dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 text-[11px] font-bold rounded shadow-sm outline-none cursor-pointer uppercase tracking-widest gap-2"
             />
 
             <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -381,7 +381,7 @@ export default function OutstationAssignment() {
               </SelectContent>
             </Select>
             {(filterStatus !== "All" || filterSearch || !filterMonthYear) && (
-              <Badge className="cursor-pointer bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-300 text-[10px] border border-gray-200 dark:border-slate-800 dark:border-gray-500/30 hover:bg-gray-200"
+              <Badge className="cursor-pointer bg-gray-100 dark:bg-gray-500/20 text-foreground dark:text-gray-300 text-[10px] border border-gray-200 dark:border-slate-800 dark:border-gray-500/30 hover:bg-gray-200"
                 onClick={() => { setFilterStatus("All"); setFilterSearch(""); setFilterMonthYear(`${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`); }}>
                 Clear ×
               </Badge>
@@ -423,13 +423,13 @@ export default function OutstationAssignment() {
                           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center text-[9px] font-black text-pink-800 shrink-0">
                             {(a.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                           </div>
-                          <span className="font-semibold text-gray-800 dark:text-gray-100 text-[12px] truncate max-w-[150px]" title={a.full_name}>{formatName(a.full_name)}</span>
+                          <span className="font-semibold text-foreground dark:text-gray-100 text-[12px] truncate max-w-[150px]" title={a.full_name}>{formatName(a.full_name)}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-gray-600 dark:text-gray-300 text-[12px] px-2.5">{a.department || "—"}</TableCell>
-                      <TableCell className="text-gray-600 dark:text-gray-300 text-[12px] px-2.5">{a.branch || "—"}</TableCell>
+                      <TableCell className="text-foreground dark:text-gray-300 text-[12px] px-2.5">{a.department || "—"}</TableCell>
+                      <TableCell className="text-foreground dark:text-gray-300 text-[12px] px-2.5">{a.branch || "—"}</TableCell>
                       <TableCell className="px-2.5" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-1 font-semibold text-gray-800 dark:text-gray-100 text-[12px]">
+                        <div className="flex items-center gap-1 font-semibold text-foreground dark:text-gray-100 text-[12px]">
                           <MapPin className="w-3 h-3 text-pink-400 shrink-0" />{a.destination}
                         </div>
                         {a.client_company && <div className="text-[10px] text-foreground ml-4">{a.client_company}</div>}
@@ -459,7 +459,7 @@ export default function OutstationAssignment() {
                           ) : (
                             <button 
                               disabled 
-                              className="p-1.5 rounded-lg text-gray-300 dark:text-gray-600 cursor-not-allowed" 
+                              className="p-1.5 rounded-lg text-gray-300 dark:text-foreground cursor-not-allowed" 
                               title="Only the user who created this assignment can delete it."
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -517,7 +517,7 @@ export default function OutstationAssignment() {
                       variant={currentPage === pageNum ? "default" : "outline"}
                       size="sm"
                       onClick={() => setCurrentPage(pageNum)}
-                      className={`h-7 w-7 p-0 text-[10px] font-bold rounded ${currentPage === pageNum ? 'bg-pink-500 text-white border-pink-500 hover:bg-pink-600' : 'text-gray-600'}`}
+                      className={`h-7 w-7 p-0 text-[10px] font-bold rounded ${currentPage === pageNum ? 'bg-pink-500 text-white border-pink-500 hover:bg-pink-600' : 'text-foreground'}`}
                     >
                       {pageNum}
                     </Button>
@@ -595,7 +595,7 @@ export default function OutstationAssignment() {
                               {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
                             </div>
                             <div>
-                              <p className="text-[11px] font-bold text-gray-800 dark:text-gray-100">{e.full_name}</p>
+                              <p className="text-[11px] font-bold text-foreground dark:text-gray-100">{e.full_name}</p>
                               <p className="text-[9px] text-foreground">{e.department} · {e.branch}</p>
                             </div>
                           </div>
@@ -615,23 +615,23 @@ export default function OutstationAssignment() {
               </Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-[10px] font-bold text-gray-600 dark:text-gray-300 mb-1 block">Destination <span className="text-red-500">*</span></Label>
+                  <Label className="text-[10px] font-bold text-foreground dark:text-gray-300 mb-1 block">Destination <span className="text-red-500">*</span></Label>
                   <Input value={form.destination} onChange={e => setForm(f => ({ ...f, destination: e.target.value }))} placeholder="e.g. Johor Bahru" className="h-8 text-xs" />
                 </div>
                 <div>
-                  <Label className="text-[10px] font-bold text-gray-600 dark:text-gray-300 mb-1 block">Client / Company</Label>
+                  <Label className="text-[10px] font-bold text-foreground dark:text-gray-300 mb-1 block">Client / Company</Label>
                   <Input value={form.client_company} onChange={e => setForm(f => ({ ...f, client_company: e.target.value }))} placeholder="e.g. ABC Sdn Bhd" className="h-8 text-xs" />
                 </div>
                 <div>
-                  <Label className="text-[10px] font-bold text-gray-600 dark:text-gray-300 mb-1 block">Event Name</Label>
+                  <Label className="text-[10px] font-bold text-foreground dark:text-gray-300 mb-1 block">Event Name</Label>
                   <Input value={form.project} onChange={e => setForm(f => ({ ...f, project: e.target.value }))} placeholder="Event name" className="h-8 text-xs" />
                 </div>
                 <div>
-                  <Label className="text-[10px] font-bold text-gray-600 dark:text-gray-300 mb-1 block">Meeting Title</Label>
+                  <Label className="text-[10px] font-bold text-foreground dark:text-gray-300 mb-1 block">Meeting Title</Label>
                   <Input value={form.meeting_title} onChange={e => setForm(f => ({ ...f, meeting_title: e.target.value }))} placeholder="Meeting / event title" className="h-8 text-xs" />
                 </div>
                 <div className="sm:col-span-2">
-                  <Label className="text-[10px] font-bold text-gray-600 dark:text-gray-300 mb-1 block">Purpose</Label>
+                  <Label className="text-[10px] font-bold text-foreground dark:text-gray-300 mb-1 block">Purpose</Label>
                   <textarea
                     value={form.purpose}
                     onChange={e => setForm(f => ({ ...f, purpose: e.target.value }))}
@@ -650,11 +650,11 @@ export default function OutstationAssignment() {
               </Label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
-                  <Label className="text-[10px] font-bold text-gray-600 dark:text-gray-300 mb-1 block">Start Date <span className="text-red-500">*</span></Label>
+                  <Label className="text-[10px] font-bold text-foreground dark:text-gray-300 mb-1 block">Start Date <span className="text-red-500">*</span></Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <button type="button" className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-ring">
-                        {form.start_date ? new Date(form.start_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : "dd/mm/yyyy"}
+                      <button type="button" className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 text-foreground dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-ring">
+                        {form.start_date ? new Date(form.start_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).toUpperCase() : "dd/mm/yyyy"}
                         <CalendarDays className="w-3.5 h-3.5 text-foreground opacity-50" />
                       </button>
                     </PopoverTrigger>
@@ -671,15 +671,15 @@ export default function OutstationAssignment() {
                   </Popover>
                 </div>
                 <div>
-                  <Label className="text-[10px] font-bold text-gray-600 dark:text-gray-300 mb-1 block">Start Time</Label>
+                  <Label className="text-[10px] font-bold text-foreground dark:text-gray-300 mb-1 block">Start Time</Label>
                   <Input type="time" value={form.start_time} onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))} className="h-8 text-xs" />
                 </div>
                 <div>
-                  <Label className="text-[10px] font-bold text-gray-600 dark:text-gray-300 mb-1 block">End Date <span className="text-red-500">*</span></Label>
+                  <Label className="text-[10px] font-bold text-foreground dark:text-gray-300 mb-1 block">End Date <span className="text-red-500">*</span></Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <button type="button" className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-ring">
-                        {form.end_date ? new Date(form.end_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : "dd/mm/yyyy"}
+                      <button type="button" className="flex h-8 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 text-foreground dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-ring">
+                        {form.end_date ? new Date(form.end_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).toUpperCase() : "dd/mm/yyyy"}
                         <CalendarDays className="w-3.5 h-3.5 text-foreground opacity-50" />
                       </button>
                     </PopoverTrigger>
@@ -696,7 +696,7 @@ export default function OutstationAssignment() {
                   </Popover>
                 </div>
                 <div>
-                  <Label className="text-[10px] font-bold text-gray-600 dark:text-gray-300 mb-1 block">End Time</Label>
+                  <Label className="text-[10px] font-bold text-foreground dark:text-gray-300 mb-1 block">End Time</Label>
                   <Input type="time" value={form.end_time} onChange={e => setForm(f => ({ ...f, end_time: e.target.value }))} className="h-8 text-xs" />
                 </div>
               </div>
@@ -781,11 +781,11 @@ export default function OutstationAssignment() {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="col-span-2 bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                       <p className="text-[10px] text-black dark:text-white font-bold uppercase">Destination</p>
-                      <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{viewFormAssignment.destination}</p>
+                      <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{viewFormAssignment.destination}</p>
                     </div>
                     <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                       <p className="text-[10px] text-black dark:text-white font-bold uppercase">Event Name</p>
-                      <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{viewFormAssignment.project || viewFormAssignment.purpose || "Outstation Trip"}</p>
+                      <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{viewFormAssignment.project || viewFormAssignment.purpose || "Outstation Trip"}</p>
                     </div>
                     <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                       <p className="text-[10px] text-black dark:text-white font-bold uppercase">Status</p>
@@ -802,11 +802,11 @@ export default function OutstationAssignment() {
                   <div className="grid grid-cols-3 gap-3">
                     <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                       <p className="text-[10px] text-black dark:text-white font-bold uppercase">Start Date</p>
-                      <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{fmtDate(viewFormAssignment.start_date)}</p>
+                      <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{fmtDate(viewFormAssignment.start_date)}</p>
                     </div>
                     <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-3 border border-gray-100 dark:border-slate-800">
                       <p className="text-[10px] text-black dark:text-white font-bold uppercase">End Date</p>
-                      <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{fmtDate(viewFormAssignment.end_date)}</p>
+                      <p className="text-sm font-black text-foreground dark:text-gray-100 mt-0.5">{fmtDate(viewFormAssignment.end_date)}</p>
                     </div>
                     <div className="bg-[#7B0099]/5 rounded-xl p-3 border border-[#7B0099]/20">
                       <p className="text-[10px] text-[#7B0099] font-bold uppercase">Total Days</p>
@@ -826,7 +826,7 @@ export default function OutstationAssignment() {
                           {(viewFormAssignment.full_name || "?").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100 truncate">{viewFormAssignment.full_name}</p>
+                          <p className="text-[12px] font-bold text-foreground dark:text-gray-100 truncate">{viewFormAssignment.full_name}</p>
                           <p className="text-[10px] text-foreground">{viewFormAssignment.department || "—"} · {viewFormAssignment.branch || "—"}</p>
                         </div>
                         {statusBadge(viewFormAssignment.status)}
@@ -918,5 +918,7 @@ export default function OutstationAssignment() {
 
   );
 }
+
+
 
 
