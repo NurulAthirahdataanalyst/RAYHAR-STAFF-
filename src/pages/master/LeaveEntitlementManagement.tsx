@@ -43,6 +43,7 @@ import { YearPopover } from "@/components/shared/YearPopover";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarWidget } from "@/components/ui/calendar";
 import { CalendarDays } from "lucide-react";
+import { format } from "date-fns";
 
 
 const modules = [
@@ -480,7 +481,7 @@ function CustomDatePicker({ value, onChange, placeholder, disabled }: { value: s
       <PopoverTrigger asChild>
         <button type="button" disabled={disabled} className="appearance-none flex items-center justify-between w-full px-3 h-9 bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider hover:border-[#7B0099]/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           <span className="font-bold text-foreground">
-            {value ? new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : (placeholder || "Select Date")}
+            {value ? format(new Date(value), "dd MMM yyyy").toUpperCase() : (placeholder || "Select Date")}
           </span>
           <CalendarDays className="w-3.5 h-3.5 text-foreground opacity-70" />
         </button>
@@ -2101,3 +2102,4 @@ function ReplacementLeaveValidationForm({ employees, onCancel }: { employees: an
     </Card>
   );
 }
+

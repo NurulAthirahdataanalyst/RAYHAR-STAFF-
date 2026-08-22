@@ -208,7 +208,8 @@ function groupByDate(logs: EntitlementHistoryLog[]): Array<{ dateLabel: string; 
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarWidget } from "@/components/ui/calendar";
-import { CalendarDays } from "lucide-react";`nimport { format } from "date-fns";
+import { CalendarDays } from "lucide-react";
+import { format } from "date-fns";
 
 function CustomDatePicker({ value, onChange, placeholder, disabled, className }: { value: string, onChange: (val: string) => void, placeholder?: string, disabled?: boolean, className?: string }) {
   return (
@@ -536,3 +537,4 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
     </>
   );
 }
+
