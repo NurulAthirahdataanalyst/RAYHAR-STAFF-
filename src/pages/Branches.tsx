@@ -371,7 +371,7 @@ export default function Branches() {
       const res = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
       const data = await res.json();
       if (data.success) {
-        setTemporaryStaff(data.assignments);
+        setTemporaryStaff(data.assignments || []);
       }
     } catch (e) {
       console.error("Failed to fetch temporary staff", e);
@@ -423,7 +423,7 @@ export default function Branches() {
             `${API_BASE_URL}/api/analytics/branch-stats?${params}`,
           );
           const data = await response.json();
-          if (data.success) setBranchStats(data.data);
+          if (data.success) setBranchStats(data.data || []);
         } catch (err) {
           console.error("Error fetching branch stats", err);
         }
@@ -433,26 +433,31 @@ export default function Branches() {
   }, [allBranches]);
 
   useEffect(() => {
-    if (selectedBranch && selectedBranch.code) {
-      const fetchEmployees = async () => {
-        setLoading(true);
-        try {
-          const params = new URLSearchParams({ branch: selectedBranch.code });
-          const response = await fetch(
-            `${API_BASE_URL}/api/branch-employees?${params}`,
-          );
-          const data = await response.json();
-          if (data.success) {
-            setEmployees(data.employees || []);
+    if (!selectedBranch || !selectedBranch.code) return;
+    const fetchBranchEmployees = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/branch-employees?branch=${selectedBranch.code}`,
+        );
+        const data = await response.json();
+        if (data.success) {
+          const emps = data.employees || [];
+          setEmployees(emps);
+          if (emps.length > 0) {
+            setSelectedEmployeeId(emps[0].user_id);
+          } else {
+            setSelectedEmployeeId("");
           }
-        } catch (err) {
-          toast.error("Failed to fetch branch employees");
-        } finally {
-          setLoading(false);
         }
-      };
-      fetchEmployees();
-    }
+      } catch (error) {
+        console.error("Branch employee fetch error:", error);
+        setEmployees([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBranchEmployees();
   }, [selectedBranch]);
 
   const handleDeleteBranch = async (e: React.MouseEvent, code: string) => {
@@ -487,7 +492,7 @@ export default function Branches() {
         const response = await fetch(`${API_BASE_URL}/api/branches-stats`);
         const data = await response.json();
         if (data.success) {
-          setBranchStats(data.stats);
+          setBranchStats(data.stats || []);
         }
       } catch (err) {
         console.error("Error fetching branch stats", err);
@@ -525,32 +530,7 @@ export default function Branches() {
     fetchLeaves();
   }, [viewLeaveStatus, selectedEmployeeId]);
 
-  useEffect(() => {
-    if (!selectedBranch) return;
-    const fetchBranchEmployees = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/branch-employees?branch=${selectedBranch.code}`,
-        );
-        const data = await response.json();
-        if (data.success) {
-          setEmployees(data.employees);
-          if (data.employees.length > 0) {
-            setSelectedEmployeeId(data.employees[0].user_id);
-          } else {
-            setSelectedEmployeeId("");
-          }
-        }
-      } catch (error) {
-        console.error("Branch employee fetch error:", error);
-        setEmployees([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    void fetchBranchEmployees();
-  }, [selectedBranch]);
+  
 
   const selectedEmployee = useMemo(
     () => employees.find((e) => e.user_id === selectedEmployeeId),
