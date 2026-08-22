@@ -227,7 +227,7 @@ export default function GPSLocationTracker() {
 
   const focusOn = (empId: string) => {
     const loc = locations[empId];
-    if (!loc || loc.lat == null || loc.lng == null || !mapRef.current) return;
+    if (!loc || loc.lat == null || loc.lng == null) { toast({ title: "No Location Data", description: "This employee hasn't submitted their GPS location yet.", variant: "default" }); return; } if (!mapRef.current) return;
     try {
       const mapObj = mapRef.current.getMap ? mapRef.current.getMap() : mapRef.current;
       mapObj.flyTo({ center: [loc.lng, loc.lat], zoom: 16, duration: 1500 });
