@@ -55,14 +55,25 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
   }, []);
 
   const [year, month] = selectedMonthStr.split('-');
-  const selectedDate = new Date(Number(year), Number(month) - 1, 1);
-  const selectedMonthName = selectedDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+  const isAllYear = month === 'all';
   
-  const thisMonthLogs = logs.filter(l => l.date.startsWith(selectedMonthStr));
+  const selectedMonthName = isAllYear 
+    ? year 
+    : new Date(Number(year), Number(month) - 1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
   
-  const prevMonthDate = new Date(Number(year), Number(month) - 2, 1);
-  const prevMonth = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
-  const prevMonthLogs = logs.filter(l => l.date.startsWith(prevMonth));
+  const thisMonthLogs = isAllYear 
+    ? logs.filter(l => l.date.startsWith(year))
+    : logs.filter(l => l.date.startsWith(selectedMonthStr));
+  
+  let prevMonthLogs: EntitlementHistoryLog[] = [];
+  if (isAllYear) {
+    const prevYear = String(Number(year) - 1);
+    prevMonthLogs = logs.filter(l => l.date.startsWith(prevYear));
+  } else {
+    const prevMonthDate = new Date(Number(year), Number(month) - 2, 1);
+    const prevMonthStr = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
+    prevMonthLogs = logs.filter(l => l.date.startsWith(prevMonthStr));
+  }
 
   const totalThis = thisMonthLogs.length;
   const totalPrev = prevMonthLogs.length;
@@ -144,7 +155,7 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
               {totalTrend >= 0
                 ? <TrendingUp className="w-3.5 h-3.5" />
                 : <TrendingDown className="w-3.5 h-3.5" />}
-              {Math.abs(totalTrend)}% vs last month
+              {Math.abs(totalTrend)}% vs last {isAllYear ? 'year' : 'month'}
             </div>
           )}
         </div>
