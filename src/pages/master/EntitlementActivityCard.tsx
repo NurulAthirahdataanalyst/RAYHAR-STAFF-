@@ -3,6 +3,7 @@ import { History, TrendingUp, TrendingDown, ChevronRight, ClipboardEdit, RotateC
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getHistoryLogs, EntitlementHistoryLog } from "@/lib/entitlementHistory";
+import { MonthPicker } from "@/components/shared/MonthPicker";
 
 // ─── Badge config ─────────────────────────────────────────────────────────────
 export const ACTION_BADGE: Record<string, { bg: string; text: string; dot: string; label: string; border: string }> = {
