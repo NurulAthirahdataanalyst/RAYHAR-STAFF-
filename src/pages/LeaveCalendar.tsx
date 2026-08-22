@@ -222,83 +222,92 @@ export default function LeaveCalendar() {
       </Card>
 
       {/* Event Detail Popup */}
-      {selectedEvent && (() => {
-        const relatedLeaves = requests.filter(a => 
-          a.start_date === selectedEvent.start_date &&
-          a.end_date === selectedEvent.end_date &&
-          (a.status === filterStatus || filterStatus === "All" || (filterStatus === "Pending" && a.status.startsWith("Pending")))
-        );
-        return ReactDOM.createPortal(
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedEvent(null)}>
-            <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden max-w-sm w-full flex flex-col relative" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between bg-blue-500 text-white p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-white/20">
-                    <FileText className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/80 mb-0.5">Leave Record</p>
-                    <h3 className="font-black text-white truncate">{selectedEvent.leave_type}</h3>
-                  </div>
-                </div>
-                <button onClick={() => setSelectedEvent(null)} className="p-1.5 rounded-lg hover:bg-white/20 text-white/80 hover:text-white transition-colors">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              
-              <div className="p-6 pt-4 overflow-y-auto pr-1 space-y-4 custom-scrollbar">
-              <div className="space-y-3 border-t border-gray-100 dark:border-slate-800 pt-4">
-                <div className="flex items-center gap-2.5">
-                  <User className="w-3.5 h-3.5 text-[#7B0099] shrink-0" />
-                  <div>
-                    <p className="text-[9px] font-black uppercase text-gray-400">Employee</p>
-                    <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{selectedEvent.full_name || selectedEvent.user_id}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2.5">
-                  <Calendar className="w-3.5 h-3.5 text-[#7B0099] shrink-0" />
-                  <div>
-                    <p className="text-[9px] font-black uppercase text-gray-400">Duration ({selectedEvent.days} {selectedEvent.days > 1 ? 'Days' : 'Day'})</p>
-                    <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{fmtDate(selectedEvent.start_date)} → {fmtDate(selectedEvent.end_date)}</p>
-                  </div>
-                </div>
+      {selectedEvent && (
+        <LeaveDetailPopup 
+          selectedEvent={selectedEvent} 
+          requests={requests}
+          filterStatus={filterStatus}
+          onClose={() => setSelectedEvent(null)}
+        />
+      )}
+    </div>
+  );
+}
 
-                <div className="mt-2">
-                  {(() => {
-                    const c = statusColor(selectedEvent.status);
-                    return (
-                      <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-black ${c.bg} ${c.text} border ${c.border}`}>
-                        <div className={`w-2 h-2 rounded-full ${c.dot}`} />
-                        {selectedEvent.status.startsWith("Pending") ? "Pending" : selectedEvent.status}
-                      </span>
-                    );
-                  })()}
-                </div>
-              </div>
+function LeaveDetailPopup({ selectedEvent, requests, filterStatus, onClose }: { selectedEvent: LeaveRequest, requests: LeaveRequest[], filterStatus: string, onClose: () => void }) {
+  const relatedLeaves = requests.filter(a => 
+    a.start_date === selectedEvent.start_date &&
+    a.end_date === selectedEvent.end_date &&
+    (a.status === filterStatus || filterStatus === "All" || (filterStatus === "Pending" && a.status.startsWith("Pending")))
+  );
+  
+  const c = statusColor(selectedEvent.status);
 
-              {relatedLeaves.length > 1 && (
-                <div className="pt-4 border-t border-gray-100 dark:border-slate-800">
-                  <p className="text-[10px] font-black uppercase text-gray-400 mb-3">Other Employees on Leave ({relatedLeaves.length - 1})</p>
-                  <div className="space-y-2">
-                    {relatedLeaves.filter(a => a.leave_id !== selectedEvent.leave_id).map((a) => (
-                      <div key={a.leave_id} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-colors border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50`}>
-                        <div className="w-8 h-8 rounded-full bg-[#7B0099]/10 text-[#7B0099] text-[10px] font-bold flex items-center justify-center shrink-0">
-                          {(a.full_name || a.user_id).split(' ').map((n:string)=>n[0]).join('').substring(0,2).toUpperCase()}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100 truncate leading-tight">{a.full_name || a.user_id}</p>
-                          <p className="text-[10px] text-gray-400 truncate mt-0.5">{a.leave_type}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={onClose}>
+      <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden max-w-sm w-full flex flex-col relative" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between bg-blue-500 text-white p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-white/20">
+              <FileText className="w-5 h-5 text-white" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-white/80 mb-0.5">Leave Record</p>
+              <h3 className="font-black text-white truncate">{selectedEvent.leave_type}</h3>
             </div>
           </div>
-        , document.body);
-      })()}
-    </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/20 text-white/80 hover:text-white transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        
+        <div className="p-6 pt-4 overflow-y-auto pr-1 space-y-4 custom-scrollbar">
+          <div className="space-y-3 border-t border-gray-100 dark:border-slate-800 pt-4">
+            <div className="flex items-center gap-2.5">
+              <User className="w-3.5 h-3.5 text-[#7B0099] shrink-0" />
+              <div>
+                <p className="text-[9px] font-black uppercase text-gray-400">Employee</p>
+                <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{selectedEvent.full_name || selectedEvent.user_id}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2.5">
+              <Calendar className="w-3.5 h-3.5 text-[#7B0099] shrink-0" />
+              <div>
+                <p className="text-[9px] font-black uppercase text-gray-400">Duration ({selectedEvent.days} {selectedEvent.days > 1 ? 'Days' : 'Day'})</p>
+                <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100">{fmtDate(selectedEvent.start_date)} → {fmtDate(selectedEvent.end_date)}</p>
+              </div>
+            </div>
+
+            <div className="mt-2">
+              <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-black ${c.bg} ${c.text} border ${c.border}`}>
+                <div className={`w-2 h-2 rounded-full ${c.dot}`} />
+                {selectedEvent.status.startsWith("Pending") ? "Pending" : selectedEvent.status}
+              </span>
+            </div>
+          </div>
+
+          {relatedLeaves.length > 1 && (
+            <div className="pt-4 border-t border-gray-100 dark:border-slate-800">
+              <p className="text-[10px] font-black uppercase text-gray-400 mb-3">Other Employees on Leave ({relatedLeaves.length - 1})</p>
+              <div className="space-y-2">
+                {relatedLeaves.filter(a => a.leave_id !== selectedEvent.leave_id).map((a) => (
+                  <div key={a.leave_id} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-colors border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50`}>
+                    <div className="w-8 h-8 rounded-full bg-[#7B0099]/10 text-[#7B0099] text-[10px] font-bold flex items-center justify-center shrink-0">
+                      {(a.full_name || a.user_id).split(' ').map((n:string)=>n[0]).join('').substring(0,2).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[12px] font-bold text-gray-800 dark:text-gray-100 truncate leading-tight">{a.full_name || a.user_id}</p>
+                      <p className="text-[10px] text-gray-400 truncate mt-0.5">{a.leave_type}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 }
