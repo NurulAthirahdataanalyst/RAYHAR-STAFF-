@@ -905,7 +905,7 @@ function CarryForwardLeaveForm({
   onCancel: () => void;
   getUnusedDays: (id: string) => number;
 }) {
-  const [leaveType, setLeaveType] = useState("Annual & Emergency Leave");
+  const [leaveType, setLeaveType] = useState("Annual/Emergency Leave");
   const [leaveYear, setLeaveYear] = useState("2026");
   const [carryToYear, setCarryToYear] = useState("2027");
   const [maxCarry, setMaxCarry] = useState(5);
@@ -1024,9 +1024,9 @@ function CarryForwardLeaveForm({
               <Select value={leaveType} onValueChange={setLeaveType}>
                 <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Annual & Emergency Leave">Annual & Emergency Leave</SelectItem>
+                  <SelectItem value="Annual/Emergency Leave">Annual/Emergency Leave</SelectItem>
                   <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
-                  <SelectItem value="Sick Leave (MC)">Sick Leave (MC)</SelectItem>
+                  <SelectItem value="Sick Leave">Sick Leave</SelectItem>
                   <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
                 </SelectContent>
               </Select>
@@ -1181,7 +1181,7 @@ function CarryForwardLeaveForm({
    ========================================================== */
 function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { employees: any[]; onCancel: () => void; onRefresh?: () => void; }) {
   const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
-  const [leaveType, setLeaveType] = useState("Annual & Emergency Leave");
+  const [leaveType, setLeaveType] = useState("Annual/Emergency Leave");
   const [addDays, setAddDays] = useState(3);
   const [effectiveDate, setEffectiveDate] = useState("2027-01-10");
   const [expiryDate, setExpiryDate] = useState("2027-12-31");
@@ -1294,9 +1294,9 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
               <Select value={leaveType} onValueChange={setLeaveType}>
                 <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Annual & Emergency Leave">Annual & Emergency Leave</SelectItem>
+                  <SelectItem value="Annual/Emergency Leave">Annual/Emergency Leave</SelectItem>
                   <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
-                  <SelectItem value="Sick Leave (MC)">Sick Leave (MC)</SelectItem>
+                  <SelectItem value="Sick Leave">Sick Leave</SelectItem>
                   <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
                 </SelectContent>
               </Select>
@@ -1366,7 +1366,7 @@ function ManualLeaveAdjustmentForm({
 }: any) {
   const { toast } = useToast();
   const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
-  const [leaveType, setLeaveType] = useState("Annual Leave");
+  const [leaveType, setLeaveType] = useState("Annual/Emergency Leave");
   const [adjustmentType, setAdjustmentType] = useState("Add Leave");
   const [adjDays, setAdjDays] = useState(1);
   const [effectiveDate, setEffectiveDate] = useState(new Date().toISOString().split("T")[0]);
@@ -1579,9 +1579,10 @@ function ManualLeaveAdjustmentForm({
             <Select value={leaveType} onValueChange={setLeaveType}>
               <SelectTrigger className="bg-white dark:bg-card h-9 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="Annual Leave">Annual & Emergency Leave</SelectItem>
-                <SelectItem value="Sick Leave">Sick & Hospitalisation Leave</SelectItem>
-                <SelectItem value="Maternity Leave">Maternity Leave</SelectItem>
+                <SelectItem value="Annual/Emergency Leave">Annual/Emergency Leave</SelectItem>
+                  <SelectItem value="Replacement Leave">Replacement Leave</SelectItem>
+                  <SelectItem value="Sick Leave">Sick Leave</SelectItem>
+                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
               </SelectContent>
             </Select>
           </div>
