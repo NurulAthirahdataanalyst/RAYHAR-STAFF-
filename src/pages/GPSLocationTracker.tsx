@@ -314,24 +314,7 @@ export default function GPSLocationTracker() {
             </Button>
           </div>
         </div>
-        {/* Alerts panel */}
-        <div className="fixed top-20 right-6 z-50 w-80">
-          {alerts.map((a) => (
-            <div key={a.id} className="mb-2 rounded-lg bg-white/95 dark:bg-slate-900 p-2 shadow border border-border">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="text-xs font-bold">{a.type}</div>
-                  <div className="text-[11px] text-muted-foreground">User: {a.userId}</div>
-                  {a.arrived != null && <div className="text-[11px]">Arrived: {String(a.arrived)}</div>}
-                </div>
-                <div>
-                  <button className="text-xs text-muted-foreground" onClick={() => dismissAlert(a.id)}>Dismiss</button>
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
-      </div>
 
       <div className="flex flex-col gap-4">
         <div className="h-[520px] bg-card rounded-lg overflow-hidden">

@@ -984,13 +984,16 @@ export default function Attendance() {
           const result = await response.json();
           if (result.success) {
             if (isOutstationAssigned) {
-              toast({ title: "Location Updated", description: "Your outstation location has been logged successfully." });
+              toast({ title: "Location Sent", description: "Your outstation location has been logged successfully." });
             } else {
-              let desc = "Your location has been updated. Distance will be updated automatically.";
+              let desc = "Your location has been updated.";
               if (dist_meters !== undefined && !isNaN(dist_meters)) {
-                desc = `Your location has been updated. You are ${dist_meters}m from ${branchInfo?.name || branchCode}. Distance will be updated automatically.`;
+                const formatDist = (d: number) => d >= 1000 ? `${(d/1000).toFixed(1)} km` : `${d} m`;
+                const oldDistStr = locationDistance !== null ? formatDist(locationDistance) : "unknown distance";
+                const newDistStr = formatDist(dist_meters);
+                desc = `Your current location changed from ${oldDistStr} to ${newDistStr} from ${branchInfo?.name || branchCode}.`;
               }
-              toast({ title: "Location Updated", description: desc });
+              toast({ title: "Location Sent", description: desc });
             }
 
             if (dist_meters !== undefined && !isNaN(dist_meters)) {
