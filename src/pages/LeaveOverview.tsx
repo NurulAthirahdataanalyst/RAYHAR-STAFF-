@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 import PageActions from "@/components/layout/PageActions";
 import { YearPopover } from "@/components/shared/YearPopover";
-import { CheckCircle2, Clock3, FileText, Plus, XCircle, Calendar } from "lucide-react";
+import { Check, X, CheckCircle2, Clock3, FileText, Plus, XCircle, Calendar } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { API_BASE_URL } from "../config/api";
 import {
@@ -420,47 +420,41 @@ export default function LeaveOverview() {
                     </Badge>
                   </div>
 
-                  <div className="mt-6 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {approvalStatusIcon(req.status)}
-                        <span className="text-[10px] font-black uppercase tracking-widest text-foreground opacity-60">Workflow Progress</span>
-                      </div>
-                      <span className="text-[10px] font-black text-[#7B0099] uppercase">{Math.round(approvalProgress(req.status))}%</span>
-                    </div>
-                    
-                    <div className="relative h-2 rounded-full bg-[#7B0099]/10 overflow-hidden">
-                      <div
-                        className={`absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ease-out ${
-                          req.status === "Rejected" ? "bg-rose-500" :
-                          req.status === "Approved" ? "bg-emerald-500" :
-                          "bg-[#7B0099] shadow-[0_0_15px_rgba(123,0,153,0.4)]"
-                        }`}
-                        style={{ width: `${approvalProgress(req.status)}%` }}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-4 gap-1 px-1">
-                      {["Submit", "HOD", "Operation", "MD"].map((step, idx) => {
-                        const progress = approvalProgress(req.status);
-                        const thresholds = [0, 25, 50, 75];
-                        const isActive = progress >= thresholds[idx];
-                        const isRejectedAtStep = req.status === "Rejected" && progress === thresholds[idx];
+                  <div className="mt-6 space-y-4 pt-4 pb-2">
+                      <div className="relative">
+                        {/* Horizontal Line Background */}
+                        <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1.5 bg-muted/50 dark:bg-muted-foreground/20 rounded-full" />
+                        {/* Horizontal Line Fill */}
+                        <div 
+                          className={"absolute top-1/2 -translate-y-1/2 left-0 h-1.5 rounded-full transition-all duration-1000 " + (req.status === 'Rejected' ? 'bg-rose-500' : req.status === 'Approved' ? 'bg-emerald-500' : 'bg-[#7B0099]')}
+                          style={{ width: `${approvalProgress(req.status)}%` }}
+                        />
                         
-                        return (
-                          <div key={step} className="text-center space-y-1">
-                            <div className={`mx-auto w-1 h-1 rounded-full ${isActive ? 'bg-[#7B0099]' : 'bg-muted-foreground/30'}`} />
-                            <p className={`text-[8px] font-black uppercase tracking-tighter ${
-                              isRejectedAtStep ? 'text-rose-500' :
-                              isActive ? 'text-[#7B0099]' : 'text-foreground opacity-40'
-                            }`}>
-                              {step}
-                            </p>
-                          </div>
-                        );
-                      })}
+                        <div className="relative flex justify-between px-1">
+                          {["Submit", "HOD", "Operation", "MD"].map((step, idx) => {
+                            const progress = approvalProgress(req.status);
+                            const thresholds = [0, 25, 50, 75];
+                            const isPassed = progress > thresholds[idx];
+                            const isActive = progress === thresholds[idx];
+                            const isRejectedAtStep = req.status === "Rejected" && isActive;
+                            const isApproved = req.status === "Approved";
+                            
+                            return (
+                              <div key={step} className="flex flex-col items-center gap-2 relative group">
+                                <div className={"w-5 h-5 rounded-full flex items-center justify-center border-[3px] bg-white dark:bg-slate-900 z-10 transition-colors " + (isRejectedAtStep ? 'border-rose-500 text-rose-500' : isPassed || isApproved ? 'border-emerald-500 text-emerald-500' : isActive ? 'border-[#7B0099] text-[#7B0099]' : 'border-muted-foreground/30')}>
+                                  {isRejectedAtStep ? <X className="w-3.5 h-3.5 font-bold" /> :
+                                   isPassed || isApproved ? <Check className="w-3.5 h-3.5 font-bold" /> : 
+                                   isActive ? <div className="w-2 h-2 rounded-full bg-[#7B0099]" /> : null}
+                                </div>
+                                <p className={"text-[8px] font-black uppercase tracking-tighter absolute -bottom-6 w-16 text-center transition-colors " + (isRejectedAtStep ? 'text-rose-500' : isPassed || isApproved ? 'text-emerald-500' : isActive ? 'text-[#7B0099]' : 'text-foreground opacity-40')}>
+                                  {step}
+                                </p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
-                  </div>
                 </div>
               );
             })
@@ -477,4 +471,5 @@ export default function LeaveOverview() {
     </div>
   );
 }
+
 

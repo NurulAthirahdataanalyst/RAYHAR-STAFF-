@@ -311,21 +311,25 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                       <Clock className="w-4 h-4 text-[#7B0099]" />
                       <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Approval History</h3>
                     </div>
-                    <div className="relative space-y-4 before:absolute before:inset-0 before:ml-4 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border/50 before:to-transparent">
+                    <div className="relative space-y-6 ml-2 mt-4">
+                      {/* Vertical Line */}
+                      <div className={"absolute left-3.5 top-2 bottom-4 w-0.5 z-0 " + (selectedRequest.status === 'Rejected' ? 'bg-rose-500' : selectedRequest.status === 'Approved' ? 'bg-emerald-500' : 'bg-border')} />
                       {selectedRequest.approvalHistory.map((history: any, idx: number) => (
-                        <div key={idx} className="relative flex items-start gap-4">
-                          <div className={`absolute left-4 -translate-x-1/2 flex h-2 w-2 items-center justify-center rounded-full border border-white dark:border-slate-900 ${history.status === 'Approved' ? 'bg-emerald-500' : 'bg-rose-500'} z-10`} />
-                          <div className="ml-6 flex-1 bg-muted/30 rounded-[16px] p-3 border border-border/40">
+                        <div key={idx} className="relative flex items-start gap-4 z-10">
+                          <div className={"flex-shrink-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white dark:border-slate-900 " + (history.status === 'Approved' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white')}>
+                            {history.status === 'Approved' ? <Check className="w-4 h-4 font-bold" /> : <X className="w-4 h-4 font-bold" />}
+                          </div>
+                          <div className="flex-1 bg-muted/30 rounded-[16px] p-3 border border-border/40 mt-[-4px]">
                             <div className="flex items-center justify-between gap-2 mb-1">
-                              <div className="flex items-center gap-2">
-                                <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md ${history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className={"text-[8px] font-black uppercase px-2 py-0.5 rounded-md " + (history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600')}>
                                   {history.status}
                                 </span>
                                 <span className="text-[10px] font-black text-foreground/70">
                                   by {history.approver_name || history.approver_id} ({formatApproverRole(history.approver_role, history.approver_department, history.approver_branch)})
                                 </span>
                               </div>
-                              <span className="text-[8px] font-black text-foreground/50">
+                              <span className="text-[8px] font-black text-foreground/50 shrink-0">
                                 {new Date(history.created_at).toLocaleDateString('ms-MY')}
                               </span>
                             </div>
@@ -377,3 +381,4 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
     </Dialog>
   );
 }
+
