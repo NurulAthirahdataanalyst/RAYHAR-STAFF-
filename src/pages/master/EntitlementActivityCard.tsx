@@ -40,6 +40,10 @@ interface Props {
 
 export default function EntitlementActivityCard({ onViewHistory }: Props) {
   const [logs, setLogs] = useState<EntitlementHistoryLog[]>([]);
+  const [selectedMonthStr, setSelectedMonthStr] = useState<string>(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
 
   const reload = () => setLogs(getHistoryLogs());
 
@@ -49,14 +53,14 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
     return () => window.removeEventListener('entitlementHistoryUpdated', reload);
   }, []);
 
-  // Month calculations
-  const now     = new Date();
-  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const prevMonth = now.getMonth() === 0
-    ? `${now.getFullYear() - 1}-12`
-    : `${now.getFullYear()}-${String(now.getMonth()).padStart(2, '0')}`;
-
-  const thisMonthLogs = logs.filter(l => l.date.startsWith(thisMonth));
+  const [year, month] = selectedMonthStr.split('-');
+  const selectedDate = new Date(Number(year), Number(month) - 1, 1);
+  const selectedMonthName = selectedDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+  
+  const thisMonthLogs = logs.filter(l => l.date.startsWith(selectedMonthStr));
+  
+  const prevMonthDate = new Date(Number(year), Number(month) - 2, 1);
+  const prevMonth = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
   const prevMonthLogs = logs.filter(l => l.date.startsWith(prevMonth));
 
   const totalThis = thisMonthLogs.length;
@@ -97,12 +101,11 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
     },
   ];
 
-  const recent = logs.slice(0, 7);
+  const recent = thisMonthLogs.slice(0, 7);
 
   return (
-    <Card className="border-border/60 bg-card/77 backdrop-blur-sm flex flex-col">
-      {/* Header */}
-      <CardHeader className="border-b border-border/50 bg-muted/20 pb-4">
+    <Card className="h-full flex flex-col border-border/60 bg-card/77 backdrop-blur-sm">
+      <CardHeader className="pb-4 border-b border-border/50 bg-muted/20 flex-shrink-0">
         <div className="flex items-start justify-between gap-2">
           <div>
             <CardTitle className="flex items-center gap-2 text-base font-black">
@@ -113,20 +116,25 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
               Latest entitlement changes made by HR and the system.
             </CardDescription>
           </div>
-          <Button
-            variant="ghost" size="sm"
-            className="text-[11px] text-[#7B0099] hover:text-[#7B0099] hover:bg-[#7B0099]/5 h-7 px-2 shrink-0"
-            onClick={onViewHistory}
-          >
-            View Full History <ChevronRight className="w-3 h-3 ml-1" />
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <MonthPicker
+              monthYear={selectedMonthStr}
+              onSelectMonthYear={setSelectedMonthStr}
+              className="appearance-none flex items-center justify-between px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-foreground text-[11px] font-black rounded-lg shadow-sm outline-none cursor-pointer uppercase tracking-widest h-8 min-w-[140px] hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
+            />
+            <button
+              onClick={onViewHistory}
+              className="text-xs font-bold text-[#7B0099] hover:text-[#5e0080] flex items-center transition-colors px-2"
+            >
+              View Full History <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+            </button>
+          </div>
         </div>
 
-        {/* Primary KPI */}
         <div className="mt-4 flex items-end gap-3">
           <div>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-              Total Changes (This Month)
+              Total Changes ({selectedMonthName})
             </p>
             <p className="text-4xl font-black text-foreground mt-0.5 leading-none">{totalThis}</p>
           </div>
@@ -140,12 +148,11 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
           )}
         </div>
 
-        {/* Secondary KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3">
-          {kpis.map(k => {
+          {kpis.map((k, i) => {
             const Icon = k.icon;
             return (
-              <div key={k.label} className={`${k.bg} ${k.border} border rounded-xl p-2.5 flex flex-col gap-1`}>
+              <div key={i} className={`${k.bg} ${k.border} border rounded-xl p-2.5 flex flex-col gap-1`}>
                 <div className="flex items-center gap-1.5">
                   <Icon className={`w-3 h-3 ${k.color}`} />
                   <p className={`text-[9px] font-black uppercase tracking-wider ${k.color} leading-tight`}>
@@ -154,7 +161,7 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
                 </div>
                 <p className={`text-2xl font-black ${k.color} leading-none`}>{k.val}</p>
                 <p className={`text-[9px] font-semibold ${k.trend >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
-                  {k.trend >= 0 ? '▲' : '▼'} {Math.abs(k.trend)}% vs last month
+                  {k.trend >= 0 ? '▲' : '▼'} {Math.abs(k.trend)}%
                 </p>
               </div>
             );
@@ -162,12 +169,11 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
         </div>
       </CardHeader>
 
-      {/* Recent activity feed */}
       <CardContent className="p-0 flex-1">
         {recent.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
             <History className="w-8 h-8 opacity-20 mb-2" />
-            <p className="text-xs font-medium">No activity yet.</p>
+            <p className="text-xs font-medium">No activity for {selectedMonthName}.</p>
             <p className="text-[10px] mt-0.5 text-center px-4">
               Perform an allocation or adjustment to see records here.
             </p>

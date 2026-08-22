@@ -360,16 +360,15 @@ export default function GPSLocationTracker() {
             <NavigationControl position="top-left" />
 
             {Object.values(
-              Object.values(locations)
-                .filter((l) => l.lat != null && l.lng != null && filtered.some(f => f.user_id === l.user_id))
-                .reduce((acc, loc) => {
-                  const latNum = Number(loc.lat);
-                  const lngNum = Number(loc.lng);
-                  const key = `${latNum.toFixed(4)},${lngNum.toFixed(4)}`;
-                  if (!acc[key]) acc[key] = [];
-                  acc[key].push(loc);
-                  return acc;
-                }, {} as Record<string, EmpLocation[]>)
+              filtered.reduce((acc, emp) => {
+                const loc = locations[emp.user_id];
+                if (!loc || loc.lat == null || loc.lng == null) return acc;
+                // Separate the selected user so they get their own marker tooltip
+                const key = emp.user_id === selected ? `selected-${emp.user_id}` : `${loc.lat.toFixed(5)},${loc.lng.toFixed(5)}`;
+                if (!acc[key]) acc[key] = [];
+                acc[key].push(loc);
+                return acc;
+              }, {} as Record<string, EmpLocation[]>)
             ).map((group, idx) => {
               const first = group[0];
               const isSelected = group.some((l) => selected === l.user_id);

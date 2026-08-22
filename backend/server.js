@@ -4731,10 +4731,6 @@ app.post("/api/clock-out", async (req, res) => {
 app.get("/api/attendance/history", async (req, res) => {
   const { userId, month, year } = req.query;
 
-  if (!userId) {
-    return res.status(400).json({ success: false, error: "Missing userId" });
-  }
-
   const isAllMonth = month === 'all';
   const requestedYear = parseInt(year) || new Date().getFullYear();
 
