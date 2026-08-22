@@ -400,7 +400,7 @@ const TemporaryAssignments = () => {
                           <span className="flex items-center gap-2 flex-wrap">
                             <span>{e.full_name} ({e.branch})</span>
                             {isActiveOutstation && (
-                              <span className="inline-flex items-center text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-300 px-1.5 py-0.5 rounded-full leading-none">
+                              <span className="[button_&]:hidden inline-flex items-center text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-300 px-1.5 py-0.5 rounded-full leading-none">
                                 ⚡ Active Outstation
                               </span>
                             )}
@@ -600,3 +600,4 @@ const TemporaryAssignments = () => {
 };
 
 export default TemporaryAssignments;
+
