@@ -31,7 +31,7 @@ import {
   Loader2,
   MapPin,
   TrendingUp,
-  Users,
+  Users, User,
   FileText,
   PhoneCall,
   X,
@@ -2112,4 +2112,5 @@ export default function Branches() {
     </div>
   );
 }
+
 
