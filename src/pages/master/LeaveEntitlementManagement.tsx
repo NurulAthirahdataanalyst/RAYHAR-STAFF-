@@ -506,7 +506,7 @@ function CustomDatePicker({ value, onChange, placeholder, disabled }: { value: s
           <CalendarDays className="w-3.5 h-3.5 text-foreground opacity-70" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-1" align="start">
+      <PopoverContent className="w-auto p-0 overflow-hidden border-none shadow-xl" align="start">
         <CalendarWidget
           mode="single"
           selected={value ? new Date(value) : undefined}

@@ -452,7 +452,7 @@ export default function WorkforceInsights() {
                         <CalendarIcon className="w-4 h-4 text-foreground" />
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-1" align="end">
+                    <PopoverContent className="w-auto p-0 overflow-hidden border-none shadow-xl" align="end">
                       <Calendar
                         mode="single"
                         selected={selectedDate}

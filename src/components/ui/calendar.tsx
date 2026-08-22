@@ -58,7 +58,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        caption: "flex justify-center pt-2 pb-2 relative items-center bg-[#7B0099] text-white -mt-3 -mx-3 mb-2 shadow-sm",
+        caption: "flex justify-center pt-2 pb-2 relative items-center bg-[#7B0099] text-white -mt-3 -mx-3 mb-2 shadow-sm rounded-t-md",
         caption_label: "text-sm font-bold text-white",
         nav: "space-x-1 flex items-center",
         nav_button: cn(

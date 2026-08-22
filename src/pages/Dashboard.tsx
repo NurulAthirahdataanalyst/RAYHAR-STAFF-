@@ -613,7 +613,7 @@ export default function Dashboard() {
                 </span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 z-[100]" align="end">
+            <PopoverContent className="w-auto p-0 overflow-hidden border-none shadow-xl z-[100]" align="end">
               <Calendar
                 mode="single"
                 selected={selectedDate}

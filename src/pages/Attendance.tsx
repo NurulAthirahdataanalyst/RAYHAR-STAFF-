@@ -1640,7 +1640,7 @@ export default function Attendance() {
                         {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()} <CalendarDays className="w-4 h-4 text-foreground" />
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-1" align="start">
+                    <PopoverContent className="w-auto p-0 overflow-hidden border-none shadow-xl" align="start">
                       <Calendar
                         mode="single"
                         selected={new Date(selectedDate)}

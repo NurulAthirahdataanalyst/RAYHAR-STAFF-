@@ -13,6 +13,11 @@ import { Label } from "@/components/ui/label";
 import { getHistoryLogs, EntitlementHistoryLog } from "@/lib/entitlementHistory";
 import { getBadge, formatRelativeDate, ACTION_BADGE } from "./EntitlementActivityCard";
 
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarWidget } from "@/components/ui/calendar";
+import { CalendarDays } from "lucide-react";
+import { format } from "date-fns";
+
 // ─── Date range helpers ───────────────────────────────────────────────────────
 type DateRange = 'all' | 'today' | 'yesterday' | '7days' | 'thismonth' | 'lastmonth' | 'thisyear' | 'custom';
 
@@ -206,10 +211,6 @@ function groupByDate(logs: EntitlementHistoryLog[]): Array<{ dateLabel: string; 
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarWidget } from "@/components/ui/calendar";
-import { CalendarDays } from "lucide-react";
-import { format } from "date-fns";
 
 function CustomDatePicker({ value, onChange, placeholder, disabled, className }: { value: string, onChange: (val: string) => void, placeholder?: string, disabled?: boolean, className?: string }) {
   return (
@@ -222,7 +223,7 @@ function CustomDatePicker({ value, onChange, placeholder, disabled, className }:
           <CalendarDays className="w-3.5 h-3.5 text-foreground opacity-70" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-1" align="start">
+      <PopoverContent className="w-auto p-0 overflow-hidden border-none shadow-xl" align="start">
         <CalendarWidget
           mode="single"
           selected={value ? new Date(value) : undefined}
