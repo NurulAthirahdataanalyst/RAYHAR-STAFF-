@@ -1506,25 +1506,43 @@ export default function Employees() {
                         <TableBody>
                           {locationHistory.length > 0 ? (
                             locationHistory.map((log, idx) => {
-                              const dt = new Date(log.timestamp);
-                              const dateStr = dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-                              const timeStr = dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-                              
-                              // Logic based on the one in employee-location-history logic
-                              const isTemp = tempAssignmentsHistory.find(t => 
-                                new Date(t.start_date) <= dt && 
-                                new Date(t.end_date) >= dt && 
-                                t.status === 'Active'
-                              );
-                              
-                              let statusLabel = 'ON-SITE';
-                              let statusClass = 'text-green-700 bg-green-100';
-                              let distStr = '22 m';
-                              
-                              if (isTemp) {
-                                statusLabel = 'TEMPORARY ASSIGNMENT';
-                                statusClass = 'text-purple-700 bg-purple-100';
-                              }
+                                const dt = new Date(log.timestamp);
+                                const dateStr = dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                                const timeStr = dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                                
+                                const isTemp = tempAssignmentsHistory.find(t => 
+                                  new Date(t.start_date) <= dt && 
+                                  new Date(t.end_date) >= dt && 
+                                  t.status === 'Active'
+                                );
+                                
+                                const branchName = selectedEmployee.branch || "HQ";
+                                const bObj = branchesList.find((b: any) => b.name === branchName || b.code === branchName);
+                                let distance: number | null = null;
+                                if (bObj && bObj.latitude && bObj.longitude) {
+                                  distance = getDistance(log.lat, log.lng, parseFloat(bObj.latitude), parseFloat(bObj.longitude));
+                                }
+                                const radius = bObj?.radius || bObj?.allowed_radius || 100;
+                                const isOffSite = distance !== null && distance > radius;
+                                const isNoGPS = Number(log.lat) === 0 && Number(log.lng) === 0;
+
+                                let statusLabel = "ON-SITE";
+                                let statusClass = "text-green-700 bg-green-100";
+                                let distStr = distance !== null ? `${Math.round(distance)} m` : "Unknown";
+                                
+                                if (isNoGPS) {
+                                  statusLabel = "NO GPS SIGNAL";
+                                  statusClass = "text-yellow-700 bg-yellow-100";
+                                  distStr = "N/A";
+                                } else if (isOffSite) {
+                                  statusLabel = "OFF-SITE";
+                                  statusClass = "text-red-700 bg-red-100";
+                                }
+
+                                if (isTemp) {
+                                  statusLabel = 'TEMPORARY ASSIGNMENT';
+                                  statusClass = 'text-purple-700 bg-purple-100';
+                                }
                               
                               return (
                                 <TableRow key={idx}>
