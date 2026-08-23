@@ -87,9 +87,9 @@ export default function AttendanceReports() {
         params.append("date", date);
         url = `${API_BASE_URL}/api/reports/daily-attendance?${params.toString()}`;
       } else {
-        params.append("month", selectedMonth);
-        params.append("year", selectedYear);
-        url = `${API_BASE_URL}/api/reports/monthly-attendance?${params.toString()}`;
+          params.append("month", viewType === "year" ? "all" : selectedMonth);
+          params.append("year", selectedYear);
+          url = `${API_BASE_URL}/api/reports/monthly-attendance?${params.toString()}`;
       }
       const [res, workAssignRes] = await Promise.all([
         fetch(url),
@@ -421,7 +421,7 @@ export default function AttendanceReports() {
         <Card className="border-border shadow-sm">
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <CardTitle className="text-lg">
-              {viewType === "day" ? "Daily Attendance Log" : "Monthly Attendance Log"}
+              {viewType === "day" ? "Daily Attendance Log" : viewType === "month" ? "Monthly Attendance Log" : "Yearly Attendance Log"}
             </CardTitle>
             <div className="relative w-full sm:w-64">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground" />
