@@ -4465,22 +4465,38 @@ app.get('/api/employee-location-history', async (req, res) => {
     const to = new Date();
     const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-    // Prefer employee_location_logs if present
-    const [rows] = await pool.query(
-      `SELECT latitude, longitude, accuracy, recorded_at as timestamp FROM employee_location_logs WHERE employee_id = ? AND recorded_at BETWEEN ? AND ? ORDER BY recorded_at ASC LIMIT 500`,
-      [String(userId), from, to]
-    );
+          // Fetch from employee_location_logs
+      const [logsRows] = await pool.query(
+        `SELECT latitude, longitude, accuracy, recorded_at as timestamp FROM employee_location_logs WHERE employee_id = ? AND recorded_at BETWEEN ? AND ? ORDER BY recorded_at DESC LIMIT 500`,
+        [String(userId), from, to]
+      );
+  
+      // Fetch from attendances table (older checks)
+      const [attRows] = await pool.query(
+        `SELECT clock_in_latitude as latitude, clock_in_longitude as longitude, clock_in_accuracy as accuracy, clock_in as timestamp FROM attendances WHERE user_id = ? AND clock_in BETWEEN ? AND ? ORDER BY clock_in DESC LIMIT 500`,
+        [String(userId), from, to]
+      );
+      
+      const combined = [
+        ...(logsRows || []).map(r => ({ lat: r.latitude, lng: r.longitude, accuracy: r.accuracy, timestamp: r.timestamp })),
+        ...(attRows || []).map(a => ({ lat: a.latitude, lng: a.longitude, accuracy: a.accuracy, timestamp: a.timestamp }))
+      ];
+      
+      // Deduplicate by timestamp (closest to 1 minute) just in case
+      const deduped = [];
+      const seen = new Set();
+      combined.forEach(item => {
+        if (!item.timestamp) return;
+        const timeKey = Math.floor(new Date(item.timestamp).getTime() / 60000);
+        if (!seen.has(timeKey)) {
+          seen.add(timeKey);
+          deduped.push(item);
+        }
+      });
+      
+      deduped.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-    if (rows && rows.length > 0) {
-      return res.json({ success: true, history: rows.map((r) => ({ lat: r.latitude, lng: r.longitude, accuracy: r.accuracy, timestamp: r.timestamp })) });
-    }
-
-    // Fallback to attendances table
-    const [att] = await pool.query(
-      `SELECT clock_in_latitude as latitude, clock_in_longitude as longitude, clock_in_accuracy as accuracy, clock_in FROM attendances WHERE user_id = ? AND clock_in BETWEEN ? AND ? ORDER BY clock_in ASC LIMIT 500`,
-      [String(userId), from, to]
-    );
-    return res.json({ success: true, history: (att || []).map((a) => ({ lat: a.latitude, lng: a.longitude, accuracy: a.accuracy, timestamp: a.clock_in })) });
+      return res.json({ success: true, history: deduped.slice(0, 500) });
   } catch (e) {
     console.error('/api/employee-location-history error', e.message || e);
     res.status(500).json({ success: false, error: e.message || String(e) });

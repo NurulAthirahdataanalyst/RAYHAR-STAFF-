@@ -261,6 +261,16 @@ export default function GPSLocationTracker() {
   }, []);
 
 
+    useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && historyFor) {
+        closeHistory();
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [historyFor]);
+
   const openHistory = async (userId: string) => {
     setHistoryFor(userId);
     setHistoryLoading(true);
@@ -548,7 +558,7 @@ export default function GPSLocationTracker() {
         </div>
       </div>
     {historyFor && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={(e) => { if (e.target === e.currentTarget) closeHistory(); }}>
           <div className="w-full max-w-5xl bg-card rounded-lg p-6 max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-black uppercase">Location History - {employees.find(e => e.user_id === historyFor)?.full_name || historyFor}</h3>
