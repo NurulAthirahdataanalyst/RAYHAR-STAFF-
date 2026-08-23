@@ -91,12 +91,7 @@ const modules = [
     icon: ClipboardList,
     tone: "bg-amber-500/10 text-amber-600",
   },
-  {
-    title: "Special Leave Credits",
-    description: "Issue special-purpose credits such as compassionate leave, replacement leave, or birthday leave.",
-    icon: Gift,
-    tone: "bg-rose-500/10 text-rose-600",
-  },
+  
   {
     title: "Maternity Leave",
     description: "Leave granted to female employees before and/or after childbirth.",
@@ -135,8 +130,9 @@ export default function LeaveEntitlementManagement() {
   const [loading, setLoading] = useState(false);
 
   const annualModule = modules.find((m) => m.title === "Annual Leave Allocation");
+  const replacementModule = modules.find((m) => m.title === "Replacement Leave Validation");
   
-  const otherModules = modules.filter((m) => m.title !== "Annual Leave Allocation");
+  const otherModules = modules.filter((m) => m.title !== "Annual Leave Allocation" && m.title !== "Replacement Leave Validation" && m.title !== "Special Leave Credits");
 
   const fetchEmployees = async () => {
     setLoading(true);
