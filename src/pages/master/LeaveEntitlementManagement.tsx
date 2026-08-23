@@ -109,7 +109,6 @@ const modules = [
       description: "Validate employee's replacement leave hours (Cuti Ganti) after they have worked on the replacement date.",
       icon: Clock,
       tone: "bg-blue-500/10 text-blue-600",
-    tone: "bg-blue-500/10 text-blue-600",
   },
 ];
 
