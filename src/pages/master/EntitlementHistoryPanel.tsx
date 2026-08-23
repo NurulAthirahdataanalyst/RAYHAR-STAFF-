@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { getHistoryLogs, EntitlementHistoryLog } from "@/lib/entitlementHistory";
+import { EntitlementDetailModal } from "./EntitlementDetailModal";
 import { getBadge, formatRelativeDate, ACTION_BADGE } from "./EntitlementActivityCard";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -535,7 +536,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
 
       {/* Detail drawer */}
       {drawerOpen && selectedLog && (
-        <DetailDrawer log={selectedLog} onClose={() => setDrawerOpen(false)} />
+        <EntitlementDetailModal log={selectedLog} onClose={() => setDrawerOpen(false)} />
       )}
     </>
   );
