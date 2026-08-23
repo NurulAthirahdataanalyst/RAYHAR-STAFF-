@@ -40,10 +40,10 @@ export function EntitlementDetailModal({ log, onClose }: { log: EntitlementHisto
         {/* Modal */}
         <div className="relative w-full max-w-md max-h-[90vh] bg-white dark:bg-card rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto">
           {/* Modal header */}
-          <div className="flex items-center justify-between p-5 border-b border-border/50 bg-muted/30">
+          <div className="flex items-center justify-between p-5 border-b border-[#7B0099] bg-[#7B0099]">
             <div>
-              <p className="text-[10px] font-bold text-foreground uppercase tracking-wider">Leave Entitlement Record</p>
-              <p className="text-xs font-black text-foreground mt-0.5">{log.history_id}</p>
+              <p className="text-[10px] font-bold text-white uppercase tracking-wider">Leave Entitlement Record</p>
+              <p className="text-xs font-black text-white mt-0.5">{log.history_id}</p>
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -51,14 +51,14 @@ export function EntitlementDetailModal({ log, onClose }: { log: EntitlementHisto
                 size="sm"
                 onClick={saveAsPDF}
                 disabled={isExporting}
-                className="h-8 px-2 text-xs"
+                className="h-8 px-2 text-xs bg-white text-[#7B0099] border-white hover:bg-white/90 hover:text-[#7B0099]"
               >
                 <Download className="w-3 h-3 mr-1" />
                 PDF
               </Button>
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors text-foreground hover:text-foreground"
+                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors text-white hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
