@@ -341,7 +341,7 @@ const TemporaryAssignments = () => {
                     {isHRAdmin && (
                       <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            {assignment.status !== 'Completed' && (
+                            {assignment.computedStatus === 'Upcoming' && (
                               <>
                                 <Button variant="ghost" size="icon" onClick={(e) => handleEditClick(e, assignment)} className="h-8 w-8 text-foreground hover:text-[#a01497]">
                                   <Edit className="h-4 w-4" />
@@ -583,7 +583,7 @@ const TemporaryAssignments = () => {
 
               <div className="flex justify-end gap-3 border-t pt-4 mt-6">
                 <Button variant="outline" onClick={() => setShowDetailsModal(false)}>Close</Button>
-                <Button className="bg-purple-600 hover:bg-purple-700 text-white">Edit</Button>
+                {isHRAdmin && selectedAssignment?.computedStatus === "Upcoming" && ( <Button className="bg-[#a01497] hover:bg-[#850f7c] text-white" onClick={(e) => { setShowDetailsModal(false); handleEditClick(e as any, selectedAssignment); }}>Edit</Button> )}
               </div>
             </div>
           )}
