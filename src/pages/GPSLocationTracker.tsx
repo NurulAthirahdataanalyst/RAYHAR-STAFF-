@@ -241,7 +241,7 @@ export default function GPSLocationTracker() {
     if (!loc || loc.lat == null || loc.lng == null) { toast({ title: "No Location Data", description: "This employee hasn't submitted their GPS location yet.", variant: "default" }); return; } if (!mapRef.current) return;
     try {
       const mapObj = mapRef.current.getMap ? mapRef.current.getMap() : mapRef.current;
-      mapObj.flyTo({ center: [loc.lng, loc.lat], zoom: 16, duration: 1500 });
+      mapObj.flyTo({ center: [Number(loc.lng), Number(loc.lat)], zoom: 16, duration: 1500 });
     } catch (err) {
       // ignore
     }
@@ -409,8 +409,8 @@ export default function GPSLocationTracker() {
               return (
                 <Marker 
                   key={`group-${idx}`}
-                  longitude={first.lng as number} 
-                  latitude={first.lat as number} 
+                  longitude={Number(first.lng)} 
+                  latitude={Number(first.lat)} 
                   anchor="bottom"
                   onClick={(e) => { 
                     e.originalEvent.stopPropagation(); 
