@@ -41,7 +41,7 @@ const getDisplayStatus = (status: string) => {
     case "Pending HOD":
       return "Awaiting HOD Approval";
     case "Pending Operation":
-    case "Pending Operation Manager":
+      case "Pending Operation Manager":
     case "Pending Finance":
     case "Pending Finance Manager":
       return "Awaiting Operation Manager Approval";
@@ -54,18 +54,26 @@ const getDisplayStatus = (status: string) => {
   }
 };
 
-const approvalProgress = (status: string) => {
-  switch (status) {
-    case "Approved": return 100;
-    case "Rejected": return 100;
-    case "Pending HOD": return 25;
-    case "Pending Branch Leader": return 25;
-    case "Pending Operation": return 50;
-      case "Pending Operation Manager": return 50;
-      case "Pending Finance": return 50;
-    case "Pending MD": return 75;
-    default: return 25;
+const approvalProgress = (status: string, approverRole?: string) => {
+  const role = String(approverRole || "").toLowerCase();
+  let step = 0;
+  if (role.includes("branch") || role.includes("hod")) step = 1;
+  else if (role.includes("operation") || role.includes("finance")) step = 2;
+  else if (role.includes("md") || role.includes("managing")) step = 3;
+  
+  if (status === "Approved") return 100;
+  if (status === "Rejected") {
+    if (step === 1) return 33;
+    if (step === 2) return 66;
+    if (step === 3) return 100;
+    return 33; // Fallback
   }
+  
+  // Pending
+  if (step === 1) return 33;
+  if (step === 2) return 66;
+  if (step === 3) return 100;
+  return 33; // Fallback
 };
 
 const approvalStatusIcon = (status: string) => {
@@ -424,37 +432,61 @@ export default function LeaveOverview() {
                   <div className="mt-6 space-y-4 pt-4 pb-2">
                       <div className="relative">
                         {/* Horizontal Line Background */}
-                        <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1.5 bg-muted/50 dark:bg-muted-foreground/20 rounded-full" />
-                        {/* Horizontal Line Fill */}
-                        <div 
-                          className={"absolute top-1/2 -translate-y-1/2 left-0 h-1.5 rounded-full transition-all duration-1000 " + (req.status === 'Rejected' ? 'bg-rose-500' : req.status === 'Approved' ? 'bg-emerald-500' : 'bg-[#7B0099]')}
-                          style={{ width: `${approvalProgress(req.status, req.approverRole)}%` }}
-                        />
-                        
-                        <div className="relative flex justify-between px-1">
-                          {["Submit", "HOD", "Operation", "MD"].map((step, idx) => {
+                          <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1.5 bg-muted/50 dark:bg-muted-foreground/20 rounded-full" />
+                          
+                          {/* Horizontal Line Segments */}
+                          {["Submit", "HOD", "Operation Manager", "MD"].map((_, idx) => {
+                            if (idx === 3) return null;
                             const progress = approvalProgress(req.status, req.approverRole);
-                            const thresholds = [0, 25, 50, 75];
-                            const isPassed = progress > thresholds[idx];
-                            const isActive = progress === thresholds[idx];
-                            const isRejectedAtStep = req.status === "Rejected" && isActive;
-                            const isApproved = req.status === "Approved";
+                            const thresholds = [0, 33, 66, 100];
+                            const thisThreshold = thresholds[idx];
+                            const nextThreshold = thresholds[idx + 1];
+                            
+                            if (progress <= thisThreshold) return null;
+                            
+                            let color = "bg-[#7B0099]";
+                            if (req.status === "Approved") color = "bg-emerald-500";
+                            else if (req.status === "Rejected") {
+                              if (progress === nextThreshold) {
+                                color = "bg-rose-500";
+                              } else {
+                                color = "bg-emerald-500";
+                              }
+                            }
                             
                             return (
-                              <div key={step} className="flex flex-col items-center gap-2 relative group">
-                                <div className={"w-5 h-5 rounded-full flex items-center justify-center border-[3px] bg-white dark:bg-slate-900 z-10 transition-colors " + (isRejectedAtStep ? 'border-rose-500 text-rose-500' : isPassed || isApproved ? 'border-emerald-500 text-emerald-500' : isActive ? 'border-[#7B0099] text-[#7B0099]' : 'border-muted-foreground/30')}>
-                                  {isRejectedAtStep ? <X className="w-3.5 h-3.5 font-bold" /> :
-                                   isPassed || isApproved ? <Check className="w-3.5 h-3.5 font-bold" /> : 
-                                   isActive ? <div className="w-2 h-2 rounded-full bg-[#7B0099]" /> : null}
-                                </div>
-                                <p className={"text-[8px] font-black uppercase tracking-tighter absolute -bottom-6 w-16 text-center transition-colors " + (isRejectedAtStep ? 'text-rose-500' : isPassed || isApproved ? 'text-emerald-500' : isActive ? 'text-[#7B0099]' : 'text-foreground opacity-40')}>
-                                  {step}
-                                </p>
-                              </div>
+                              <div
+                                key={`segment-${idx}`}
+                                className={`absolute top-1/2 -translate-y-1/2 h-1.5 transition-all duration-1000 ${color}`}
+                                style={{ left: `${thisThreshold}%`, width: `${nextThreshold - thisThreshold}%` }}
+                              />
                             );
                           })}
+                          
+                          <div className="relative flex justify-between px-1">
+                            {["Submit", "HOD", "Operation Manager", "MD"].map((step, idx) => {
+                              const progress = approvalProgress(req.status, req.approverRole);
+                              const thresholds = [0, 33, 66, 100];
+                              const isPassed = progress > thresholds[idx];
+                              const isActive = progress === thresholds[idx];
+                              const isRejectedAtStep = req.status === "Rejected" && isActive;
+                              const isApprovedStep = isPassed || (req.status === "Approved" && isActive);
+                              
+                              return (
+                                <div key={step} className="flex flex-col items-center gap-2 relative group w-16">
+                                  <div className={"w-5 h-5 rounded-full flex items-center justify-center border-[3px] bg-white dark:bg-slate-900 z-10 transition-colors " + (isRejectedAtStep ? 'border-rose-500 text-rose-500' : isApprovedStep ? 'border-emerald-500 text-emerald-500' : isActive ? 'border-[#7B0099] text-[#7B0099]' : 'border-muted-foreground/30')}>
+                                    {isRejectedAtStep ? <X className="w-3.5 h-3.5 font-bold" /> :
+                                     isApprovedStep ? <Check className="w-3.5 h-3.5 font-bold" /> : 
+                                     isActive ? <div className="w-2 h-2 rounded-full bg-[#7B0099]" /> : null}
+                                  </div>
+                                  <p className={"text-[8px] font-black uppercase tracking-tighter absolute -bottom-8 w-20 text-center transition-colors " + (isRejectedAtStep ? 'text-rose-500' : isApprovedStep ? 'text-emerald-500' : isActive ? 'text-[#7B0099]' : 'text-foreground opacity-40')}>
+                                    {step}
+                                  </p>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
                     </div>
                 </div>
               );
