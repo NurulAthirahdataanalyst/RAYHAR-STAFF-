@@ -373,7 +373,7 @@ export default function TeamAttendance() {
                 </div>
 
                 {/* Search & Pagination */}
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Show</span>
                     <Select value={entriesPerPage.toString()} onValueChange={(val) => setEntriesPerPage(Number(val))}>

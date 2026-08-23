@@ -119,6 +119,7 @@ export default function LeaveOverview() {
             to: formatDate(request.end_date),
             days: Number(request.days || 0),
             status: request.status || "Pending HOD",
+            approverRole: request.approver_role,
             reason: request.reason || "",
             appliedAt,
             formFileName: getLeaveFormFileName(appliedAt, type, request.full_name || userName),
@@ -427,12 +428,12 @@ export default function LeaveOverview() {
                         {/* Horizontal Line Fill */}
                         <div 
                           className={"absolute top-1/2 -translate-y-1/2 left-0 h-1.5 rounded-full transition-all duration-1000 " + (req.status === 'Rejected' ? 'bg-rose-500' : req.status === 'Approved' ? 'bg-emerald-500' : 'bg-[#7B0099]')}
-                          style={{ width: `${approvalProgress(req.status)}%` }}
+                          style={{ width: `${approvalProgress(req.status, req.approverRole)}%` }}
                         />
                         
                         <div className="relative flex justify-between px-1">
                           {["Submit", "HOD", "Operation", "MD"].map((step, idx) => {
-                            const progress = approvalProgress(req.status);
+                            const progress = approvalProgress(req.status, req.approverRole);
                             const thresholds = [0, 25, 50, 75];
                             const isPassed = progress > thresholds[idx];
                             const isActive = progress === thresholds[idx];

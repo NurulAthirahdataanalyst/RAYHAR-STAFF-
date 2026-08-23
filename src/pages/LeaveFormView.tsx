@@ -620,14 +620,17 @@ export default function LeaveFormView() {
                         <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Approval History</h3>
                       </div>
                       <div className="relative space-y-4 before:absolute before:inset-0 before:ml-4 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border/50 before:to-transparent">
-                        {selectedForm.approvalHistory.map((history, idx) => (
-                          <div key={idx} className="relative flex items-start gap-4">
-                            <div className={`absolute left-4 -translate-x-1/2 flex h-2 w-2 items-center justify-center rounded-full border border-white dark:border-slate-900 ${history.status === 'Approved' ? 'bg-emerald-500' : 'bg-rose-500'} z-10`} />
+                        {selectedForm.approvalHistory.map((history, idx) => {
+    const isLast = idx === selectedForm.approvalHistory.length - 1;
+    const hStatus = (selectedForm.status === 'Rejected' && isLast) ? 'Rejected' : history.status;
+    return (
+      <div key={idx} className="relative flex items-start gap-4">
+                            <div className={`absolute left-4 -translate-x-1/2 flex h-2 w-2 items-center justify-center rounded-full border border-white dark:border-slate-900 ${hStatus === 'Approved' ? 'bg-emerald-500' : 'bg-rose-500'} z-10`} />
                             <div className="ml-6 flex-1 bg-muted/30 rounded-[16px] p-3 border border-border/40">
                               <div className="flex items-center justify-between gap-2 mb-1">
                                 <div className="flex items-center gap-2">
-                                  <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md ${history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
-                                    {history.status}
+                                  <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md ${hStatus === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
+                                    {hStatus}
                                   </span>
                                   <span className="text-[10px] font-black text-foreground/70">
                                     by {history.approver_name || history.approver_id} ({formatApproverRole(history.approver_role, history.approver_department, history.approver_branch)})
@@ -644,29 +647,55 @@ export default function LeaveFormView() {
                               )}
                             </div>
                           </div>
-                        ))}
+                        ); })}
                       </div>
                     </div>
                   )}
 
-                  <div className="hidden print:grid grid-cols-2 gap-16 pt-12 pb-4">
-                    <div className="border-t border-foreground pt-2 text-center">
-                      <p className="text-[10px] font-bold uppercase">Tandatangan Kakitangan</p>
-                    </div>
-                    <div className="border-t border-foreground pt-2 text-center">
-                      <p className="text-[10px] font-bold uppercase">Kelulusan Pengurus / HR</p>
-                    </div>
-                  </div>
+                  
 
                   <div className="pt-4 flex justify-end gap-3 print:hidden">
                     <Button
                       type="button"
                       variant="outline"
                       className="gap-2 border-[#7B0099] text-[#7B0099] hover:bg-[#7B0099]/5 rounded-xl font-black text-[10px] uppercase tracking-widest px-6"
-                      onClick={() => window.print()}
+                      onClick={() => {
+                        const html = `
+                          <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                          <head><meta charset='utf-8'><title>Leave Application</title></head>
+                          <body style="font-family: Arial, sans-serif; font-size: 12px; color: #333;">
+                            <h1 style="color: #7B0099; text-transform: uppercase; font-size: 18px; border-bottom: 2px solid #7B0099; padding-bottom: 10px;">Leave Application Form</h1>
+                            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                              <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold; width: 30%;">Name</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${selectedForm.name}</td></tr>
+                              <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Employee ID</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${selectedForm.employeeId}</td></tr>
+                              <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Leave Type</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${selectedForm.type}</td></tr>
+                              <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Status</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${selectedForm.status}</td></tr>
+                            </table>
+                            <h2 style="font-size: 14px; margin-top: 30px; color: #555;">Approval History</h2>
+                            <ul style="list-style-type: none; padding-left: 0;">
+                              ${selectedForm.approvalHistory?.map(h => `
+                                <li style="margin-bottom: 10px; padding: 10px; background-color: #f9f9f9; border-left: 4px solid ${h.status==='Approved'?'#10b981':'#f43f5e'};">
+                                  <strong>${h.status}</strong> by ${h.approver_name || h.approver_id} 
+                                </li>
+                              `).join('') || '<li>No history</li>'}
+                            </ul>
+                            <p style="margin-top: 50px; text-align: center; font-size: 10px; color: #999;">Generated by Rayhar Employee Portal</p>
+                          </body>
+                          </html>
+                        `;
+                        const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `Leave_Application.doc`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                      }}
                     >
                       <Printer className="h-4 w-4" />
-                      Print / Save as PDF
+                      Export to Word
                     </Button>
                   </div>
                 </div>

@@ -27,6 +27,7 @@ export type LeaveRequest = {
   reason: string;
   appliedAt: string;
   formFileName: string;
+  approverRole?: string;
   attachmentName?: string;
   waris_nama?: string;
   waris_phone?: string;
