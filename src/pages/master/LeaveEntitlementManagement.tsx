@@ -2103,7 +2103,7 @@ function ReplacementLeaveValidationForm({ employees, onCancel }: { employees: an
       if (json.success) {
         toast({
           title: "Validation Complete",
-          description: `Processed ${json.processed_count} records. Validated: ${json.validated_count}, Failed: ${json.failed_count}.`
+          description: `Processed ${json.processed_count ?? json.processed ?? json.data?.processed ?? json.data?.processed_count ?? 0} records. Validated: ${json.validated_count ?? json.validated ?? json.data?.validated ?? json.data?.validated_count ?? 0}, Failed: ${json.failed_count ?? json.failed ?? json.data?.failed ?? json.data?.failed_count ?? 0}.`
         });
         fetchReplacementLeaves(); // refresh
       } else {

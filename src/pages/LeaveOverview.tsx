@@ -274,7 +274,7 @@ export default function LeaveOverview() {
               <div className="flex items-baseline gap-1">
                 <span className="text-xl sm:text-2xl font-black text-foreground group-hover:scale-105 transition-transform origin-left duration-500">{item.used}</span>
                 <span className="text-[9px] sm:text-[10px] font-bold text-foreground uppercase">
-                  {item.total ? `/ ${item.total} DAYS` : "USED"}
+                  {item.label === 'Unpaid Leave' ? "USED" : `/ ${item.total || 0} DAYS`}
                 </span>
               </div>
               <div className="space-y-1">

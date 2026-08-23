@@ -35,7 +35,7 @@ export function ApprovalStatusTracker({ status, approverRole, approvalHistory = 
           
           return (
             <div key={idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-              <div className={\`flex items-center justify-center w-6 h-6 rounded-full border-[3px] bg-white dark:bg-slate-900 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 \${borderClass} \${isApproved ? 'text-emerald-500' : (isRejected ? 'text-rose-500' : 'text-[#7B0099]')}\`}>
+              <div className={`flex items-center justify-center w-6 h-6 rounded-full border-[3px] bg-white dark:bg-slate-900 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 \${borderClass} \${isApproved ? 'text-emerald-500' : (isRejected ? 'text-rose-500' : 'text-[#7B0099]')}`}>
                 {isApproved && <Check className="w-3.5 h-3.5 font-bold" strokeWidth={4} />}
                 {isRejected && <X className="w-3.5 h-3.5 font-bold" strokeWidth={4} />}
                 {!isApproved && !isRejected && <div className="w-2 h-2 rounded-full bg-[#7B0099]" />}
@@ -45,12 +45,12 @@ export function ApprovalStatusTracker({ status, approverRole, approvalHistory = 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex flex-col gap-1">
                      <div className="flex items-center gap-2">
-                       <span className={\`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded \${colorClass}\`}>
+                       <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded \${colorClass}`}>
                           {h.status}
                        </span>
                      </div>
                      <span className="text-[11px] font-bold text-foreground">
-                        by {h.approver_name || h.approver_id} ({h.approver_role || 'Manager'}{h.approver_branch ? \` [\${h.approver_branch}]\` : ''})
+                        by {h.approver_name || h.approver_id} ({h.approver_role || 'Manager'}{h.approver_branch ? ` [\${h.approver_branch}]` : ''})
                      </span>
                   </div>
                   {dateStr && (
@@ -77,7 +77,7 @@ export function ApprovalStatusTracker({ status, approverRole, approvalHistory = 
                         PENDING
                      </span>
                      <span className="text-[11px] font-bold text-foreground">
-                        Pending {approverRole ? \`at \${approverRole}\` : 'Approval'}
+                        Pending {approverRole ? `at \${approverRole}` : 'Approval'}
                      </span>
                   </div>
                 </div>
@@ -127,8 +127,8 @@ export function ApprovalStatusTracker({ status, approverRole, approvalHistory = 
         const borderClass = isApproved ? 'border-emerald-500' : (isRejected ? 'border-rose-500' : 'border-[#7B0099]');
         
         return (
-          <div key={idx} className={\`relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active \${nodeState === 'pending' ? 'opacity-60' : ''}\`}>
-            <div className={\`flex items-center justify-center w-6 h-6 rounded-full border-[3px] bg-white dark:bg-slate-900 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 \${borderClass} \${isApproved ? 'text-emerald-500' : (isRejected ? 'text-rose-500' : 'text-[#7B0099]')}\`}>
+          <div key={idx} className={`relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active \${nodeState === 'pending' ? 'opacity-60' : ''}`}>
+            <div className={`flex items-center justify-center w-6 h-6 rounded-full border-[3px] bg-white dark:bg-slate-900 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 \${borderClass} \${isApproved ? 'text-emerald-500' : (isRejected ? 'text-rose-500' : 'text-[#7B0099]')}`}>
               {isApproved && <Check className="w-3.5 h-3.5 font-bold" strokeWidth={4} />}
               {isRejected && <X className="w-3.5 h-3.5 font-bold" strokeWidth={4} />}
               {nodeState === 'pending' && <div className="w-2 h-2 rounded-full bg-[#7B0099]" />}
@@ -138,7 +138,7 @@ export function ApprovalStatusTracker({ status, approverRole, approvalHistory = 
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex flex-col gap-1">
                    <div className="flex items-center gap-2">
-                     <span className={\`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded \${colorClass}\`}>
+                     <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded \${colorClass}`}>
                         {nodeState === 'pending' ? 'PENDING' : nodeState.toUpperCase()}
                      </span>
                    </div>

@@ -1358,7 +1358,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-bold text-foreground">Annual / Emergency</span>
-                    <span className="text-xs font-black text-foreground">{annualLeavesUsed + emergencyLeavesUsed} Days</span>
+                    <span className="text-xs font-black text-foreground">{Math.max(0, totalEntitlement - (annualLeavesUsed + emergencyLeavesUsed))} Days Remaining</span>
                   </div>
                   <div className="w-full h-2 bg-indigo-500/10 rounded-full overflow-hidden">
                     <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.min(((annualLeavesUsed + emergencyLeavesUsed) / Math.max(totalEntitlement, 1)) * 100, 100)}%` }} />
@@ -1367,7 +1367,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-bold text-foreground">Medical Leave</span>
-                    <span className="text-xs font-black text-foreground">{sickLeavesUsed} Days</span>
+                    <span className="text-xs font-black text-foreground">{Math.max(0, 14 - sickLeavesUsed)} Days Remaining</span>
                   </div>
                   <div className="w-full h-2 bg-rose-500/10 rounded-full overflow-hidden">
                     <div className="h-full bg-rose-500 rounded-full" style={{ width: `${Math.min((sickLeavesUsed / 14) * 100, 100)}%` }} />
@@ -1376,7 +1376,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-bold text-foreground">Replacement Leave</span>
-                    <span className="text-xs font-black text-foreground">{replacementLeavesUsed} Days</span>
+                    <span className="text-xs font-black text-foreground">{Math.max(0, (profile?.replacement_adj || 0) - replacementLeavesUsed)} Days Remaining</span>
                   </div>
                   <div className="w-full h-2 bg-amber-500/10 rounded-full overflow-hidden">
                     <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min((replacementLeavesUsed / Math.max(profile?.replacement_adj || 1, 1)) * 100, 100)}%` }} />
@@ -1385,7 +1385,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-bold text-foreground">Unpaid Leave</span>
-                    <span className="text-xs font-black text-foreground">{unpaidLeavesUsed} Days</span>
+                    <span className="text-xs font-black text-foreground">{unpaidLeavesUsed} Days Used</span>
                   </div>
                   <div className="w-full h-2 bg-slate-500/10 rounded-full overflow-hidden">
                     <div className="h-full bg-slate-500 rounded-full" style={{ width: `${Math.min((unpaidLeavesUsed / 14) * 100, 100)}%` }} />
