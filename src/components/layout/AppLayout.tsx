@@ -18,6 +18,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { API_BASE_URL } from "../../config/api";
 import { useShiftNotifications } from "@/hooks/useShiftNotifications";
+import { useBackgroundLocation } from "@/hooks/useBackgroundLocation";
 import { getBreadcrumbs } from "@/utils/breadcrumbs";
 import PageHeader from "./PageHeader";
 
@@ -28,6 +29,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { role: resolvedRole, userBranch, userDepartment, userName } = useRole();
   const { theme, toggleTheme } = useTheme();
   useShiftNotifications();
+  useBackgroundLocation();
 
   const displayName = userName || user?.full_name || user?.name || "Employee";
   const displayAvatar = (displayName || "E")[0].toUpperCase();
