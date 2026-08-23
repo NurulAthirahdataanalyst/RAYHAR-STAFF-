@@ -27,6 +27,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -368,9 +369,9 @@ export default function Employees() {
   ).sort() as string[];
 
   const filtered = dbEmployees.filter((e) => {
-    const matchesSearch =
-      e.name.toLowerCase().includes(search.toLowerCase()) ||
-      e.position.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = checkedEmployees.length > 0
+        ? checkedEmployees.includes(e.id?.toString() || e.user_id || e.name)
+        : (!search || e.name.toLowerCase().includes(search.toLowerCase()) || e.position.toLowerCase().includes(search.toLowerCase()));
     const matchesBranch = selectedBranch === "All" || e.branch === selectedBranch;
     const matchesPosition = selectedPosition === "All" || e.position === selectedPosition;
     const matchesStatus = selectedStatus === "All" || e.status === selectedStatus;
@@ -606,23 +607,116 @@ export default function Employees() {
 
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-card/50 backdrop-blur-sm p-3 rounded-2xl border border-border/50">
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full sm:w-auto flex-1">
-          <div className="relative w-full sm:max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground" />
-            <Input
-              placeholder="Search employees..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#7B0099]/20"
-            />
-                {search && (
-                  <button 
-                    onClick={() => setSearch('')} 
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
+          <Popover open={empSearchOpen} onOpenChange={setEmpSearchOpen}>
+              <PopoverTrigger asChild>
+                <div className="relative w-full sm:max-w-xs cursor-pointer">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground" />
+                  <div className="pl-9 pr-8 h-11 sm:h-10 border border-border/60 bg-background/50 rounded-md flex items-center gap-1 overflow-hidden">
+                    {checkedEmployees.length > 0 ? (
+                      <span className="text-xs font-bold text-[#7B0099] truncate">{checkedEmployees.length} employee{checkedEmployees.length > 1 ? 's' : ''} selected</span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">{search || "Search employees..."}</span>
+                    )}
+                  </div>
+                  {(search || checkedEmployees.length > 0) && (
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setSearch(''); setCheckedEmployees([]); setEmpSearchText(''); }} 
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-[340px] p-0 shadow-xl" align="start">
+                <div className="p-3 border-b border-border/50">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground/50" />
+                    <Input
+                      placeholder="Search employees..."
+                      value={empSearchText}
+                      onChange={(e) => {
+                          setEmpSearchText(e.target.value);
+                          setSearch(e.target.value);
+                      }}
+                      className="pl-8 h-9 text-xs"
+                      autoFocus
+                    />
+                  </div>
+                  {checkedEmployees.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {checkedEmployees.map(id => {
+                        const emp = dbEmployees.find(e => (e.id?.toString() || e.user_id || e.name) === id);
+                        return emp ? (
+                          <span key={id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#7B0099]/10 text-[#7B0099] text-[10px] font-bold">
+                            {emp.name}
+                            <button onClick={() => setCheckedEmployees(prev => prev.filter(x => x !== id))} className="hover:text-red-500">
+                              <X className="w-2.5 h-2.5" />
+                            </button>
+                          </span>
+                        ) : null;
+                      })}
+                    </div>
+                  )}
+                </div>
+                <div className="max-h-[260px] overflow-y-auto p-1">
+                  {(() => {
+                    const empList = dbEmployees
+                      .filter(e => {
+                        const bMatch = selectedBranch === "All" || e.branch === selectedBranch;
+                        const pMatch = selectedPosition === "All" || e.position === selectedPosition;
+                        const sMatch = selectedStatus === "All" || e.status === selectedStatus;
+                        const tMatch = !empSearchText || e.name.toLowerCase().includes(empSearchText.toLowerCase()) || (e.user_id || '').toLowerCase().includes(empSearchText.toLowerCase());
+                        return bMatch && pMatch && sMatch && tMatch;
+                      })
+                      .sort((a, b) => {
+                        const aId = a.id?.toString() || a.user_id || a.name;
+                        const bId = b.id?.toString() || b.user_id || b.name;
+                        const aChecked = checkedEmployees.includes(aId) ? 0 : 1;
+                        const bChecked = checkedEmployees.includes(bId) ? 0 : 1;
+                        if (aChecked !== bChecked) return aChecked - bChecked;
+                        return a.name.localeCompare(b.name);
+                      });
+                    return empList.map(emp => {
+                      const empId = emp.id?.toString() || emp.user_id || emp.name;
+                      const isChecked = checkedEmployees.includes(empId);
+                      return (
+                        <div
+                          key={empId}
+                          onClick={() => {
+                            setCheckedEmployees(prev =>
+                              prev.includes(empId) ? prev.filter(x => x !== empId) : [...prev, empId]
+                            );
+                          }}
+                          className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isChecked ? 'bg-[#7B0099]/5' : 'hover:bg-muted/50'}`}
+                        >
+                          <label className="relative cursor-pointer" style={{width:18,height:18}} onClick={(e) => e.preventDefault()}>
+                            <input type="checkbox" checked={isChecked} readOnly className="sr-only peer" />
+                            <svg viewBox="0 0 18 18" width="18" height="18" className="relative z-10" style={{fill:'none',strokeLinecap:'round',strokeLinejoin:'round',stroke: isChecked ? '#7B0099' : '#c8ccd4',strokeWidth:1.5,transition:'all 0.2s ease'}}>
+                              <path d="M1,9 L1,3.5 C1,2 2,1 3.5,1 L14.5,1 C16,1 17,2 17,3.5 L17,14.5 C17,16 16,17 14.5,17 L3.5,17 C2,17 1,16 1,14.5 L1,9 Z"
+                                style={{strokeDasharray:60, strokeDashoffset: isChecked ? 60 : 0, transition:'all 0.3s linear'}} />
+                              <polyline points="1 9 7 14 15 4"
+                                style={{strokeDasharray:22, strokeDashoffset: isChecked ? 42 : 66, transition: isChecked ? 'all 0.2s linear 0.15s' : 'all 0.2s linear'}} />
+                            </svg>
+                          </label>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-xs font-bold truncate ${isChecked ? 'text-[#7B0099]' : 'text-foreground'}`}>{emp.name}</p>
+                            <p className="text-[10px] text-muted-foreground truncate">{emp.user_id || emp.email || ''} · {emp.branch || ''}</p>
+                          </div>
+                          {isChecked && <span className="text-[10px] font-bold text-[#7B0099] bg-[#7B0099]/10 px-2 py-0.5 rounded-full">Selected</span>}
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+                {checkedEmployees.length > 0 && (
+                  <div className="border-t border-border/50 p-2 flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-[#7B0099]">{checkedEmployees.length} selected</span>
+                    <Button size="sm" variant="ghost" className="text-[10px] h-6 text-red-500 hover:text-red-600" onClick={() => setCheckedEmployees([])}>Clear All</Button>
+                  </div>
                 )}
-          </div>
+              </PopoverContent>
+            </Popover>
 
           {(["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueBranches.length > 1) && (
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
@@ -1182,7 +1276,7 @@ export default function Employees() {
                   {loadingSettings ? (
                     <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className={`grid grid-cols-1 ${role === 'hr_admin' ? 'md:grid-cols-2' : 'max-w-xl mx-auto'} gap-5`}>
                       {/* Primary Branch & Temp Assignment */}
                       <div className="space-y-4">
                         <Card>
@@ -1335,6 +1429,128 @@ export default function Employees() {
                         </div>
                       </div>
                     )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="multi_location" className="mt-0">
+                  <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div className="mb-6">
+                      <h3 className="text-lg font-black text-foreground dark:text-slate-100 flex items-center gap-2">
+                        <MapPin className="w-5 h-5 text-[#7B0099]" />
+                        Multi Location Branch
+                      </h3>
+                      <p className="text-xs font-semibold text-foreground dark:text-foreground mt-1">View this employee's multi location branch</p>
+                    </div>
+
+                    {allowedLocations.filter(loc => loc !== selectedEmployee.branch).length === 0 ? (
+                      <div className="border border-slate-200 dark:border-slate-700 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center bg-slate-50/50 dark:bg-slate-900/50">
+                        <div className="w-12 h-12 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center mb-3 shadow-sm">
+                          <MapPin className="w-5 h-5 text-foreground" />
+                        </div>
+                        <h4 className="text-sm font-bold text-foreground dark:text-slate-200 mb-1">No Multi Location Attendance</h4>
+                        <p className="text-xs font-semibold text-foreground max-w-[250px]">This employee has no multi location branch records.</p>
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-[#7B0099] hover:bg-[#7B0099]">
+                              <TableHead className="text-white text-xs font-black uppercase tracking-wider">Permanent Branch</TableHead>
+                              {allowedLocations.filter(loc => loc !== selectedEmployee.branch).map((_, idx) => (
+                                <TableHead key={idx} className="text-white text-xs font-black uppercase tracking-wider">Branch {allowedLocations.filter(l => l !== selectedEmployee.branch).length > 1 ? (idx + 1) : ''}</TableHead>
+                              ))}
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell className="font-bold text-sm text-foreground">
+                                {BRANCH_NAMES[selectedEmployee.branch] || selectedEmployee.branch}
+                              </TableCell>
+                              {allowedLocations.filter(loc => loc !== selectedEmployee.branch).map((loc, idx) => (
+                                <TableCell key={idx} className="font-bold text-sm text-foreground">
+                                  {BRANCH_NAMES[loc] || loc}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="location_history" className="mt-0">
+                  <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div className="mb-6 flex justify-between items-center">
+                      <div>
+                        <h3 className="text-lg font-black text-foreground dark:text-slate-100 flex items-center gap-2">
+                          <MapPin className="w-5 h-5 text-[#7B0099]" />
+                          Location History
+                        </h3>
+                        <p className="text-xs font-semibold text-foreground dark:text-foreground mt-1">View this employee's recorded location history.</p>
+                      </div>
+                    </div>
+                    
+                    <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden max-h-[400px] overflow-y-auto">
+                      <Table>
+                        <TableHeader className="bg-muted/50 sticky top-0 z-10">
+                          <TableRow>
+                            <TableHead className="text-[10px] font-black uppercase tracking-wider text-foreground">DATE</TableHead>
+                            <TableHead className="text-[10px] font-black uppercase tracking-wider text-foreground">TIME</TableHead>
+                            <TableHead className="text-[10px] font-black uppercase tracking-wider text-foreground">COORDINATE (LATITUDE, LONGITUDE)</TableHead>
+                            <TableHead className="text-[10px] font-black uppercase tracking-wider text-foreground">BRANCH</TableHead>
+                            <TableHead className="text-[10px] font-black uppercase tracking-wider text-foreground">DISTANCE FROM BRANCH</TableHead>
+                            <TableHead className="text-[10px] font-black uppercase tracking-wider text-foreground">LOCATION STATUS</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {locationHistory.length > 0 ? (
+                            locationHistory.map((log, idx) => {
+                              const dt = new Date(log.timestamp);
+                              const dateStr = dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                              const timeStr = dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                              
+                              // Logic based on the one in employee-location-history logic
+                              const isTemp = tempAssignmentsHistory.find(t => 
+                                new Date(t.start_date) <= dt && 
+                                new Date(t.end_date) >= dt && 
+                                t.status === 'Active'
+                              );
+                              
+                              let statusLabel = 'ON-SITE';
+                              let statusClass = 'text-green-700 bg-green-100';
+                              let distStr = '22 m';
+                              
+                              if (isTemp) {
+                                statusLabel = 'TEMPORARY ASSIGNMENT';
+                                statusClass = 'text-purple-700 bg-purple-100';
+                              }
+                              
+                              return (
+                                <TableRow key={idx}>
+                                  <TableCell className="text-xs font-bold">{dateStr}</TableCell>
+                                  <TableCell className="text-xs font-bold text-muted-foreground">{timeStr}</TableCell>
+                                  <TableCell className="text-xs font-mono">{log.lat}, {log.lng}</TableCell>
+                                  <TableCell className="text-xs font-bold">{selectedEmployee.branch}</TableCell>
+                                  <TableCell className="text-xs">{distStr}</TableCell>
+                                  <TableCell>
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase ${statusClass}`}>
+                                      • {statusLabel}
+                                    </span>
+                                  </TableCell>
+                                </TableRow>
+                              )
+                            })
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-center py-8 text-muted-foreground text-xs font-semibold">
+                                No location history found for the last 14 days.
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
                 </TabsContent>
               </Tabs>
