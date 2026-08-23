@@ -36,7 +36,7 @@ export function EntitlementDetailModal({ log, onClose }: { log: EntitlementHisto
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 pointer-events-none">
         {/* Overlay */}
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] pointer-events-auto" onClick={onClose} />
+        <div className="absolute inset-0 bg-black/50 pointer-events-auto" onClick={onClose} />
         {/* Modal */}
         <div className="relative w-full max-w-md max-h-[90vh] bg-white dark:bg-card rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto">
           {/* Modal header */}
