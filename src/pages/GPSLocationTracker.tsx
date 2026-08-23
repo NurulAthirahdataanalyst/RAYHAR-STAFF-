@@ -395,7 +395,7 @@ export default function GPSLocationTracker() {
                 const loc = locations[emp.user_id];
                 if (!loc || loc.lat == null || loc.lng == null) return acc;
                 // Separate the selected user so they get their own marker tooltip
-                const key = emp.user_id === selected ? `selected-${emp.user_id}` : `${loc.lat.toFixed(5)},${loc.lng.toFixed(5)}`;
+                const key = emp.user_id === selected ? `selected-${emp.user_id}` : `${Number(loc.lat).toFixed(5)},${Number(loc.lng).toFixed(5)}`;
                 if (!acc[key]) acc[key] = [];
                 acc[key].push(loc);
                 return acc;
@@ -597,7 +597,7 @@ export default function GPSLocationTracker() {
                           <TableCell className="font-medium whitespace-nowrap">
                             {new Date(h.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}, {new Date(h.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                           </TableCell>
-                          <TableCell>{h.lat.toFixed(7)}, {h.lng.toFixed(7)}</TableCell>
+                          <TableCell>{Number(h.lat).toFixed(7)}, {Number(h.lng).toFixed(7)}</TableCell>
                           <TableCell>{branchName}</TableCell>
                           <TableCell>{distance !== null ? `${distance} m` : "-"}</TableCell>
                           <TableCell>
