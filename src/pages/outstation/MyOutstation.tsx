@@ -61,6 +61,12 @@ type Assignment = {
   meeting_title?: string;
 };
 
+const formatShortDate = (dString: string) => {
+  if (!dString) return "-";
+  const d = new Date(dString);
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase();
+};
+
 export default function MyOutstation() {
   const { userId, loading: roleLoading } = useRole();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -443,68 +449,19 @@ export default function MyOutstation() {
               {/* Footer (Fixed) */}
               <div className="px-6 pb-5 flex justify-end">
                 <Button variant="outline" onClick={() => {
-                  const printWindow = window.open("", "_blank");
-                  if (!printWindow) return;
-                  const html = `
-                    <html>
-                      <head>
-                        <title>Outstation Assignment - ${ viewFormAssignment.project || viewFormAssignment.purpose || "Trip" }</title>
-                        <style>
-                          body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
-                          h1 { color: #7B0099; font-size: 24px; margin-bottom: 5px; }
-                          h2 { font-size: 16px; margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-                          .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-                          .info-box { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
-                          .label { font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
-                          .value { font-size: 14px; font-weight: bold; }
-                          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                          th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; font-size: 12px; }
-                          th { font-weight: bold; color: #666; text-transform: uppercase; font-size: 10px; }
-                        </style>
-                      </head>
-                      <body>
-                        <h1>${ viewFormAssignment.project || viewFormAssignment.purpose || "Outstation Trip" }</h1>
-                        <p style="color: #666; margin-top: 0;">Outstation Assignment Details</p>
-                        
-                        <h2>Trip Information</h2>
-                        <div class="info-grid">
-                          <div class="info-box" style="grid-column: span 2;">
-                            <div class="label">Destination</div>
-                            <div class="value">${ viewFormAssignment.destination }</div>
-                          </div>
-                          <div class="info-box">
-                            <div class="label">Status</div>
-                            <div class="value">${ viewFormAssignment.status || 'Active' }</div>
-                          </div>
-                          <div class="info-box">
-                            <div class="label">Total Days</div>
-                            <div class="value">${ viewFormAssignment.total_days || 0 } Days</div>
-                          </div>
-                        </div>
-
-                        <h2>Employees Assigned (1)</h2>
-                        <table>
-                          <tr>
-                            <th>Name</th>
-                            <th>Employee ID</th>
-                          </tr>
-                          <tr>
-                            <td style="font-weight: bold;">${viewFormAssignment.full_name}</td>
-                            <td>${viewFormAssignment.user_id}</td>
-                          </tr>
-                        </table>
-                        
-                        <div style="margin-top: 40px; font-size: 10px; color: #999; text-align: center;">
-                          Generated from Rayhar Employee Portal
-                        </div>
-                      </body>
-                    </html>
-                  `;
-                  printWindow.document.write(html);
-                  printWindow.document.close();
-                  setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
-                }} className="rounded-xl font-black text-[11px] border-purple-200 text-purple-700 hover:bg-purple-50">
-                  Export to PDF
+                  const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export HTML To Doc</title></head><body>";
+                    const footer = "</body></html>";
+                    const el = document.getElementById("outstation-modal-content");
+                    const sourceHTML = header + (el ? el.innerHTML : "") + footer;
+                    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+                    const fileDownload = document.createElement("a");
+                    document.body.appendChild(fileDownload);
+                    fileDownload.href = source;
+                    fileDownload.download = 'Outstation_Form.doc';
+                    fileDownload.click();
+                    document.body.removeChild(fileDownload);
+                  }} className="rounded-xl font-black text-[11px] border-purple-200 text-purple-700 hover:bg-purple-50">
+                    Export to Word
                 </Button>
               </div>
             </>
