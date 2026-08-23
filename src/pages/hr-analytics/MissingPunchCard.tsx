@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { AlertCircle, ChevronRight, Search, FileText } from "lucide-react";
+import { AlertCircle, ChevronRight, Search, FileText , X} from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -100,6 +100,14 @@ export function MissingPunchCard({ employees, indicator }: MissingPunchCardProps
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
             />
+                {searchTerm && (
+                  <button 
+                    onClick={() => setSearchTerm('')} 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
           </div>
 
           <div className="max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">

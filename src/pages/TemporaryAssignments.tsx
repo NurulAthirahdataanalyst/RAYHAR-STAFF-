@@ -237,6 +237,14 @@ const TemporaryAssignments = () => {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
+                {search && (
+                  <button 
+                    onClick={() => setSearch('')} 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[140px]">

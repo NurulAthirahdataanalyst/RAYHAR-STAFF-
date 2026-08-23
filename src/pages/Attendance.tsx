@@ -1510,25 +1510,25 @@ export default function Attendance() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] uppercase font-bold text-foreground flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-purple-200"></span> Total Working
+                   Total Working
                 </span>
                 <span className="text-sm font-black font-mono">{stats.totalHoursMonth} hrs</span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] uppercase font-bold text-emerald-600 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Productive
+                   Productive
                 </span>
                 <span className="text-sm font-black font-mono">{stats.productiveHours} hrs</span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] uppercase font-bold text-yellow-600 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-yellow-500"></span> Break Hours
+                   Break Hours
                 </span>
                 <span className="text-sm font-black font-mono">{stats.breakHours} hrs</span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] uppercase font-bold text-blue-600 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-blue-500"></span> Overtime
+                   Overtime
                 </span>
                 <span className="text-sm font-black font-mono">{stats.overtimeMonth} hrs</span>
               </div>
@@ -1560,7 +1560,7 @@ export default function Attendance() {
                     if (dt <= today) {
                       if (log) {
                         status = log.status;
-                        if (status.toUpperCase() === "LATE" || String(status).toUpperCase().includes("LATE") || ((status === "Present" || status === "Present (On Time)") && ((log.late && log.late !== "00:00" && log.late !== "--") || log.is_late === 1 || log.is_late === true))) {
+                        if (status.toUpperCase() === "LATE" || String(status).toUpperCase().includes("LATE") || ((status === "Present" || status === "Present (On Time)") && (log.is_late === 1 || log.is_late === true))) {
                           status = "Present (Late)";
                         } else if (status === "Present") {
                           status = "Present (On Time)";

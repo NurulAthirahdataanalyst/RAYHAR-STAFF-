@@ -19,7 +19,7 @@ import {
   Printer,
     MapPin,
     Trash2
-} from "lucide-react";
+, X} from 'lucide-react';
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useReactToPrint } from "react-to-print";
@@ -596,6 +596,14 @@ export default function Employees() {
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 h-11 sm:h-10 border-border/60 bg-background/50 focus:ring-[#7B0099]/20"
             />
+                {search && (
+                  <button 
+                    onClick={() => setSearch('')} 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
           </div>
 
           {(["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role) || uniqueBranches.length > 1) && (

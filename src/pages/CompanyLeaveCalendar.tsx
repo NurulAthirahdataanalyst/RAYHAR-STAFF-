@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar as CalendarIcon, Plus, Trash2, Edit2, ShieldAlert } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, Trash2, Edit2, ShieldAlert , X} from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -365,6 +365,14 @@ const CompanyLeaveCalendar = () => {
                     placeholder="Search branch name or code..."
                     className="pl-9"
                   />
+                {branchSearch && (
+                  <button 
+                    onClick={() => setBranchSearch('')} 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 </div>
                 <div className="border rounded-md max-h-48 overflow-y-auto p-2 bg-gray-50 dark:bg-gray-900">
                   {branchesList
@@ -414,6 +422,14 @@ const CompanyLeaveCalendar = () => {
                     placeholder="Search department..."
                     className="pl-9"
                   />
+                {deptSearch && (
+                  <button 
+                    onClick={() => setDeptSearch('')} 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 </div>
                 <div className="border rounded-md max-h-48 overflow-y-auto p-2 bg-gray-50 dark:bg-gray-900">
                   {departmentsList

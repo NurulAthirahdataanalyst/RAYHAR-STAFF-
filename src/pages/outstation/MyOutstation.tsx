@@ -9,7 +9,7 @@ import PageHeader from "@/components/layout/PageHeader";
 import PageActions from "@/components/layout/PageActions";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import { exportToCSV } from "@/utils/export";
-import { Loader2, Plane, MapPin, Calendar, Clock, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { Loader2, Plane, MapPin, Calendar, Clock, CheckCircle2, XCircle, AlertCircle , X} from 'lucide-react';
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { YearPopover } from "@/components/shared/YearPopover";
 import { Search } from "lucide-react";
@@ -260,6 +260,14 @@ export default function MyOutstation() {
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-8 h-9 text-xs border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50 focus-visible:ring-[#7B0099] uppercase font-bold tracking-wider rounded-xl"
               />
+                {search && (
+                  <button 
+                    onClick={() => setSearch('')} 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
             </div>
 
             <div className="flex items-center gap-3">

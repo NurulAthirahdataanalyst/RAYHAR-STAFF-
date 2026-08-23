@@ -2,7 +2,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useState, useEffect } from "react";
 import { API_BASE_URL } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Users, CalendarClock, CalendarX2, Building2, FileText, Printer, PhoneCall, Clock } from "lucide-react";
+import { Loader2, Users, CalendarClock, CalendarX2, Building2, FileText, Printer, PhoneCall, Clock , X} from 'lucide-react';
 
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -196,6 +196,14 @@ export default function TeamLeaveRequests() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')} 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
             </div>
           </CardHeader>
           <CardContent>

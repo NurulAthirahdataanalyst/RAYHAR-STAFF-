@@ -41,7 +41,7 @@ import {
   Plus,
   Search,
   X,
-} from "lucide-react";
+, X} from 'lucide-react';
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -1079,6 +1079,14 @@ export default function Branches() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9 pr-9 h-9 rounded-xl border-border/60 bg-muted/30 focus-visible:ring-[#7B0099]/30 text-xs font-medium"
                   />
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')} 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery("")}

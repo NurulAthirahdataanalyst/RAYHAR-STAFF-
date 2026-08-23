@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { API_BASE_URL } from "../config/api";
-import { RefreshCw, MapPin } from "lucide-react";
+import { RefreshCw, MapPin , X} from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
@@ -318,6 +318,14 @@ export default function GPSLocationTracker() {
           </div>
           <div className="flex flex-wrap items-center gap-2 ml-auto">
             <Input placeholder="Search Employee..." value={query} onChange={(e) => setQuery(e.target.value)} className="w-auto" />
+                {query && (
+                  <button 
+                    onClick={() => setQuery('')} 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
             <Select onValueChange={(v) => setBranchFilter(v)}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Branch" />
@@ -447,6 +455,14 @@ export default function GPSLocationTracker() {
                   onChange={(e) => setQuery(e.target.value)}
                   className="w-48 h-8 text-xs"
                 />
+                {query && (
+                  <button 
+                    onClick={() => setQuery('')} 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 {branches.length > 1 && (
                   <Select value={branchFilter} onValueChange={setBranchFilter}>
                     <SelectTrigger className="w-32 h-8 text-xs">
