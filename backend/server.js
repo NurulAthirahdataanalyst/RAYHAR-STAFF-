@@ -4468,13 +4468,13 @@ app.get('/api/employee-location-history', async (req, res) => {
           // Fetch from employee_location_logs
       const [logsRows] = await pool.query(
         `SELECT latitude, longitude, accuracy, recorded_at as timestamp FROM employee_location_logs WHERE employee_id = ? AND recorded_at BETWEEN ? AND ? ORDER BY recorded_at DESC LIMIT 500`,
-        [String(userId), from, to]
+        [String(userId), from.toISOString(), to.toISOString()]
       );
   
       // Fetch from attendances table (older checks)
       const [attRows] = await pool.query(
         `SELECT clock_in_latitude as latitude, clock_in_longitude as longitude, clock_in_accuracy as accuracy, clock_in as timestamp FROM attendances WHERE user_id = ? AND clock_in BETWEEN ? AND ? ORDER BY clock_in DESC LIMIT 500`,
-        [String(userId), from, to]
+        [String(userId), from.toISOString(), to.toISOString()]
       );
       
       const combined = [
