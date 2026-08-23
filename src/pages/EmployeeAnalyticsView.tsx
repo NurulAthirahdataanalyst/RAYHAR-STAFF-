@@ -625,11 +625,21 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
        timeBuckets[bucket] = (timeBuckets[bucket] || 0) + 1;
        
        const logMonthStr = klTime.toLocaleString('default', { month: 'short' });
+       let clockOutValue = null;
+       if (l.clock_out) {
+         const outTime = new Date(l.clock_out);
+         if (!isNaN(outTime.getTime())) {
+           const klOut = new Date(outTime.getTime() + 8 * 60 * 60 * 1000);
+           clockOutValue = klOut.getUTCHours() + (klOut.getUTCMinutes() / 60);
+         }
+       }
+       
        trendData.push({
          day: klTime.getUTCDate(), // day of month
          timestamp: klTime.getTime(),
          dayStr: month === "all" ? `${klTime.getUTCDate()} ${logMonthStr}` : `${klTime.getUTCDate()} ${monthNameFull.slice(0,3)}`,
-         timeValue: klTime.getUTCHours() + (klTime.getUTCMinutes() / 60) // decimal hours for charting
+         timeValue: klTime.getUTCHours() + (klTime.getUTCMinutes() / 60), // decimal hours for charting
+         clockOutValue: clockOutValue
        });
     }
   });
@@ -1236,12 +1246,13 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                       tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} 
                     />
                     <Tooltip 
-                      formatter={(value: number) => [formatYAxis(value), 'Clock In']}
+                      formatter={(value: number, name: string) => [formatYAxis(value), name === 'clockOutValue' ? 'Clock Out' : 'Clock In']}
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
                       labelStyle={{ fontSize: 10, fontWeight: 'bold' }}
                     />
                     {/* Average Reference Line */}
                     <ReferenceLine y={avgDecimal} stroke="#8b5cf6" strokeDasharray="3 3" opacity={0.5} label={{ position: 'right', value: 'Avg', fill: '#8b5cf6', fontSize: 10 }} />
+                    
                     <Line 
                       type="monotone" 
                       dataKey="timeValue" 
@@ -1249,6 +1260,22 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                       strokeWidth={2} 
                       dot={{ r: 3, fill: '#8b5cf6', strokeWidth: 0 }} 
                       activeDot={{ r: 5 }} 
+                      connectNulls={true}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="clockOutValue" 
+                      stroke="#ef4444" 
+                      strokeWidth={2} 
+                      dot={(props: any) => {
+                        const { cx, cy, payload } = props;
+                        if (payload.clockOutValue === null || payload.clockOutValue === undefined) {
+                          return null;
+                        }
+                        return <circle cx={cx} cy={cy} r={3} fill="#ef4444" stroke="none" />;
+                      }}
+                      activeDot={{ r: 5 }} 
+                      connectNulls={true}
                     />
                   </LineChart>
                 </ResponsiveContainer>
