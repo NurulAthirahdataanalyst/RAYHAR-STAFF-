@@ -58,6 +58,17 @@ const getMarkerHTML = (loc: EmpLocation, isSelected: boolean) => {
   );
 };
 
+function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371e3;
+  const p1 = lat1 * Math.PI/180;
+  const p2 = lat2 * Math.PI/180;
+  const dp = (lat2-lat1) * Math.PI/180;
+  const dl = (lon2-lon1) * Math.PI/180;
+  const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return Math.round(R * c);
+}
+
 export default function GPSLocationTracker() {
   const { user } = useAuth();
   const { role } = useRole();
@@ -257,7 +268,7 @@ export default function GPSLocationTracker() {
       const res = await fetch(`${API_BASE_URL}/api/employee-location-history?userId=${encodeURIComponent(userId)}&days=14`);
       const j = await res.json();
       if (j && j.success) {
-        const sorted = (j.history || []).slice().sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+        const sorted = (j.history || []).slice().sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
         setHistory(sorted);
         setReplayIndex(0);
         setReplayPlaying(false);
@@ -491,7 +502,7 @@ export default function GPSLocationTracker() {
 
             <div className="overflow-auto max-h-[480px] border rounded-lg">
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 bg-card z-10 shadow-sm border-b">
                 <TableRow>
                   <TableHead>Employee</TableHead>
                   <TableHead>Branch</TableHead>
@@ -537,108 +548,72 @@ export default function GPSLocationTracker() {
         </div>
       </div>
     {historyFor && (
-      <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4">
-        <div className="w-full max-w-4xl bg-card rounded-lg p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold">Location History - {historyFor}</h3>
-            <div className="flex items-center gap-2">
-              <Button onClick={closeHistory} variant="ghost">Close</Button>
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-5xl bg-card rounded-lg p-6 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-black uppercase">Location History - {employees.find(e => e.user_id === historyFor)?.full_name || historyFor}</h3>
+              <Button onClick={closeHistory} variant="ghost" size="sm">Close</Button>
             </div>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="col-span-2 h-96 rounded overflow-hidden border border-border">
-              {historyLoading ? (
-                <div className="p-6 text-center">Loading...</div>
-              ) : history.length === 0 ? (
-                <div className="p-6 text-center text-foreground">No history found</div>
-              ) : (
-                <Map
-                  initialViewState={{
-                    longitude: history[0].lng,
-                    latitude: history[0].lat,
-                    zoom: 13
-                  }}
-                  style={{ width: "100%", height: "100%" }}
-                  mapStyle={{
-                    version: 8,
-                    sources: {
-                      "osm": {
-                        type: "raster",
-                        tiles: ["https://a.tile.openstreetmap.org/{z}/{x}/{y}.png", "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png", "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"],
-                        tileSize: 256,
-                        attribution: "&copy; OpenStreetMap contributors"
+            <div className="flex-1 overflow-auto border border-border rounded-lg">
+              <Table>
+                <TableHeader className="sticky top-0 bg-card z-10 shadow-sm border-b">
+                  <TableRow>
+                    <TableHead>Date & Time</TableHead>
+                    <TableHead>Coordinate (Latitude, Longitude)</TableHead>
+                    <TableHead>Branch</TableHead>
+                    <TableHead>Distance from Branch</TableHead>
+                    <TableHead>Location Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {historyLoading ? (
+                    <TableRow><TableCell colSpan={5} className="text-center py-8">Loading history...</TableCell></TableRow>
+                  ) : history.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No history found</TableCell></TableRow>
+                  ) : (
+                    history.map((h, i) => {
+                      const emp = employees.find(e => e.user_id === historyFor);
+                      const branchName = emp?.branch || "HQ";
+                      const bObj = apiBranches.find(b => b.name === branchName || b.code === branchName);
+                      let distance: number | null = null;
+                      if (bObj && bObj.latitude && bObj.longitude) {
+                        distance = getDistance(h.lat, h.lng, parseFloat(bObj.latitude), parseFloat(bObj.longitude));
                       }
-                    },
-                    layers: [{ id: "osm-layer", type: "raster", source: "osm", minzoom: 0, maxzoom: 19 }]
-                  }}
-                >
-                  <NavigationControl position="top-left" />
-                  <Source id="route" type="geojson" data={{
-                    type: 'Feature',
-                    properties: {},
-                    geometry: {
-                      type: 'LineString',
-                      coordinates: history.map(h => [h.lng, h.lat])
-                    }
-                  }}>
-                    <Layer 
-                      id="route-line"
-                      type="line"
-                      layout={{ 'line-join': 'round', 'line-cap': 'round' }}
-                      paint={{ 'line-color': '#7c3aed', 'line-width': 4 }}
-                    />
-                  </Source>
-                  {history[replayIndex] && (
-                    <Marker longitude={history[replayIndex].lng} latitude={history[replayIndex].lat} color="red" />
+                      const radius = bObj?.radius || bObj?.allowed_radius || 100;
+                      const isOutstation = distance !== null && distance > radius;
+                      
+                      return (
+                        <TableRow key={i}>
+                          <TableCell className="font-medium whitespace-nowrap">
+                            {new Date(h.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}, {new Date(h.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                          </TableCell>
+                          <TableCell>{h.lat.toFixed(7)}, {h.lng.toFixed(7)}</TableCell>
+                          <TableCell>{branchName}</TableCell>
+                          <TableCell>{distance !== null ? `${distance} m` : "-"}</TableCell>
+                          <TableCell>
+                            {isOutstation ? (
+                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300 text-[10px] font-black border border-orange-200 dark:border-orange-500/30 uppercase tracking-widest">
+                                <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                                Outstation
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 text-[10px] font-black border border-emerald-200 dark:border-emerald-500/30 uppercase tracking-widest">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                On-Site
+                              </span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
-                </Map>
-              )}
-            </div>
-
-            <div className="col-span-1 space-y-3">
-              <div className="flex items-center gap-2">
-                <Button onClick={() => { setReplayIndex(0); setReplayPlaying(true); }} disabled={history.length === 0}>Play</Button>
-                <Button onClick={() => setReplayPlaying(!replayPlaying)} disabled={history.length === 0}>{replayPlaying ? 'Pause' : 'Resume'}</Button>
-                <Button onClick={() => { setReplayPlaying(false); setReplayIndex(0); }} variant="outline">Reset</Button>
-                <select value={String(replaySpeed)} onChange={(e) => setReplaySpeed(Number(e.target.value))} className="ml-2">
-                  <option value="0.5">0.5x</option>
-                  <option value="1">1x</option>
-                  <option value="2">2x</option>
-                  <option value="4">4x</option>
-                </select>
-              </div>
-
-              <div className="text-sm">
-                <div>Point {Math.min(history.length, Math.max(0, replayIndex + 1))} / {history.length}</div>
-                <div className="text-xs text-foreground mt-2">Current: {history[replayIndex] ? new Date(history[replayIndex].timestamp).toLocaleString() : '-'}</div>
-                <div className="text-xs text-foreground">Coordinates: {history[replayIndex] ? `${history[replayIndex].lat}, ${history[replayIndex].lng}` : '-'}</div>
-                <div className="text-xs text-foreground">Accuracy: {history[replayIndex]?.accuracy ?? '—'}</div>
-              </div>
-
-              <div className="max-h-64 overflow-auto border border-border rounded p-2">
-                <table className="w-full table-auto text-sm">
-                  <thead>
-                    <tr className="text-left text-xs text-foreground">
-                      <th className="p-1">Time</th>
-                      <th className="p-1">Coords</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {history.map((h, i) => (
-                      <tr key={i} className={`border-t ${i === replayIndex ? 'bg-violet-50' : ''}`}>
-                        <td className="p-1">{new Date(h.timestamp).toLocaleString()}</td>
-                        <td className="p-1">{h.lat}, {h.lng}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                </TableBody>
+              </Table>
             </div>
           </div>
         </div>
-      </div>
-    )}
-    </>
-  );
+      )}
+      </>
+    );
 }
 
