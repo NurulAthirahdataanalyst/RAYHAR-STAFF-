@@ -91,6 +91,7 @@ export default function Attendance() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [fetchingHistory, setFetchingHistory] = useState(false);
+  const [tempAssignments, setTempAssignments] = useState<any[]>([]);
   const [locationLastUpdated, setLocationLastUpdated] = useState<string | null>(null);
   const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
   const [locationDistance, setLocationDistance] = useState<number | null>(null);
@@ -231,7 +232,9 @@ export default function Attendance() {
       if (userId) {
         fetchStatus(userId);
         fetchHistoryLogs(userId, selectedMonth, selectedYear);
+        fetchTempAssignments(userId);
         fetchAllowedLocations(userId);
+        fetchTempAssignments(userId);
       } else {
         setInitialFetch(false);
       }
@@ -324,6 +327,18 @@ export default function Attendance() {
   }, []);
 
   // 3b. Fetch attendance logs history (GET)
+  const fetchTempAssignments = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/work-assignments-all`);
+      const data = await response.json();
+      if (data.success) {
+        setTempAssignments(data.data.filter((a: any) => a.user_id == id));
+      }
+    } catch (err) {
+      console.error("Error fetching temp assignments:", err);
+    }
+  }, []);
+
   const fetchHistoryLogs = useCallback(async (id: string, monthVal: number, yearVal: number) => {
     setFetchingHistory(true);
     try {
@@ -351,7 +366,7 @@ export default function Attendance() {
       }, 30000);
       return () => clearInterval(interval);
     }
-  }, [user?.user_id, user?.id, fetchStatus, fetchHistoryLogs, selectedMonth, selectedYear]);
+  }, [user?.user_id, user?.id, fetchStatus, fetchHistoryLogs, fetchTempAssignments, selectedMonth, selectedYear]);
 
   // 4b. Re-fetch history logs when filter changes
   useEffect(() => {
@@ -1610,13 +1625,101 @@ export default function Attendance() {
             </div>
             
             {/* Timeline Axis Markers */}
-            <div className="flex justify-between items-center text-[9px] font-bold text-foreground mt-2 px-1">
-               <span>Week 1</span>
-               <span>Week 2</span>
-               <span>Week 3</span>
-               <span>Week 4</span>
+              <div className="flex justify-between items-center text-[9px] font-bold text-foreground mt-2 px-1">
+                 <span>Week 1</span>
+                 <span>Week 2</span>
+                 <span>Week 3</span>
+                 <span>Week 4</span>
+              </div>
             </div>
-          </div>
+
+            {/* Temporary History Card */}
+            <div className="bg-card dark:bg-card border border-border shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl p-5 sm:p-6 flex flex-col relative overflow-hidden">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs font-black text-foreground uppercase tracking-widest">
+                  Temporary History
+                </h3>
+              </div>
+              <p className="text-[10px] text-muted-foreground mb-4">View your temporary branch assignment history</p>
+              
+              {(() => {
+                const now = new Date();
+                now.setHours(0,0,0,0);
+                const processed = tempAssignments.map(a => {
+                  const startDate = new Date(a.start_date);
+                  const endDate = a.end_date ? new Date(a.end_date) : null;
+                  let computed = a.status;
+                  if (computed === 'Complete') computed = 'Completed';
+                  else if (computed === 'Active') {
+                    if (endDate && endDate < now) computed = 'Completed';
+                    else if (startDate > now) computed = 'Upcoming';
+                    else computed = 'Active';
+                  }
+                  return { ...a, computedStatus: computed };
+                }).sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
+                
+                const active = processed.find(a => a.computedStatus === 'Active');
+                const upcoming = processed.find(a => a.computedStatus === 'Upcoming');
+                const curr = active || upcoming;
+
+                const fmtDate = (dStr) => {
+                  const d = new Date(dStr);
+                  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+                };
+
+                return (
+                  <div className="flex flex-col gap-4">
+                    {curr && (
+                      <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+                        <p className="text-[11px] font-black uppercase text-amber-700 dark:text-amber-500 flex items-center gap-1.5 mb-1">
+                          📍 Current Assignment
+                        </p>
+                        <p className="text-xs font-medium text-foreground">
+                          You are assigned to <strong className="font-bold">{curr.temp_branch}</strong> from {fmtDate(curr.start_date)}{curr.end_date ? ' – ' + fmtDate(curr.end_date) : ''}.
+                          <br />
+                          Please clock in at this branch during this period.
+                        </p>
+                      </div>
+                    )}
+
+                    {processed.length > 0 ? (
+                      <div className="overflow-x-auto rounded-lg border border-border/50">
+                        <table className="w-full text-left text-xs whitespace-nowrap">
+                          <thead className="bg-muted/50 border-b border-border/50">
+                            <tr>
+                              <th className="px-3 py-2 font-black uppercase text-[9px] tracking-wider text-muted-foreground">Temporary Branch</th>
+                              <th className="px-3 py-2 font-black uppercase text-[9px] tracking-wider text-muted-foreground">Assignment Period</th>
+                              <th className="px-3 py-2 font-black uppercase text-[9px] tracking-wider text-muted-foreground">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border/50">
+                            {processed.map(a => (
+                              <tr key={a.id} className={a.computedStatus === 'Active' ? 'bg-emerald-500/5' : ''}>
+                                <td className="px-3 py-2 font-medium">{a.temp_branch}</td>
+                                <td className="px-3 py-2">
+                                  {fmtDate(a.start_date)}{a.end_date ? ' – ' + fmtDate(a.end_date) : ''}
+                                </td>
+                                <td className="px-3 py-2 font-medium">
+                                  {a.computedStatus === 'Active' ? (
+                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"/>ACTIVE</span>
+                                  ) : a.computedStatus === 'Upcoming' ? (
+                                    <span className="text-blue-600 dark:text-blue-400 font-bold flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"/>UPCOMING</span>
+                                  ) : (
+                                    <span className="text-muted-foreground flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"/>COMPLETED</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-muted-foreground italic p-3 text-center bg-muted/20 rounded-lg">No temporary assignments found.</div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
         </div>
       </div>
 
