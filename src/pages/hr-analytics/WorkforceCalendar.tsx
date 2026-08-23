@@ -91,6 +91,8 @@ export default function WorkforceCalendar() {
   const [loading, setLoading] = useState(true);
   const [selectedEventInfo, setSelectedEventInfo] = useState<{event: WorkforceEvent, date: string} | null>(null);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [dailyAttendance, setDailyAttendance] = useState<any[]>([]);
+  const [loadingDaily, setLoadingDaily] = useState(false);
   const [filterType, setFilterType] = useState("All Types");
   const [filterBranch, setFilterBranch] = useState("__ALL__");
   const [filterDept, setFilterDept] = useState("__ALL__");
@@ -426,88 +428,202 @@ export default function WorkforceCalendar() {
       
         {/* Daily Summary Popup */}
         {selectedDay && (() => {
-          const dayStr = format(selectedDay, 'yyyy-MM-dd');
           const dayEvts = getEventsForDay(selectedDay);
-          const attEvts = dayEvts.filter(e => ["Present (On Time)", "Present (Late)", "Absent"].includes(e.type));
           const leaveEvts = dayEvts.filter(e => !["Present (On Time)", "Present (Late)", "Absent"].includes(e.type));
 
+          // Filter dailyAttendance based on current branch/dept if filters are active
+          const filteredAtt = dailyAttendance.filter(a => {
+            if (filterBranch !== "__ALL__" && a.branch !== filterBranch && a.permanent_branch !== filterBranch) return false;
+            if (filterDept !== "__ALL__" && a.department !== filterDept) return false;
+            return true;
+          });
+
+          const presentOnTime = filteredAtt.filter(a => a.status === "Present (On Time)");
+          const presentLate = filteredAtt.filter(a => a.status === "Present (Late)" || a.is_late);
+          const absent = filteredAtt.filter(a => a.status === "Absent");
+
           return createPortal(
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 transition-all duration-300" onClick={() => setSelectedDay(null)}>
-              <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden max-w-2xl w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-300" onClick={() => setSelectedDay(null)}>
+              <div className="bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden max-w-lg w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
                 {/* Header */}
-                <div className="flex items-center justify-between bg-[#7B0099] text-white p-4">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="w-5 h-5 opacity-80" />
-                    <h3 className="font-black text-white truncate">{format(selectedDay, 'EEEE, MMMM do yyyy')}</h3>
+                <div className="flex items-center justify-between bg-[#a01497] text-white p-4">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 opacity-80 text-xs font-black uppercase tracking-wider">
+                      <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                      Daily Summary
+                    </div>
+                    <h3 className="font-bold text-lg text-white truncate">{format(selectedDay, 'EEEE, d MMMM yyyy')}</h3>
                   </div>
-                  <button onClick={() => setSelectedDay(null)} className="p-1.5 rounded-lg hover:bg-white/20 text-white/80 hover:text-white transition-colors">
+                  <button onClick={() => setSelectedDay(null)} className="p-2 rounded-full hover:bg-white/20 text-white transition-colors self-start">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
 
                 <div className="p-6 overflow-y-auto space-y-6">
-                  {/* Attendance Section */}
+                  {/* Leaves Section */}
                   <div>
-                    <h4 className="text-xs font-black uppercase text-foreground mb-3 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
-                      Attendance
+                    <h4 className="text-[10px] font-black uppercase text-foreground mb-3 flex items-center gap-2 tracking-widest text-[#a01497]">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#a01497]" />
+                      Approved Leave & Outstation
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {["Present (On Time)", "Present (Late)", "Absent"].map(type => {
-                        const typeEvts = attEvts.filter(e => e.type === type);
-                        const c = EVENT_COLORS[type];
-                        if (!c) return null;
-                        return (
-                          <div key={type} className={`border rounded-xl p-3 ${c.bg} ${c.border}`}>
-                            <div className="flex justify-between items-center mb-2">
-                              <span className={`text-[10px] font-black uppercase ${c.text}`}>{c.label}</span>
-                              <Badge className={`${c.dot} text-white border-0`}>{typeEvts.length}</Badge>
-                            </div>
-                            <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
-                              {typeEvts.map(e => (
-                                <div key={e.id} className="text-xs font-medium text-gray-800 dark:text-gray-200">
-                                  {e.name}
-                                </div>
-                              ))}
-                              {typeEvts.length === 0 && <div className="text-xs text-foreground italic">None</div>}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Leaves & Outstation Section */}
-                  {leaveEvts.length > 0 && (
-                    <div>
-                      <h4 className="text-xs font-black uppercase text-foreground mb-3 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
-                        Leaves & Outstation
-                      </h4>
-                      <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                    {leaveEvts.length > 0 ? (
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                         {leaveEvts.map(e => {
                           const ec = getEventColor(e);
                           return (
-                            <div key={e.id} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50">
-                              <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${ec.dot}`} />
-                              <div className="min-w-0 flex-1">
-                                <p className="text-sm font-bold text-gray-800 dark:text-gray-100 truncate">
-                                  {e.source === "company_leave" ? (e.name || e.type) : e.name}
-                                </p>
-                                <p className={`text-xs truncate ${ec.text}`}>
+                            <div key={e.id} className="flex flex-col p-3 rounded-lg border border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50">
+                              <p className="text-xs font-bold text-gray-800 dark:text-gray-100 truncate uppercase">
+                                {e.source === "company_leave" ? (e.name || e.type) : e.name}
+                              </p>
+                              <div className="flex items-center gap-1.5 mt-1">
+                                <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${ec.dot}`} />
+                                <p className={`text-[10px] uppercase font-bold ${ec.text}`}>
                                   {e.type}
                                   {e.destination ? ` - ${e.destination}` : ""}
                                 </p>
                               </div>
-                              {e.branch && e.source !== "company_leave" && (
-                                <Badge variant="outline" className="text-[9px] font-bold px-2 py-0.5 shrink-0">{e.branch}</Badge>
-                              )}
                             </div>
                           );
                         })}
                       </div>
+                    ) : (
+                      <div className="text-xs text-muted-foreground italic px-3 py-1">No approved leaves or outstation for this day.</div>
+                    )}
+                  </div>
+
+                  {/* Attendance Summary */}
+                  <div>
+                    <h4 className="text-[10px] font-black uppercase text-foreground mb-3 flex items-center gap-2 tracking-widest text-[#a01497]">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#a01497]" />
+                      Attendance
+                    </h4>
+                    {loadingDaily ? (
+                      <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-[#a01497]" /></div>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                        <div className="border border-emerald-200 bg-emerald-50 rounded-xl p-3 flex flex-col items-start dark:bg-emerald-950/30">
+                          <span className="text-[9px] sm:text-[10px] font-black uppercase text-emerald-700">Present (On Time)</span>
+                          <span className="text-xl sm:text-2xl font-black text-emerald-600 mt-1">{presentOnTime.length}</span>
+                        </div>
+                        <div className="border border-amber-200 bg-amber-50 rounded-xl p-3 flex flex-col items-start dark:bg-amber-950/30">
+                          <span className="text-[9px] sm:text-[10px] font-black uppercase text-amber-700">Present (Late)</span>
+                          <span className="text-xl sm:text-2xl font-black text-amber-600 mt-1">{presentLate.length}</span>
+                        </div>
+                        <div className="border border-red-200 bg-red-50 rounded-xl p-3 flex flex-col items-start dark:bg-red-950/30">
+                          <span className="text-[9px] sm:text-[10px] font-black uppercase text-red-700">Absent</span>
+                          <span className="text-xl sm:text-2xl font-black text-red-600 mt-1">{absent.length}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Employee Breakdowns */}
+                  {!loadingDaily && (
+                    <div className="space-y-6">
+                      {presentOnTime.length > 0 && (
+                        <div>
+                          <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 border-b pb-1">
+                            Total Present (On Time) ({presentOnTime.length})
+                          </div>
+                          <div className="space-y-2">
+                            {presentOnTime.map(a => (
+                              <div key={a.user_id} className="border border-gray-100 rounded-lg p-3 shadow-sm bg-white dark:bg-slate-900 dark:border-slate-800">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex flex-col">
+                                    <span className="text-xs font-bold uppercase truncate">{a.full_name}</span>
+                                    <div className="flex items-center gap-1.5 mt-1">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                      <span className="text-[10px] font-black uppercase text-emerald-600">Present</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-4 text-right">
+                                    <div className="flex flex-col items-center">
+                                      <span className="text-[9px] font-black uppercase text-gray-400">Clock In</span>
+                                      <span className="text-xs font-mono mt-0.5">{a.time_in || "-"}</span>
+                                    </div>
+                                    <div className="flex flex-col items-center">
+                                      <span className="text-[9px] font-black uppercase text-gray-400">Clock Out</span>
+                                      <span className="text-xs font-mono mt-0.5">{a.time_out || "-"}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {presentLate.length > 0 && (
+                        <div>
+                          <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 border-b pb-1">
+                            Total Present (Late) ({presentLate.length})
+                          </div>
+                          <div className="space-y-2">
+                            {presentLate.map(a => (
+                              <div key={a.user_id} className="border border-gray-100 rounded-lg p-3 shadow-sm bg-white dark:bg-slate-900 dark:border-slate-800">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex flex-col">
+                                    <span className="text-xs font-bold uppercase truncate">{a.full_name}</span>
+                                    <div className="flex items-center gap-1.5 mt-1">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                      <span className="text-[10px] font-black uppercase text-amber-600">Late</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-4 text-right">
+                                    <div className="flex flex-col items-center">
+                                      <span className="text-[9px] font-black uppercase text-gray-400">Clock In</span>
+                                      <span className="text-xs font-mono mt-0.5">{a.time_in || "-"}</span>
+                                    </div>
+                                    <div className="flex flex-col items-center">
+                                      <span className="text-[9px] font-black uppercase text-gray-400">Clock Out</span>
+                                      <span className="text-xs font-mono mt-0.5">{a.time_out || "-"}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {absent.length > 0 && (
+                        <div>
+                          <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 border-b pb-1">
+                            Absent ({absent.length})
+                          </div>
+                          <div className="space-y-2">
+                            {absent.map(a => (
+                              <div key={a.user_id} className="border border-gray-100 rounded-lg p-3 shadow-sm bg-white dark:bg-slate-900 dark:border-slate-800">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex flex-col">
+                                    <span className="text-xs font-bold uppercase truncate">{a.full_name}</span>
+                                    <div className="flex items-center gap-1.5 mt-1">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                      <span className="text-[10px] font-black uppercase text-red-600">Absent</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-4 text-right">
+                                    <div className="flex flex-col items-center opacity-50">
+                                      <span className="text-[9px] font-black uppercase text-gray-400">Clock In</span>
+                                      <span className="text-xs font-mono mt-0.5">-</span>
+                                    </div>
+                                    <div className="flex flex-col items-center opacity-50">
+                                      <span className="text-[9px] font-black uppercase text-gray-400">Clock Out</span>
+                                      <span className="text-xs font-mono mt-0.5">-</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
+
+                  <div className="flex justify-end pt-2">
+                    <Button onClick={() => setSelectedDay(null)} className="bg-[#a01497] hover:bg-[#850f7c] text-white">Close</Button>
+                  </div>
                 </div>
               </div>
             </div>,
@@ -515,7 +631,7 @@ export default function WorkforceCalendar() {
           );
         })()}
 
-{/* Detail Popup */}
+  {/* Detail Popup */}
       {selectedEventInfo && (() => {
         const { event: selectedEvent, date: dateStr } = selectedEventInfo;
         const dayEvts = events.filter(e => {
