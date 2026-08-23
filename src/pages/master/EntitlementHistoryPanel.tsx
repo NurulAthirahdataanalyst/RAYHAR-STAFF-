@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Search, Filter, Download, X, ArrowLeft, History,
   FileText, Printer, ChevronDown, ChevronUp, Eye,
-  ClipboardList, Users, BarChart3, Calendar,
+  ClipboardList, Users, BarChart3, Calendar, RotateCcw,
+  Check, ChevronLeft, ChevronRight, ChevronsUpDown
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,44 +20,64 @@ import { Calendar as CalendarWidget } from "@/components/ui/calendar";
 import { CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 
-// ─── Date range helpers ───────────────────────────────────────────────────────
+// ——— Date range helpers ———
 type DateRange = 'all' | 'today' | 'yesterday' | '7days' | 'thismonth' | 'lastmonth' | 'thisyear' | 'custom';
 
-function inRange(dateStr: string, range: DateRange, customFrom?: string, customTo?: string): boolean {
-  const d = new Date(dateStr + 'T00:00:00');
+function inRange(dateStr: string, range: DateRange, customFrom: string, customTo: string): boolean {
+  if (range === 'all') return true;
+  const d = new Date(dateStr);
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  switch (range) {
-    case 'today':     return d >= today;
-    case 'yesterday': { const y = new Date(today); y.setDate(y.getDate()-1); return d >= y && d < today; }
-    case '7days':     { const w = new Date(today); w.setDate(w.getDate()-7); return d >= w; }
-    case 'thismonth': return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    case 'lastmonth': {
-      const lm = new Date(now.getFullYear(), now.getMonth()-1, 1);
-      return d.getMonth() === lm.getMonth() && d.getFullYear() === lm.getFullYear();
-    }
-    case 'thisyear':  return d.getFullYear() === now.getFullYear();
-    case 'custom':
-      if (customFrom && d < new Date(customFrom + 'T00:00:00')) return false;
-      if (customTo   && d > new Date(customTo   + 'T23:59:59')) return false;
-      return true;
-    default: return true;
+  
+  if (range === 'today') return d.getTime() === today.getTime();
+  if (range === 'yesterday') return d.getTime() === today.getTime() - 86400000;
+  if (range === '7days') return d.getTime() >= today.getTime() - 7 * 86400000;
+  if (range === 'thismonth') return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth();
+  if (range === 'lastmonth') {
+    const lm = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    return d.getFullYear() === lm.getFullYear() && d.getMonth() === lm.getMonth();
   }
+  if (range === 'thisyear') return d.getFullYear() === today.getFullYear();
+  if (range === 'custom') {
+    if (customFrom && new Date(customFrom).getTime() > d.getTime()) return false;
+    if (customTo && new Date(customTo).getTime() < d.getTime()) return false;
+    return true;
+  }
+  return true;
 }
 
-// ─── Export helpers ───────────────────────────────────────────────────────────
+function CustomDatePicker({ value, onChange, placeholder, className }: { value: string; onChange: (v: string) => void; placeholder: string; className?: string }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className={`justify-start text-left font-normal ${!value && "text-muted-foreground"} ${className}`}>
+          <CalendarDays className="mr-2 h-4 w-4" />
+          {value ? format(new Date(value), "PPP") : <span>{placeholder}</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <CalendarWidget mode="single" selected={value ? new Date(value) : undefined} onSelect={(d) => onChange(d ? format(d, 'yyyy-MM-dd') : '')} initialFocus />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// ——— Export helpers ———
 function exportCSV(logs: EntitlementHistoryLog[], filename: string) {
-  const headers = ['History ID','Reference ID','Date','Time','Employee','Employee ID','Branch','Department','Leave Type','Action','Action Type','Prev Balance','Adjustment','New Balance','Reason','Performed By','Role'];
+  const headers = ['History ID', 'Date', 'Time', 'Employee Name', 'Employee ID', 'Action Type', 'Leave Type', 'Adjustment', 'Previous Balance', 'New Balance', 'Performed By', 'Reason'];
   const rows = logs.map(l => [
-    l.history_id, l.reference_id, l.date, l.time,
-    l.employee_name, l.employee_id, l.branch, l.department,
-    l.leave_type, l.action, l.action_type,
-    l.previous_balance, l.adjustment, l.new_balance,
-    `"${l.reason.replace(/"/g,'""')}"`, l.performed_by, l.performed_role,
+    l.history_id, l.date, l.time, `"${l.employee_name}"`, l.employee_id || '', l.action_type, l.leave_type, l.adjustment, l.previous_balance, l.new_balance, `"${l.performed_by}"`, `"${l.reason || ''}"`
   ]);
-  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function exportPDF(logs: EntitlementHistoryLog[], title: string) {
@@ -103,96 +124,7 @@ function exportPDF(logs: EntitlementHistoryLog[], title: string) {
   w.document.close();
 }
 
-// ─── Detail Drawer ────────────────────────────────────────────────────────────
-function DetailDrawer({ log, onClose }: { log: EntitlementHistoryLog; onClose: () => void }) {
-  const badge = getBadge(log.action_type);
-  const isPositive = log.adjustment >= 0;
-  return (
-    <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 pointer-events-none">
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] pointer-events-auto" onClick={onClose} />
-        {/* Modal */}
-        <div className="relative w-full max-w-md max-h-[90vh] bg-white dark:bg-card rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto">
-          {/* Modal header */}
-          <div className="flex items-center justify-between p-5 border-b border-border/50 bg-muted/30">
-            <div>
-              <p className="text-[10px] font-bold text-foreground uppercase tracking-wider">Leave Entitlement Record</p>
-              <p className="text-xs font-black text-foreground mt-0.5">{log.history_id}</p>
-            </div>
-            <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors text-foreground hover:text-foreground"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Modal body */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-5">
-            {/* Action badge */}
-            <div className="flex items-center gap-2">
-              <span className={`text-xs font-black px-2.5 py-1 rounded-lg border ${badge.bg} ${badge.text} ${badge.border}`}>
-                {badge.label}
-              </span>
-              <span className={`text-sm font-black ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-                {isPositive ? '+' : ''}{log.adjustment} Days
-              </span>
-            </div>
-
-            {/* Balance flow */}
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-border/50">
-              <div className="text-center flex-1">
-                <p className="text-[10px] text-foreground font-semibold uppercase">Previous</p>
-                <p className="text-xl font-black text-slate-700 dark:text-slate-200">{log.previous_balance}</p>
-                <p className="text-[9px] text-foreground">Days</p>
-              </div>
-              <div className="text-center px-2">
-                <p className={`text-lg font-black ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-                  {isPositive ? '+' : ''}{log.adjustment}
-                </p>
-              </div>
-              <div className="text-center flex-1">
-                <p className="text-[10px] text-foreground font-semibold uppercase">New Balance</p>
-                <p className="text-xl font-black text-foreground">{log.new_balance}</p>
-                <p className="text-[9px] text-foreground">Days</p>
-              </div>
-            </div>
-
-            {/* Details grid */}
-            {[
-              { label: 'History ID',     value: log.history_id },
-              { label: 'Reference ID',   value: log.reference_id },
-              { label: 'Employee',       value: log.employee_name },
-              { label: 'Employee ID',    value: log.employee_id || '—' },
-              { label: 'Branch',         value: log.branch || '—' },
-              { label: 'Department',     value: log.department || '—' },
-              { label: 'Leave Type',     value: log.leave_type },
-              { label: 'Action Type',    value: log.action_type },
-              { label: 'Reason',         value: log.reason || '—' },
-              { label: 'Remarks',        value: log.remarks || '—' },
-              { label: 'Performed By',   value: log.performed_by },
-              { label: 'Role',           value: log.performed_role || '—' },
-              { label: 'Source Module',  value: log.source_module || '—' },
-              { label: 'Date',           value: `${log.date}  ${log.time}` },
-            ].map(({ label, value }) => (
-              <div key={label} className="flex flex-col gap-0.5 border-b border-border/30 pb-3">
-                <p className="text-[10px] text-foreground font-bold uppercase tracking-wider">{label}</p>
-                <p className="text-sm font-semibold text-foreground break-all">{value}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="p-4 border-t border-border/50 bg-muted/10 text-[10px] text-foreground text-center">
-            🔒 This audit record is immutable and cannot be edited or deleted.
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
-// ─── Timeline group helpers ───────────────────────────────────────────────────
+// ——— Timeline group helpers ———
 function groupByDate(logs: EntitlementHistoryLog[]): Array<{ dateLabel: string; dateStr: string; entries: EntitlementHistoryLog[] }> {
   const map: Record<string, EntitlementHistoryLog[]> = {};
   logs.forEach(l => { if (!map[l.date]) map[l.date] = []; map[l.date].push(l); });
@@ -212,34 +144,9 @@ function groupByDate(logs: EntitlementHistoryLog[]): Array<{ dateLabel: string; 
     });
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ——— Main Component ———
 
-
-function CustomDatePicker({ value, onChange, placeholder, disabled, className }: { value: string, onChange: (val: string) => void, placeholder?: string, disabled?: boolean, className?: string }) {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button type="button" disabled={disabled} className={`appearance-none flex items-center justify-between px-3 h-8 bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider hover:border-blue-500/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className || "w-36"}`}>
-          <span className="font-bold text-foreground">
-            {value ? format(new Date(value), "dd MMM yyyy").toUpperCase() : (placeholder || "Select Date")}
-          </span>
-          <CalendarDays className="w-3.5 h-3.5 text-foreground opacity-70" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 overflow-hidden border-none shadow-xl" align="start">
-        <CalendarWidget
-          mode="single"
-          selected={value ? new Date(value) : undefined}
-          onSelect={(d) => {
-            if (d) onChange(new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0]);
-          }}
-          initialFocus
-        />
-      </PopoverContent>
-    </Popover>
-  );
-}
-
+const ITEMS_PER_PAGE = 20;
 
 export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => void }) {
   const [logs, setLogs]           = useState<EntitlementHistoryLog[]>([]);
@@ -247,7 +154,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
   const [dateRange, setDateRange] = useState<DateRange>('all');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo]   = useState('');
-  const [filterEmployee, setFilterEmployee] = useState('all');
+  const [filterEmployee, setFilterEmployee] = useState<string[]>([]);
   const [filterBranch, setBranch]     = useState('all');
   const [filterDept, setDept]         = useState('all');
   const [filterLeave, setLeave]       = useState('all');
@@ -255,7 +162,8 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
   const [filterBy, setFilterBy]       = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedLog, setSelectedLog] = useState<EntitlementHistoryLog | null>(null);
-  const [drawerOpen, setDrawerOpen]   = useState(false);
+  
+  const [currentPage, setCurrentPage] = useState(1);
 
   const reload = useCallback(() => setLogs(getHistoryLogs()), []);
   useEffect(() => {
@@ -264,19 +172,35 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
     return () => window.removeEventListener('entitlementHistoryUpdated', reload);
   }, [reload]);
 
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, dateRange, customFrom, customTo, filterEmployee, filterBranch, filterDept, filterLeave, filterAction, filterBy]);
+
   // Unique values for filter dropdowns
-  const employees  = useMemo(() => [...new Set(logs.map(l => l.employee_name).filter(Boolean))].sort(), [logs]);
+  const allEmployees = useMemo(() => [...new Set(logs.map(l => l.employee_name).filter(Boolean))].sort(), [logs]);
   const branches   = useMemo(() => [...new Set(logs.map(l => l.branch).filter(Boolean))].sort(), [logs]);
   const depts      = useMemo(() => [...new Set(logs.map(l => l.department).filter(Boolean))].sort(), [logs]);
   const leaveTypes = useMemo(() => [...new Set(logs.map(l => l.leave_type).filter(Boolean))].sort(), [logs]);
   const actionTypes = Object.keys(ACTION_BADGE);
   const performers = useMemo(() => [...new Set(logs.map(l => l.performed_by).filter(Boolean))].sort(), [logs]);
 
+  // Sort employees so checked are on top
+  const sortedEmployees = useMemo(() => {
+    return [...allEmployees].sort((a, b) => {
+      const aSel = filterEmployee.includes(a);
+      const bSel = filterEmployee.includes(b);
+      if (aSel && !bSel) return -1;
+      if (!aSel && bSel) return 1;
+      return a.localeCompare(b);
+    });
+  }, [allEmployees, filterEmployee]);
+
   // Filtered logs
   const filtered = useMemo(() => {
     return logs.filter(l => {
       if (!inRange(l.date, dateRange, customFrom, customTo)) return false;
-      if (filterEmployee !== 'all' && l.employee_name !== filterEmployee) return false;
+      if (filterEmployee.length > 0 && !filterEmployee.includes(l.employee_name)) return false;
       if (filterBranch   !== 'all' && l.branch        !== filterBranch)   return false;
       if (filterDept     !== 'all' && l.department    !== filterDept)     return false;
       if (filterLeave    !== 'all' && l.leave_type    !== filterLeave)    return false;
@@ -289,14 +213,17 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
           l.reason.toLowerCase().includes(q) ||
           l.history_id.toLowerCase().includes(q) ||
           l.reference_id.toLowerCase().includes(q) ||
-          l.action.toLowerCase().includes(q)
+          l.action_type.toLowerCase().includes(q)
         );
       }
       return true;
     });
   }, [logs, search, dateRange, customFrom, customTo, filterEmployee, filterBranch, filterDept, filterLeave, filterAction, filterBy]);
 
-  const grouped = useMemo(() => groupByDate(filtered), [filtered]);
+  // Pagination
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginatedLogs = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const grouped = useMemo(() => groupByDate(paginatedLogs), [paginatedLogs]);
 
   // Stats
   const today = new Date().toISOString().split('T')[0];
@@ -305,54 +232,72 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
   const monthCount    = filtered.filter(l => l.date.startsWith(thisMonth)).length;
   const empAffected   = new Set(filtered.map(l => l.employee_id || l.employee_name)).size;
 
-  const openDrawer = (log: EntitlementHistoryLog) => { setSelectedLog(log); setDrawerOpen(true); };
+  const openDrawer = (log: EntitlementHistoryLog) => { setSelectedLog(log); };
 
   // Date range label map
   const rangeLabelMap: Record<DateRange, string> = {
-    all: 'All Time', today: 'Today', yesterday: 'Yesterday',
-    '7days': 'Last 7 Days', thismonth: 'This Month', lastmonth: 'Last Month',
-    thisyear: 'This Year', custom: 'Custom Range',
+    all: 'All Time', today: 'Today', yesterday: 'Yesterday', '7days': 'Last 7 Days',
+    thismonth: 'This Month', lastmonth: 'Last Month', thisyear: 'This Year', custom: 'Custom Range'
+  };
+
+  const handleResetFilters = () => {
+    setSearch('');
+    setDateRange('all');
+    setCustomFrom('');
+    setCustomTo('');
+    setFilterEmployee([]);
+    setBranch('all');
+    setDept('all');
+    setLeave('all');
+    setAction('all');
+    setFilterBy('all');
+  };
+
+  const toggleEmployee = (emp: string) => {
+    setFilterEmployee(prev => prev.includes(emp) ? prev.filter(e => e !== emp) : [...prev, emp]);
   };
 
   return (
-    <>
-      <Card className="border-border/60 bg-card/75 shadow-lg">
-        {/* Header */}
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center gap-3 border-b pb-4 bg-slate-50 dark:bg-slate-900/50">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <Button variant="ghost" size="icon" onClick={onCancel}
-              className="h-8 w-8 rounded-full hover:bg-slate-500/10 hover:text-slate-600 shrink-0">
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-            <div className="w-9 h-9 rounded-xl bg-[#7B0099]/10 flex items-center justify-center shrink-0">
-              <History className="w-5 h-5 text-[#7B0099]" />
+    <div className="animate-in slide-in-from-right-4 duration-300 h-full flex flex-col max-h-[85vh]">
+      <Card className="flex-1 flex flex-col border-border/60 shadow-xl overflow-hidden bg-card/77 backdrop-blur-sm">
+        <CardHeader className="pb-4 border-b border-border/50 bg-muted/20 shrink-0">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <Button variant="ghost" size="icon" onClick={onCancel} className="mt-1 h-8 w-8 text-foreground hover:bg-muted/50 rounded-full">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+              <div>
+                <CardTitle className="flex items-center gap-2 text-xl font-black">
+                  <History className="w-5 h-5 text-[#7B0099]" />
+                  Leave Balance History
+                </CardTitle>
+                <CardDescription className="text-xs mt-1">
+                  Complete audit trail of all leave entitlement changes.
+                </CardDescription>
+              </div>
             </div>
-            <div className="min-w-0">
-              <CardTitle className="text-base sm:text-lg font-black text-foreground">Leave Balance History</CardTitle>
-              <CardDescription className="text-xs">Complete audit trail of all leave entitlement changes.</CardDescription>
-            </div>
-          </div>
 
-          {/* Export buttons */}
-          <div className="flex items-center gap-2 shrink-0 flex-wrap">
-            <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5"
-              onClick={() => exportCSV(filtered, `Leave_Entitlement_Audit_${today}.csv`)}>
-              <FileText className="w-3.5 h-3.5" /> CSV
-            </Button>
-            <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5"
-              onClick={() => exportCSV(filtered, `Leave_Entitlement_Audit_${today}.xls`)}>
-              <Download className="w-3.5 h-3.5" /> Excel
-            </Button>
-            <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5"
-              onClick={() => exportPDF(filtered, `Leave Entitlement Audit — ${rangeLabelMap[dateRange]}`)}>
-              <Printer className="w-3.5 h-3.5" /> PDF
-            </Button>
+            {/* Export buttons */}
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+              <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5"
+                onClick={() => exportCSV(filtered, `Leave_Entitlement_Audit_${today}.csv`)}>
+                <FileText className="w-3.5 h-3.5" /> CSV
+              </Button>
+              <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5"
+                onClick={() => exportCSV(filtered, `Leave_Entitlement_Audit_${today}.xls`)}>
+                <Download className="w-3.5 h-3.5" /> Excel
+              </Button>
+              <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5"
+                onClick={() => exportPDF(filtered, `Leave Entitlement Audit — ${rangeLabelMap[dateRange]}`)}>
+                <Printer className="w-3.5 h-3.5" /> PDF
+              </Button>
+            </div>
           </div>
         </CardHeader>
 
-        <CardContent className="p-0">
+        <CardContent className="p-0 flex-1 flex flex-col min-h-0">
           {/* Search + Filter toggle bar */}
-          <div className="p-4 border-b border-border/40 bg-muted/5 flex flex-col sm:flex-row gap-3">
+          <div className="p-4 border-b border-border/40 bg-muted/5 flex flex-col sm:flex-row gap-3 shrink-0">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-foreground" />
               <Input
@@ -367,10 +312,11 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                 </button>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <Select value={dateRange} onValueChange={v => setDateRange(v as DateRange)}>
-                <SelectTrigger className="w-[140px] h-9 text-xs bg-white dark:bg-card">
-                  <SelectValue />
+            
+            <div className="flex items-center gap-2 shrink-0">
+              <Select value={dateRange} onValueChange={(v: DateRange) => setDateRange(v)}>
+                <SelectTrigger className="w-[160px] h-9 text-xs bg-white dark:bg-card">
+                  <SelectValue placeholder="Date Range" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Time</SelectItem>
@@ -383,18 +329,24 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                   <SelectItem value="custom">Custom Range</SelectItem>
                 </SelectContent>
               </Select>
+              
               <Button variant="outline" size="sm" className={`h-9 text-xs gap-1.5 ${showFilters ? 'bg-[#7B0099]/5 border-[#7B0099]/40 text-[#7B0099]' : ''}`}
                 onClick={() => setShowFilters(!showFilters)}>
                 <Filter className="w-3.5 h-3.5" />
                 Filters
                 {showFilters ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
               </Button>
+              
+              <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/20"
+                onClick={handleResetFilters} title="Reset all filters">
+                <RotateCcw className="w-4 h-4" />
+              </Button>
             </div>
           </div>
 
           {/* Custom date range */}
           {dateRange === 'custom' && (
-            <div className="px-4 py-3 border-b border-border/40 bg-blue-50/30 flex items-center justify-end gap-3 flex-wrap">
+            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-b border-border/40 flex items-center gap-4 shrink-0">
               <Label className="text-xs font-bold text-foreground">From</Label>
               <CustomDatePicker value={customFrom} onChange={setCustomFrom} placeholder="From" className="w-[140px]" />
               <Label className="text-xs font-bold text-foreground">To</Label>
@@ -404,9 +356,58 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
 
           {/* Advanced filters panel */}
           {showFilters && (
-            <div className="px-4 py-3 border-b border-border/40 bg-muted/10 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+            <div className="px-4 py-3 border-b border-border/40 bg-muted/10 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 shrink-0">
+              {/* Custom Employee Filter */}
+              <div className="space-y-1">
+                <Label className="text-[10px] font-black uppercase tracking-wider text-foreground">Employee</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full h-8 px-3 text-xs justify-between font-normal bg-white dark:bg-card">
+                      <span className="truncate">
+                        {filterEmployee.length === 0 ? 'All Employees' : `${filterEmployee.length} Selected`}
+                      </span>
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[240px] p-0" align="start">
+                    <div className="max-h-[300px] overflow-y-auto p-1 divide-y divide-border/20">
+                      {sortedEmployees.map(emp => {
+                        const isChecked = filterEmployee.includes(emp);
+                        return (
+                          <label key={emp} className="flex items-center gap-3 px-2 py-2 hover:bg-muted/50 cursor-pointer group">
+                            <input
+                              type="checkbox"
+                              className="hidden peer"
+                              checked={isChecked}
+                              onChange={() => toggleEmployee(emp)}
+                            />
+                            {/* Custom animated checkbox */}
+                            <div className="relative w-[18px] h-[18px] -translate-y-px 
+                               peer-checked:[&>svg]:stroke-[#7B0099] 
+                               peer-checked:[&>svg>path]:[stroke-dashoffset:60] 
+                               peer-checked:[&>svg>polyline]:[stroke-dashoffset:42] 
+                               peer-checked:[&>svg>path]:transition-all peer-checked:[&>svg>polyline]:transition-all 
+                               peer-checked:[&>svg>path]:duration-300 peer-checked:[&>svg>polyline]:duration-200 peer-checked:[&>svg>polyline]:delay-150">
+                              <div className="absolute top-[-15px] left-[-15px] w-[48px] h-[48px] rounded-full bg-slate-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
+                              <svg width="18px" height="18px" viewBox="0 0 18 18" className="relative z-10 fill-none stroke-[#c8ccd4] stroke-[1.5] transition-all duration-200 group-hover:stroke-[#7B0099] [stroke-linecap:round] [stroke-linejoin:round]">
+                                <path d="M1,9 L1,3.5 C1,2 2,1 3.5,1 L14.5,1 C16,1 17,2 17,3.5 L17,14.5 C17,16 16,17 14.5,17 L3.5,17 C2,17 1,16 1,14.5 L1,9 Z" className="[stroke-dasharray:60] [stroke-dashoffset:0]"></path>
+                                <polyline points="1 9 7 14 15 4" className="[stroke-dasharray:22] [stroke-dashoffset:66]"></polyline>
+                              </svg>
+                            </div>
+                            <span className="text-xs font-medium text-foreground truncate">{emp}</span>
+                          </label>
+                        );
+                      })}
+                      {sortedEmployees.length === 0 && (
+                        <p className="text-xs text-muted-foreground p-3 text-center">No employees found.</p>
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* Standard Filters */}
               {[
-                { label: 'Employee', value: filterEmployee, set: setFilterEmployee, options: employees },
                 { label: 'Branch',   value: filterBranch,   set: setBranch,         options: branches  },
                 { label: 'Department', value: filterDept,   set: setDept,           options: depts     },
                 { label: 'Leave Type', value: filterLeave,  set: setLeave,          options: leaveTypes },
@@ -417,7 +418,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                   <Label className="text-[10px] font-black uppercase tracking-wider text-foreground">{f.label}</Label>
                   <Select value={f.value} onValueChange={f.set}>
                     <SelectTrigger className="h-8 text-xs bg-white dark:bg-card">
-                      <SelectValue placeholder={`All ${f.label}s`} />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All {f.label}s</SelectItem>
@@ -430,7 +431,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
           )}
 
           {/* Stats row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border/30 border-b border-border/40">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border/30 border-b border-border/40 shrink-0">
             {[
               { icon: ClipboardList, label: 'Total Records',      val: filtered.length,  color: 'text-slate-700'  },
               { icon: Calendar,      label: "Today's Changes",    val: todayCount,        color: 'text-blue-600'   },
@@ -439,19 +440,18 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
             ].map(s => {
               const Icon = s.icon;
               return (
-                <div key={s.label} className="flex items-center gap-3 p-3 bg-white dark:bg-card">
-                  <Icon className={`w-4 h-4 ${s.color} shrink-0`} />
-                  <div>
-                    <p className={`text-lg font-black leading-none ${s.color}`}>{s.val}</p>
-                    <p className="text-[10px] text-foreground font-medium mt-0.5">{s.label}</p>
+                <div key={s.label} className="flex flex-col items-center justify-center p-3 bg-card">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <Icon className={`w-3.5 h-3.5 ${s.color}`} />
+                    <span className="text-[10px] font-black uppercase tracking-wider text-foreground">{s.label}</span>
                   </div>
+                  <p className={`text-2xl font-black ${s.color} leading-none`}>{s.val}</p>
                 </div>
               );
             })}
           </div>
 
-          {/* Timeline */}
-          <div className="overflow-y-auto max-h-[560px]">
+          <div className="overflow-y-auto flex-1 min-h-0">
             {grouped.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-foreground">
                 <History className="w-10 h-10 opacity-20 mb-3" />
@@ -463,7 +463,7 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                 {grouped.map(({ dateLabel, entries }) => (
                   <div key={dateLabel}>
                     {/* Date separator */}
-                    <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-2 bg-muted/80 backdrop-blur-sm border-b border-border/30">
+                    <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-2 bg-muted/95 backdrop-blur-sm border-b border-border/30">
                       <div className="h-px flex-1 bg-border/50" />
                       <span className="text-[10px] font-black uppercase tracking-widest text-foreground whitespace-nowrap">
                         {dateLabel}
@@ -478,42 +478,50 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
                       return (
                         <div
                           key={log.history_id || i}
-                          className="flex items-start gap-4 px-5 py-3.5 hover:bg-muted/20 cursor-pointer transition-colors group"
+                          className="flex items-start gap-4 px-5 py-3.5 hover:bg-muted/30 cursor-pointer transition-colors group"
                           onClick={() => openDrawer(log)}
                         >
-                          {/* Left: time + dot */}
-                          <div className="flex flex-col items-center gap-1 w-16 shrink-0">
-                            <span className="text-[10px] text-foreground font-mono leading-none">{log.time || '--:--'}</span>
-                            <div className={`w-2.5 h-2.5 rounded-full border-2 border-white ${badge.dot} shadow-sm`} />
-                          </div>
-
-                          {/* Center: content */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md border ${badge.bg} ${badge.text} ${badge.border}`}>
-                                {badge.label}
-                              </span>
-                              <span className="text-sm font-bold text-foreground">{log.employee_name}</span>
-                              <span className="text-xs text-foreground">{log.leave_type}</span>
-                            </div>
-                            <p className="text-[10px] text-foreground line-clamp-1">
-                              {log.reason || log.action}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1 flex-wrap">
-                              <span className="text-[10px] text-foreground/70">By {log.performed_by}</span>
-                              <span className="text-[10px] text-foreground/50">{log.history_id}</span>
-                            </div>
-                          </div>
-
-                          {/* Right: amount + view */}
-                          <div className="flex flex-col items-end gap-1.5 shrink-0">
-                            <span className={`text-sm font-black ${isPos ? 'text-emerald-600' : 'text-rose-600'}`}>
-                              {isPos ? '+' : ''}{log.adjustment} Days
+                          <div className="w-16 shrink-0 pt-0.5 text-right flex flex-col gap-1 items-end">
+                            <span className="text-xs font-bold text-foreground">
+                              {log.time}
                             </span>
-                            <span className="text-[10px] text-foreground">
-                              {log.previous_balance} → {log.new_balance}
-                            </span>
-                            <Eye className="w-3.5 h-3.5 text-foreground/40 group-hover:text-[#7B0099] transition-colors" />
+                            <div className={`w-2 h-2 rounded-full ${badge.dot}`} />
+                          </div>
+                          
+                          <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
+                            <div className="flex-1 space-y-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${badge.bg} ${badge.text} ${badge.border}`}>
+                                  {badge.label}
+                                </span>
+                                <span className="text-sm font-black text-foreground">{log.employee_name}</span>
+                                <span className="text-[10px] text-foreground">{log.leave_type}</span>
+                              </div>
+                              <div className="text-[10px] text-foreground flex items-center gap-2">
+                                {log.reason && (
+                                  <span className="truncate max-w-[200px]">Reason: {log.reason}</span>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-foreground/70">
+                                By {log.performed_by}
+                                <span className="mx-1">•</span>
+                                {log.history_id}
+                              </p>
+                            </div>
+
+                            <div className="shrink-0 text-right">
+                              <p className={`text-sm font-black ${isPos ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                {isPos ? '+' : ''}{log.adjustment} Days
+                              </p>
+                              <p className="text-[10px] font-medium text-foreground mt-0.5">
+                                {log.previous_balance} → {log.new_balance}
+                              </p>
+                              <div className="flex justify-end mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button variant="ghost" size="icon" className="h-6 w-6">
+                                  <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+                                </Button>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       );
@@ -524,21 +532,42 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
             )}
           </div>
 
-          {/* Footer */}
+          {/* Footer with Pagination */}
           {filtered.length > 0 && (
-            <div className="px-5 py-3 border-t border-border/40 bg-muted/5 flex items-center justify-between text-[10px] text-foreground">
-              <span>Showing <b className="text-foreground">{filtered.length}</b> of <b className="text-foreground">{logs.length}</b> records</span>
-              <span className="italic">⚠ Audit records are read-only and cannot be modified.</span>
+            <div className="px-5 py-3 border-t border-border/40 bg-muted/5 flex items-center justify-between shrink-0">
+              <span className="text-[10px] text-foreground">
+                Showing <b className="text-foreground">{paginatedLogs.length}</b> of <b className="text-foreground">{filtered.length}</b> records
+              </span>
+              
+              {totalPages > 1 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground font-medium mr-2">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline" size="sm" className="h-8 w-8 p-0"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline" size="sm" className="h-8 w-8 p-0"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Detail drawer */}
-      {drawerOpen && selectedLog && (
-        <EntitlementDetailModal log={selectedLog} onClose={() => setDrawerOpen(false)} />
+      {selectedLog && (
+        <EntitlementDetailModal log={selectedLog} onClose={() => setSelectedLog(null)} />
       )}
-    </>
+    </div>
   );
 }
-
