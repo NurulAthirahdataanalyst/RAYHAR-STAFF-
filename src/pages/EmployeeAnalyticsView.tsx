@@ -207,6 +207,28 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         return startStr ? startStr.startsWith(year) : false;
       })
       .reduce((acc, curr) => acc + curr.days, 0);
+    const replacementLeavesUsed = approvedLeaves
+      .filter(l => {
+        const type = String(l.leave_type || "").toUpperCase();
+        return type === 'REPLACEMENT LEAVE' || type === 'CUTI GANTI';
+      })
+      .filter(l => {
+        const startStr = l.start_date ? getLocalDateString(l.start_date) : '';
+        return startStr ? startStr.startsWith(year) : false;
+      })
+      .reduce((acc, curr) => acc + curr.days, 0);
+
+    const unpaidLeavesUsed = approvedLeaves
+      .filter(l => {
+        const type = String(l.leave_type || "").toUpperCase();
+        return type === 'UNPAID LEAVE' || type === 'CUTI TANPA GAJI';
+      })
+      .filter(l => {
+        const startStr = l.start_date ? getLocalDateString(l.start_date) : '';
+        return startStr ? startStr.startsWith(year) : false;
+      })
+      .reduce((acc, curr) => acc + curr.days, 0);
+  
 
   const totalLeavesUsed = annualLeavesUsed + sickLeavesUsed + emergencyLeavesUsed;
     let quotaLeavesUsed = leaveRequests
@@ -1292,7 +1314,9 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       
       {/* ROW 4: Upcoming Events and Personal Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mt-3">
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card lg:col-span-2 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20">
+        
+          <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card lg:col-span-1 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20">
+
           <CardContent className="p-5 h-full flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5 pb-3 border-b mb-4">
               <Calendar className="w-3.5 h-3.5 text-blue-500" /> UPCOMING EVENTS
@@ -1324,10 +1348,57 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           </CardContent>
         </Card>
 
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20">
-          <CardContent className="p-5 h-full flex flex-col">
-            <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5 pb-3 border-b mb-4">
-              <Zap className="w-3.5 h-3.5 text-amber-500" /> PERSONAL INSIGHTS
+        
+          <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card lg:col-span-1 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20">
+            <CardContent className="p-5 h-full flex flex-col">
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5 pb-3 border-b mb-4">
+                <Calendar className="w-3.5 h-3.5 text-indigo-500" /> LEAVE BREAKDOWN
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-bold text-foreground">Annual / Emergency</span>
+                    <span className="text-xs font-black text-foreground">{annualLeavesUsed + emergencyLeavesUsed} Days</span>
+                  </div>
+                  <div className="w-full h-2 bg-indigo-500/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.min(((annualLeavesUsed + emergencyLeavesUsed) / Math.max(totalEntitlement, 1)) * 100, 100)}%` }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-bold text-foreground">Medical Leave</span>
+                    <span className="text-xs font-black text-foreground">{sickLeavesUsed} Days</span>
+                  </div>
+                  <div className="w-full h-2 bg-rose-500/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-rose-500 rounded-full" style={{ width: `${Math.min((sickLeavesUsed / 14) * 100, 100)}%` }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-bold text-foreground">Replacement Leave</span>
+                    <span className="text-xs font-black text-foreground">{replacementLeavesUsed} Days</span>
+                  </div>
+                  <div className="w-full h-2 bg-amber-500/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min((replacementLeavesUsed / Math.max(profile?.replacement_adjustment || 1, 1)) * 100, 100)}%` }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-bold text-foreground">Unpaid Leave</span>
+                    <span className="text-xs font-black text-foreground">{unpaidLeavesUsed} Days</span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-500/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-slate-500 rounded-full" style={{ width: `${Math.min((unpaidLeavesUsed / 14) * 100, 100)}%` }} />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[20px] border border-border/50 shadow-sm bg-white dark:bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20">
+            <CardContent className="p-5 h-full flex flex-col">
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5 pb-3 border-b mb-4">
+                <Zap className="w-3.5 h-3.5 text-amber-500" /> PERSONAL INSIGHTS
             </h3>
             <div className="space-y-3">
               {insights.map((insight, idx) => (
