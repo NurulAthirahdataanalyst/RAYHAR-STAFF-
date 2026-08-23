@@ -62,6 +62,17 @@ const BRANCH_NAMES: Record<string, string> = {
   JB: "Johor Bharu",
 };
 
+function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371e3;
+  const p1 = lat1 * Math.PI/180;
+  const p2 = lat2 * Math.PI/180;
+  const dp = (lat2-lat1) * Math.PI/180;
+  const dl = (lon2-lon1) * Math.PI/180;
+  const a = Math.sin(dp/2)*Math.sin(dp/2) + Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)*Math.sin(dl/2);
+  const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
 export default function Employees() {
   const { role, userBranch, userDepartment } = useRole();
   const printRef = useRef<HTMLDivElement>(null);
@@ -125,13 +136,16 @@ export default function Employees() {
   const [tempAssignmentsHistory, setTempAssignmentsHistory] = useState<any[]>([]);
   const [allowedLocations, setAllowedLocations] = useState<string[]>([]);
   const [loadingSettings, setLoadingSettings] = useState(false);
+    const [locationHistory, setLocationHistory] = useState<any[]>([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
 
   const fetchAttendanceSettings = async (userId: string) => {
     setLoadingSettings(true);
     try {
-      const [waRes, alRes] = await Promise.all([
+      const [waRes, alRes, histRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/work-assignments/${userId}`),
-        fetch(`${API_BASE_URL}/api/allowed-locations/${userId}`)
+        fetch(`${API_BASE_URL}/api/allowed-locations/${userId}`),
+          fetch(`${API_BASE_URL}/api/employee-location-history?userId=${userId}&days=14`)
       ]);
       const waData = await waRes.json();
       const alData = await alRes.json();
@@ -152,7 +166,11 @@ export default function Employees() {
 
       if (alData.success) {
         setAllowedLocations(alData.allowedLocations);
-      }
+        }
+        if (histRes.ok) {
+          const hData = await histRes.json();
+          if (hData.success) setLocationHistory(hData.history || []);
+        }
     } catch (e) {
       console.error(e);
     }
@@ -893,11 +911,13 @@ export default function Employees() {
           <div className="p-4">
             {selectedEmployee ? (
               <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="basic">Staff Profile & Analytics</TabsTrigger>
-                  <TabsTrigger value="attendance_settings">Attendance Settings</TabsTrigger>
-                  <TabsTrigger value="temporary_branch">Temporary Branch</TabsTrigger>
-                </TabsList>
+                <TabsList className="mb-4 flex flex-wrap h-auto gap-1 bg-slate-100/50 dark:bg-slate-900/50 p-1 rounded-xl">
+                    <TabsTrigger value="basic" className="rounded-lg text-xs">Staff Profile & Analytics</TabsTrigger>
+                    <TabsTrigger value="attendance_settings" className="rounded-lg text-xs">Attendance Settings</TabsTrigger>
+                    <TabsTrigger value="temporary_assignment" className="rounded-lg text-xs">Temporary Assignment</TabsTrigger>
+                    <TabsTrigger value="multi_location" className="rounded-lg text-xs">Multi Location Branch</TabsTrigger>
+                    <TabsTrigger value="location_history" className="rounded-lg text-xs">Location History</TabsTrigger>
+                  </TabsList>
                 
                 <TabsContent value="basic" className="mt-0">
                   <TooltipProvider>
@@ -1257,7 +1277,7 @@ export default function Employees() {
                   )}
                 </TabsContent>
 
-                <TabsContent value="temporary_branch" className="mt-0">
+                <TabsContent value="temporary_assignment" className="mt-0">
                     <div className="bg-[#FFFDF0] dark:bg-slate-800 p-6 rounded-2xl border border-yellow-200 dark:border-slate-700 shadow-sm">
                     <div className="mb-6">
                       <h3 className="text-lg font-black text-foreground dark:text-slate-100 flex items-center gap-2">
