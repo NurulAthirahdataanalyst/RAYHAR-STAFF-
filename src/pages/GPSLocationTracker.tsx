@@ -220,7 +220,7 @@ export default function GPSLocationTracker() {
   }, [visibleEmployees]);
 
   const filtered = useMemo(() => {
-    return visibleEmployees
+    let result = visibleEmployees
       .filter((e) => (branchFilter === "All" ? true : (e.branch || "") === branchFilter))
       .filter((e) => (query ? (e.full_name || "").toLowerCase().includes(query.toLowerCase()) : true))
       .filter((e) => {
@@ -234,6 +234,14 @@ export default function GPSLocationTracker() {
         if (statusFilter === "Unavailable") return !isAvail && !loc?.is_outstation;
         return true;
       });
+      
+    return result.sort((a, b) => {
+      const locA = locations[a.user_id];
+      const locB = locations[b.user_id];
+      const timeA = locA?.last_updated ? new Date(locA.last_updated).getTime() : 0;
+      const timeB = locB?.last_updated ? new Date(locB.last_updated).getTime() : 0;
+      return timeB - timeA;
+    });
   }, [visibleEmployees, branchFilter, query, statusFilter, locations]);
 
   const focusOn = (empId: string) => {
@@ -510,7 +518,7 @@ export default function GPSLocationTracker() {
               </div>
             </div>
 
-            <div className="overflow-auto max-h-[480px] border rounded-lg">
+            <div className="border rounded-lg [&>div]:max-h-[600px] [&>div]:overflow-auto">
             <Table>
               <TableHeader className="sticky top-0 bg-card z-10 shadow-sm border-b">
                 <TableRow>
@@ -564,7 +572,7 @@ export default function GPSLocationTracker() {
               <h3 className="text-lg font-black uppercase">Location History - {employees.find(e => e.user_id === historyFor)?.full_name || historyFor}</h3>
               <Button onClick={closeHistory} variant="ghost" size="sm">Close</Button>
             </div>
-            <div className="flex-1 overflow-auto border border-border rounded-lg">
+            <div className="flex-1 border border-border rounded-lg flex flex-col overflow-hidden [&>div]:flex-1 [&>div]:overflow-auto">
               <Table>
                 <TableHeader className="sticky top-0 bg-card z-10 shadow-sm border-b">
                   <TableRow>
