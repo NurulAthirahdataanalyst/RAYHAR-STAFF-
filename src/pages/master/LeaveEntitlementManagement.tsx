@@ -708,9 +708,13 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold">Leave Year</Label>
                   <YearPopover 
-                      year={leaveYear} 
-                      onSelectYear={(y) => setLeaveYear(y || new Date().getFullYear().toString())}
-                      minYear={new Date().getFullYear()}
+                    year={leaveYear} 
+                    onSelectYear={(y) => {
+                      const newY = y || new Date().getFullYear().toString();
+                      setLeaveYear(newY);
+                      if (newY === carryToYear) setCarryToYear(String(Number(newY) + 1));
+                    }}
+                    minYear={new Date().getFullYear()}
                       className="w-full h-8 px-3 appearance-none flex items-center justify-between bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider"
                     />
                 </div>
@@ -1042,13 +1046,13 @@ function CarryForwardLeaveForm({
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Carry Forward To</Label>
-              <Select value={carryToYear} onValueChange={setCarryToYear}>
-                <SelectTrigger className="bg-white dark:bg-card"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="2027">2027</SelectItem>
-                  <SelectItem value="2028">2028</SelectItem>
-                </SelectContent>
-              </Select>
+                <YearPopover 
+                    year={carryToYear} 
+                    onSelectYear={(y) => setCarryToYear(y || String(new Date().getFullYear() + 1))}
+                    minYear={new Date().getFullYear()}
+                    excludeYear={leaveYear}
+                    className="w-full h-9 px-3 appearance-none flex items-center justify-between bg-white dark:bg-card border border-input text-foreground text-xs font-bold rounded-md shadow-sm outline-none cursor-pointer tracking-wider"
+                  />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold">Max Carry Forward (Days)</Label>
