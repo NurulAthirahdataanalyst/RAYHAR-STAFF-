@@ -108,85 +108,84 @@ function DetailDrawer({ log, onClose }: { log: EntitlementHistoryLog; onClose: (
   const isPositive = log.adjustment >= 0;
   return (
     <>
-      {/* Overlay */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 pointer-events-none">
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto" onClick={onClose} />
-      {/* Drawer */}
-      <div className="fixed inset-y-0 right-0 w-full max-w-md bg-white dark:bg-card shadow-2xl z-50 flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
-        {/* Drawer header */}
-        <div className="flex items-center justify-between p-5 border-b border-border/50 bg-muted/30">
-          <div>
-            <p className="text-[10px] font-bold text-foreground uppercase tracking-wider">Leave Entitlement Record</p>
-            <p className="text-xs font-black text-foreground mt-0.5">{log.history_id}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors text-foreground hover:text-foreground"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Drawer body */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-5">
-          {/* Action badge */}
-          <div className="flex items-center gap-2">
-            <span className={`text-xs font-black px-2.5 py-1 rounded-lg border ${badge.bg} ${badge.text} ${badge.border}`}>
-              {badge.label}
-            </span>
-            <span className={`text-sm font-black ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-              {isPositive ? '+' : ''}{log.adjustment} Days
-            </span>
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] pointer-events-auto" onClick={onClose} />
+        {/* Modal */}
+        <div className="relative w-full max-w-md max-h-[90vh] bg-white dark:bg-card rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto">
+          {/* Modal header */}
+          <div className="flex items-center justify-between p-5 border-b border-border/50 bg-muted/30">
+            <div>
+              <p className="text-[10px] font-bold text-foreground uppercase tracking-wider">Leave Entitlement Record</p>
+              <p className="text-xs font-black text-foreground mt-0.5">{log.history_id}</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors text-foreground hover:text-foreground"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
 
-          {/* Balance flow */}
-          <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-border/50">
-            <div className="text-center flex-1">
-              <p className="text-[10px] text-foreground font-semibold uppercase">Previous</p>
-              <p className="text-xl font-black text-slate-700">{log.previous_balance}</p>
-              <p className="text-[9px] text-foreground">Days</p>
+          {/* Modal body */}
+          <div className="flex-1 overflow-y-auto p-5 space-y-5">
+            {/* Action badge */}
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-black px-2.5 py-1 rounded-lg border ${badge.bg} ${badge.text} ${badge.border}`}>
+                {badge.label}
+              </span>
+              <span className={`text-sm font-black ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {isPositive ? '+' : ''}{log.adjustment} Days
+              </span>
             </div>
-            <div className="text-center px-2">
-              <p className={`text-lg font-black ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-                {isPositive ? '+' : ''}{log.adjustment}
-              </p>
+
+            {/* Balance flow */}
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-border/50">
+              <div className="text-center flex-1">
+                <p className="text-[10px] text-foreground font-semibold uppercase">Previous</p>
+                <p className="text-xl font-black text-slate-700 dark:text-slate-200">{log.previous_balance}</p>
+                <p className="text-[9px] text-foreground">Days</p>
+              </div>
+              <div className="text-center px-2">
+                <p className={`text-lg font-black ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {isPositive ? '+' : ''}{log.adjustment}
+                </p>
+              </div>
+              <div className="text-center flex-1">
+                <p className="text-[10px] text-foreground font-semibold uppercase">New Balance</p>
+                <p className="text-xl font-black text-foreground">{log.new_balance}</p>
+                <p className="text-[9px] text-foreground">Days</p>
+              </div>
             </div>
-            <div className="text-center flex-1">
-              <p className="text-[10px] text-foreground font-semibold uppercase">New Balance</p>
-              <p className="text-xl font-black text-foreground">{log.new_balance}</p>
-              <p className="text-[9px] text-foreground">Days</p>
-            </div>
+
+            {/* Details grid */}
+            {[
+              { label: 'History ID',     value: log.history_id },
+              { label: 'Reference ID',   value: log.reference_id },
+              { label: 'Employee',       value: log.employee_name },
+              { label: 'Employee ID',    value: log.employee_id || '—' },
+              { label: 'Branch',         value: log.branch || '—' },
+              { label: 'Department',     value: log.department || '—' },
+              { label: 'Leave Type',     value: log.leave_type },
+              { label: 'Action Type',    value: log.action_type },
+              { label: 'Reason',         value: log.reason || '—' },
+              { label: 'Remarks',        value: log.remarks || '—' },
+              { label: 'Performed By',   value: log.performed_by },
+              { label: 'Role',           value: log.performed_role || '—' },
+              { label: 'Source Module',  value: log.source_module || '—' },
+              { label: 'Date',           value: `${log.date}  ${log.time}` },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex flex-col gap-0.5 border-b border-border/30 pb-3">
+                <p className="text-[10px] text-foreground font-bold uppercase tracking-wider">{label}</p>
+                <p className="text-sm font-semibold text-foreground break-all">{value}</p>
+              </div>
+            ))}
           </div>
 
-          {/* Details grid */}
-          {[
-            { label: 'History ID',     value: log.history_id },
-            { label: 'Reference ID',   value: log.reference_id },
-            { label: 'Employee',       value: log.employee_name },
-            { label: 'Employee ID',    value: log.employee_id || '—' },
-            { label: 'Branch',         value: log.branch || '—' },
-            { label: 'Department',     value: log.department || '—' },
-            { label: 'Leave Type',     value: log.leave_type },
-            { label: 'Action Type',    value: log.action_type },
-            { label: 'Reason',         value: log.reason || '—' },
-            { label: 'Remarks',        value: log.remarks || '—' },
-            { label: 'Performed By',   value: log.performed_by },
-            { label: 'Role',           value: log.performed_role || '—' },
-            { label: 'Source Module',  value: log.source_module || '—' },
-            { label: 'Date',           value: `${log.date}  ${log.time}` },
-          ].map(({ label, value }) => (
-            <div key={label} className="flex flex-col gap-0.5 border-b border-border/30 pb-3">
-              <p className="text-[10px] text-foreground font-bold uppercase tracking-wider">{label}</p>
-              <p className="text-sm font-semibold text-foreground break-all">{value}</p>
-            </div>
-          ))}
+          <div className="p-4 border-t border-border/50 bg-muted/10 text-[10px] text-foreground text-center">
+            🔒 This audit record is immutable and cannot be edited or deleted.
+          </div>
         </div>
-
-        <div className="p-4 border-t border-border/50 bg-muted/10 text-[10px] text-foreground text-center">
-          ⚠ This audit record is immutable and cannot be edited or deleted.
-        </div>
-      </div>
-      </div>
       </div>
     </>
   );

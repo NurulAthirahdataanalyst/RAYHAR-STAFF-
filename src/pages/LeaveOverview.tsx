@@ -195,12 +195,17 @@ export default function LeaveOverview() {
         const res = await fetch(`${API_BASE_URL}/api/user-details/${encodeURIComponent(userId)}`);
         const data = await res.json();
         if (data.success && data.profile) {
-          const base = Number(data.profile.annual_leave_entitlement) || 14;
-          const adj = Number(data.profile.total_adjustment) || 0;
-          setCurrentBalances(prev => ({
-            ...prev,
-            "Annual & Emergency Leave": base + adj
-          }));
+            const annualBase = Number(data.profile.annual_leave_entitlement) || 14;
+            const annualAdj = Number(data.profile.annual_adj || data.profile.total_adjustment) || 0;
+            const medicalBase = Number(data.profile.medical_leave_entitlement) || 14;
+            const medicalAdj = Number(data.profile.medical_adj) || 0;
+            const replAdj = Number(data.profile.replacement_adj) || 0;
+            setCurrentBalances(prev => ({
+              ...prev,
+              "Annual & Emergency Leave": annualBase + annualAdj,
+              "Sick Leave (MC)": medicalBase + medicalAdj,
+              "Replacement Leave": replAdj
+            }));
         }
       } catch (err) {
         console.error("Failed to fetch user details for leave balances:", err);
