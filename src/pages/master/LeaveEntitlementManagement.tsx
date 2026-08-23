@@ -111,8 +111,9 @@ const modules = [
   },
   {
     title: "Replacement Leave Validation",
-    description: "Validate employee's replacement leave hours (Cuti Ganti) after they have worked on the replacement date.",
-    icon: Clock,
+      description: "Validate employee's replacement leave hours (Cuti Ganti) after they have worked on the replacement date.",
+      icon: Clock,
+      tone: "bg-blue-500/10 text-blue-600",
     tone: "bg-blue-500/10 text-blue-600",
   },
 ];
@@ -134,8 +135,8 @@ export default function LeaveEntitlementManagement() {
   const [loading, setLoading] = useState(false);
 
   const annualModule = modules.find((m) => m.title === "Annual Leave Allocation");
-  const replacementModule = modules.find((m) => m.title === "Replacement Leave Validation");
-  const otherModules = modules.filter((m) => m.title !== "Annual Leave Allocation" && m.title !== "Replacement Leave Validation");
+  
+  const otherModules = modules.filter((m) => m.title !== "Annual Leave Allocation");
 
   const fetchEmployees = async () => {
     setLoading(true);
@@ -1530,8 +1531,8 @@ function ManualLeaveAdjustmentForm({
   };
 
   return (
-    <Card className="border-border/60 bg-white dark:bg-card shadow-lg max-w-2xl mx-auto rounded-xl overflow-visible">
-      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 bg-slate-50 dark:bg-slate-900/50 rounded-t-xl">
+    <Card className="border-border/60 bg-white dark:bg-card shadow-lg max-w-4xl mx-auto rounded-xl overflow-visible">
+        <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b pb-4 bg-slate-50 dark:bg-slate-900/50 rounded-t-xl">
         <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8 rounded-full hover:bg-amber-500/10 hover:text-amber-600 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Button>
