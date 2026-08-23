@@ -19,7 +19,7 @@ import {
   Printer,
     MapPin,
     Trash2
-, X} from 'lucide-react';
+} from 'lucide-react';
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useReactToPrint } from "react-to-print";
