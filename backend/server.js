@@ -1122,7 +1122,7 @@ async function saveAlert(alert) {
     try {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS alerts (
-          id INT AUTO_INCREMENT PRIMARY KEY,
+          id SERIAL PRIMARY KEY,
           type VARCHAR(128),
           user_id VARCHAR(64),
           payload JSON,
@@ -2653,7 +2653,13 @@ app.get("/api/leave-entitlements", async (req, res) => {
         FROM leave_requests
         GROUP BY user_id
       ) lr ON lr.user_id = p.user_id
-      ${whereClause}
+      LEFT JOIN (
+          SELECT employee_id, SUM(adjustment_days) AS total_adjustment
+          FROM leave_balance_adjustments
+          WHERE UPPER(leave_type) IN ('ANNUAL LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'CUTI TAHUNAN')
+          GROUP BY employee_id
+        ) adj ON adj.employee_id = p.user_id
+        ${whereClause}
       ORDER BY p.full_name ASC
       `,
       [year || null, ...params]
@@ -4399,10 +4405,10 @@ app.post('/api/employee-location-update', async (req, res) => {
 
     // Optionally update today's latest attendance record's clock_in_* fields
     try {
-      const [rows] = await pool.query(`SELECT id FROM attendances WHERE user_id = ? AND DATE(clock_in) = CURRENT_DATE ORDER BY clock_in DESC LIMIT 1`, [uid]);
+      const [rows] = await pool.query(`SELECT user_id, clock_in FROM attendances WHERE user_id = ? AND DATE(clock_in) = CURRENT_DATE ORDER BY clock_in DESC LIMIT 1`, [uid]);
       const rec = Array.isArray(rows) && rows[0];
-      if (rec && rec.id) {
-        await pool.query(`UPDATE attendances SET clock_in_latitude = ?, clock_in_longitude = ?, clock_in_accuracy = ? WHERE id = ?`, [latitude, longitude, accuracy || null, rec.id]);
+      if (rec && rec.user_id && rec.clock_in) {
+        await pool.query(`UPDATE attendances SET clock_in_latitude = ?, clock_in_longitude = ?, clock_in_accuracy = ? WHERE user_id = ? AND clock_in = ?`, [latitude, longitude, accuracy || null, rec.user_id, rec.clock_in]);
       }
     } catch (e) {
       console.warn('Failed to update attendances with location', e.message);
