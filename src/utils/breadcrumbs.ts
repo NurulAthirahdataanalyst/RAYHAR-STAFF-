@@ -65,7 +65,7 @@ export function getBreadcrumbs(pathname: string, search?: string): BreadcrumbSeg
 
   // Branch Management Pages
   if (pathname === "/branches") return [home, { label: "BRANCH MANAGEMENT", path: "/branches" }, { label: "BRANCH OVERVIEW" }];
-  if (pathname === "/branches/temporary-assignment") return [home, { label: "BRANCH MANAGEMENT", path: "/branches" }, { label: "BRANCH TEMPORARY ASSIGNMENT" }];
+  if (pathname === "/branches/temporary-assignment" || pathname === "/branches/temporary-assignments") return [home, { label: "BRANCH MANAGEMENT", path: "/branches" }, { label: "TEMPORARY ASSIGNMENTS" }];
 
   // Workforce Analytics Pages
   if (pathname === "/hr-analytics/attendance") return [home, { label: "WORKFORCE ANALYTICS", path: "/hr-analytics/attendance" }, { label: "ATTENDANCE DASHBOARD" }];
@@ -74,12 +74,28 @@ export function getBreadcrumbs(pathname: string, search?: string): BreadcrumbSeg
   if (pathname === "/hr-analytics/calendar") return [home, { label: "WORKFORCE ANALYTICS", path: "/hr-analytics/attendance" }, { label: "WORKFORCE CALENDAR" }];
 
   // Reports Pages
-  if (pathname === "/reports") return [home, { label: "REPORT" }, { label: "ATTENDANCE REPORTS" }];
-  if (pathname === "/reports/leave") return [home, { label: "REPORT" }, { label: "LEAVE REPORTS" }];
-  if (pathname === "/reports/department") return [home, { label: "REPORT" }, { label: "DEPARTMENT & BRANCH REPORTS" }];
+  if (pathname === "/reports") return [home, { label: "REPORTS" }, { label: "WORKFORCE REPORTS & ANALYTICS" }];
+  if (pathname === "/reports/attendance") return [home, { label: "REPORTS", path: "/reports" }, { label: "ATTENDANCE REPORTS" }];
+  if (pathname === "/reports/leave") return [home, { label: "REPORTS", path: "/reports" }, { label: "LEAVE REPORTS" }];
+  if (pathname === "/reports/department") return [home, { label: "REPORTS", path: "/reports" }, { label: "DEPARTMENT & BRANCH REPORTS" }];
 
   // Setting Pages
-  if (pathname === "/settings") return [home, { label: "HR ADMINISTRATOR" }, { label: "SETTINGS" }];
+  if (pathname === "/settings") {
+    const base: BreadcrumbSegment[] = [home, { label: "HR ADMINISTRATOR" }, { label: "SETTINGS", path: "/settings" }];
+    if (search) {
+      const params = new URLSearchParams(search);
+      const tab = params.get("tab");
+      if (tab) {
+        let tabLabel = tab.toUpperCase();
+        if (tab === "system") tabLabel = "SYSTEM CONFIGURATION";
+        else if (tab === "personnel") tabLabel = "PERSONNEL MANAGEMENT";
+        else if (tab === "branch") tabLabel = "BRANCH MANAGEMENT";
+        else if (tab === "department") tabLabel = "DEPARTMENT MANAGEMENT";
+        base.push({ label: tabLabel });
+      }
+    }
+    return base;
+  }
   if (pathname === "/profile") return [home, { label: "PROFILE" }];
 
   // Fallback
