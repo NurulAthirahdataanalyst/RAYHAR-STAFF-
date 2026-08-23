@@ -311,88 +311,10 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                       <Clock className="w-4 h-4 text-[#7B0099]" />
                       <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Approval History</h3>
                     </div>
-                    <div className="relative space-y-6 ml-2 mt-4">
-                        {(() => {
-                          const history = selectedRequest.approvalHistory || [];
-                          
-                          // Determine next approvers if rejected
-                          let nextApprovers = [];
-                          if (selectedRequest.status === 'Rejected' && history.length > 0) {
-                            const lastRole = String(history[history.length - 1].approver_role || "").toLowerCase();
-                            if (lastRole.includes("branch") || lastRole.includes("hod")) {
-                              nextApprovers = ["Operation Manager", "Managing Director"];
-                            } else if (lastRole.includes("operation") || lastRole.includes("finance")) {
-                              nextApprovers = ["Managing Director"];
-                            }
-                          }
-                          
-                          const allItems = [
-                            ...history.map((h, i) => ({ 
-                              ...h, 
-                              isHistory: true, 
-                              hStatus: (selectedRequest.status === 'Rejected' && i === history.length - 1) ? 'Rejected' : 'Approved'
-                            })),
-                            ...nextApprovers.map(role => ({
-                              isHistory: false,
-                              approver_role: role,
-                              hStatus: 'Pending'
-                            }))
-                          ];
-                          
-                          return allItems.map((item, idx) => {
-                            const isLast = idx === allItems.length - 1;
-                            const hStatus = item.hStatus;
-                            const isPending = !item.isHistory;
-                            
-                            // Determine line color to next item
-                            let lineColor = 'bg-border';
-                            if (!isLast) {
-                              const nextItem = allItems[idx + 1];
-                              if (nextItem.hStatus === 'Rejected') {
-                                lineColor = 'bg-rose-500';
-                              } else if (nextItem.hStatus === 'Approved') {
-                                lineColor = 'bg-emerald-500';
-                              } else {
-                                lineColor = 'bg-muted-foreground/20';
-                              }
-                            }
-                            
-                            return (
-                              <div key={idx} className="relative flex items-start gap-4 z-10">
-                                {!isLast && (
-                                  <div className={`absolute left-3.5 top-7 bottom-[-24px] w-0.5 z-0 ${lineColor}`} />
-                                )}
-                                <div className={`flex-shrink-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white dark:border-slate-900 ${hStatus === 'Approved' ? 'bg-emerald-500 text-white' : hStatus === 'Rejected' ? 'bg-rose-500 text-white' : 'bg-muted-foreground/20 text-muted-foreground'}`}>
-                                  {hStatus === 'Approved' ? <Check className="w-4 h-4 font-bold" /> : hStatus === 'Rejected' ? <X className="w-4 h-4 font-bold" /> : <div className="w-2 h-2 rounded-full bg-muted-foreground/40" />}
-                                </div>
-                                <div className={`flex-1 rounded-[16px] p-3 border mt-[-4px] ${isPending ? 'bg-muted/10 border-border/20 opacity-50' : 'bg-muted/30 border-border/40'}`}>
-                                  <div className="flex items-center justify-between gap-2 mb-1">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md ${hStatus === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : hStatus === 'Rejected' ? 'bg-rose-500/10 text-rose-600' : 'bg-muted-foreground/10 text-muted-foreground'}`}>
-                                        {isPending ? 'Pending' : hStatus}
-                                      </span>
-                                      <span className="text-[10px] font-black text-foreground/70">
-                                        {isPending ? `Awaiting ${item.approver_role}` : `by ${item.approver_name || item.approver_id} (${formatApproverRole(item.approver_role, item.approver_department, item.approver_branch)})`}
-                                      </span>
-                                    </div>
-                                    {!isPending && (
-                                      <span className="text-[8px] font-black text-foreground/50 shrink-0">
-                                        {new Date(item.created_at).toLocaleDateString('ms-MY')}
-                                      </span>
-                                    )}
-                                  </div>
-                                  {!isPending && item.remarks && (
-                                    <p className="text-[10px] text-foreground/60 italic border-l-2 border-[#7B0099]/30 pl-2 ml-1 mt-2">
-                                      "{item.remarks}"
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          });
-                        })()}</div>
-                    </div>
-                  )}
+                    
+<ApprovalStatusTracker status={selectedRequest.status} approverRole={selectedRequest.approverRole || (selectedRequest.approvalHistory && selectedRequest.approvalHistory.length > 0 ? selectedRequest.approvalHistory[selectedRequest.approvalHistory.length - 1].approver_role : "")} />
+</div>
+)}
 
                 <div className="hidden print:grid grid-cols-2 gap-16 pt-12 pb-4">
                   <div className="border-t border-foreground pt-2 text-center">
