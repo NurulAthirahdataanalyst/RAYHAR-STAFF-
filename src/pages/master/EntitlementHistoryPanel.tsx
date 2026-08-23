@@ -81,7 +81,7 @@ function exportPDF(logs: EntitlementHistoryLog[], title: string) {
     .meta{display:flex;gap:24px;margin-bottom:20px;padding:12px 16px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0}
     .meta span{font-size:11px} .meta b{color:#475569}
     table{width:100%;border-collapse:collapse}
-    th{background:#7B0099;color:#fff;padding:8px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+    th{background:transparent;color:#000;border-bottom:2px solid #000;padding:8px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:900}
     td{padding:8px 12px;border-bottom:1px solid #e2e8f0;font-size:11px;vertical-align:top}
     tr:nth-child(even) td{background:#f8fafc}
     .pos{color:#059669;font-weight:900} .neg{color:#dc2626;font-weight:900}
