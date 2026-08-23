@@ -340,15 +340,19 @@ const TemporaryAssignments = () => {
                     </TableCell>
                     {isHRAdmin && (
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={(e) => handleEditClick(e, assignment)} className="h-8 w-8 text-foreground hover:text-[#a01497]">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={(e) => handleDeleteClick(e, assignment)} className="h-8 w-8 text-foreground hover:text-red-600">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+                          <div className="flex justify-end gap-2">
+                            {assignment.status !== 'Completed' && (
+                              <>
+                                <Button variant="ghost" size="icon" onClick={(e) => handleEditClick(e, assignment)} className="h-8 w-8 text-foreground hover:text-[#a01497]">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={(e) => handleDeleteClick(e, assignment)} className="h-8 w-8 text-foreground hover:text-red-600">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
                     )}
                   </TableRow>
                 ))

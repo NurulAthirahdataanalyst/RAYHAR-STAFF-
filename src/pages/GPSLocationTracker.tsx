@@ -590,28 +590,34 @@ export default function GPSLocationTracker() {
                         distance = getDistance(h.lat, h.lng, parseFloat(bObj.latitude), parseFloat(bObj.longitude));
                       }
                       const radius = bObj?.radius || bObj?.allowed_radius || 100;
-                      const isOutstation = distance !== null && distance > radius;
-                      
-                      return (
-                        <TableRow key={i}>
-                          <TableCell className="font-medium whitespace-nowrap">
-                            {new Date(h.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}, {new Date(h.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                          </TableCell>
-                          <TableCell>{Number(h.lat).toFixed(7)}, {Number(h.lng).toFixed(7)}</TableCell>
-                          <TableCell>{branchName}</TableCell>
-                          <TableCell>{distance !== null ? `${distance} m` : "-"}</TableCell>
-                          <TableCell>
-                            {isOutstation ? (
-                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300 text-[10px] font-black border border-orange-200 dark:border-orange-500/30 uppercase tracking-widest">
-                                <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                                Outstation
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 text-[10px] font-black border border-emerald-200 dark:border-emerald-500/30 uppercase tracking-widest">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                On-Site
-                              </span>
-                            )}
+                      const isOffSite = distance !== null && distance > radius;
+                        const isNoGPS = Number(h.lat) === 0 && Number(h.lng) === 0;
+                        
+                        return (
+                          <TableRow key={i}>
+                            <TableCell className="font-medium whitespace-nowrap">
+                              {new Date(h.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}, {new Date(h.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                            </TableCell>
+                            <TableCell>{isNoGPS ? "N/A" : `${Number(h.lat).toFixed(7)}, ${Number(h.lng).toFixed(7)}`}</TableCell>
+                            <TableCell>{branchName}</TableCell>
+                            <TableCell>{isNoGPS || distance === null ? "-" : `${distance} m`}</TableCell>
+                            <TableCell>
+                              {isNoGPS ? (
+                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300 text-[10px] font-black border border-slate-200 dark:border-slate-500/30 uppercase tracking-widest">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                                  No GPS
+                                </span>
+                              ) : isOffSite ? (
+                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300 text-[10px] font-black border border-orange-200 dark:border-orange-500/30 uppercase tracking-widest">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                                  Off-Site
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 text-[10px] font-black border border-emerald-200 dark:border-emerald-500/30 uppercase tracking-widest">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                  On-Site
+                                </span>
+                              )}
                           </TableCell>
                         </TableRow>
                       );
