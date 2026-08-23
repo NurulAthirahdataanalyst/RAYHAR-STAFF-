@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileText, Printer, PhoneCall, Clock } from "lucide-react";
+import { FileText, Printer, PhoneCall, Clock, Check, X } from "lucide-react";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "@/config/api";
 
@@ -314,17 +314,20 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                     <div className="relative space-y-6 ml-2 mt-4">
                       {/* Vertical Line */}
                       <div className={"absolute left-3.5 top-2 bottom-4 w-0.5 z-0 " + (selectedRequest.status === 'Rejected' ? 'bg-rose-500' : selectedRequest.status === 'Approved' ? 'bg-emerald-500' : 'bg-border')} />
-                      {selectedRequest.approvalHistory.map((history: any, idx: number) => (
-                        <div key={idx} className="relative flex items-start gap-4 z-10">
-                          <div className={"flex-shrink-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white dark:border-slate-900 " + (history.status === 'Approved' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white')}>
-                            {history.status === 'Approved' ? <Check className="w-4 h-4 font-bold" /> : <X className="w-4 h-4 font-bold" />}
-                          </div>
-                          <div className="flex-1 bg-muted/30 rounded-[16px] p-3 border border-border/40 mt-[-4px]">
-                            <div className="flex items-center justify-between gap-2 mb-1">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className={"text-[8px] font-black uppercase px-2 py-0.5 rounded-md " + (history.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600')}>
-                                  {history.status}
-                                </span>
+                      {selectedRequest.approvalHistory.map((history: any, idx: number) => {
+                          const isLast = idx === selectedRequest.approvalHistory.length - 1;
+                          const hStatus = (selectedRequest.status === 'Rejected' && isLast) ? 'Rejected' : history.status;
+                          return (
+                          <div key={idx} className="relative flex items-start gap-4 z-10">
+                            <div className={"flex-shrink-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white dark:border-slate-900 " + (hStatus === 'Approved' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white')}>
+                              {hStatus === 'Approved' ? <Check className="w-4 h-4 font-bold" /> : <X className="w-4 h-4 font-bold" />}
+                            </div>
+                            <div className="flex-1 bg-muted/30 rounded-[16px] p-3 border border-border/40 mt-[-4px]">
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className={"text-[8px] font-black uppercase px-2 py-0.5 rounded-md " + (hStatus === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600')}>
+                                    {hStatus}
+                                  </span>
                                 <span className="text-[10px] font-black text-foreground/70">
                                   by {history.approver_name || history.approver_id} ({formatApproverRole(history.approver_role, history.approver_department, history.approver_branch)})
                                 </span>
@@ -340,10 +343,10 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role }: LeaveDetai
                             )}
                           </div>
                         </div>
-                      ))}
+                          ); })}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 <div className="hidden print:grid grid-cols-2 gap-16 pt-12 pb-4">
                   <div className="border-t border-foreground pt-2 text-center">
