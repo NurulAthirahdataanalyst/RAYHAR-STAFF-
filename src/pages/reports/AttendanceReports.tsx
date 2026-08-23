@@ -62,6 +62,7 @@ export default function AttendanceReports() {
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [statusFilter, setStatusFilter] = useState("All");
+  const [apiBranches, setApiBranches] = useState<any[]>([]);
 
   const months = [
     { value: "1", label: "January" }, { value: "2", label: "February" }, { value: "3", label: "March" },
@@ -467,14 +468,17 @@ export default function AttendanceReports() {
                       <TableHead className="w-[80px]">Branch</TableHead>
                       <TableHead className="w-[140px]">Status</TableHead>
                       <TableHead className="w-[90px]">Clock In</TableHead>
-                      <TableHead className="w-[90px]">Clock Out</TableHead>
-                      <TableHead className="w-[100px]">Working Hours</TableHead>
-                    </TableRow>
+                        <TableHead className="w-[90px]">Clock Out</TableHead>
+                        <TableHead className="w-[100px]">Working Hours</TableHead>
+                        <TableHead className="min-w-[180px]">Coordinate (Latitude, Longitude)</TableHead>
+                        <TableHead className="w-[120px]">Distance</TableHead>
+                        <TableHead className="w-[120px]">Location Status</TableHead>
+                      </TableRow>
                   </TableHeader>
                   <TableBody>
                     {pagedList.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={viewType === "month" ? 8 : 7} className="text-center py-8 text-foreground">
+                        <TableCell colSpan={viewType === "month" ? 11 : 10} className="text-center py-8 text-foreground">
                           No attendance records found for this {viewType}.
                         </TableCell>
                       </TableRow>
