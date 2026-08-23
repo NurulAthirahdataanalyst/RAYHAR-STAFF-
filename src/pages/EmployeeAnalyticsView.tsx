@@ -781,7 +781,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     if (attendanceRate >= 95) list.push(`✅ Excellent attendance rate of ${attendanceRate}%.`);
     if (lateArrivals > 0) list.push(`⚠️ You have ${lateArrivals} late arrival${lateArrivals > 1 ? 's' : ''} this month.`);
     if (streak >= 10) list.push(`🎉 Perfect attendance streak of ${streak} days.`);
-    if (leaveBalanceRemaining > 0) list.push(`📌 You have ${leaveBalanceRemaining} leave days remaining.`);
+    if (leaveBalanceRemaining > 0) list.push(`📌 You have ${leaveBalanceRemaining} leave Days.`);
     
       try {
         const historyData = localStorage.getItem('leave_entitlement_history_v2');
@@ -1358,28 +1358,28 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-bold text-foreground">Annual / Emergency</span>
-                    <span className="text-xs font-black text-foreground">{Math.max(0, totalEntitlement - (annualLeavesUsed + emergencyLeavesUsed))} Days Remaining</span>
+                    <span className="text-xs font-black text-foreground">{Math.max(0, totalEntitlement - (annualLeavesUsed + emergencyLeavesUsed))} Days</span>
                   </div>
                   <div className="w-full h-2 bg-indigo-500/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.min(((annualLeavesUsed + emergencyLeavesUsed) / Math.max(totalEntitlement, 1)) * 100, 100)}%` }} />
+                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.min((Math.max(0, totalEntitlement - (annualLeavesUsed + emergencyLeavesUsed)) / Math.max(totalEntitlement, 1)) * 100, 100)}%` }} />
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-bold text-foreground">Medical Leave</span>
-                    <span className="text-xs font-black text-foreground">{Math.max(0, 14 - sickLeavesUsed)} Days Remaining</span>
+                    <span className="text-xs font-black text-foreground">{Math.max(0, 14 - sickLeavesUsed)} Days</span>
                   </div>
                   <div className="w-full h-2 bg-rose-500/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-rose-500 rounded-full" style={{ width: `${Math.min((sickLeavesUsed / 14) * 100, 100)}%` }} />
+                    <div className="h-full bg-rose-500 rounded-full" style={{ width: `${Math.min((Math.max(0, 14 - sickLeavesUsed) / 14) * 100, 100)}%` }} />
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-bold text-foreground">Replacement Leave</span>
-                    <span className="text-xs font-black text-foreground">{Math.max(0, (profile?.replacement_adj || 0) - replacementLeavesUsed)} Days Remaining</span>
+                    <span className="text-xs font-black text-foreground">{Math.max(0, (profile?.replacement_adj || 0) - replacementLeavesUsed)} Days</span>
                   </div>
                   <div className="w-full h-2 bg-amber-500/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min((replacementLeavesUsed / Math.max(profile?.replacement_adj || 1, 1)) * 100, 100)}%` }} />
+                    <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min((Math.max(0, (profile?.replacement_adj || 0) - replacementLeavesUsed) / Math.max(profile?.replacement_adj || 1, 1)) * 100, 100)}%` }} />
                   </div>
                 </div>
                 <div>
