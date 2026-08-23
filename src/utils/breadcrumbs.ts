@@ -29,7 +29,7 @@ export function getBreadcrumbs(pathname: string, search?: string): BreadcrumbSeg
   if (pathname === "/outstation/my-calendar" || pathname === "/outstation/my_calendar") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation/my" }, { label: "MY OUTSTATION CALENDAR" }];
   if (pathname === "/outstation/my") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "MY OUTSTATION" }];
   if (pathname === "/outstation/analytics") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "OUTSTATION ANALYTICS" }];
-  if (pathname === "/outstation/reports") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "OUTSTATION REPORTS" }];
+  if (pathname === "/outstation/reports") return [home, { label: "REPORTS", path: "/reports" }, { label: "OUTSTATION REPORTS" }];
 
   // Analytics Pages
   if (pathname === "/analytics") return [home, { label: "ANALYTICS" }, { label: "EMPLOYEE ANALYTICS" }];
@@ -88,7 +88,7 @@ export function getBreadcrumbs(pathname: string, search?: string): BreadcrumbSeg
       if (tab) {
         let tabLabel = tab.toUpperCase();
         if (tab === "system") tabLabel = "SYSTEM CONFIGURATION";
-        else if (tab === "personnel") tabLabel = "PERSONNEL MANAGEMENT";
+        else if (tab === "staff" || tab === "personnel") tabLabel = "PERSONNEL MANAGEMENT";
         else if (tab === "branch") tabLabel = "BRANCH MANAGEMENT";
         else if (tab === "department") tabLabel = "DEPARTMENT MANAGEMENT";
         base.push({ label: tabLabel });
