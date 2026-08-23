@@ -1379,7 +1379,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                     <span className="text-xs font-black text-foreground">{replacementLeavesUsed} Days</span>
                   </div>
                   <div className="w-full h-2 bg-amber-500/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min((replacementLeavesUsed / Math.max(profile?.replacement_adjustment || 1, 1)) * 100, 100)}%` }} />
+                    <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min((replacementLeavesUsed / Math.max(profile?.replacement_adj || 1, 1)) * 100, 100)}%` }} />
                   </div>
                 </div>
                 <div>

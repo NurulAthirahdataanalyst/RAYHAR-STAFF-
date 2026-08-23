@@ -109,7 +109,8 @@ function DetailDrawer({ log, onClose }: { log: EntitlementHistoryLog; onClose: (
   return (
     <>
       {/* Overlay */}
-      <div className="fixed inset-0 bg-black/30 backdrop-blur-[2px] z-40" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 pointer-events-none">
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto" onClick={onClose} />
       {/* Drawer */}
       <div className="fixed inset-y-0 right-0 w-full max-w-md bg-white dark:bg-card shadow-2xl z-50 flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
         {/* Drawer header */}
@@ -184,6 +185,8 @@ function DetailDrawer({ log, onClose }: { log: EntitlementHistoryLog; onClose: (
         <div className="p-4 border-t border-border/50 bg-muted/10 text-[10px] text-foreground text-center">
           ⚠ This audit record is immutable and cannot be edited or deleted.
         </div>
+      </div>
+      </div>
       </div>
     </>
   );
