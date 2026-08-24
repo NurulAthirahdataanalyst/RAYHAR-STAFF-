@@ -114,6 +114,12 @@ export default function TeamAttendance() {
 
   if (loading) {
 
+  
+  // Pagination logic
+  const totalPages = Math.ceil(filteredList.length / entriesPerPage);
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const paginatedList = filteredList.slice(startIndex, startIndex + entriesPerPage);
+
   return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -465,11 +471,53 @@ export default function TeamAttendance() {
                 </TableBody>
               </Table>
               </div>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between px-2 py-4 border-t border-border">
+                  <div className="text-sm text-muted-foreground">
+                    Showing <span className="font-medium text-foreground">{startIndex + 1}</span> to <span className="font-medium text-foreground">{Math.min(startIndex + entriesPerPage, filteredList.length)}</span> of <span className="font-medium text-foreground">{filteredList.length}</span> entries
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="h-8 px-3 text-xs font-bold"
+                    >
+                      Previous
+                    </Button>
+                    <div className="flex items-center space-x-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`h-8 w-8 p-0 text-xs font-bold ${currentPage === pageNum ? 'bg-primary text-primary-foreground' : ''}`}
+                        >
+                          {pageNum}
+                        </Button>
+                      ))}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="h-8 px-3 text-xs font-bold"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              )}
+
 
               {/* Bottom Pagination */}
               <div className="flex items-center justify-between p-4 border-t border-border/50">
                 <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Show</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-foreground mr-4">TOTAL SHOWING {startIndex + 1} TO {Math.min(startIndex + entriesPerPage, filteredList.length)} OF {filteredList.length} ENTRIES</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-foreground">SHOW</span>
                       <Select value={entriesPerPage.toString()} onValueChange={(val) => setEntriesPerPage(Number(val))}>
                         <SelectTrigger className="w-[70px] h-[34px] bg-white dark:bg-card border border-border rounded-xl text-foreground font-bold text-xs focus:ring-0">
                           <SelectValue />

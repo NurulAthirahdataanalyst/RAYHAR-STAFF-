@@ -1469,7 +1469,7 @@ export default function AttendanceDashboard() {
           {filteredDailyAttendance.length > parseInt(limit) && !loadingDaily && (
             <div className="flex justify-between items-center px-4 py-3 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50">
               <span className="text-[11px] text-foreground">
-                Showing {((currentPage - 1) * parseInt(limit)) + 1} to {Math.min(currentPage * parseInt(limit), filteredDailyAttendance.length)} of {filteredDailyAttendance.length} entries
+                TOTAL SHOWING {((currentPage - 1) * parseInt(limit)) + 1} TO {Math.min(currentPage * parseInt(limit), filteredDailyAttendance.length)} OF {filteredDailyAttendance.length} ENTRIES
               </span>
               <div className="flex items-center gap-1.5">
                 <Button 

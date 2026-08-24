@@ -1,46 +1,27 @@
-import os
+import sys
 
-path = r"src\pages\reports\LeaveReports.tsx"
-with open(path, 'r', encoding='utf-8') as f:
-    content = f.read()
+file_path = 'src/pages/master/LeaveEntitlementManagement.tsx'
+with open(file_path, 'r', encoding='utf-8') as f:
+    lines = f.readlines()
 
-# Add import if missing
-if 'MonthPicker' not in content:
-    idx = content.rfind('import ')
-    line_end = content.find('\n', idx)
-    content = content[:line_end+1] + 'import { MonthPicker } from "@/components/shared/MonthPicker";\n' + content[line_end+1:]
+new_lines = []
+for line in lines:
+    if line.strip().startswith('const [empSearchOpen') or \
+       line.strip().startswith('const [empSearchText') or \
+       line.strip().startswith('const [checkedEmployees') or \
+       line.strip().startswith('const [carryToYear'):
+        continue
+    new_lines.append(line)
 
-block = """              <input
-                type="month"
-                value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    const [yyyy, mm] = e.target.value.split('-');
-                    setSelectedYear(yyyy);
-                    setSelectedMonth(parseInt(mm).toString());
-                  }
-                }}
-                className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
-              />"""
+final_lines = []
+for line in new_lines:
+    final_lines.append(line)
+    if 'const [leaveYear, setLeaveYear] = useState' in line:
+        final_lines.append('  const [empSearchOpen, setEmpSearchOpen] = useState(false);\n')
+        final_lines.append('  const [empSearchText, setEmpSearchText] = useState("");\n')
+        final_lines.append('  const [checkedEmployees, setCheckedEmployees] = useState<string[]>([]);\n')
+        final_lines.append('  const [carryToYear, setCarryToYear] = useState<string>(new Date().getFullYear().toString());\n')
 
-replacement = """              <MonthPicker
-                monthYear={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
-                onSelectMonthYear={(val) => {
-                  const [yyyy, mm] = val.split('-');
-                  setSelectedYear(yyyy);
-                  setSelectedMonth(parseInt(mm).toString());
-                }}
-                className="appearance-none flex items-center justify-between px-4 py-2 bg-white dark:bg-card border border-slate-300 dark:border-slate-700 text-foreground text-[11px] font-black rounded-md shadow-sm outline-none cursor-pointer uppercase tracking-widest h-10 min-w-[140px]"
-              />"""
-
-if block not in content and block.replace('\n', '\r\n') in content:
-    block = block.replace('\n', '\r\n')
-    replacement = replacement.replace('\n', '\r\n')
-
-if block in content:
-    content = content.replace(block, replacement)
-    with open(path, 'w', encoding='utf-8') as f:
-        f.write(content)
-    print("Replaced in", path)
-else:
-    print("Block not found!")
+with open(file_path, 'w', encoding='utf-8') as f:
+    f.writelines(final_lines)
+print('Fixed successfully!')

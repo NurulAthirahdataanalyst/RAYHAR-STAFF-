@@ -654,7 +654,7 @@ export default function LeaveAdmin() {
           {!loading && totalPages > 1 && (
             <div className="flex items-center justify-between px-6 py-4 border-t border-border/40 bg-muted/10">
               <span className="text-xs text-foreground">
-                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredRequests.length)} of {filteredRequests.length} entries
+                TOTAL SHOWING {((currentPage - 1) * itemsPerPage) + 1} TO {Math.min(currentPage * itemsPerPage, filteredRequests.length)} OF {filteredRequests.length} ENTRIES
               </span>
               <div className="flex gap-2">
                 <Button

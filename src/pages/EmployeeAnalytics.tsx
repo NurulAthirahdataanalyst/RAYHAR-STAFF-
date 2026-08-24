@@ -575,7 +575,7 @@ export default function EmployeeAnalytics() {
                     <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-border/50 gap-4 bg-muted/10">
                       <div className="flex items-center gap-4 text-[10px] font-black text-foreground uppercase tracking-widest">
                         <span>
-                          Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, teamMetrics.length)} of {teamMetrics.length} Entries
+                          TOTAL SHOWING {indexOfFirstItem + 1} TO {Math.min(indexOfLastItem, teamMetrics.length)} OF {teamMetrics.length} ENTRIES
                         </span>
                         <div className="flex items-center gap-2">
                           <span>Show</span>

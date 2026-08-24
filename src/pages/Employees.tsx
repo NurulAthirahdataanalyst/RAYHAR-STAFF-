@@ -937,7 +937,7 @@ export default function Employees() {
                 <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-border/50 gap-4 bg-muted/10">
                   <div className="flex items-center gap-4 text-xs font-bold text-foreground uppercase tracking-widest">
                     <span>
-                      Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filtered.length)} of {filtered.length} Entries
+                      TOTAL SHOWING {indexOfFirstItem + 1} TO {Math.min(indexOfLastItem, filtered.length)} OF {filtered.length} ENTRIES
                     </span>
                     <div className="flex items-center gap-2">
                       <span>Show</span>
