@@ -63,6 +63,7 @@ export default function AttendanceReports() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [statusFilter, setStatusFilter] = useState("All");
   const [apiBranches, setApiBranches] = useState<any[]>([]);
+  const [locationsMap, setLocationsMap] = useState<Record<string, any>>({});
 
   const months = [
     { value: "1", label: "January" }, { value: "2", label: "February" }, { value: "3", label: "March" },
@@ -499,7 +500,7 @@ export default function AttendanceReports() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full ${
+                            <span className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold rounded-full ${
                               req.status === 'Present (On Time)' ? 'bg-green-100 text-green-700' :
                               req.status === 'Present (Late)' ? 'bg-yellow-100 text-yellow-700' :
                               req.status === 'Missing Clock-Out' ? 'bg-orange-100 text-orange-700' :
