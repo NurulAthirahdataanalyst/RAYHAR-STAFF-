@@ -513,9 +513,11 @@ export default function TeamAttendance() {
               </Table>
               </div>
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-2 py-4 border-t border-border">
-                  <div className="text-sm text-muted-foreground">
-                    <span className="text-[10px] font-bold text-foreground uppercase tracking-widest">TOTAL SHOWING {startIndex + 1} TO {Math.min(startIndex + entriesPerPage, filteredList.length)} OF {filteredList.length} ENTRIES</span>
+                <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
+                  <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
+                    <span>
+                      TOTAL SHOWING {startIndex + 1} TO {Math.min(startIndex + entriesPerPage, filteredList.length)} OF {filteredList.length} ENTRIES
+                    </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Button
@@ -555,9 +557,11 @@ export default function TeamAttendance() {
 
 
               {/* Bottom Pagination */}
-              <div className="flex items-center justify-between p-4 border-t border-border/50">
-                <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-foreground mr-4">TOTAL SHOWING {startIndex + 1} TO {Math.min(startIndex + entriesPerPage, filteredList.length)} OF {filteredList.length} ENTRIES</span>
+              <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-100 dark:border-slate-800 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
+                  <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
+                    <span>
+                      TOTAL SHOWING {startIndex + 1} TO {Math.min(startIndex + entriesPerPage, filteredList.length)} OF {filteredList.length} ENTRIES
+                    </span>
                         <span className="text-[10px] font-black uppercase tracking-widest text-foreground">SHOW</span>
                       <Select value={entriesPerPage.toString()} onValueChange={(val) => setEntriesPerPage(Number(val))}>
                         <SelectTrigger className="w-[70px] h-[34px] bg-white dark:bg-card border border-border rounded-xl text-foreground font-bold text-xs focus:ring-0">

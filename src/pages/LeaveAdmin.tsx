@@ -652,10 +652,10 @@ export default function LeaveAdmin() {
             </div>
           )}
           {!loading && totalPages > 1 && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-border/40 bg-muted/10">
-              <span className="text-xs text-foreground">
-                TOTAL SHOWING {((currentPage - 1) * itemsPerPage) + 1} TO {Math.min(currentPage * itemsPerPage, filteredRequests.length)} OF {filteredRequests.length} ENTRIES
-              </span>
+            <div className="flex items-center gap-4 text-[10px] font-bold text-foreground uppercase tracking-widest">
+                    <span>
+                      TOTAL SHOWING {((currentPage - 1) * itemsPerPage) + 1} TO {Math.min(currentPage * itemsPerPage, filteredRequests.length)} OF {filteredRequests.length} ENTRIES
+                    </span>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
